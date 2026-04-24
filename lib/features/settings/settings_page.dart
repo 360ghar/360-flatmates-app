@@ -29,6 +29,18 @@ class SettingsPage extends ConsumerWidget {
                 label: locale.editProfileCta,
                 onTap: () => context.push('/profile/edit'),
               ),
+              const Divider(height: 1),
+              _SettingsTile(
+                icon: Icons.notifications_outlined,
+                label: locale.notificationsTitle,
+                onTap: () => context.push('/notifications'),
+              ),
+              const Divider(height: 1),
+              _SettingsTile(
+                icon: Icons.help_outline,
+                label: locale.helpSafetyTitle,
+                onTap: () => context.push('/help-safety'),
+              ),
             ],
           ),
           const SizedBox(height: 16),

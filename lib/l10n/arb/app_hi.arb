@@ -545,5 +545,23 @@
   "noListingsMatchFilters": "आपके फ़िल्टर्स से कोई लिस्टिंग नहीं मिली। उन्हें बदलकर देखें।",
   "listingRejected": "अस्वीकृत",
   "reviewSupportText": "हम 24 घंटे के भीतर आपकी लिस्टिंग की समीक्षा करेंगे",
-  "reviewStep3Desc": "आपकी लिस्टिंग स्वीकृत और लाइव होने पर आपको सूचना मिलेगी।"
+  "reviewStep3Desc": "आपकी लिस्टिंग स्वीकृत और लाइव होने पर आपको सूचना मिलेगी।",
+  "resendOtpCta": "OTP फिर से भेजें",
+  "resendOtpCountdown": "{seconds} सेकंड में फिर से भेजें",
+  "@resendOtpCountdown": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "otpAutoReadHint": "हम आपके SMS से OTP अपने आप पढ़ लेंगे।",
+  "societySectionTitle": "सोसायटी",
+  "roomSectionTitle": "कमरा",
+  "flatAndFlatmatesSectionTitle": "फ्लैट और फ्लैटमेट्स",
+  "costsBreakdownSectionTitle": "लागत विवरण",
+  "monthlyRentRow": "मासिक किराया",
+  "securityDepositRow": "सिक्योरिटी डिपॉज़िट",
+  "maintenanceRow": "मेंटेनेंस",
+  "estimatedTotalRow": "अनुमानित कुल / महीना",
+  "existingFlatmatesLabel": "मौजूदा फ्लैटमेट्स",
+  "notAvailable": "उपलब्ध नहीं"
 }

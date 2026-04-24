@@ -4,7 +4,7 @@
 #   - At least 1 flatmate listing in the backend
 #   - App installed on iOS Simulator or Android Emulator
 
-appId: com.flatmates.app
+appId: com.the360ghar.flatmates
 ---
 - launchApp
 - assertVisible: "Get Started"

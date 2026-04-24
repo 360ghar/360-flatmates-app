@@ -33,6 +33,8 @@ class FlatmatesProfileModel {
     required this.profileStatus,
     required this.onboardingCompleted,
     required this.bio,
+    required this.age,
+    required this.profession,
     required this.budgetMin,
     required this.budgetMax,
     required this.moveInTimeline,
@@ -59,6 +61,8 @@ class FlatmatesProfileModel {
   final String profileStatus;
   final bool onboardingCompleted;
   final String? bio;
+  final int? age;
+  final String? profession;
   final double? budgetMin;
   final double? budgetMax;
   final String? moveInTimeline;
@@ -76,6 +80,9 @@ class FlatmatesProfileModel {
   final Map<String, dynamic> preferences;
 
   factory FlatmatesProfileModel.fromJson(Map<String, dynamic> json) {
+    final preferences = Map<String, dynamic>.from(
+      json['preferences'] as Map? ?? const {},
+    );
     return FlatmatesProfileModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
       fullName: json['full_name'] as String?,
@@ -86,6 +93,8 @@ class FlatmatesProfileModel {
       profileStatus: json['profile_status'] as String? ?? 'draft',
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
       bio: json['bio'] as String?,
+      age: (json['age'] as num?)?.toInt(),
+      profession: json['profession'] as String? ?? preferences['profession'] as String?,
       budgetMin: (json['budget_min'] as num?)?.toDouble(),
       budgetMax: (json['budget_max'] as num?)?.toDouble(),
       moveInTimeline: json['move_in_timeline'] as String?,
@@ -100,9 +109,7 @@ class FlatmatesProfileModel {
       workStyle: json['work_style'] as String?,
       gender: json['gender'] as String?,
       genderPreference: json['gender_preference'] as String?,
-      preferences: Map<String, dynamic>.from(
-        json['preferences'] as Map? ?? const {},
-      ),
+      preferences: preferences,
     );
   }
 }

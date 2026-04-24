@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/constants.dart';
+import '../../core/providers.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_ui.dart';
 
-class HelpSafetyPage extends StatelessWidget {
+class HelpSafetyPage extends ConsumerWidget {
   const HelpSafetyPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -46,6 +48,20 @@ class HelpSafetyPage extends StatelessWidget {
                 const Divider(height: 1),
                 _ExpandableCard(
                   icon: Icons.lock_outline,
+                  title: "Don't share your address until matched",
+                  body: 'Wait until you have matched and built trust before sharing your exact address. '
+                      'Use the in-app chat to communicate before meeting in person.',
+                ),
+                const Divider(height: 1),
+                _ExpandableCard(
+                  icon: Icons.verified_outlined,
+                  title: 'Verify profiles',
+                  body: 'Look for verified profiles and check that the information matches. '
+                      'Cross-reference social profiles when possible and report anything suspicious.',
+                ),
+                const Divider(height: 1),
+                _ExpandableCard(
+                  icon: Icons.lock_outline,
                   title: "Don't share financial info",
                   body: 'Never share your bank details, UPI PIN, or passwords with anyone on the platform. '
                       'All payments should go through verified channels only.',
@@ -63,6 +79,131 @@ class HelpSafetyPage extends StatelessWidget {
                   title: 'Report suspicious behavior',
                   body: 'If someone asks for money upfront, pressures you, or behaves inappropriately, '
                       'report them immediately. We take all reports seriously and act quickly.',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Privacy Info
+          FlatmatesSectionHeader(title: locale.privacyTitle),
+          const SizedBox(height: 12),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                _ExpandableCard(
+                  icon: Icons.visibility_off_outlined,
+                  title: 'Your data stays private',
+                  body: 'Your phone number and email are never shown to other users. '
+                      'Only your display name, profile photo, and lifestyle preferences are visible '
+                      'to matched flatmates.',
+                ),
+                const Divider(height: 1),
+                _ExpandableCard(
+                  icon: Icons.location_off_outlined,
+                  title: 'Location is approximate',
+                  body: 'Your exact address is never shared publicly. We only show your locality and city '
+                      'to help flatmates discover nearby listings. You can hide your location in Settings.',
+                ),
+                const Divider(height: 1),
+                _ExpandableCard(
+                  icon: Icons.chat_bubble_outline,
+                  title: 'In-app messaging only',
+                  body: 'All conversations happen through our secure in-app messaging system. '
+                      'We do not share your contact details with anyone unless you choose to.',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Block List Management
+          FlatmatesSectionHeader(title: 'Blocked Users'),
+          const SizedBox(height: 12),
+          Card(
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 10,
+              ),
+              leading: Icon(
+                Icons.block_outlined,
+                color: theme.colorScheme.primary,
+              ),
+              title: const Text('Manage Block List'),
+              subtitle: const Text('View and unblock users you have blocked'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => _showBlockList(context, ref),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Emergency Contacts
+          FlatmatesSectionHeader(title: 'Emergency Contacts'),
+          const SizedBox(height: 12),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
+                  leading: Icon(
+                    Icons.local_police_outlined,
+                    color: theme.colorScheme.error,
+                  ),
+                  title: const Text('Police'),
+                  subtitle: const Text('100'),
+                  trailing: const Icon(Icons.phone_outlined),
+                  onTap: () => launchUrl(Uri.parse('tel:100')),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
+                  leading: Icon(
+                    Icons.local_hospital_outlined,
+                    color: theme.colorScheme.error,
+                  ),
+                  title: const Text('Ambulance'),
+                  subtitle: const Text('108'),
+                  trailing: const Icon(Icons.phone_outlined),
+                  onTap: () => launchUrl(Uri.parse('tel:108')),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
+                  leading: Icon(
+                    Icons.security_outlined,
+                    color: theme.colorScheme.error,
+                  ),
+                  title: const Text('Women Helpline'),
+                  subtitle: const Text('1091'),
+                  trailing: const Icon(Icons.phone_outlined),
+                  onTap: () => launchUrl(Uri.parse('tel:1091')),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
+                  leading: Icon(
+                    Icons.child_care_outlined,
+                    color: theme.colorScheme.error,
+                  ),
+                  title: const Text('Child Helpline'),
+                  subtitle: const Text('1098'),
+                  trailing: const Icon(Icons.phone_outlined),
+                  onTap: () => launchUrl(Uri.parse('tel:1098')),
                 ),
               ],
             ),
@@ -268,6 +409,142 @@ class HelpSafetyPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBlockList(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => _BlockListSheet(ref: ref),
+    );
+  }
+}
+
+/// Bottom sheet showing the user's blocked users with unblock capability.
+class _BlockListSheet extends ConsumerStatefulWidget {
+  const _BlockListSheet({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  ConsumerState<_BlockListSheet> createState() => _BlockListSheetState();
+}
+
+class _BlockListSheetState extends ConsumerState<_BlockListSheet> {
+  late Future<List<Map<String, dynamic>>> _blocksFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _blocksFuture = _fetchBlocks();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchBlocks() async {
+    final response = await ref.read(apiClientProvider).get('/flatmates/blocks');
+    final rows = response.data as List? ?? const [];
+    return rows.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<void> _unblock(int blockedUserId) async {
+    await ref.read(apiClientProvider).delete('/flatmates/blocks/$blockedUserId');
+    setState(() {
+      _blocksFuture = _fetchBlocks();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Blocked Users',
+                      style: theme.textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _blocksFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  final blocks = snapshot.data ?? [];
+                  if (blocks.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.block_outlined,
+                            size: 48,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No blocked users',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: scrollController,
+                    itemCount: blocks.length,
+                    itemBuilder: (context, index) {
+                      final block = blocks[index];
+                      final blockedUser = block['blocked_user'] ?? block;
+                      final name = blockedUser['full_name'] ?? 'User';
+                      return ListTile(
+                        leading: CircleAvatar(
+                          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?'),
+                        ),
+                        title: Text(name),
+                        trailing: TextButton(
+                          onPressed: () {
+                            final blockedUserId = block['blocked_user_id'] as int?;
+                            if (blockedUserId != null) {
+                              _unblock(blockedUserId);
+                            }
+                          },
+                          child: const Text('Unblock'),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

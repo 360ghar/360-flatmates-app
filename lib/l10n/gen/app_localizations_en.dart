@@ -1349,4 +1349,45 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reviewStep3Desc =>
       'You\'ll receive a notification once your listing is approved and live.';
+
+  @override
+  String get resendOtpCta => 'Resend OTP';
+
+  @override
+  String resendOtpCountdown(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get otpAutoReadHint => 'We\'ll auto-detect the OTP from your SMS.';
+
+  @override
+  String get societySectionTitle => 'The Society';
+
+  @override
+  String get roomSectionTitle => 'The Room';
+
+  @override
+  String get flatAndFlatmatesSectionTitle => 'The Flat & Flatmates';
+
+  @override
+  String get costsBreakdownSectionTitle => 'Costs Breakdown';
+
+  @override
+  String get monthlyRentRow => 'Monthly rent';
+
+  @override
+  String get securityDepositRow => 'Security deposit';
+
+  @override
+  String get maintenanceRow => 'Maintenance';
+
+  @override
+  String get estimatedTotalRow => 'Estimated total / month';
+
+  @override
+  String get existingFlatmatesLabel => 'Existing flatmates';
+
+  @override
+  String get notAvailable => 'Not specified';
 }

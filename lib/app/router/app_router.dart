@@ -15,6 +15,7 @@ import '../../features/chats/chats_repository.dart';
 import '../../features/chats/conversations_page.dart';
 import '../../features/discover/discover_page.dart';
 import '../../features/discover/flat_details_page.dart';
+import '../../features/discover/map_view_page.dart';
 import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
 import '../../features/notifications/notifications_page.dart';
@@ -62,7 +63,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/visits' ||
           location == '/post' ||
           location == '/notifications' ||
-          location == '/help-safety';
+          location == '/help-safety' ||
+          location == '/map';
 
       if (auth.status == AuthStatus.checking) {
         return isSplash ? null : '/splash';
@@ -123,6 +125,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => FlatDetailsPage(
           listingId: int.parse(state.pathParameters['id']!),
         ),
+      ),
+      GoRoute(
+        path: '/map',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MapViewPage(),
       ),
       GoRoute(
         path: '/notifications',

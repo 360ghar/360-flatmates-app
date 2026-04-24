@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -232,11 +234,26 @@ class _ConversationCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  FlatmatesAvatar(
-                    name: item.peer.fullName,
-                    imageUrl: item.peer.profileImageUrl,
-                    size: 58,
-                  ),
+                  highlightMode && item.peer.profileImageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(58 / 2),
+                          child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(
+                              sigmaX: 8,
+                              sigmaY: 8,
+                            ),
+                            child: FlatmatesAvatar(
+                              name: item.peer.fullName,
+                              imageUrl: item.peer.profileImageUrl,
+                              size: 58,
+                            ),
+                          ),
+                        )
+                      : FlatmatesAvatar(
+                          name: item.peer.fullName,
+                          imageUrl: item.peer.profileImageUrl,
+                          size: 58,
+                        ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(

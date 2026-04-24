@@ -15,6 +15,7 @@ class OnboardingController extends StateNotifier<OnboardingState> {
   Future<void> setBasicInfo(Map<String, dynamic> data) async {
     state = state.copyWith(
       fullName: data['full_name'] as String?,
+      age: data['age'] as int?,
       profession: data['profession'] as String?,
       city: data['city'] as String?,
       locality: data['locality'] as String?,
@@ -46,6 +47,7 @@ class OnboardingController extends StateNotifier<OnboardingState> {
       final payload = <String, dynamic>{
         'mode': state.mode,
         'full_name': state.fullName,
+        'age': state.age,
         'city': state.city,
         'locality': state.locality,
         'budget_min': state.budgetMin,
@@ -90,6 +92,7 @@ class OnboardingState {
     this.step = OnboardingStep.splash,
     this.mode,
     this.fullName,
+    this.age,
     this.profession,
     this.city,
     this.locality,
@@ -107,6 +110,7 @@ class OnboardingState {
   final OnboardingStep step;
   final String? mode;
   final String? fullName;
+  final int? age;
   final String? profession;
   final String? city;
   final String? locality;
@@ -124,6 +128,7 @@ class OnboardingState {
     OnboardingStep? step,
     String? mode,
     String? fullName,
+    int? age,
     String? profession,
     String? city,
     String? locality,
@@ -141,6 +146,7 @@ class OnboardingState {
       step: step ?? this.step,
       mode: mode ?? this.mode,
       fullName: fullName ?? this.fullName,
+      age: age ?? this.age,
       profession: profession ?? this.profession,
       city: city ?? this.city,
       locality: locality ?? this.locality,

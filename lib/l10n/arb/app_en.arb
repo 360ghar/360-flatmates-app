@@ -545,5 +545,23 @@
   "noListingsMatchFilters": "No listings match your filters. Try adjusting them.",
   "listingRejected": "Rejected",
   "reviewSupportText": "We'll review your listing within 24 hours",
-  "reviewStep3Desc": "You'll receive a notification once your listing is approved and live."
+  "reviewStep3Desc": "You'll receive a notification once your listing is approved and live.",
+  "resendOtpCta": "Resend OTP",
+  "resendOtpCountdown": "Resend in {seconds}s",
+  "@resendOtpCountdown": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "otpAutoReadHint": "We'll auto-detect the OTP from your SMS.",
+  "societySectionTitle": "The Society",
+  "roomSectionTitle": "The Room",
+  "flatAndFlatmatesSectionTitle": "The Flat & Flatmates",
+  "costsBreakdownSectionTitle": "Costs Breakdown",
+  "monthlyRentRow": "Monthly rent",
+  "securityDepositRow": "Security deposit",
+  "maintenanceRow": "Maintenance",
+  "estimatedTotalRow": "Estimated total / month",
+  "existingFlatmatesLabel": "Existing flatmates",
+  "notAvailable": "Not specified"
 }

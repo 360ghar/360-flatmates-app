@@ -34,6 +34,8 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   final _messageController = TextEditingController();
   bool _hasSentFirstMessage = false;
   bool _showQnANudge = false;
+  bool _contextCardExpanded = true;
+  Timer? _contextCardCollapseTimer;
   late final Timer _pollTimer;
   final _sendDebouncer = ActionDebouncer(duration: const Duration(milliseconds: 300));
 
@@ -53,19 +55,33 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       ref.invalidate(messagesProvider(widget.conversationId));
       ref.invalidate(conversationsProvider);
     });
+    _startContextCardCollapseTimer();
+  }
+
+  void _startContextCardCollapseTimer() {
+    _contextCardCollapseTimer?.cancel();
+    _contextCardCollapseTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() => _contextCardExpanded = false);
+      }
+    });
   }
 
   void _checkExistingMessages() {
     final messages = ref.read(messagesProvider(widget.conversationId)).valueOrNull;
     _hasSentFirstMessage = messages != null && messages.isNotEmpty;
-    // Show Q&A nudge for new matches with no messages yet
+    // Show Q&A nudge for new matches with no messages yet,
+    // unless the user already dismissed/completed it for this conversation.
     final isNewMatch = widget.conversation?.source == 'match';
-    _showQnANudge = isNewMatch && !_hasSentFirstMessage;
+    final prefs = ref.read(appPreferencesProvider);
+    final alreadyDismissed = prefs.getBool('qna_nudge_dismissed_${widget.conversationId}');
+    _showQnANudge = isNewMatch && !_hasSentFirstMessage && !alreadyDismissed;
   }
 
   @override
   void dispose() {
     _pollTimer.cancel();
+    _contextCardCollapseTimer?.cancel();
     _messageController.dispose();
     _sendDebouncer.dispose();
     super.dispose();
@@ -107,6 +123,19 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
             scheduledDate: scheduledDate,
           );
       ref.invalidate(visitsProvider);
+
+      // Send a visit_request message into the chat
+      try {
+        await ref.read(chatsRepositoryProvider).sendMessage(
+              conversationId: widget.conversationId,
+              body: 'Visit requested for ${DateFormat('d MMM, h:mm a', locale.localeName).format(scheduledDate.toLocal())}',
+              messageType: 'visit_request',
+            );
+        ref.invalidate(messagesProvider(widget.conversationId));
+      } catch (_) {
+        // Best-effort: don't fail the whole flow if inline message fails
+      }
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(locale.visitRequested)),
@@ -354,9 +383,16 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     } catch (_) {
       // Best-effort; don't block the user if Q&A save fails
     }
+    _markQnANudgeDismissed();
     if (mounted) {
       setState(() => _showQnANudge = false);
     }
+  }
+
+  void _markQnANudgeDismissed() {
+    ref
+        .read(appPreferencesProvider)
+        .setBool('qna_nudge_dismissed_${widget.conversationId}', true);
   }
 
   void _showQnABottomSheet() {
@@ -370,7 +406,13 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
           _submitQnA(answers);
         },
       ),
-    );
+    ).whenComplete(() {
+      // Mark dismissed whether the user completed the Q&A or skipped it
+      _markQnANudgeDismissed();
+      if (mounted) {
+        setState(() => _showQnANudge = false);
+      }
+    });
   }
 
   void _showChatMenu() {
@@ -473,57 +515,105 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
               padding: const EdgeInsets.fromLTRB(18, 6, 18, 10),
               child: Card(
                 clipBehavior: Clip.antiAlias,
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      if (conversation!.contextProperty!.mainImageUrl != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
-                          child: Image.network(
-                            conversation.contextProperty!.mainImageUrl!,
-                            width: 88,
-                            height: 88,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _PropertyContextFallback(
-                              title: conversation.contextProperty!.title,
-                            ),
-                          ),
-                        )
-                      else
-                        _PropertyContextFallback(
-                          title: conversation.contextProperty!.title,
-                        ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                child: InkWell(
+                  onTap: () {
+                    setState(() => _contextCardExpanded = !_contextCardExpanded);
+                    if (_contextCardExpanded) {
+                      _startContextCardCollapseTimer();
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              conversation.contextProperty!.title,
-                              style: theme.textTheme.titleLarge,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (conversation.contextProperty!.monthlyRent !=
-                                null) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                locale.monthlyRentLabel(
-                                  conversation.contextProperty!.monthlyRent!
-                                      .toStringAsFixed(0),
+                            Expanded(
+                              child: Text(
+                                conversation!.contextProperty!.title,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ],
-                            const SizedBox(height: 12),
-                            OutlinedButton(
-                              onPressed: () => _scheduleVisit(context),
-                              child: Text(locale.scheduleVisitCta),
+                            ),
+                            const SizedBox(width: 8),
+                            AnimatedRotation(
+                              turns: _contextCardExpanded ? 0.0 : -0.25,
+                              duration: const Duration(milliseconds: 250),
+                              child: Icon(
+                                Icons.expand_more_rounded,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        AnimatedCrossFade(
+                          firstChild: Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  if (conversation.contextProperty!.mainImageUrl != null)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(18),
+                                      child: Image.network(
+                                        conversation.contextProperty!.mainImageUrl!,
+                                        width: 88,
+                                        height: 88,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => _PropertyContextFallback(
+                                          title: conversation.contextProperty!.title,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    _PropertyContextFallback(
+                                      title: conversation.contextProperty!.title,
+                                    ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          conversation.contextProperty!.title,
+                                          style: theme.textTheme.titleLarge,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (conversation.contextProperty!.monthlyRent !=
+                                            null) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            locale.monthlyRentLabel(
+                                              conversation.contextProperty!.monthlyRent!
+                                                  .toStringAsFixed(0),
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 12),
+                                        OutlinedButton(
+                                          onPressed: () => _scheduleVisit(context),
+                                          child: Text(locale.scheduleVisitCta),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          secondChild: const SizedBox.shrink(),
+                          crossFadeState: _contextCardExpanded
+                              ? CrossFadeState.showFirst
+                              : CrossFadeState.showSecond,
+                          duration: const Duration(milliseconds: 300),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -752,6 +842,75 @@ class _MessageBubble extends StatelessWidget {
       locale.localeName,
     ).format(message.createdAt.toLocal());
 
+    // Visit request card
+    if (message.messageType == 'visit_request') {
+      return _VisitRequestCard(
+        message: message,
+        isMine: isMine,
+        peerName: peerName,
+        peerImageUrl: peerImageUrl,
+        time: time,
+      );
+    }
+
+    // Image message
+    if (message.messageType == 'image' && message.attachmentUrl != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 18),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: isMine
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
+          children: [
+            if (!isMine) ...[
+              FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 40),
+              const SizedBox(width: 10),
+            ],
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 220),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Image.network(
+                  message.attachmentUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Container(
+                    width: 200,
+                    height: 150,
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    child: Center(
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        color: theme.colorScheme.onSurfaceVariant,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                  loadingBuilder: (_, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 200,
+                      height: 150,
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Default text message bubble
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: Row(
@@ -827,6 +986,153 @@ class _MessageBubble extends StatelessWidget {
                                 : Colors.white.withValues(alpha: 0.85),
                           ),
                         ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VisitRequestCard extends StatelessWidget {
+  const _VisitRequestCard({
+    required this.message,
+    required this.isMine,
+    required this.peerName,
+    required this.peerImageUrl,
+    required this.time,
+  });
+
+  final ChatMessage message;
+  final bool isMine;
+  final String? peerName;
+  final String? peerImageUrl;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: isMine
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        children: [
+          if (!isMine) ...[
+            FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 40),
+            const SizedBox(width: 10),
+          ],
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 270),
+            child: Card(
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: BorderSide(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.event_available_rounded,
+                          size: 20,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            locale.scheduleVisitCta,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              message.body ?? locale.visitRequested,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.schedule_rounded,
+                                size: 14,
+                                color: Colors.orange.shade700,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                locale.visitStatusRequested,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.orange.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          time,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ],

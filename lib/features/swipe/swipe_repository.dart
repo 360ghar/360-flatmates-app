@@ -25,6 +25,7 @@ class SwipeProfile {
     required this.nonNegotiables,
     required this.hasPets,
     required this.partyHabit,
+    required this.listingDetails,
   });
 
   final int id;
@@ -48,7 +49,52 @@ class SwipeProfile {
   final bool hasPets;
   final String? partyHabit;
 
+  /// Extra listing detail fields from the API response.
+  /// Expected keys:
+  ///   - 'society_name' (`String`)
+  ///   - 'society_type' (`String`)
+  ///   - 'society_amenities' (`List<String>`)
+  ///   - 'society_vibes' (`List<String>`)
+  ///   - 'room_type' (`String`)
+  ///   - 'furnishing' (`List<String>`)
+  ///   - 'room_features' (`List<String>`)
+  ///   - 'flat_config' (`String`, e.g. "2 BHK")
+  ///   - 'floor' (`String`)
+  ///   - 'total_floors' (`String`)
+  ///   - 'flat_amenities' (`List<String>`)
+  ///   - 'monthly_rent' (`double`)
+  ///   - 'security_deposit' (`double`)
+  ///   - 'maintenance' (`double`)
+  ///   - 'existing_flatmates' (`List<Map<String, String>>`)
+  ///     each with keys: 'name', 'profession', 'lifestyle_chips'
+  final Map<String, dynamic> listingDetails;
+
   factory SwipeProfile.fromJson(Map<String, dynamic> json) {
+    // Extract known listing detail keys from the JSON response, if present.
+    final listingKeys = <String>[
+      'society_name',
+      'society_type',
+      'society_amenities',
+      'society_vibes',
+      'room_type',
+      'furnishing',
+      'room_features',
+      'flat_config',
+      'floor',
+      'total_floors',
+      'flat_amenities',
+      'monthly_rent',
+      'security_deposit',
+      'maintenance',
+      'existing_flatmates',
+    ];
+    final details = <String, dynamic>{};
+    for (final key in listingKeys) {
+      if (json.containsKey(key)) {
+        details[key] = json[key];
+      }
+    }
+
     return SwipeProfile(
       id: (json['id'] as num?)?.toInt() ?? 0,
       fullName: json['full_name'] as String?,
@@ -73,8 +119,16 @@ class SwipeProfile {
           const [],
       hasPets: json['has_pets'] as bool? ?? false,
       partyHabit: json['party_habit'] as String?,
+      listingDetails: details,
     );
   }
+}
+
+class SwipeResult {
+  const SwipeResult({required this.didMatch, this.conversationId});
+
+  final bool didMatch;
+  final int? conversationId;
 }
 
 class SwipeRepository {
@@ -179,11 +233,11 @@ class SwipeRepository {
     }).toList();
   }
 
-  Future<void> swipeProfile({
+  Future<SwipeResult> swipeProfile({
     required int targetUserId,
     required String action,
   }) async {
-    await _ref.read(apiClientProvider).post(
+    final response = await _ref.read(apiClientProvider).post(
           '/flatmates/swipes',
           data: {
             'target_type': 'user',
@@ -191,6 +245,13 @@ class SwipeRepository {
             'target_user_id': targetUserId,
           },
         );
+    final data = response.data is Map
+        ? Map<String, dynamic>.from(response.data as Map)
+        : <String, dynamic>{};
+    return SwipeResult(
+      didMatch: data['did_match'] as bool? ?? false,
+      conversationId: (data['conversation_id'] as num?)?.toInt(),
+    );
   }
 }
 

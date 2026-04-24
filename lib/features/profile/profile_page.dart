@@ -43,6 +43,11 @@ class ProfilePage extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
+                      key: const Key('profile_notifications_button'),
+                      onPressed: () => context.push('/notifications'),
+                      icon: const Icon(Icons.notifications_outlined),
+                    ),
+                    IconButton(
                       key: const Key('profile_settings_button'),
                       onPressed: () => context.push('/profile/settings'),
                       icon: const Icon(Icons.settings_outlined),
@@ -159,6 +164,134 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+                // --- Age & Profession ---
+                if (profile.age != null || profile.profession != null) ...[
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          if (profile.age != null) ...[
+                            InfoPill(
+                              icon: Icons.cake_outlined,
+                              label: '${profile.age} yrs',
+                            ),
+                            if (profile.profession != null)
+                              const SizedBox(width: 12),
+                          ],
+                          if (profile.profession != null)
+                            InfoPill(
+                              icon: Icons.work_outline,
+                              label: profile.profession!,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // --- Lifestyle tags ---
+                if (_lifestyleEntries(profile).isNotEmpty) ...[
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            locale.workStyleTitle,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _lifestyleEntries(profile).map((entry) {
+                              return FilterChip(
+                                label: Text(entry),
+                                selected: true,
+                                onSelected: null,
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // --- Non-negotiables ---
+                if (_nonNegotiableLabels(profile, locale).isNotEmpty) ...[
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            locale.nonNegotiablesTitle,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _nonNegotiableLabels(profile, locale)
+                                .map((label) {
+                              return FilterChip(
+                                label: Text(label),
+                                selected: true,
+                                onSelected: null,
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // --- Budget & Timeline ---
+                if (profile.budgetMin != null ||
+                    profile.budgetMax != null ||
+                    profile.moveInTimeline != null) ...[
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            locale.budgetTimelineTitle,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              if (profile.budgetMin != null ||
+                                  profile.budgetMax != null)
+                                InfoPill(
+                                  icon: Icons.currency_rupee,
+                                  label: _budgetRange(profile),
+                                ),
+                              if (profile.moveInTimeline != null)
+                                InfoPill(
+                                  icon: Icons.event_outlined,
+                                  label: _timelineLabel(
+                                    locale,
+                                    profile.moveInTimeline!,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 Row(
                   children: [
                     Expanded(
@@ -317,5 +450,76 @@ class _ProfileMenuTile extends StatelessWidget {
       ),
       trailing: const Icon(Icons.chevron_right_rounded),
     );
+  }
+}
+
+List<String> _lifestyleEntries(FlatmatesProfileModel profile) {
+  final entries = <String>[];
+  if (profile.sleepSchedule != null && profile.sleepSchedule!.trim().isNotEmpty) {
+    entries.add(humanizeFlatmatesToken(profile.sleepSchedule!));
+  }
+  if (profile.cleanliness != null && profile.cleanliness!.trim().isNotEmpty) {
+    entries.add(humanizeFlatmatesToken(profile.cleanliness!));
+  }
+  if (profile.foodHabits != null && profile.foodHabits!.trim().isNotEmpty) {
+    entries.add(humanizeFlatmatesToken(profile.foodHabits!));
+  }
+  if (profile.smokingDrinking != null && profile.smokingDrinking!.trim().isNotEmpty) {
+    entries.add(humanizeFlatmatesToken(profile.smokingDrinking!));
+  }
+  if (profile.guestsPolicy != null && profile.guestsPolicy!.trim().isNotEmpty) {
+    entries.add(humanizeFlatmatesToken(profile.guestsPolicy!));
+  }
+  if (profile.workStyle != null && profile.workStyle!.trim().isNotEmpty) {
+    entries.add(humanizeFlatmatesToken(profile.workStyle!));
+  }
+  return entries;
+}
+
+List<String> _nonNegotiableLabels(
+  FlatmatesProfileModel profile,
+  AppLocalizations locale,
+) {
+  final raw = profile.preferences['non_negotiables'];
+  if (raw is! List) return const [];
+  return raw
+      .whereType<String>()
+      .map((key) => _nonNegLabel(locale, key))
+      .toList();
+}
+
+String _nonNegLabel(AppLocalizations l, String k) => switch (k) {
+  'food_veg_only' => l.nonNegVegOnly,
+  'no_smoking' => l.nonNegNoSmoking,
+  'no_drinking' => l.nonNegNoDrinking,
+  'no_overnight_guests' => l.nonNegNoGuests,
+  'no_pets' => l.nonNegNoPets,
+  'no_parties' => l.nonNegNoParties,
+  'min_tidy' => l.nonNegMinTidy,
+  _ => humanizeFlatmatesToken(k),
+};
+
+String _budgetRange(FlatmatesProfileModel profile) {
+  final min = profile.budgetMin;
+  final max = profile.budgetMax;
+  if (min != null && max != null) {
+    return '${min.toStringAsFixed(0)} - ${max.toStringAsFixed(0)}';
+  } else if (min != null) {
+    return 'From ${min.toStringAsFixed(0)}';
+  } else {
+    return 'Up to ${max!.toStringAsFixed(0)}';
+  }
+}
+
+String _timelineLabel(AppLocalizations locale, String key) {
+  switch (key) {
+    case 'immediate':
+      return locale.timelineImmediate;
+    case 'this_month':
+      return locale.timelineThisMonth;
+    case 'next_month':
+      return locale.timelineNextMonth;
+    default:
+      return locale.timelineFlexible;
   }
 }

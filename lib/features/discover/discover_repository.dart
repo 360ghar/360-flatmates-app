@@ -24,6 +24,7 @@ class PropertyListing {
     required this.genderPreference,
     required this.sharingType,
     required this.interestCount,
+    this.createdAt,
     this.preferences,
     this.status,
   });
@@ -48,6 +49,7 @@ class PropertyListing {
   final String? genderPreference;
   final String? sharingType;
   final int interestCount;
+  final DateTime? createdAt;
   final Map<String, dynamic>? preferences;
   final String? status;
 
@@ -86,6 +88,9 @@ class PropertyListing {
       genderPreference: preferences['gender_preference'] as String?,
       sharingType: preferences['sharing_type'] as String?,
       interestCount: (json['interest_count'] as num?)?.toInt() ?? 0,
+      createdAt: DateTime.tryParse(
+        json['created_at']?.toString() ?? '',
+      ),
       preferences: preferences,
       status: json['status'] as String?,
     );

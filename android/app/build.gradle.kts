@@ -8,6 +8,9 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Load signing credentials from key.properties (preferred) or environment variables.
+// Generate the keystore with:
+//   keytool -genkey -v -keystore release.keystore -alias release -keyalg RSA -keysize 2048 -validity 10000
 val keystorePropertiesFile = rootProject.file("app/key.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
@@ -30,18 +33,21 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias") ?: ""
-            keyPassword = keystoreProperties.getProperty("keyPassword") ?: ""
-            storeFile = if (keystoreProperties.getProperty("storeFile") != null) file(keystoreProperties.getProperty("storeFile")) else null
-            storePassword = keystoreProperties.getProperty("storePassword") ?: ""
+            // key.properties file takes precedence; fall back to environment variables.
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+                ?: System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+                ?: System.getenv("KEY_PASSWORD") ?: ""
+            storePassword = keystoreProperties.getProperty("storePassword")
+                ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
+            val storeFilePath = keystoreProperties.getProperty("storeFile")
+                ?: System.getenv("KEYSTORE_FILE")
+            storeFile = if (storeFilePath != null) file(storeFilePath) else null
         }
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.the360ghar.flatmates"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -50,7 +56,11 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
+            // Use the release signing config when keystore credentials are available,
+            // otherwise fall back to the debug signing config for development builds.
+            signingConfig = if (keystorePropertiesFile.exists()
+                || System.getenv("KEYSTORE_FILE") != null
+            ) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")

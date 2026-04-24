@@ -192,7 +192,8 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
       if (l.locality != null) text.writeln(l.locality);
       text.writeln();
       text.writeln('Find your flatmate on 360 FlatMates!');
-      text.writeln('https://play.google.com/store/apps/details?id=com.flatmates.app');
+      text.writeln('Android: https://play.google.com/store/apps/details?id=com.the360ghar.flatmates');
+      text.writeln('iOS: https://apps.apple.com/app/idXXXXXXX');
       await Share.share(text.toString());
     }
   }

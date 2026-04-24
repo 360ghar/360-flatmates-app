@@ -112,6 +112,7 @@ class ChatMessage {
     required this.messageType,
     required this.createdAt,
     this.readAt,
+    this.attachmentUrl,
   });
 
   final int id;
@@ -121,6 +122,7 @@ class ChatMessage {
   final String messageType;
   final DateTime createdAt;
   final DateTime? readAt;
+  final String? attachmentUrl;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
@@ -131,6 +133,7 @@ class ChatMessage {
       messageType: json['message_type'] as String? ?? 'text',
       createdAt: DateTime.parse(json['created_at'] as String),
       readAt: json['read_at'] != null ? DateTime.tryParse(json['read_at'].toString()) : null,
+      attachmentUrl: json['attachment_url'] as String?,
     );
   }
 }

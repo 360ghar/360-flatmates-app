@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/utils/debouncer.dart';
@@ -152,10 +153,19 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      FlatmatesAvatar(
-                        name: profile?.fullName,
-                        imageUrl: profile?.profileImageUrl,
-                        size: 52,
+                      Column(
+                        children: [
+                          IconButton(
+                            onPressed: () => context.push('/map'),
+                            icon: const Icon(Icons.map_outlined),
+                            tooltip: 'Map',
+                          ),
+                          FlatmatesAvatar(
+                            name: profile?.fullName,
+                            imageUrl: profile?.profileImageUrl,
+                            size: 52,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -277,7 +287,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: InfoPill(
                         icon: Icons.people_outline,
-                        label: locale.cityCounter(42, profile!.city!),
+                        label: locale.cityCounter(visibleItems.length, profile!.city!),
                         highlighted: true,
                       ),
                     ),
@@ -297,48 +307,120 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       ),
                     )
                   else
-                    ...List.generate(filtered.length, (index) {
-                      final item = filtered[index];
-                      final badgeLabel = switch (index) {
-                        0 => locale.badgeNew,
-                        1 => locale.badgePopular,
-                        _ =>
-                          item.interestCount > 1 ? locale.badgeTrending : null,
-                      };
+                    SizedBox(
+                      height: 370,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 14),
+                        itemBuilder: (context, index) {
+                          final item = filtered[index];
+                          final badgeLabel = switch (index) {
+                            0 => locale.badgeNew,
+                            1 => locale.badgePopular,
+                            _ =>
+                              item.interestCount > 1 ? locale.badgeTrending : null,
+                          };
 
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == filtered.length - 1 ? 0 : 18,
-                        ),
-                        child: _DiscoverCard(
-                          item: item,
-                          badgeLabel: badgeLabel,
-                          onLike: () {
-                            _likeDebouncer.run(() {
-                              ref
-                                  .read(discoverRepositoryProvider)
-                                  .likeListing(item.id)
-                                  .then((conversationId) {
-                                ref.invalidate(discoverListingsProvider);
-                                ref.invalidate(conversationsProvider);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      conversationId == null
-                                          ? locale.contactRequestSent
-                                          : locale.contactRequestWithConversation(
-                                              conversationId,
-                                            ),
-                                    ),
-                                  ),
-                                );
-                              });
-                            });
-                          },
-                        ),
-                      );
-                    }),
+                          return SizedBox(
+                            width: 300,
+                            child: _DiscoverCard(
+                              item: item,
+                              badgeLabel: badgeLabel,
+                              onLike: () {
+                                _likeDebouncer.run(() {
+                                  ref
+                                      .read(discoverRepositoryProvider)
+                                      .likeListing(item.id)
+                                      .then((conversationId) {
+                                    ref.invalidate(discoverListingsProvider);
+                                    ref.invalidate(conversationsProvider);
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          conversationId == null
+                                              ? locale.contactRequestSent
+                                              : locale.contactRequestWithConversation(
+                                                  conversationId,
+                                                ),
+                                        ),
+                                      ),
+                                    );
+                                  });
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  // --- New in [City] section ---
+                  if (profile?.city != null) ...[
+                    const SizedBox(height: 28),
+                    FlatmatesSectionHeader(
+                      title: locale.homeNewInCity(profile!.city!),
+                    ),
+                    const SizedBox(height: 18),
+                    _NewInCitySection(
+                      items: filtered,
+                      onLike: (item) {
+                        _likeDebouncer.run(() {
+                          ref
+                              .read(discoverRepositoryProvider)
+                              .likeListing(item.id)
+                              .then((conversationId) {
+                            ref.invalidate(discoverListingsProvider);
+                            ref.invalidate(conversationsProvider);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  conversationId == null
+                                      ? locale.contactRequestSent
+                                      : locale.contactRequestWithConversation(
+                                          conversationId,
+                                        ),
+                                ),
+                              ),
+                            );
+                          });
+                        });
+                      },
+                    ),
+                  ],
+                  // --- Moving Soon section ---
+                  const SizedBox(height: 28),
+                  FlatmatesSectionHeader(
+                    title: locale.homeMovingSoon,
+                  ),
+                  const SizedBox(height: 18),
+                  _MovingSoonSection(
+                    items: filtered,
+                    onLike: (item) {
+                      _likeDebouncer.run(() {
+                        ref
+                            .read(discoverRepositoryProvider)
+                            .likeListing(item.id)
+                            .then((conversationId) {
+                          ref.invalidate(discoverListingsProvider);
+                          ref.invalidate(conversationsProvider);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                conversationId == null
+                                    ? locale.contactRequestSent
+                                    : locale.contactRequestWithConversation(
+                                        conversationId,
+                                      ),
+                              ),
+                            ),
+                          );
+                        });
+                      });
+                    },
+                  ),
                 ],
               ),
             );
@@ -650,6 +732,106 @@ class _ListingImageFallback extends StatelessWidget {
             style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NewInCitySection extends StatelessWidget {
+  const _NewInCitySection({required this.items, required this.onLike});
+
+  final List<PropertyListing> items;
+  final void Function(PropertyListing) onLike;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final cutoff = now.subtract(const Duration(hours: 48));
+    final newItems = items.where((item) {
+      if (item.createdAt != null) {
+        return item.createdAt!.isAfter(cutoff);
+      }
+      return false;
+    }).toList();
+    // Fallback: if no items have createdAt, use the top 3 as proxy
+    final displayItems =
+        newItems.isNotEmpty ? newItems : items.take(3).toList();
+
+    if (displayItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      height: 370,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: displayItems.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final item = displayItems[index];
+          return SizedBox(
+            width: 300,
+            child: _DiscoverCard(
+              item: item,
+              badgeLabel: AppLocalizations.of(context).badgeNew,
+              onLike: () => onLike(item),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _MovingSoonSection extends StatelessWidget {
+  const _MovingSoonSection({required this.items, required this.onLike});
+
+  final List<PropertyListing> items;
+  final void Function(PropertyListing) onLike;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final sevenDays = now.add(const Duration(days: 7));
+    final movingSoon = items.where((item) {
+      if (item.availableFrom == null) return false;
+      final date = item.availableFrom!;
+      return date.isAfter(now) && date.isBefore(sevenDays);
+    }).toList();
+
+    if (movingSoon.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Text(
+            AppLocalizations.of(context).homeNoResults,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 370,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: movingSoon.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final item = movingSoon[index];
+          final daysLeft =
+              item.availableFrom!.toLocal().difference(now.toLocal()).inDays;
+          return SizedBox(
+            width: 300,
+            child: _DiscoverCard(
+              item: item,
+              badgeLabel: '$daysLeft d left',
+              onLike: () => onLike(item),
+            ),
+          );
+        },
       ),
     );
   }

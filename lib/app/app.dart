@@ -18,11 +18,8 @@ class App extends ConsumerStatefulWidget {
 }
 
 class _AppState extends ConsumerState<App> {
-  @override
-  void initState() {
-    super.initState();
-    NotificationService.initializeLocalNotifications();
-  }
+  // Local notifications are initialized in bootstrap() before runApp().
+  // NotificationService.initialize() is called after auth login (see ref.listen below).
 
   @override
   Widget build(BuildContext context) {

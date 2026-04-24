@@ -2647,6 +2647,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'ll receive a notification once your listing is approved and live.'**
   String get reviewStep3Desc;
+
+  /// No description provided for @resendOtpCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend OTP'**
+  String get resendOtpCta;
+
+  /// No description provided for @resendOtpCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String resendOtpCountdown(int seconds);
+
+  /// No description provided for @otpAutoReadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll auto-detect the OTP from your SMS.'**
+  String get otpAutoReadHint;
+
+  /// No description provided for @societySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Society'**
+  String get societySectionTitle;
+
+  /// No description provided for @roomSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Room'**
+  String get roomSectionTitle;
+
+  /// No description provided for @flatAndFlatmatesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Flat & Flatmates'**
+  String get flatAndFlatmatesSectionTitle;
+
+  /// No description provided for @costsBreakdownSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Costs Breakdown'**
+  String get costsBreakdownSectionTitle;
+
+  /// No description provided for @monthlyRentRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly rent'**
+  String get monthlyRentRow;
+
+  /// No description provided for @securityDepositRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Security deposit'**
+  String get securityDepositRow;
+
+  /// No description provided for @maintenanceRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get maintenanceRow;
+
+  /// No description provided for @estimatedTotalRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total / month'**
+  String get estimatedTotalRow;
+
+  /// No description provided for @existingFlatmatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing flatmates'**
+  String get existingFlatmatesLabel;
+
+  /// No description provided for @notAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get notAvailable;
 }
 
 class _AppLocalizationsDelegate

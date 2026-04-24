@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app.dart';
 import 'core/config/app_config.dart';
 import 'core/config/env_loader.dart';
+import 'core/notifications/notification_service.dart';
 import 'core/providers.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_kv_store.dart';
@@ -16,6 +17,8 @@ import 'core/storage/secure_kv_store.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
+    // Initialize local notifications so background messages can be displayed.
+    await NotificationService.initializeLocalNotifications();
   } catch (_) {
     // Firebase may not be configured; skip silently.
   }
@@ -37,6 +40,11 @@ Future<void> bootstrap() async {
   }
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Initialize the local notifications plugin early so it is ready before
+  // the widget tree mounts and before any foreground / background messages
+  // arrive.
+  await NotificationService.initializeLocalNotifications();
 
   await Supabase.initialize(
     url: config.supabaseUrl,

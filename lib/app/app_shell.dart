@@ -61,6 +61,12 @@ class AppShell extends ConsumerWidget {
             label: locale.navLikesChat,
           ),
           NavigationDestination(
+            key: const Key('nav_visits_tab'),
+            icon: const Icon(Icons.calendar_today_outlined),
+            selectedIcon: const Icon(Icons.calendar_today_rounded),
+            label: locale.navSchedule,
+          ),
+          NavigationDestination(
             key: const Key('nav_post_tab'),
             icon: const Icon(Icons.add_home_outlined),
             selectedIcon: const Icon(Icons.add_home_rounded),

@@ -1347,4 +1347,45 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get reviewStep3Desc =>
       'आपकी लिस्टिंग स्वीकृत और लाइव होने पर आपको सूचना मिलेगी।';
+
+  @override
+  String get resendOtpCta => 'OTP फिर से भेजें';
+
+  @override
+  String resendOtpCountdown(int seconds) {
+    return '$seconds सेकंड में फिर से भेजें';
+  }
+
+  @override
+  String get otpAutoReadHint => 'हम आपके SMS से OTP अपने आप पढ़ लेंगे।';
+
+  @override
+  String get societySectionTitle => 'सोसायटी';
+
+  @override
+  String get roomSectionTitle => 'कमरा';
+
+  @override
+  String get flatAndFlatmatesSectionTitle => 'फ्लैट और फ्लैटमेट्स';
+
+  @override
+  String get costsBreakdownSectionTitle => 'लागत विवरण';
+
+  @override
+  String get monthlyRentRow => 'मासिक किराया';
+
+  @override
+  String get securityDepositRow => 'सिक्योरिटी डिपॉज़िट';
+
+  @override
+  String get maintenanceRow => 'मेंटेनेंस';
+
+  @override
+  String get estimatedTotalRow => 'अनुमानित कुल / महीना';
+
+  @override
+  String get existingFlatmatesLabel => 'मौजूदा फ्लैटमेट्स';
+
+  @override
+  String get notAvailable => 'उपलब्ध नहीं';
 }
