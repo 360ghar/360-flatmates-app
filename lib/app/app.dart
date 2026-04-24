@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
@@ -32,9 +33,10 @@ class _AppState extends ConsumerState<App> {
       final bootstrap = ref.read(bootstrapControllerProvider.notifier);
       if (next.isLoggedIn) {
         bootstrap.load();
-        // Initialize push notifications after the user is authenticated
         ref.read(notificationServiceProvider).initialize();
+        _navigateFromPendingNotification(router);
       } else {
+        ref.read(notificationServiceProvider).dispose();
         bootstrap.clear();
       }
     });
@@ -56,5 +58,14 @@ class _AppState extends ConsumerState<App> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     );
+  }
+
+  void _navigateFromPendingNotification(GoRouter router) {
+    final route = NotificationService.consumePendingRoute();
+    if (route != null && route.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        router.push(route);
+      });
+    }
   }
 }

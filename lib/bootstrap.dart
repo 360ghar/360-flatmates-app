@@ -14,7 +14,11 @@ import 'core/storage/secure_kv_store.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {
+    // Firebase may not be configured; skip silently.
+  }
 }
 
 Future<void> bootstrap() async {

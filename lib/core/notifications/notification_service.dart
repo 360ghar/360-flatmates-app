@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,9 +9,14 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../providers.dart';
 
 class NotificationService {
-  const NotificationService(this._ref);
+  NotificationService(this._ref);
 
   final Ref _ref;
+  bool _initialized = false;
+
+  StreamSubscription<RemoteMessage>? _onMessageSub;
+  StreamSubscription<RemoteMessage>? _onMessageOpenedAppSub;
+  StreamSubscription<String>? _onTokenRefreshSub;
 
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
@@ -27,22 +33,7 @@ class NotificationService {
       settings,
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
-  }
 
-  static void _onNotificationTap(NotificationResponse response) {
-    // Deep link navigation handled by the router
-    // The payload contains the route to navigate to
-  }
-
-  Future<void> initialize() async {
-    // Request permissions
-    if (Platform.isIOS) {
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
     if (Platform.isAndroid) {
       final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<
@@ -57,26 +48,66 @@ class NotificationService {
         ),
       );
     }
+  }
 
-    // Foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+  static void _onNotificationTap(NotificationResponse response) {
+    final route = response.payload;
+    if (route == null || route.isEmpty) return;
+    _pendingRoute = route;
+  }
 
-    // Background/terminated message tap
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
+  static String? _pendingRoute;
 
-    // Check initial message (app opened from notification)
-    final initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      _handleMessageTap(initialMessage);
+  static String? consumePendingRoute() {
+    final route = _pendingRoute;
+    _pendingRoute = null;
+    return route;
+  }
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
+    try {
+      if (Platform.isIOS) {
+        await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
+
+      _onMessageSub =
+          FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      _onMessageOpenedAppSub =
+          FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
+
+      final initialMessage =
+          await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        _handleMessageTap(initialMessage);
+      }
+
+      _onTokenRefreshSub =
+          FirebaseMessaging.instance.onTokenRefresh.listen(_sendTokenToServer);
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await _sendTokenToServer(token);
+      }
+    } catch (e) {
+      _initialized = false;
+      debugPrint('NotificationService.initialize() failed: $e');
     }
+  }
 
-    // Token management
-    FirebaseMessaging.instance.onTokenRefresh.listen(_sendTokenToServer);
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null) {
-      await _sendTokenToServer(token);
-    }
+  void dispose() {
+    _onMessageSub?.cancel();
+    _onMessageOpenedAppSub?.cancel();
+    _onTokenRefreshSub?.cancel();
+    _onMessageSub = null;
+    _onMessageOpenedAppSub = null;
+    _onTokenRefreshSub = null;
+    _initialized = false;
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -104,10 +135,8 @@ class NotificationService {
 
   void _handleMessageTap(RemoteMessage message) {
     final route = message.data['route'];
-    if (route != null) {
-      // Navigate using the app's router
-      // The router is accessible via the global navigator key
-      debugPrint('Notification tap route: $route');
+    if (route != null && route.isNotEmpty) {
+      _pendingRoute = route;
     }
   }
 
