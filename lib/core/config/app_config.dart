@@ -49,19 +49,19 @@ final class AppConfig {
     );
 
     const apiDefine = String.fromEnvironment('API_BASE_URL');
-    final apiBaseUrl = apiDefine.trim().isNotEmpty
+    var apiBaseUrl = apiDefine.trim().isNotEmpty
         ? apiDefine
         : (dotenv.env['API_BASE_URL'] ?? '');
 
     const supabaseUrlDefine = String.fromEnvironment('SUPABASE_URL');
-    final supabaseUrl = supabaseUrlDefine.trim().isNotEmpty
+    var supabaseUrl = supabaseUrlDefine.trim().isNotEmpty
         ? supabaseUrlDefine
         : (dotenv.env['SUPABASE_URL'] ?? '');
 
     const supabaseKeyDefine = String.fromEnvironment(
       'SUPABASE_PUBLISHABLE_KEY',
     );
-    final supabaseAnonKey = supabaseKeyDefine.trim().isNotEmpty
+    var supabaseAnonKey = supabaseKeyDefine.trim().isNotEmpty
         ? supabaseKeyDefine
         : (dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '');
 
@@ -75,7 +75,9 @@ final class AppConfig {
         !kReleaseMode;
 
     if (apiBaseUrl.trim().isEmpty) {
-      throw StateError('Missing API_BASE_URL configuration.');
+      throw StateError(
+        'API_BASE_URL is required. Set it via .env, --dart-define, or environment variable.',
+      );
     }
     if (supabaseUrl.trim().isEmpty || supabaseAnonKey.trim().isEmpty) {
       throw StateError(

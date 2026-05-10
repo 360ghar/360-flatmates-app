@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:math' as math show pi;
 
+import 'package:confetti/confetti.dart';
+import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
+
+import '../../core/theme/app_spacing.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_ui.dart';
 
 class MatchCelebrationScreen extends StatefulWidget {
@@ -28,6 +34,7 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
+  late final ConfettiController _confettiController;
 
   @override
   void initState() {
@@ -38,13 +45,19 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
     );
     _scaleAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.elasticOut,
+      curve: Curves.easeOutBack,
     );
     _controller.forward();
+
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
+    _confettiController.play();
   }
 
   @override
   void dispose() {
+    _confettiController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -52,168 +65,131 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary.withValues(alpha: 0.12),
-              theme.colorScheme.surface,
+      body: Stack(
+        children: [
+          ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirectionality: BlastDirectionality.explosive,
+            blastDirection: math.pi / 2,
+            emissionFrequency: 0.05,
+            numberOfParticles: 30,
+            gravity: 0.3,
+            colors: const [
+              AppSemanticColors.accent,
+              AppSemanticColors.success,
+              AppSemanticColors.warning,
             ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            createParticlePath: null,
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: Text(
-                  '🎉',
-                  style: const TextStyle(fontSize: 64),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: Text(
-                  "It's a Match!",
-                  style: theme.textTheme.headlineLarge?.copyWith(fontSize: 36),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'You and ${widget.peerName} liked each other',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _MatchAvatar(name: widget.userName, imageUrl: widget.userImageUrl),
-                    const SizedBox(width: 20),
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.favorite_rounded, color: Colors.white),
-                    ),
-                    const SizedBox(width: 20),
-                    _MatchAvatar(name: widget.peerName, imageUrl: widget.peerImageUrl),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 48),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        key: const Key('match_open_chat'),
-                        onPressed: widget.onOpenChat,
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Text('Send a message'),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        key: const Key('match_keep_swiping'),
-                        onPressed: widget.onKeepSwiping,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Text('Keep swiping'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MatchAvatar extends StatelessWidget {
-  const _MatchAvatar({required this.name, this.imageUrl});
-
-  final String name;
-  final String? imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
-
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: theme.colorScheme.primary, width: 3),
-        gradient: hasImage
-            ? null
-            : LinearGradient(
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
                 colors: [
-                  theme.colorScheme.primary.withValues(alpha: 0.9),
-                  theme.colorScheme.primary.withValues(alpha: 0.5),
+                  AppSemanticColors.accent.withValues(alpha: 0.12),
+                  AppSemanticColors.surfaceFor(theme.brightness),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Text(
+                      '🎉',
+                      style: const TextStyle(fontSize: 64),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Text(
+                      locale.matchItsAMatch,
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        fontSize: 36,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    locale.matchLikedEachOther(widget.peerName),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl + AppSpacing.md),
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FlatmatesAvatar(
+                          name: widget.userName,
+                          imageUrl: widget.userImageUrl,
+                          size: 100,
+                        ),
+                        const SizedBox(width: AppSpacing.xl),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: AppSemanticColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.favorite_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xl),
+                        FlatmatesAvatar(
+                          name: widget.peerName,
+                          imageUrl: widget.peerImageUrl,
+                          size: 100,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.section + AppSpacing.xl),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screen + AppSpacing.md,
+                    ),
+                    child: Column(
+                      children: [
+                        FlatmatesButton(
+                          key: const Key('match_open_chat'),
+                          label: locale.matchSendMessage,
+                          onPressed: widget.onOpenChat,
+                          fullWidth: true,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        FlatmatesButton.secondary(
+                          key: const Key('match_keep_swiping'),
+                          label: locale.matchKeepSwiping,
+                          onPressed: widget.onKeepSwiping,
+                          fullWidth: true,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-      ),
-      child: hasImage
-          ? ClipOval(
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _AvatarInitials(name: name),
-              ),
-            )
-          : _AvatarInitials(name: name),
-    );
-  }
-}
-
-class _AvatarInitials extends StatelessWidget {
-  const _AvatarInitials({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        initialsFromName(name),
-        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: Colors.white,
             ),
+          ),
+        ],
       ),
     );
   }

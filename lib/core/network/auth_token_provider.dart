@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../storage/auth_token_storage.dart';
 
+typedef AuthException = supabase.AuthException;
+
 abstract interface class AuthTokenProvider {
   Future<String?> getAccessToken();
 
@@ -35,9 +37,16 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
       try {
         final refreshed = await client.auth.refreshSession();
         session = refreshed.session ?? client.auth.currentSession;
-      } catch (_) {
+        if (session != null &&
+            (session.isExpired || _isJwtExpired(session.accessToken))) {
+          await _storage.clear();
+          return null;
+        }
+      } on AuthException catch (_) {
         await _storage.clear();
         return null;
+      } catch (_) {
+        return _storage.read();
       }
     }
 
@@ -53,11 +62,12 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
 
   @override
   Future<void> clearSession() async {
-    await _storage.clear();
     try {
       await supabase.Supabase.instance.client.auth.signOut();
     } catch (_) {
       // Ignore SDK cleanup failures.
+    } finally {
+      await _storage.clear();
     }
   }
 }

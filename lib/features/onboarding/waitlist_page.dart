@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
-import '../../core/providers.dart';
+import '../../core/deep_links/deep_link_service.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../profile/profile_repository.dart';
+import '../shared/presentation/components.dart';
 
 class WaitlistPage extends ConsumerStatefulWidget {
   const WaitlistPage({required this.city, super.key});
@@ -20,69 +23,57 @@ class _WaitlistPageState extends ConsumerState<WaitlistPage> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary.withValues(alpha: 0.18),
-                        theme.colorScheme.primary.withValues(alpha: 0.06),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Text('🏗️', style: TextStyle(fontSize: 52)),
-                  ),
+        child: Padding(
+          padding: AppSpacing.horizontalScreen,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FlatmatesEmptyState(
+                icon: Icons.group_add_rounded,
+                title: locale.waitlistTitle,
+                subtitle: locale.waitlistSubtitle(widget.city),
+              ),
+              const SizedBox(height: AppSpacing.screen),
+              if (_notified) ...[
+                InfoPill(
+                  icon: Icons.check_circle_rounded,
+                  label: locale.waitlistConfirmed,
+                  highlighted: true,
                 ),
-                const SizedBox(height: 28),
-                Text(
-                  locale.waitlistTitle,
-                  style: theme.textTheme.headlineLarge,
-                  textAlign: TextAlign.center,
+              ] else ...[
+                FlatmatesButton(
+                  label: locale.waitlistNotifyCta,
+                  fullWidth: true,
+                  onPressed: () async {
+                    try {
+                      await ref
+                          .read(profileRepositoryProvider)
+                          .updateProfile(
+                            payload: {'waitlist_city': widget.city},
+                          );
+                      if (mounted) setState(() => _notified = true);
+                    } catch (e, st) {
+                      debugPrint('[WaitlistPage] notify error: $e\n$st');
+                    }
+                  },
+                  icon: Icons.notifications_active_outlined,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  locale.waitlistSubtitle(widget.city),
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
+                const SizedBox(height: AppSpacing.md),
+                FlatmatesButton.secondary(
+                  key: const Key('waitlist_invite_friends_button'),
+                  label: locale.waitlistInviteFriends,
+                  fullWidth: true,
+                  onPressed: () {
+                    final url = DeepLinkService.flatmatesUrl(city: widget.city);
+                    Share.share(locale.waitlistShareMessage(widget.city, url));
+                  },
+                  icon: Icons.share_outlined,
                 ),
-                const SizedBox(height: 32),
-                if (_notified)
-                  InfoPill(
-                    icon: Icons.check_circle_rounded,
-                    label: locale.waitlistConfirmed,
-                    highlighted: true,
-                  )
-                else
-                  GradientActionButton(
-                    label: locale.waitlistNotifyCta,
-                    onPressed: () async {
-                      try {
-                        await ref.read(apiClientProvider).put(
-                          '/flatmates/profile',
-                          data: {'waitlist_city': widget.city},
-                        );
-                      } catch (_) {}
-                      setState(() => _notified = true);
-                    },
-                    icon: Icons.notifications_active_outlined,
-                  ),
               ],
-            ),
+            ],
           ),
         ),
       ),

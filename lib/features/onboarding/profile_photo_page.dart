@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/storage/image_upload_service.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
+import 'onboarding_controller.dart';
 
 class ProfilePhotoPage extends ConsumerStatefulWidget {
   const ProfilePhotoPage({required this.onComplete, super.key});
@@ -18,16 +22,33 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
   final _photoUrls = <String>[];
   bool _uploading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    final controllerState = ref.read(onboardingControllerProvider);
+    _photoUrls.addAll(controllerState.photoUrls);
+  }
+
   Future<void> _pickFromGallery() async {
     final service = ref.read(imageUploadServiceProvider);
     final files = await service.pickImages(limit: 5 - _photoUrls.length);
     if (files.isEmpty) return;
     setState(() => _uploading = true);
-    for (final file in files) {
-      final url = await service.uploadProfilePhoto(file);
-      if (url != null) _photoUrls.add(url);
+    try {
+      for (final file in files) {
+        final result = await service.uploadProfilePhoto(file);
+        if (result is UploadSuccess) _photoUrls.add(result.url);
+      }
+    } catch (e, st) {
+      debugPrint('[ProfilePhotoPage] _pickFromGallery error: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload photos. Please try again.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
     }
-    setState(() => _uploading = false);
   }
 
   Future<void> _pickFromCamera() async {
@@ -35,9 +56,19 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     final file = await service.pickFromCamera();
     if (file == null) return;
     setState(() => _uploading = true);
-    final url = await service.uploadProfilePhoto(file);
-    if (url != null) _photoUrls.add(url);
-    setState(() => _uploading = false);
+    try {
+      final result = await service.uploadProfilePhoto(file);
+      if (result is UploadSuccess) _photoUrls.add(result.url);
+    } catch (e, st) {
+      debugPrint('[ProfilePhotoPage] _pickFromCamera error: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload photo. Please try again.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
   }
 
   void _removePhoto(int index) {
@@ -51,59 +82,94 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
 
     return Scaffold(
       body: SafeArea(
-        minimum: const EdgeInsets.all(24),
+        minimum: AppSpacing.horizontalScreen,
         child: ListView(
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
+            // Step progress
+            FlatmatesStepProgress.dots(currentStep: 3, totalSteps: 4),
+            const SizedBox(height: AppSpacing.section),
             Text(
               locale.profilePhotoTitle,
               style: theme.textTheme.headlineLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               locale.profilePhotoSubtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             if (_photoUrls.length < 3)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
                 child: InfoPill(
                   icon: Icons.lightbulb_outline,
                   label: locale.profilePhotoNudge,
                   highlighted: true,
                 ),
               ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 14,
-              runSpacing: 14,
-              children: [
-                ..._photoUrls.asMap().entries.map((entry) {
-                  return _PhotoTile(
-                    imageUrl: entry.value,
-                    onRemove: () => _removePhoto(entry.key),
-                  );
-                }),
-                if (_photoUrls.length < 5)
-                  _AddPhotoTile(
-                    onGallery: _pickFromGallery,
-                    onCamera: _pickFromCamera,
+            const SizedBox(height: AppSpacing.screen),
+            // Large primary photo preview circle
+            if (_photoUrls.isNotEmpty)
+              Center(
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppSemanticColors.accent.withValues(alpha: 0.95),
+                        AppSemanticColors.accent.withValues(alpha: 0.72),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppSemanticColors.accent.withValues(alpha: 0.18),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-              ],
+                  child: FlatmatesNetworkImage(
+                    imageUrl: _photoUrls.first,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            if (_photoUrls.isNotEmpty)
+              const SizedBox(height: AppSpacing.screen),
+            // Photo grid in card
+            FlatmatesCard(
+              child: Wrap(
+                spacing: AppSpacing.md + AppSpacing.xs,
+                runSpacing: AppSpacing.md + AppSpacing.xs,
+                children: [
+                  ..._photoUrls.asMap().entries.map((entry) {
+                    return _PhotoTile(
+                      imageUrl: entry.value,
+                      onRemove: () => _removePhoto(entry.key),
+                    );
+                  }),
+                  if (_photoUrls.length < 5)
+                    _AddPhotoTile(
+                      onGallery: _pickFromGallery,
+                      onCamera: _pickFromCamera,
+                    ),
+                ],
+              ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
             if (_uploading)
-              const Center(child: CircularProgressIndicator())
+              const Center(child: FlatmatesSkeleton.card())
             else
-              GradientActionButton(
+              FlatmatesButton(
                 key: const Key('onboarding_photo_next'),
                 label: locale.onboardingNext,
-                onPressed: _photoUrls.isNotEmpty
-                    ? () => widget.onComplete(_photoUrls)
-                    : null,
+                fullWidth: true,
+                onPressed: () => widget.onComplete(_photoUrls),
                 icon: Icons.arrow_forward_rounded,
               ),
           ],
@@ -124,29 +190,17 @@ class _PhotoTile extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Image.network(
-            imageUrl,
-            width: 130,
-            height: 160,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              width: 130,
-              height: 160,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(Icons.broken_image_outlined),
-            ),
-          ),
+        FlatmatesNetworkImage(
+          imageUrl: imageUrl,
+          width: 130,
+          height: 160,
+          borderRadius: AppRadius.cardBorder,
         ),
         Positioned(
           right: -6,
           top: -6,
           child: Material(
-            color: Theme.of(context).colorScheme.error,
+            color: AppSemanticColors.error,
             shape: const CircleBorder(),
             child: InkWell(
               onTap: onRemove,
@@ -174,10 +228,12 @@ class _AddPhotoTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      borderRadius: BorderRadius.circular(18),
+      color: AppSemanticColors.disabledSurfaceFor(
+        theme.brightness,
+      ).withValues(alpha: 0.5),
+      borderRadius: AppRadius.cardBorder,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: AppRadius.cardBorder,
         onTap: onGallery,
         onLongPress: onCamera,
         child: SizedBox(
@@ -186,15 +242,26 @@ class _AddPhotoTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.add_a_photo_outlined,
-                size: 36,
-                color: theme.colorScheme.onSurfaceVariant,
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppSemanticColors.accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.camera_alt_outlined,
+                  size: 24,
+                  color: AppSemanticColors.accent,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 AppLocalizations.of(context).addPhotoCta,
-                style: theme.textTheme.bodyMedium,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),

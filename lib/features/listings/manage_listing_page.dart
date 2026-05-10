@@ -3,11 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../core/providers.dart';
+import '../../core/deep_links/deep_link_service.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../bootstrap/bootstrap_controller.dart';
-import '../discover/discover_repository.dart';
+import '../shared/presentation/flatmates_empty_state.dart';
+import '../shared/presentation/flatmates_error_state.dart';
+import '../shared/presentation/flatmates_segmented_control.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import 'listings_repository.dart';
+import 'presentation/widgets/manage_listing_card.dart';
+import 'presentation/widgets/manage_stats_widgets.dart';
 
 class ManageListingPage extends ConsumerStatefulWidget {
   const ManageListingPage({super.key});
@@ -17,194 +23,290 @@ class ManageListingPage extends ConsumerStatefulWidget {
 }
 
 class _ManageListingPageState extends ConsumerState<ManageListingPage> {
+  String _status = 'active'; // 'active', 'draft', 'expired'
   final _pausedListingIds = <int>{};
+  final _pausingListingIds = <int>{};
 
   @override
   Widget build(BuildContext context) {
-    final listings = ref.watch(discoverListingsProvider);
-    final bootstrap = ref.watch(bootstrapControllerProvider);
+    final listings = ref.watch(myListingsProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final profile = bootstrap.valueOrNull?.profile;
 
     return Scaffold(
-      appBar: AppBar(title: Text(locale.manageListingTitle)),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/post'),
-        icon: const Icon(Icons.add_home_outlined),
-        label: Text(locale.postListingTitle),
-      ),
       body: SafeArea(
-        child: listings.when(
-          data: (items) {
-            final myListings = items.where((i) => i.ownerId == profile?.id).toList();
-
-            if (myListings.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add_home_outlined, size: 64, color: theme.colorScheme.onSurfaceVariant),
-                    const SizedBox(height: 16),
-                    Text(locale.emptyListings, style: theme.textTheme.bodyLarge),
-                    const SizedBox(height: 24),
-                    GradientActionButton(
-                      label: locale.postListingTitle,
-                      onPressed: () => context.push('/post'),
-                      icon: Icons.add_home_outlined,
-                      height: 52,
-                    ),
-                  ],
+        child: Column(
+          children: [
+            // Custom header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.lg,
+                AppSpacing.screen,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  const FlatmatesLogo(compact: true),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: locale.notificationsTooltip,
+                  ),
+                  IconButton(
+                    onPressed: () => context.go('/chats'),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    tooltip: locale.chatTooltip,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                0,
+                AppSpacing.screen,
+                AppSpacing.md,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  locale.manageListingTitle,
+                  style: theme.textTheme.headlineLarge,
                 ),
-              );
-            }
+              ),
+            ),
 
-            return RefreshIndicator(
-              onRefresh: () async => ref.invalidate(discoverListingsProvider),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-                children: myListings.map((listing) {
-                  final isPaused = _pausedListingIds.contains(listing.id);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: Padding(
-                        padding: const EdgeInsets.all(18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                if (listing.mainImageUrl != null)
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Image.network(
-                                      listing.mainImageUrl!,
-                                      width: 72,
-                                      height: 72,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) => Container(
-                                        width: 72,
-                                        height: 72,
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: const Icon(Icons.apartment_rounded),
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  Container(
-                                    width: 72,
-                                    height: 72,
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: const Icon(Icons.apartment_rounded),
-                                  ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(listing.title, style: theme.textTheme.titleLarge, maxLines: 2, overflow: TextOverflow.ellipsis),
-                                      if (listing.monthlyRent != null)
-                                        Text('₹${listing.monthlyRent!.toStringAsFixed(0)}/mo', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                if (listing.interestCount > 0)
-                                  InfoPill(icon: Icons.favorite_outline, label: locale.homeInterestCount(listing.interestCount)),
-                                InfoPill(
-                                  icon: isPaused
-                                      ? Icons.pause_circle_outline
-                                      : listing.interestCount > 0
-                                          ? Icons.check_circle_outline
-                                          : Icons.schedule_outlined,
-                                  label: isPaused
-                                      ? locale.listingPaused
-                                      : listing.interestCount > 0
-                                          ? locale.listingLive
-                                          : locale.listingUnderReview,
-                                  highlighted: !isPaused && listing.interestCount > 0,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => Share.share(
-                                      'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent?.toStringAsFixed(0) ?? "N/A"}/mo in ${listing.locality ?? listing.city ?? ""}',
-                                    ),
-                                    icon: const Icon(Icons.share_outlined, size: 16),
-                                    label: Text(locale.shareCta),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: GradientActionButton(
-                                    label: locale.boostListingCta,
-                                    onPressed: () {},
-                                    icon: Icons.rocket_launch_outlined,
-                                    height: 44,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => context.push('/post?listingId=${listing.id}'),
-                                    icon: const Icon(Icons.edit_outlined, size: 16),
-                                    label: Text(locale.editListingCta),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: _PauseResumeButton(
-                                    isPaused: isPaused,
-                                    listingId: listing.id,
-                                    onToggle: _togglePause,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+            // "New Listing" CTA
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screen,
+              ),
+              child: FlatmatesButton(
+                key: const Key('manage_new_listing_button'),
+                label: locale.postListingTitle,
+                onPressed: () => context.push('/post/new'),
+                icon: Icons.add,
+                fullWidth: true,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Segmented tab control
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screen,
+              ),
+              child: FlatmatesSegmentedControl<String>(
+                segments: [
+                  (
+                    'active',
+                    '${locale.activeListingsLabel} (${_countForTab(listings.valueOrNull ?? const [], 'active')})',
+                    null,
+                  ),
+                  (
+                    'draft',
+                    '${locale.draftsLabel} (${_countForTab(listings.valueOrNull ?? const [], 'draft')})',
+                    null,
+                  ),
+                  (
+                    'expired',
+                    '${locale.expiredLabel} (${_countForTab(listings.valueOrNull ?? const [], 'expired')})',
+                    null,
+                  ),
+                ],
+                selected: _status,
+                onChanged: (v) => setState(() => _status = v),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Listings content
+            Expanded(
+              child: listings.when(
+                data: (items) {
+                  if (items.isEmpty) {
+                    return FlatmatesEmptyState(
+                      icon: Icons.add_home_outlined,
+                      title: locale.emptyListings,
+                      ctaLabel: locale.postListingTitle,
+                      onCtaTap: () => context.push('/post/new'),
+                    );
+                  }
+
+                  final myListings = items.where(_matchesSelectedTab).toList();
+
+                  if (myListings.isEmpty) {
+                    return FlatmatesEmptyState(
+                      icon: Icons.add_home_outlined,
+                      title: _status == 'active'
+                          ? locale.activeListingsLabel
+                          : _status == 'draft'
+                          ? locale.draftsLabel
+                          : locale.expiredLabel,
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(myListingsProvider);
+                    },
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screen,
+                        AppSpacing.xs,
+                        AppSpacing.screen,
+                        AppSpacing.xl + AppSpacing.md,
                       ),
+                      children: myListings.map((listing) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: ManageListingCard(
+                            listing: listing,
+                            status: _listingStatus(listing),
+                            isPaused:
+                                _pausedListingIds.contains(listing.id) ||
+                                _listingStatus(listing) == 'paused',
+                            isPausing: _pausingListingIds.contains(listing.id),
+                            onTogglePause: (listingId, currentlyPaused) =>
+                                _togglePause(listingId, currentlyPaused),
+                            onShare: () => Share.share(
+                              'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent.toStringAsFixed(0)}/mo in ${listing.locality ?? listing.city ?? ""}\n${DeepLinkService.listingUrl(listing.id)}',
+                            ),
+                            onEdit: () => context.push(
+                              '/post/new?listingId=${listing.id}',
+                            ),
+                            onViewStats: () => _showStatsDialog(listing),
+                            onReview: () =>
+                                context.push('/listing-review/${listing.id}'),
+                            onRenew: () => context.push(
+                              '/post/new?listingId=${listing.id}',
+                            ),
+                            theme: theme,
+                            locale: locale,
+                          ),
+                        );
+                      }).toList(),
                     ),
                   );
-                }).toList(),
+                },
+                loading: () => const FlatmatesSkeleton.list(),
+                error: (e, _) =>
+                    FlatmatesErrorState(message: 'Could not load listings'),
               ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text(e.toString())),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  int _countForTab(List<dynamic> listings, String tab) {
+    return listings.where((listing) => _matchesTab(listing, tab)).length;
+  }
+
+  bool _matchesSelectedTab(dynamic listing) => _matchesTab(listing, _status);
+
+  bool _matchesTab(dynamic listing, String tab) {
+    final status = _listingStatus(listing);
+    return switch (tab) {
+      'active' =>
+        status == 'active' ||
+            status == 'paused' ||
+            status == 'pending_review' ||
+            status == 'under_review',
+      'draft' => status == 'draft' || status == 'rejected',
+      'expired' => status == 'expired',
+      _ => false,
+    };
+  }
+
+  String _listingStatus(dynamic listing) {
+    final status = (listing.status ?? listing.propertyStatus ?? '').toString();
+    final preferences = listing.preferences;
+    final expiresAtRaw = listing.expiresAt;
+    final expiresAt = expiresAtRaw is String
+        ? DateTime.tryParse(expiresAtRaw)
+        : expiresAtRaw as DateTime?;
+    final expiredByReview =
+        preferences is Map &&
+        preferences['auto_paused_reason'] == 'expired_move_in_date';
+    if (expiredByReview ||
+        expiresAt != null && expiresAt.isBefore(DateTime.now()) ||
+        status == 'expired') {
+      return 'expired';
+    }
+    if (status == 'paused') return 'paused';
+    if (status == 'pending_review' || status == 'under_review') {
+      return 'pending_review';
+    }
+    if (status == 'draft' || status == 'rejected') return status;
+    if (status == 'live' ||
+        status == 'approved' ||
+        listing.isAvailable == true) {
+      return 'active';
+    }
+    return status.isEmpty ? 'active' : status;
+  }
+
+  void _showStatsDialog(dynamic listing) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(listing.title ?? locale.listingStatsTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatDialogRow(
+              icon: Icons.visibility_outlined,
+              label: locale.viewsStatLabel,
+              value: _formatCount(listing.viewCount ?? 0),
+              theme: theme,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            StatDialogRow(
+              icon: Icons.favorite_outline,
+              label: locale.likesStatLabel,
+              value: _formatCount(listing.likeCount ?? 0),
+              theme: theme,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            StatDialogRow(
+              icon: Icons.handshake_outlined,
+              label: locale.matchesStatLabel,
+              value: _formatCount(listing.interestCount ?? 0),
+              theme: theme,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(locale.closeCta),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatCount(int count) {
+    if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
+    if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
+    return count.toString();
+  }
+
   Future<void> _togglePause(int listingId, bool currentlyPaused) async {
+    if (_pausingListingIds.contains(listingId)) return;
+    setState(() => _pausingListingIds.add(listingId));
     try {
-      await ref.read(apiClientProvider).put(
-        '/properties/$listingId',
-        data: {'status': currentlyPaused ? 'live' : 'paused'},
-      );
+      await ref
+          .read(listingsRepositoryProvider)
+          .togglePause(listingId, paused: currentlyPaused);
+      if (!mounted) return;
       setState(() {
         if (currentlyPaused) {
           _pausedListingIds.remove(listingId);
@@ -212,52 +314,18 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
           _pausedListingIds.add(listingId);
         }
       });
+      ref.invalidate(myListingsProvider);
     } catch (e) {
       if (mounted) {
+        final locale = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update listing status.')),
+          SnackBar(content: Text(locale.failedToUpdateListingStatus)),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() => _pausingListingIds.remove(listingId));
+      }
     }
-  }
-}
-
-class _PauseResumeButton extends StatelessWidget {
-  const _PauseResumeButton({
-    required this.isPaused,
-    required this.listingId,
-    required this.onToggle,
-  });
-
-  final bool isPaused;
-  final int listingId;
-  final Future<void> Function(int listingId, bool currentlyPaused) onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-
-    return OutlinedButton.icon(
-      onPressed: () => onToggle(listingId, isPaused),
-      icon: Icon(
-        isPaused ? Icons.play_arrow_outlined : Icons.pause_outlined,
-        size: 16,
-      ),
-      label: Text(
-        isPaused ? locale.listingLive : locale.pauseListingCta,
-        style: theme.textTheme.labelLarge?.copyWith(
-          color: isPaused ? theme.colorScheme.primary : theme.colorScheme.error,
-        ),
-      ),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: isPaused ? theme.colorScheme.primary : theme.colorScheme.error,
-        side: BorderSide(
-          color: isPaused
-              ? theme.colorScheme.primary.withValues(alpha: 0.5)
-              : theme.colorScheme.error.withValues(alpha: 0.5),
-        ),
-      ),
-    );
   }
 }

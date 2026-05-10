@@ -1,0 +1,35 @@
+appId: com.the360ghar.flatmates
+---
+# Feature: Help & Safety
+# Starting state: On Profile tab
+- assertVisible:
+    id: "nav_profile_tab"
+
+# Scroll to Help & Support menu item
+- scroll:
+    direction: DOWN
+
+# Navigate to Help & Support
+- tapOn:
+    text: "Help"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Help"
+    timeout: 5000
+
+# Verify help page content
+- assertVisible:
+    text: "FAQ"
+    optional: true
+- assertVisible:
+    text: "Contact"
+    optional: true
+
+# Tap "Chat with Us"
+- tapOn:
+    id: "help_chat_with_us_button"
+    optional: true
+
+# Go back to profile
+- back

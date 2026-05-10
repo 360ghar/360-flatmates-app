@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/deep_links/deep_link_service.dart';
+import '../core/network/connectivity_monitor.dart';
+import '../core/network/sse_providers.dart';
+import '../core/providers.dart';
 import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/auth_controller.dart';
@@ -18,22 +22,63 @@ class App extends ConsumerStatefulWidget {
 }
 
 class _AppState extends ConsumerState<App> {
+  DeepLinkService? _deepLinkService;
+  bool _hasNavigatedFromNotification = false;
+
   // Local notifications are initialized in bootstrap() before runApp().
   // NotificationService.initialize() is called after auth login (see ref.listen below).
+
+  @override
+  void initState() {
+    super.initState();
+    // Deep link service is initialized after the first frame so that
+    // GoRouter is available via the provider.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final router = ref.read(appRouterProvider);
+      _deepLinkService = DeepLinkService(router: router)..init();
+    });
+  }
+
+  @override
+  void dispose() {
+    _deepLinkService?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsControllerProvider);
     final router = ref.watch(appRouterProvider);
+    final bootstrapState = ref.watch(bootstrapControllerProvider);
+
+    // Activate SSE event stream and provider invalidation router.
+    ref.watch(sseEventRouterProvider);
+
+    // Handle notification deep links on bootstrap completion
+    if (bootstrapState is AsyncData &&
+        bootstrapState.value != null &&
+        !_hasNavigatedFromNotification) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _navigateFromPendingNotification(router);
+      });
+    }
 
     ref.listen<AuthState>(authControllerProvider, (_, next) {
       final bootstrap = ref.read(bootstrapControllerProvider.notifier);
       if (next.isLoggedIn) {
         bootstrap.load();
         ref.read(notificationServiceProvider).initialize();
-        _navigateFromPendingNotification(router);
+        // Connect SSE stream with a token refresher callback so reconnects
+        // always use a fresh JWT.
+        final config = ref.read(appConfigProvider);
+        final tokenProvider = ref.read(authTokenProviderProvider);
+        ref.read(sseServiceProvider).connect(
+              config.apiBaseUrl,
+              () => tokenProvider.getAccessToken(),
+            );
       } else {
         ref.read(notificationServiceProvider).dispose();
+        ref.read(sseServiceProvider).disconnect();
         bootstrap.clear();
       }
     });
@@ -54,14 +99,20 @@ class _AppState extends ConsumerState<App> {
       routerConfig: router,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) {
+        return Stack(
+          children: [child ?? const SizedBox.shrink(), const OfflineBanner()],
+        );
+      },
     );
   }
 
   void _navigateFromPendingNotification(GoRouter router) {
     final route = NotificationService.consumePendingRoute();
     if (route != null && route.isNotEmpty) {
+      _hasNavigatedFromNotification = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        router.push(route);
+        router.go(route);
       });
     }
   }

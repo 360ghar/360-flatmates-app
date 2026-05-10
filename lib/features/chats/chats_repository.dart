@@ -1,152 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import 'domain/chat_models.dart';
 
-class ChatPeer {
-  const ChatPeer({
-    required this.id,
-    required this.fullName,
-    required this.profileImageUrl,
-    required this.mode,
-    required this.city,
-    required this.locality,
-  });
-
-  final int id;
-  final String fullName;
-  final String? profileImageUrl;
-  final String? mode;
-  final String? city;
-  final String? locality;
-
-  factory ChatPeer.fromJson(Map<String, dynamic> json) {
-    return ChatPeer(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      fullName: json['full_name'] as String? ?? 'Flatmate',
-      profileImageUrl: json['profile_image_url'] as String?,
-      mode: json['mode'] as String?,
-      city: json['city'] as String?,
-      locality: json['locality'] as String?,
-    );
-  }
-}
-
-class ChatPropertyContext {
-  const ChatPropertyContext({
-    required this.id,
-    required this.title,
-    required this.locality,
-    required this.city,
-    required this.monthlyRent,
-    required this.mainImageUrl,
-  });
-
-  final int id;
-  final String title;
-  final String? locality;
-  final String? city;
-  final double? monthlyRent;
-  final String? mainImageUrl;
-
-  factory ChatPropertyContext.fromJson(Map<String, dynamic> json) {
-    return ChatPropertyContext(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      title: json['title'] as String? ?? 'Listing',
-      locality: json['locality'] as String?,
-      city: json['city'] as String?,
-      monthlyRent: (json['monthly_rent'] as num?)?.toDouble(),
-      mainImageUrl: json['main_image_url'] as String?,
-    );
-  }
-}
-
-class ConversationSummaryModel {
-  const ConversationSummaryModel({
-    required this.id,
-    required this.source,
-    required this.status,
-    required this.peer,
-    required this.contextProperty,
-    required this.lastMessagePreview,
-    required this.lastMessageAt,
-    required this.unreadCount,
-  });
-
-  final int id;
-  final String source;
-  final String status;
-  final ChatPeer peer;
-  final ChatPropertyContext? contextProperty;
-  final String? lastMessagePreview;
-  final DateTime? lastMessageAt;
-  final int unreadCount;
-
-  factory ConversationSummaryModel.fromJson(Map<String, dynamic> json) {
-    return ConversationSummaryModel(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      source: json['source'] as String? ?? 'listing_interest',
-      status: json['status'] as String? ?? 'active',
-      peer: ChatPeer.fromJson(
-        Map<String, dynamic>.from(json['peer'] as Map? ?? const {}),
-      ),
-      contextProperty: json['context_property'] == null
-          ? null
-          : ChatPropertyContext.fromJson(
-              Map<String, dynamic>.from(json['context_property'] as Map),
-            ),
-      lastMessagePreview: json['last_message_preview'] as String?,
-      lastMessageAt: DateTime.tryParse(
-        json['last_message_at']?.toString() ?? '',
-      ),
-      unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
-    );
-  }
-}
-
-class ChatMessage {
-  const ChatMessage({
-    required this.id,
-    required this.conversationId,
-    required this.senderId,
-    required this.body,
-    required this.messageType,
-    required this.createdAt,
-    this.readAt,
-    this.attachmentUrl,
-  });
-
-  final int id;
-  final int conversationId;
-  final int senderId;
-  final String? body;
-  final String messageType;
-  final DateTime createdAt;
-  final DateTime? readAt;
-  final String? attachmentUrl;
-
-  factory ChatMessage.fromJson(Map<String, dynamic> json) {
-    return ChatMessage(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      conversationId: (json['conversation_id'] as num?)?.toInt() ?? 0,
-      senderId: (json['sender_id'] as num?)?.toInt() ?? 0,
-      body: json['body'] as String?,
-      messageType: json['message_type'] as String? ?? 'text',
-      createdAt: DateTime.parse(json['created_at'] as String),
-      readAt: json['read_at'] != null ? DateTime.tryParse(json['read_at'].toString()) : null,
-      attachmentUrl: json['attachment_url'] as String?,
-    );
-  }
-}
+export 'domain/chat_models.dart';
 
 class ChatsRepository {
   const ChatsRepository(this._ref);
+
+  static const _messagesRealtimeTable = 'user_messages';
 
   final Ref _ref;
 
   Future<List<ConversationSummaryModel>> fetchConversations() async {
     final response = await _ref
-        .watch(apiClientProvider)
-        .get('/flatmates/conversations');
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.conversations);
     final rows = (response.data as List? ?? const []);
     return rows
         .map(
@@ -157,10 +30,55 @@ class ChatsRepository {
         .toList();
   }
 
+  Future<List<IncomingLikeModel>> fetchIncomingLikes() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.incomingLikes);
+    final rows = (response.data as List? ?? const []);
+    return rows
+        .map(
+          (item) => IncomingLikeModel.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<int?> matchIncomingLike({
+    required int peerId,
+    int? contextPropertyId,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.swipes,
+          data: {
+            'target_type': 'user',
+            'action': 'like',
+            'target_user_id': peerId,
+            'context_property_id': ?contextPropertyId,
+          },
+        );
+    final data = response.data is Map
+        ? Map<String, dynamic>.from(response.data as Map)
+        : <String, dynamic>{};
+    return (data['conversation_id'] as num?)?.toInt();
+  }
+
+  Future<ConversationSummaryModel> fetchConversation(int conversationId) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.conversation(conversationId));
+    final data = response.data is Map
+        ? Map<String, dynamic>.from(response.data as Map)
+        : <String, dynamic>{};
+    return ConversationSummaryModel.fromJson(data);
+  }
+
   Future<List<ChatMessage>> fetchMessages(int conversationId) async {
     final response = await _ref
-        .watch(apiClientProvider)
-        .get('/flatmates/conversations/$conversationId/messages');
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.conversationMessages(conversationId));
     final rows = (response.data as List? ?? const []);
     return rows
         .map(
@@ -170,22 +88,131 @@ class ChatsRepository {
         .toList();
   }
 
+  Stream<List<ChatMessage>> watchMessages(int conversationId) {
+    late final StreamController<List<ChatMessage>> controller;
+    StreamSubscription<List<ChatMessage>>? realtimeSubscription;
+    var hasEmittedMessages = false;
+
+    void emitMessages(List<ChatMessage> messages) {
+      if (controller.isClosed) return;
+      hasEmittedMessages = true;
+      controller.add(messages);
+    }
+
+    Future<void> pollMessages() async {
+      try {
+        emitMessages(await fetchMessages(conversationId));
+      } catch (error, stackTrace) {
+        if (!controller.isClosed && !hasEmittedMessages) {
+          controller.addError(error, stackTrace);
+        }
+      }
+    }
+
+    controller = StreamController<List<ChatMessage>>(
+      onListen: () {
+        // Initial fetch to populate the stream before realtime kicks in.
+        unawaited(pollMessages());
+        // Supabase Realtime provides live updates; no HTTP polling needed.
+        try {
+          realtimeSubscription = Supabase.instance.client
+              .from(_messagesRealtimeTable)
+              .stream(primaryKey: ['id'])
+              .eq('conversation_id', conversationId)
+              .order('created_at', ascending: true)
+              .map(_parseMessageRows)
+              .listen(emitMessages, onError: (_) => unawaited(pollMessages()));
+        } catch (_) {
+          unawaited(pollMessages());
+        }
+      },
+      onCancel: () async {
+        await realtimeSubscription?.cancel();
+      },
+    );
+    return controller.stream;
+  }
+
   Future<void> sendMessage({
     required int conversationId,
     String? body,
     String? attachmentUrl,
     String messageType = 'text',
+    Map<String, dynamic>? metadata,
   }) async {
     await _ref
-        .watch(apiClientProvider)
+        .read(apiClientProvider)
         .post(
-          '/flatmates/conversations/$conversationId/messages',
+          FlatmatesEndpoints.conversationMessages(conversationId),
           data: {
-            if (body != null) 'body': body,
-            if (attachmentUrl != null) 'attachment_url': attachmentUrl,
+            'body': ?body,
+            'attachment_url': ?attachmentUrl,
             'message_type': messageType,
+            'metadata': ?metadata,
           },
         );
+  }
+
+  Future<void> markMessagesAsRead(int conversationId) async {
+    await _ref
+        .read(apiClientProvider)
+        .post(FlatmatesEndpoints.conversationMarkRead(conversationId));
+  }
+
+  Future<void> blockUser(int userId) async {
+    await _ref
+        .read(apiClientProvider)
+        .post(FlatmatesEndpoints.blocks, data: {'blocked_user_id': userId});
+  }
+
+  Future<void> unmatchConversation(int conversationId, int peerId) async {
+    await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.blocks,
+          data: {'blocked_user_id': peerId, 'unmatch_only': true},
+        );
+  }
+
+  Future<void> reportUser(int userId, String reason) async {
+    await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.reports,
+          data: {'reported_user_id': userId, 'reason': reason},
+        );
+  }
+
+  Future<void> submitQnA(
+    int conversationId,
+    Map<String, String> answers,
+  ) async {
+    final normalizedAnswers = _normalizeQnAAnswers(answers);
+    await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.conversationQnA(conversationId),
+          data: {'answers': normalizedAnswers},
+        );
+  }
+
+  Map<String, String> _normalizeQnAAnswers(Map<String, String> answers) {
+    const aliases = {'q1': '0', 'q2': '1', 'q3': '2'};
+    final normalized = <String, String>{};
+    for (final entry in answers.entries) {
+      final key = aliases[entry.key] ?? entry.key;
+      if (key != '0' && key != '1' && key != '2') continue;
+      final value = entry.value.trim();
+      if (value.isEmpty) continue;
+      normalized[key] = value;
+    }
+    return normalized;
+  }
+
+  static List<ChatMessage> _parseMessageRows(List<Map<String, dynamic>> rows) {
+    return rows
+        .map((row) => ChatMessage.fromJson(Map<String, dynamic>.from(row)))
+        .toList();
   }
 }
 
@@ -197,7 +224,22 @@ final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
   (ref) => ref.watch(chatsRepositoryProvider).fetchConversations(),
 );
 
+final incomingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
+  (ref) => ref.watch(chatsRepositoryProvider).fetchIncomingLikes(),
+);
+
+final conversationProvider =
+    FutureProvider.family<ConversationSummaryModel, int>(
+      (ref, conversationId) =>
+          ref.watch(chatsRepositoryProvider).fetchConversation(conversationId),
+    );
+
 final messagesProvider = FutureProvider.family<List<ChatMessage>, int>(
   (ref, conversationId) =>
       ref.watch(chatsRepositoryProvider).fetchMessages(conversationId),
+);
+
+final messagesStreamProvider = StreamProvider.family<List<ChatMessage>, int>(
+  (ref, conversationId) =>
+      ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
 );

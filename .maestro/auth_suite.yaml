@@ -1,0 +1,21 @@
+# 360 FlatMates — Auth + Onboarding Test Suite
+# Tests authentication flows and onboarding, verifies user lands on feed
+# Run: maestro test .maestro/auth_suite.yaml --env .maestro/env.yaml
+#
+# Prerequisites:
+#   - Seeded backend user with MAESTRO_PHONE + MAESTRO_PASSWORD
+#   - App not installed or will be cleared
+
+appId: com.the360ghar.flatmates
+---
+- launchApp:
+    clearState: true
+
+# Auth
+- runFlow: flows/auth/login_password.yaml
+
+# Onboarding (first login)
+- runFlow: flows/onboarding/complete.yaml
+
+# Verify user lands on discover feed
+- runFlow: flows/_helpers/wait_for_discover.yaml

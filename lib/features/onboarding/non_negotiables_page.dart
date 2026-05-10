@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../bootstrap/bootstrap_controller.dart';
+import '../bootstrap/catalog_helpers.dart';
+import '../shared/presentation/components.dart';
+import 'onboarding_controller.dart';
 
 class NonNegotiablesPage extends ConsumerStatefulWidget {
   const NonNegotiablesPage({required this.onComplete, super.key});
@@ -16,7 +21,8 @@ class NonNegotiablesPage extends ConsumerStatefulWidget {
 class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
   final _selected = <String>{};
 
-  static const _options = [
+  /// Hardcoded fallback options used when the backend catalog is unavailable.
+  static const _fallbackOptions = [
     _NonNegOption(key: 'food_veg_only', icon: Icons.restaurant_outlined),
     _NonNegOption(key: 'food_vegan_only', icon: Icons.eco_outlined),
     _NonNegOption(key: 'no_smoking', icon: Icons.smoke_free_outlined),
@@ -29,57 +35,113 @@ class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
     _NonNegOption(key: 'min_tidy', icon: Icons.cleaning_services_outlined),
   ];
 
+  /// Resolve options: try backend catalog first, fall back to hardcoded.
+  List<_NonNegOption> get _options {
+    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
+    final catalogOptions = bootstrap?.catalogOptions(
+      'flatmates_non_negotiables',
+    );
+    if (catalogOptions != null && catalogOptions.isNotEmpty) {
+      return catalogOptions.map((opt) {
+        final iconName = opt.meta['icon']?.toString() ?? '';
+        return _NonNegOption(key: opt.id, icon: _iconFromName(iconName));
+      }).toList();
+    }
+    return _fallbackOptions;
+  }
+
+  IconData _iconFromName(String name) {
+    return switch (name) {
+      'restaurant_outlined' => Icons.restaurant_outlined,
+      'eco_outlined' => Icons.eco_outlined,
+      'smoke_free_outlined' => Icons.smoke_free_outlined,
+      'no_drinks_outlined' => Icons.no_drinks_outlined,
+      'bed_outlined' => Icons.bed_outlined,
+      'pets_outlined' => Icons.pets_outlined,
+      'female_outlined' => Icons.female_outlined,
+      'male_outlined' => Icons.male_outlined,
+      'music_off_outlined' => Icons.music_off_outlined,
+      'cleaning_services_outlined' => Icons.cleaning_services_outlined,
+      _ => Icons.block_outlined,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final controllerState = ref.watch(onboardingControllerProvider);
+    final completionPct = controllerState.completionPercentage;
 
     return Scaffold(
       body: SafeArea(
-        minimum: const EdgeInsets.all(24),
+        minimum: AppSpacing.horizontalScreen,
         child: ListView(
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
+            FlatmatesStepProgress.segments(
+              currentStep: completionPct.round(),
+              totalSteps: 100,
+            ),
+            const SizedBox(height: AppSpacing.section),
             Text(
               locale.nonNegotiablesTitle,
               style: theme.textTheme.headlineLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               locale.nonNegotiablesSubtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-            const SizedBox(height: 8),
-            InfoPill(
-              icon: Icons.info_outline,
-              label: locale.nonNegotiablesLimit,
-              highlighted: true,
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                InfoPill(
+                  icon: Icons.info_outline,
+                  label: locale.nonNegotiablesLimit,
+                  highlighted: true,
+                ),
+                const Spacer(),
+                Text(
+                  '${_selected.length}/3',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: _selected.length >= 3
+                        ? AppSemanticColors.accent
+                        : AppSemanticColors.textSecondaryFor(theme.brightness),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: _options.map((opt) {
-                final isSelected = _selected.contains(opt.key);
-                return FilterChip(
-                  key: Key('non_neg_${opt.key}'),
-                  avatar: Icon(opt.icon, size: 18),
-                  label: Text(_label(locale, opt.key)),
-                  selected: isSelected,
-                  onSelected: isSelected
-                      ? (_) => setState(() => _selected.remove(opt.key))
-                      : _selected.length < 3
-                          ? (_) => setState(() => _selected.add(opt.key))
-                          : null,
-                );
-              }).toList(),
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesCard(
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: _options.map((opt) {
+                  final isSelected = _selected.contains(opt.key);
+                  return FlatmatesChip(
+                    key: Key('non_neg_${opt.key}'),
+                    icon: opt.icon,
+                    label: _label(locale, opt.key),
+                    variant: FlatmatesChipVariant.choice,
+                    selected: isSelected,
+                    onSelected: isSelected
+                        ? (_) => setState(() => _selected.remove(opt.key))
+                        : _selected.length < 3
+                        ? (_) => setState(() => _selected.add(opt.key))
+                        : null,
+                  );
+                }).toList(),
+              ),
             ),
-            const SizedBox(height: 32),
-            GradientActionButton(
+            const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
+            FlatmatesButton(
               key: const Key('onboarding_non_neg_done'),
               label: locale.onboardingComplete,
+              fullWidth: true,
               onPressed: () => widget.onComplete(_selected.toList()),
               icon: Icons.check_rounded,
             ),
@@ -90,6 +152,17 @@ class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
   }
 
   String _label(AppLocalizations locale, String key) {
+    // Try to find the label from the catalog first
+    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+    final catalogOptions = bootstrap?.catalogOptions(
+      'flatmates_non_negotiables',
+    );
+    if (catalogOptions != null) {
+      for (final opt in catalogOptions) {
+        if (opt.id == key) return opt.label;
+      }
+    }
+    // Fall back to localized hardcoded labels
     switch (key) {
       case 'food_veg_only':
         return locale.nonNegVegOnly;

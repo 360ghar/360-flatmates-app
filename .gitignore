@@ -38,6 +38,9 @@ migrate_working_dir/
 .factory/settings.json
 tmp/
 
+# Maestro test credentials
+.maestro/env.yaml
+
 # Symbolication related
 app.*.symbols
 

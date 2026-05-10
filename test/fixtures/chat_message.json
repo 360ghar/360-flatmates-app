@@ -1,0 +1,10 @@
+{
+  "id": 100,
+  "conversation_id": 10,
+  "sender_id": 2,
+  "body": "Hey! I'm interested in the flat",
+  "message_type": "text",
+  "created_at": "2025-05-15T14:30:00Z",
+  "read_at": null,
+  "attachment_url": null
+}

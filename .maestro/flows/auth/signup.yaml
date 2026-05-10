@@ -1,0 +1,28 @@
+appId: com.the360ghar.flatmates
+---
+# Create a new account
+# Prerequisites: App is on the Enter Phone screen, debug mode enabled
+# Requires env vars: MAESTRO_PHONE, MAESTRO_PASSWORD
+- assertVisible:
+    text: "Enter your phone"
+- tapOn:
+    text: "Create account"
+- extendedWaitUntil:
+    visible:
+      id: "signup_name_input"
+    timeout: 5000
+- tapOn:
+    id: "signup_name_input"
+- inputText: "Maestro Test User"
+- tapOn:
+    id: "signup_email_input"
+- inputText: "maestro@test.com"
+- tapOn:
+    id: "signup_phone_input"
+- eraseText
+- inputText: ${MAESTRO_PHONE}
+- tapOn:
+    id: "signup_password_input"
+- inputText: ${MAESTRO_PASSWORD}
+- tapOn:
+    id: "signup_submit_button"

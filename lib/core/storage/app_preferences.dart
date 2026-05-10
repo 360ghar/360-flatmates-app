@@ -28,6 +28,5 @@ final class AppPreferences {
 
   bool getBool(String key) => _prefs.getBool(key) ?? false;
 
-  Future<bool> setBool(String key, bool value) =>
-      _prefs.setBool(key, value);
+  Future<bool> setBool(String key, bool value) => _prefs.setBool(key, value);
 }

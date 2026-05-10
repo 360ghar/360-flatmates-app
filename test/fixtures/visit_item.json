@@ -1,0 +1,30 @@
+{
+  "id": 5,
+  "property_id": 42,
+  "visitor_user_id": 2,
+  "host_user_id": 1,
+  "conversation_id": 10,
+  "scheduled_date": "2025-05-20T15:00:00Z",
+  "status": "confirmed",
+  "note": "Looking forward to seeing the flat",
+  "visit_context": "flatmate_meet",
+  "created_at": "2025-05-15T10:00:00Z",
+  "property": {
+    "id": 42,
+    "title": "Modern 2BHK in Koramangala",
+    "main_image_url": "https://example.com/photo.jpg",
+    "locality": "Koramangala",
+    "city": "Bangalore",
+    "monthly_rent": 24000.0
+  },
+  "visitor": {
+    "id": 2,
+    "full_name": "Priya Patel",
+    "profile_image_url": null
+  },
+  "host": {
+    "id": 1,
+    "full_name": "Rahul Sharma",
+    "profile_image_url": null
+  }
+}

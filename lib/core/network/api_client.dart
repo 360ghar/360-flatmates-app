@@ -18,7 +18,9 @@ final class ApiClient {
            headers: const {'Accept': 'application/json'},
          ),
        ) {
-    _dio.interceptors.add(AuthInterceptor(tokenProvider: tokenProvider, dio: _dio));
+    _dio.interceptors.add(
+      AuthInterceptor(tokenProvider: tokenProvider, dio: _dio),
+    );
     _dio.interceptors.add(ErrorInterceptor());
     if (enableLogging) {
       _dio.interceptors.add(

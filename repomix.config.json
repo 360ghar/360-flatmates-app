@@ -1,0 +1,69 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 5000000
+  },
+  "output": {
+    "filePath": "repomix-output.md",
+    "style": "markdown",
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "showLineNumbers": false,
+    "topFilesLength": 10,
+    "copyToClipboard": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false
+    }
+  },
+  "include": [
+    "lib/**/*.dart",
+    "test/**/*.dart",
+    "pubspec.yaml",
+    "pubspec.lock",
+    "analysis_options.yaml",
+    "l10n.yaml",
+    ".fvmrc",
+    ".env.example",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "DESIGN.md",
+    "docs/prd.md",
+    "maestro/**",
+    ".maestro/**"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "lib/l10n/gen/**",
+      "build/**",
+      ".dart_tool/**",
+      ".ruff_cache/**",
+      ".factory/**",
+      ".agents/**",
+      ".claude/**",
+      ".idea/**",
+      ".git/**",
+      "android/**",
+      "ios/**",
+      "assets/illustrations/**",
+      "docs/ui_screens/**",
+      ".env",
+      "*.iml",
+      "deliverables/**",
+      "skills-lock.json"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}

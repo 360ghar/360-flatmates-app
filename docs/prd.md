@@ -314,7 +314,7 @@ Swipe gestures also work — left to pass, right to like, up to super like. Hapt
 
 ## **7.2 Listing Builder (Room Poster)**
 
-The listing builder is a structured multi-step form that produces a rich, formatted listing. Designed to feel like filling in a beautiful template rather than a data entry form.
+The listing builder is a structured 8-step form that produces a rich, formatted listing. Designed to feel like filling in a beautiful template rather than a data entry form. A progress bar shows the current step out of 8. Each step has inline validation and a summary shown on completion. A final review step lets the user verify all entries before publishing.
 
 **Step 1 — Property Location**
 
@@ -340,11 +340,13 @@ The listing builder is a structured multi-step form that produces a rich, format
 
 - Room features: Attached bathroom, Private balcony, Window with sunlight, Storage space
 
+**Step 4 — Photos & Video Tour**
+
 - Photo upload: minimum 2 photos of room (enforced), maximum 10
 
-- Video tour: optional 15–30 second vertical video upload
+- Video tour: optional 15–30 second vertical video upload (max 50MB)
 
-**Step 4 — The Flat**
+**Step 5 — The Flat**
 
 - Flat configuration: 1BHK / 2BHK / 3BHK / 4BHK+ / Studio
 
@@ -354,7 +356,7 @@ The listing builder is a structured multi-step form that produces a rich, format
 
 - Existing flatmates: add mini-profiles for each current resident (name, age, profession, 3 lifestyle tags). This is the 'bundled listing' feature.
 
-**Step 5 — Costs**
+**Step 6 — Costs**
 
 - Monthly rent (Rs)
 
@@ -372,7 +374,9 @@ The listing builder is a structured multi-step form that produces a rich, format
 
 - Auto-calculated summary: 'Total monthly outflow: Rs XX,XXX' (rent + maintenance + electricity estimate + cook + maid)
 
-**Step 6 — About You & Preferred Flatmate**
+- Per-person cost breakdown when sharing
+
+**Step 7 — About You & Preferred Flatmate**
 
 - Free-text 'typical day' prompt (100–300 chars)
 
@@ -383,6 +387,16 @@ The listing builder is a structured multi-step form that produces a rich, format
 - Non-negotiables: select up to 3 deal-breakers from the standard list
 
 - Move-in date: date picker + urgency toggle ('Flexible on this date')
+
+**Step 8 — Review & Publish**
+
+- Full summary of all previous steps with edit-per-section links
+
+- Mini listing card preview showing how the listing will appear
+
+- Total monthly outflow confirmation
+
+- Publish button submits the listing for review
 
 ## **7.3 Compatibility Engine**
 
@@ -674,53 +688,72 @@ No monetization in V1, but the following UI patterns are built in to train user 
 | ------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | **Layer**                 | **Technology**                                                                                             |
 | **Frontend (Mobile)**     | Flutter 3.x — single codebase for iOS and Android                                                          |
-| **Frontend (Admin)**      | Flutter Web — same codebase, separate entry point                                                          |
-| **State Management**      | Riverpod (recommended) or Bloc — decision at sprint 1                                                      |
-| **Backend**               | Firebase (Auth, Firestore, Storage, Functions, FCM)                                                        |
-| **Media Storage**         | Firebase Storage for photos and video tours                                                                |
+| **Frontend (Admin)**      | Separate web dashboard (see real-estate-admin-dashboard repo)                                              |
+| **State Management**      | Riverpod — providers, Notifier, AsyncNotifier, FamilyNotifier                                              |
+| **Routing**               | GoRouter with StatefulShellRoute for bottom navigation                                                     |
+| **Networking**            | Dio with auth interceptor (Bearer token + 401 refresh retry)                                               |
+| **Backend**               | FastAPI monolith (existing 360 Ghar backend) — extended with flatmate-specific endpoints                   |
+| **Authentication**        | Supabase Auth (Phone OTP + password) — Supabase Flutter SDK                                                |
+| **Media Storage**         | Supabase Storage for photos and video tours (buckets: profile-photos, listing-photos, chat-photos, listing-videos) |
+| **Realtime Chat**         | Supabase Realtime for message streaming in chat threads                                                    |
 | **Geocoding**             | Google Maps Geocoding API — called on listing save (lat-lng stored, not displayed in V1)                   |
-| **OTP / Auth**            | Firebase Phone Auth                                                                                        |
-| **Push Notifications**    | Firebase Cloud Messaging (FCM)                                                                             |
-| **Share Card Generation** | flutter\_screenshot + share\_plus packages for on-device card generation                                   |
-| **AI Pre-Screening**      | Firebase Cloud Function calling a simple keyword/completeness classifier (no external ML API needed in V1) |
+| **Push Notifications**    | Firebase Cloud Messaging (FCM) + flutter_local_notifications                                               |
+| **Maps**                  | Google Maps Flutter with client-side clustering by locality                                                |
+| **Share Card Generation** | RepaintBoundary + share\_plus for on-device card generation (WhatsApp square 1080x1080, Instagram story 1080x1920) |
+| **AI Pre-Screening**      | Backend-side keyword/completeness classifier (no external ML API needed in V1)                             |
+| **Image Caching**         | CachedNetworkImage for all remote images                                                                   |
+| **Localization**          | ARB-based l10n — English + Hindi                                                                           |
+| **Theming**               | Material 3 with ColorScheme.fromSeed — 3 swappable palettes, light/dark/system                            |
 
 ## **11.2 Flutter Project Structure**
 
-- lib/features/ — feature-first folder structure (auth, onboarding, swipe, listings, chat, profile, admin)
+- lib/features/ — feature-first folder structure (auth, onboarding, bootstrap, discover, swipe, listings, chats, visits, profile, settings, notifications, shared)
+- lib/core/ — theme tokens, networking, errors, storage, compatibility engine, notifications, deep links, analytics, domain utilities
+- lib/app/ — app widget, app shell (bottom nav), GoRouter configuration
+- lib/bootstrap.dart — app initialization pipeline
+- Business metadata served server-driven via /api/v1/flatmates/catalogs — not hardcoded
 
-- lib/core/ — shared widgets, theme, routing, constants
+## **11.3 Key Data Model (PostgreSQL via FastAPI)**
 
-- lib/models/ — Firestore data models (UserModel, ListingModel, MatchModel, MessageModel, VisitModel)
+The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate product surface reuses existing tables and introduces a shared social layer.
 
-- lib/services/ — Firebase service wrappers (auth\_service, listing\_service, chat\_service, notification\_service)
+**Existing tables extended for flatmates:**
 
-## **11.3 Key Firestore Collections**
+- `users` — primary flatmate profile record: mode, profile status, onboarding completion, bio, budget range, move-in timeline, city/locality, six compatibility dimensions, last active timestamp. Flatmate-specific metadata stored in `users.preferences` JSONB column.
+- `properties` — flatmate room listings identified by `property_type` and `purpose`. Contains all listing fields, poster reference, status (pending/live/paused/expired), lat-lng, society tags, amenities, costs, flatmates array, listing preferences.
+- `user_swipes` — supports both listing and profile actions. `target_type=property` with `property_id` for listing swipes; `target_type=user` with `target_user_id` for profile swipes. `swipe_action`: pass/like/super-like. `context_property_id` retains listing context for person-to-person actions.
+- `visits` — supports two contexts: `property_tour` for real-estate visits and `flatmate_meet` for in-chat flatmate meet requests. Carries counterparty user and optional conversation/match linkage.
 
-- users/{uid} — profile, lifestyle quiz answers, mode, budget, non-negotiables, locationPref
+**New shared social layer tables:**
 
-- listings/{listingId} — all listing fields, posterUid, status (pending/live/paused/expired), lat-lng, societyTags, amenities, costs, flatmates array
+- `user_matches` — uid1, uid2, listing context, matched timestamp, Q&A answers
+- `user_conversations` — two-user conversation with peer info, context property, last message preview, unread count, source type, status
+- `user_messages` — conversation messages with sender, body, message type (text/image/visit_request), attachment URL, read timestamp
+- `user_blocks` — blocked user pairs
+- `user_reports` — reported users with reason
+- `app_catalogs` — server-driven business metadata (modes, timelines, quiz dimensions, vibe tags, report reasons, icebreakers, room types, furnishing options, etc.)
 
-- swipes/{uid}/decisions/{targetId} — direction (like/pass/superlike), timestamp
-
-- matches/{matchId} — uid1, uid2, listingId (if applicable), matchedAt, qaAnswers
-
-- messages/{matchId}/msgs/{msgId} — senderId, text, photoUrl, type, timestamp, readAt
-
-- visits/{visitId} — matchId, requesterId, date, time, note, status (requested/confirmed/completed)
-
-- listings/{listingId}/societyVotes/{uid} — per-tag votes for community insights
+**API surface:** Dedicated flatmate endpoints under `/api/v1/flatmates` (bootstrap, profile, catalogs, swipes, conversations, matches, blocks, reports, notifications). Existing `/api/v1/properties` reused for listing discovery. Existing `/api/v1/visits` extended for flatmate meet context.
 
 ## **11.4 Important Implementation Notes**
 
-- **Lat-lng storage** — Always geocode and store lat-lng on every listing save, even in V1 where nearby essentials are not yet displayed. Firebase Function triggers on listing creation to call Geocoding API.
+- **Lat-lng storage** — Always geocode and store lat-lng on every listing save, even in V1 where nearby essentials are not yet displayed.
 
-- **Compatibility calculation** — Calculated client-side from locally cached lifestyle data. No server call needed per swipe — fast and cost-free.
+- **Compatibility calculation** — Calculated client-side from locally cached lifestyle data using a 6-dimension weighted scoring engine. No server call needed per swipe — fast and cost-free.
 
-- **Deal-breaker filtering** — Applied as a Firestore query filter before swipe deck population. Non-negotiables stored as indexed fields on user documents to enable efficient querying.
+- **Deal-breaker filtering** — Applied client-side before swipe deck population and as query parameters on discover/map endpoints. Non-negotiables stored as user profile fields.
 
-- **Video tour** — Use Firebase Storage with streaming URL. Auto-play muted in expanded card. Size cap: 50MB, duration cap: 30 seconds (enforced client-side before upload).
+- **Video tour** — Uploaded to Supabase Storage (listing-videos bucket). Size cap: 50MB, duration cap: 30 seconds (enforced client-side before upload).
 
-- **WhatsApp share card** — Generated on-device using RenderRepaintBoundary — avoids any server-side image generation cost in V1.
+- **WhatsApp share card** — Generated on-device using RepaintBoundary with three templates: original card, WhatsApp square (1080x1080), Instagram story (1080x1920). Includes QR code with deep link.
+
+- **Real-time chat** — Supabase Realtime subscription on `chat_messages` table filtered by `conversation_id`. Falls back to 5-second polling if realtime unavailable.
+
+- **Auth flow** — Supabase Phone Auth for OTP. Access token stored in FlutterSecureStorage. Dio auth interceptor handles Bearer token injection and 401 refresh with request queuing.
+
+- **Server-driven catalogs** — All business metadata (modes, timelines, quiz options, vibe tags, report reasons, icebreakers) loaded from `/flatmates/catalogs` at bootstrap. Hardcoded fallbacks exist for offline support.
+
+- **Theme and localization** — Material 3 with 3 palette presets (Electric Indigo, Ember Coral, Monsoon Teal). Light/dark/system mode. English + Hindi ARB-based localization. All persisted via SharedPreferences.
 
 # **12. Feature Priority Matrix — V1 vs V2**
 
@@ -731,7 +764,7 @@ No monetization in V1, but the following UI patterns are built in to train user 
 | Three user modes (Room Poster, Co-Hunter, Open to Both)       |  **✅** |        |               |
 | Onboarding flow (under 4 mins)                                |  **✅** |        |               |
 | Lifestyle quiz (8 questions)                                  |  **✅** |        |               |
-| Structured listing builder (6-step)                           |  **✅** |        |               |
+| Structured listing builder (8-step)                           |  **✅** |        |               |
 | Amenities icon grid (room + society)                          |  **✅** |        |               |
 | Existing flatmate mini-profiles (bundled listings)            |  **✅** |        |               |
 | Pricing split calculator                                      |  **✅** |        |               |

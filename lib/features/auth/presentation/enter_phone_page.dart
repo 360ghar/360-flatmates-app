@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth_controller.dart';
 import '../../../core/providers.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
+import '../../shared/presentation/components.dart';
 
 class EnterPhonePage extends ConsumerStatefulWidget {
   const EnterPhonePage({super.key});
@@ -27,67 +30,90 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     final auth = ref.watch(authControllerProvider);
     final config = ref.watch(appConfigProvider);
     final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(),
       body: SafeArea(
-        minimum: const EdgeInsets.all(24),
+        minimum: AppSpacing.horizontalScreen,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              locale.enterPhoneTitle,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
+            Text(locale.enterPhoneTitle, style: theme.textTheme.headlineMedium),
+            const SizedBox(height: AppSpacing.sm),
             Text(locale.enterPhoneSubtitle),
-            const SizedBox(height: 24),
-            TextField(
-              key: const Key('enter_phone_input'),
-              controller: _controller,
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(labelText: locale.phoneNumberLabel),
-            ),
-            if (auth.status == AuthStatus.error &&
-                auth.errorMessage != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                auth.errorMessage!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    key: const Key('enter_phone_input'),
+                    controller: _controller,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: locale.phoneNumberLabel,
+                    ),
+                  ),
+                  if (auth.status == AuthStatus.error &&
+                      auth.errorMessage != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      auth.errorMessage!,
+                      style: TextStyle(color: AppSemanticColors.error),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.xl),
+                  // Privacy reassurance
+                  Row(
+                    children: [
+                      FlatmatesTrustBadge(
+                        label: locale.yourNumberIsPrivate,
+                        variant: FlatmatesTrustBadgeVariant.privacy,
+                        compact: true,
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
             const Spacer(),
-            FilledButton(
+            FlatmatesButton(
               key: const Key('enter_phone_otp_cta'),
+              label: locale.continueWithOtp,
+              fullWidth: true,
               onPressed: () async {
                 final phone = _controller.text.trim();
+                ref.read(pendingPhoneProvider.notifier).state = phone;
                 await ref
                     .read(authControllerProvider.notifier)
                     .requestOtp(phone);
                 if (!context.mounted) return;
-                context.push('/otp?phone=${Uri.encodeComponent(phone)}');
+                final auth = ref.read(authControllerProvider);
+                if (auth.status == AuthStatus.error) return;
+                context.push('/otp');
               },
-              child: Text(locale.continueWithOtp),
             ),
             if (config.enableDebugLogs) ...[
-              const SizedBox(height: 12),
-              OutlinedButton(
+              const SizedBox(height: AppSpacing.md),
+              FlatmatesButton.secondary(
                 key: const Key('enter_phone_password_cta'),
+                label: locale.loginWithPassword,
+                fullWidth: true,
                 onPressed: () {
-                  context.push(
-                    '/login?phone=${Uri.encodeComponent(_controller.text.trim())}',
-                  );
+                  final phone = _controller.text.trim();
+                  ref.read(pendingPhoneProvider.notifier).state = phone;
+                  context.push('/login');
                 },
-                child: Text(locale.loginWithPassword),
               ),
-              const SizedBox(height: 12),
-              TextButton(
+              const SizedBox(height: AppSpacing.md),
+              FlatmatesButton.tertiary(
+                label: locale.createAccountCta,
                 onPressed: () {
-                  context.push(
-                    '/signup?phone=${Uri.encodeComponent(_controller.text.trim())}',
-                  );
+                  final phone = _controller.text.trim();
+                  ref.read(pendingPhoneProvider.notifier).state = phone;
+                  context.push('/signup');
                 },
-                child: Text(locale.createAccountCta),
               ),
             ],
           ],

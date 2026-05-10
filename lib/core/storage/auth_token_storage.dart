@@ -24,4 +24,8 @@ final class AuthTokenStorage {
     await _store.delete(_tokenKey);
     _changes.add(null);
   }
+
+  void dispose() {
+    _changes.close();
+  }
 }

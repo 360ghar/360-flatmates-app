@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../chats/chats_repository.dart';
 
 class VisitItem {
   const VisitItem({
@@ -9,6 +12,8 @@ class VisitItem {
     required this.status,
     required this.scheduledDate,
     required this.visitContext,
+    this.conversationId,
+    this.counterpartyUserId,
   });
 
   final int id;
@@ -16,6 +21,8 @@ class VisitItem {
   final String status;
   final DateTime scheduledDate;
   final String visitContext;
+  final int? conversationId;
+  final int? counterpartyUserId;
 
   factory VisitItem.fromJson(Map<String, dynamic> json) {
     final property = Map<String, dynamic>.from(
@@ -24,9 +31,13 @@ class VisitItem {
     return VisitItem(
       id: (json['id'] as num?)?.toInt() ?? 0,
       propertyTitle: property['title'] as String? ?? 'Visit',
-      status: json['status'] as String? ?? 'scheduled',
-      scheduledDate: DateTime.parse(json['scheduled_date'] as String),
+      status: json['status'] as String? ?? 'unknown',
+      scheduledDate:
+          DateTime.tryParse(json['scheduled_date'] as String? ?? '') ??
+          DateTime.now(),
       visitContext: json['visit_context'] as String? ?? 'property_tour',
+      conversationId: (json['conversation_id'] as num?)?.toInt(),
+      counterpartyUserId: (json['counterparty_user_id'] as num?)?.toInt(),
     );
   }
 }
@@ -37,55 +48,106 @@ class VisitsRepository {
   final Ref _ref;
 
   Future<List<VisitItem>> fetchVisits() async {
-    final response = await _ref.watch(apiClientProvider).get('/visits');
-    final data = Map<String, dynamic>.from(response.data as Map);
+    final response = await _ref
+        .watch(apiClientProvider)
+        .get(FlatmatesEndpoints.visits);
+    final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
     final visits = (data['visits'] as List? ?? const []);
     return visits
-        .map(
-          (item) => VisitItem.fromJson(Map<String, dynamic>.from(item as Map)),
-        )
+        .whereType<Map>()
+        .map((item) => VisitItem.fromJson(Map<String, dynamic>.from(item)))
         .toList();
   }
 
-  Future<void> scheduleFlatmateVisit({
+  Future<int> scheduleFlatmateVisit({
     required int propertyId,
     required int counterpartyUserId,
     required int conversationId,
     required DateTime scheduledDate,
+    String? note,
+    String? timeSlotLabel,
   }) async {
-    await _ref
+    final response = await _ref
         .watch(apiClientProvider)
         .post(
-          '/visits',
+          FlatmatesEndpoints.visits,
           data: {
             'property_id': propertyId,
             'scheduled_date': scheduledDate.toUtc().toIso8601String(),
             'visit_context': 'flatmate_meet',
             'counterparty_user_id': counterpartyUserId,
             'conversation_id': conversationId,
+            if (timeSlotLabel != null && timeSlotLabel.trim().isNotEmpty)
+              'time_slot_label': timeSlotLabel.trim(),
+            if (note != null && note.trim().isNotEmpty)
+              'special_requirements': note.trim(),
           },
         );
+    final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
+    return (data['id'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Schedules a visit and sends a best-effort notification message to the chat.
+  /// If the chat message fails after the visit was scheduled, the visit still succeeds.
+  Future<int> scheduleVisitAndNotify({
+    required int propertyId,
+    required int counterpartyUserId,
+    required int conversationId,
+    required DateTime scheduledDate,
+    String? note,
+    String? timeSlotLabel,
+  }) async {
+    final visitId = await scheduleFlatmateVisit(
+      propertyId: propertyId,
+      counterpartyUserId: counterpartyUserId,
+      conversationId: conversationId,
+      scheduledDate: scheduledDate,
+      note: note,
+      timeSlotLabel: timeSlotLabel,
+    );
+    // Best-effort notification
+    try {
+      final chatsRepo = _ref.read(chatsRepositoryProvider);
+      await chatsRepo.sendMessage(
+        conversationId: conversationId,
+        messageType: 'visit_request',
+        body:
+            'Visit requested for ${timeSlotLabel ?? DateFormat('d MMM, h:mm a').format(scheduledDate.toLocal())}',
+        metadata: {
+          'visit_id': visitId,
+          'status': 'scheduled',
+          'scheduled_date': scheduledDate.toUtc().toIso8601String(),
+          'time_slot_label': ?timeSlotLabel,
+        },
+      );
+    } catch (_) {
+      // Visit was scheduled; notification is best-effort
+    }
+    return visitId;
   }
 
   Future<void> confirmVisit(int visitId) async {
     await _ref
         .watch(apiClientProvider)
-        .put('/visits/$visitId', data: {'status': 'confirmed'});
+        .put(FlatmatesEndpoints.visit(visitId), data: {'status': 'confirmed'});
   }
 
   Future<void> rescheduleVisit(int visitId, DateTime newDate) async {
     await _ref
         .watch(apiClientProvider)
-        .put('/visits/$visitId', data: {
-          'scheduled_date': newDate.toUtc().toIso8601String(),
-          'status': 'requested',
-        });
+        .put(
+          FlatmatesEndpoints.visit(visitId),
+          data: {
+            'scheduled_date': newDate.toUtc().toIso8601String(),
+            'status': 'requested',
+          },
+        );
   }
 
   Future<void> cancelVisit(int visitId) async {
     await _ref
         .watch(apiClientProvider)
-        .put('/visits/$visitId', data: {'status': 'cancelled'});
+        .put(FlatmatesEndpoints.visit(visitId), data: {'status': 'cancelled'});
   }
 }
 

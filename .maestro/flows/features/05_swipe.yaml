@@ -1,0 +1,34 @@
+appId: com.the360ghar.flatmates
+---
+# Feature: Swipe Deck
+# Starting state: On any tab
+- tapOn:
+    id: "nav_swipe_tab"
+- extendedWaitUntil:
+    visible:
+      id: "swipe_like"
+    timeout: 10000
+
+# Tap Like on the first profile
+- tapOn:
+    id: "swipe_like"
+
+# Wait for next card or empty state
+- extendedWaitUntil:
+    visible:
+      id: "swipe_pass"
+    timeout: 5000
+
+# Tap Pass on the next profile
+- tapOn:
+    id: "swipe_pass"
+
+# Wait for next card, match, or empty state
+- assertVisible:
+    id: "swipe_like"
+    optional: true
+
+# If match celebration appeared, dismiss it
+- tapOn:
+    id: "match_keep_swiping"
+    optional: true

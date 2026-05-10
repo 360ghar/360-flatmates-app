@@ -1,0 +1,49 @@
+{
+  "profile": {
+    "id": 1,
+    "full_name": "Test User",
+    "phone": "+919999999999",
+    "email": "test@example.com",
+    "profile_image_url": null,
+    "mode": "co_hunter",
+    "profile_status": "active",
+    "onboarding_completed": true,
+    "bio": "Looking for a flatmate",
+    "age": 25,
+    "profession": "Software Engineer",
+    "budget_min": 10000.0,
+    "budget_max": 25000.0,
+    "move_in_timeline": "within_1_month",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "locality": "Koramangala",
+    "sleep_schedule": "early_bird",
+    "cleanliness": "tidy",
+    "food_habits": "vegetarian",
+    "smoking_drinking": "neither",
+    "guests_policy": "occasionally",
+    "work_style": "hybrid",
+    "gender": "male",
+    "gender_preference": "any",
+    "preferences": {
+      "profession": "Software Engineer",
+      "pets": "no_pets"
+    }
+  },
+  "catalogs": [
+    {
+      "key": "flatmates_modes",
+      "version": 1,
+      "payload": {
+        "items": [
+          {"id": "co_hunter", "label": "Find a Flat / Flatmate"},
+          {"id": "room_poster", "label": "List My Flat / Find Flatmate"},
+          {"id": "open_to_both", "label": "Open to Both"}
+        ]
+      }
+    }
+  ],
+  "active_listing_count": 2,
+  "conversation_count": 5,
+  "unread_message_count": 3
+}

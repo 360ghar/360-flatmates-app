@@ -1,0 +1,20 @@
+appId: com.the360ghar.flatmates
+---
+# Login with phone + OTP
+# Prerequisites: App is on the Enter Phone screen, seeded OTP is 123456
+# Requires env var: MAESTRO_PHONE
+- assertVisible:
+    text: "Enter your phone"
+- tapOn:
+    id: "enter_phone_input"
+- eraseText
+- inputText: ${MAESTRO_PHONE}
+- tapOn:
+    id: "enter_phone_otp_cta"
+- extendedWaitUntil:
+    visible:
+      id: "otp_digit_0"
+    timeout: 5000
+- tapOn:
+    id: "otp_digit_0"
+- inputText: "123456"

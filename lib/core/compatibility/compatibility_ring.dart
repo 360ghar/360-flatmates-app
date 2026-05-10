@@ -1,9 +1,11 @@
+import 'dart:math' as math show pi;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../compatibility/compatibility_engine.dart';
 
-class CompatibilityRing extends ConsumerWidget {
+class CompatibilityRing extends ConsumerStatefulWidget {
   const CompatibilityRing({
     required this.percentage,
     this.size = 72,
@@ -15,45 +17,131 @@ class CompatibilityRing extends ConsumerWidget {
   final double size;
   final double strokeWidth;
 
-  Color _color(BuildContext context) {
-    if (percentage >= 70) return const Color(0xFF10B981);
-    if (percentage >= 40) return const Color(0xFFF59E0B);
-    return const Color(0xFFFF6B6B);
+  @override
+  ConsumerState<CompatibilityRing> createState() => _CompatibilityRingState();
+}
+
+class _CompatibilityRingState extends ConsumerState<CompatibilityRing>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _controller.forward();
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final color = _color(context);
+  void didUpdateWidget(covariant CompatibilityRing oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.percentage != widget.percentage) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Color _color() => compatibilityScoreColor(widget.percentage);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _color();
     final theme = Theme.of(context);
 
     return SizedBox(
-      width: size,
-      height: size,
+      width: widget.size,
+      height: widget.size,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              value: percentage / 100,
-              strokeWidth: strokeWidth,
-              backgroundColor: color.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              strokeCap: StrokeCap.round,
-            ),
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, _) {
+              final animatedValue =
+                  (widget.percentage / 100) * _animation.value;
+              return CustomPaint(
+                size: Size(widget.size, widget.size),
+                painter: _ArcPainter(
+                  progress: animatedValue.clamp(0.0, 1.0),
+                  color: color,
+                  strokeWidth: widget.strokeWidth,
+                  backgroundColor: color.withValues(alpha: 0.15),
+                ),
+              );
+            },
           ),
           Text(
-            '${percentage.round()}%',
+            '${widget.percentage.round()}%',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w800,
               color: color,
-              fontSize: size * 0.22,
+              fontSize: widget.size * 0.22,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// Custom painter that draws an animated arc (circular progress).
+class _ArcPainter extends CustomPainter {
+  _ArcPainter({
+    required this.progress,
+    required this.color,
+    required this.strokeWidth,
+    required this.backgroundColor,
+  });
+
+  final double progress;
+  final Color color;
+  final double strokeWidth;
+  final Color backgroundColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    // Background track
+    final bgPaint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // Foreground arc
+    final fgPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    const startAngle = -math.pi / 2; // 12 o'clock
+    final sweepAngle = 2 * math.pi * progress;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      fgPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArcPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }
 
@@ -69,8 +157,12 @@ class CompatibilityBreakdown extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: result.dimensions.map((dim) {
-        final icon = dim.isMatch ? Icons.check_circle_rounded : Icons.warning_amber_rounded;
-        final color = dim.isMatch ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
+        final icon = dim.isMatch
+            ? Icons.check_circle_rounded
+            : Icons.warning_amber_rounded;
+        final color = dim.isMatch
+            ? compatibilityScoreColor(100)
+            : compatibilityScoreColor(40);
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
@@ -84,6 +176,14 @@ class CompatibilityBreakdown extends StatelessWidget {
                     color: color,
                     fontWeight: FontWeight.w600,
                   ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${dim.score.round()}%',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],

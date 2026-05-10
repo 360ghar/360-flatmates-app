@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"id": "co_hunter", "label": "Find a Flat / Flatmate", "description": "I want to find a place"},
+    {"id": "room_poster", "label": "List My Flat / Find Flatmate", "description": "I want to list my flat"},
+    {"id": "open_to_both", "label": "Open to Both", "description": "Flexible"}
+  ]
+}

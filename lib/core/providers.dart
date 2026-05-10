@@ -19,9 +19,11 @@ final secureStoreProvider = Provider<SecureKvStore>(
   (ref) => throw UnimplementedError('SecureKvStore override is required'),
 );
 
-final authTokenStorageProvider = Provider<AuthTokenStorage>(
-  (ref) => AuthTokenStorage(ref.watch(secureStoreProvider)),
-);
+final authTokenStorageProvider = Provider<AuthTokenStorage>((ref) {
+  final storage = AuthTokenStorage(ref.watch(secureStoreProvider));
+  ref.onDispose(() => storage.dispose());
+  return storage;
+});
 
 final authTokenProviderProvider = Provider<AuthTokenProvider>(
   (ref) => RefreshingAuthTokenProvider(ref.watch(authTokenStorageProvider)),

@@ -12,8 +12,11 @@ class AppLocalizationsHi extends AppLocalizations {
   String get appName => '360 फ्लैटमेट्स';
 
   @override
-  String get splashTagline =>
-      'सही फ्लैट ढूंढें, सही लोगों से मिलें, जल्दी शिफ्ट हों।';
+  String get splashTagline => 'ढूंढें। जुड़ें। साथ रहें।';
+
+  @override
+  String get splashSubtagline =>
+      'अपना फ्लैट और फ्लैटमेट ढूंढने का बेहतरीन तरीका।';
 
   @override
   String get commonRetry => 'फिर से प्रयास करें';
@@ -107,6 +110,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get homeNoResults => 'इन फ़िल्टर्स से कोई लिस्टिंग नहीं मिली।';
+
+  @override
+  String get homeNoResultsSubtitle =>
+      'अपने फ़िल्टर बदलकर देखें या किसी अन्य लोकेशन के लिए खोजें।';
 
   @override
   String homeBedroomsChip(int count) {
@@ -268,6 +275,18 @@ class AppLocalizationsHi extends AppLocalizations {
   String get profileMenuPostListing => 'लिस्टिंग पोस्ट करें';
 
   @override
+  String get profileMenuShortlisted => 'शॉर्टलिस्टेड';
+
+  @override
+  String get profileMenuChats => 'मेरी चैट';
+
+  @override
+  String get profileMenuDocuments => 'दस्तावेज़';
+
+  @override
+  String get profileMenuPaymentMethods => 'भुकतान के तरीके';
+
+  @override
   String get editProfileCta => 'प्रोफ़ाइल संपादित करें';
 
   @override
@@ -286,10 +305,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get paletteTitle => 'पैलेट';
 
   @override
-  String get paletteElectricIndigo => 'इलेक्ट्रिक इंडिगो';
+  String get paletteInkOnPaper => 'इंक ऑन पेपर';
 
   @override
-  String get paletteEmberCoral => 'एम्बर कोरल';
+  String get paletteElectricIndigo => 'पेपर ब्लू';
+
+  @override
+  String get paletteEmberCoral => 'वार्म क्ले';
 
   @override
   String get paletteMonsoonTeal => 'मानसून टील';
@@ -335,6 +357,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get budgetMaxLabel => 'अधिकतम बजट';
+
+  @override
+  String get budgetMinMaxError => 'न्यूनतम बजट अधिकतम बजट से अधिक नहीं हो सकता';
 
   @override
   String get workStyleTitle => 'वर्क स्टाइल';
@@ -500,7 +525,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get navPost => 'पोस्ट';
 
   @override
+  String get navExplore => 'एक्सप्लोर';
+
+  @override
   String get navProfile => 'प्रोफ़ाइल';
+
+  @override
+  String get navVisits => 'विज़िट';
 
   @override
   String get onboardingGetStarted => 'शुरू करें';
@@ -509,32 +540,67 @@ class AppLocalizationsHi extends AppLocalizations {
   String get onboardingNext => 'आगे';
 
   @override
+  String get onboardingSkip => 'छोड़ें';
+
+  @override
   String get onboardingComplete => 'पूरा करें';
+
+  @override
+  String get onboardingHeadline1 => 'सही फ्लैट। सही फ्लैटमेट्स।';
+
+  @override
+  String get onboardingSubheadline1 =>
+      'वेरिफ़ाइड होम। कंपैटिबल फ्लैटमेट्स। बेहतर जीवन, साथ में।';
+
+  @override
+  String get onboardingHeadline2 => 'आपकी लाइफस्टाइल मायने रखती है।';
+
+  @override
+  String get onboardingSubheadline2 =>
+      'हम आपको अपनी वाइब और वैल्यूज़ शेयर करने वाले फ्लैटमेट्स से मैच करते हैं।';
+
+  @override
+  String get onboardingHeadline3 => '360 फ्लैटमेट्स दोनों ढूंढता है।';
+
+  @override
+  String get onboardingSubheadline3 => 'फ्लैट, फ्लैटमेट, और परफेक्ट मैच।';
+
+  @override
+  String get onboardingHeadline4 =>
+      'आपकी फ्लैटमेट यात्रा यहीं से शुरू होती है।';
+
+  @override
+  String get onboardingSubheadline4 =>
+      '4 मिनट से कम में साइन अप करें और मैचिंग शुरू करें।';
 
   @override
   String get onboardingSubmitting => 'आपकी प्रोफ़ाइल सेट की जा रही है...';
 
   @override
-  String get modeSelectionTitle => 'आप फ्लैटमेट कैसे ढूंढ रहे हैं?';
+  String get modeSelectionTitle => 'मैं ढूंढ रहा हूं';
 
   @override
   String get modeSelectionSubtitle =>
-      'आप इसे बाद में अपनी प्रोफ़ाइल से बदल सकते हैं।';
+      'वह विकल्प चुनें जो आपको सबसे अच्छे से दर्शाता है';
 
   @override
   String get modeRoomPosterDesc =>
-      'मैं फ्लैट में रहता हूं और खाली कमरे के लिए फ्लैटमेट ढूंढ रहा हूं।';
+      'मैं अपना फ्लैट लिस्ट करना चाहता हूं या खाली कमरे के लिए फ्लैटमेट ढूंढ रहा हूं।';
 
   @override
   String get modeSeekerDesc =>
       'मैं साथ मिलकर फ्लैट ढूंढने के लिए फ्लैटमेट खोज रहा हूँ';
 
   @override
-  String get modeCoHunterDesc => 'मैं किसी के साथ फ्लैट खोजना चाहता हूं।';
+  String get modeCoHunterDesc =>
+      'मैं फ्लैट या रहने के लिए फ्लैटमेट ढूंढ रहा हूं।';
 
   @override
   String get modeOpenToBothDesc =>
       'मैं मौजूदा फ्लैट में जा सकता हूं या नया ढूंढ सकता हूं।';
+
+  @override
+  String get modeContinue => 'जारी रखें';
 
   @override
   String get basicInfoTitle => 'अपने बारे में बताएं';
@@ -738,6 +804,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get nonNegMinTidy => 'न्यूनतम सफाई स्तर';
 
   @override
+  String get lifestyleQuizTitle => 'जीवनशैली प्राथमिकताएँ';
+
+  @override
   String get emptySwipeDeck =>
       'अभी दिखाने के लिए कोई प्रोफ़ाइल नहीं है। बाद में दोबारा देखें!';
 
@@ -906,7 +975,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get vibeBachelorFriendly => 'बैचलर-फ्रेंडली';
 
   @override
-  String get vibeQuiet => 'शांत';
+  String get vibeQuiet => 'शांत और फोकस्ड';
 
   @override
   String get vibeActiveCommunity => 'एक्टिव कम्युनिटी';
@@ -1107,7 +1176,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get verifiedFilterLabel => 'वेरिफ़ाइड';
 
   @override
-  String get qnaNudgeTitle => 'पहले बर्फ तोड़ें?';
+  String get qnaNudgeTitle => 'पहले बातचीत शुरू करें?';
 
   @override
   String get qnaNudgeSubtitle =>
@@ -1121,10 +1190,10 @@ class AppLocalizationsHi extends AppLocalizations {
       'जैसे कोई शांत व्यक्ति जो निजी स्पेस का सम्मान करता हो...';
 
   @override
-  String get qnaQuestion2 => 'एक आम वर्कडे पर आप घर पर कितने सोशल रहते हैं?';
+  String get qnaQuestion2 => 'एक आम वर्कडे पर आप घर पर कितने सामाजिक रहते हैं?';
 
   @override
-  String get qnaQuestion3 => 'फ्लैटमेट में आपको कौन सी बात सबसे ज़रूरी है?';
+  String get qnaQuestion3 => 'फ्लैटमेट में आपको क्या बिल्कुल चाहिए?';
 
   @override
   String get qnaQuestion3Hint => 'जैसे सफाई, पंक्चुअलिटी, ईमानदारी...';
@@ -1136,7 +1205,41 @@ class AppLocalizationsHi extends AppLocalizations {
   String get qnaSkipCta => 'अभी छोड़ें';
 
   @override
+  String get qnaBothAnsweredBanner => 'दोनों ने जवाब दिए';
+
+  @override
+  String qnaPeerAnsweredBanner(String peerName) {
+    return '$peerName ने जवाब दिए';
+  }
+
+  @override
+  String get qnaYouAnsweredBanner => 'आपके जवाब सेव हैं';
+
+  @override
+  String get qnaPeerAnsweredPrompt =>
+      'मिलने से पहले बेहतर संदर्भ के लिए अपने जवाब भी शेयर करें।';
+
+  @override
+  String qnaTheirAnswers(String peerName) {
+    return '$peerName के जवाब';
+  }
+
+  @override
+  String get qnaYourAnswers => 'आपके जवाब';
+
+  @override
   String get waitlistConfirmed => 'आप सूची में हैं! हम आपको सूचित करेंगे।';
+
+  @override
+  String get waitlistInviteFriends => 'दोस्तों को आमंत्रित करें';
+
+  @override
+  String waitlistShareMessage(String city, String url) {
+    return '360 FlatMates $city में शुरू हो रहा है। वेटलिस्ट में जुड़ें और यहाँ और फ्लैटमेट्स लाने में मदद करें:\n$url';
+  }
+
+  @override
+  String get yourNumberIsPrivate => 'आपका नंबर गोपनीय रखा जाता है';
 
   @override
   String get privacyTitle => 'गोपनीयता';
@@ -1149,6 +1252,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get visitConfirmTitle => 'इस विज़िट की पुष्टि करें?';
+
+  @override
+  String get visitConfirmCta => 'विज़िट पुष्टि करें';
 
   @override
   String get visitRescheduleCta => 'दूसरा समय सुझाएं';
@@ -1183,6 +1289,15 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get videoTooLong => 'वीडियो 30 सेकंड से कम होना चाहिए';
+
+  @override
+  String get videoTooShort => 'वीडियो कम से कम 15 सेकंड का होना चाहिए';
+
+  @override
+  String get tapToUnmute => 'अनम्यूट करने के लिए टैप करें';
+
+  @override
+  String get soundOn => 'आवाज़ चालू';
 
   @override
   String superLikeCapLabel(int count) {
@@ -1388,4 +1503,1013 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get notAvailable => 'उपलब्ध नहीं';
+
+  @override
+  String get perPersonCostLabel => 'प्रति व्यक्ति (अनुमानित)';
+
+  @override
+  String get changePasswordLabel => 'पासवर्ड बदलें';
+
+  @override
+  String get privacySecurityLabel => 'गोपनीयता और सुरक्षा';
+
+  @override
+  String get preferencesLabel => 'पसंद';
+
+  @override
+  String get notificationSettingsLabel => 'नोटिफिकेशन सेटिंग्स';
+
+  @override
+  String get blockedUsersLabel => 'ब्लॉक किए गए उपयोगकर्ता';
+
+  @override
+  String get noBlockedUsers => 'आपने अभी तक किसी को ब्लॉक नहीं किया है।';
+
+  @override
+  String get unblockCta => 'अनब्लॉक करें';
+
+  @override
+  String get userUnblocked => 'उपयोगकर्ता को अनब्लॉक कर दिया गया है।';
+
+  @override
+  String get unblockFailed => 'इस उपयोगकर्ता को अनब्लॉक नहीं किया जा सका।';
+
+  @override
+  String get newPasswordLabel => 'नया पासवर्ड';
+
+  @override
+  String get confirmPasswordLabel => 'पासवर्ड की पुष्टि करें';
+
+  @override
+  String get updatePasswordCta => 'पासवर्ड अपडेट करें';
+
+  @override
+  String get passwordUpdated => 'पासवर्ड अपडेट हो गया।';
+
+  @override
+  String get passwordsDoNotMatch => 'पासवर्ड मेल नहीं खाते।';
+
+  @override
+  String get passwordMinLength => 'पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।';
+
+  @override
+  String get aboutLabel => 'के बारे में';
+
+  @override
+  String get termsAndConditionsLabel => 'नियम और शर्तें';
+
+  @override
+  String get searchHelpPlaceholder => 'सहायता खोजें';
+
+  @override
+  String get faqSubtitle => 'सामान्य प्रश्नों के उत्तर खोजें';
+
+  @override
+  String get popularTopicsLabel => 'लोकप्रिय विषय';
+
+  @override
+  String get popularTopicsSubtitle => 'लोकप्रिय मदद विषयों का अन्वेषण करें';
+
+  @override
+  String get paymentsLabel => 'भुगतान और वापसी';
+
+  @override
+  String get paymentsSubtitle => 'भुगतान समस्याएं, वापसी और अधिक';
+
+  @override
+  String get bookingAgreementsLabel => 'बुकिंग और समझौते';
+
+  @override
+  String get bookingAgreementsSubtitle => 'बुकिंग, समझौते और नीतियाँ';
+
+  @override
+  String get accountProfileLabel => 'खाता और प्रोफ़ाइल';
+
+  @override
+  String get accountProfileSubtitle => 'अपने खाते और प्रोफ़ाइल का प्रबंधन करें';
+
+  @override
+  String get contactSupportSubtitle => 'हमारी सहायता टीम से संपर्क करें';
+
+  @override
+  String get chatWithUsCta => 'हमसे चैट करें';
+
+  @override
+  String get comingSoon => 'जल्द आ रहा है';
+
+  @override
+  String get replyTimeNote => 'हम आमतौर पर कुछ मिनटों में उत्तर देते हैं';
+
+  @override
+  String get stepLabel => 'चरण';
+
+  @override
+  String get stepOfLabel => 'में से';
+
+  @override
+  String get societyBuildingHint => 'उदा., प्रेस्टीज लेकसाइड';
+
+  @override
+  String get fullAddressHint => 'पूरा पता दर्ज करें';
+
+  @override
+  String get monthlyRentHint => 'मासिक किराया दर्ज करें';
+
+  @override
+  String get securityDepositHint => 'सुरक्षा जमान राशि दर्ज करें';
+
+  @override
+  String get maintenanceHint => 'मेंटेनेंस शुल्क दर्ज करें';
+
+  @override
+  String get electricityEstHint => 'अनुमानित मासिक बिजली खर्च';
+
+  @override
+  String get cookCostHint => 'मासिक रसोई शुल्क';
+
+  @override
+  String get maidCostHint => 'मासिक मेड शुल्क';
+
+  @override
+  String get setupCostHint => 'एकमुश्त सेटअप खर्च';
+
+  @override
+  String get activeListingsLabel => 'सक्रिय लिस्टिंग';
+
+  @override
+  String get draftsLabel => 'ड्राफ्ट';
+
+  @override
+  String get expiredLabel => 'समाप्त';
+
+  @override
+  String get listingRejectedMessage => 'आपकी लिस्टिंग स्वीकृत नहीं हुई।';
+
+  @override
+  String get reviewSubmittedMessage =>
+      'धन्यवाद! आपकी लिस्टिंग समीक्षा के लिए जमा कर दी गई है।';
+
+  @override
+  String get reviewListingCta => 'लिस्टिंग समीक्षा करें';
+
+  @override
+  String get etaHighlight =>
+      'हम 24 घंटे के भीतर आपकी लिस्टिंग की समीक्षा करेंगे';
+
+  @override
+  String get step1Text =>
+      'हमारी टीम गुणवत्ता और सुरक्षा के लिए आपकी लिस्टिंग की समीक्षा करती है।';
+
+  @override
+  String get step2Text => 'आपकी लिस्टिंग लाइव होने पर हम आपको सूचित करेंगे।';
+
+  @override
+  String get step3Text => 'लाइव हों और कनेक्ट करना शुरू करें!';
+
+  @override
+  String get yourListingLabel => 'आपकी लिस्टिंग';
+
+  @override
+  String get budgetFilterLabel => 'बजट';
+
+  @override
+  String budgetRangeLabel(String min, String max) {
+    return '₹$min – ₹$max';
+  }
+
+  @override
+  String get roomTypeFilterLabel => 'कमरे का प्रकार';
+
+  @override
+  String get roomTypeAny => 'कोई भी';
+
+  @override
+  String get roomTypePrivate => 'प्राइवेट';
+
+  @override
+  String get roomTypeShared => 'शेयर्ड';
+
+  @override
+  String get furnishingFilterLabel => 'फर्निशिंग';
+
+  @override
+  String get furnishingAny => 'कोई भी';
+
+  @override
+  String get furnishingFurnished => 'फर्निश्ड';
+
+  @override
+  String get furnishingUnfurnished => 'अनफर्निश्ड';
+
+  @override
+  String get genderFilterLabel => 'जेंडर';
+
+  @override
+  String get genderFilterAny => 'कोई भी';
+
+  @override
+  String get genderFilterMale => 'पुरुष';
+
+  @override
+  String get genderFilterFemale => 'महिला';
+
+  @override
+  String get moveInFilterLabel => 'मूव-इन';
+
+  @override
+  String get moveInAnytime => 'कभी भी';
+
+  @override
+  String get moveInImmediate => 'तुरंत';
+
+  @override
+  String get moveInThisMonth => 'इस महीने';
+
+  @override
+  String get moveInNextMonth => 'अगले महीने';
+
+  @override
+  String get moreFiltersLabel => 'अन्य फ़िल्टर';
+
+  @override
+  String get petsLabel => 'पालतू';
+
+  @override
+  String get petsYes => 'हाँ';
+
+  @override
+  String get petsNo => 'नहीं';
+
+  @override
+  String get petsNoPreference => 'कोई प्राथमिकता नहीं';
+
+  @override
+  String get smokingLabel => 'धूम्रपान';
+
+  @override
+  String get smokingNo => 'नहीं';
+
+  @override
+  String get smokingYes => 'हाँ';
+
+  @override
+  String get smokingNoPreference => 'कोई प्राथमिकता नहीं';
+
+  @override
+  String get nearbyChipLabel => 'निकटस्थ';
+
+  @override
+  String get budgetPlusChipLabel => 'बजट+';
+
+  @override
+  String get chatInputHint => 'संदेश टाइप करें...';
+
+  @override
+  String get phoneNotAvailable => 'फोन नंबर उपलब्ध नहीं है';
+
+  @override
+  String get emojiPickerComingSoon => 'इमोजी पिकर जल्द आ रहा है';
+
+  @override
+  String get preferencesTitle => 'पसंद';
+
+  @override
+  String get preferencesSubtitle =>
+      'हमें बताएं कि आपके लिए क्या मायने रखता है ताकि हम सही फ्लैटमेट्स और होम्स ढूंढ सकें।';
+
+  @override
+  String get prefGenderLabel => 'पसंदीदा जेंडर';
+
+  @override
+  String get prefFlatmatesLabel => 'अनुमत फ्लैटमेट्स';
+
+  @override
+  String get prefFoodLabel => 'खान-पान की आदतें';
+
+  @override
+  String get prefPetsLabel => 'पालतू जानवर';
+
+  @override
+  String get prefSmokingLabel => 'धूम्रपान';
+
+  @override
+  String get prefMoveInLabel => 'मूव-इन टाइमलाइन';
+
+  @override
+  String get prefNoPreference => 'कोई प्राथमिकता नहीं';
+
+  @override
+  String get prefMaleOnly => 'केवल पुरुष';
+
+  @override
+  String get prefFemaleOnly => 'केवल महिला';
+
+  @override
+  String get prefOther => 'अन्य';
+
+  @override
+  String get prefVeg => 'शाकाहारी';
+
+  @override
+  String get prefNonVeg => 'मांसाहारी';
+
+  @override
+  String get prefEggetarian => 'अंडाहारी';
+
+  @override
+  String get prefYes => 'हाँ';
+
+  @override
+  String get prefNo => 'नहीं';
+
+  @override
+  String get prefNext => 'आगे';
+
+  @override
+  String get settingsGroupAccount => 'खाता';
+
+  @override
+  String get settingsGroupApp => 'ऐप';
+
+  @override
+  String get settingsGroupLegal => 'कानूनी';
+
+  @override
+  String get qnaShareAnswers => 'जवाब साझा करें';
+
+  @override
+  String get qnaSkipForNow => 'अभी छोड़ें';
+
+  @override
+  String get qnaVeryPrivate => 'बहुत प्राइवेट';
+
+  @override
+  String get qnaVerySocial => 'बहुत सामाजिक';
+
+  @override
+  String get aboutThisFlatSection => 'इस फ्लैट के बारे में';
+
+  @override
+  String get shortlistCta => 'शॉर्टलिस्ट';
+
+  @override
+  String get contactCta => 'संपर्क करें';
+
+  @override
+  String get postedOnLabel => 'पोस्ट की गई';
+
+  @override
+  String get verifiedListingLabel => 'वेरिफ़ाइड लिस्टिंग';
+
+  @override
+  String moveInCountdownBadge(int days) {
+    return '$days दिनों में शिफ्ट';
+  }
+
+  @override
+  String get moveInToday => 'आज शिफ्ट';
+
+  @override
+  String get vibeSocial => 'सोशल और लाइवली';
+
+  @override
+  String get vibeProfessional => 'प्रोफेशनल्स';
+
+  @override
+  String get vibeStudent => 'स्टूडेंट्स';
+
+  @override
+  String get vibePet => 'पालतू परिवार';
+
+  @override
+  String get addPhotosTitle => 'फ़ोटो जोड़ें';
+
+  @override
+  String get addPhotosTips => 'सुझाव';
+
+  @override
+  String get addPhotosInstruction =>
+      'ज़्यादा मैच पाने के लिए कमरे और कॉमन एरिया की साफ़ फ़ोटो जोड़ें।';
+
+  @override
+  String get photoTipNaturalLight =>
+      '• प्राकृतिक रोशनी में शूट करें — पर्दे खोल लें';
+
+  @override
+  String get photoTipFullRoom => '• कमरे को कोने से कोने तक पूरा दिखाएं';
+
+  @override
+  String get photoTipBathroomBalcony =>
+      '• उपलब्ध हो तो बाथरूम और बालकनी भी दिखाएं';
+
+  @override
+  String get photoTipCleanRoom => '• फ़ोटो लेने से पहले कमरा साफ़ कर लें';
+
+  @override
+  String get addMorePhotosLabel => 'और फ़ोटो जोड़ें';
+
+  @override
+  String waitlistNudgeTitle(String city) {
+    return '$city में अभी ज़्यादा फ्लैटमेट्स नहीं हैं';
+  }
+
+  @override
+  String get waitlistNudgeSubtitle =>
+      'जब ज़्यादा लोग जुड़ेंगे तब हम सूचित करेंगे';
+
+  @override
+  String get waitlistNotifyMe => 'मुझे सूचित करें';
+
+  @override
+  String cityCounterShort(int count, String city) {
+    return '$city में $count ढूंढ रहे हैं';
+  }
+
+  @override
+  String get scheduleVisitTitle => 'विज़िट शेड्यूल करें';
+
+  @override
+  String get selectTimeSlot => 'समय चुनें';
+
+  @override
+  String get timeSlotMorning => 'सुबह';
+
+  @override
+  String get timeSlotAfternoon => 'दोपहर';
+
+  @override
+  String get timeSlotEvening => 'शाम';
+
+  @override
+  String get addNoteOptional => 'नोट जोड़ें (वैकल्पिक)';
+
+  @override
+  String visitPrivacyNote(String name) {
+    return 'आपका विज़िट अनुरोध $name के साथ साझा किया जाएगा।';
+  }
+
+  @override
+  String get sendingLabel => 'भेज रहे हैं...';
+
+  @override
+  String get sendRequestCta => 'अनुरोध भेजें';
+
+  @override
+  String matchedOnDate(String date) {
+    return '$date को मैच हुआ';
+  }
+
+  @override
+  String get locationSelectionTitle => 'अपनी पसंदीदा लोकेशन चुनें';
+
+  @override
+  String get searchLocationPlaceholder => 'लोकेशन खोजें';
+
+  @override
+  String get useCurrentLocation => 'मेरी वर्तमान लोकेशन का उपयोग करें';
+
+  @override
+  String get detectingLocation => 'लोकेशन पता कर रहे हैं...';
+
+  @override
+  String get popularCitiesLabel => 'लोकप्रिय शहर';
+
+  @override
+  String get noLocationsAvailable => 'कोई लोकेशन उपलब्ध नहीं';
+
+  @override
+  String get clusterListingsTitle => 'इस क्षेत्र में लिस्टिंग';
+
+  @override
+  String clusterListingsCount(int count) {
+    return '$count लिस्टिंग';
+  }
+
+  @override
+  String get shareToWhatsapp => 'WhatsApp पर शेयर करें';
+
+  @override
+  String get whatsappNotInstalled => 'WhatsApp इंस्टॉल नहीं है';
+
+  @override
+  String get scanToOpen => 'लिस्टिंग खोलने के लिए स्कैन करें';
+
+  @override
+  String get matchItsAMatch => 'यह एक मैच है!';
+
+  @override
+  String matchLikedEachOther(String peerName) {
+    return 'आप और $peerName ने एक-दूसरे को पसंद किया';
+  }
+
+  @override
+  String get matchSendMessage => 'संदेश भेजें';
+
+  @override
+  String get matchKeepSwiping => 'स्वाइप करते रहें';
+
+  @override
+  String get swipeNoMoreProfiles => 'और प्रोफ़ाइल नहीं हैं';
+
+  @override
+  String get swipeCheckBackLater => 'नए मैच के लिए बाद में देखें';
+
+  @override
+  String get swipeLikeLabel => 'पसंद';
+
+  @override
+  String get swipeNopeLabel => 'नहीं';
+
+  @override
+  String get failedToLoadProfiles => 'प्रोफ़ाइल लोड नहीं हो सकीं';
+
+  @override
+  String get actionFailedRetry =>
+      'कार्रवाई विफल हुई। कृपया फिर से प्रयास करें।';
+
+  @override
+  String get wifiChipLabel => 'वाई-फ़ाई';
+
+  @override
+  String get parkingChipLabel => 'पार्किंग';
+
+  @override
+  String get liftChipLabel => 'लिफ्ट';
+
+  @override
+  String get securityChipLabel => '24/7 सुरक्षा';
+
+  @override
+  String get noDescriptionAvailable => 'कोई विवरण उपलब्ध नहीं।';
+
+  @override
+  String get flexibleLabel => 'लचीला';
+
+  @override
+  String get recentlyLabel => 'हाल ही में';
+
+  @override
+  String get safetyCheckedLabel => 'सुरक्षा जाँच की गई';
+
+  @override
+  String get couldNotLoadListing => 'लिस्टिंग लोड नहीं हो सकी';
+
+  @override
+  String get startAConversation => 'बातचीत शुरू करें';
+
+  @override
+  String get sayHelloOrIcebreaker => 'नमस्ते कहें या आइसब्रेकर इस्तेमाल करें';
+
+  @override
+  String get messagesArePrivate => 'संदेश निजी हैं';
+
+  @override
+  String get viewLabel => 'देखें';
+
+  @override
+  String byOwnerLabel(String name) {
+    return '$name द्वारा';
+  }
+
+  @override
+  String get couldNotLoadMessages => 'संदेश लोड नहीं हो सके';
+
+  @override
+  String get failedToSendMessage =>
+      'संदेश भेजना विफल हुआ। कृपया फिर से प्रयास करें।';
+
+  @override
+  String get failedToBlockUser =>
+      'उपयोगकर्ता को ब्लॉक करना विफल हुआ। कृपया फिर से प्रयास करें।';
+
+  @override
+  String get failedToReportUser =>
+      'उपयोगकर्ता की रिपोर्ट करना विफल हुआ। कृपया फिर से प्रयास करें।';
+
+  @override
+  String get failedToUnmatch =>
+      'अनमैच करना विफल हुआ। कृपया फिर से प्रयास करें।';
+
+  @override
+  String get failedToSendPhoto =>
+      'फ़ोटो भेजना विफल हुआ। कृपया फिर से प्रयास करें।';
+
+  @override
+  String get couldNotLoadVisits => 'विज़िट लोड नहीं हो सकीं';
+
+  @override
+  String get blockedUsersAppearHere =>
+      'जिन्हें आप ब्लॉक करेंगे वे यहां दिखेंगे';
+
+  @override
+  String get couldNotLoadBlockedUsers =>
+      'ब्लॉक किए गए उपयोगकर्ता लोड नहीं हो सके';
+
+  @override
+  String get passwordRuleMinLength => 'कम से कम 8 अक्षर';
+
+  @override
+  String get passwordRuleUppercase => '1 बड़ा अक्षर';
+
+  @override
+  String get passwordRuleNumber => '1 अंक';
+
+  @override
+  String get safetyIsPriority => 'आपकी सुरक्षा हमारी प्राथमिकता है';
+
+  @override
+  String get supportAvailable247 => 'सहायता 24/7 उपलब्ध';
+
+  @override
+  String get notificationsEmptySubtitle =>
+      'आपके मैच, विज़िट और लिस्टिंग की सूचनाएं यहां दिखेंगी';
+
+  @override
+  String get couldNotLoadNotifications => 'नोटिफिकेशन लोड नहीं हो सके';
+
+  @override
+  String get yesterdayLabel => 'कल';
+
+  @override
+  String get daysAgoLabel => 'दिन पहले';
+
+  @override
+  String get notificationNoAction =>
+      'इस नोटिफिकेशन के लिए कोई कार्रवाई उपलब्ध नहीं है';
+
+  @override
+  String get submittedLabel => 'जमा किया गया';
+
+  @override
+  String get underReviewStepLabel => 'समीक्षा में है';
+
+  @override
+  String get liveStepLabel => 'लाइव';
+
+  @override
+  String get pleaseReviewAndResubmit =>
+      'कृपया नीचे दिए गए कारण की समीक्षा करें और फिर से जमा करें।';
+
+  @override
+  String get rejectionReasonLabel => 'अस्वीकृति का कारण';
+
+  @override
+  String get rejectionDetailText =>
+      'लिस्टिंग हमारे समुदाय दिशानिर्देशों को पूरा नहीं करती। कृपया सुनिश्चित करें कि सभी जानकारी सटीक हो और फ़ोटो साफ़ हों।';
+
+  @override
+  String get activeStatus => 'सक्रिय';
+
+  @override
+  String get draftStatus => 'ड्राफ्ट';
+
+  @override
+  String get expiredStatus => 'समाप्त';
+
+  @override
+  String get notificationsTooltip => 'नोटिफिकेशन';
+
+  @override
+  String get chatTooltip => 'चैट';
+
+  @override
+  String get listingStatsTitle => 'लिस्टिंग आँकड़े';
+
+  @override
+  String get viewsStatLabel => 'व्यूज़';
+
+  @override
+  String get likesStatLabel => 'लाइक्स';
+
+  @override
+  String get matchesStatLabel => 'मैच';
+
+  @override
+  String get closeCta => 'बंद करें';
+
+  @override
+  String matchCountLabel(int count) {
+    return 'मैच गिनती ($count)';
+  }
+
+  @override
+  String get boostAction => 'बूस्ट';
+
+  @override
+  String viewStatsAction(String count) {
+    return 'आँकड़े देखें ($count)';
+  }
+
+  @override
+  String get reviewAction => 'समीक्षा';
+
+  @override
+  String get shareAction => 'शेयर';
+
+  @override
+  String get resumeAction => 'फिर शुरू करें';
+
+  @override
+  String get expiresToday => 'आज समाप्त';
+
+  @override
+  String expiresInDays(int days) {
+    return '$days दिन में समाप्त';
+  }
+
+  @override
+  String get failedToUpdateListingStatus =>
+      'लिस्टिंग स्टेटस अपडेट नहीं हो सका।';
+
+  @override
+  String get noLikesYet => 'अभी कोई लाइक नहीं';
+
+  @override
+  String get keepSwipingToFindMatches => 'मैच ढूंढने के लिए स्वाइप करते रहें';
+
+  @override
+  String get noConversations => 'कोई बातचीत नहीं';
+
+  @override
+  String get startChatWithMatch => 'मैच के साथ चैट शुरू करें';
+
+  @override
+  String get matchAction => 'मैच करें';
+
+  @override
+  String get matchCreateFailed => 'मैच नहीं बन सका। फिर से प्रयास करें।';
+
+  @override
+  String get couldNotLoadConversations => 'बातचीत लोड नहीं हो सकी';
+
+  @override
+  String get downloadToConnect => 'जुड़ने के लिए 360 फ्लैटमेट्स डाउनलोड करें';
+
+  @override
+  String get scanToConnect => 'जुड़ने के लिए स्कैन करें';
+
+  @override
+  String get findYourFlatmateShare => '360 फ्लैटमेट्स पर अपना फ्लैटमेट ढूंढें!';
+
+  @override
+  String get checkOutListingShare => '360 फ्लैटमेट्स पर इस लिस्टिंग को देखें!';
+
+  @override
+  String get passwordUpdateFailed =>
+      'पासवर्ड अपडेट करने में विफल। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get visitRequestFailed =>
+      'विज़िट अनुरोध भेजने में विफल। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get visitActionFailed => 'कार्रवाई विफल। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get listingSubmitFailed =>
+      'लिस्टिंग सबमिट करने में विफल। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get listingHelperLocation =>
+      'सही लोकेशन लोगों को आपको ढूंढने में मदद करती है';
+
+  @override
+  String get listingHelperSociety =>
+      'सही फ्लैटमेट्स को आकर्षित करने के लिए सोसायटी के बारे में बताएं';
+
+  @override
+  String get listingHelperRoom =>
+      'फ्लैटमेट्स को पता चले कि कमरा कैसा है, ऐसा बताएं';
+
+  @override
+  String get listingHelperPhotos =>
+      'अच्छी फ़ोटो से 3 गुना ज़्यादा रिस्पॉन्स मिलता है';
+
+  @override
+  String get listingHelperFlat =>
+      'फ्लैट डिटेल्स से फ्लैटमेट्स तय कर सकते हैं कि यह सही है या नहीं';
+
+  @override
+  String get listingHelperCosts => 'पारदर्शी मूल्य निर्धारण भरोसा बनाता है';
+
+  @override
+  String get listingHelperAbout =>
+      'एक अच्छी बायो लोगों को आपको जानने में मदद करती है';
+
+  @override
+  String get listingHelperReview =>
+      'लगभग हो गया! लाइव होने से पहले सब कुछ जांचें';
+
+  @override
+  String get listingRentRequired => 'मासिक किराया ज़रूरी है';
+
+  @override
+  String get listingPhotosRequired => 'कम से कम 2 फ़ोटो जोड़ें';
+
+  @override
+  String get listingDepositInvalid => 'सही राशि दर्ज करें';
+
+  @override
+  String get listingMaintenanceInvalid => 'सही राशि दर्ज करें';
+
+  @override
+  String get listingCostInvalid => 'सही राशि दर्ज करें';
+
+  @override
+  String listingSummaryLocation(String society, String city) {
+    return '$society, $city';
+  }
+
+  @override
+  String listingSummarySociety(String type) {
+    return '$type';
+  }
+
+  @override
+  String listingSummaryRoom(String roomType, int furnishingCount) {
+    return '$roomType • $furnishingCount आइटम';
+  }
+
+  @override
+  String listingSummaryPhotos(int count, String plural) {
+    return '$count फ़ोटो$plural';
+  }
+
+  @override
+  String listingSummaryFlat(String config, String floor) {
+    return '$config • मंज़िल $floor';
+  }
+
+  @override
+  String listingSummaryCosts(String rent) {
+    return 'किराया: ₹$rent/महीना';
+  }
+
+  @override
+  String listingSummaryAbout(String gender, String ageMin, String ageMax) {
+    return '$gender • उम्र $ageMin-$ageMax';
+  }
+
+  @override
+  String get workStyleOffice => 'ऑफिस';
+
+  @override
+  String get workStyleHybrid => 'हाइब्रिड';
+
+  @override
+  String get workStyleWfh => 'वर्क फ्रॉम होम';
+
+  @override
+  String get phoneVerifiedLabel => 'फ़ोन सत्यापित';
+
+  @override
+  String get showResultsCta => 'परिणाम दिखाएं';
+
+  @override
+  String get searchFiltersTitle => 'खोजें और फ़िल्टर';
+
+  @override
+  String get clearAllFilters => 'सभी हटाएं';
+
+  @override
+  String get errorNetwork =>
+      'कोई इंटरनेट कनेक्शन नहीं। कृपया अपना नेटवर्क जांचें और पुनः प्रयास करें।';
+
+  @override
+  String get errorAuthExpired => 'सत्र समाप्त हो गया। कृपया पुनः साइन इन करें।';
+
+  @override
+  String get errorServer => 'सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।';
+
+  @override
+  String get errorPermission => 'आपको यह क्रिया करने की अनुमति नहीं है।';
+
+  @override
+  String get errorNotFound => 'अनुरोधित संसाधन नहीं मिला।';
+
+  @override
+  String get errorValidation => 'अमान्य डेटा। कृपया अपना इनपुट जांचें।';
+
+  @override
+  String get errorRateLimit =>
+      'बहुत अधिक अनुरोध। कृपया थोड़ी देर प्रतीक्षा करें और पुनः प्रयास करें।';
+
+  @override
+  String get errorConflict => 'एक विरोधाभास हुआ। डेटा बदल गया होगा।';
+
+  @override
+  String get errorUpload => 'अपलोड विफल। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get errorUnknown => 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get icebreakerTellMeRoom => 'मुझे कमरे के बारे में बताएं!';
+
+  @override
+  String get icebreakerWhatFlatmates => 'फ्लैटमेट्स कैसे हैं?';
+
+  @override
+  String get icebreakerNegotiateRent => 'क्या किराया पर बातचीत हो सकती है?';
+
+  @override
+  String get icebreakerSocietyVibe => 'सोसाइटी का माहौल कैसा है?';
+
+  @override
+  String get icebreakerWeekendLook => 'यहाँ सप्ताहांत कैसा दिखता है?';
+
+  @override
+  String reviewRentAmount(String amount) {
+    return 'किराया: ₹$amount/माह';
+  }
+
+  @override
+  String reviewDepositAmount(String amount) {
+    return 'जमा राशि: ₹$amount';
+  }
+
+  @override
+  String reviewMaintenanceAmount(String amount) {
+    return 'रखरखाव: ₹$amount';
+  }
+
+  @override
+  String reviewGenderAmount(String gender) {
+    return 'लिंग: $gender';
+  }
+
+  @override
+  String reviewAgeAmount(String min, String max) {
+    return 'आयु: $min - $max';
+  }
+
+  @override
+  String reviewMoveInAmount(String date) {
+    return 'स्थानांतरण तिथि: $date';
+  }
+
+  @override
+  String reviewPhotosAmount(int count, String plural) {
+    return '$count फोटो$plural';
+  }
+
+  @override
+  String get invalidListingId => 'अमान्य लिस्टिंग ID';
+
+  @override
+  String get invalidConversationId => 'अमान्य वार्तालाप ID';
+
+  @override
+  String get youAreOffline => 'आप ऑफ़लाइन हैं। अपना कनेक्शन जांचें।';
+
+  @override
+  String get visitScheduledNotificationFailed =>
+      'यात्रा शेड्यूल की गई! सूचना भेजी नहीं जा सकी।';
+
+  @override
+  String get bootstrapErrorRetry => 'कुछ गलत हो गया। पुनः प्रयास करें।';
+
+  @override
+  String get boostListingTitle => 'लिस्टिंग बूस्ट करें';
+
+  @override
+  String get boostListingSubtitle =>
+      'आपकी लिस्टिंग अगले 24 घंटों के लिए अधिक लोगों को दिखाई जाएगी।';
+
+  @override
+  String get boostNowCta => 'अभी बूस्ट करें';
+
+  @override
+  String get listingBoosted => 'लिस्टिंग 24 घंटों के लिए बूस्ट की गई!';
+
+  @override
+  String get pausedStatus => 'रोका हुआ';
+
+  @override
+  String get renewAction => 'नवीनीकरण';
+
+  @override
+  String get refreshProfilesCta => 'प्रोफ़ाइल रीफ़्रेश करें';
+
+  @override
+  String get swipeEmptyNoProfilesTitle => 'अभी कोई प्रोफ़ाइल उपलब्ध नहीं है';
+
+  @override
+  String get swipeEmptyNoProfilesSubtitle =>
+      'हम आपके लिए नए मैच ढूंढ रहे हैं! जल्द ही दोबारा देखें।';
+
+  @override
+  String get swipeEmptyAllFilteredTitle =>
+      'आपकी प्राथमिकताओं से कोई प्रोफ़ाइल मेल नहीं खाती';
+
+  @override
+  String get swipeEmptyAllFilteredSubtitle =>
+      'अधिक प्रोफ़ाइल देखने के लिए अपनी शर्तें बदलें।';
+
+  @override
+  String get swipeEmptyEndOfDeckTitle => 'आपने अभी सभी को देख लिया है';
+
+  @override
+  String get swipeEmptyEndOfDeckSubtitle =>
+      'हम आपके लिए नए मैच ढूंढ रहे हैं! बाद में दोबारा देखें।';
 }

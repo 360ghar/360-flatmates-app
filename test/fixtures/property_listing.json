@@ -1,0 +1,40 @@
+{
+  "id": 42,
+  "owner_id": 1,
+  "property_type": "flatmate",
+  "title": "Modern 2BHK in Koramangala",
+  "description": "A beautiful flat near Forum Mall",
+  "city": "Bangalore",
+  "state": "Karnataka",
+  "locality": "Koramangala",
+  "sub_locality": "5th Block",
+  "latitude": 12.9352,
+  "longitude": 77.6245,
+  "monthly_rent": 24000.0,
+  "main_image_url": "https://example.com/photo.jpg",
+  "image_urls": ["https://example.com/photo.jpg"],
+  "bedrooms": 2,
+  "bathrooms": 2,
+  "area_sqft": 1200.0,
+  "furnishing_status": "furnished",
+  "features": ["wifi", "parking", "security"],
+  "available_from": "2025-06-01T00:00:00Z",
+  "status": "live",
+  "interest_count": 10,
+  "view_count": 3800,
+  "like_count": 24,
+  "is_available": true,
+  "listing_preferences": {
+    "sharing_type": "private_room",
+    "gender_preference": "any",
+    "video_tour_url": null,
+    "moderation_status": "approved"
+  },
+  "owner": {
+    "id": 1,
+    "full_name": "Rahul Sharma",
+    "profile_image_url": null,
+    "mode": "room_poster"
+  },
+  "created_at": "2025-05-01T10:00:00Z"
+}

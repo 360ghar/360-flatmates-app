@@ -1,13 +1,24 @@
-import 'dart:ui';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../shared/presentation/flatmates_async_view.dart';
+import '../shared/presentation/flatmates_bottom_sheet.dart';
+import '../shared/presentation/flatmates_card.dart';
+import '../shared/presentation/flatmates_empty_state.dart';
+import '../shared/presentation/flatmates_segmented_control.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import '../swipe/match_qna_nudge.dart';
 import 'chats_repository.dart';
+import 'presentation/widgets/conversation_card.dart';
 
 class ConversationsPage extends ConsumerStatefulWidget {
   const ConversationsPage({super.key});
@@ -17,431 +28,288 @@ class ConversationsPage extends ConsumerStatefulWidget {
 }
 
 class _ConversationsPageState extends ConsumerState<ConversationsPage> {
-  bool _showLikes = true;
+  final Set<int> _matchingLikeIds = {};
+  String _tab = 'likes';
+
+  Future<void> _refresh() async {
+    ref.invalidate(conversationsProvider);
+    ref.invalidate(incomingLikesProvider);
+  }
+
+  Future<void> _matchIncomingLike(IncomingLikeModel like) async {
+    if (_matchingLikeIds.contains(like.id)) return;
+    setState(() => _matchingLikeIds.add(like.id));
+
+    final locale = AppLocalizations.of(context);
+    try {
+      final conversationId = await ref
+          .read(chatsRepositoryProvider)
+          .matchIncomingLike(
+            peerId: like.peer.id,
+            contextPropertyId: like.contextProperty?.id,
+          );
+      ref.invalidate(incomingLikesProvider);
+      ref.invalidate(conversationsProvider);
+      if (!mounted) return;
+      if (conversationId == null) {
+        _showMatchFailure(locale);
+        return;
+      }
+
+      unawaited(context.push('/chats/$conversationId'));
+      unawaited(
+        Future<void>.delayed(AppMotion.matchCelebration, () {
+          if (!mounted) return;
+          FlatmatesBottomSheet.show(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => MatchQnANudgeSheet(conversationId: conversationId),
+          );
+        }),
+      );
+    } catch (_) {
+      if (mounted) _showMatchFailure(locale);
+    } finally {
+      if (mounted) setState(() => _matchingLikeIds.remove(like.id));
+    }
+  }
+
+  void _showMatchFailure(AppLocalizations locale) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(locale.matchCreateFailed)));
+  }
 
   @override
   Widget build(BuildContext context) {
     final conversations = ref.watch(conversationsProvider);
+    final incomingLikes = ref.watch(incomingLikesProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
       body: SafeArea(
-        child: conversations.when(
-          data: (items) {
-            final likes = items
-                .where(
-                  (item) =>
-                      (item.lastMessagePreview == null ||
-                      item.lastMessagePreview!.isEmpty),
-                )
-                .toList();
-            final chats = items
-                .where(
-                  (item) =>
-                      item.lastMessagePreview != null &&
-                      item.lastMessagePreview!.isNotEmpty,
-                )
-                .toList();
-            final visible = _showLikes ? likes : chats;
-
-            return RefreshIndicator(
-              onRefresh: () async => ref.invalidate(conversationsProvider),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
-                children: [
-                  const FlatmatesLogo(),
-                  const SizedBox(height: 18),
-                  Text(
-                    locale.likesChatTitle,
-                    style: theme.textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 18),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: theme.colorScheme.outlineVariant.withValues(
-                          alpha: 0.45,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _SegmentButton(
-                            key: const Key('likes_tab_button'),
-                            label: locale.likesTabLabel,
-                            selected: _showLikes,
-                            onTap: () => setState(() => _showLikes = true),
-                          ),
-                        ),
-                        Expanded(
-                          child: _SegmentButton(
-                            key: const Key('chats_tab_button'),
-                            label: locale.chatsTabLabel,
-                            selected: !_showLikes,
-                            onTap: () => setState(() => _showLikes = false),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (visible.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 44),
-                      child: Center(
-                        child: Text(
-                          _showLikes ? locale.emptyLikes : locale.emptyChats,
-                        ),
-                      ),
-                    )
-                  else
-                    ...visible.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _ConversationCard(
-                          item: item,
-                          highlightMode: _showLikes,
-                          onTap: () =>
-                              context.push('/chats/${item.id}', extra: item),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 10),
-                  Card(
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 10,
-                      ),
-                      leading: Icon(
-                        Icons.shield_outlined,
-                        color: theme.colorScheme.primary,
-                      ),
-                      title: Text(locale.safetyFirstTitle),
-                      subtitle: Text(locale.safetyFirstSubtitle),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => context.push('/help-safety'),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text(error.toString())),
-        ),
-      ),
-    );
-  }
-}
-
-class _SegmentButton extends StatelessWidget {
-  const _SegmentButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    super.key,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        gradient: selected
-            ? LinearGradient(
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(alpha: 0.82),
-                ],
-              )
-            : null,
-        color: selected ? null : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Text(
-                label,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: selected
-                      ? Colors.white
-                      : theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.lg,
+              AppSpacing.xl,
+              120,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ConversationCard extends StatelessWidget {
-  const _ConversationCard({
-    required this.item,
-    required this.highlightMode,
-    required this.onTap,
-  });
-
-  final ConversationSummaryModel item;
-  final bool highlightMode;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final location = [
-      if (item.peer.locality != null && item.peer.locality!.trim().isNotEmpty)
-        item.peer.locality!.trim(),
-      if (item.peer.city != null && item.peer.city!.trim().isNotEmpty)
-        item.peer.city!.trim(),
-    ].join(', ');
-    final timestamp = item.lastMessageAt == null
-        ? locale.chatReady
-        : DateFormat(
-            'd MMM, h:mm a',
-            locale.localeName,
-          ).format(item.lastMessageAt!.toLocal());
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  highlightMode && item.peer.profileImageUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(58 / 2),
-                          child: ImageFiltered(
-                            imageFilter: ImageFilter.blur(
-                              sigmaX: 8,
-                              sigmaY: 8,
-                            ),
-                            child: FlatmatesAvatar(
-                              name: item.peer.fullName,
-                              imageUrl: item.peer.profileImageUrl,
-                              size: 58,
-                            ),
-                          ),
-                        )
-                      : FlatmatesAvatar(
-                          name: item.peer.fullName,
-                          imageUrl: item.peer.profileImageUrl,
-                          size: 58,
-                        ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item.peer.fullName,
-                                style: theme.textTheme.titleLarge,
-                              ),
-                            ),
-                            if (item.unreadCount > 0)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withValues(
-                                    alpha: 0.12,
-                                  ),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  '${item.unreadCount}',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        if (item.peer.mode != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            localizedFlatmatesModeLabel(
-                              locale,
-                              item.peer.mode!,
-                            ),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                        if (location.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 16,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  location,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
+                  const FlatmatesLogo(compact: true),
+                  const Spacer(),
+                  Text(
+                    locale.likesChatTitle,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: AppTypography.displayWeight,
                     ),
                   ),
+                  const Spacer(),
+                  const SizedBox(width: AppSpacing.screen),
                 ],
               ),
-              if (item.contextProperty != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(22),
+              const SizedBox(height: AppSpacing.xl),
+              FlatmatesSegmentedControl<String>(
+                segmentKeys: const [
+                  Key('chats_likes_tab'),
+                  Key('chats_chats_tab'),
+                ],
+                segments: [
+                  (
+                    'likes',
+                    locale.likesTabLabel,
+                    Icons.favorite_border_rounded,
                   ),
-                  child: Row(
-                    children: [
-                      if (item.contextProperty!.mainImageUrl != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            item.contextProperty!.mainImageUrl!,
-                            width: 76,
-                            height: 76,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _PropertyPreviewFallback(
-                              title: item.contextProperty!.title,
-                            ),
-                          ),
-                        )
-                      else
-                        _PropertyPreviewFallback(
-                          title: item.contextProperty!.title,
-                        ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.contextProperty!.title,
-                              style: theme.textTheme.titleMedium,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 6),
-                            if (item.contextProperty!.monthlyRent != null)
-                              Text(
-                                locale.monthlyRentLabel(
-                                  item.contextProperty!.monthlyRent!
-                                      .toStringAsFixed(0),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  (
+                    'chats',
+                    locale.chatsTabLabel,
+                    Icons.chat_bubble_outline_rounded,
                   ),
+                ],
+                selected: _tab,
+                onChanged: (v) => setState(() => _tab = v),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              if (_tab == 'likes')
+                _LikesTab(
+                  likes: incomingLikes,
+                  matchingLikeIds: _matchingLikeIds,
+                  onRetry: () => ref.invalidate(incomingLikesProvider),
+                  onMatchTap: _matchIncomingLike,
+                )
+              else
+                _ChatsTab(
+                  conversations: conversations,
+                  onRetry: () => ref.invalidate(conversationsProvider),
                 ),
-              ],
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.lastMessagePreview ?? locale.likesIncomingLabel,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(timestamp, style: theme.textTheme.bodyMedium),
-                ],
-              ),
-              const SizedBox(height: 14),
-              highlightMode
-                  ? GradientActionButton(
-                      label: locale.openConversationCta,
-                      onPressed: onTap,
-                      icon: Icons.chat_bubble_outline_rounded,
-                    )
-                  : Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: onTap,
-                        child: Text(locale.openConversationCta),
-                      ),
-                    ),
+              const SizedBox(height: AppSpacing.md),
+              _buildSafetyBanner(context, theme, locale),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _PropertyPreviewFallback extends StatelessWidget {
-  const _PropertyPreviewFallback({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 76,
-      height: 76,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.9),
-            theme.colorScheme.primary.withValues(alpha: 0.4),
-          ],
-        ),
-      ),
-      child: Center(
-        child: Text(
-          initialsFromName(title),
-          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
-        ),
+  Widget _buildSafetyBanner(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations locale,
+  ) {
+    return FlatmatesCard(
+      margin: EdgeInsets.zero,
+      borderRadius: AppRadius.mdBorder,
+      backgroundColor: AppSemanticColors.coralSoftFor(
+        theme.brightness,
+      ).withValues(alpha: 0.4),
+      onTap: () => context.push('/help-safety'),
+      child: Row(
+        children: [
+          Icon(
+            Icons.shield_outlined,
+            size: 22,
+            color: AppSemanticColors.accent,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.safetyFirstTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: AppTypography.h3Weight,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  locale.safetyFirstSubtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: AppTypography.captionSize,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            size: 20,
+          ),
+        ],
       ),
     );
   }
+}
+
+class _LikesTab extends StatelessWidget {
+  const _LikesTab({
+    required this.likes,
+    required this.matchingLikeIds,
+    required this.onRetry,
+    required this.onMatchTap,
+  });
+
+  final AsyncValue<List<IncomingLikeModel>> likes;
+  final Set<int> matchingLikeIds;
+  final VoidCallback onRetry;
+  final ValueChanged<IncomingLikeModel> onMatchTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    return FlatmatesAsyncView<List<IncomingLikeModel>>(
+      value: likes,
+      onRetry: onRetry,
+      empty: FlatmatesEmptyState(
+        title: locale.noLikesYet,
+        subtitle: locale.keepSwipingToFindMatches,
+        icon: Icons.favorite_border_rounded,
+      ),
+      data: (items) => GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.75,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return FlatmatesProfileGridCard(
+            key: ValueKey('incoming_like_${item.id}'),
+            name: item.peer.fullName,
+            age: item.peer.age,
+            location: _locationForPeer(item.peer),
+            profession: _professionForPeer(locale, item.peer),
+            matchPercentage: item.peer.matchPercentage,
+            imageUrl: item.peer.profileImageUrl,
+            blurImage: true,
+            matchButtonLabel: locale.matchAction,
+            onMatchTap: matchingLikeIds.contains(item.id)
+                ? null
+                : () => onMatchTap(item),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ChatsTab extends StatelessWidget {
+  const _ChatsTab({required this.conversations, required this.onRetry});
+
+  final AsyncValue<List<ConversationSummaryModel>> conversations;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    return FlatmatesAsyncView<List<ConversationSummaryModel>>(
+      value: conversations,
+      onRetry: onRetry,
+      empty: FlatmatesEmptyState(
+        title: locale.noConversations,
+        subtitle: locale.startChatWithMatch,
+        icon: Icons.chat_bubble_outline_rounded,
+      ),
+      data: (items) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final item in items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: ConversationCard(
+                item: item,
+                onTap: () => context.push('/chats/${item.id}', extra: item),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+String _locationForPeer(ChatPeer peer) {
+  return [
+    if (peer.locality != null && peer.locality!.trim().isNotEmpty)
+      peer.locality!.trim(),
+    if (peer.city != null && peer.city!.trim().isNotEmpty) peer.city!.trim(),
+  ].join(', ');
+}
+
+String _professionForPeer(AppLocalizations locale, ChatPeer peer) {
+  final profession = peer.profession?.trim();
+  if (profession != null && profession.isNotEmpty) return profession;
+  final mode = peer.mode;
+  return mode == null ? '' : localizedFlatmatesModeLabel(locale, mode);
 }

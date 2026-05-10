@@ -68,6 +68,8 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photos to upload profile and listing photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to save photos to your library for profile and listing images.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to take profile and listing photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

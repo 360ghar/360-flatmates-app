@@ -101,7 +101,10 @@ void main() {
         'work_style': 'hybrid',
       };
 
-      final result = CompatibilityEngine.calculate(user: profile, peer: profile);
+      final result = CompatibilityEngine.calculate(
+        user: profile,
+        peer: profile,
+      );
       expect(result.percentage, 100.0);
 
       // Verify weight sum.
@@ -145,7 +148,10 @@ void main() {
         'work_style': 'hybrid',
       };
 
-      final result = CompatibilityEngine.calculate(user: profile, peer: profile);
+      final result = CompatibilityEngine.calculate(
+        user: profile,
+        peer: profile,
+      );
       // All 6 dimensions match, but chips are capped at 3.
       expect(result.topMatchChips.length, 3);
     });

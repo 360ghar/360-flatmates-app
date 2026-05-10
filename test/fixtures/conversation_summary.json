@@ -1,0 +1,46 @@
+{
+  "id": 10,
+  "source": "match",
+  "status": "active",
+  "peer": {
+    "id": 2,
+    "full_name": "Priya Patel",
+    "profile_image_url": null,
+    "mode": "co_hunter",
+    "city": "Bangalore",
+    "locality": "HSR Layout",
+    "age": 24,
+    "profession": "Designer",
+    "match_percentage": 85.0,
+    "phone_number": null
+  },
+  "context_property": {
+    "id": 42,
+    "title": "Modern 2BHK in Koramangala",
+    "locality": "Koramangala",
+    "city": "Bangalore",
+    "monthly_rent": 24000.0,
+    "main_image_url": "https://example.com/photo.jpg",
+    "owner_name": "Rahul Sharma",
+    "owner_image_url": null
+  },
+  "last_message_preview": "Hey! I'm interested in the flat",
+  "last_message_at": "2025-05-15T14:30:00Z",
+  "unread_count": 2,
+  "matched_at": "2025-05-10T09:00:00Z",
+  "qna": {
+    "current_user": {
+      "user_id": 1,
+      "q1": "A calm place near work",
+      "q2": "Balanced",
+      "q3": "Clean shared spaces"
+    },
+    "peer": {
+      "user_id": 2,
+      "q1": "Respectful and tidy",
+      "q2": "Mostly private",
+      "q3": "No smoking indoors"
+    },
+    "both_answered": true
+  }
+}

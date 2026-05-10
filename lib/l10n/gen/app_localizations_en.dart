@@ -12,8 +12,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => '360 FlatMates';
 
   @override
-  String get splashTagline =>
-      'Find the right flat, meet the right people, move in faster.';
+  String get splashTagline => 'Find. Connect. Live Together.';
+
+  @override
+  String get splashSubtagline =>
+      'The smarter way to find your flat and flatmates.';
 
   @override
   String get commonRetry => 'Retry';
@@ -107,6 +110,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeNoResults => 'No listings match those filters.';
+
+  @override
+  String get homeNoResultsSubtitle =>
+      'Try adjusting your filters or search for a different location.';
 
   @override
   String homeBedroomsChip(int count) {
@@ -269,6 +276,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuPostListing => 'Post Listing';
 
   @override
+  String get profileMenuShortlisted => 'Shortlisted';
+
+  @override
+  String get profileMenuChats => 'My Chats';
+
+  @override
+  String get profileMenuDocuments => 'Documents';
+
+  @override
+  String get profileMenuPaymentMethods => 'Payment Methods';
+
+  @override
   String get editProfileCta => 'Edit profile';
 
   @override
@@ -287,10 +306,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paletteTitle => 'Palette';
 
   @override
-  String get paletteElectricIndigo => 'Electric Indigo';
+  String get paletteInkOnPaper => 'Ink on Paper';
 
   @override
-  String get paletteEmberCoral => 'Ember Coral';
+  String get paletteElectricIndigo => 'Paper Blue';
+
+  @override
+  String get paletteEmberCoral => 'Warm Clay';
 
   @override
   String get paletteMonsoonTeal => 'Monsoon Teal';
@@ -336,6 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetMaxLabel => 'Budget max';
+
+  @override
+  String get budgetMinMaxError => 'Budget minimum cannot exceed maximum';
 
   @override
   String get workStyleTitle => 'Work style';
@@ -501,7 +526,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navPost => 'Post';
 
   @override
+  String get navExplore => 'Explore';
+
+  @override
   String get navProfile => 'Profile';
+
+  @override
+  String get navVisits => 'Visits';
 
   @override
   String get onboardingGetStarted => 'Get Started';
@@ -510,21 +541,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingNext => 'Next';
 
   @override
+  String get onboardingSkip => 'Skip';
+
+  @override
   String get onboardingComplete => 'Complete';
+
+  @override
+  String get onboardingHeadline1 => 'Find the right flat. The right flatmates.';
+
+  @override
+  String get onboardingSubheadline1 =>
+      'Verified homes. Compatible flatmates. Better living, together.';
+
+  @override
+  String get onboardingHeadline2 => 'Your lifestyle matters.';
+
+  @override
+  String get onboardingSubheadline2 =>
+      'We match you with flatmates who share your vibe and values.';
+
+  @override
+  String get onboardingHeadline3 => '360 Flatmates finds both.';
+
+  @override
+  String get onboardingSubheadline3 =>
+      'The flat, the flatmate, and the perfect match.';
+
+  @override
+  String get onboardingHeadline4 => 'Your flatmate journey starts here.';
+
+  @override
+  String get onboardingSubheadline4 =>
+      'Sign up in under 4 minutes and start matching.';
 
   @override
   String get onboardingSubmitting => 'Setting up your profile...';
 
   @override
-  String get modeSelectionTitle => 'How are you looking for a flatmate?';
+  String get modeSelectionTitle => 'I am looking to';
 
   @override
   String get modeSelectionSubtitle =>
-      'You can change this later from your profile.';
+      'Select the option that best describes you';
 
   @override
   String get modeRoomPosterDesc =>
-      'I\'m living in a flat and looking for a flatmate to fill a spare room.';
+      'I want to list my flat or find a flatmate to fill a spare room.';
 
   @override
   String get modeSeekerDesc =>
@@ -532,11 +594,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modeCoHunterDesc =>
-      'I\'m looking for someone to flat-search alongside.';
+      'I want to find a place or a flatmate to stay with.';
 
   @override
   String get modeOpenToBothDesc =>
       'I\'ll move into an existing flat or team up to find a new one.';
+
+  @override
+  String get modeContinue => 'Continue';
 
   @override
   String get basicInfoTitle => 'Tell us about yourself';
@@ -741,6 +806,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nonNegMinTidy => 'Minimum tidy standard';
 
   @override
+  String get lifestyleQuizTitle => 'Lifestyle preferences';
+
+  @override
   String get emptySwipeDeck =>
       'No more profiles to show right now. Check back later!';
 
@@ -908,7 +976,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vibeBachelorFriendly => 'Bachelor-friendly';
 
   @override
-  String get vibeQuiet => 'Quiet';
+  String get vibeQuiet => 'Quiet & Focused';
 
   @override
   String get vibeActiveCommunity => 'Active community';
@@ -1139,7 +1207,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qnaSkipCta => 'Skip for now';
 
   @override
+  String get qnaBothAnsweredBanner => 'Both answered';
+
+  @override
+  String qnaPeerAnsweredBanner(String peerName) {
+    return '$peerName answered';
+  }
+
+  @override
+  String get qnaYouAnsweredBanner => 'Your answers are saved';
+
+  @override
+  String get qnaPeerAnsweredPrompt =>
+      'Share yours to unlock stronger context before you meet.';
+
+  @override
+  String qnaTheirAnswers(String peerName) {
+    return '$peerName\'s answers';
+  }
+
+  @override
+  String get qnaYourAnswers => 'Your answers';
+
+  @override
   String get waitlistConfirmed => 'You\'re on the list! We\'ll notify you.';
+
+  @override
+  String get waitlistInviteFriends => 'Invite Friends';
+
+  @override
+  String waitlistShareMessage(String city, String url) {
+    return '360 FlatMates is opening in $city. Join the waitlist and help bring more flatmates here:\n$url';
+  }
+
+  @override
+  String get yourNumberIsPrivate => 'Your number is kept private';
 
   @override
   String get privacyTitle => 'Privacy';
@@ -1152,6 +1254,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitConfirmTitle => 'Confirm this visit?';
+
+  @override
+  String get visitConfirmCta => 'Confirm visit';
 
   @override
   String get visitRescheduleCta => 'Suggest another time';
@@ -1186,6 +1291,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get videoTooLong => 'Video must be under 30 seconds';
+
+  @override
+  String get videoTooShort => 'Video must be at least 15 seconds';
+
+  @override
+  String get tapToUnmute => 'Tap to unmute';
+
+  @override
+  String get soundOn => 'Sound on';
 
   @override
   String superLikeCapLabel(int count) {
@@ -1390,4 +1504,999 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notAvailable => 'Not specified';
+
+  @override
+  String get perPersonCostLabel => 'Per person (approx.)';
+
+  @override
+  String get changePasswordLabel => 'Change Password';
+
+  @override
+  String get privacySecurityLabel => 'Privacy & Security';
+
+  @override
+  String get preferencesLabel => 'Preferences';
+
+  @override
+  String get notificationSettingsLabel => 'Notification Settings';
+
+  @override
+  String get blockedUsersLabel => 'Blocked Users';
+
+  @override
+  String get noBlockedUsers => 'You haven\'t blocked anyone yet.';
+
+  @override
+  String get unblockCta => 'Unblock';
+
+  @override
+  String get userUnblocked => 'User has been unblocked.';
+
+  @override
+  String get unblockFailed => 'Could not unblock this user.';
+
+  @override
+  String get newPasswordLabel => 'New password';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get updatePasswordCta => 'Update password';
+
+  @override
+  String get passwordUpdated => 'Password updated.';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match.';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 8 characters.';
+
+  @override
+  String get aboutLabel => 'About';
+
+  @override
+  String get termsAndConditionsLabel => 'Terms & Conditions';
+
+  @override
+  String get searchHelpPlaceholder => 'Search for help';
+
+  @override
+  String get faqSubtitle => 'Find answers to common questions';
+
+  @override
+  String get popularTopicsLabel => 'Popular Topics';
+
+  @override
+  String get popularTopicsSubtitle => 'Explore trending help topics';
+
+  @override
+  String get paymentsLabel => 'Payments & Refunds';
+
+  @override
+  String get paymentsSubtitle => 'Payment issues, refunds and more';
+
+  @override
+  String get bookingAgreementsLabel => 'Booking & Agreements';
+
+  @override
+  String get bookingAgreementsSubtitle => 'Bookings, agreements & policies';
+
+  @override
+  String get accountProfileLabel => 'Account & Profile';
+
+  @override
+  String get accountProfileSubtitle => 'Manage your account and profile';
+
+  @override
+  String get contactSupportSubtitle => 'Get in touch with our support team';
+
+  @override
+  String get chatWithUsCta => 'Chat with Us';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get replyTimeNote => 'We usually reply in a few minutes';
+
+  @override
+  String get stepLabel => 'Step';
+
+  @override
+  String get stepOfLabel => 'of';
+
+  @override
+  String get societyBuildingHint => 'e.g., Prestige Lakeside';
+
+  @override
+  String get fullAddressHint => 'Enter full address';
+
+  @override
+  String get monthlyRentHint => 'Enter monthly rent';
+
+  @override
+  String get securityDepositHint => 'Enter deposit amount';
+
+  @override
+  String get maintenanceHint => 'Enter maintenance charges';
+
+  @override
+  String get electricityEstHint => 'Estimated monthly electricity cost';
+
+  @override
+  String get cookCostHint => 'Cook charges per month';
+
+  @override
+  String get maidCostHint => 'Maid charges per month';
+
+  @override
+  String get setupCostHint => 'One-time setup cost';
+
+  @override
+  String get activeListingsLabel => 'Active Listings';
+
+  @override
+  String get draftsLabel => 'Drafts';
+
+  @override
+  String get expiredLabel => 'Expired';
+
+  @override
+  String get listingRejectedMessage => 'Your listing was not approved.';
+
+  @override
+  String get reviewSubmittedMessage =>
+      'Thank you! Your listing has been submitted for review.';
+
+  @override
+  String get reviewListingCta => 'Review Listing';
+
+  @override
+  String get etaHighlight => 'We\'ll review your listing within 24 hours';
+
+  @override
+  String get step1Text =>
+      'Our team reviews your listing for quality and safety.';
+
+  @override
+  String get step2Text => 'We\'ll notify you once your listing is live.';
+
+  @override
+  String get step3Text => 'Go live and start connecting!';
+
+  @override
+  String get yourListingLabel => 'Your listing';
+
+  @override
+  String get budgetFilterLabel => 'Budget';
+
+  @override
+  String budgetRangeLabel(String min, String max) {
+    return '₹$min – ₹$max';
+  }
+
+  @override
+  String get roomTypeFilterLabel => 'Room Type';
+
+  @override
+  String get roomTypeAny => 'Any';
+
+  @override
+  String get roomTypePrivate => 'Private';
+
+  @override
+  String get roomTypeShared => 'Shared';
+
+  @override
+  String get furnishingFilterLabel => 'Furnishing';
+
+  @override
+  String get furnishingAny => 'Any';
+
+  @override
+  String get furnishingFurnished => 'Furnished';
+
+  @override
+  String get furnishingUnfurnished => 'Unfurnished';
+
+  @override
+  String get genderFilterLabel => 'Gender';
+
+  @override
+  String get genderFilterAny => 'Any';
+
+  @override
+  String get genderFilterMale => 'Male';
+
+  @override
+  String get genderFilterFemale => 'Female';
+
+  @override
+  String get moveInFilterLabel => 'Move-in';
+
+  @override
+  String get moveInAnytime => 'Anytime';
+
+  @override
+  String get moveInImmediate => 'Immediate';
+
+  @override
+  String get moveInThisMonth => 'This Month';
+
+  @override
+  String get moveInNextMonth => 'Next Month';
+
+  @override
+  String get moreFiltersLabel => 'More Filters';
+
+  @override
+  String get petsLabel => 'Pets';
+
+  @override
+  String get petsYes => 'Yes';
+
+  @override
+  String get petsNo => 'No';
+
+  @override
+  String get petsNoPreference => 'No Preference';
+
+  @override
+  String get smokingLabel => 'Smoking';
+
+  @override
+  String get smokingNo => 'No';
+
+  @override
+  String get smokingYes => 'Yes';
+
+  @override
+  String get smokingNoPreference => 'No Preference';
+
+  @override
+  String get nearbyChipLabel => 'Nearby';
+
+  @override
+  String get budgetPlusChipLabel => 'Budget+';
+
+  @override
+  String get chatInputHint => 'Type a message...';
+
+  @override
+  String get phoneNotAvailable => 'Phone number not available';
+
+  @override
+  String get emojiPickerComingSoon => 'Emoji picker coming soon';
+
+  @override
+  String get preferencesTitle => 'Preferences';
+
+  @override
+  String get preferencesSubtitle =>
+      'Tell us what matters to you so we can find the right flatmates and homes.';
+
+  @override
+  String get prefGenderLabel => 'Preferred Gender';
+
+  @override
+  String get prefFlatmatesLabel => 'Allowed Flatmates';
+
+  @override
+  String get prefFoodLabel => 'Food Habits';
+
+  @override
+  String get prefPetsLabel => 'Pets';
+
+  @override
+  String get prefSmokingLabel => 'Smoking';
+
+  @override
+  String get prefMoveInLabel => 'Move-in Timeline';
+
+  @override
+  String get prefNoPreference => 'No Preference';
+
+  @override
+  String get prefMaleOnly => 'Male Only';
+
+  @override
+  String get prefFemaleOnly => 'Female Only';
+
+  @override
+  String get prefOther => 'Other';
+
+  @override
+  String get prefVeg => 'Veg';
+
+  @override
+  String get prefNonVeg => 'Non-Veg';
+
+  @override
+  String get prefEggetarian => 'Eggetarian';
+
+  @override
+  String get prefYes => 'Yes';
+
+  @override
+  String get prefNo => 'No';
+
+  @override
+  String get prefNext => 'Next';
+
+  @override
+  String get settingsGroupAccount => 'Account';
+
+  @override
+  String get settingsGroupApp => 'App';
+
+  @override
+  String get settingsGroupLegal => 'Legal';
+
+  @override
+  String get qnaShareAnswers => 'Share Answers';
+
+  @override
+  String get qnaSkipForNow => 'Skip for now';
+
+  @override
+  String get qnaVeryPrivate => 'Very private';
+
+  @override
+  String get qnaVerySocial => 'Very social';
+
+  @override
+  String get aboutThisFlatSection => 'About this Flat';
+
+  @override
+  String get shortlistCta => 'Shortlist';
+
+  @override
+  String get contactCta => 'Contact';
+
+  @override
+  String get postedOnLabel => 'Posted on';
+
+  @override
+  String get verifiedListingLabel => 'Verified listing';
+
+  @override
+  String moveInCountdownBadge(int days) {
+    return 'Moving in $days days';
+  }
+
+  @override
+  String get moveInToday => 'Moving in today';
+
+  @override
+  String get vibeSocial => 'Social & Lively';
+
+  @override
+  String get vibeProfessional => 'Professionals';
+
+  @override
+  String get vibeStudent => 'Students';
+
+  @override
+  String get vibePet => 'Pet Household';
+
+  @override
+  String get addPhotosTitle => 'Add Photos';
+
+  @override
+  String get addPhotosTips => 'Tips';
+
+  @override
+  String get addPhotosInstruction =>
+      'Add clear photos of the room and common areas to get more matches.';
+
+  @override
+  String get photoTipNaturalLight =>
+      '• Use natural lighting — open curtains before shooting';
+
+  @override
+  String get photoTipFullRoom => '• Show the full room from corner to corner';
+
+  @override
+  String get photoTipBathroomBalcony =>
+      '• Include bathroom and balcony if available';
+
+  @override
+  String get photoTipCleanRoom => '• Clean up before taking photos';
+
+  @override
+  String get addMorePhotosLabel => 'Add more photos';
+
+  @override
+  String waitlistNudgeTitle(String city) {
+    return 'Not many flatmates in $city yet';
+  }
+
+  @override
+  String get waitlistNudgeSubtitle => 'We\'ll notify you when more people join';
+
+  @override
+  String get waitlistNotifyMe => 'Notify Me';
+
+  @override
+  String cityCounterShort(int count, String city) {
+    return '$count looking in $city';
+  }
+
+  @override
+  String get scheduleVisitTitle => 'Schedule Visit';
+
+  @override
+  String get selectTimeSlot => 'Select Time Slot';
+
+  @override
+  String get timeSlotMorning => 'Morning';
+
+  @override
+  String get timeSlotAfternoon => 'Afternoon';
+
+  @override
+  String get timeSlotEvening => 'Evening';
+
+  @override
+  String get addNoteOptional => 'Add a Note (Optional)';
+
+  @override
+  String visitPrivacyNote(String name) {
+    return 'Your visit request will be shared with $name.';
+  }
+
+  @override
+  String get sendingLabel => 'Sending...';
+
+  @override
+  String get sendRequestCta => 'Send Request';
+
+  @override
+  String matchedOnDate(String date) {
+    return 'Matched on $date';
+  }
+
+  @override
+  String get locationSelectionTitle => 'Select your preferred location';
+
+  @override
+  String get searchLocationPlaceholder => 'Search location';
+
+  @override
+  String get useCurrentLocation => 'Use my current location';
+
+  @override
+  String get detectingLocation => 'Detecting location...';
+
+  @override
+  String get popularCitiesLabel => 'POPULAR CITIES';
+
+  @override
+  String get noLocationsAvailable => 'No locations available';
+
+  @override
+  String get clusterListingsTitle => 'Listings in this area';
+
+  @override
+  String clusterListingsCount(int count) {
+    return '$count listings';
+  }
+
+  @override
+  String get shareToWhatsapp => 'Share to WhatsApp';
+
+  @override
+  String get whatsappNotInstalled => 'WhatsApp is not installed';
+
+  @override
+  String get scanToOpen => 'Scan to open listing';
+
+  @override
+  String get matchItsAMatch => 'It\'s a Match!';
+
+  @override
+  String matchLikedEachOther(String peerName) {
+    return 'You and $peerName liked each other';
+  }
+
+  @override
+  String get matchSendMessage => 'Send a message';
+
+  @override
+  String get matchKeepSwiping => 'Keep swiping';
+
+  @override
+  String get swipeNoMoreProfiles => 'No more profiles';
+
+  @override
+  String get swipeCheckBackLater => 'Check back later for new matches';
+
+  @override
+  String get swipeLikeLabel => 'LIKE';
+
+  @override
+  String get swipeNopeLabel => 'NOPE';
+
+  @override
+  String get failedToLoadProfiles => 'Failed to load profiles';
+
+  @override
+  String get actionFailedRetry => 'Action failed. Please try again.';
+
+  @override
+  String get wifiChipLabel => 'WiFi';
+
+  @override
+  String get parkingChipLabel => 'Parking';
+
+  @override
+  String get liftChipLabel => 'Lift';
+
+  @override
+  String get securityChipLabel => '24/7 Security';
+
+  @override
+  String get noDescriptionAvailable => 'No description available.';
+
+  @override
+  String get flexibleLabel => 'Flexible';
+
+  @override
+  String get recentlyLabel => 'Recently';
+
+  @override
+  String get safetyCheckedLabel => 'Safety Checked';
+
+  @override
+  String get couldNotLoadListing => 'Could not load listing';
+
+  @override
+  String get startAConversation => 'Start a conversation';
+
+  @override
+  String get sayHelloOrIcebreaker => 'Say hello or use an icebreaker';
+
+  @override
+  String get messagesArePrivate => 'Messages are private';
+
+  @override
+  String get viewLabel => 'View';
+
+  @override
+  String byOwnerLabel(String name) {
+    return 'by $name';
+  }
+
+  @override
+  String get couldNotLoadMessages => 'Could not load messages';
+
+  @override
+  String get failedToSendMessage => 'Failed to send message. Please try again.';
+
+  @override
+  String get failedToBlockUser => 'Failed to block user. Please try again.';
+
+  @override
+  String get failedToReportUser => 'Failed to report user. Please try again.';
+
+  @override
+  String get failedToUnmatch => 'Failed to unmatch. Please try again.';
+
+  @override
+  String get failedToSendPhoto => 'Failed to send photo. Please try again.';
+
+  @override
+  String get couldNotLoadVisits => 'Could not load visits';
+
+  @override
+  String get blockedUsersAppearHere => 'People you block will appear here';
+
+  @override
+  String get couldNotLoadBlockedUsers => 'Could not load blocked users';
+
+  @override
+  String get passwordRuleMinLength => 'At least 8 characters';
+
+  @override
+  String get passwordRuleUppercase => '1 uppercase letter';
+
+  @override
+  String get passwordRuleNumber => '1 number';
+
+  @override
+  String get safetyIsPriority => 'Your safety is our priority';
+
+  @override
+  String get supportAvailable247 => 'Support available 24/7';
+
+  @override
+  String get notificationsEmptySubtitle =>
+      'Notifications about your matches, visits, and listings will appear here';
+
+  @override
+  String get couldNotLoadNotifications => 'Could not load notifications';
+
+  @override
+  String get yesterdayLabel => 'Yesterday';
+
+  @override
+  String get daysAgoLabel => 'days ago';
+
+  @override
+  String get notificationNoAction =>
+      'No action available for this notification';
+
+  @override
+  String get submittedLabel => 'Submitted';
+
+  @override
+  String get underReviewStepLabel => 'Under Review';
+
+  @override
+  String get liveStepLabel => 'Live';
+
+  @override
+  String get pleaseReviewAndResubmit =>
+      'Please review the reason below and resubmit.';
+
+  @override
+  String get rejectionReasonLabel => 'Rejection reason';
+
+  @override
+  String get rejectionDetailText =>
+      'The listing did not meet our community guidelines. Please ensure all information is accurate and photos are clear.';
+
+  @override
+  String get activeStatus => 'Active';
+
+  @override
+  String get draftStatus => 'Draft';
+
+  @override
+  String get expiredStatus => 'Expired';
+
+  @override
+  String get notificationsTooltip => 'Notifications';
+
+  @override
+  String get chatTooltip => 'Chat';
+
+  @override
+  String get listingStatsTitle => 'Listing Stats';
+
+  @override
+  String get viewsStatLabel => 'Views';
+
+  @override
+  String get likesStatLabel => 'Likes';
+
+  @override
+  String get matchesStatLabel => 'Matches';
+
+  @override
+  String get closeCta => 'Close';
+
+  @override
+  String matchCountLabel(int count) {
+    return 'Match Count ($count)';
+  }
+
+  @override
+  String get boostAction => 'Boost';
+
+  @override
+  String viewStatsAction(String count) {
+    return 'View Stats ($count)';
+  }
+
+  @override
+  String get reviewAction => 'Review';
+
+  @override
+  String get shareAction => 'Share';
+
+  @override
+  String get resumeAction => 'Resume';
+
+  @override
+  String get expiresToday => 'Expires today';
+
+  @override
+  String expiresInDays(int days) {
+    return 'Expires in ${days}d';
+  }
+
+  @override
+  String get failedToUpdateListingStatus => 'Failed to update listing status.';
+
+  @override
+  String get noLikesYet => 'No likes yet';
+
+  @override
+  String get keepSwipingToFindMatches => 'Keep swiping to find matches';
+
+  @override
+  String get noConversations => 'No conversations';
+
+  @override
+  String get startChatWithMatch => 'Start a chat with a match';
+
+  @override
+  String get matchAction => 'Match';
+
+  @override
+  String get matchCreateFailed => 'Could not create match. Try again.';
+
+  @override
+  String get couldNotLoadConversations => 'Could not load conversations';
+
+  @override
+  String get downloadToConnect => 'Download 360 FlatMates to connect';
+
+  @override
+  String get scanToConnect => 'Scan to connect';
+
+  @override
+  String get findYourFlatmateShare => 'Find your flatmate on 360 FlatMates!';
+
+  @override
+  String get checkOutListingShare => 'Check out this listing on 360 FlatMates!';
+
+  @override
+  String get passwordUpdateFailed =>
+      'Failed to update password. Please try again.';
+
+  @override
+  String get visitRequestFailed =>
+      'Failed to send visit request. Please try again.';
+
+  @override
+  String get visitActionFailed => 'Action failed. Please try again.';
+
+  @override
+  String get listingSubmitFailed =>
+      'Failed to submit listing. Please try again.';
+
+  @override
+  String get listingHelperLocation => 'Accurate location helps people find you';
+
+  @override
+  String get listingHelperSociety =>
+      'Tell us about the society to attract the right flatmates';
+
+  @override
+  String get listingHelperRoom =>
+      'Describe the room so flatmates know what to expect';
+
+  @override
+  String get listingHelperPhotos => 'Good photos get 3x more responses';
+
+  @override
+  String get listingHelperFlat =>
+      'Flat details help flatmates decide if it\'s the right fit';
+
+  @override
+  String get listingHelperCosts => 'Transparent pricing builds trust';
+
+  @override
+  String get listingHelperAbout => 'A good bio helps people know you';
+
+  @override
+  String get listingHelperReview =>
+      'Almost there! Review everything before going live';
+
+  @override
+  String get listingRentRequired => 'Monthly rent is required';
+
+  @override
+  String get listingPhotosRequired => 'Add at least 2 photos';
+
+  @override
+  String get listingDepositInvalid => 'Enter a valid amount';
+
+  @override
+  String get listingMaintenanceInvalid => 'Enter a valid amount';
+
+  @override
+  String get listingCostInvalid => 'Enter a valid amount';
+
+  @override
+  String listingSummaryLocation(String society, String city) {
+    return '$society, $city';
+  }
+
+  @override
+  String listingSummarySociety(String type) {
+    return '$type';
+  }
+
+  @override
+  String listingSummaryRoom(String roomType, int furnishingCount) {
+    return '$roomType • $furnishingCount items';
+  }
+
+  @override
+  String listingSummaryPhotos(int count, String plural) {
+    return '$count photo$plural';
+  }
+
+  @override
+  String listingSummaryFlat(String config, String floor) {
+    return '$config • Floor $floor';
+  }
+
+  @override
+  String listingSummaryCosts(String rent) {
+    return 'Rent: ₹$rent/mo';
+  }
+
+  @override
+  String listingSummaryAbout(String gender, String ageMin, String ageMax) {
+    return '$gender • Ages $ageMin-$ageMax';
+  }
+
+  @override
+  String get workStyleOffice => 'Office';
+
+  @override
+  String get workStyleHybrid => 'Hybrid';
+
+  @override
+  String get workStyleWfh => 'WFH';
+
+  @override
+  String get phoneVerifiedLabel => 'Phone verified';
+
+  @override
+  String get showResultsCta => 'Show Results';
+
+  @override
+  String get searchFiltersTitle => 'Search & Filters';
+
+  @override
+  String get clearAllFilters => 'Clear all';
+
+  @override
+  String get errorNetwork =>
+      'No internet connection. Please check your network and try again.';
+
+  @override
+  String get errorAuthExpired => 'Session expired. Please sign in again.';
+
+  @override
+  String get errorServer => 'Server error. Please try again later.';
+
+  @override
+  String get errorPermission =>
+      'You do not have permission to perform this action.';
+
+  @override
+  String get errorNotFound => 'The requested resource was not found.';
+
+  @override
+  String get errorValidation => 'Invalid data. Please check your input.';
+
+  @override
+  String get errorRateLimit =>
+      'Too many requests. Please wait a moment and try again.';
+
+  @override
+  String get errorConflict => 'A conflict occurred. The data may have changed.';
+
+  @override
+  String get errorUpload => 'Upload failed. Please try again.';
+
+  @override
+  String get errorUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get icebreakerTellMeRoom => 'Tell me about the room!';
+
+  @override
+  String get icebreakerWhatFlatmates => 'What are the flatmates like?';
+
+  @override
+  String get icebreakerNegotiateRent => 'Is the rent negotiable?';
+
+  @override
+  String get icebreakerSocietyVibe => 'What\'s the society vibe?';
+
+  @override
+  String get icebreakerWeekendLook => 'What does a weekend here look like?';
+
+  @override
+  String reviewRentAmount(String amount) {
+    return 'Rent: ₹$amount/mo';
+  }
+
+  @override
+  String reviewDepositAmount(String amount) {
+    return 'Deposit: ₹$amount';
+  }
+
+  @override
+  String reviewMaintenanceAmount(String amount) {
+    return 'Maintenance: ₹$amount';
+  }
+
+  @override
+  String reviewGenderAmount(String gender) {
+    return 'Gender: $gender';
+  }
+
+  @override
+  String reviewAgeAmount(String min, String max) {
+    return 'Age: $min - $max';
+  }
+
+  @override
+  String reviewMoveInAmount(String date) {
+    return 'Move-in: $date';
+  }
+
+  @override
+  String reviewPhotosAmount(int count, String plural) {
+    return '$count photo$plural';
+  }
+
+  @override
+  String get invalidListingId => 'Invalid listing ID';
+
+  @override
+  String get invalidConversationId => 'Invalid conversation ID';
+
+  @override
+  String get youAreOffline => 'You are offline. Check your connection.';
+
+  @override
+  String get visitScheduledNotificationFailed =>
+      'Visit scheduled! Could not send notification.';
+
+  @override
+  String get bootstrapErrorRetry => 'Something went wrong. Tap to retry.';
+
+  @override
+  String get boostListingTitle => 'Boost Listing';
+
+  @override
+  String get boostListingSubtitle =>
+      'Your listing will be shown to more people for the next 24 hours.';
+
+  @override
+  String get boostNowCta => 'Boost Now';
+
+  @override
+  String get listingBoosted => 'Listing boosted for 24 hours!';
+
+  @override
+  String get pausedStatus => 'Paused';
+
+  @override
+  String get renewAction => 'Renew';
+
+  @override
+  String get refreshProfilesCta => 'Refresh Profiles';
+
+  @override
+  String get swipeEmptyNoProfilesTitle => 'No profiles available right now';
+
+  @override
+  String get swipeEmptyNoProfilesSubtitle =>
+      'We\'re finding new matches for you! Check back soon.';
+
+  @override
+  String get swipeEmptyAllFilteredTitle => 'No profiles match your preferences';
+
+  @override
+  String get swipeEmptyAllFilteredSubtitle =>
+      'Try adjusting your non-negotiables to see more profiles.';
+
+  @override
+  String get swipeEmptyEndOfDeckTitle => 'You\'ve seen everyone for now';
+
+  @override
+  String get swipeEmptyEndOfDeckSubtitle =>
+      'We\'re finding new matches for you! Check back later.';
 }

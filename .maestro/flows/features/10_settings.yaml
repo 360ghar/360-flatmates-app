@@ -1,0 +1,77 @@
+appId: com.the360ghar.flatmates
+---
+# Feature: Settings — Theme, Palette, Language, Privacy
+# Starting state: On Profile tab
+- assertVisible:
+    id: "nav_profile_tab"
+
+# Navigate to settings
+- tapOn:
+    id: "profile_settings_button"
+- extendedWaitUntil:
+    visible:
+      text: "Settings"
+    timeout: 5000
+
+# Open preferences bottom sheet
+- tapOn:
+    id: "preferences_menu_item"
+- extendedWaitUntil:
+    visible:
+      id: "theme_mode_dark_option"
+    timeout: 5000
+
+# Switch to dark mode
+- tapOn:
+    id: "theme_mode_dark_option"
+- extendedWaitUntil:
+    visible:
+      id: "theme_mode_light_option"
+    timeout: 2000
+
+# Switch back to light mode
+- tapOn:
+    id: "theme_mode_light_option"
+
+# Switch palette to Warm Clay (ember coral)
+- tapOn:
+    text: "Warm Clay"
+    optional: true
+
+# Switch language to Hindi
+- tapOn:
+    id: "language_hindi_option"
+- extendedWaitUntil:
+    visible:
+      text: "सेटिंग्स"
+    timeout: 3000
+
+# Switch back to English
+- tapOn:
+    id: "language_english_option"
+- extendedWaitUntil:
+    visible:
+      text: "Settings"
+    timeout: 3000
+
+# Toggle privacy switches
+- tapOn:
+    id: "setting_hide_last_name"
+- tapOn:
+    id: "setting_hide_location"
+
+# Toggle privacy switches back
+- tapOn:
+    id: "setting_hide_last_name"
+- tapOn:
+    id: "setting_hide_location"
+
+# Close preferences sheet
+- back
+
+# Go back to profile
+- back
+- extendedWaitUntil:
+    visible:
+      id: "nav_profile_tab"
+    timeout: 5000

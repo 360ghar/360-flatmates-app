@@ -1,9 +1,12 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_motion.dart';
+import '../../core/deep_links/deep_link_service.dart';
 import '../app_shell.dart';
 import '../../features/auth/auth_controller.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../features/auth/presentation/enter_phone_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/otp_page.dart';
@@ -16,15 +19,24 @@ import '../../features/chats/conversations_page.dart';
 import '../../features/discover/discover_page.dart';
 import '../../features/discover/flat_details_page.dart';
 import '../../features/discover/map_view_page.dart';
+import '../../features/discover/search_filters_page.dart';
 import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
+import '../../features/listings/manage_listing_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_page.dart';
+import '../../features/onboarding/waitlist_page.dart';
 import '../../features/profile/edit_profile_page.dart';
 import '../../features/profile/help_safety_page.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
+import '../../features/settings/blocked_users_page.dart';
+import '../../features/settings/change_password_page.dart';
+import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
+import '../../features/swipe/match_celebration_screen.dart';
+import '../../features/swipe/match_qna_nudge.dart';
+import '../../features/visits/schedule_visit_page.dart';
 import '../../features/visits/visits_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -33,13 +45,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier();
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
-    refreshNotifier.refresh();
+    if (previous?.isLoggedIn != next.isLoggedIn) {
+      refreshNotifier.refresh();
+    }
   });
   ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
     previous,
     next,
   ) {
-    refreshNotifier.refresh();
+    final prevData = previous?.valueOrNull;
+    final nextData = next.valueOrNull;
+    if (prevData == null && nextData != null) {
+      refreshNotifier.refresh();
+    }
   });
 
   return GoRouter(
@@ -57,14 +75,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/signup' ||
           location == '/otp';
       final isOnboarding = location == '/onboarding';
-      final isDeepLink = location.startsWith('/chats/') ||
+      final isDeepLink =
+          location.startsWith('/chats/') ||
           location.startsWith('/flat-details/') ||
           location.startsWith('/listing-review/') ||
-          location == '/visits' ||
-          location == '/post' ||
           location == '/notifications' ||
+          location == '/schedule-visit' ||
+          location == '/search-filters' ||
           location == '/help-safety' ||
-          location == '/map';
+          location == '/change-password' ||
+          location == '/blocked-users' ||
+          location == '/match-celebration' ||
+          location == '/waitlist';
 
       if (auth.status == AuthStatus.checking) {
         return isSplash ? null : '/splash';
@@ -74,13 +96,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isAuthRoute ? null : '/enter-phone';
       }
 
-      if (bootstrap.isLoading || bootstrap.valueOrNull == null) {
+      if (bootstrap.isLoading) {
         return isSplash ? null : '/splash';
       }
 
-      final profile = bootstrap.valueOrNull?.profile;
-      if (profile != null && !profile.onboardingCompleted && !isOnboarding) {
+      if (bootstrap.hasError || bootstrap.valueOrNull == null) {
+        return isSplash ? null : '/splash';
+      }
+
+      final bootstrapData = bootstrap.valueOrNull!;
+      final profile = bootstrapData.profile;
+
+      if (!profile.onboardingCompleted && !isOnboarding) {
         return '/onboarding';
+      }
+
+      if (profile.onboardingCompleted && isOnboarding) {
+        return '/discover';
+      }
+
+      final pendingDeepLink = DeepLinkService.consumePendingDeepLink();
+      if (pendingDeepLink != null) {
+        return pendingDeepLink;
       }
 
       if (isSplash || isAuthRoute) {
@@ -120,16 +157,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OnboardingPage(),
       ),
       GoRoute(
-        path: '/flat-details/:id',
+        path: '/waitlist',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => FlatDetailsPage(
-          listingId: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (context, state) {
+          final city = state.uri.queryParameters['city'] ?? '';
+          return WaitlistPage(city: city);
+        },
       ),
       GoRoute(
-        path: '/map',
+        path: '/flat-details/:id',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const MapViewPage(),
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            final locale = AppLocalizations.of(context);
+            return Scaffold(body: Center(child: Text(locale.invalidListingId)));
+          }
+          return FlatDetailsPage(listingId: id);
+        },
       ),
       GoRoute(
         path: '/notifications',
@@ -137,15 +182,94 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NotificationsPage(),
       ),
       GoRoute(
+        path: '/search-filters',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SearchFiltersPage(),
+      ),
+      GoRoute(
+        path: '/schedule-visit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ScheduleVisitPage(
+          conversation: state.extra is ConversationSummaryModel
+              ? state.extra as ConversationSummaryModel
+              : null,
+          conversationId: int.tryParse(
+            state.uri.queryParameters['conversationId'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
         path: '/help-safety',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const HelpSafetyPage(),
       ),
       GoRoute(
+        path: '/change-password',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ChangePasswordPage(),
+      ),
+      GoRoute(
+        path: '/blocked-users',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BlockedUsersPage(),
+      ),
+      GoRoute(
+        path: '/match-celebration',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final conversationId = extra?['conversationId'] as int?;
+          final userName = extra?['userName'] as String? ?? 'You';
+          final userImageUrl = extra?['userImageUrl'] as String?;
+          final peerName = extra?['peerName'] as String? ?? 'Flatmate';
+          final peerImageUrl = extra?['peerImageUrl'] as String?;
+          return MatchCelebrationScreen(
+            userName: userName,
+            userImageUrl: userImageUrl,
+            peerName: peerName,
+            peerImageUrl: peerImageUrl,
+            onOpenChat: () {
+              context.pop();
+              if (conversationId != null) {
+                context.push('/chats/$conversationId');
+                final rootContext = _rootNavigatorKey.currentContext;
+                if (rootContext != null) {
+                  Future.delayed(AppMotion.matchCelebration, () {
+                    if (rootContext.mounted) {
+                      FlatmatesBottomSheet.show(
+                        context: rootContext,
+                        isScrollControlled: true,
+                        builder: (_) =>
+                            MatchQnANudgeSheet(conversationId: conversationId),
+                      );
+                    }
+                  });
+                }
+              } else {
+                context.go('/chats');
+              }
+            },
+            onKeepSwiping: () => context.pop(),
+          );
+        },
+      ),
+      GoRoute(
         path: '/listing-review/:id',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => ListingUnderReviewPage(
-          listingId: int.parse(state.pathParameters['id']!),
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            final locale = AppLocalizations.of(context);
+            return Scaffold(body: Center(child: Text(locale.invalidListingId)));
+          }
+          return ListingUnderReviewPage(listingId: id);
+        },
+      ),
+      GoRoute(
+        path: '/post/new',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => CreateListingPage(
+          listingId: int.tryParse(state.uri.queryParameters['listingId'] ?? ''),
         ),
       ),
       StatefulShellRoute.indexedStack(
@@ -158,6 +282,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/discover',
                 builder: (context, state) => const DiscoverPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/tab2',
+                builder: (context, state) => const _ModeTab2Switcher(),
               ),
             ],
           ),
@@ -177,29 +309,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: ':id',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => ChatThreadPage(
-                      conversationId: int.parse(state.pathParameters['id']!),
-                      conversation: state.extra as ConversationSummaryModel?,
-                    ),
+                    builder: (context, state) {
+                      final id = int.tryParse(state.pathParameters['id'] ?? '');
+                      if (id == null) {
+                        final locale = AppLocalizations.of(context);
+                        return Scaffold(
+                          body: Center(
+                            child: Text(locale.invalidConversationId),
+                          ),
+                        );
+                      }
+                      return ChatThreadPage(
+                        conversationId: id,
+                        conversation: state.extra is ConversationSummaryModel
+                            ? state.extra as ConversationSummaryModel
+                            : null,
+                      );
+                    },
                   ),
                 ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/visits',
-                builder: (context, state) => const VisitsPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/post',
-                builder: (context, state) => const CreateListingPage(),
               ),
             ],
           ),
@@ -217,6 +345,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'settings',
                     builder: (context, state) => const SettingsPage(),
                   ),
+                  GoRoute(
+                    path: 'visits',
+                    builder: (context, state) => const VisitsPage(),
+                  ),
                 ],
               ),
             ],
@@ -230,5 +362,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 class RouterRefreshNotifier extends ChangeNotifier {
   void refresh() {
     notifyListeners();
+  }
+}
+
+class _ModeTab2Switcher extends ConsumerWidget {
+  const _ModeTab2Switcher();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
+    final mode = bootstrap?.profile.mode ?? 'co_hunter';
+    final isRoomPoster = mode.trim().toLowerCase() == 'room_poster';
+    if (isRoomPoster) {
+      return const ManageListingPage();
+    }
+    return const MapViewPage();
   }
 }

@@ -1,0 +1,10 @@
+{
+  "id": "notif-1",
+  "type": "booking_confirmed",
+  "title": "Visit Confirmed",
+  "body": "Your visit with Priya has been confirmed",
+  "created_at": "2025-05-16T09:00:00Z",
+  "is_read": false,
+  "reference_id": 5,
+  "route": "/visits/5"
+}

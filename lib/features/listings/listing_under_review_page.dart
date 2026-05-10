@@ -1,354 +1,477 @@
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/network/sse_providers.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../discover/discover_repository.dart';
+import '../shared/presentation/flatmates_card.dart';
+import '../shared/presentation/flatmates_step_progress.dart';
+import '../shared/presentation/flatmates_trust_badge.dart';
+import '../shared/presentation/flatmates_error_state.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/flatmates_network_image.dart';
 
-class ListingUnderReviewPage extends ConsumerWidget {
+final listingReviewProvider = FutureProvider.family<PropertyListing, int>((
+  ref,
+  listingId,
+) {
+  return ref.watch(discoverRepositoryProvider).fetchListing(listingId);
+});
+
+class ListingUnderReviewPage extends ConsumerStatefulWidget {
   const ListingUnderReviewPage({required this.listingId, super.key});
 
   final int listingId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final listings = ref.watch(discoverListingsProvider);
+  ConsumerState<ListingUnderReviewPage> createState() =>
+      _ListingUnderReviewPageState();
+}
+
+class _ListingUnderReviewPageState
+    extends ConsumerState<ListingUnderReviewPage> {
+  @override
+  Widget build(BuildContext context) {
+    final listingAsync = ref.watch(listingReviewProvider(widget.listingId));
+
+    // Listen for SSE listing status changes and refresh.
+    ref.listen(sseEventProvider, (previous, next) {
+      final event = next.valueOrNull;
+      if (event?.type == 'listing_status_changed') {
+        final listingId = event!.data['listing_id'] as int?;
+        if (listingId == widget.listingId) {
+          ref.invalidate(listingReviewProvider(widget.listingId));
+        }
+      }
+    });
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(locale.listingUnderReviewTitle)),
-      body: listings.when(
-        data: (items) {
-          final listing = items.where((i) => i.id == listingId).firstOrNull;
-          final isRejected = listing?.isRejected ?? false;
+      body: SafeArea(
+        child: listingAsync.when(
+          data: (listing) {
+            final isRejected = listing.isRejected;
 
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-            children: [
-              // Status chip
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
+            return Column(
+              children: [
+                // Custom header — logo at top-left, no separate back arrow (per design spec Screen 16)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xl,
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                    AppSpacing.sm,
                   ),
-                  decoration: BoxDecoration(
-                    color: isRejected
-                        ? theme.colorScheme.error.withValues(alpha: 0.1)
-                        : theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: isRejected
-                          ? theme.colorScheme.error.withValues(alpha: 0.3)
-                          : theme.colorScheme.primary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Column(
                     children: [
-                      Icon(
-                        isRejected
-                            ? Icons.error_outline
-                            : Icons.hourglass_top_rounded,
-                        size: 18,
-                        color: isRejected
-                            ? theme.colorScheme.error
-                            : theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
+                      const FlatmatesLogo(compact: true, centered: true),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
-                        isRejected ? locale.listingRejected : locale.underReview,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: isRejected
-                              ? theme.colorScheme.error
-                              : theme.colorScheme.primary,
+                        locale.listingUnderReviewTitle,
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w700,
+                          fontSize: 18,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 18),
 
-              // Support text
-              if (!isRejected)
-                Center(
-                  child: Text(
-                    locale.reviewSupportText,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                // Scrollable content
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.xl,
+                      AppSpacing.lg,
+                      AppSpacing.xl,
+                      AppSpacing.screen,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              else
-                Center(
-                  child: Text(
-                    'Your listing was not approved. Please review the reason below and resubmit.',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              const SizedBox(height: 28),
+                    children: [
+                      // Illustration / icon area
+                      Center(
+                        child: Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isRejected
+                                ? AppSemanticColors.error.withValues(alpha: 0.1)
+                                : AppSemanticColors.accent.withValues(
+                                    alpha: 0.1,
+                                  ),
+                          ),
+                          child: Icon(
+                            isRejected ? Icons.error_outline : Icons.task_alt,
+                            size: 44,
+                            color: isRejected
+                                ? AppSemanticColors.error
+                                : AppSemanticColors.accent,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
 
-              // What happens next
-              if (!isRejected) ...[
-                FlatmatesSectionHeader(
-                  title: locale.whatHappensNext,
-                ),
-                const SizedBox(height: 16),
-                _StepCard(
-                  number: 1,
-                  title: locale.aiPreScreen,
-                  description:
-                      'Our AI checks for policy compliance, image quality, and listing accuracy.',
-                  icon: Icons.smart_toy_outlined,
-                ),
-                const SizedBox(height: 12),
-                _StepCard(
-                  number: 2,
-                  title: locale.manualReview,
-                  description:
-                      'A member of our team verifies the details and may reach out if needed.',
-                  icon: Icons.person_search_outlined,
-                ),
-                const SizedBox(height: 12),
-                _StepCard(
-                  number: 3,
-                  title: locale.youWillBeNotified,
-                  description:
-                      locale.reviewStep3Desc,
-                  icon: Icons.notifications_active_outlined,
-                ),
-                const SizedBox(height: 28),
-              ],
+                      // Status message
+                      Center(
+                        child: Text(
+                          isRejected
+                              ? locale.listingRejectedMessage
+                              : locale.reviewSubmittedMessage,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
 
-              // Rejection reason
-              if (isRejected) ...[
-                Card(
-                  color: theme.colorScheme.error.withValues(alpha: 0.06),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: theme.colorScheme.error,
-                              size: 20,
+                      if (!isRejected) ...[
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Text(
+                            locale.reviewSupportText,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppSemanticColors.textSecondaryFor(
+                                theme.brightness,
+                              ),
                             ),
-                            const SizedBox(width: 8),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Text(
+                            locale.pleaseReviewAndResubmit,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppSemanticColors.error,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Review progress indicator + trust badge
+                      if (!isRejected) ...[
+                        FlatmatesStepProgress.linear(
+                          currentStep: 1,
+                          totalSteps: 3,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
                             Text(
-                              'Rejection reason',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.error,
-                                fontWeight: FontWeight.w700,
+                              locale.submittedLabel,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppSemanticColors.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              locale.underReviewStepLabel,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppSemanticColors.textSecondaryFor(
+                                  theme.brightness,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              locale.liveStepLabel,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppSemanticColors.textSecondaryFor(
+                                  theme.brightness,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'The listing did not meet our community guidelines. '
-                          'Please ensure all information is accurate and photos are clear.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                        const SizedBox(height: AppSpacing.md),
+                        Center(
+                          child: FlatmatesTrustBadge(
+                            variant: FlatmatesTrustBadgeVariant.reviewed,
+                            label: locale.underReviewStepLabel,
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-              ],
 
-              // Preview card
-              if (listing != null) ...[
-                FlatmatesSectionHeader(
-                  title: 'Your listing',
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        if (listing.mainImageUrl != null)
-                          ClipRRect(
+                      // "Review Listing" button (outlined for non-rejected)
+                      if (!isRejected)
+                        FlatmatesButton.secondary(
+                          label: locale.reviewListingCta,
+                          onPressed: () => context.push(
+                            '/post/new?listingId=${widget.listingId}',
+                          ),
+                          icon: Icons.visibility_outlined,
+                          fullWidth: true,
+                        ),
+
+                      if (isRejected) ...[
+                        // Rejection reason card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppSemanticColors.error.withValues(
+                              alpha: 0.06,
+                            ),
                             borderRadius: BorderRadius.circular(14),
-                            child: Image.network(
-                              listing.mainImageUrl!,
-                              width: 72,
-                              height: 72,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Container(
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: AppSemanticColors.error,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    locale.rejectionReasonLabel,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: AppSemanticColors.error,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                locale.rejectionDetailText,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppSemanticColors.textSecondaryFor(
+                                    theme.brightness,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+
+                      const SizedBox(height: AppSpacing.section),
+
+                      // ETA highlight banner
+                      if (!isRejected)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppSemanticColors.accent.withValues(
+                              alpha: 0.06,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppSemanticColors.accent.withValues(
+                                alpha: 0.15,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.schedule_outlined,
+                                size: 20,
+                                color: AppSemanticColors.accent,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  locale.etaHighlight,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppSemanticColors.accent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: AppSpacing.section),
+
+                      // "What happens next?" section
+                      if (!isRejected) ...[
+                        Text(
+                          locale.whatHappensNext,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        _StepItem(
+                          number: 1,
+                          text: locale.step1Text,
+                          theme: theme,
+                        ),
+                        _StepItem(
+                          number: 2,
+                          text: locale.step2Text,
+                          theme: theme,
+                        ),
+                        _StepItem(
+                          number: 3,
+                          text: locale.step3Text,
+                          theme: theme,
+                        ),
+                        const SizedBox(height: AppSpacing.section),
+                      ],
+
+                      // Property preview card
+                      Text(
+                        locale.yourListingLabel,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      FlatmatesCard(
+                        child: Row(
+                          children: [
+                            if (listing.mainImageUrl != null)
+                              FlatmatesNetworkImage(
+                                imageUrl: listing.mainImageUrl!,
+                                width: 72,
+                                height: 72,
+                                borderRadius: BorderRadius.circular(14),
+                              )
+                            else
+                              Container(
                                 width: 72,
                                 height: 72,
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary
-                                      .withValues(alpha: 0.15),
+                                  color: AppSemanticColors.accent.withValues(
+                                    alpha: 0.15,
+                                  ),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: const Icon(Icons.apartment_rounded),
                               ),
-                            ),
-                          )
-                        else
-                          Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(Icons.apartment_rounded),
-                          ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                listing.title,
-                                style: theme.textTheme.titleMedium,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              if (listing.monthlyRent != null)
-                                Text(
-                                  '₹${listing.monthlyRent!.toStringAsFixed(0)}/mo',
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w700,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    listing.title,
+                                    style: theme.textTheme.titleMedium,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                            ],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '\u{20B9}${listing.monthlyRent.toStringAsFixed(0)}/mo',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: AppSemanticColors.accent,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.screen),
+
+                      // CTAs
+                      if (isRejected)
+                        FlatmatesButton(
+                          label: locale.editResubmit,
+                          onPressed: () => context.push(
+                            '/post/new?listingId=${widget.listingId}',
                           ),
+                          icon: Icons.edit_outlined,
+                        )
+                      else ...[
+                        FlatmatesButton(
+                          label: locale.goToHomeFeed,
+                          onPressed: () => context.go('/discover'),
+                          icon: Icons.home_outlined,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        FlatmatesButton.secondary(
+                          label: locale.viewListing,
+                          onPressed: () => context.push(
+                            '/post/new?listingId=${widget.listingId}',
+                          ),
+                          fullWidth: true,
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-              ],
-
-              // CTAs
-              if (isRejected)
-                GradientActionButton(
-                  label: locale.editResubmit,
-                  onPressed: () => context.push('/post'),
-                  icon: Icons.edit_outlined,
-                )
-              else ...[
-                GradientActionButton(
-                  label: locale.goToHomeFeed,
-                  onPressed: () => context.go('/discover'),
-                  icon: Icons.home_outlined,
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () =>
-                        context.push('/flat-details/$listingId'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: Text(locale.viewListing),
+                    ],
                   ),
                 ),
               ],
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString())),
+            );
+          },
+          loading: () => const FlatmatesSkeleton.card(),
+          error: (e, _) =>
+              FlatmatesErrorState(message: 'Could not load review status'),
+        ),
       ),
     );
   }
 }
 
-class _StepCard extends StatelessWidget {
-  const _StepCard({
+/// A single numbered step item in the "What happens next?" section.
+class _StepItem extends StatelessWidget {
+  const _StepItem({
     required this.number,
-    required this.title,
-    required this.description,
-    required this.icon,
+    required this.text,
+    required this.theme,
   });
 
   final int number;
-  final String title;
-  final String description;
-  final IconData icon;
+  final String text;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              ),
-              child: Center(
-                child: Text(
-                  '$number',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppSemanticColors.accent.withValues(alpha: 0.12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$number',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: AppSemanticColors.accent,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(icon, size: 18, color: theme.colorScheme.primary),
-                      const SizedBox(width: 6),
-                      Text(
-                        title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    description,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

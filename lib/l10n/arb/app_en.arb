@@ -1,7 +1,8 @@
 {
   "@@locale": "en",
   "appName": "360 FlatMates",
-  "splashTagline": "Find the right flat, meet the right people, move in faster.",
+  "splashTagline": "Find. Connect. Live Together.",
+  "splashSubtagline": "The smarter way to find your flat and flatmates.",
   "commonRetry": "Retry",
   "commonSave": "Save",
   "markAllRead": "Mark all read",
@@ -45,6 +46,7 @@
   "homePickedForYou": "Picked for You",
   "homePickedSubtitle": "Top flats that match your preferences and vibe",
   "homeNoResults": "No listings match those filters.",
+  "homeNoResultsSubtitle": "Try adjusting your filters or search for a different location.",
   "homeBedroomsChip": "{count} BHK",
   "@homeBedroomsChip": {
     "placeholders": {
@@ -154,14 +156,19 @@
   "profileMenuVisits": "My Schedule",
   "profileMenuLikesChat": "Likes & Chat",
   "profileMenuPostListing": "Post Listing",
+  "profileMenuShortlisted": "Shortlisted",
+  "profileMenuChats": "My Chats",
+  "profileMenuDocuments": "Documents",
+  "profileMenuPaymentMethods": "Payment Methods",
   "editProfileCta": "Edit profile",
   "themeModeTitle": "Theme mode",
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
   "paletteTitle": "Palette",
-  "paletteElectricIndigo": "Electric Indigo",
-  "paletteEmberCoral": "Ember Coral",
+  "paletteInkOnPaper": "Ink on Paper",
+  "paletteElectricIndigo": "Paper Blue",
+  "paletteEmberCoral": "Warm Clay",
   "paletteMonsoonTeal": "Monsoon Teal",
   "languageTitle": "Language",
   "languageEnglish": "English",
@@ -177,6 +184,7 @@
   "subLocalityLabel": "Sub-locality",
   "budgetMinLabel": "Budget min",
   "budgetMaxLabel": "Budget max",
+  "budgetMinMaxError": "Budget minimum cannot exceed maximum",
   "workStyleTitle": "Work style",
   "bioLabel": "Bio",
   "descriptionLabel": "Description",
@@ -231,17 +239,29 @@
   "navLikesChat": "Likes & Chat",
   "navSchedule": "Schedule",
   "navPost": "Post",
+  "navExplore": "Explore",
   "navProfile": "Profile",
+  "navVisits": "Visits",
   "onboardingGetStarted": "Get Started",
   "onboardingNext": "Next",
+  "onboardingSkip": "Skip",
   "onboardingComplete": "Complete",
+  "onboardingHeadline1": "Find the right flat. The right flatmates.",
+  "onboardingSubheadline1": "Verified homes. Compatible flatmates. Better living, together.",
+  "onboardingHeadline2": "Your lifestyle matters.",
+  "onboardingSubheadline2": "We match you with flatmates who share your vibe and values.",
+  "onboardingHeadline3": "360 Flatmates finds both.",
+  "onboardingSubheadline3": "The flat, the flatmate, and the perfect match.",
+  "onboardingHeadline4": "Your flatmate journey starts here.",
+  "onboardingSubheadline4": "Sign up in under 4 minutes and start matching.",
   "onboardingSubmitting": "Setting up your profile...",
-  "modeSelectionTitle": "How are you looking for a flatmate?",
-  "modeSelectionSubtitle": "You can change this later from your profile.",
-  "modeRoomPosterDesc": "I'm living in a flat and looking for a flatmate to fill a spare room.",
+  "modeSelectionTitle": "I am looking to",
+  "modeSelectionSubtitle": "Select the option that best describes you",
+  "modeRoomPosterDesc": "I want to list my flat or find a flatmate to fill a spare room.",
   "modeSeekerDesc": "I'm looking for a flatmate to search for a place together",
-  "modeCoHunterDesc": "I'm looking for someone to flat-search alongside.",
+  "modeCoHunterDesc": "I want to find a place or a flatmate to stay with.",
   "modeOpenToBothDesc": "I'll move into an existing flat or team up to find a new one.",
+  "modeContinue": "Continue",
   "basicInfoTitle": "Tell us about yourself",
   "basicInfoSubtitle": "This helps us find the right flatmates for you.",
   "ageLabel": "Age",
@@ -254,8 +274,12 @@
   "quizProgress": "{answered} of {total} answered",
   "@quizProgress": {
     "placeholders": {
-      "answered": {"type": "int"},
-      "total": {"type": "int"}
+      "answered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "quizSleepSchedule": "What's your sleep schedule?",
@@ -313,11 +337,14 @@
   "nonNegMaleOnly": "Male flatmates only",
   "nonNegNoParties": "No parties at home",
   "nonNegMinTidy": "Minimum tidy standard",
+  "lifestyleQuizTitle": "Lifestyle preferences",
   "emptySwipeDeck": "No more profiles to show right now. Check back later!",
   "swipeDeckRemaining": "{count} remaining",
   "@swipeDeckRemaining": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "tapToSeeMore": "Tap to see more",
@@ -342,7 +369,6 @@
   "unmatchConfirmMessage": "This will remove your match and end the conversation.",
   "unmatchCta": "Unmatch",
   "icebreakerTitle": "Break the ice",
-  "likeListingCta": "Like listing",
   "backCta": "Back",
   "listingBuilderTitle": "Post your space",
   "listingStepLocation": "Property location",
@@ -373,7 +399,7 @@
   "amenityVisitorEntry": "Visitor entry",
   "amenityGarden": "Garden",
   "vibeBachelorFriendly": "Bachelor-friendly",
-  "vibeQuiet": "Quiet",
+  "vibeQuiet": "Quiet & Focused",
   "vibeActiveCommunity": "Active community",
   "vibeFamilyDominant": "Family-dominant",
   "vibePetFriendly": "Pet-friendly",
@@ -413,7 +439,9 @@
   "totalMonthlyOutflow": "Your estimated monthly cost: {amount}",
   "@totalMonthlyOutflow": {
     "placeholders": {
-      "amount": {"type": "String"}
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "typicalDayLabel": "Describe your typical day",
@@ -422,7 +450,9 @@
   "homeNewInCity": "New in {city}",
   "@homeNewInCity": {
     "placeholders": {
-      "city": {"type": "String"}
+      "city": {
+        "type": "String"
+      }
     }
   },
   "homeMovingSoon": "Moving soon",
@@ -435,15 +465,21 @@
   "cityCounter": "{count} people looking in {city} right now",
   "@cityCounter": {
     "placeholders": {
-      "count": {"type": "int"},
-      "city": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "city": {
+        "type": "String"
+      }
     }
   },
   "waitlistTitle": "Not enough people yet",
   "waitlistSubtitle": "We'll notify you when more flatmates join in {city}.",
   "@waitlistSubtitle": {
     "placeholders": {
-      "city": {"type": "String"}
+      "city": {
+        "type": "String"
+      }
     }
   },
   "waitlistNotifyCta": "Notify me",
@@ -467,15 +503,49 @@
   "qnaQuestion3Hint": "e.g. Cleanliness, punctuality, honesty...",
   "qnaAnswerCta": "Answer questions",
   "qnaSkipCta": "Skip for now",
+  "qnaBothAnsweredBanner": "Both answered",
+  "qnaPeerAnsweredBanner": "{peerName} answered",
+  "@qnaPeerAnsweredBanner": {
+    "placeholders": {
+      "peerName": {
+        "type": "String"
+      }
+    }
+  },
+  "qnaYouAnsweredBanner": "Your answers are saved",
+  "qnaPeerAnsweredPrompt": "Share yours to unlock stronger context before you meet.",
+  "qnaTheirAnswers": "{peerName}'s answers",
+  "@qnaTheirAnswers": {
+    "placeholders": {
+      "peerName": {
+        "type": "String"
+      }
+    }
+  },
+  "qnaYourAnswers": "Your answers",
   "waitlistConfirmed": "You're on the list! We'll notify you.",
+  "waitlistInviteFriends": "Invite Friends",
+  "waitlistShareMessage": "360 FlatMates is opening in {city}. Join the waitlist and help bring more flatmates here:\n{url}",
+  "@waitlistShareMessage": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "yourNumberIsPrivate": "Your number is kept private",
   "privacyTitle": "Privacy",
   "hideLastNameLabel": "Hide last name on public profile",
   "hideExactLocationLabel": "Hide exact location on listings",
   "visitConfirmTitle": "Confirm this visit?",
+  "visitConfirmCta": "Confirm visit",
   "visitRescheduleCta": "Suggest another time",
   "visitCancelCta": "Cancel visit",
   "visitCancelConfirm": "Are you sure you want to cancel this visit?",
-  "visitConfirmed": "Visit confirmed!",
+  "visitConfirmed": "Visit confirmed",
   "visitCancelled": "Visit cancelled.",
   "videoTourLabel": "Video tour (optional)",
   "videoTourHint": "15-30 second vertical video, max 50MB",
@@ -483,16 +553,23 @@
   "videoTourAdded": "Video tour added",
   "videoTooLarge": "Video must be under 50MB",
   "videoTooLong": "Video must be under 30 seconds",
+  "videoTooShort": "Video must be at least 15 seconds",
+  "tapToUnmute": "Tap to unmute",
+  "soundOn": "Sound on",
   "superLikeCapLabel": "{count} Super Likes left today",
   "@superLikeCapLabel": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "swipeCounterLabel": "{count} swipes remaining today",
   "@swipeCounterLabel": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "readReceiptSent": "Sent",
@@ -525,7 +602,6 @@
   "newMessage": "New message",
   "listingApproved": "Listing approved",
   "visitScheduled": "Visit scheduled",
-  "visitConfirmed": "Visit confirmed",
   "faqTitle": "FAQ",
   "whatHappensNext": "What happens next",
   "aiPreScreen": "AI pre-screen",
@@ -550,7 +626,9 @@
   "resendOtpCountdown": "Resend in {seconds}s",
   "@resendOtpCountdown": {
     "placeholders": {
-      "seconds": {"type": "int"}
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "otpAutoReadHint": "We'll auto-detect the OTP from your SMS.",
@@ -563,5 +641,532 @@
   "maintenanceRow": "Maintenance",
   "estimatedTotalRow": "Estimated total / month",
   "existingFlatmatesLabel": "Existing flatmates",
-  "notAvailable": "Not specified"
+  "notAvailable": "Not specified",
+  "perPersonCostLabel": "Per person (approx.)",
+  "@@settings_new_keys": {},
+  "changePasswordLabel": "Change Password",
+  "privacySecurityLabel": "Privacy & Security",
+  "preferencesLabel": "Preferences",
+  "notificationSettingsLabel": "Notification Settings",
+  "blockedUsersLabel": "Blocked Users",
+  "noBlockedUsers": "You haven't blocked anyone yet.",
+  "unblockCta": "Unblock",
+  "userUnblocked": "User has been unblocked.",
+  "unblockFailed": "Could not unblock this user.",
+  "newPasswordLabel": "New password",
+  "confirmPasswordLabel": "Confirm password",
+  "updatePasswordCta": "Update password",
+  "passwordUpdated": "Password updated.",
+  "passwordsDoNotMatch": "Passwords do not match.",
+  "passwordMinLength": "Password must be at least 8 characters.",
+  "aboutLabel": "About",
+  "termsAndConditionsLabel": "Terms & Conditions",
+  "@@notifications_new_keys": {},
+  "@@help_safety_new_keys": {},
+  "searchHelpPlaceholder": "Search for help",
+  "faqSubtitle": "Find answers to common questions",
+  "popularTopicsLabel": "Popular Topics",
+  "popularTopicsSubtitle": "Explore trending help topics",
+  "paymentsLabel": "Payments & Refunds",
+  "paymentsSubtitle": "Payment issues, refunds and more",
+  "bookingAgreementsLabel": "Booking & Agreements",
+  "bookingAgreementsSubtitle": "Bookings, agreements & policies",
+  "accountProfileLabel": "Account & Profile",
+  "accountProfileSubtitle": "Manage your account and profile",
+  "contactSupportSubtitle": "Get in touch with our support team",
+  "chatWithUsCta": "Chat with Us",
+  "comingSoon": "Coming soon",
+  "replyTimeNote": "We usually reply in a few minutes",
+  "@@listing_create_new_keys": {},
+  "stepLabel": "Step",
+  "stepOfLabel": "of",
+  "societyBuildingHint": "e.g., Prestige Lakeside",
+  "fullAddressHint": "Enter full address",
+  "monthlyRentHint": "Enter monthly rent",
+  "securityDepositHint": "Enter deposit amount",
+  "maintenanceHint": "Enter maintenance charges",
+  "electricityEstHint": "Estimated monthly electricity cost",
+  "cookCostHint": "Cook charges per month",
+  "maidCostHint": "Maid charges per month",
+  "setupCostHint": "One-time setup cost",
+  "@@manage_listing_new_keys": {},
+  "activeListingsLabel": "Active Listings",
+  "draftsLabel": "Drafts",
+  "expiredLabel": "Expired",
+  "@@listing_review_new_keys": {},
+  "listingRejectedMessage": "Your listing was not approved.",
+  "reviewSubmittedMessage": "Thank you! Your listing has been submitted for review.",
+  "reviewListingCta": "Review Listing",
+  "etaHighlight": "We'll review your listing within 24 hours",
+  "step1Text": "Our team reviews your listing for quality and safety.",
+  "step2Text": "We'll notify you once your listing is live.",
+  "step3Text": "Go live and start connecting!",
+  "yourListingLabel": "Your listing",
+  "budgetFilterLabel": "Budget",
+  "budgetRangeLabel": "₹{min} – ₹{max}",
+  "@budgetRangeLabel": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "roomTypeFilterLabel": "Room Type",
+  "roomTypeAny": "Any",
+  "roomTypePrivate": "Private",
+  "roomTypeShared": "Shared",
+  "furnishingFilterLabel": "Furnishing",
+  "furnishingAny": "Any",
+  "furnishingFurnished": "Furnished",
+  "furnishingUnfurnished": "Unfurnished",
+  "genderFilterLabel": "Gender",
+  "genderFilterAny": "Any",
+  "genderFilterMale": "Male",
+  "genderFilterFemale": "Female",
+  "moveInFilterLabel": "Move-in",
+  "moveInAnytime": "Anytime",
+  "moveInImmediate": "Immediate",
+  "moveInThisMonth": "This Month",
+  "moveInNextMonth": "Next Month",
+  "moreFiltersLabel": "More Filters",
+  "petsLabel": "Pets",
+  "petsYes": "Yes",
+  "petsNo": "No",
+  "petsNoPreference": "No Preference",
+  "smokingLabel": "Smoking",
+  "smokingNo": "No",
+  "smokingYes": "Yes",
+  "smokingNoPreference": "No Preference",
+  "nearbyChipLabel": "Nearby",
+  "budgetPlusChipLabel": "Budget+",
+  "chatInputHint": "Type a message...",
+  "phoneNotAvailable": "Phone number not available",
+  "emojiPickerComingSoon": "Emoji picker coming soon",
+  "preferencesTitle": "Preferences",
+  "preferencesSubtitle": "Tell us what matters to you so we can find the right flatmates and homes.",
+  "prefGenderLabel": "Preferred Gender",
+  "prefFlatmatesLabel": "Allowed Flatmates",
+  "prefFoodLabel": "Food Habits",
+  "prefPetsLabel": "Pets",
+  "prefSmokingLabel": "Smoking",
+  "prefMoveInLabel": "Move-in Timeline",
+  "prefNoPreference": "No Preference",
+  "prefMaleOnly": "Male Only",
+  "prefFemaleOnly": "Female Only",
+  "prefOther": "Other",
+  "prefVeg": "Veg",
+  "prefNonVeg": "Non-Veg",
+  "prefEggetarian": "Eggetarian",
+  "prefYes": "Yes",
+  "prefNo": "No",
+  "prefNext": "Next",
+  "settingsGroupAccount": "Account",
+  "settingsGroupApp": "App",
+  "settingsGroupLegal": "Legal",
+  "qnaShareAnswers": "Share Answers",
+  "qnaSkipForNow": "Skip for now",
+  "qnaVeryPrivate": "Very private",
+  "qnaVerySocial": "Very social",
+  "aboutThisFlatSection": "About this Flat",
+  "shortlistCta": "Shortlist",
+  "contactCta": "Contact",
+  "postedOnLabel": "Posted on",
+  "verifiedListingLabel": "Verified listing",
+  "moveInCountdownBadge": "Moving in {days} days",
+  "@moveInCountdownBadge": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "moveInToday": "Moving in today",
+  "vibeSocial": "Social & Lively",
+  "vibeProfessional": "Professionals",
+  "vibeStudent": "Students",
+  "vibePet": "Pet Household",
+  "addPhotosTitle": "Add Photos",
+  "addPhotosTips": "Tips",
+  "addPhotosInstruction": "Add clear photos of the room and common areas to get more matches.",
+  "photoTipNaturalLight": "• Use natural lighting — open curtains before shooting",
+  "photoTipFullRoom": "• Show the full room from corner to corner",
+  "photoTipBathroomBalcony": "• Include bathroom and balcony if available",
+  "photoTipCleanRoom": "• Clean up before taking photos",
+  "addMorePhotosLabel": "Add more photos",
+  "waitlistNudgeTitle": "Not many flatmates in {city} yet",
+  "@waitlistNudgeTitle": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "waitlistNudgeSubtitle": "We'll notify you when more people join",
+  "waitlistNotifyMe": "Notify Me",
+  "cityCounterShort": "{count} looking in {city}",
+  "@cityCounterShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "scheduleVisitTitle": "Schedule Visit",
+  "selectTimeSlot": "Select Time Slot",
+  "timeSlotMorning": "Morning",
+  "timeSlotAfternoon": "Afternoon",
+  "timeSlotEvening": "Evening",
+  "addNoteOptional": "Add a Note (Optional)",
+  "visitPrivacyNote": "Your visit request will be shared with {name}.",
+  "@visitPrivacyNote": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendingLabel": "Sending...",
+  "sendRequestCta": "Send Request",
+  "matchedOnDate": "Matched on {date}",
+  "@matchedOnDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "locationSelectionTitle": "Select your preferred location",
+  "searchLocationPlaceholder": "Search location",
+  "useCurrentLocation": "Use my current location",
+  "detectingLocation": "Detecting location...",
+  "popularCitiesLabel": "POPULAR CITIES",
+  "noLocationsAvailable": "No locations available",
+  "clusterListingsTitle": "Listings in this area",
+  "clusterListingsCount": "{count} listings",
+  "@clusterListingsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareToWhatsapp": "Share to WhatsApp",
+  "whatsappNotInstalled": "WhatsApp is not installed",
+  "scanToOpen": "Scan to open listing",
+  "matchItsAMatch": "It's a Match!",
+  "matchLikedEachOther": "You and {peerName} liked each other",
+  "@matchLikedEachOther": {
+    "placeholders": {
+      "peerName": {
+        "type": "String"
+      }
+    }
+  },
+  "matchSendMessage": "Send a message",
+  "matchKeepSwiping": "Keep swiping",
+  "swipeNoMoreProfiles": "No more profiles",
+  "swipeCheckBackLater": "Check back later for new matches",
+  "swipeLikeLabel": "LIKE",
+  "swipeNopeLabel": "NOPE",
+  "failedToLoadProfiles": "Failed to load profiles",
+  "actionFailedRetry": "Action failed. Please try again.",
+  "wifiChipLabel": "WiFi",
+  "parkingChipLabel": "Parking",
+  "liftChipLabel": "Lift",
+  "securityChipLabel": "24/7 Security",
+  "noDescriptionAvailable": "No description available.",
+  "flexibleLabel": "Flexible",
+  "recentlyLabel": "Recently",
+  "safetyCheckedLabel": "Safety Checked",
+  "couldNotLoadListing": "Could not load listing",
+  "startAConversation": "Start a conversation",
+  "sayHelloOrIcebreaker": "Say hello or use an icebreaker",
+  "messagesArePrivate": "Messages are private",
+  "viewLabel": "View",
+  "byOwnerLabel": "by {name}",
+  "@byOwnerLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadMessages": "Could not load messages",
+  "failedToSendMessage": "Failed to send message. Please try again.",
+  "failedToBlockUser": "Failed to block user. Please try again.",
+  "failedToReportUser": "Failed to report user. Please try again.",
+  "failedToUnmatch": "Failed to unmatch. Please try again.",
+  "failedToSendPhoto": "Failed to send photo. Please try again.",
+  "couldNotLoadVisits": "Could not load visits",
+  "blockedUsersAppearHere": "People you block will appear here",
+  "couldNotLoadBlockedUsers": "Could not load blocked users",
+  "passwordRuleMinLength": "At least 8 characters",
+  "passwordRuleUppercase": "1 uppercase letter",
+  "passwordRuleNumber": "1 number",
+  "safetyIsPriority": "Your safety is our priority",
+  "supportAvailable247": "Support available 24/7",
+  "notificationsEmptySubtitle": "Notifications about your matches, visits, and listings will appear here",
+  "couldNotLoadNotifications": "Could not load notifications",
+  "yesterdayLabel": "Yesterday",
+  "daysAgoLabel": "days ago",
+  "notificationNoAction": "No action available for this notification",
+  "submittedLabel": "Submitted",
+  "underReviewStepLabel": "Under Review",
+  "liveStepLabel": "Live",
+  "pleaseReviewAndResubmit": "Please review the reason below and resubmit.",
+  "rejectionReasonLabel": "Rejection reason",
+  "rejectionDetailText": "The listing did not meet our community guidelines. Please ensure all information is accurate and photos are clear.",
+  "activeStatus": "Active",
+  "draftStatus": "Draft",
+  "expiredStatus": "Expired",
+  "notificationsTooltip": "Notifications",
+  "chatTooltip": "Chat",
+  "listingStatsTitle": "Listing Stats",
+  "viewsStatLabel": "Views",
+  "likesStatLabel": "Likes",
+  "matchesStatLabel": "Matches",
+  "closeCta": "Close",
+  "matchCountLabel": "Match Count ({count})",
+  "@matchCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "boostAction": "Boost",
+  "viewStatsAction": "View Stats ({count})",
+  "@viewStatsAction": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewAction": "Review",
+  "shareAction": "Share",
+  "resumeAction": "Resume",
+  "expiresToday": "Expires today",
+  "expiresInDays": "Expires in {days}d",
+  "@expiresInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToUpdateListingStatus": "Failed to update listing status.",
+  "noLikesYet": "No likes yet",
+  "keepSwipingToFindMatches": "Keep swiping to find matches",
+  "noConversations": "No conversations",
+  "startChatWithMatch": "Start a chat with a match",
+  "matchAction": "Match",
+  "matchCreateFailed": "Could not create match. Try again.",
+  "couldNotLoadConversations": "Could not load conversations",
+  "downloadToConnect": "Download 360 FlatMates to connect",
+  "scanToConnect": "Scan to connect",
+  "findYourFlatmateShare": "Find your flatmate on 360 FlatMates!",
+  "checkOutListingShare": "Check out this listing on 360 FlatMates!",
+  "passwordUpdateFailed": "Failed to update password. Please try again.",
+  "visitRequestFailed": "Failed to send visit request. Please try again.",
+  "visitActionFailed": "Action failed. Please try again.",
+  "listingSubmitFailed": "Failed to submit listing. Please try again.",
+  "@@listing_helper_texts": {},
+  "listingHelperLocation": "Accurate location helps people find you",
+  "listingHelperSociety": "Tell us about the society to attract the right flatmates",
+  "listingHelperRoom": "Describe the room so flatmates know what to expect",
+  "listingHelperPhotos": "Good photos get 3x more responses",
+  "listingHelperFlat": "Flat details help flatmates decide if it's the right fit",
+  "listingHelperCosts": "Transparent pricing builds trust",
+  "listingHelperAbout": "A good bio helps people know you",
+  "listingHelperReview": "Almost there! Review everything before going live",
+  "@@listing_validation": {},
+  "listingRentRequired": "Monthly rent is required",
+  "listingPhotosRequired": "Add at least 2 photos",
+  "listingDepositInvalid": "Enter a valid amount",
+  "listingMaintenanceInvalid": "Enter a valid amount",
+  "listingCostInvalid": "Enter a valid amount",
+  "@@listing_step_summary": {},
+  "listingSummaryLocation": "{society}, {city}",
+  "@listingSummaryLocation": {
+    "placeholders": {
+      "society": {
+        "type": "String"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "listingSummarySociety": "{type}",
+  "@listingSummarySociety": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "listingSummaryRoom": "{roomType} • {furnishingCount} items",
+  "@listingSummaryRoom": {
+    "placeholders": {
+      "roomType": {
+        "type": "String"
+      },
+      "furnishingCount": {
+        "type": "int"
+      }
+    }
+  },
+  "listingSummaryPhotos": "{count} photo{plural}",
+  "@listingSummaryPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
+    }
+  },
+  "listingSummaryFlat": "{config} • Floor {floor}",
+  "@listingSummaryFlat": {
+    "placeholders": {
+      "config": {
+        "type": "String"
+      },
+      "floor": {
+        "type": "String"
+      }
+    }
+  },
+  "listingSummaryCosts": "Rent: ₹{rent}/mo",
+  "@listingSummaryCosts": {
+    "placeholders": {
+      "rent": {
+        "type": "String"
+      }
+    }
+  },
+  "listingSummaryAbout": "{gender} • Ages {ageMin}-{ageMax}",
+  "@listingSummaryAbout": {
+    "placeholders": {
+      "gender": {
+        "type": "String"
+      },
+      "ageMin": {
+        "type": "String"
+      },
+      "ageMax": {
+        "type": "String"
+      }
+    }
+  },
+  "workStyleOffice": "Office",
+  "workStyleHybrid": "Hybrid",
+  "workStyleWfh": "WFH",
+  "phoneVerifiedLabel": "Phone verified",
+  "showResultsCta": "Show Results",
+  "searchFiltersTitle": "Search & Filters",
+  "clearAllFilters": "Clear all",
+  "errorNetwork": "No internet connection. Please check your network and try again.",
+  "errorAuthExpired": "Session expired. Please sign in again.",
+  "errorServer": "Server error. Please try again later.",
+  "errorPermission": "You do not have permission to perform this action.",
+  "errorNotFound": "The requested resource was not found.",
+  "errorValidation": "Invalid data. Please check your input.",
+  "errorRateLimit": "Too many requests. Please wait a moment and try again.",
+  "errorConflict": "A conflict occurred. The data may have changed.",
+  "errorUpload": "Upload failed. Please try again.",
+  "errorUnknown": "Something went wrong. Please try again.",
+  "icebreakerTellMeRoom": "Tell me about the room!",
+  "icebreakerWhatFlatmates": "What are the flatmates like?",
+  "icebreakerNegotiateRent": "Is the rent negotiable?",
+  "icebreakerSocietyVibe": "What's the society vibe?",
+  "icebreakerWeekendLook": "What does a weekend here look like?",
+  "reviewRentAmount": "Rent: ₹{amount}/mo",
+  "@reviewRentAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewDepositAmount": "Deposit: ₹{amount}",
+  "@reviewDepositAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewMaintenanceAmount": "Maintenance: ₹{amount}",
+  "@reviewMaintenanceAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewGenderAmount": "Gender: {gender}",
+  "@reviewGenderAmount": {
+    "placeholders": {
+      "gender": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewAgeAmount": "Age: {min} - {max}",
+  "@reviewAgeAmount": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewMoveInAmount": "Move-in: {date}",
+  "@reviewMoveInAmount": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewPhotosAmount": "{count} photo{plural}",
+  "@reviewPhotosAmount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidListingId": "Invalid listing ID",
+  "invalidConversationId": "Invalid conversation ID",
+  "youAreOffline": "You are offline. Check your connection.",
+  "visitScheduledNotificationFailed": "Visit scheduled! Could not send notification.",
+  "bootstrapErrorRetry": "Something went wrong. Tap to retry.",
+  "boostListingTitle": "Boost Listing",
+  "boostListingSubtitle": "Your listing will be shown to more people for the next 24 hours.",
+  "boostNowCta": "Boost Now",
+  "listingBoosted": "Listing boosted for 24 hours!",
+  "pausedStatus": "Paused",
+  "renewAction": "Renew",
+  "refreshProfilesCta": "Refresh Profiles",
+  "swipeEmptyNoProfilesTitle": "No profiles available right now",
+  "swipeEmptyNoProfilesSubtitle": "We're finding new matches for you! Check back soon.",
+  "swipeEmptyAllFilteredTitle": "No profiles match your preferences",
+  "swipeEmptyAllFilteredSubtitle": "Try adjusting your non-negotiables to see more profiles.",
+  "swipeEmptyEndOfDeckTitle": "You've seen everyone for now",
+  "swipeEmptyEndOfDeckSubtitle": "We're finding new matches for you! Check back later."
 }

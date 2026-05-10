@@ -65,6 +65,11 @@
       "source": "flutter/skills",
       "sourceType": "github",
       "computedHash": "06d864f1951a562f98b00b04f12ae492e3b0e7ddfbef7254f87358c57375a21a"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "60de33c55084148bae7eb49d5fcecfc274593372a73b2f82358fd6a873e9fb4c"
     }
   }
 }

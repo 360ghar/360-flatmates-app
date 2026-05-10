@@ -1,0 +1,58 @@
+category_1_default_target:
+  default_target: local_dev
+  environments:
+    local_dev:
+      url: http://127.0.0.1:3600/api/v1
+      supabase_url: https://pezjtoivkrmepydqminz.supabase.co
+      restrictions: []
+
+category_2_personas:
+  roles:
+    - name: room_poster
+      description: "Lists their flat, finds flatmates"
+      cannot_do: []
+    - name: co_hunter
+      description: "Finds a flat/flatmate to stay with"
+      cannot_do: []
+    - name: open_to_both
+      description: "Flexible, open to both finding a place and listing flat"
+      cannot_do: []
+    - name: new_user
+      description: "Fresh signup, no existing data"
+  credentials_source: env-var
+  note: "Modes are not permission-based, they only change bottom nav tabs"
+
+category_3_critical_flows:
+  flows:
+    - auth: "Phone login/signup/OTP -> sees discover feed"
+    - onboarding: "Mode selection through preferences -> profile complete"
+    - discover: "Browse listings, search filters, map view"
+    - flat_details: "View listing with images, details, compatibility score"
+    - swipe: "Tinder-like card deck with deal-breaker filtering"
+    - chat: "Conversations list + chat thread with messages"
+    - post_listing: "Multi-step listing creation -> listing under review"
+    - visits: "Schedule/confirm/reschedule visits"
+    - profile_settings: "Edit profile, change password, blocked users"
+    - notifications: "View notification list"
+  multi_persona: true
+  multi_persona_note: "Test bottom nav differences across all 3 modes"
+  success_criteria: "Reasonable defaults (dashboard after login, profile complete after onboarding, listing under review after post)"
+
+category_4_external_services:
+  note: "No payment/email/SMS integrations detected. Firebase Messaging and Google Maps are present but don't need sandbox credentials for QA."
+
+category_5_cleanup:
+  auto_cleanup: true
+  strategy: api-call
+  note: "DELETE endpoints for listings, conversations, visits"
+
+category_6_imagemagick:
+  installed: true
+  note: "Installed via brew install imagemagick during setup"
+
+category_7_github_action:
+  generate_workflow: false
+  note: "User chose to skip GitHub Actions workflow"
+
+category_8_failure_learning:
+  strategy: suggest_in_report

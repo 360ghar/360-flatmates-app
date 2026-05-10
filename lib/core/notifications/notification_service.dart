@@ -6,12 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../config/endpoints.dart';
 import '../providers.dart';
 
 class NotificationService {
-  NotificationService(this._ref);
+  NotificationService(this._ref, {bool messagingEnabled = false})
+    : _messagingEnabled = messagingEnabled;
 
   final Ref _ref;
+  final bool _messagingEnabled;
   bool _initialized = false;
 
   StreamSubscription<RemoteMessage>? _onMessageSub;
@@ -22,8 +25,9 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   static Future<void> initializeLocalNotifications() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
     const settings = InitializationSettings(
       android: androidSettings,
@@ -37,13 +41,13 @@ class NotificationService {
     if (Platform.isAndroid) {
       final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidPlugin?.createNotificationChannel(
         const AndroidNotificationChannel(
           'flatmates_messages',
           'Messages & Matches',
-          description:
-              'Notifications for new messages, matches, and visits',
+          description: 'Notifications for new messages, matches, and visits',
           importance: Importance.high,
         ),
       );
@@ -64,9 +68,33 @@ class NotificationService {
     return route;
   }
 
+  static Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'flatmates_messages',
+          'Messages & Matches',
+          channelDescription:
+              'Notifications for new messages, matches, and visits',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      payload: payload,
+    );
+  }
+
   Future<void> initialize() async {
     if (_initialized) return;
-    _initialized = true;
+    if (!_messagingEnabled) return;
 
     try {
       if (Platform.isIOS) {
@@ -75,26 +103,42 @@ class NotificationService {
           badge: true,
           sound: true,
         );
+      } else if (Platform.isAndroid) {
+        await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
       }
 
-      _onMessageSub =
-          FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-      _onMessageOpenedAppSub =
-          FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
+      _onMessageSub = FirebaseMessaging.onMessage.listen(
+        _handleForegroundMessage,
+      );
+      _onMessageOpenedAppSub = FirebaseMessaging.onMessageOpenedApp.listen(
+        _handleMessageTap,
+      );
 
-      final initialMessage =
-          await FirebaseMessaging.instance.getInitialMessage();
+      final initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage();
       if (initialMessage != null) {
         _handleMessageTap(initialMessage);
       }
 
-      _onTokenRefreshSub =
-          FirebaseMessaging.instance.onTokenRefresh.listen(_sendTokenToServer);
+      _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
+        _sendTokenToServer,
+      );
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         await _sendTokenToServer(token);
       }
+      _initialized = true;
     } catch (e) {
+      _onMessageSub?.cancel();
+      _onMessageOpenedAppSub?.cancel();
+      _onTokenRefreshSub?.cancel();
+      _onMessageSub = null;
+      _onMessageOpenedAppSub = null;
+      _onTokenRefreshSub = null;
       _initialized = false;
       debugPrint('NotificationService.initialize() failed: $e');
     }
@@ -112,23 +156,23 @@ class NotificationService {
 
   void _handleForegroundMessage(RemoteMessage message) {
     final notification = message.notification;
-    if (notification == null) return;
+    String? title;
+    String? body;
 
-    _localNotifications.show(
-      message.hashCode,
-      notification.title,
-      notification.body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'flatmates_messages',
-          'Messages & Matches',
-          channelDescription:
-              'Notifications for new messages, matches, and visits',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(),
-      ),
+    if (notification != null) {
+      title = notification.title;
+      body = notification.body;
+    } else if (message.data.isNotEmpty) {
+      // Data-only message: extract title/body from data payload.
+      title = message.data['title'] ?? '360 FlatMates';
+      body = message.data['body'] ?? message.data['message'];
+    }
+
+    if (title == null && body == null) return;
+
+    showLocalNotification(
+      title: title ?? '360 FlatMates',
+      body: body ?? '',
       payload: message.data['route'],
     );
   }
@@ -142,9 +186,14 @@ class NotificationService {
 
   Future<void> _sendTokenToServer(String token) async {
     try {
-      await _ref.read(apiClientProvider).put(
-            '/users/me',
-            data: {'fcm_token': token},
+      await _ref
+          .read(apiClientProvider)
+          .post(
+            FlatmatesEndpoints.notificationRegister,
+            data: {
+              'token': token,
+              'platform': Platform.isIOS ? 'ios' : 'android',
+            },
           );
     } catch (_) {
       // Token sync is best-effort; do not block UX.
@@ -152,10 +201,15 @@ class NotificationService {
   }
 
   Future<void> clearToken() async {
+    if (!_messagingEnabled) return;
     try {
-      await _ref.read(apiClientProvider).put(
-            '/users/me',
-            data: {'fcm_token': null},
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) return;
+      await _ref
+          .read(apiClientProvider)
+          .delete(
+            FlatmatesEndpoints.notificationUnregister,
+            queryParameters: {'token': token},
           );
     } catch (_) {
       // Best-effort
@@ -164,5 +218,5 @@ class NotificationService {
 }
 
 final notificationServiceProvider = Provider<NotificationService>(
-  (ref) => NotificationService(ref),
+  (ref) => NotificationService(ref, messagingEnabled: false),
 );

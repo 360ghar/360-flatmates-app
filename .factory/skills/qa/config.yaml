@@ -1,0 +1,89 @@
+project: 360 FlatMates
+imagemagick: true
+
+environments:
+  local_dev:
+    url: http://127.0.0.1:3600/api/v1
+    supabase_url: https://pezjtoivkrmepydqminz.supabase.co
+    restrictions: []
+
+default_target: local_dev
+
+auth:
+  method: phone-password
+  provider: supabase
+  phone_login: true
+  otp_login: true
+
+personas:
+  - name: room_poster
+    description: 'Lists their flat, finds flatmates. Sees Home|Post|Swipe|Likes&Chat|Profile tabs.'
+    phone: ''
+    credentials_source: env-var
+    secret_name: QA_ROOM_POSTER_PHONE
+    password_secret: QA_ROOM_POSTER_PASSWORD
+    test_focus: ['post-listing', 'manage-listing', 'listing-review', 'profile']
+    cannot_do: []
+  - name: co_hunter
+    description: 'Finds a flat/flatmate. Sees Home|Explore|Swipe|Likes&Chat|Profile tabs.'
+    phone: ''
+    credentials_source: env-var
+    secret_name: QA_CO_HUNTER_PHONE
+    password_secret: QA_CO_HUNTER_PASSWORD
+    test_focus: ['discover-feed', 'flat-details', 'swipe', 'schedule-visit', 'chat']
+    cannot_do: []
+  - name: open_to_both
+    description: 'Flexible, open to both finding a place and listing flat. Sees Home|Explore|Swipe|Likes&Chat|Profile tabs.'
+    phone: ''
+    credentials_source: env-var
+    secret_name: QA_OPEN_TO_BOTH_PHONE
+    password_secret: QA_OPEN_TO_BOTH_PASSWORD
+    test_focus: ['discover-feed', 'post-listing', 'swipe', 'chat']
+    cannot_do: []
+  - name: new_user
+    description: 'Fresh signup, no existing data, onboarding not completed'
+    phone_pattern: 'qa+signup_{RUN_ID}@360ghar.com'
+    test_focus: ['signup', 'onboarding', 'empty-states', 'first-run-experience']
+    cannot_do: []
+
+apps:
+  flatmates:
+    path_patterns:
+      - 'lib/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - '.env*'
+      - 'l10n.yaml'
+      - 'analysis_options.yaml'
+    skill: qa-flatmates
+    test_tool: agent-browser
+    build_command: 'flutter run'
+    dev_server_command: 'npx serve-sim'
+
+feature_flags:
+  provider: none
+  dashboard_url: ''
+  how_to_override: ''
+
+integrations:
+  push_notifications:
+    provider: firebase_messaging
+  maps:
+    provider: google_maps
+  storage:
+    provider: supabase_storage
+  auth:
+    provider: supabase
+
+cleanup:
+  auto_cleanup: true
+  strategy: api-call
+  instructions: >
+    Clean up test data via backend API endpoints:
+    - Delete test listings: DELETE /properties/{id}
+    - Delete test conversations: DELETE /flatmates/conversations/{id}
+    - Delete test visits: DELETE /visits/{id}
+    - Test users created during signup can remain (low impact)
+    - Alternatively, reset test user data via backend admin endpoint if available
+
+failure_learning: suggest_in_report

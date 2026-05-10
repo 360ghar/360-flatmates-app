@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/config/endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/auth_token_storage.dart';
 
@@ -14,6 +15,9 @@ final class AuthRepository {
   final AuthTokenStorage _tokenStorage;
 
   SupabaseClient get _supabase => Supabase.instance.client;
+
+  Session? get currentSession => _supabase.auth.currentSession;
+  String? get currentPhone => currentSession?.user.phone;
 
   Future<void> requestOtp(String phone) async {
     await _supabase.auth.signInWithOtp(phone: phone);
@@ -32,7 +36,7 @@ final class AuthRepository {
       throw StateError('Session missing after sign in.');
     }
     await _tokenStorage.save(session.accessToken);
-    await _apiClient.get('/users/me');
+    await _apiClient.get(FlatmatesEndpoints.me);
   }
 
   Future<void> signUpWithPassword({
@@ -50,11 +54,10 @@ final class AuthRepository {
       },
     );
     final session = response.session ?? _supabase.auth.currentSession;
-    if (session == null) {
-      throw StateError('Session missing after sign up.');
+    if (session != null) {
+      await _tokenStorage.save(session.accessToken);
+      await _apiClient.get(FlatmatesEndpoints.me);
     }
-    await _tokenStorage.save(session.accessToken);
-    await _apiClient.get('/users/me');
   }
 
   Future<void> verifyOtp({required String phone, required String otp}) async {
@@ -68,11 +71,15 @@ final class AuthRepository {
       throw StateError('Session missing after OTP verification.');
     }
     await _tokenStorage.save(session.accessToken);
-    await _apiClient.get('/users/me');
+    await _apiClient.get(FlatmatesEndpoints.me);
   }
 
   Future<void> signOut() async {
     await _supabase.auth.signOut();
     await _tokenStorage.clear();
+  }
+
+  Future<void> changePassword(String newPassword) async {
+    await _supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 }

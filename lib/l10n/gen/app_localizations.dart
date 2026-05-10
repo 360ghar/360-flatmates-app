@@ -107,8 +107,14 @@ abstract class AppLocalizations {
   /// No description provided for @splashTagline.
   ///
   /// In en, this message translates to:
-  /// **'Find the right flat, meet the right people, move in faster.'**
+  /// **'Find. Connect. Live Together.'**
   String get splashTagline;
+
+  /// No description provided for @splashSubtagline.
+  ///
+  /// In en, this message translates to:
+  /// **'The smarter way to find your flat and flatmates.'**
+  String get splashSubtagline;
 
   /// No description provided for @commonRetry.
   ///
@@ -283,6 +289,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No listings match those filters.'**
   String get homeNoResults;
+
+  /// No description provided for @homeNoResultsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your filters or search for a different location.'**
+  String get homeNoResultsSubtitle;
 
   /// No description provided for @homeBedroomsChip.
   ///
@@ -560,6 +572,30 @@ abstract class AppLocalizations {
   /// **'Post Listing'**
   String get profileMenuPostListing;
 
+  /// No description provided for @profileMenuShortlisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortlisted'**
+  String get profileMenuShortlisted;
+
+  /// No description provided for @profileMenuChats.
+  ///
+  /// In en, this message translates to:
+  /// **'My Chats'**
+  String get profileMenuChats;
+
+  /// No description provided for @profileMenuDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get profileMenuDocuments;
+
+  /// No description provided for @profileMenuPaymentMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get profileMenuPaymentMethods;
+
   /// No description provided for @editProfileCta.
   ///
   /// In en, this message translates to:
@@ -596,16 +632,22 @@ abstract class AppLocalizations {
   /// **'Palette'**
   String get paletteTitle;
 
+  /// No description provided for @paletteInkOnPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Ink on Paper'**
+  String get paletteInkOnPaper;
+
   /// No description provided for @paletteElectricIndigo.
   ///
   /// In en, this message translates to:
-  /// **'Electric Indigo'**
+  /// **'Paper Blue'**
   String get paletteElectricIndigo;
 
   /// No description provided for @paletteEmberCoral.
   ///
   /// In en, this message translates to:
-  /// **'Ember Coral'**
+  /// **'Warm Clay'**
   String get paletteEmberCoral;
 
   /// No description provided for @paletteMonsoonTeal.
@@ -697,6 +739,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Budget max'**
   String get budgetMaxLabel;
+
+  /// No description provided for @budgetMinMaxError.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget minimum cannot exceed maximum'**
+  String get budgetMinMaxError;
 
   /// No description provided for @workStyleTitle.
   ///
@@ -1022,11 +1070,23 @@ abstract class AppLocalizations {
   /// **'Post'**
   String get navPost;
 
+  /// No description provided for @navExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get navExplore;
+
   /// No description provided for @navProfile.
   ///
   /// In en, this message translates to:
   /// **'Profile'**
   String get navProfile;
+
+  /// No description provided for @navVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits'**
+  String get navVisits;
 
   /// No description provided for @onboardingGetStarted.
   ///
@@ -1040,11 +1100,65 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get onboardingNext;
 
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkip;
+
   /// No description provided for @onboardingComplete.
   ///
   /// In en, this message translates to:
   /// **'Complete'**
   String get onboardingComplete;
+
+  /// No description provided for @onboardingHeadline1.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the right flat. The right flatmates.'**
+  String get onboardingHeadline1;
+
+  /// No description provided for @onboardingSubheadline1.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified homes. Compatible flatmates. Better living, together.'**
+  String get onboardingSubheadline1;
+
+  /// No description provided for @onboardingHeadline2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your lifestyle matters.'**
+  String get onboardingHeadline2;
+
+  /// No description provided for @onboardingSubheadline2.
+  ///
+  /// In en, this message translates to:
+  /// **'We match you with flatmates who share your vibe and values.'**
+  String get onboardingSubheadline2;
+
+  /// No description provided for @onboardingHeadline3.
+  ///
+  /// In en, this message translates to:
+  /// **'360 Flatmates finds both.'**
+  String get onboardingHeadline3;
+
+  /// No description provided for @onboardingSubheadline3.
+  ///
+  /// In en, this message translates to:
+  /// **'The flat, the flatmate, and the perfect match.'**
+  String get onboardingSubheadline3;
+
+  /// No description provided for @onboardingHeadline4.
+  ///
+  /// In en, this message translates to:
+  /// **'Your flatmate journey starts here.'**
+  String get onboardingHeadline4;
+
+  /// No description provided for @onboardingSubheadline4.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up in under 4 minutes and start matching.'**
+  String get onboardingSubheadline4;
 
   /// No description provided for @onboardingSubmitting.
   ///
@@ -1055,19 +1169,19 @@ abstract class AppLocalizations {
   /// No description provided for @modeSelectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'How are you looking for a flatmate?'**
+  /// **'I am looking to'**
   String get modeSelectionTitle;
 
   /// No description provided for @modeSelectionSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'You can change this later from your profile.'**
+  /// **'Select the option that best describes you'**
   String get modeSelectionSubtitle;
 
   /// No description provided for @modeRoomPosterDesc.
   ///
   /// In en, this message translates to:
-  /// **'I\'m living in a flat and looking for a flatmate to fill a spare room.'**
+  /// **'I want to list my flat or find a flatmate to fill a spare room.'**
   String get modeRoomPosterDesc;
 
   /// No description provided for @modeSeekerDesc.
@@ -1079,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @modeCoHunterDesc.
   ///
   /// In en, this message translates to:
-  /// **'I\'m looking for someone to flat-search alongside.'**
+  /// **'I want to find a place or a flatmate to stay with.'**
   String get modeCoHunterDesc;
 
   /// No description provided for @modeOpenToBothDesc.
@@ -1087,6 +1201,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I\'ll move into an existing flat or team up to find a new one.'**
   String get modeOpenToBothDesc;
+
+  /// No description provided for @modeContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get modeContinue;
 
   /// No description provided for @basicInfoTitle.
   ///
@@ -1478,6 +1598,12 @@ abstract class AppLocalizations {
   /// **'Minimum tidy standard'**
   String get nonNegMinTidy;
 
+  /// No description provided for @lifestyleQuizTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle preferences'**
+  String get lifestyleQuizTitle;
+
   /// No description provided for @emptySwipeDeck.
   ///
   /// In en, this message translates to:
@@ -1805,7 +1931,7 @@ abstract class AppLocalizations {
   /// No description provided for @vibeQuiet.
   ///
   /// In en, this message translates to:
-  /// **'Quiet'**
+  /// **'Quiet & Focused'**
   String get vibeQuiet;
 
   /// No description provided for @vibeActiveCommunity.
@@ -2240,11 +2366,65 @@ abstract class AppLocalizations {
   /// **'Skip for now'**
   String get qnaSkipCta;
 
+  /// No description provided for @qnaBothAnsweredBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Both answered'**
+  String get qnaBothAnsweredBanner;
+
+  /// No description provided for @qnaPeerAnsweredBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{peerName} answered'**
+  String qnaPeerAnsweredBanner(String peerName);
+
+  /// No description provided for @qnaYouAnsweredBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers are saved'**
+  String get qnaYouAnsweredBanner;
+
+  /// No description provided for @qnaPeerAnsweredPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share yours to unlock stronger context before you meet.'**
+  String get qnaPeerAnsweredPrompt;
+
+  /// No description provided for @qnaTheirAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'{peerName}\'s answers'**
+  String qnaTheirAnswers(String peerName);
+
+  /// No description provided for @qnaYourAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers'**
+  String get qnaYourAnswers;
+
   /// No description provided for @waitlistConfirmed.
   ///
   /// In en, this message translates to:
   /// **'You\'re on the list! We\'ll notify you.'**
   String get waitlistConfirmed;
+
+  /// No description provided for @waitlistInviteFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Friends'**
+  String get waitlistInviteFriends;
+
+  /// No description provided for @waitlistShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'360 FlatMates is opening in {city}. Join the waitlist and help bring more flatmates here:\n{url}'**
+  String waitlistShareMessage(String city, String url);
+
+  /// No description provided for @yourNumberIsPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Your number is kept private'**
+  String get yourNumberIsPrivate;
 
   /// No description provided for @privacyTitle.
   ///
@@ -2269,6 +2449,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm this visit?'**
   String get visitConfirmTitle;
+
+  /// No description provided for @visitConfirmCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm visit'**
+  String get visitConfirmCta;
 
   /// No description provided for @visitRescheduleCta.
   ///
@@ -2335,6 +2521,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Video must be under 30 seconds'**
   String get videoTooLong;
+
+  /// No description provided for @videoTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Video must be at least 15 seconds'**
+  String get videoTooShort;
+
+  /// No description provided for @tapToUnmute.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to unmute'**
+  String get tapToUnmute;
+
+  /// No description provided for @soundOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound on'**
+  String get soundOn;
 
   /// No description provided for @superLikeCapLabel.
   ///
@@ -2725,6 +2929,1842 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not specified'**
   String get notAvailable;
+
+  /// No description provided for @perPersonCostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Per person (approx.)'**
+  String get perPersonCostLabel;
+
+  /// No description provided for @changePasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePasswordLabel;
+
+  /// No description provided for @privacySecurityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Security'**
+  String get privacySecurityLabel;
+
+  /// No description provided for @preferencesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferencesLabel;
+
+  /// No description provided for @notificationSettingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Settings'**
+  String get notificationSettingsLabel;
+
+  /// No description provided for @blockedUsersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Users'**
+  String get blockedUsersLabel;
+
+  /// No description provided for @noBlockedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone yet.'**
+  String get noBlockedUsers;
+
+  /// No description provided for @unblockCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblockCta;
+
+  /// No description provided for @userUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'User has been unblocked.'**
+  String get userUnblocked;
+
+  /// No description provided for @unblockFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not unblock this user.'**
+  String get unblockFailed;
+
+  /// No description provided for @newPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPasswordLabel;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @updatePasswordCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get updatePasswordCta;
+
+  /// No description provided for @passwordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated.'**
+  String get passwordUpdated;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters.'**
+  String get passwordMinLength;
+
+  /// No description provided for @aboutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutLabel;
+
+  /// No description provided for @termsAndConditionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get termsAndConditionsLabel;
+
+  /// No description provided for @searchHelpPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for help'**
+  String get searchHelpPlaceholder;
+
+  /// No description provided for @faqSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find answers to common questions'**
+  String get faqSubtitle;
+
+  /// No description provided for @popularTopicsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular Topics'**
+  String get popularTopicsLabel;
+
+  /// No description provided for @popularTopicsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore trending help topics'**
+  String get popularTopicsSubtitle;
+
+  /// No description provided for @paymentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments & Refunds'**
+  String get paymentsLabel;
+
+  /// No description provided for @paymentsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment issues, refunds and more'**
+  String get paymentsSubtitle;
+
+  /// No description provided for @bookingAgreementsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking & Agreements'**
+  String get bookingAgreementsLabel;
+
+  /// No description provided for @bookingAgreementsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings, agreements & policies'**
+  String get bookingAgreementsSubtitle;
+
+  /// No description provided for @accountProfileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account & Profile'**
+  String get accountProfileLabel;
+
+  /// No description provided for @accountProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your account and profile'**
+  String get accountProfileSubtitle;
+
+  /// No description provided for @contactSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get in touch with our support team'**
+  String get contactSupportSubtitle;
+
+  /// No description provided for @chatWithUsCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with Us'**
+  String get chatWithUsCta;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
+  /// No description provided for @replyTimeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We usually reply in a few minutes'**
+  String get replyTimeNote;
+
+  /// No description provided for @stepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step'**
+  String get stepLabel;
+
+  /// No description provided for @stepOfLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get stepOfLabel;
+
+  /// No description provided for @societyBuildingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Prestige Lakeside'**
+  String get societyBuildingHint;
+
+  /// No description provided for @fullAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter full address'**
+  String get fullAddressHint;
+
+  /// No description provided for @monthlyRentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter monthly rent'**
+  String get monthlyRentHint;
+
+  /// No description provided for @securityDepositHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter deposit amount'**
+  String get securityDepositHint;
+
+  /// No description provided for @maintenanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter maintenance charges'**
+  String get maintenanceHint;
+
+  /// No description provided for @electricityEstHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated monthly electricity cost'**
+  String get electricityEstHint;
+
+  /// No description provided for @cookCostHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Cook charges per month'**
+  String get cookCostHint;
+
+  /// No description provided for @maidCostHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Maid charges per month'**
+  String get maidCostHint;
+
+  /// No description provided for @setupCostHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time setup cost'**
+  String get setupCostHint;
+
+  /// No description provided for @activeListingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Listings'**
+  String get activeListingsLabel;
+
+  /// No description provided for @draftsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts'**
+  String get draftsLabel;
+
+  /// No description provided for @expiredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expiredLabel;
+
+  /// No description provided for @listingRejectedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listing was not approved.'**
+  String get listingRejectedMessage;
+
+  /// No description provided for @reviewSubmittedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you! Your listing has been submitted for review.'**
+  String get reviewSubmittedMessage;
+
+  /// No description provided for @reviewListingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Listing'**
+  String get reviewListingCta;
+
+  /// No description provided for @etaHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll review your listing within 24 hours'**
+  String get etaHighlight;
+
+  /// No description provided for @step1Text.
+  ///
+  /// In en, this message translates to:
+  /// **'Our team reviews your listing for quality and safety.'**
+  String get step1Text;
+
+  /// No description provided for @step2Text.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll notify you once your listing is live.'**
+  String get step2Text;
+
+  /// No description provided for @step3Text.
+  ///
+  /// In en, this message translates to:
+  /// **'Go live and start connecting!'**
+  String get step3Text;
+
+  /// No description provided for @yourListingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listing'**
+  String get yourListingLabel;
+
+  /// No description provided for @budgetFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get budgetFilterLabel;
+
+  /// No description provided for @budgetRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'₹{min} – ₹{max}'**
+  String budgetRangeLabel(String min, String max);
+
+  /// No description provided for @roomTypeFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Room Type'**
+  String get roomTypeFilterLabel;
+
+  /// No description provided for @roomTypeAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get roomTypeAny;
+
+  /// No description provided for @roomTypePrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get roomTypePrivate;
+
+  /// No description provided for @roomTypeShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get roomTypeShared;
+
+  /// No description provided for @furnishingFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Furnishing'**
+  String get furnishingFilterLabel;
+
+  /// No description provided for @furnishingAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get furnishingAny;
+
+  /// No description provided for @furnishingFurnished.
+  ///
+  /// In en, this message translates to:
+  /// **'Furnished'**
+  String get furnishingFurnished;
+
+  /// No description provided for @furnishingUnfurnished.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfurnished'**
+  String get furnishingUnfurnished;
+
+  /// No description provided for @genderFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get genderFilterLabel;
+
+  /// No description provided for @genderFilterAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get genderFilterAny;
+
+  /// No description provided for @genderFilterMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get genderFilterMale;
+
+  /// No description provided for @genderFilterFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get genderFilterFemale;
+
+  /// No description provided for @moveInFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move-in'**
+  String get moveInFilterLabel;
+
+  /// No description provided for @moveInAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Anytime'**
+  String get moveInAnytime;
+
+  /// No description provided for @moveInImmediate.
+  ///
+  /// In en, this message translates to:
+  /// **'Immediate'**
+  String get moveInImmediate;
+
+  /// No description provided for @moveInThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get moveInThisMonth;
+
+  /// No description provided for @moveInNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Month'**
+  String get moveInNextMonth;
+
+  /// No description provided for @moreFiltersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'More Filters'**
+  String get moreFiltersLabel;
+
+  /// No description provided for @petsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get petsLabel;
+
+  /// No description provided for @petsYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get petsYes;
+
+  /// No description provided for @petsNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get petsNo;
+
+  /// No description provided for @petsNoPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'No Preference'**
+  String get petsNoPreference;
+
+  /// No description provided for @smokingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking'**
+  String get smokingLabel;
+
+  /// No description provided for @smokingNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get smokingNo;
+
+  /// No description provided for @smokingYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get smokingYes;
+
+  /// No description provided for @smokingNoPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'No Preference'**
+  String get smokingNoPreference;
+
+  /// No description provided for @nearbyChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get nearbyChipLabel;
+
+  /// No description provided for @budgetPlusChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget+'**
+  String get budgetPlusChipLabel;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message...'**
+  String get chatInputHint;
+
+  /// No description provided for @phoneNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number not available'**
+  String get phoneNotAvailable;
+
+  /// No description provided for @emojiPickerComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji picker coming soon'**
+  String get emojiPickerComingSoon;
+
+  /// No description provided for @preferencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferencesTitle;
+
+  /// No description provided for @preferencesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what matters to you so we can find the right flatmates and homes.'**
+  String get preferencesSubtitle;
+
+  /// No description provided for @prefGenderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred Gender'**
+  String get prefGenderLabel;
+
+  /// No description provided for @prefFlatmatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed Flatmates'**
+  String get prefFlatmatesLabel;
+
+  /// No description provided for @prefFoodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Habits'**
+  String get prefFoodLabel;
+
+  /// No description provided for @prefPetsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get prefPetsLabel;
+
+  /// No description provided for @prefSmokingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking'**
+  String get prefSmokingLabel;
+
+  /// No description provided for @prefMoveInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move-in Timeline'**
+  String get prefMoveInLabel;
+
+  /// No description provided for @prefNoPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'No Preference'**
+  String get prefNoPreference;
+
+  /// No description provided for @prefMaleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Male Only'**
+  String get prefMaleOnly;
+
+  /// No description provided for @prefFemaleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Female Only'**
+  String get prefFemaleOnly;
+
+  /// No description provided for @prefOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get prefOther;
+
+  /// No description provided for @prefVeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Veg'**
+  String get prefVeg;
+
+  /// No description provided for @prefNonVeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-Veg'**
+  String get prefNonVeg;
+
+  /// No description provided for @prefEggetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggetarian'**
+  String get prefEggetarian;
+
+  /// No description provided for @prefYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get prefYes;
+
+  /// No description provided for @prefNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get prefNo;
+
+  /// No description provided for @prefNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get prefNext;
+
+  /// No description provided for @settingsGroupAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsGroupAccount;
+
+  /// No description provided for @settingsGroupApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get settingsGroupApp;
+
+  /// No description provided for @settingsGroupLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get settingsGroupLegal;
+
+  /// No description provided for @qnaShareAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Answers'**
+  String get qnaShareAnswers;
+
+  /// No description provided for @qnaSkipForNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get qnaSkipForNow;
+
+  /// No description provided for @qnaVeryPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Very private'**
+  String get qnaVeryPrivate;
+
+  /// No description provided for @qnaVerySocial.
+  ///
+  /// In en, this message translates to:
+  /// **'Very social'**
+  String get qnaVerySocial;
+
+  /// No description provided for @aboutThisFlatSection.
+  ///
+  /// In en, this message translates to:
+  /// **'About this Flat'**
+  String get aboutThisFlatSection;
+
+  /// No description provided for @shortlistCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortlist'**
+  String get shortlistCta;
+
+  /// No description provided for @contactCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get contactCta;
+
+  /// No description provided for @postedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted on'**
+  String get postedOnLabel;
+
+  /// No description provided for @verifiedListingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified listing'**
+  String get verifiedListingLabel;
+
+  /// No description provided for @moveInCountdownBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving in {days} days'**
+  String moveInCountdownBadge(int days);
+
+  /// No description provided for @moveInToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving in today'**
+  String get moveInToday;
+
+  /// No description provided for @vibeSocial.
+  ///
+  /// In en, this message translates to:
+  /// **'Social & Lively'**
+  String get vibeSocial;
+
+  /// No description provided for @vibeProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Professionals'**
+  String get vibeProfessional;
+
+  /// No description provided for @vibeStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'Students'**
+  String get vibeStudent;
+
+  /// No description provided for @vibePet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet Household'**
+  String get vibePet;
+
+  /// No description provided for @addPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photos'**
+  String get addPhotosTitle;
+
+  /// No description provided for @addPhotosTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips'**
+  String get addPhotosTips;
+
+  /// No description provided for @addPhotosInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add clear photos of the room and common areas to get more matches.'**
+  String get addPhotosInstruction;
+
+  /// No description provided for @photoTipNaturalLight.
+  ///
+  /// In en, this message translates to:
+  /// **'• Use natural lighting — open curtains before shooting'**
+  String get photoTipNaturalLight;
+
+  /// No description provided for @photoTipFullRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'• Show the full room from corner to corner'**
+  String get photoTipFullRoom;
+
+  /// No description provided for @photoTipBathroomBalcony.
+  ///
+  /// In en, this message translates to:
+  /// **'• Include bathroom and balcony if available'**
+  String get photoTipBathroomBalcony;
+
+  /// No description provided for @photoTipCleanRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'• Clean up before taking photos'**
+  String get photoTipCleanRoom;
+
+  /// No description provided for @addMorePhotosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more photos'**
+  String get addMorePhotosLabel;
+
+  /// No description provided for @waitlistNudgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not many flatmates in {city} yet'**
+  String waitlistNudgeTitle(String city);
+
+  /// No description provided for @waitlistNudgeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll notify you when more people join'**
+  String get waitlistNudgeSubtitle;
+
+  /// No description provided for @waitlistNotifyMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify Me'**
+  String get waitlistNotifyMe;
+
+  /// No description provided for @cityCounterShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} looking in {city}'**
+  String cityCounterShort(int count, String city);
+
+  /// No description provided for @scheduleVisitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule Visit'**
+  String get scheduleVisitTitle;
+
+  /// No description provided for @selectTimeSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Time Slot'**
+  String get selectTimeSlot;
+
+  /// No description provided for @timeSlotMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get timeSlotMorning;
+
+  /// No description provided for @timeSlotAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get timeSlotAfternoon;
+
+  /// No description provided for @timeSlotEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get timeSlotEvening;
+
+  /// No description provided for @addNoteOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a Note (Optional)'**
+  String get addNoteOptional;
+
+  /// No description provided for @visitPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your visit request will be shared with {name}.'**
+  String visitPrivacyNote(String name);
+
+  /// No description provided for @sendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get sendingLabel;
+
+  /// No description provided for @sendRequestCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Request'**
+  String get sendRequestCta;
+
+  /// No description provided for @matchedOnDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Matched on {date}'**
+  String matchedOnDate(String date);
+
+  /// No description provided for @locationSelectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your preferred location'**
+  String get locationSelectionTitle;
+
+  /// No description provided for @searchLocationPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search location'**
+  String get searchLocationPlaceholder;
+
+  /// No description provided for @useCurrentLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my current location'**
+  String get useCurrentLocation;
+
+  /// No description provided for @detectingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting location...'**
+  String get detectingLocation;
+
+  /// No description provided for @popularCitiesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'POPULAR CITIES'**
+  String get popularCitiesLabel;
+
+  /// No description provided for @noLocationsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No locations available'**
+  String get noLocationsAvailable;
+
+  /// No description provided for @clusterListingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Listings in this area'**
+  String get clusterListingsTitle;
+
+  /// No description provided for @clusterListingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} listings'**
+  String clusterListingsCount(int count);
+
+  /// No description provided for @shareToWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share to WhatsApp'**
+  String get shareToWhatsapp;
+
+  /// No description provided for @whatsappNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp is not installed'**
+  String get whatsappNotInstalled;
+
+  /// No description provided for @scanToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to open listing'**
+  String get scanToOpen;
+
+  /// No description provided for @matchItsAMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a Match!'**
+  String get matchItsAMatch;
+
+  /// No description provided for @matchLikedEachOther.
+  ///
+  /// In en, this message translates to:
+  /// **'You and {peerName} liked each other'**
+  String matchLikedEachOther(String peerName);
+
+  /// No description provided for @matchSendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a message'**
+  String get matchSendMessage;
+
+  /// No description provided for @matchKeepSwiping.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep swiping'**
+  String get matchKeepSwiping;
+
+  /// No description provided for @swipeNoMoreProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No more profiles'**
+  String get swipeNoMoreProfiles;
+
+  /// No description provided for @swipeCheckBackLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Check back later for new matches'**
+  String get swipeCheckBackLater;
+
+  /// No description provided for @swipeLikeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LIKE'**
+  String get swipeLikeLabel;
+
+  /// No description provided for @swipeNopeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NOPE'**
+  String get swipeNopeLabel;
+
+  /// No description provided for @failedToLoadProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profiles'**
+  String get failedToLoadProfiles;
+
+  /// No description provided for @actionFailedRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Please try again.'**
+  String get actionFailedRetry;
+
+  /// No description provided for @wifiChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi'**
+  String get wifiChipLabel;
+
+  /// No description provided for @parkingChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get parkingChipLabel;
+
+  /// No description provided for @liftChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lift'**
+  String get liftChipLabel;
+
+  /// No description provided for @securityChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'24/7 Security'**
+  String get securityChipLabel;
+
+  /// No description provided for @noDescriptionAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No description available.'**
+  String get noDescriptionAvailable;
+
+  /// No description provided for @flexibleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible'**
+  String get flexibleLabel;
+
+  /// No description provided for @recentlyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently'**
+  String get recentlyLabel;
+
+  /// No description provided for @safetyCheckedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Checked'**
+  String get safetyCheckedLabel;
+
+  /// No description provided for @couldNotLoadListing.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load listing'**
+  String get couldNotLoadListing;
+
+  /// No description provided for @startAConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get startAConversation;
+
+  /// No description provided for @sayHelloOrIcebreaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello or use an icebreaker'**
+  String get sayHelloOrIcebreaker;
+
+  /// No description provided for @messagesArePrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages are private'**
+  String get messagesArePrivate;
+
+  /// No description provided for @viewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get viewLabel;
+
+  /// No description provided for @byOwnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String byOwnerLabel(String name);
+
+  /// No description provided for @couldNotLoadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load messages'**
+  String get couldNotLoadMessages;
+
+  /// No description provided for @failedToSendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send message. Please try again.'**
+  String get failedToSendMessage;
+
+  /// No description provided for @failedToBlockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to block user. Please try again.'**
+  String get failedToBlockUser;
+
+  /// No description provided for @failedToReportUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to report user. Please try again.'**
+  String get failedToReportUser;
+
+  /// No description provided for @failedToUnmatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unmatch. Please try again.'**
+  String get failedToUnmatch;
+
+  /// No description provided for @failedToSendPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send photo. Please try again.'**
+  String get failedToSendPhoto;
+
+  /// No description provided for @couldNotLoadVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load visits'**
+  String get couldNotLoadVisits;
+
+  /// No description provided for @blockedUsersAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'People you block will appear here'**
+  String get blockedUsersAppearHere;
+
+  /// No description provided for @couldNotLoadBlockedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load blocked users'**
+  String get couldNotLoadBlockedUsers;
+
+  /// No description provided for @passwordRuleMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get passwordRuleMinLength;
+
+  /// No description provided for @passwordRuleUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'1 uppercase letter'**
+  String get passwordRuleUppercase;
+
+  /// No description provided for @passwordRuleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'1 number'**
+  String get passwordRuleNumber;
+
+  /// No description provided for @safetyIsPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Your safety is our priority'**
+  String get safetyIsPriority;
+
+  /// No description provided for @supportAvailable247.
+  ///
+  /// In en, this message translates to:
+  /// **'Support available 24/7'**
+  String get supportAvailable247;
+
+  /// No description provided for @notificationsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications about your matches, visits, and listings will appear here'**
+  String get notificationsEmptySubtitle;
+
+  /// No description provided for @couldNotLoadNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications'**
+  String get couldNotLoadNotifications;
+
+  /// No description provided for @yesterdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterdayLabel;
+
+  /// No description provided for @daysAgoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'days ago'**
+  String get daysAgoLabel;
+
+  /// No description provided for @notificationNoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'No action available for this notification'**
+  String get notificationNoAction;
+
+  /// No description provided for @submittedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get submittedLabel;
+
+  /// No description provided for @underReviewStepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Under Review'**
+  String get underReviewStepLabel;
+
+  /// No description provided for @liveStepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get liveStepLabel;
+
+  /// No description provided for @pleaseReviewAndResubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Please review the reason below and resubmit.'**
+  String get pleaseReviewAndResubmit;
+
+  /// No description provided for @rejectionReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason'**
+  String get rejectionReasonLabel;
+
+  /// No description provided for @rejectionDetailText.
+  ///
+  /// In en, this message translates to:
+  /// **'The listing did not meet our community guidelines. Please ensure all information is accurate and photos are clear.'**
+  String get rejectionDetailText;
+
+  /// No description provided for @activeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get activeStatus;
+
+  /// No description provided for @draftStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get draftStatus;
+
+  /// No description provided for @expiredStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expiredStatus;
+
+  /// No description provided for @notificationsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTooltip;
+
+  /// No description provided for @chatTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chatTooltip;
+
+  /// No description provided for @listingStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing Stats'**
+  String get listingStatsTitle;
+
+  /// No description provided for @viewsStatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Views'**
+  String get viewsStatLabel;
+
+  /// No description provided for @likesStatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get likesStatLabel;
+
+  /// No description provided for @matchesStatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get matchesStatLabel;
+
+  /// No description provided for @closeCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeCta;
+
+  /// No description provided for @matchCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Count ({count})'**
+  String matchCountLabel(int count);
+
+  /// No description provided for @boostAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Boost'**
+  String get boostAction;
+
+  /// No description provided for @viewStatsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View Stats ({count})'**
+  String viewStatsAction(String count);
+
+  /// No description provided for @reviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get reviewAction;
+
+  /// No description provided for @shareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareAction;
+
+  /// No description provided for @resumeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeAction;
+
+  /// No description provided for @expiresToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires today'**
+  String get expiresToday;
+
+  /// No description provided for @expiresInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {days}d'**
+  String expiresInDays(int days);
+
+  /// No description provided for @failedToUpdateListingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update listing status.'**
+  String get failedToUpdateListingStatus;
+
+  /// No description provided for @noLikesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No likes yet'**
+  String get noLikesYet;
+
+  /// No description provided for @keepSwipingToFindMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep swiping to find matches'**
+  String get keepSwipingToFindMatches;
+
+  /// No description provided for @noConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations'**
+  String get noConversations;
+
+  /// No description provided for @startChatWithMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a chat with a match'**
+  String get startChatWithMatch;
+
+  /// No description provided for @matchAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get matchAction;
+
+  /// No description provided for @matchCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create match. Try again.'**
+  String get matchCreateFailed;
+
+  /// No description provided for @couldNotLoadConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load conversations'**
+  String get couldNotLoadConversations;
+
+  /// No description provided for @downloadToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Download 360 FlatMates to connect'**
+  String get downloadToConnect;
+
+  /// No description provided for @scanToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to connect'**
+  String get scanToConnect;
+
+  /// No description provided for @findYourFlatmateShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your flatmate on 360 FlatMates!'**
+  String get findYourFlatmateShare;
+
+  /// No description provided for @checkOutListingShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out this listing on 360 FlatMates!'**
+  String get checkOutListingShare;
+
+  /// No description provided for @passwordUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update password. Please try again.'**
+  String get passwordUpdateFailed;
+
+  /// No description provided for @visitRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send visit request. Please try again.'**
+  String get visitRequestFailed;
+
+  /// No description provided for @visitActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Please try again.'**
+  String get visitActionFailed;
+
+  /// No description provided for @listingSubmitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to submit listing. Please try again.'**
+  String get listingSubmitFailed;
+
+  /// No description provided for @listingHelperLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate location helps people find you'**
+  String get listingHelperLocation;
+
+  /// No description provided for @listingHelperSociety.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about the society to attract the right flatmates'**
+  String get listingHelperSociety;
+
+  /// No description provided for @listingHelperRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the room so flatmates know what to expect'**
+  String get listingHelperRoom;
+
+  /// No description provided for @listingHelperPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Good photos get 3x more responses'**
+  String get listingHelperPhotos;
+
+  /// No description provided for @listingHelperFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat details help flatmates decide if it\'s the right fit'**
+  String get listingHelperFlat;
+
+  /// No description provided for @listingHelperCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent pricing builds trust'**
+  String get listingHelperCosts;
+
+  /// No description provided for @listingHelperAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'A good bio helps people know you'**
+  String get listingHelperAbout;
+
+  /// No description provided for @listingHelperReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there! Review everything before going live'**
+  String get listingHelperReview;
+
+  /// No description provided for @listingRentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly rent is required'**
+  String get listingRentRequired;
+
+  /// No description provided for @listingPhotosRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least 2 photos'**
+  String get listingPhotosRequired;
+
+  /// No description provided for @listingDepositInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get listingDepositInvalid;
+
+  /// No description provided for @listingMaintenanceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get listingMaintenanceInvalid;
+
+  /// No description provided for @listingCostInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get listingCostInvalid;
+
+  /// No description provided for @listingSummaryLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'{society}, {city}'**
+  String listingSummaryLocation(String society, String city);
+
+  /// No description provided for @listingSummarySociety.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}'**
+  String listingSummarySociety(String type);
+
+  /// No description provided for @listingSummaryRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'{roomType} • {furnishingCount} items'**
+  String listingSummaryRoom(String roomType, int furnishingCount);
+
+  /// No description provided for @listingSummaryPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photo{plural}'**
+  String listingSummaryPhotos(int count, String plural);
+
+  /// No description provided for @listingSummaryFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{config} • Floor {floor}'**
+  String listingSummaryFlat(String config, String floor);
+
+  /// No description provided for @listingSummaryCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent: ₹{rent}/mo'**
+  String listingSummaryCosts(String rent);
+
+  /// No description provided for @listingSummaryAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'{gender} • Ages {ageMin}-{ageMax}'**
+  String listingSummaryAbout(String gender, String ageMin, String ageMax);
+
+  /// No description provided for @workStyleOffice.
+  ///
+  /// In en, this message translates to:
+  /// **'Office'**
+  String get workStyleOffice;
+
+  /// No description provided for @workStyleHybrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Hybrid'**
+  String get workStyleHybrid;
+
+  /// No description provided for @workStyleWfh.
+  ///
+  /// In en, this message translates to:
+  /// **'WFH'**
+  String get workStyleWfh;
+
+  /// No description provided for @phoneVerifiedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone verified'**
+  String get phoneVerifiedLabel;
+
+  /// No description provided for @showResultsCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Results'**
+  String get showResultsCta;
+
+  /// No description provided for @searchFiltersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search & Filters'**
+  String get searchFiltersTitle;
+
+  /// No description provided for @clearAllFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAllFilters;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please check your network and try again.'**
+  String get errorNetwork;
+
+  /// No description provided for @errorAuthExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired. Please sign in again.'**
+  String get errorAuthExpired;
+
+  /// No description provided for @errorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later.'**
+  String get errorServer;
+
+  /// No description provided for @errorPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to perform this action.'**
+  String get errorPermission;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested resource was not found.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid data. Please check your input.'**
+  String get errorValidation;
+
+  /// No description provided for @errorRateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Please wait a moment and try again.'**
+  String get errorRateLimit;
+
+  /// No description provided for @errorConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'A conflict occurred. The data may have changed.'**
+  String get errorConflict;
+
+  /// No description provided for @errorUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed. Please try again.'**
+  String get errorUpload;
+
+  /// No description provided for @errorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errorUnknown;
+
+  /// No description provided for @icebreakerTellMeRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me about the room!'**
+  String get icebreakerTellMeRoom;
+
+  /// No description provided for @icebreakerWhatFlatmates.
+  ///
+  /// In en, this message translates to:
+  /// **'What are the flatmates like?'**
+  String get icebreakerWhatFlatmates;
+
+  /// No description provided for @icebreakerNegotiateRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Is the rent negotiable?'**
+  String get icebreakerNegotiateRent;
+
+  /// No description provided for @icebreakerSocietyVibe.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s the society vibe?'**
+  String get icebreakerSocietyVibe;
+
+  /// No description provided for @icebreakerWeekendLook.
+  ///
+  /// In en, this message translates to:
+  /// **'What does a weekend here look like?'**
+  String get icebreakerWeekendLook;
+
+  /// No description provided for @reviewRentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent: ₹{amount}/mo'**
+  String reviewRentAmount(String amount);
+
+  /// No description provided for @reviewDepositAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit: ₹{amount}'**
+  String reviewDepositAmount(String amount);
+
+  /// No description provided for @reviewMaintenanceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance: ₹{amount}'**
+  String reviewMaintenanceAmount(String amount);
+
+  /// No description provided for @reviewGenderAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender: {gender}'**
+  String reviewGenderAmount(String gender);
+
+  /// No description provided for @reviewAgeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Age: {min} - {max}'**
+  String reviewAgeAmount(String min, String max);
+
+  /// No description provided for @reviewMoveInAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Move-in: {date}'**
+  String reviewMoveInAmount(String date);
+
+  /// No description provided for @reviewPhotosAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photo{plural}'**
+  String reviewPhotosAmount(int count, String plural);
+
+  /// No description provided for @invalidListingId.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid listing ID'**
+  String get invalidListingId;
+
+  /// No description provided for @invalidConversationId.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid conversation ID'**
+  String get invalidConversationId;
+
+  /// No description provided for @youAreOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Check your connection.'**
+  String get youAreOffline;
+
+  /// No description provided for @visitScheduledNotificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit scheduled! Could not send notification.'**
+  String get visitScheduledNotificationFailed;
+
+  /// No description provided for @bootstrapErrorRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Tap to retry.'**
+  String get bootstrapErrorRetry;
+
+  /// No description provided for @boostListingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Boost Listing'**
+  String get boostListingTitle;
+
+  /// No description provided for @boostListingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listing will be shown to more people for the next 24 hours.'**
+  String get boostListingSubtitle;
+
+  /// No description provided for @boostNowCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Boost Now'**
+  String get boostNowCta;
+
+  /// No description provided for @listingBoosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing boosted for 24 hours!'**
+  String get listingBoosted;
+
+  /// No description provided for @pausedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get pausedStatus;
+
+  /// No description provided for @renewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Renew'**
+  String get renewAction;
+
+  /// No description provided for @refreshProfilesCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Profiles'**
+  String get refreshProfilesCta;
+
+  /// No description provided for @swipeEmptyNoProfilesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No profiles available right now'**
+  String get swipeEmptyNoProfilesTitle;
+
+  /// No description provided for @swipeEmptyNoProfilesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re finding new matches for you! Check back soon.'**
+  String get swipeEmptyNoProfilesSubtitle;
+
+  /// No description provided for @swipeEmptyAllFilteredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No profiles match your preferences'**
+  String get swipeEmptyAllFilteredTitle;
+
+  /// No description provided for @swipeEmptyAllFilteredSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your non-negotiables to see more profiles.'**
+  String get swipeEmptyAllFilteredSubtitle;
+
+  /// No description provided for @swipeEmptyEndOfDeckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve seen everyone for now'**
+  String get swipeEmptyEndOfDeckTitle;
+
+  /// No description provided for @swipeEmptyEndOfDeckSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re finding new matches for you! Check back later.'**
+  String get swipeEmptyEndOfDeckSubtitle;
 }
 
 class _AppLocalizationsDelegate

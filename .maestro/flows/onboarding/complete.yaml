@@ -1,0 +1,128 @@
+appId: com.the360ghar.flatmates
+---
+# Complete full onboarding flow
+# Prerequisites: User just signed up or logged in for first time
+# Selects Co-Hunter mode (gives access to Explore/Map tab)
+- extendedWaitUntil:
+    visible:
+      text: "Get Started"
+    timeout: 10000
+
+# --- Onboarding splash ---
+- tapOn:
+    id: "onboarding_get_started"
+
+# --- Mode selection: Co-Hunter ---
+- extendedWaitUntil:
+    visible:
+      id: "mode_co_hunter"
+    timeout: 5000
+- tapOn:
+    id: "mode_co_hunter"
+- tapOn:
+    id: "mode_continue"
+
+# --- Location selection: Bangalore ---
+- extendedWaitUntil:
+    visible:
+      text: "Bangalore"
+    timeout: 5000
+- tapOn:
+    text: "Bangalore"
+- tapOn:
+    text: "Continue"
+
+# --- Basic info ---
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_name"
+    timeout: 5000
+- tapOn:
+    id: "onboarding_name"
+- inputText: "Maestro User"
+- tapOn:
+    id: "onboarding_age"
+- inputText: "26"
+- tapOn:
+    id: "onboarding_profession"
+- inputText: "Software Engineer"
+- tapOn:
+    id: "onboarding_city"
+- inputText: "Bangalore"
+- tapOn:
+    id: "onboarding_locality"
+- inputText: "HSR Layout"
+- tapOn:
+    id: "onboarding_basic_info_next"
+
+# --- Profile photo: skip ---
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_photo_next"
+    timeout: 5000
+- tapOn:
+    id: "onboarding_photo_next"
+
+# --- Lifestyle quiz ---
+- extendedWaitUntil:
+    visible:
+      id: "quiz_sleep_schedule_early_bird"
+    timeout: 5000
+- tapOn:
+    id: "quiz_sleep_schedule_early_bird"
+- tapOn:
+    id: "quiz_cleanliness_tidy"
+- tapOn:
+    id: "quiz_food_habits_vegetarian"
+- tapOn:
+    id: "quiz_smoking_drinking_neither"
+- tapOn:
+    id: "quiz_guests_policy_occasional_ok"
+- tapOn:
+    id: "quiz_parties_at_home_never"
+- tapOn:
+    id: "quiz_work_style_office"
+- tapOn:
+    id: "quiz_pets_no_pets"
+- tapOn:
+    id: "onboarding_quiz_next"
+
+# --- Budget & timeline ---
+- extendedWaitUntil:
+    visible:
+      id: "timeline_flexible"
+    timeout: 5000
+- tapOn:
+    id: "timeline_flexible"
+- tapOn:
+    id: "onboarding_budget_next"
+
+# --- Preferences ---
+- extendedWaitUntil:
+    visible:
+      id: "pref_no_preference"
+    timeout: 5000
+- tapOn:
+    id: "pref_no_preference"
+- tapOn:
+    id: "pref_2"
+- tapOn:
+    id: "pref_no_preference"
+- tapOn:
+    id: "pref_no_preference"
+- tapOn:
+    id: "pref_no_preference"
+- tapOn:
+    id: "onboarding_preferences_next"
+
+# --- Non-negotiables ---
+- extendedWaitUntil:
+    visible:
+      id: "non_neg_no_smoking"
+    timeout: 5000
+- tapOn:
+    id: "non_neg_no_smoking"
+- tapOn:
+    id: "non_neg_min_tidy"
+- tapOn:
+    id: "onboarding_non_neg_done"

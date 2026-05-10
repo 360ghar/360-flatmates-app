@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
 import '../discover/discover_repository.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../discover/application/move_in_filter.dart';
+import '../shared/presentation/flatmates_empty_state.dart';
+import '../shared/presentation/flatmates_error_state.dart';
+import '../shared/presentation/flatmates_search_bar.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
+import 'presentation/widgets/map_filter_bar.dart';
+import 'presentation/widgets/map_listing_sheets.dart';
+import 'presentation/widgets/map_marker_builder.dart';
 
 class MapViewPage extends ConsumerStatefulWidget {
   const MapViewPage({super.key});
@@ -21,8 +30,16 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   String _moveInFilter = 'all';
   String _genderPref = 'any';
   bool _verifiedOnly = false;
+  final _searchController = TextEditingController();
 
-  static const _defaultCenter = LatLng(12.9716, 77.5946); // Bangalore
+  final Map<int, BitmapDescriptor> _clusterIconCache = {};
+  List<PropertyListing>? _previousListings;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +51,24 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       body: SafeArea(
         child: Column(
           children: [
-            _FilterBar(
+            // Floating search/filter control at top
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.md,
+                AppSpacing.screen,
+                AppSpacing.xs,
+              ),
+              child: FlatmatesSearchBar(
+                controller: _searchController,
+                hint: locale.homeSearchHint,
+                readOnly: true,
+                onTap: () => _showFilterSheet(context),
+                trailingIcon: Icons.tune_rounded,
+                onTrailingTap: () => _showFilterSheet(context),
+              ),
+            ),
+            MapFilterBar(
               budgetMin: _budgetMin,
               budgetMax: _budgetMax,
               roomType: _roomType,
@@ -53,13 +87,39 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
             Expanded(
               child: listings.when(
                 data: (items) {
+                  if (!identical(items, _previousListings)) {
+                    _clusterIconCache.clear();
+                    _previousListings = items;
+                  }
                   final filtered = _applyFilters(items);
-                  final markers = _buildMarkers(filtered, theme);
+                  final markers = buildClusteredMarkers(
+                    items: filtered,
+                    theme: theme,
+                    clusterIconCache: _clusterIconCache,
+                    onListingTap: _handleListingTap,
+                    onClusterTap: _handleClusterTap,
+                  );
+                  final sortedMarkers = markers.toList()
+                    ..sort(
+                      (a, b) =>
+                          a.position.latitude.compareTo(b.position.latitude),
+                    );
+                  final firstPosition = sortedMarkers.isEmpty
+                      ? null
+                      : sortedMarkers.first.position;
+                  if (firstPosition == null) {
+                    return FlatmatesEmptyState(
+                      title: items.isEmpty
+                          ? locale.emptyListings
+                          : locale.noListingsMatchFilters,
+                      icon: Icons.map_outlined,
+                    );
+                  }
                   return Stack(
                     children: [
                       GoogleMap(
-                        initialCameraPosition: const CameraPosition(
-                          target: _defaultCenter,
+                        initialCameraPosition: CameraPosition(
+                          target: firstPosition,
                           zoom: 12,
                         ),
                         markers: markers,
@@ -67,21 +127,21 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                         zoomControlsEnabled: false,
                       ),
                       if (filtered.isEmpty)
-                        Center(
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(18),
-                              child: Text(
-                                items.isEmpty ? locale.emptyListings : locale.noListingsMatchFilters,
-                              ),
-                            ),
-                          ),
+                        FlatmatesEmptyState(
+                          title: items.isEmpty
+                              ? locale.emptyListings
+                              : locale.noListingsMatchFilters,
+                          icon: Icons.map_outlined,
                         ),
                     ],
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text(e.toString())),
+                loading: () => const FlatmatesSkeleton.card(),
+                error: (e, _) => FlatmatesErrorState(
+                  message: locale.couldNotLoadListing,
+                  onRetry: () => ref.invalidate(discoverListingsProvider),
+                  retryLabel: locale.commonRetry,
+                ),
               ),
             ),
           ],
@@ -90,45 +150,58 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     );
   }
 
-  Set<Marker> _buildMarkers(List<PropertyListing> items, ThemeData theme) {
-    // In V1 without geocoding data on listings, we show markers for
-    // items that have locality information. Position is approximated
-    // by a hash of the locality string for visual distribution.
-    final markers = <Marker>{};
-    for (final item in items) {
-      if (item.locality == null || item.locality!.trim().isEmpty) continue;
+  void _showFilterSheet(BuildContext context) {
+    context.push('/search-filters');
+  }
 
-      // Deterministic position offset based on locality hash
-      final hash = item.locality!.hashCode;
-      final lat = 12.9716 + ((hash & 0xFF) - 128) * 0.001;
-      final lng = 77.5946 + (((hash >> 8) & 0xFF) - 128) * 0.001;
-      final isRoom = item.ownerId != null;
+  void _handleListingTap(PropertyListing item) {
+    showListingSheet(
+      context,
+      item: item,
+      onLike: () async {
+        try {
+          final conversationId = await ref
+              .read(discoverRepositoryProvider)
+              .likeListing(item.id);
+          ref.invalidate(discoverListingsProvider);
+          ref.invalidate(conversationsProvider);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                conversationId == null
+                    ? AppLocalizations.of(context).contactRequestSent
+                    : AppLocalizations.of(
+                        context,
+                      ).contactRequestWithConversation(conversationId),
+              ),
+            ),
+          );
+        } catch (_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context).actionFailedRetry),
+            ),
+          );
+        }
+      },
+    );
+  }
 
-      markers.add(Marker(
-        markerId: MarkerId('listing_${item.id}'),
-        position: LatLng(lat, lng),
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          isRoom ? BitmapDescriptor.hueOrange : BitmapDescriptor.hueBlue,
-        ),
-        infoWindow: InfoWindow(
-          title: item.title,
-          snippet: item.monthlyRent != null
-              ? '₹${item.monthlyRent!.toStringAsFixed(0)}/mo'
-              : null,
-        ),
-        onTap: () => _showListingSheet(item),
-      ));
-    }
-    return markers;
+  void _handleClusterTap(List<PropertyListing> clusterItems) {
+    showClusterSheet(
+      context,
+      clusterItems: clusterItems,
+      onListingTap: _handleListingTap,
+    );
   }
 
   List<PropertyListing> _applyFilters(List<PropertyListing> items) {
     return items.where((item) {
       // Budget filter
-      if (item.monthlyRent != null) {
-        if (item.monthlyRent! < _budgetMin || item.monthlyRent! > _budgetMax) {
-          return false;
-        }
+      if (item.monthlyRent < _budgetMin || item.monthlyRent > _budgetMax) {
+        return false;
       }
 
       // Room type filter
@@ -146,255 +219,19 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       }
 
       // Move-in / availability filter
-      if (_moveInFilter == 'immediate') {
-        if (item.availableFrom != null &&
-            item.availableFrom!.isAfter(
-              DateTime.now().add(const Duration(days: 7)),
-            )) {
-          return false;
-        }
+      if (!listingMatchesMoveInFilter(item.availableFrom, _moveInFilter)) {
+        return false;
       }
 
       // Verified filter
       if (_verifiedOnly) {
-        final isVerified = item.features.contains('verified') ||
+        final isVerified =
+            item.features.contains('verified') ||
             item.features.contains('is_verified');
         if (!isVerified) return false;
       }
 
       return true;
     }).toList();
-  }
-
-  void _showListingSheet(PropertyListing item) {
-    final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.4,
-        minChildSize: 0.3,
-        maxChildSize: 0.7,
-        expand: false,
-        builder: (_, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (item.mainImageUrl != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        item.mainImageUrl!,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.apartment_rounded),
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(Icons.apartment_rounded),
-                    ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.title, style: theme.textTheme.titleLarge, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        if (item.monthlyRent != null)
-                          Text(
-                            '₹${item.monthlyRent!.toStringAsFixed(0)}/mo',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        if (item.locality != null)
-                          Text(item.locality!, style: theme.textTheme.bodyMedium),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (item.bedrooms != null)
-                    InfoPill(icon: Icons.bed_outlined, label: locale.homeBedsValue(item.bedrooms!)),
-                  if (item.bathrooms != null)
-                    InfoPill(icon: Icons.bathtub_outlined, label: locale.homeBathsValue(item.bathrooms!)),
-                  if (item.genderPreference != null)
-                    InfoPill(icon: Icons.group_outlined, label: localizedFlatmatesGenderLabel(locale, item.genderPreference!)),
-                  if (item.sharingType != null)
-                    InfoPill(icon: Icons.meeting_room_outlined, label: localizedFlatmatesSharingTypeLabel(locale, item.sharingType!)),
-                ],
-              ),
-              const SizedBox(height: 16),
-              GradientActionButton(
-                label: locale.likeListingCta,
-                onPressed: () async {
-                  final conversationId = await ref
-                      .read(discoverRepositoryProvider)
-                      .likeListing(item.id);
-                  ref.invalidate(discoverListingsProvider);
-                  ref.invalidate(conversationsProvider);
-                  if (!ctx.mounted) return;
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(conversationId == null
-                        ? locale.contactRequestSent
-                        : locale.contactRequestWithConversation(conversationId))),
-                  );
-                },
-                icon: Icons.favorite_border_rounded,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({
-    required this.budgetMin,
-    required this.budgetMax,
-    required this.roomType,
-    required this.moveInFilter,
-    required this.genderPref,
-    required this.verifiedOnly,
-    required this.onBudgetChanged,
-    required this.onRoomTypeChanged,
-    required this.onMoveInChanged,
-    required this.onGenderChanged,
-    required this.onVerifiedChanged,
-  });
-
-  final double budgetMin;
-  final double budgetMax;
-  final String roomType;
-  final String moveInFilter;
-  final String genderPref;
-  final bool verifiedOnly;
-  final void Function(double, double) onBudgetChanged;
-  final void Function(String) onRoomTypeChanged;
-  final void Function(String) onMoveInChanged;
-  final void Function(String) onGenderChanged;
-  final void Function(bool) onVerifiedChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = AppLocalizations.of(context);
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            ActionChip(
-              avatar: const Icon(Icons.currency_rupee_rounded, size: 16),
-              label: Text('₹${budgetMin.toStringAsFixed(0)}-₹${budgetMax.toStringAsFixed(0)}'),
-              onPressed: () => _showBudgetDialog(context),
-            ),
-            const SizedBox(width: 8),
-            FilterChip(
-              label: Text(locale.sharingPrivateRoom),
-              selected: roomType == 'private_room',
-              onSelected: (_) => onRoomTypeChanged(roomType == 'private_room' ? 'all' : 'private_room'),
-            ),
-            const SizedBox(width: 8),
-            FilterChip(
-              label: Text(locale.sharingSharedRoom),
-              selected: roomType == 'shared_room',
-              onSelected: (_) => onRoomTypeChanged(roomType == 'shared_room' ? 'all' : 'shared_room'),
-            ),
-            const SizedBox(width: 8),
-            FilterChip(
-              label: Text(locale.genderAny),
-              selected: genderPref == 'any',
-              onSelected: (_) => onGenderChanged('any'),
-            ),
-            const SizedBox(width: 8),
-            FilterChip(
-              label: Text(locale.timelineImmediate),
-              selected: moveInFilter == 'immediate',
-              onSelected: (_) => onMoveInChanged(moveInFilter == 'immediate' ? 'all' : 'immediate'),
-            ),
-            const SizedBox(width: 8),
-            FilterChip(
-              avatar: Icon(Icons.verified_outlined, size: 16),
-              label: Text(locale.verifiedFilterLabel),
-              selected: verifiedOnly,
-              onSelected: (_) => onVerifiedChanged(!verifiedOnly),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showBudgetDialog(BuildContext context) {
-    final locale = AppLocalizations.of(context);
-    double min = budgetMin;
-    double max = budgetMax;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(locale.monthlyBudgetLabel),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RangeSlider(
-                values: RangeValues(min, max),
-                min: 5000,
-                max: 100000,
-                divisions: 19,
-                labels: RangeLabels('₹${min.toStringAsFixed(0)}', '₹${max.toStringAsFixed(0)}'),
-                onChanged: (v) => setDialogState(() {
-                  min = v.start;
-                  max = v.end;
-                }),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(locale.cancelCta)),
-            FilledButton(
-              onPressed: () {
-                onBudgetChanged(min, max);
-                Navigator.pop(ctx);
-              },
-              child: Text(locale.commonSave),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

@@ -1,0 +1,381 @@
+import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
+
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_bottom_sheet.dart';
+import '../../../shared/presentation/flatmates_card.dart';
+import '../../../shared/presentation/flatmates_chip.dart';
+import '../../../shared/presentation/flatmates_network_image.dart';
+import '../../../shared/presentation/flatmates_price_text.dart';
+import '../../../shared/presentation/flatmates_ui.dart';
+import 'manage_stats_widgets.dart';
+
+/// Property card with image, info row, owner info, and stats action grid.
+class ManageListingCard extends StatelessWidget {
+  const ManageListingCard({
+    required this.listing,
+    required this.status,
+    required this.isPaused,
+    this.isPausing = false,
+    required this.onTogglePause,
+    required this.onShare,
+    required this.onEdit,
+    required this.onViewStats,
+    required this.onReview,
+    required this.onRenew,
+    required this.theme,
+    required this.locale,
+    super.key,
+  });
+
+  final dynamic listing;
+  final String status;
+  final bool isPaused;
+  final bool isPausing;
+  final void Function(int listingId, bool currentlyPaused) onTogglePause;
+  final VoidCallback onShare;
+  final VoidCallback onEdit;
+  final VoidCallback onViewStats;
+  final VoidCallback onReview;
+  final VoidCallback onRenew;
+  final ThemeData theme;
+  final AppLocalizations locale;
+
+  static String _formatCount(int count) {
+    if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
+    if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
+    return count.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expiryLabel = _expiryLabel;
+    return FlatmatesCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Full-width image at top with status chip overlay
+          Stack(
+            children: [
+              if (listing.mainImageUrl != null)
+                SizedBox(
+                  height: 160,
+                  width: double.infinity,
+                  child: FlatmatesNetworkImage(
+                    imageUrl: listing.mainImageUrl!,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else
+                _buildPlaceholderImage(fullWidth: true),
+              // Status chip overlay at top-right
+              Positioned(
+                top: AppSpacing.sm,
+                right: AppSpacing.sm,
+                child: FlatmatesChip(
+                  label: _statusLabel,
+                  variant: FlatmatesChipVariant.info,
+                  icon: _statusIcon,
+                ),
+              ),
+            ],
+          ),
+
+          // Info below image
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  listing.title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                if (listing.monthlyRent != null)
+                  FlatmatesPriceText.card(
+                    amount: listing.monthlyRent!.toInt(),
+                    period: 'mo',
+                  ),
+                const SizedBox(height: AppSpacing.sm),
+                // Quick info row using FlatmatesChip
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    if (listing.bedrooms != null)
+                      FlatmatesChip(
+                        icon: Icons.bed_outlined,
+                        label: '${listing.bedrooms} Beds',
+                        variant: FlatmatesChipVariant.info,
+                      ),
+                    if (listing.bathrooms != null)
+                      FlatmatesChip(
+                        icon: Icons.bathtub_outlined,
+                        label: '${listing.bathrooms} Baths',
+                        variant: FlatmatesChipVariant.info,
+                      ),
+                    if (listing.areaSqft != null)
+                      FlatmatesChip(
+                        icon: Icons.square_foot_outlined,
+                        label: '${listing.areaSqft} sqft',
+                        variant: FlatmatesChipVariant.info,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1),
+
+          // Owner info row
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md - AppSpacing.xs,
+              vertical: AppSpacing.sm + AppSpacing.xs,
+            ),
+            child: Row(
+              children: [
+                FlatmatesAvatar(name: listing.ownerName, size: 28),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  listing.ownerName ?? '',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (expiryLabel != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md - AppSpacing.xs,
+                0,
+                AppSpacing.md - AppSpacing.xs,
+                AppSpacing.sm + AppSpacing.xs,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.schedule_outlined,
+                    size: 16,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    expiryLabel,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          const Divider(height: 1),
+
+          // Stats action grid (2 rows x 3 cols)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm + AppSpacing.xs),
+            child: Column(
+              children: [
+                // Row 1
+                Row(
+                  children: [
+                    Expanded(
+                      child: StatActionItem(
+                        icon: Icons.favorite_border_rounded,
+                        label: locale.matchCountLabel(
+                          listing.interestCount ?? 0,
+                        ),
+                        onTap: onViewStats,
+                        theme: theme,
+                      ),
+                    ),
+                    Expanded(
+                      child: StatActionItem(
+                        icon: Icons.edit_outlined,
+                        label: locale.editListingCta,
+                        onTap: onEdit,
+                        theme: theme,
+                      ),
+                    ),
+                    Expanded(
+                      child: StatActionItem(
+                        icon: Icons.rocket_launch_outlined,
+                        label: locale.boostAction,
+                        onTap: () => _showBoostSheet(context),
+                        theme: theme,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs + AppSpacing.xs),
+                // Row 2
+                Row(
+                  children: [
+                    Expanded(
+                      child: StatActionItem(
+                        icon: Icons.bar_chart_outlined,
+                        label: locale.viewStatsAction(
+                          _formatCount(listing.viewCount ?? 0),
+                        ),
+                        onTap: onViewStats,
+                        theme: theme,
+                      ),
+                    ),
+                    Expanded(
+                      child: StatActionItem(
+                        icon: _primaryStatusActionIcon,
+                        label: _primaryStatusActionLabel,
+                        onTap: _primaryStatusActionTap,
+                        theme: theme,
+                      ),
+                    ),
+                    Expanded(
+                      child: StatActionItem(
+                        icon: Icons.share_outlined,
+                        label: locale.shareAction,
+                        onTap: onShare,
+                        theme: theme,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _statusLabel {
+    if (_isPaused) return locale.pausedStatus;
+    return switch (status) {
+      'active' => locale.activeStatus,
+      'live' || 'approved' => locale.listingLive,
+      'draft' => locale.draftStatus,
+      'expired' => locale.expiredStatus,
+      'pending_review' => locale.underReview,
+      'under_review' => locale.underReview,
+      'paused' => locale.pausedStatus,
+      _ => status,
+    };
+  }
+
+  IconData get _statusIcon {
+    if (_isPaused) return Icons.pause_circle_outline;
+    return switch (status) {
+      'active' => Icons.check_circle_outline,
+      'live' || 'approved' => Icons.check_circle_outline,
+      'draft' => Icons.edit_note_rounded,
+      'expired' => Icons.schedule_outlined,
+      'pending_review' => Icons.hourglass_top_outlined,
+      'under_review' => Icons.hourglass_top_outlined,
+      'paused' => Icons.pause_circle_outline,
+      _ => Icons.info_outline,
+    };
+  }
+
+  bool get _isPaused => isPaused || status == 'paused';
+
+  bool get _isExpired => status == 'expired';
+
+  bool get _isUnderReview =>
+      status == 'pending_review' || status == 'under_review';
+
+  String get _primaryStatusActionLabel {
+    if (_isExpired) return locale.renewAction;
+    if (_isUnderReview) return locale.reviewAction;
+    if (_isPaused) return locale.resumeAction;
+    return locale.pauseListingCta;
+  }
+
+  IconData get _primaryStatusActionIcon {
+    if (_isExpired) return Icons.refresh;
+    if (_isUnderReview) return Icons.rate_review_outlined;
+    if (_isPaused) return Icons.play_circle_outline;
+    return Icons.pause_circle_outline;
+  }
+
+  VoidCallback get _primaryStatusActionTap {
+    if (_isExpired) return onRenew;
+    if (_isUnderReview) return onReview;
+    return () => onTogglePause(listing.id as int, _isPaused);
+  }
+
+  String? get _expiryLabel {
+    final expiresAt =
+        _dateFrom(listing.expiresAt) ?? _dateFrom(listing.availableFrom);
+    if (expiresAt == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final expiryDay = DateTime(
+      expiresAt.toLocal().year,
+      expiresAt.toLocal().month,
+      expiresAt.toLocal().day,
+    );
+    final days = expiryDay.difference(today).inDays;
+    if (days < 0) return locale.expiredStatus;
+    if (days == 0) return locale.expiresToday;
+    return locale.expiresInDays(days);
+  }
+
+  DateTime? _dateFrom(dynamic raw) {
+    if (raw is DateTime) return raw;
+    if (raw is String) return DateTime.tryParse(raw);
+    return null;
+  }
+
+  void _showBoostSheet(BuildContext context) {
+    FlatmatesBottomSheet.show(
+      context: context,
+      title: locale.boostListingTitle,
+      subtitle: locale.boostListingSubtitle,
+      builder: (sheetContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: FlatmatesButton(
+              label: locale.boostNowCta,
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(locale.listingBoosted)));
+              },
+              icon: Icons.rocket_launch_outlined,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderImage({bool fullWidth = false}) {
+    return Container(
+      width: fullWidth ? double.infinity : 80,
+      height: fullWidth ? 160 : 80,
+      decoration: BoxDecoration(
+        color: AppSemanticColors.accent.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(fullWidth ? 0 : 14),
+      ),
+      child: const Icon(Icons.apartment_rounded),
+    );
+  }
+}

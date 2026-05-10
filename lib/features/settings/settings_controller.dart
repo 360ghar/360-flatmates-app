@@ -4,58 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../core/theme/app_palette.dart';
+import 'domain/settings_state.dart';
+export 'domain/settings_state.dart';
 
-class SettingsState {
-  const SettingsState({
-    required this.themeMode,
-    required this.palette,
-    required this.locale,
-    required this.loaded,
-    required this.hideLastName,
-    required this.hideExactLocation,
-  });
-
-  const SettingsState.initial()
-    : themeMode = ThemeMode.system,
-      palette = AppPalette.electricIndigo,
-      locale = null,
-      loaded = false,
-      hideLastName = false,
-      hideExactLocation = false;
-
-  final ThemeMode themeMode;
-  final AppPalette palette;
-  final Locale? locale;
-  final bool loaded;
-  final bool hideLastName;
-  final bool hideExactLocation;
-
-  SettingsState copyWith({
-    ThemeMode? themeMode,
-    AppPalette? palette,
-    Locale? locale,
-    bool clearLocale = false,
-    bool? loaded,
-    bool? hideLastName,
-    bool? hideExactLocation,
-  }) {
-    return SettingsState(
-      themeMode: themeMode ?? this.themeMode,
-      palette: palette ?? this.palette,
-      locale: clearLocale ? null : (locale ?? this.locale),
-      loaded: loaded ?? this.loaded,
-      hideLastName: hideLastName ?? this.hideLastName,
-      hideExactLocation: hideExactLocation ?? this.hideExactLocation,
-    );
-  }
-}
-
-class SettingsController extends StateNotifier<SettingsState> {
-  SettingsController(this._prefs) : super(const SettingsState.initial()) {
-    Future<void>.microtask(load);
+class SettingsController extends Notifier<SettingsState> {
+  @override
+  SettingsState build() {
+    Future.microtask(() => load());
+    return const SettingsState();
   }
 
-  final AppPreferences _prefs;
+  AppPreferences get _prefs => ref.read(appPreferencesProvider);
 
   Future<void> load() async {
     final themeRaw = _prefs.getString(PrefKeys.themeMode);
@@ -67,10 +26,13 @@ class SettingsController extends StateNotifier<SettingsState> {
       themeMode: switch (themeRaw) {
         'light' => ThemeMode.light,
         'dark' => ThemeMode.dark,
-        _ => ThemeMode.system,
+        'system' => ThemeMode.system,
+        _ => ThemeMode.light,
       },
       palette: AppPaletteX.fromStorage(paletteRaw),
-      locale: languageCode == null ? null : Locale(languageCode, countryCode),
+      locale: languageCode == null
+          ? const Locale('en')
+          : Locale(languageCode, countryCode),
       hideLastName: _prefs.getBool(PrefKeys.hideLastName),
       hideExactLocation: _prefs.getBool(PrefKeys.hideExactLocation),
       loaded: true,
@@ -93,18 +55,19 @@ class SettingsController extends StateNotifier<SettingsState> {
   }
 
   Future<void> updateLocale(Locale? locale) async {
+    final effectiveLocale = locale ?? const Locale('en');
     if (locale == null) {
       await _prefs.remove(PrefKeys.localeLanguageCode);
       await _prefs.remove(PrefKeys.localeCountryCode);
-      state = state.copyWith(clearLocale: true);
-      return;
+    } else {
+      await _prefs.setString(PrefKeys.localeLanguageCode, locale.languageCode);
+      if (locale.countryCode != null) {
+        await _prefs.setString(PrefKeys.localeCountryCode, locale.countryCode!);
+      } else {
+        await _prefs.remove(PrefKeys.localeCountryCode);
+      }
     }
-
-    await _prefs.setString(PrefKeys.localeLanguageCode, locale.languageCode);
-    if (locale.countryCode != null) {
-      await _prefs.setString(PrefKeys.localeCountryCode, locale.countryCode!);
-    }
-    state = state.copyWith(locale: locale);
+    state = state.copyWith(locale: effectiveLocale);
   }
 
   Future<void> updateHideLastName(bool value) async {
@@ -119,6 +82,4 @@ class SettingsController extends StateNotifier<SettingsState> {
 }
 
 final settingsControllerProvider =
-    StateNotifierProvider<SettingsController, SettingsState>(
-      (ref) => SettingsController(ref.watch(appPreferencesProvider)),
-    );
+    NotifierProvider<SettingsController, SettingsState>(SettingsController.new);

@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
 import '../auth_controller.dart';
+import '../../../core/theme/app_radius.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
+import '../../shared/presentation/components.dart';
 
 class OtpPage extends ConsumerStatefulWidget {
   const OtpPage({required this.phone, super.key});
@@ -19,8 +23,13 @@ class OtpPage extends ConsumerStatefulWidget {
 class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _focusNodes = List.generate(6, (_) => FocusNode());
+  final _keyboardFocusNodes = List.generate(6, (_) => FocusNode());
   String _currentOtp = '';
   bool _isListening = false;
+
+  String get _phone => widget.phone.isNotEmpty
+      ? widget.phone
+      : (ref.read(pendingPhoneProvider) ?? '');
 
   // Resend countdown
   static const _resendCooldownSeconds = 60;
@@ -44,6 +53,9 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
     for (final f in _focusNodes) {
       f.dispose();
     }
+    for (final f in _keyboardFocusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -56,7 +68,7 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
 
   Future<void> _startListeningForSms() async {
     try {
-      SmsAutoFill().listenForCode;
+      await SmsAutoFill().listenForCode();
       if (mounted) {
         setState(() => _isListening = true);
       }
@@ -74,11 +86,13 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
         timer.cancel();
         return;
       }
-      setState(() {
-        _countdownSeconds--;
-      });
-      if (_countdownSeconds <= 0) {
+      if (_countdownSeconds <= 1) {
+        setState(() => _countdownSeconds = 0);
         timer.cancel();
+      } else {
+        setState(() {
+          _countdownSeconds--;
+        });
       }
     });
   }
@@ -143,16 +157,23 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
 
   void _submitOtp() {
     if (_currentOtp.length != 6) return;
-    ref.read(authControllerProvider.notifier).verifyOtp(
-          phone: widget.phone,
-          otp: _currentOtp,
-        );
+    final auth = ref.read(authControllerProvider);
+    if (auth.status == AuthStatus.submitting) return;
+    ref
+        .read(authControllerProvider.notifier)
+        .verifyOtp(phone: _phone, otp: _currentOtp);
   }
 
-  void _resendOtp() {
+  Future<void> _resendOtp() async {
     if (_countdownSeconds > 0) return;
-    ref.read(authControllerProvider.notifier).requestOtp(widget.phone);
-    _startCountdown();
+    final notifier = ref.read(authControllerProvider.notifier);
+    await notifier.requestOtp(_phone);
+    if (mounted) {
+      final auth = ref.read(authControllerProvider);
+      if (auth.status != AuthStatus.error) {
+        _startCountdown();
+      }
+    }
   }
 
   @override
@@ -160,72 +181,95 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
     final auth = ref.watch(authControllerProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isSuccess = auth.status == AuthStatus.authenticated;
 
     return Scaffold(
       appBar: AppBar(),
       body: SafeArea(
-        minimum: const EdgeInsets.all(24),
+        minimum: AppSpacing.horizontalScreen,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              locale.otpTitle,
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(locale.otpSubtitle(widget.phone)),
+            Text(locale.otpTitle, style: theme.textTheme.headlineMedium),
+            const SizedBox(height: AppSpacing.sm),
+            Text(locale.otpSubtitle(_phone)),
             if (_isListening) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 locale.otpAutoReadHint,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),
               ),
             ],
-            const SizedBox(height: 24),
-            // 6-digit OTP input
+            if (isSuccess) ...[
+              const SizedBox(height: AppSpacing.lg),
+              Center(
+                child: FlatmatesTrustBadge(
+                  label: locale.phoneVerifiedLabel,
+                  variant: FlatmatesTrustBadgeVariant.verified,
+                  compact: true,
+                ),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.screen),
+            // 6-digit OTP input — larger centered boxes
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(6, (index) {
-                return SizedBox(
-                  width: 48,
-                  child: KeyboardListener(
-                    focusNode: FocusNode(),
-                    onKeyEvent: (event) {
-                      // Handle backspace to move focus backward.
-                      if (event.logicalKey.keyLabel == 'Backspace' ||
-                          event.logicalKey.keyLabel == 'Delete') {
-                        _onOtpDigitDeleted(index);
-                      }
-                    },
-                    child: TextField(
-                      key: Key('otp_digit_$index'),
-                      controller: _otpControllers[index],
-                      focusNode: _focusNodes[index],
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      maxLength: 1,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
+                return Padding(
+                  padding: EdgeInsets.only(
+                    right: index < 5 ? AppSpacing.sm : 0,
+                  ),
+                  child: SizedBox(
+                    width: 52,
+                    height: 60,
+                    child: KeyboardListener(
+                      focusNode: _keyboardFocusNodes[index],
+                      onKeyEvent: (event) {
+                        if (event.logicalKey.keyLabel == 'Backspace' ||
+                            event.logicalKey.keyLabel == 'Delete') {
+                          _onOtpDigitDeleted(index);
+                        }
+                      },
+                      child: TextField(
+                        key: Key('otp_digit_$index'),
+                        controller: _otpControllers[index],
+                        focusNode: _focusNodes[index],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        maxLength: 1,
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 24,
+                        ),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.md,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: AppRadius.mdBorder,
+                            borderSide: BorderSide(
+                              color: AppSemanticColors.line,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: AppRadius.mdBorder,
+                            borderSide: BorderSide(
+                              color: AppSemanticColors.accent,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: AppRadius.mdBorder,
+                            borderSide: BorderSide(
+                              color: AppSemanticColors.error,
+                            ),
                           ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: theme.colorScheme.primary,
-                            width: 2,
-                          ),
-                        ),
+                        onChanged: (value) => _onOtpDigitChanged(index, value),
                       ),
-                      onChanged: (value) => _onOtpDigitChanged(index, value),
                     ),
                   ),
                 );
@@ -233,10 +277,10 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
             ),
             if (auth.status == AuthStatus.error &&
                 auth.errorMessage != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 auth.errorMessage!,
-                style: TextStyle(color: theme.colorScheme.error),
+                style: TextStyle(color: AppSemanticColors.error),
               ),
             ],
             const Spacer(),
@@ -246,36 +290,27 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
                   ? Text(
                       locale.resendOtpCountdown(_countdownSeconds),
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
                       ),
                     )
-                  : TextButton(
+                  : FlatmatesButton.tertiary(
+                      label: locale.resendOtpCta,
                       onPressed: auth.status == AuthStatus.submitting
                           ? null
                           : _resendOtp,
-                      child: Text(locale.resendOtpCta),
                     ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             // Verify button.
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                key: const Key('otp_submit_button'),
-                onPressed: auth.status == AuthStatus.submitting
-                    ? null
-                    : _submitOtp,
-                child: auth.status == AuthStatus.submitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(locale.verifyOtpCta),
-              ),
+            FlatmatesButton(
+              key: const Key('otp_submit_button'),
+              label: locale.verifyOtpCta,
+              fullWidth: true,
+              onPressed: auth.status == AuthStatus.submitting
+                  ? null
+                  : _submitOtp,
             ),
           ],
         ),

@@ -1,0 +1,43 @@
+appId: com.the360ghar.flatmates
+---
+# Feature: Chats — Likes tab + Chats tab + Send message
+# Starting state: On any tab
+- tapOn:
+    id: "nav_likes_chat_tab"
+- extendedWaitUntil:
+    visible:
+      text: "Likes"
+    timeout: 5000
+
+# Verify Likes tab content (grid of incoming likes)
+- assertVisible:
+    text: "Likes"
+    optional: true
+
+# Switch to Chats tab
+- tapOn:
+    id: "chats_chats_tab"
+- extendedWaitUntil:
+    visible:
+      text: "Chats"
+    timeout: 5000
+
+# Open first conversation
+- tapOn:
+    text: "Maestro"
+    optional: true
+
+# If chat thread opened, send a message
+- assertVisible:
+    id: "chat_message_input"
+    optional: true
+- tapOn:
+    id: "chat_message_input"
+    optional: true
+- inputText: "Hey, I'm interested in the room!"
+- tapOn:
+    id: "chat_send_button"
+    optional: true
+
+# Go back to conversations
+- back

@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import '../discover/application/move_in_filter.dart';
+import '../discover/discover_repository.dart';
 
 class SwipeProfile {
   const SwipeProfile({
@@ -26,6 +29,8 @@ class SwipeProfile {
     required this.hasPets,
     required this.partyHabit,
     required this.listingDetails,
+    this.age,
+    this.profession,
   });
 
   final int id;
@@ -48,6 +53,8 @@ class SwipeProfile {
   final List<String> nonNegotiables;
   final bool hasPets;
   final String? partyHabit;
+  final int? age;
+  final String? profession;
 
   /// Extra listing detail fields from the API response.
   /// Expected keys:
@@ -87,6 +94,8 @@ class SwipeProfile {
       'security_deposit',
       'maintenance',
       'existing_flatmates',
+      'available_from',
+      'video_tour_url',
     ];
     final details = <String, dynamic>{};
     for (final key in listingKeys) {
@@ -113,13 +122,16 @@ class SwipeProfile {
       guestsPolicy: json['guests_policy'] as String?,
       workStyle: json['work_style'] as String?,
       gender: json['gender'] as String?,
-      nonNegotiables: (json['non_negotiables'] as List?)
+      nonNegotiables:
+          (json['non_negotiables'] as List?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
       hasPets: json['has_pets'] as bool? ?? false,
       partyHabit: json['party_habit'] as String?,
       listingDetails: details,
+      age: (json['age'] as num?)?.toInt(),
+      profession: json['profession'] as String?,
     );
   }
 }
@@ -136,10 +148,14 @@ class SwipeRepository {
 
   final Ref _ref;
 
-  Future<List<SwipeProfile>> fetchSwipeProfiles() async {
+  Future<List<SwipeProfile>> fetchSwipeProfiles({
+    DiscoverFilters? filters,
+  }) async {
     final bootstrap = _ref.read(bootstrapControllerProvider).valueOrNull;
     final userProfile = bootstrap?.profile;
-    final userNonNegotiables = _extractUserNonNegotiables(userProfile?.preferences);
+    final userNonNegotiables = _extractUserNonNegotiables(
+      userProfile?.preferences,
+    );
 
     final queryParams = <String, dynamic>{};
     if (userNonNegotiables.isNotEmpty) {
@@ -149,16 +165,51 @@ class SwipeRepository {
         userProfile!.genderPreference != 'any') {
       queryParams['gender_preference'] = userProfile.genderPreference;
     }
+    final moveIn = moveInFilterQueryValue(filters?.moveInTimeline);
+    if (moveIn != null) {
+      queryParams['move_in'] = moveIn;
+    }
 
     final response = await _ref
         .watch(apiClientProvider)
-        .get('/flatmates/profiles', queryParameters: queryParams);
+        .get(
+          FlatmatesEndpoints.flatmatesProfiles,
+          queryParameters: queryParams,
+        );
     final rows = (response.data as List? ?? const []);
     final profiles = rows
-        .map((item) => SwipeProfile.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              SwipeProfile.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
 
-    return _applyDealBreakerFilter(profiles, userNonNegotiables, userProfile);
+    final moveInFiltered = profiles
+        .where(
+          (profile) => _profileMatchesMoveIn(profile, filters?.moveInTimeline),
+        )
+        .toList();
+
+    return _applyDealBreakerFilter(
+      moveInFiltered,
+      userNonNegotiables,
+      userProfile,
+    );
+  }
+
+  bool _profileMatchesMoveIn(SwipeProfile profile, String? moveInTimeline) {
+    final normalized = normalizeMoveInFilter(moveInTimeline);
+    if (normalized == null) return true;
+
+    final rawAvailableFrom = profile.listingDetails['available_from'];
+    if (rawAvailableFrom != null) {
+      final availableFrom = DateTime.tryParse(rawAvailableFrom.toString());
+      if (availableFrom != null) {
+        return listingMatchesMoveInFilter(availableFrom, normalized);
+      }
+    }
+
+    return normalizeMoveInFilter(profile.moveInTimeline) == normalized;
   }
 
   /// Extract non-negotiables from user preferences map stored in bootstrap.
@@ -186,27 +237,30 @@ class SwipeRepository {
           case 'food_veg_only':
           case 'food_vegan_only':
             final peerFood = peer.foodHabits ?? 'no_preference';
-            if (peerFood == 'non_vegetarian') return false;
+            if (peerFood == 'non_vegetarian' || peerFood == 'non_veg') {
+              return false;
+            }
             break;
           // Smoking: user requires non-smoker, peer smokes
           case 'no_smoking':
             final peerSD = peer.smokingDrinking ?? 'neither';
-            if (peerSD == 'smoke_outside' ||
-                peerSD == 'both_fine') {
+            if (peerSD == 'smoke_outside' || peerSD == 'both_fine') {
               return false;
             }
             break;
           // Drinking: user requires no alcohol, peer drinks
           case 'no_drinking':
             final peerSD = peer.smokingDrinking ?? 'neither';
-            if (peerSD == 'drink_occasionally' ||
-                peerSD == 'both_fine') {
+            if (peerSD == 'drink_occasionally' || peerSD == 'both_fine') {
               return false;
             }
             break;
           // Guests: user requires no overnight guests, peer has open house
           case 'no_overnight_guests':
-            if (peer.guestsPolicy == 'open_house') return false;
+            if (peer.guestsPolicy == 'open_house' ||
+                peer.guestsPolicy == 'comfortable') {
+              return false;
+            }
             break;
           // Pets: user requires no pets, peer has pets
           case 'no_pets':
@@ -237,8 +291,10 @@ class SwipeRepository {
     required int targetUserId,
     required String action,
   }) async {
-    final response = await _ref.read(apiClientProvider).post(
-          '/flatmates/swipes',
+    final response = await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.swipes,
           data: {
             'target_type': 'user',
             'action': action,
@@ -253,6 +309,25 @@ class SwipeRepository {
       conversationId: (data['conversation_id'] as num?)?.toInt(),
     );
   }
+
+  Future<void> recordProfileView({
+    required int targetUserId,
+    required int durationSeconds,
+    int? scrollDepthPercent,
+    String source = 'swipe_deck',
+  }) async {
+    await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.profileViews,
+          data: {
+            'target_user_id': targetUserId,
+            'duration_seconds': durationSeconds,
+            'source': source,
+            'scroll_depth_percent': ?scrollDepthPercent,
+          },
+        );
+  }
 }
 
 final swipeRepositoryProvider = Provider<SwipeRepository>(
@@ -260,5 +335,8 @@ final swipeRepositoryProvider = Provider<SwipeRepository>(
 );
 
 final swipeProfilesProvider = FutureProvider<List<SwipeProfile>>((ref) {
-  return ref.watch(swipeRepositoryProvider).fetchSwipeProfiles();
+  final filters = ref.watch(discoverFiltersProvider);
+  return ref
+      .watch(swipeRepositoryProvider)
+      .fetchSwipeProfiles(filters: filters);
 });

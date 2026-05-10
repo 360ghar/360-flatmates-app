@@ -1,73 +1,95 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/errors/error_presenter.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/providers.dart';
 import 'data/auth_repository.dart';
+import 'domain/auth_state.dart';
 
-enum AuthStatus { checking, unauthenticated, authenticated, submitting, error }
+export 'domain/auth_state.dart';
 
-class AuthState {
-  const AuthState({required this.status, this.phone, this.errorMessage});
+final pendingPhoneProvider = StateProvider<String?>((ref) => null);
 
-  const AuthState.checking() : this(status: AuthStatus.checking);
+class AuthController extends Notifier<AuthState> {
+  StreamSubscription<String?>? _tokenSubscription;
 
-  const AuthState.unauthenticated({String? phone})
-    : this(status: AuthStatus.unauthenticated, phone: phone);
-
-  const AuthState.authenticated({String? phone})
-    : this(status: AuthStatus.authenticated, phone: phone);
-
-  const AuthState.submitting({String? phone})
-    : this(status: AuthStatus.submitting, phone: phone);
-
-  const AuthState.error(String message, {String? phone})
-    : this(status: AuthStatus.error, errorMessage: message, phone: phone);
-
-  final AuthStatus status;
-  final String? phone;
-  final String? errorMessage;
-
-  bool get isLoggedIn => status == AuthStatus.authenticated;
-}
-
-class AuthController extends StateNotifier<AuthState> {
-  AuthController(this._ref, this._repository) : super(const AuthState.checking()) {
+  @override
+  AuthState build() {
+    _watchTokenClears();
     Future<void>.microtask(checkSession);
+    return const AuthState(status: AuthStatus.checking);
   }
 
-  final Ref _ref;
-  final AuthRepository _repository;
-  final StreamController<AuthState> _changes =
-      StreamController<AuthState>.broadcast();
+  AuthRepository get _repository => ref.read(authRepositoryProvider);
 
-  @override
-  Stream<AuthState> get stream => _changes.stream;
+  void _watchTokenClears() {
+    _tokenSubscription = ref
+        .read(authTokenStorageProvider)
+        .changes
+        .listen(
+          (token) {
+            if (token == null &&
+                state.isLoggedIn &&
+                state.status != AuthStatus.submitting) {
+              state = const AuthState(status: AuthStatus.unauthenticated);
+            }
+          },
+          onError: (error) {
+            if (state.status != AuthStatus.submitting) {
+              state = const AuthState(status: AuthStatus.unauthenticated);
+            }
+          },
+        );
 
-  @override
-  set state(AuthState value) {
-    super.state = value;
-    _changes.add(value);
+    ref.onDispose(() {
+      _tokenSubscription?.cancel();
+    });
   }
 
   Future<void> checkSession() async {
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
-      state = const AuthState.unauthenticated();
-      return;
+    try {
+      final session = _repository.currentSession;
+      if (session == null) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        phone: _repository.currentPhone,
+      );
+    } catch (_) {
+      state = const AuthState(status: AuthStatus.unauthenticated);
     }
-    state = AuthState.authenticated(phone: session.user.phone);
+  }
+
+  void clearError() {
+    if (state.status == AuthStatus.error) {
+      state = AuthState(status: AuthStatus.unauthenticated, phone: state.phone);
+    }
+  }
+
+  String _userSafeMessage(Object error) {
+    if (error is DioException) {
+      return ErrorPresenter.fromDio(error).label;
+    }
+    return 'Something went wrong';
   }
 
   Future<void> requestOtp(String phone) async {
-    state = AuthState.submitting(phone: phone);
+    clearError();
+    state = AuthState(status: AuthStatus.submitting, phone: phone);
     try {
       await _repository.requestOtp(phone);
-      state = AuthState.unauthenticated(phone: phone);
+      state = AuthState(status: AuthStatus.unauthenticated, phone: phone);
     } catch (error) {
-      state = AuthState.error(error.toString(), phone: phone);
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: _userSafeMessage(error),
+        phone: phone,
+      );
     }
   }
 
@@ -75,13 +97,18 @@ class AuthController extends StateNotifier<AuthState> {
     required String phone,
     required String password,
   }) async {
-    state = AuthState.submitting(phone: phone);
+    clearError();
+    state = AuthState(status: AuthStatus.submitting, phone: phone);
     try {
       await _repository.signInWithPassword(phone: phone, password: password);
-      state = AuthState.authenticated(phone: phone);
+      state = AuthState(status: AuthStatus.authenticated, phone: phone);
       return true;
     } catch (error) {
-      state = AuthState.error(error.toString(), phone: phone);
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: _userSafeMessage(error),
+        phone: phone,
+      );
       return false;
     }
   }
@@ -92,7 +119,8 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
     String? email,
   }) async {
-    state = AuthState.submitting(phone: phone);
+    clearError();
+    state = AuthState(status: AuthStatus.submitting, phone: phone);
     try {
       await _repository.signUpWithPassword(
         fullName: fullName,
@@ -100,38 +128,43 @@ class AuthController extends StateNotifier<AuthState> {
         password: password,
         email: email,
       );
-      state = AuthState.authenticated(phone: phone);
+      state = AuthState(status: AuthStatus.authenticated, phone: phone);
       return true;
     } catch (error) {
-      state = AuthState.error(error.toString(), phone: phone);
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: _userSafeMessage(error),
+        phone: phone,
+      );
       return false;
     }
   }
 
   Future<bool> verifyOtp({required String phone, required String otp}) async {
-    state = AuthState.submitting(phone: phone);
+    clearError();
+    state = AuthState(status: AuthStatus.submitting, phone: phone);
     try {
       await _repository.verifyOtp(phone: phone, otp: otp);
-      state = AuthState.authenticated(phone: phone);
+      state = AuthState(status: AuthStatus.authenticated, phone: phone);
       return true;
     } catch (error) {
-      state = AuthState.error(error.toString(), phone: phone);
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: _userSafeMessage(error),
+        phone: phone,
+      );
       return false;
     }
   }
 
   Future<void> signOut() async {
     try {
-      await _ref.read(notificationServiceProvider).clearToken();
+      await ref.read(notificationServiceProvider).clearToken();
     } catch (_) {}
-    await _repository.signOut();
-    state = const AuthState.unauthenticated();
-  }
-
-  @override
-  void dispose() {
-    _changes.close();
-    super.dispose();
+    try {
+      await _repository.signOut();
+    } catch (_) {}
+    state = const AuthState(status: AuthStatus.unauthenticated);
   }
 }
 
@@ -142,6 +175,6 @@ final authRepositoryProvider = Provider<AuthRepository>(
   ),
 );
 
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
-  (ref) => AuthController(ref, ref.watch(authRepositoryProvider)),
+final authControllerProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
 );

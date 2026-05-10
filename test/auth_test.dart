@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flatmates_app/features/auth/presentation/enter_phone_page.dart';
 import 'package:flatmates_app/features/auth/presentation/otp_page.dart';
+import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
 
 import 'helpers/test_helpers.dart';
 
@@ -14,9 +15,7 @@ void main() {
 
   group('EnterPhonePage', () {
     testWidgets('renders phone input and OTP CTA', (tester) async {
-      await tester.pumpWidget(
-        testableWidget(child: const EnterPhonePage()),
-      );
+      await tester.pumpWidget(testableWidget(child: const EnterPhonePage()));
       await tester.pump();
       await tester.pump();
 
@@ -31,9 +30,7 @@ void main() {
     });
 
     testWidgets('starts with +91 prefix in phone field', (tester) async {
-      await tester.pumpWidget(
-        testableWidget(child: const EnterPhonePage()),
-      );
+      await tester.pumpWidget(testableWidget(child: const EnterPhonePage()));
       await tester.pump();
       await tester.pump();
 
@@ -68,7 +65,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      final button = tester.widget<FilledButton>(
+      final button = tester.widget<FlatmatesButton>(
         find.byKey(const Key('otp_submit_button')),
       );
       expect(button.onPressed, isNotNull);
