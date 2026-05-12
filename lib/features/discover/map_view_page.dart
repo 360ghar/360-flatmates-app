@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../core/map/map_controller.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
@@ -32,12 +34,13 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   bool _verifiedOnly = false;
   final _searchController = TextEditingController();
 
-  final Map<int, BitmapDescriptor> _clusterIconCache = {};
+  final FlatmatesMapController _flatmatesMapController = FlatmatesMapController();
   List<PropertyListing>? _previousListings;
 
   @override
   void dispose() {
     _searchController.dispose();
+    _flatmatesMapController.dispose();
     super.dispose();
   }
 
@@ -88,25 +91,29 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
               child: listings.when(
                 data: (items) {
                   if (!identical(items, _previousListings)) {
-                    _clusterIconCache.clear();
                     _previousListings = items;
                   }
                   final filtered = _applyFilters(items);
                   final markers = buildClusteredMarkers(
                     items: filtered,
                     theme: theme,
-                    clusterIconCache: _clusterIconCache,
                     onListingTap: _handleListingTap,
                     onClusterTap: _handleClusterTap,
                   );
-                  final sortedMarkers = markers.toList()
-                    ..sort(
-                      (a, b) =>
-                          a.position.latitude.compareTo(b.position.latitude),
+
+                  // Determine initial center from first marker position.
+                  LatLng? firstPosition;
+                  if (markers.isNotEmpty) {
+                    firstPosition = markers.first.point;
+                  } else if (items.isNotEmpty &&
+                      items.first.latitude != null &&
+                      items.first.longitude != null) {
+                    firstPosition = LatLng(
+                      items.first.latitude!,
+                      items.first.longitude!,
                     );
-                  final firstPosition = sortedMarkers.isEmpty
-                      ? null
-                      : sortedMarkers.first.position;
+                  }
+
                   if (firstPosition == null) {
                     return FlatmatesEmptyState(
                       title: items.isEmpty
@@ -117,14 +124,23 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                   }
                   return Stack(
                     children: [
-                      GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: firstPosition,
-                          zoom: 12,
+                      FlutterMap(
+                        mapController:
+                            _flatmatesMapController.controller,
+                        options: MapOptions(
+                          initialCenter: firstPosition,
+                          initialZoom: kDefaultInitialZoom,
+                          minZoom: kDefaultMinZoom,
+                          maxZoom: kDefaultMaxZoom,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.all &
+                                ~InteractiveFlag.rotate,
+                          ),
                         ),
-                        markers: markers,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: false,
+                        children: [
+                          createOsmTileLayer(),
+                          MarkerLayer(markers: markers),
+                        ],
                       ),
                       if (filtered.isEmpty)
                         FlatmatesEmptyState(
@@ -139,7 +155,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                 loading: () => const FlatmatesSkeleton.card(),
                 error: (e, _) => FlatmatesErrorState(
                   message: locale.couldNotLoadListing,
-                  onRetry: () => ref.invalidate(discoverListingsProvider),
+                  onRetry: () =>
+                      ref.invalidate(discoverListingsProvider),
                   retryLabel: locale.commonRetry,
                 ),
               ),
@@ -173,7 +190,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                     ? AppLocalizations.of(context).contactRequestSent
                     : AppLocalizations.of(
                         context,
-                      ).contactRequestWithConversation(conversationId),
+                    ).contactRequestWithConversation(conversationId),
               ),
             ),
           );

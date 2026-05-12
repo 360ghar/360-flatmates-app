@@ -248,84 +248,116 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.disabledSurfaceFor(theme.brightness),
-                  borderRadius: AppRadius.pillBorder,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 16,
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Wrap(
+                spacing: AppSpacing.md,
+                runSpacing: AppSpacing.md,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppSemanticColors.disabledSurfaceFor(
+                          theme.brightness,
+                        ),
+                        borderRadius: AppRadius.pillBorder,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.people_outline,
+                            size: 16,
+                            color: AppSemanticColors.textSecondaryFor(
+                              theme.brightness,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              locale.cityCounterShort(
+                                widget.listingCount,
+                                widget.city,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      locale.cityCounterShort(widget.listingCount, widget.city),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              if (_notified)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: 10,
                   ),
-                  decoration: BoxDecoration(
-                    color: AppSemanticColors.coralSoftFor(theme.brightness),
-                    borderRadius: AppRadius.mdBorder,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 18,
-                        color: AppSemanticColors.accent,
+                  if (_notified)
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        locale.waitlistConfirmed,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppSemanticColors.accent,
-                          fontWeight: FontWeight.w700,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppSemanticColors.coralSoftFor(
+                            theme.brightness,
+                          ),
+                          borderRadius: AppRadius.mdBorder,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline,
+                              size: 18,
+                              color: AppSemanticColors.accent,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                locale.waitlistConfirmed,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: AppSemanticColors.accent,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                )
-              else
-                FlatmatesButton(
-                  key: const Key('waitlist_notify_me_button'),
-                  label: locale.waitlistNotifyMe,
-                  onPressed: () {
-                    setState(() => _notified = true);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.waitlistConfirmed),
-                        duration: const Duration(seconds: 2),
+                    )
+                  else
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth,
                       ),
-                    );
-                  },
-                  icon: Icons.notifications_active_outlined,
-                  height: 40,
-                ),
-            ],
+                      child: FlatmatesButton(
+                        key: const Key('waitlist_notify_me_button'),
+                        label: locale.waitlistNotifyMe,
+                        onPressed: () {
+                          setState(() => _notified = true);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(locale.waitlistConfirmed),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        icon: Icons.notifications_active_outlined,
+                        height: 40,
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),

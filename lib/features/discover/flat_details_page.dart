@@ -9,7 +9,6 @@ import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/components.dart';
-import '../shared/presentation/flatmates_video_tour_player.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/flat_details_carousel.dart';
 import 'presentation/widgets/flat_details_sections.dart';

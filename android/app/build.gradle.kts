@@ -29,15 +29,29 @@ fun configValue(name: String): String =
         ?: System.getenv(name)
         ?: ""
 
-val googleMapsApiKey = configValue("GOOGLE_MAPS_API_KEY")
 val releaseTaskRequested = gradle.startParameter.taskNames.any {
     it.contains("release", ignoreCase = true)
 }
-if (releaseTaskRequested && googleMapsApiKey.isBlank()) {
+val releaseKeyAlias = keystoreProperties.getProperty("keyAlias")
+    ?: System.getenv("KEY_ALIAS") ?: ""
+val releaseKeyPassword = keystoreProperties.getProperty("keyPassword")
+    ?: System.getenv("KEY_PASSWORD") ?: ""
+val releaseStorePassword = keystoreProperties.getProperty("storePassword")
+    ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
+val releaseStoreFilePath = keystoreProperties.getProperty("storeFile")
+    ?: System.getenv("KEYSTORE_FILE")
+val releaseSigningRequested = keystorePropertiesFile.exists()
+    || System.getenv("KEYSTORE_FILE") != null
+val releaseSigningComplete = releaseKeyAlias.isNotBlank()
+    && releaseKeyPassword.isNotBlank()
+    && releaseStorePassword.isNotBlank()
+    && !releaseStoreFilePath.isNullOrBlank()
+
+if (releaseTaskRequested && releaseSigningRequested && !releaseSigningComplete) {
     throw GradleException(
-        "GOOGLE_MAPS_API_KEY is required for Android release builds. " +
-            "Set it in android/local.properties, pass -PGOOGLE_MAPS_API_KEY, " +
-            "or export GOOGLE_MAPS_API_KEY."
+        "Release signing credentials are incomplete. " +
+            "Ensure key.properties contains keyAlias, keyPassword, storePassword, and storeFile, " +
+            "or set KEY_ALIAS, KEY_PASSWORD, KEYSTORE_PASSWORD, and KEYSTORE_FILE environment variables."
     )
 }
 
@@ -52,33 +66,19 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 
     signingConfigs {
         create("release") {
             // key.properties file takes precedence; fall back to environment variables.
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-                ?: System.getenv("KEY_ALIAS") ?: ""
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-                ?: System.getenv("KEY_PASSWORD") ?: ""
-            storePassword = keystoreProperties.getProperty("storePassword")
-                ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
-            val storeFilePath = keystoreProperties.getProperty("storeFile")
-                ?: System.getenv("KEYSTORE_FILE")
-            storeFile = if (storeFilePath != null) file(storeFilePath) else null
-
-            // Fail fast if any required keystore property is missing or empty.
-            if (keyAlias.isNullOrEmpty() || keyPassword.isNullOrEmpty() ||
-                storePassword.isNullOrEmpty() || storeFile == null
-            ) {
-                throw GradleException(
-                    "Release signing credentials are incomplete. " +
-                    "Ensure key.properties contains keyAlias, keyPassword, storePassword, and storeFile, " +
-                    "or set KEY_ALIAS, KEY_PASSWORD, KEYSTORE_PASSWORD, and KEYSTORE_FILE environment variables."
-                )
-            }
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+            storePassword = releaseStorePassword
+            storeFile = if (releaseStoreFilePath != null) file(releaseStoreFilePath) else null
         }
     }
 
@@ -88,17 +88,13 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] =
-            googleMapsApiKey.ifBlank { "MISSING_GOOGLE_MAPS_API_KEY" }
     }
 
     buildTypes {
         release {
             // Use the release signing config when keystore credentials are available,
             // otherwise fall back to the debug signing config for development builds.
-            signingConfig = if (keystorePropertiesFile.exists()
-                || System.getenv("KEYSTORE_FILE") != null
-            ) {
+            signingConfig = if (releaseSigningComplete) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")

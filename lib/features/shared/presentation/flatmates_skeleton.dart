@@ -48,9 +48,25 @@ class _FlatmatesSkeletonState extends State<FlatmatesSkeleton> {
   Widget build(BuildContext context) {
     switch (widget.variant) {
       case SkeletonVariant.card:
-        return const _ShimmerBox(child: _CardSkeleton());
+        if (widget.itemCount <= 1) {
+          return const _ShimmerBox(child: _CardSkeleton());
+        }
+        return Column(
+          children: List.generate(
+            widget.itemCount,
+            (_) => const _ShimmerBox(child: _CardSkeleton()),
+          ),
+        );
       case SkeletonVariant.listItem:
-        return const _ShimmerBox(child: _ListItemSkeleton());
+        if (widget.itemCount <= 1) {
+          return const _ShimmerBox(child: _ListItemSkeleton());
+        }
+        return Column(
+          children: List.generate(
+            widget.itemCount,
+            (_) => const _ShimmerBox(child: _ListItemSkeleton()),
+          ),
+        );
       case SkeletonVariant.profile:
         return const _ShimmerBox(child: _ProfileSkeleton());
     }

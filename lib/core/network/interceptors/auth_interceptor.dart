@@ -98,12 +98,20 @@ final class AuthInterceptor extends Interceptor {
       } catch (e) {
         if (e is DioException) {
           item.handler.next(e);
+        } else if (e is Error) {
+          item.handler.next(
+            DioException(
+              requestOptions: item.requestOptions,
+              error: e,
+              stackTrace: e.stackTrace,
+            ),
+          );
         } else {
           item.handler.next(
             DioException(
               requestOptions: item.requestOptions,
               error: e,
-              stackTrace: (e as Error).stackTrace,
+              stackTrace: StackTrace.current,
             ),
           );
         }

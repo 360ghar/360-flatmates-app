@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,27 +28,19 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: AppSemanticColors.frostBlur,
-            sigmaY: AppSemanticColors.frostBlur,
-          ),
-          child: NavigationBar(
-            height: 76,
-            selectedIndex: _mapToVisibleIndex(
-              navigationShell.currentIndex,
-              mode,
-            ),
-            onDestinationSelected: (index) {
-              final branchIndex = _mapToBranchIndex(index, mode);
-              navigationShell.goBranch(branchIndex);
-            },
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            backgroundColor: navBarBg.withValues(alpha: 0.88),
-            destinations: destinations,
-          ),
+      bottomNavigationBar: NavigationBar(
+        height: 76,
+        selectedIndex: _mapToVisibleIndex(
+          navigationShell.currentIndex,
+          mode,
         ),
+        onDestinationSelected: (index) {
+          final branchIndex = _mapToBranchIndex(index, mode);
+          navigationShell.goBranch(branchIndex);
+        },
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        backgroundColor: navBarBg.withValues(alpha: 0.95),
+        destinations: destinations,
       ),
     );
   }

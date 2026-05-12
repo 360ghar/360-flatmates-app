@@ -45,7 +45,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier();
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
-    if (previous?.isLoggedIn != next.isLoggedIn) {
+    if (previous?.status != next.status) {
       refreshNotifier.refresh();
     }
   });
