@@ -1275,3 +1275,13 @@ String humanizeFlatmatesToken(String value) {
       .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
       .join(' ');
 }
+
+/// Formats a distance in kilometers to a localized human-readable string.
+///
+/// Examples: "500m away", "2.5km away", "15km away"
+String formatDistanceText(AppLocalizations locale, double? distanceKm) {
+  if (distanceKm == null) return '';
+  if (distanceKm < 1) return locale.distanceMeters((distanceKm * 1000).round());
+  if (distanceKm < 10) return locale.distanceKmDecimal(distanceKm.toStringAsFixed(1));
+  return locale.distanceKm(distanceKm.round());
+}

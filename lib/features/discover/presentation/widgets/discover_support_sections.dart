@@ -78,15 +78,15 @@ class MovingSoonSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSpacing.section),
+        const SizedBox(height: AppSpacing.lg),
         FlatmatesSectionHeader(title: locale.homeMovingSoon),
-        const SizedBox(height: 18),
+        const SizedBox(height: AppSpacing.md),
         SizedBox(
-          height: 200,
+          height: 170,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: movingSoon.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 14),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final item = movingSoon[index];
               final daysLeft = item.availableFrom!.difference(now).inDays;
@@ -94,7 +94,7 @@ class MovingSoonSection extends StatelessWidget {
                   ? locale.moveInToday
                   : locale.moveInCountdownBadge(daysLeft);
               return SizedBox(
-                width: 160,
+                width: 140,
                 child: FlatmatesCard(
                   padding: EdgeInsets.zero,
                   child: Stack(
@@ -190,7 +190,7 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -207,36 +207,38 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: AppSemanticColors.coralSoftFor(theme.brightness),
-                  borderRadius: AppRadius.mdBorder,
+                  borderRadius: AppRadius.smBorder,
                 ),
                 child: Icon(
                   Icons.group_add_outlined,
                   color: AppSemanticColors.accent,
-                  size: 24,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       locale.waitlistNudgeTitle(widget.city),
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       locale.waitlistNudgeSubtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: AppSemanticColors.textSecondaryFor(
                           theme.brightness,
                         ),
@@ -247,86 +249,95 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.disabledSurfaceFor(theme.brightness),
-                  borderRadius: AppRadius.pillBorder,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 16,
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      locale.cityCounterShort(widget.listingCount, widget.city),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: AppSemanticColors.disabledSurfaceFor(
+                theme.brightness,
               ),
-              const Spacer(),
-              if (_notified)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: 10,
+              borderRadius: AppRadius.pillBorder,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.people_outline,
+                  size: 14,
+                  color: AppSemanticColors.textSecondaryFor(
+                    theme.brightness,
                   ),
-                  decoration: BoxDecoration(
-                    color: AppSemanticColors.coralSoftFor(theme.brightness),
-                    borderRadius: AppRadius.mdBorder,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 18,
-                        color: AppSemanticColors.accent,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        locale.waitlistConfirmed,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppSemanticColors.accent,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                FlatmatesButton(
-                  key: const Key('waitlist_notify_me_button'),
-                  label: locale.waitlistNotifyMe,
-                  onPressed: () {
-                    setState(() => _notified = true);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.waitlistConfirmed),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  icon: Icons.notifications_active_outlined,
-                  height: 40,
                 ),
-            ],
+                const SizedBox(width: 4),
+                Text(
+                  locale.cityCounterShort(
+                    widget.listingCount,
+                    widget.city,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          if (_notified)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: AppSemanticColors.coralSoftFor(
+                  theme.brightness,
+                ),
+                borderRadius: AppRadius.smBorder,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 14,
+                    color: AppSemanticColors.accent,
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      locale.waitlistConfirmed,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppSemanticColors.accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            FlatmatesButton(
+              key: const Key('waitlist_notify_me_button'),
+              label: locale.waitlistNotifyMe,
+              onPressed: () {
+                setState(() => _notified = true);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(locale.waitlistConfirmed),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              icon: Icons.notifications_active_outlined,
+              height: 44,
+              fullWidth: true,
+            ),
         ],
       ),
     );

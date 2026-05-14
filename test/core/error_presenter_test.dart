@@ -99,6 +99,25 @@ void main() {
       );
       expect(result, isA<NetworkFailure>());
     });
+    test('unknown with HandshakeException -> NetworkFailure', () {
+      final result = ErrorPresenter.fromDio(
+        _makeDioError(
+          DioExceptionType.unknown,
+          error: HandshakeException('TLS failed'),
+        ),
+      );
+      expect(result, isA<NetworkFailure>());
+    });
+    test('unknown cleartext policy message -> NetworkFailure', () {
+      final result = ErrorPresenter.fromDio(
+        DioException(
+          requestOptions: RequestOptions(),
+          type: DioExceptionType.unknown,
+          message: 'Cleartext HTTP traffic to 192.168.1.14 not permitted',
+        ),
+      );
+      expect(result, isA<NetworkFailure>());
+    });
     test('unknown without SocketException -> UnknownFailure', () {
       final result = ErrorPresenter.fromDio(
         _makeDioError(DioExceptionType.unknown, error: Exception('Something')),

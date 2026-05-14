@@ -7,6 +7,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../location/presentation/map_widgets.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
@@ -436,6 +437,24 @@ class ExpandedCard extends StatelessWidget {
                 societyVibes.isEmpty)
               Text(locale.notAvailable, style: theme.textTheme.bodyMedium),
             const SizedBox(height: AppSpacing.xl),
+
+            // --- Location Map ---
+            if (dbl('latitude') != null && dbl('longitude') != null) ...[
+              FlatmatesSectionHeader(title: locale.locationSectionTitle),
+              const SizedBox(height: AppSpacing.sm),
+              MiniMapView(
+                latitude: dbl('latitude')!,
+                longitude: dbl('longitude')!,
+                height: 160,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              GetDirectionsButton(
+                latitude: dbl('latitude')!,
+                longitude: dbl('longitude')!,
+                label: item.locality ?? item.city ?? locale.propertyFallbackLabel,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
 
             // --- The Room ---
             FlatmatesSectionHeader(title: locale.roomSectionTitle),

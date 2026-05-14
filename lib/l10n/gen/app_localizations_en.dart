@@ -99,6 +99,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Set your city and locality to personalize discovery.';
 
   @override
+  String get locationUpdated => 'Location updated';
+
+  @override
+  String get locationPermissionRequired =>
+      'Location permission is required to detect your city.';
+
+  @override
+  String get locationDetectionFailed =>
+      'Could not detect your location. Please select manually.';
+
+  @override
   String get homeSearchHint => 'Search by location, area or landmark';
 
   @override
@@ -2499,4 +2510,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get swipeEmptyEndOfDeckSubtitle =>
       'We\'re finding new matches for you! Check back later.';
+
+  @override
+  String get locationServicesDisabled =>
+      'Location services are turned off. Please enable GPS/Location in your device settings.';
+
+  @override
+  String get locationServicesDisabledAction => 'Open Settings';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      'Location permission was denied. Please enable it in app settings.';
+
+  @override
+  String get locationOpenAppSettings => 'Open App Settings';
+
+  @override
+  String get locationNoMatchFound =>
+      'Could not find a matching city nearby. Please select manually.';
+
+  @override
+  String get searchCityOrAreaHint => 'Search city or area';
+
+  @override
+  String get suggestionsLabel => 'SUGGESTIONS';
+
+  @override
+  String get locationPickerTitle => 'Choose Location';
+
+  @override
+  String get locationPickerSearchHint => 'Search area, locality, city...';
+
+  @override
+  String get matchingCitiesLabel => 'MATCHING CITIES';
+
+  @override
+  String get noCitiesFound => 'No cities found';
+
+  @override
+  String get searchRadiusLabel => 'Search Radius';
+
+  @override
+  String distanceKmLabel(int distance) {
+    return '$distance km';
+  }
+
+  @override
+  String get currentLocationLabel => 'Current Location';
+
+  @override
+  String get locationDetailsFailed => 'Could not get location details';
+
+  @override
+  String get selectLocationLabel => 'Select Location';
+
+  @override
+  String get locationSectionTitle => 'Location';
+
+  @override
+  String get getDirectionsLabel => 'Get Directions';
+
+  @override
+  String get propertyFallbackLabel => 'Property';
+
+  @override
+  String distanceMeters(int distance) {
+    return '${distance}m away';
+  }
+
+  @override
+  String distanceKmDecimal(String distance) {
+    return '${distance}km away';
+  }
+
+  @override
+  String distanceKm(int distance) {
+    return '${distance}km away';
+  }
 }

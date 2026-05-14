@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/deep_links/deep_link_service.dart';
+import '../core/errors/app_failure.dart';
 import '../core/network/connectivity_monitor.dart';
 import '../core/network/sse_providers.dart';
 import '../core/providers.dart';
@@ -54,6 +57,18 @@ class _AppState extends ConsumerState<App> {
     // Activate SSE event stream and provider invalidation router.
     ref.watch(sseEventRouterProvider);
 
+    ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
+      _,
+      next,
+    ) {
+      final error = next.asError?.error;
+      if (error is AuthExpiredFailure) {
+        unawaited(
+          ref.read(authControllerProvider.notifier).signOut().catchError((_) {}),
+        );
+      }
+    });
+
     // Handle notification deep links on bootstrap completion
     if (bootstrapState is AsyncData &&
         bootstrapState.value != null &&
@@ -72,10 +87,9 @@ class _AppState extends ConsumerState<App> {
         // always use a fresh JWT.
         final config = ref.read(appConfigProvider);
         final tokenProvider = ref.read(authTokenProviderProvider);
-        ref.read(sseServiceProvider).connect(
-              config.apiBaseUrl,
-              () => tokenProvider.getAccessToken(),
-            );
+        ref
+            .read(sseServiceProvider)
+            .connect(config.apiBaseUrl, () => tokenProvider.getAccessToken());
       } else {
         ref.read(notificationServiceProvider).dispose();
         ref.read(sseServiceProvider).disconnect();

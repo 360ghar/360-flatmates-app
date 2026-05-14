@@ -8,6 +8,7 @@ import 'package:sms_autofill/sms_autofill.dart';
 import '../auth_controller.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
@@ -213,67 +214,83 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
               ),
             ],
             const SizedBox(height: AppSpacing.screen),
-            // 6-digit OTP input — larger centered boxes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(6, (index) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    right: index < 5 ? AppSpacing.sm : 0,
-                  ),
-                  child: SizedBox(
-                    width: 52,
-                    height: 60,
-                    child: KeyboardListener(
-                      focusNode: _keyboardFocusNodes[index],
-                      onKeyEvent: (event) {
-                        if (event.logicalKey.keyLabel == 'Backspace' ||
-                            event.logicalKey.keyLabel == 'Delete') {
-                          _onOtpDigitDeleted(index);
-                        }
-                      },
-                      child: TextField(
-                        key: Key('otp_digit_$index'),
-                        controller: _otpControllers[index],
-                        focusNode: _focusNodes[index],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        maxLength: 1,
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 24,
-                        ),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.md,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: AppRadius.mdBorder,
-                            borderSide: BorderSide(
-                              color: AppSemanticColors.line,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: AppRadius.mdBorder,
-                            borderSide: BorderSide(
-                              color: AppSemanticColors.accent,
-                              width: 2,
-                            ),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: AppRadius.mdBorder,
-                            borderSide: BorderSide(
-                              color: AppSemanticColors.error,
-                            ),
-                          ),
-                        ),
-                        onChanged: (value) => _onOtpDigitChanged(index, value),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const digitCount = 6;
+                const gapCount = digitCount - 1;
+                const gap = AppSpacing.sm;
+                const maxBoxWidth = AppSpacing.screen + AppSpacing.section;
+                final boxWidth =
+                    ((constraints.maxWidth - gap * gapCount) / digitCount)
+                        .clamp(0, maxBoxWidth)
+                        .toDouble();
+                final fontSize = boxWidth >= AppSpacing.screen + AppSpacing.xl
+                    ? AppTypography.h2Size
+                    : AppTypography.h3SizeLarge;
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(digitCount, (index) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        right: index < gapCount ? gap : 0,
                       ),
-                    ),
-                  ),
+                      child: SizedBox(
+                        width: boxWidth,
+                        height: boxWidth + AppSpacing.sm,
+                        child: KeyboardListener(
+                          focusNode: _keyboardFocusNodes[index],
+                          onKeyEvent: (event) {
+                            if (event.logicalKey.keyLabel == 'Backspace' ||
+                                event.logicalKey.keyLabel == 'Delete') {
+                              _onOtpDigitDeleted(index);
+                            }
+                          },
+                          child: TextField(
+                            key: Key('otp_digit_$index'),
+                            controller: _otpControllers[index],
+                            focusNode: _focusNodes[index],
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            maxLength: 1,
+                            style: theme.textTheme.headlineLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: fontSize,
+                            ),
+                            decoration: InputDecoration(
+                              counterText: '',
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.sm,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.mdBorder,
+                                borderSide: BorderSide(
+                                  color: AppSemanticColors.line,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.mdBorder,
+                                borderSide: BorderSide(
+                                  color: AppSemanticColors.accent,
+                                  width: 2,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.mdBorder,
+                                borderSide: BorderSide(
+                                  color: AppSemanticColors.error,
+                                ),
+                              ),
+                            ),
+                            onChanged: (value) =>
+                                _onOtpDigitChanged(index, value),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 );
-              }),
+              },
             ),
             if (auth.status == AuthStatus.error &&
                 auth.errorMessage != null) ...[

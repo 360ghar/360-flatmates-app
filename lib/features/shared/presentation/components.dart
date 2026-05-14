@@ -6,6 +6,7 @@
 /// ```
 library;
 
+export 'flatmates_async_view.dart';
 export 'flatmates_bottom_action_bar.dart';
 export 'flatmates_bottom_sheet.dart';
 export 'flatmates_card.dart';
@@ -24,3 +25,4 @@ export 'flatmates_skeleton.dart';
 export 'flatmates_step_progress.dart';
 export 'flatmates_trust_badge.dart';
 export 'flatmates_ui.dart';
+export 'flatmates_video_tour_player.dart';

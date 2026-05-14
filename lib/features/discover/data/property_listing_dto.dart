@@ -74,6 +74,7 @@ class PropertyListingDto {
               mode: ownerJson['mode'] as String?,
             )
           : null,
+      distanceKm: (json['distance_km'] as num?)?.toDouble(),
     );
   }
 

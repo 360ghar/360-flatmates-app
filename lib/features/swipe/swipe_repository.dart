@@ -96,6 +96,8 @@ class SwipeProfile {
       'existing_flatmates',
       'available_from',
       'video_tour_url',
+      'latitude',
+      'longitude',
     ];
     final details = <String, dynamic>{};
     for (final key in listingKeys) {
@@ -168,6 +170,14 @@ class SwipeRepository {
     final moveIn = moveInFilterQueryValue(filters?.moveInTimeline);
     if (moveIn != null) {
       queryParams['move_in'] = moveIn;
+    }
+    if (filters?.hasGeoLocation ?? false) {
+      final f = filters!;
+      queryParams['lat'] = f.latitude!.toStringAsFixed(6);
+      queryParams['lng'] = f.longitude!.toStringAsFixed(6);
+      if (f.radiusKm != null) {
+        queryParams['radius'] = f.radiusKm!.round();
+      }
     }
 
     final response = await _ref
@@ -324,7 +334,7 @@ class SwipeRepository {
             'target_user_id': targetUserId,
             'duration_seconds': durationSeconds,
             'source': source,
-            'scroll_depth_percent': ?scrollDepthPercent,
+            'scroll_depth_percent': scrollDepthPercent,
           },
         );
   }

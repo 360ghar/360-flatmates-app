@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/errors/error_presenter.dart';
+import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/providers.dart';
 import 'data/auth_repository.dart';
@@ -72,9 +71,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   String _userSafeMessage(Object error) {
-    if (error is DioException) {
-      return ErrorPresenter.fromDio(error).label;
-    }
+    if (error is AppFailure) return error.label;
     return 'Something went wrong';
   }
 

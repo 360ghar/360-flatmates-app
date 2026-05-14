@@ -1,11 +1,10 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/errors/error_presenter.dart';
+import '../../core/errors/app_failure.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../profile/profile_repository.dart';
 import 'domain/onboarding_state.dart';
@@ -202,9 +201,8 @@ class OnboardingController extends Notifier<OnboardingState> {
       await ref.read(bootstrapControllerProvider.notifier).load();
       state = state.copyWith(isSubmitting: false, isComplete: true);
       await _clearSavedState();
-    } on DioException catch (e, st) {
-      final failure = ErrorPresenter.fromDio(e, st);
-      state = state.copyWith(isSubmitting: false, error: failure.label);
+    } on AppFailure catch (e) {
+      state = state.copyWith(isSubmitting: false, error: e.label);
       await _saveState();
     } catch (e, st) {
       debugPrint('[OnboardingController] submitNonNegotiables error: $e\n$st');

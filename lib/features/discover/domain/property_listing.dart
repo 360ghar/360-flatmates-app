@@ -40,6 +40,7 @@ class PropertyListing {
     this.securityDeposit,
     this.maintenanceCharges,
     this.owner,
+    this.distanceKm,
   });
 
   final int id;
@@ -78,6 +79,7 @@ class PropertyListing {
   final String? propertyStatus;
   final DateTime? expiresAt;
   final PropertyOwner? owner;
+  final double? distanceKm;
 
   bool get isUnderReview =>
       status == 'pending_review' || status == 'under_review';

@@ -17,6 +17,8 @@ import '../../features/chats/chat_thread_page.dart';
 import '../../features/chats/chats_repository.dart';
 import '../../features/chats/conversations_page.dart';
 import '../../features/discover/discover_page.dart';
+import '../../features/discover/change_location_page.dart';
+import '../../features/location_search/location_search_page.dart';
 import '../../features/discover/flat_details_page.dart';
 import '../../features/discover/map_view_page.dart';
 import '../../features/discover/search_filters_page.dart';
@@ -45,7 +47,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier();
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
-    if (previous?.isLoggedIn != next.isLoggedIn) {
+    if (previous?.status != next.status) {
       refreshNotifier.refresh();
     }
   });
@@ -86,7 +88,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/change-password' ||
           location == '/blocked-users' ||
           location == '/match-celebration' ||
-          location == '/waitlist';
+          location == '/waitlist' ||
+          location == '/change-location' ||
+          location == '/location-search' ||
+          location == '/map';
 
       if (auth.status == AuthStatus.checking) {
         return isSplash ? null : '/splash';
@@ -182,9 +187,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NotificationsPage(),
       ),
       GoRoute(
+        path: '/change-location',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ChangeLocationPage(),
+      ),
+      GoRoute(
+        path: '/location-search',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LocationSearchPage(),
+      ),
+      GoRoute(
         path: '/search-filters',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SearchFiltersPage(),
+      ),
+      GoRoute(
+        path: '/map',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MapViewPage(),
       ),
       GoRoute(
         path: '/schedule-visit',

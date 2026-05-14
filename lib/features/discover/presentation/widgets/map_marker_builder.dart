@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../discover_repository.dart';
 
@@ -7,10 +8,11 @@ import '../../discover_repository.dart';
 ///
 /// Groups listings by locality (or rounded coordinates as fallback).
 /// Single-item groups get normal markers; multi-item groups get cluster markers.
-Set<Marker> buildClusteredMarkers({
+///
+/// Returns a list of [Marker] widgets compatible with flutter_map's [FlutterMap].
+List<Marker> buildClusteredMarkers({
   required List<PropertyListing> items,
   required ThemeData theme,
-  required Map<int, BitmapDescriptor> clusterIconCache,
   required void Function(PropertyListing) onListingTap,
   required void Function(List<PropertyListing>) onClusterTap,
 }) {
@@ -24,7 +26,7 @@ Set<Marker> buildClusteredMarkers({
     groups.putIfAbsent(key, () => []).add(item);
   }
 
-  final markers = <Marker>{};
+  final markers = <Marker>[];
 
   for (final entry in groups.entries) {
     final groupItems = entry.value;
@@ -33,18 +35,19 @@ Set<Marker> buildClusteredMarkers({
       // Single listing — normal marker.
       final item = groupItems.first;
       final isRoom = item.ownerId != null;
+      final color =
+          isRoom ? const Color(0xFFFF9800) : const Color(0xFF2196F3);
       markers.add(
         Marker(
-          markerId: MarkerId('listing_${item.id}'),
-          position: LatLng(item.latitude!, item.longitude!),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            isRoom ? BitmapDescriptor.hueOrange : BitmapDescriptor.hueBlue,
-          ),
-          infoWindow: InfoWindow(
+          point: LatLng(item.latitude!, item.longitude!),
+          width: 40,
+          height: 40,
+          child: _ListingMarkerWidget(
             title: item.title,
-            snippet: '₹${item.monthlyRent.toStringAsFixed(0)}/mo',
+            price: item.monthlyRent.toInt(),
+            color: color,
+            onTap: () => onListingTap(item),
           ),
-          onTap: () => onListingTap(item),
         ),
       );
     } else {
@@ -58,15 +61,14 @@ Set<Marker> buildClusteredMarkers({
 
       markers.add(
         Marker(
-          markerId: MarkerId('cluster_${entry.key}'),
-          position: LatLng(avgLat, avgLng),
-          icon: _getClusterIcon(groupItems.length, clusterIconCache),
-          infoWindow: InfoWindow(
-            title:
-                '${groupItems.length} ${groupItems.first.locality ?? 'listings'}',
-            snippet: '${groupItems.length} listings',
+          point: LatLng(avgLat, avgLng),
+          width: 48,
+          height: 48,
+          child: _ClusterMarkerWidget(
+            count: groupItems.length,
+            label: groupItems.first.locality ?? 'listings',
+            onTap: () => onClusterTap(groupItems),
           ),
-          onTap: () => onClusterTap(groupItems),
         ),
       );
     }
@@ -75,13 +77,91 @@ Set<Marker> buildClusteredMarkers({
   return markers;
 }
 
-/// Returns a [BitmapDescriptor] for a cluster marker with the given count.
-BitmapDescriptor _getClusterIcon(
-  int count,
-  Map<int, BitmapDescriptor> clusterIconCache,
-) {
-  return clusterIconCache.putIfAbsent(
-    count,
-    () => BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-  );
+/// Custom widget for single listing markers on the map.
+class _ListingMarkerWidget extends StatelessWidget {
+  const _ListingMarkerWidget({
+    required this.title,
+    required this.price,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String title;
+  final int price;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.4),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(color: color, width: 2.5),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.home_rounded,
+            size: 20,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Custom widget for cluster markers showing listing count.
+class _ClusterMarkerWidget extends StatelessWidget {
+  const _ClusterMarkerWidget({
+    required this.count,
+    required this.label,
+    required this.onTap,
+  });
+
+  final int count;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final clusterColor = const Color(0xFF673AB7);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: clusterColor.withValues(alpha: 0.4),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(color: clusterColor, width: 2.5),
+        ),
+        child: Center(
+          child: Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: clusterColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

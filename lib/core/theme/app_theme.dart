@@ -188,12 +188,16 @@ abstract final class AppTheme {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
             color: selected ? AppSemanticColors.accent : AppSemanticColors.ink3,
-            size: selected ? 26 : 24,
+            size: 24,
           );
         }),
-        labelTextStyle: WidgetStatePropertyAll(
-          textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return (textTheme.labelMedium ?? const TextStyle()).copyWith(
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? AppSemanticColors.accent : AppSemanticColors.ink3,
+          );
+        }),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(

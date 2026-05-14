@@ -1,14 +1,14 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/location/location_helpers.dart';
+import '../../core/location/place_suggestion.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../location/application/location_search_provider.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
@@ -27,39 +27,17 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   final _searchController = TextEditingController();
   CatalogOption? _selectedCity;
   bool _locating = false;
+  bool _selectingPlace = false;
 
-  static const _fallbackCities = [
-    CatalogOption(
-      id: 'bangalore',
-      label: 'Bangalore',
-      meta: {'state': 'Karnataka', 'latitude': 12.9716, 'longitude': 77.5946},
-    ),
-    CatalogOption(
-      id: 'hyderabad',
-      label: 'Hyderabad',
-      meta: {'state': 'Telangana', 'latitude': 17.3850, 'longitude': 78.4867},
-    ),
-    CatalogOption(
-      id: 'pune',
-      label: 'Pune',
-      meta: {'state': 'Maharashtra', 'latitude': 18.5204, 'longitude': 73.8567},
-    ),
-    CatalogOption(
-      id: 'chennai',
-      label: 'Chennai',
-      meta: {'state': 'Tamil Nadu', 'latitude': 13.0827, 'longitude': 80.2707},
-    ),
-    CatalogOption(
-      id: 'mumbai',
-      label: 'Mumbai',
-      meta: {'state': 'Maharashtra', 'latitude': 19.0760, 'longitude': 72.8777},
-    ),
-    CatalogOption(
-      id: 'gurgaon',
-      label: 'Gurgaon',
-      meta: {'state': 'Haryana', 'latitude': 28.4595, 'longitude': 77.0266},
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      ref
+          .read(locationSearchProvider.notifier)
+          .onSearchChanged(_searchController.text);
+    });
+  }
 
   @override
   void dispose() {
@@ -70,96 +48,76 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   Future<void> _useCurrentLocation() async {
     setState(() => _locating = true);
     try {
-      // Check & request permission
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Location permission is required to detect your city.',
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      // Get current position
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.low,
-        ),
-      ).timeout(const Duration(seconds: 10));
-
-      // Find closest popular city by coordinates
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
           bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
-      final cities = catalogCities.isNotEmpty ? catalogCities : _fallbackCities;
+      final detection = await detectCurrentLocation(
+        catalogCities: catalogCities,
+      );
 
-      CatalogOption? closest;
-      double minDist = double.infinity;
-      for (final city in cities) {
-        final lat = (city.meta['latitude'] as num?)?.toDouble();
-        final lng = (city.meta['longitude'] as num?)?.toDouble();
-        if (lat == null || lng == null) continue;
-        final d = _haversine(position.latitude, position.longitude, lat, lng);
-        if (d < minDist) {
-          minDist = d;
-          closest = city;
-        }
-      }
+      if (!mounted) return;
 
-      // If no coordinates in catalog, try matching by reverse-geocoded locality
-      if (closest == null) {
-        try {
-          final placemarks = await placemarkFromCoordinates(
-            position.latitude,
-            position.longitude,
-          );
-          if (placemarks.isNotEmpty) {
-            final locality = placemarks.first.locality?.toLowerCase() ?? '';
-            final adminArea =
-                placemarks.first.administrativeArea?.toLowerCase() ?? '';
-            for (final city in cities) {
-              final label = city.label.toLowerCase();
-              if (locality.contains(label) ||
-                  label.contains(locality) ||
-                  adminArea.contains(label) ||
-                  label.contains(adminArea)) {
-                closest = city;
-                break;
-              }
-            }
-          }
-        } catch (_) {
-          // Geocoding may fail on some platforms; fall through to manual
-        }
-      }
-
-      if (closest != null && mounted) {
-        setState(() => _selectedCity = closest);
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Could not find a matching city. Please select manually.',
+      switch (detection.result) {
+        case LocationDetectResult.success:
+          setState(() => _selectedCity = detection.city);
+        case LocationDetectResult.serviceDisabled:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).locationServicesDisabled,
+              ),
+              action: SnackBarAction(
+                label: AppLocalizations.of(
+                  context,
+                ).locationServicesDisabledAction,
+                onPressed: () => Geolocator.openLocationSettings(),
+              ),
+              duration: const Duration(seconds: 5),
             ),
-          ),
-        );
+          );
+        case LocationDetectResult.permissionDenied:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).locationPermissionRequired,
+              ),
+            ),
+          );
+        case LocationDetectResult.permissionDeniedForever:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).locationPermissionDeniedForever,
+              ),
+              action: SnackBarAction(
+                label: AppLocalizations.of(context).locationOpenAppSettings,
+                onPressed: () => Geolocator.openAppSettings(),
+              ),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        case LocationDetectResult.noMatch:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context).locationNoMatchFound),
+            ),
+          );
+        case LocationDetectResult.error:
+          debugPrint('LocationDetection error: ${detection.errorDetail}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).locationDetectionFailed,
+              ),
+            ),
+          );
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('LocationDetection unhandled: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Could not detect your location. Please select manually.',
-            ),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).locationDetectionFailed),
           ),
         );
       }
@@ -168,18 +126,74 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
     }
   }
 
-  /// Haversine distance in km.
-  static double _haversine(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371.0; // Earth radius in km
-    final dLat = _toRad(lat2 - lat1);
-    final dLon = _toRad(lon2 - lon1);
-    final a =
-        sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRad(lat1)) * cos(_toRad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-    return r * 2 * asin(sqrt(a));
-  }
+  Future<void> _selectPlace(PlaceSuggestion suggestion) async {
+    setState(() => _selectingPlace = true);
+    try {
+      final details = await ref
+          .read(locationSearchProvider.notifier)
+          .resolveSuggestion(suggestion);
+      if (details == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).locationDetectionFailed,
+              ),
+            ),
+          );
+        }
+        return;
+      }
 
-  static double _toRad(double deg) => deg * pi / 180;
+      final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+      final catalogCities =
+          bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
+      final cities = resolveCities(catalogCities);
+
+      CatalogOption? match;
+      double minDist = double.infinity;
+      for (final city in cities) {
+        final lat = (city.meta['latitude'] as num?)?.toDouble();
+        final lng = (city.meta['longitude'] as num?)?.toDouble();
+        if (lat == null || lng == null) continue;
+        final d = haversineKm(details.latitude, details.longitude, lat, lng);
+        if (d < minDist) {
+          minDist = d;
+          match = city;
+        }
+      }
+
+      if (match != null && minDist <= kMaxMatchDistanceKm) {
+        setState(() {
+          _selectedCity = match;
+          _searchController.text = match!.label;
+        });
+        ref.read(locationSearchProvider.notifier).clear();
+      } else {
+        final fallbackOption = CatalogOption(
+          id: suggestion.placeId,
+          label: details.name,
+          meta: {'latitude': details.latitude, 'longitude': details.longitude},
+        );
+        setState(() {
+          _selectedCity = fallbackOption;
+          _searchController.text = details.name;
+        });
+        ref.read(locationSearchProvider.notifier).clear();
+      }
+    } catch (e) {
+      debugPrint('selectPlace error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).locationDetectionFailed),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _selectingPlace = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,13 +202,16 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
     final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
     final catalogCities =
         bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
-    final cities = catalogCities.isNotEmpty ? catalogCities : _fallbackCities;
+    final cities = resolveCities(catalogCities);
     final query = _searchController.text.trim().toLowerCase();
     final visibleCities = query.isEmpty
         ? cities
         : cities
-              .where((city) => city.label.toLowerCase().contains(query))
+              .where((c) => cityMatchesQuery(c, query))
               .toList(growable: false);
+    final searchState = ref.watch(locationSearchProvider);
+    final hasPlacesResults = searchState.suggestions.isNotEmpty;
+    final isPlacesLoading = searchState.isLoading || _selectingPlace;
 
     return Scaffold(
       body: SafeArea(
@@ -210,7 +227,6 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               tooltip: locale.backCta,
             ),
             const SizedBox(height: 28),
-            // Step progress
             FlatmatesStepProgress.dots(currentStep: 1, totalSteps: 4),
             const SizedBox(height: AppSpacing.section),
             Text(
@@ -218,10 +234,9 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               style: theme.textTheme.headlineLarge,
             ),
             const SizedBox(height: 20),
-            // Search bar
             FlatmatesSearchBar(
               controller: _searchController,
-              hint: locale.searchLocationPlaceholder,
+              hint: locale.searchCityOrAreaHint,
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 18),
@@ -230,10 +245,78 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               title: _locating
                   ? locale.detectingLocation
                   : locale.useCurrentLocation,
-              onTap: _locating ? () {} : _useCurrentLocation,
+              onTap: _locating ? null : _useCurrentLocation,
             ),
             const SizedBox(height: 18),
             Divider(color: AppSemanticColors.line),
+            if (isPlacesLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+            if (hasPlacesResults) ...[
+              const SizedBox(height: 12),
+              Text(
+                locale.suggestionsLabel,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  letterSpacing: 1.1,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...searchState.suggestions.map(
+                (suggestion) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: FlatmatesCard(
+                    onTap: _selectingPlace
+                        ? null
+                        : () => _selectPlace(suggestion),
+                    borderColor: AppSemanticColors.line.withValues(alpha: 0.35),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          color: AppSemanticColors.accent,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                suggestion.mainText,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                              if (suggestion.secondaryText.isNotEmpty)
+                                Text(
+                                  suggestion.secondaryText,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: AppSemanticColors.textSecondaryFor(
+                                      theme.brightness,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: AppSemanticColors.line,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             const SizedBox(height: 16),
             Text(
               locale.popularCitiesLabel,
@@ -290,12 +373,12 @@ class _LocationActionRow extends StatelessWidget {
   const _LocationActionRow({
     required this.icon,
     required this.title,
-    required this.onTap,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
