@@ -63,7 +63,9 @@ class _AppState extends ConsumerState<App> {
     ) {
       final error = next.asError?.error;
       if (error is AuthExpiredFailure) {
-        unawaited(ref.read(authControllerProvider.notifier).signOut());
+        unawaited(
+          ref.read(authControllerProvider.notifier).signOut().catchError((_) {}),
+        );
       }
     });
 

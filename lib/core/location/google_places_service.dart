@@ -48,9 +48,6 @@ final class GooglePlacesService {
       );
 
       final data = response.data;
-      if (data is String) {
-        data as Map<String, dynamic>? ?? const {};
-      }
       final body = data is Map<String, dynamic>
           ? data
           : json.decode(data.toString()) as Map<String, dynamic>;

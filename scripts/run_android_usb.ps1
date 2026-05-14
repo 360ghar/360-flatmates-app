@@ -81,7 +81,7 @@ function Test-BackendHealth {
   try {
     $payload = $response.Content | ConvertFrom-Json
     if ($payload.status -and $payload.status -ne 'healthy') {
-      Write-Warning "Backend health status is '$($payload.status)'. Continuing because the health endpoint is reachable."
+      Fail "Backend health status is '$($payload.status)' (expected 'healthy'). Start the backend and retry."
     }
   } catch {
     Write-Warning "Backend health endpoint is reachable, but the response was not JSON."

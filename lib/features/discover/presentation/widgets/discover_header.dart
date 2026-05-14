@@ -42,7 +42,7 @@ class DiscoverHeader extends StatelessWidget {
               const SizedBox(height: 4),
               LocationSelector(
                 displayText: location.isEmpty ? null : location,
-                onTap: onLocationTap ?? () {},
+                onTap: onLocationTap,
               ),
               if (cityCounterLabel != null) ...[
                 const SizedBox(height: 4),

@@ -7,9 +7,9 @@ import '../theme/app_spacing.dart';
 
 class LocationSelector extends StatelessWidget {
   final String? displayText;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
-  const LocationSelector({super.key, this.displayText, required this.onTap});
+  const LocationSelector({super.key, this.displayText, this.onTap});
 
   @override
   Widget build(BuildContext context) {

@@ -277,7 +277,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                           if (listing.latitude != null &&
                               listing.longitude != null) ...[
                             FlatmatesSectionHeader(
-                              title: 'Location',
+                              title: locale.locationSectionTitle,
                             ),
                             const SizedBox(height: 8),
                             MiniMapView(

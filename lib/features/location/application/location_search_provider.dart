@@ -33,6 +33,7 @@ class LocationSearchState {
 
 class LocationSearchNotifier extends Notifier<LocationSearchState> {
   Timer? _debounce;
+  int _searchVersion = 0;
 
   @override
   LocationSearchState build() {
@@ -43,6 +44,7 @@ class LocationSearchNotifier extends Notifier<LocationSearchState> {
   void onSearchChanged(String query) {
     _debounce?.cancel();
     if (query.trim().length < 2) {
+      _searchVersion++;
       state = const LocationSearchState();
       return;
     }
@@ -53,17 +55,17 @@ class LocationSearchNotifier extends Notifier<LocationSearchState> {
   }
 
   Future<void> _search(String query) async {
+    final version = ++_searchVersion;
     final googleService = ref.read(googlePlacesServiceProvider);
     final nominatimService = ref.read(nominatimServiceProvider);
 
-    // Try Google Places first
     var results = await googleService.getPlaceSuggestions(query);
 
-    // If Google returned nothing (empty key, REQUEST_DENIED, etc.),
-    // fall back to Nominatim/OpenStreetMap.
     if (results.isEmpty) {
       results = await nominatimService.search(query);
     }
+
+    if (version != _searchVersion) return;
 
     state = LocationSearchState(suggestions: results, isLoading: false);
   }

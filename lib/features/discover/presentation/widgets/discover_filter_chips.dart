@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
+import '../../../shared/presentation/flatmates_ui.dart';
 
 /// Vibe preset filter data.
 class VibePreset {
@@ -135,7 +136,7 @@ class DiscoverFilterChips extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 10),
               child: FlatmatesChip(
-                label: feature,
+                label: localizedFlatmatesFeatureLabel(locale, feature),
                 selected: selected,
                 onSelected: (_) {
                   onFeatureChanged(selected ? null : feature);

@@ -205,7 +205,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       onFeatureChanged: (value) {
                         ref
                             .read(discoverFeedControllerProvider.notifier)
-                            .updateFeature(value, locale);
+                            .updateFeature(value);
                       },
                       onVibeChanged: (value) {
                         ref

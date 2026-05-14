@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/bootstrap_controller.dart';
-import '../../shared/presentation/flatmates_ui.dart';
 import '../discover_repository.dart';
 import 'move_in_filter.dart';
 
@@ -213,11 +212,11 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
     load();
   }
 
-  void updateFeature(String? featureLabel, AppLocalizations locale) {
-    if (featureLabel == null) {
+  void updateFeature(String? featureKey) {
+    if (featureKey == null) {
       _setFilters(state.filters.copyWith(features: []));
     } else {
-      _setFilters(state.filters.copyWith(features: [featureLabel]));
+      _setFilters(state.filters.copyWith(features: [featureKey]));
     }
     load();
   }
@@ -307,7 +306,6 @@ final featureOptionsProvider = Provider.family<List<String>, AppLocalizations>((
   );
   return listings
       .expand((item) => item.features)
-      .map((feature) => localizedFlatmatesFeatureLabel(locale, feature))
       .where((feature) => feature.isNotEmpty)
       .toSet()
       .toList()
@@ -338,12 +336,9 @@ final filteredListingsProvider =
 
         final matchesFeature =
             filters.features.isEmpty ||
-            filters.features.every((fLabel) {
-              return item.features.any(
-                (fKey) =>
-                    localizedFlatmatesFeatureLabel(locale, fKey) == fLabel,
-              );
-            });
+            filters.features.every(
+              (fKey) => item.features.contains(fKey),
+            );
 
         final searchable = [
           item.title,

@@ -285,11 +285,7 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
       sharingType: _normalizedSharingType(),
       genderPreference: _normalizedGenderPreference(),
       features: [
-        if (_selectedFurnishing != null)
-          localizedFlatmatesFeatureLabel(
-            AppLocalizations.of(context),
-            _selectedFurnishing!,
-          ),
+        if (_selectedFurnishing != null) _selectedFurnishing!,
       ],
       pets: _selectedPets,
       smoking: _selectedSmoking,

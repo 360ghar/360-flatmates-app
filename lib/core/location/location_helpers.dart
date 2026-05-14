@@ -1,8 +1,10 @@
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+
 import '../../features/bootstrap/catalog_helpers.dart';
+import 'geo_utils.dart';
+export 'geo_utils.dart';
 
 const kMaxMatchDistanceKm = 150.0;
 const kLocationTimeout = Duration(seconds: 20);
@@ -139,18 +141,6 @@ detectCurrentLocation({required List<CatalogOption> catalogCities}) async {
   debugPrint('LocationHelpers: no match found');
   return (result: LocationDetectResult.noMatch, city: null, errorDetail: null);
 }
-
-double haversineKm(double lat1, double lon1, double lat2, double lon2) {
-  const r = 6371.0;
-  final dLat = _toRad(lat2 - lat1);
-  final dLon = _toRad(lon2 - lon1);
-  final a =
-      sin(dLat / 2) * sin(dLat / 2) +
-      cos(_toRad(lat1)) * cos(_toRad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-  return r * 2 * asin(sqrt(a));
-}
-
-double _toRad(double deg) => deg * pi / 180;
 
 List<CatalogOption> resolveCities(List<CatalogOption> catalogCities) {
   return catalogCities;

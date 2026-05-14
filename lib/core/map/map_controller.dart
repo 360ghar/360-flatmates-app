@@ -13,27 +13,17 @@ class FlatmatesMapController {
   final MapController _mapController;
   MapController get controller => _mapController;
 
-  LatLng? _cachedCenter;
-  double _cachedZoom = kDefaultInitialZoom;
+  LatLng get center => _mapController.camera.center;
+  double get zoom => _mapController.camera.zoom;
 
-  /// Moves the camera to [center] at the given [zoom] level.
   void move(LatLng center, double zoom) {
-    _cachedCenter = center;
-    _cachedZoom = zoom;
     _mapController.move(center, zoom);
   }
 
-  /// Moves the camera with an optional animation (fitBounds-style).
-  ///
-  /// Since flutter_map's MapController doesn't have a built-in animateTo,
-  /// we use [move] which is synchronous. For animated transitions,
-  /// consider wrapping with AnimatedContainer or using the
-  /// [MapControllerImpl.move] with a custom approach.
   Future<void> animateTo(LatLng center, {double zoom = 14}) async {
     move(center, zoom);
   }
 
-  /// Fits the map bounds to show all [points] with optional [padding].
   void fitBounds(List<LatLng> points, {EdgeInsets padding = const EdgeInsets.all(48)}) {
     if (points.isEmpty) return;
     final bounds = LatLngBounds.fromPoints(points);
@@ -45,21 +35,13 @@ class FlatmatesMapController {
     );
   }
 
-  /// Zooms in by one step.
   void zoomIn() {
-    move(_cachedCenter ?? LatLng(12.9716, 77.5946), _cachedZoom + 1);
+    move(center, zoom + 1);
   }
 
-  /// Zooms out by one step.
   void zoomOut() {
-    move(_cachedCenter ?? LatLng(12.9716, 77.5946), _cachedZoom - 1);
+    move(center, zoom - 1);
   }
-
-  /// Current center position of the map (last known position).
-  LatLng get center => _cachedCenter ?? LatLng(12.9716, 77.5946);
-
-  /// Current zoom level of the map (last known value).
-  double get zoom => _cachedZoom;
 
   void dispose() {
     // MapController does not need explicit disposal in flutter_map.

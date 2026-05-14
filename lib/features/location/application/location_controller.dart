@@ -30,13 +30,22 @@ class LocationState {
     bool? isLoading,
     String? error,
     LocationData? selectedLocation,
+    bool clearCurrentPosition = false,
+    bool clearCurrentAddress = false,
+    bool clearSelectedLocation = false,
   }) {
     return LocationState(
-      currentPosition: currentPosition ?? this.currentPosition,
-      currentAddress: currentAddress ?? this.currentAddress,
+      currentPosition: clearCurrentPosition
+          ? null
+          : (currentPosition ?? this.currentPosition),
+      currentAddress: clearCurrentAddress
+          ? null
+          : (currentAddress ?? this.currentAddress),
       isLoading: isLoading ?? this.isLoading,
       error: error,
-      selectedLocation: selectedLocation ?? this.selectedLocation,
+      selectedLocation: clearSelectedLocation
+          ? null
+          : (selectedLocation ?? this.selectedLocation),
     );
   }
 }
@@ -47,6 +56,11 @@ final locationControllerProvider =
 );
 
 class LocationController extends Notifier<LocationState> {
+  static final _ipDio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
   @override
   LocationState build() => const LocationState();
 
@@ -125,14 +139,7 @@ class LocationController extends Notifier<LocationState> {
 
   Future<LocationData?> getIpLocation() async {
     try {
-      final dio = Dio();
-      final response = await dio.get(
-        'https://ipapi.co/json/',
-        options: Options(
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-        ),
-      );
+      final response = await _ipDio.get('https://ipapi.co/json/');
       final data = response.data as Map<String, dynamic>;
       final lat = (data['latitude'] as num?)?.toDouble() ?? 0.0;
       final lng = (data['longitude'] as num?)?.toDouble() ?? 0.0;
