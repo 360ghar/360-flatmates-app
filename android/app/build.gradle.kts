@@ -56,7 +56,7 @@ if (releaseTaskRequested && releaseSigningRequested && !releaseSigningComplete) 
 }
 
 android {
-    namespace = "com.the360ghar.flatmates"
+    namespace = "com.the360ghar.flatmates360"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -83,7 +83,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.the360ghar.flatmates"
+        applicationId = "com.the360ghar.flatmates360"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

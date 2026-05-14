@@ -111,7 +111,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपका स्थान पता नहीं लगा सके। कृपया मैन्युअली चुनें।';
 
   @override
-  String get homeSearchHint => 'लोकेशन, एरिया या लैंडमार्क से खोजें';
+  String get homeSearchHint => 'नाम, बजट या सुविधाओं से खोजें';
 
   @override
   String get homePickedForYou => 'आपके लिए चुना गया';
@@ -192,6 +192,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get likesTabLabel => 'लाइक्स';
+
+  @override
+  String get likedTabLabel => 'पसंद किए';
 
   @override
   String get chatsTabLabel => 'चैट्स';
@@ -2236,6 +2239,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noLikesYet => 'अभी कोई लाइक नहीं';
 
   @override
+  String get noLikedYet => 'अभी कोई प्रोफ़ाइल पसंद नहीं';
+
+  @override
   String get keepSwipingToFindMatches => 'मैच ढूंढने के लिए स्वाइप करते रहें';
 
   @override
@@ -2246,6 +2252,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get matchAction => 'मैच करें';
+
+  @override
+  String get waitingForResponse => 'प्रतीक्षा';
 
   @override
   String get matchCreateFailed => 'मैच नहीं बन सका। फिर से प्रयास करें।';

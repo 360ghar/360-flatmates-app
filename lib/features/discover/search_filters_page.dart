@@ -28,7 +28,6 @@ class SearchFiltersPage extends ConsumerStatefulWidget {
 
 class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
   final _searchController = TextEditingController();
-  String? _selectedLocation;
 
   // Budget filter
   static const double _budgetMin = 5000;
@@ -215,11 +214,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
   /// Returns a list of (label, onRemove) pairs for all active filters.
   List<({String label, VoidCallback onRemove})> get _activeFilters {
     return [
-      if (_selectedLocation != null)
-        (
-          label: _selectedLocation!,
-          onRemove: () => setState(() => _selectedLocation = null),
-        ),
       if (_budgetValues.start != _budgetMin || _budgetValues.end != _budgetMax)
         (
           label:
@@ -263,7 +257,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
 
   void _clearAllFilters() {
     setState(() {
-      _selectedLocation = null;
       _budgetValues = const RangeValues(_budgetMin, _budgetMax);
       _selectedRoomType = null;
       _selectedFurnishing = null;
@@ -279,7 +272,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
       query: _searchController.text.trim().isEmpty
           ? null
           : _searchController.text.trim(),
-      location: _selectedLocation,
       priceMin: _budgetValues.start == _budgetMin ? null : _budgetValues.start,
       priceMax: _budgetValues.end == _budgetMax ? null : _budgetValues.end,
       sharingType: _normalizedSharingType(),
@@ -317,15 +309,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
       body: SafeArea(
         child: listings.when(
           data: (items) {
-            final locations =
-                items
-                    .map((item) => item.locality ?? item.city)
-                    .whereType<String>()
-                    .where((value) => value.trim().isNotEmpty)
-                    .toSet()
-                    .toList()
-                  ..sort();
-
             return Column(
               children: [
                 Expanded(
@@ -341,30 +324,13 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                       FlatmatesSearchBar(
                         controller: _searchController,
                         hint: locale.homeSearchHint,
-                        trailingIcon: Icons.location_on_outlined,
+                        trailingIcon: Icons.search_rounded,
                       ),
 
                       // Selected filter summary (removable chips)
                       ActiveFilterChips(filters: activeFilters),
 
                       const SizedBox(height: AppSpacing.lg),
-
-                      // Location filter
-                      FilterSectionCard(
-                        title: locale.cityLabel,
-                        subtitle: _selectedLocation,
-                        icon: Icons.location_on_outlined,
-                        initiallyExpanded: true,
-                        child: FilterChipWrap(
-                          values: locations,
-                          selected: _selectedLocation,
-                          onSelected: (value) => setState(() {
-                            _selectedLocation = _selectedLocation == value
-                                ? null
-                                : value;
-                          }),
-                        ),
-                      ),
 
                       // Budget filter
                       BudgetFilterCard(

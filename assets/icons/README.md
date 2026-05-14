@@ -35,5 +35,5 @@ dart run flutter_native_splash:remove
 
 ## Design References
 
-- Primary color: `#5B4BCF` (used for adaptive icon background)
+- Neutral icon background: `#F3F3F2` (used for adaptive icon background)
 - See `DESIGN.md` for logo specs (compact mode: "36" + rotate_right icon + "FLATMATES")

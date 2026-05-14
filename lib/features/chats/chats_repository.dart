@@ -44,6 +44,20 @@ class ChatsRepository {
         .toList();
   }
 
+  Future<List<IncomingLikeModel>> fetchOutgoingLikes() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.outgoingLikes);
+    final rows = (response.data as List? ?? const []);
+    return rows
+        .map(
+          (item) => IncomingLikeModel.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .toList();
+  }
+
   Future<int?> matchIncomingLike({
     required int peerId,
     int? contextPropertyId,
@@ -226,6 +240,10 @@ final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
 
 final incomingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
   (ref) => ref.watch(chatsRepositoryProvider).fetchIncomingLikes(),
+);
+
+final outgoingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
+  (ref) => ref.watch(chatsRepositoryProvider).fetchOutgoingLikes(),
 );
 
 final conversationProvider =

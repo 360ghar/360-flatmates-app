@@ -29,6 +29,7 @@ abstract final class FlatmatesEndpoints {
   // -- Swipes --
   static const swipes = '/flatmates/swipes';
   static const incomingLikes = '/flatmates/likes';
+  static const outgoingLikes = '/flatmates/outgoing-likes';
   static const profileViews = '/flatmates/profile-views';
 
   // -- Reports --

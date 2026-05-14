@@ -62,7 +62,7 @@ final class ErrorPresenter {
     StackTrace? st,
   ) {
     return switch (statusCode) {
-      400 => ValidationFailure(underlyingError: e, stackTrace: st),
+      400 => _fromBadRequest(e, st),
       401 => AuthExpiredFailure(underlyingError: e, stackTrace: st),
       403 => PermissionFailure(underlyingError: e, stackTrace: st),
       404 => NotFoundFailure(underlyingError: e, stackTrace: st),
@@ -76,6 +76,32 @@ final class ErrorPresenter {
       ),
       _ => UnknownFailure(underlyingError: e, stackTrace: st),
     };
+  }
+
+  static AppFailure _fromBadRequest(DioException e, StackTrace? st) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final errorObj = data['error'];
+      if (errorObj is Map<String, dynamic>) {
+        final message = errorObj['message'];
+        if (message is String && message.isNotEmpty) {
+          return ValidationFailure(
+            fieldMessages: {'detail': message},
+            underlyingError: e,
+            stackTrace: st,
+          );
+        }
+      }
+      final detail = data['detail'];
+      if (detail is String && detail.isNotEmpty) {
+        return ValidationFailure(
+          fieldMessages: {'detail': detail},
+          underlyingError: e,
+          stackTrace: st,
+        );
+      }
+    }
+    return ValidationFailure(underlyingError: e, stackTrace: st);
   }
 
   /// Attempts to extract field-level validation errors from a 422 response.

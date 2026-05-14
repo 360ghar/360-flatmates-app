@@ -106,7 +106,7 @@ https://the360ghar.com/support
 | Asset | Size | Notes |
 |-------|------|-------|
 | Feature graphic | 1024 × 500 px | Landscape banner, no transparency |
-| Icon | 512 × 512 px | Same as adaptive icon foreground |
+| Icon | 512 × 512 px | Same artwork as launcher icon, no transparency |
 | Phone screenshots | Min 2, max 8 | 1080 × 1920 px or 1080 × 2400 px |
 | Tablet screenshots (7") | Min 2, max 8 | 1200 × 1920 px |
 | Tablet screenshots (10") | Min 2, max 8 | 1600 × 2560 px |

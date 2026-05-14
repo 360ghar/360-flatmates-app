@@ -6,12 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import '../chats/chats_repository.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import 'application/profile_compatibility.dart';
 import 'application/profile_view_tracker.dart';
+import 'application/swipe_deck_controller.dart';
 import 'application/swipe_quota_controller.dart';
 import 'presentation/match_celebration_route.dart';
 import 'presentation/widgets/swipe_action_buttons.dart';
@@ -106,8 +110,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   }
 
   void _onPanStart(DragStartDetails details) {
-    if (_isAnimating || _isExpanded) return;
+    if (_isAnimating) return;
     _snapBackController.stop();
+    if (_isExpanded) {
+      setState(() { _isExpanded = false; });
+      _recordExpandedProfileView();
+    }
     setState(() { _isDragging = true; _dragOffset = Offset.zero; });
   }
 
@@ -153,6 +161,24 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   }
 
   void _triggerFlyOff({required bool superLike}) {
+    final quota = ref.read(swipeQuotaControllerProvider);
+    if (superLike && quota.superLikesRemaining <= 0) {
+      if (mounted) {
+        final locale = AppLocalizations.of(context);
+        _showSnack(locale.superLikeCapLabel(0));
+      }
+      _triggerSnapBack();
+      return;
+    }
+    if (quota.isCapped) {
+      if (mounted) {
+        final locale = AppLocalizations.of(context);
+        _showSnack(locale.swipeCounterLabel(0));
+      }
+      _triggerSnapBack();
+      return;
+    }
+
     _recordExpandedProfileView();
     if (superLike) {
       _flyOffDirectionX = 0;
@@ -212,7 +238,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       return;
     }
 
-    final profiles = ref.read(swipeProfilesProvider).valueOrNull ?? [];
+    final profiles = ref.read(swipeDeckControllerProvider).valueOrNull ?? [];
     final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
     final userProfile = bootstrap?.profile;
     final visible = profiles.where((i) => i.id != userProfile?.id).toList();
@@ -231,7 +257,10 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           .swipeProfile(targetUserId: item.id, action: action);
     } catch (e) {
       if (mounted) {
-        _showSnack(locale.actionFailedRetry);
+        final message = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.actionFailedRetry;
+        _showSnack(message);
       }
       _resetAfterSwipe();
       return;
@@ -243,12 +272,23 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         .read(swipeQuotaControllerProvider.notifier)
         .recordSwipe(isSuperLike: action == 'super_like');
 
+    ref.read(swipeDeckControllerProvider.notifier).markSwiped(item.id);
+
     setState(() {
       _currentIndex++;
       _isExpanded = false;
     });
 
     final isLikeAction = action == 'like' || action == 'super_like';
+
+    if (isLikeAction) {
+      ref.invalidate(conversationsProvider);
+      ref.invalidate(outgoingLikesProvider);
+      if (swipeResult.didMatch) {
+        ref.invalidate(incomingLikesProvider);
+      }
+    }
+
     if (isLikeAction && swipeResult.didMatch) {
       _showMatchCelebration(
         peerName: item.fullName ?? 'Flatmate',
@@ -332,12 +372,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
   void _refreshProfiles() {
     setState(() => _currentIndex = 0);
-    ref.invalidate(swipeProfilesProvider);
+    ref.read(swipeDeckControllerProvider.notifier).refresh();
   }
 
   @override
   Widget build(BuildContext context) {
-    final profiles = ref.watch(swipeProfilesProvider);
+    final profiles = ref.watch(swipeDeckControllerProvider);
     final userProfile = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
     );
@@ -440,7 +480,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       error: (e, _) => Scaffold(
         body: FlatmatesErrorState(
           message: locale.failedToLoadProfiles,
-          onRetry: () => ref.invalidate(swipeProfilesProvider),
+          onRetry: () => ref.read(swipeDeckControllerProvider.notifier).refresh(),
         ),
       ),
     );

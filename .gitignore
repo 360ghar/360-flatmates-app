@@ -54,3 +54,12 @@ app.*.map.json
 
 # Worktrees
 .worktrees/
+
+# Release deliverables (AAB, APK, certificates, mapping files)
+deliverables/
+
+# Agent/tool state
+.codex-flutter-state/
+
+# Windows artifacts
+nul

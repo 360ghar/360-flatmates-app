@@ -34,6 +34,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   Future<void> _refresh() async {
     ref.invalidate(conversationsProvider);
     ref.invalidate(incomingLikesProvider);
+    ref.invalidate(outgoingLikesProvider);
   }
 
   Future<void> _matchIncomingLike(IncomingLikeModel like) async {
@@ -84,6 +85,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   Widget build(BuildContext context) {
     final conversations = ref.watch(conversationsProvider);
     final incomingLikes = ref.watch(incomingLikesProvider);
+    final outgoingLikes = ref.watch(outgoingLikesProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -118,6 +120,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
               FlatmatesSegmentedControl<String>(
                 segmentKeys: const [
                   Key('chats_likes_tab'),
+                  Key('chats_liked_tab'),
                   Key('chats_chats_tab'),
                 ],
                 segments: [
@@ -125,6 +128,11 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                     'likes',
                     locale.likesTabLabel,
                     Icons.favorite_border_rounded,
+                  ),
+                  (
+                    'liked',
+                    locale.likedTabLabel,
+                    Icons.favorite_rounded,
                   ),
                   (
                     'chats',
@@ -142,6 +150,11 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                   matchingLikeIds: _matchingLikeIds,
                   onRetry: () => ref.invalidate(incomingLikesProvider),
                   onMatchTap: _matchIncomingLike,
+                )
+              else if (_tab == 'liked')
+                _LikedTab(
+                  likes: outgoingLikes,
+                  onRetry: () => ref.invalidate(outgoingLikesProvider),
                 )
               else
                 _ChatsTab(
@@ -238,8 +251,8 @@ class _LikesTab extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.md,
           childAspectRatio: 0.75,
         ),
         itemCount: items.length,
@@ -258,6 +271,52 @@ class _LikesTab extends StatelessWidget {
             onMatchTap: matchingLikeIds.contains(item.id)
                 ? null
                 : () => onMatchTap(item),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LikedTab extends StatelessWidget {
+  const _LikedTab({required this.likes, required this.onRetry});
+
+  final AsyncValue<List<IncomingLikeModel>> likes;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    return FlatmatesAsyncView<List<IncomingLikeModel>>(
+      value: likes,
+      onRetry: onRetry,
+      empty: FlatmatesEmptyState(
+        title: locale.noLikedYet,
+        subtitle: locale.keepSwipingToFindMatches,
+        icon: Icons.favorite_rounded,
+      ),
+      data: (items) => GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.68,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return FlatmatesProfileGridCard(
+            key: ValueKey('outgoing_like_${item.id}'),
+            name: item.peer.fullName,
+            age: item.peer.age,
+            location: _locationForPeer(item.peer),
+            profession: _professionForPeer(locale, item.peer),
+            matchPercentage: item.peer.matchPercentage,
+            imageUrl: item.peer.profileImageUrl,
+            matchButtonLabel: '',
+            onMatchTap: null,
           );
         },
       ),

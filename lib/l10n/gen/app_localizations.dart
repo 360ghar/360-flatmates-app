@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search by location, area or landmark'**
+  /// **'Search by name, budget or features'**
   String get homeSearchHint;
 
   /// No description provided for @homePickedForYou.
@@ -409,6 +409,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Likes'**
   String get likesTabLabel;
+
+  /// No description provided for @likedTabLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked'**
+  String get likedTabLabel;
 
   /// No description provided for @chatsTabLabel.
   ///
@@ -4298,6 +4304,12 @@ abstract class AppLocalizations {
   /// **'No likes yet'**
   String get noLikesYet;
 
+  /// No description provided for @noLikedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No liked profiles yet'**
+  String get noLikedYet;
+
   /// No description provided for @keepSwipingToFindMatches.
   ///
   /// In en, this message translates to:
@@ -4321,6 +4333,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match'**
   String get matchAction;
+
+  /// No description provided for @waitingForResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get waitingForResponse;
 
   /// No description provided for @matchCreateFailed.
   ///

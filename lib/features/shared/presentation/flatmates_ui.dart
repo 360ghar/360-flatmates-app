@@ -1007,12 +1007,10 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: AspectRatio(
-            aspectRatio: 0.85,
+        Expanded(
+          child: SizedBox(
+            width: double.infinity,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Stack(
@@ -1080,7 +1078,7 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Text(
           widget.age == null ? widget.name : '${widget.name}, ${widget.age}',
           style: theme.textTheme.bodyLarge?.copyWith(
@@ -1103,17 +1101,11 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-        const SizedBox(height: 10),
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.8, end: 1.0),
-          duration: AppMotion.slow,
-          curve: AppMotion.easeOutBack,
-          builder: (context, scale, child) {
-            return Transform.scale(scale: scale, child: child);
-          },
-          child: SizedBox(
+        if (widget.matchButtonLabel.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          SizedBox(
             width: double.infinity,
-            height: 42,
+            height: 34,
             child: FilledButton(
               onPressed: widget.onMatchTap,
               style: FilledButton.styleFrom(
@@ -1125,13 +1117,13 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
               child: Text(
                 widget.matchButtonLabel,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

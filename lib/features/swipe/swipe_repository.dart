@@ -343,10 +343,3 @@ class SwipeRepository {
 final swipeRepositoryProvider = Provider<SwipeRepository>(
   (ref) => SwipeRepository(ref),
 );
-
-final swipeProfilesProvider = FutureProvider<List<SwipeProfile>>((ref) {
-  final filters = ref.watch(discoverFiltersProvider);
-  return ref
-      .watch(swipeRepositoryProvider)
-      .fetchSwipeProfiles(filters: filters);
-});

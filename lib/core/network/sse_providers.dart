@@ -42,6 +42,12 @@ final sseEventRouterProvider = Provider<void>((ref) {
       case 'new_match':
         ref.invalidate(conversationsProvider);
         ref.invalidate(incomingLikesProvider);
+        ref.invalidate(outgoingLikesProvider);
+        break;
+      case 'new_like':
+      case 'incoming_like':
+        ref.invalidate(incomingLikesProvider);
+        ref.invalidate(outgoingLikesProvider);
         break;
       case 'new_notification':
         ref.invalidate(notificationsProvider);

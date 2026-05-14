@@ -110,7 +110,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not detect your location. Please select manually.';
 
   @override
-  String get homeSearchHint => 'Search by location, area or landmark';
+  String get homeSearchHint => 'Search by name, budget or features';
 
   @override
   String get homePickedForYou => 'Picked for You';
@@ -192,6 +192,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get likesTabLabel => 'Likes';
+
+  @override
+  String get likedTabLabel => 'Liked';
 
   @override
   String get chatsTabLabel => 'Chats';
@@ -2226,6 +2229,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noLikesYet => 'No likes yet';
 
   @override
+  String get noLikedYet => 'No liked profiles yet';
+
+  @override
   String get keepSwipingToFindMatches => 'Keep swiping to find matches';
 
   @override
@@ -2236,6 +2242,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchAction => 'Match';
+
+  @override
+  String get waitingForResponse => 'Waiting';
 
   @override
   String get matchCreateFailed => 'Could not create match. Try again.';

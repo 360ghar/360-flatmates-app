@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import '../location/application/location_controller.dart';
+import 'application/discover_feed_controller.dart';
 import 'application/move_in_filter.dart';
 import 'data/property_listing_dto.dart';
 import 'domain/property_listing.dart';
@@ -362,9 +364,21 @@ final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
     bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
   );
   final filters = ref.watch(discoverFiltersProvider);
+  final selectedLocation = ref.watch(
+    locationControllerProvider.select((s) => s.selectedLocation),
+  );
+  final effectiveFilters = filters?.hasGeoLocation == true
+      ? filters
+      : selectedLocation != null
+          ? DiscoverFilters(
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+              radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
+            )
+          : filters;
   return ref
       .watch(discoverRepositoryProvider)
-      .fetchListings(currentUser: profile, filters: filters);
+      .fetchListings(currentUser: profile, filters: effectiveFilters);
 });
 
 final propertyListingProvider = FutureProvider.family<PropertyListing, int>(
