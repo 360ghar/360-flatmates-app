@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import 'app_failure.dart';
@@ -110,9 +112,41 @@ final class ErrorPresenter {
   }
 
   static AppFailure _fromUnknown(DioException e, StackTrace? st) {
-    if (e.error.toString().contains('SocketException')) {
+    final error = e.error;
+    if (error is SocketException ||
+        error is HandshakeException ||
+        error is HttpException) {
+      return NetworkFailure(underlyingError: e, stackTrace: st);
+    }
+
+    final message = '${e.message ?? ''} ${error ?? ''}'.toLowerCase();
+    if (_looksLikeNetworkFailure(message)) {
       return NetworkFailure(underlyingError: e, stackTrace: st);
     }
     return UnknownFailure(underlyingError: e, stackTrace: st);
+  }
+
+  static bool _looksLikeNetworkFailure(String message) {
+    const markers = [
+      'socketexception',
+      'handshakeexception',
+      'httpexception',
+      'failed host lookup',
+      'connection refused',
+      'connection reset',
+      'connection closed',
+      'connection aborted',
+      'network is unreachable',
+      'no route to host',
+      'cleartext',
+      'app transport security',
+      'operation timed out',
+      'timed out',
+      'certificate',
+      'tls',
+      'ssl',
+    ];
+
+    return markers.any(message.contains);
   }
 }

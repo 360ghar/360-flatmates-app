@@ -1,16 +1,70 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flatmates_app/core/errors/app_failure.dart';
+import 'package:flatmates_app/core/providers.dart';
+import 'package:flatmates_app/features/auth/auth_controller.dart';
 import 'package:flatmates_app/features/auth/presentation/enter_phone_page.dart';
 import 'package:flatmates_app/features/auth/presentation/otp_page.dart';
+import 'package:flatmates_app/features/auth/presentation/splash_page.dart';
+import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
+import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 import 'helpers/test_helpers.dart';
+
+class FailingBootstrapController extends BootstrapController {
+  @override
+  FutureOr<BootstrapData?> build() {
+    throw const NetworkFailure();
+  }
+
+  @override
+  Future<void> load() async {
+    state = AsyncError(const NetworkFailure(), StackTrace.current);
+  }
+}
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  group('SplashPage', () {
+    testWidgets('network error state does not overflow in landscape', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(800, 360);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appConfigProvider.overrideWithValue(fakeAppConfig()),
+            authControllerProvider.overrideWith(() => FakeAuthController()),
+            bootstrapControllerProvider.overrideWith(
+              () => FailingBootstrapController(),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: SplashPage(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('EnterPhonePage', () {

@@ -42,6 +42,9 @@
     }
   },
   "homeLocationFallback": "डिस्कवरी को बेहतर बनाने के लिए अपना शहर और लोकैलिटी सेट करें।",
+  "locationUpdated": "स्थान अपडेट किया गया",
+  "locationPermissionRequired": "आपका शहर पता लगाने के लिए स्थान अनुमति आवश्यक है।",
+  "locationDetectionFailed": "आपका स्थान पता नहीं लगा सके। कृपया मैन्युअली चुनें।",
   "homeSearchHint": "लोकेशन, एरिया या लैंडमार्क से खोजें",
   "homePickedForYou": "आपके लिए चुना गया",
   "homePickedSubtitle": "आपकी पसंद और वाइब से मेल खाने वाले फ्लैट्स",
@@ -1168,5 +1171,55 @@
   "swipeEmptyAllFilteredTitle": "आपकी प्राथमिकताओं से कोई प्रोफ़ाइल मेल नहीं खाती",
   "swipeEmptyAllFilteredSubtitle": "अधिक प्रोफ़ाइल देखने के लिए अपनी शर्तें बदलें।",
   "swipeEmptyEndOfDeckTitle": "आपने अभी सभी को देख लिया है",
-  "swipeEmptyEndOfDeckSubtitle": "हम आपके लिए नए मैच ढूंढ रहे हैं! बाद में दोबारा देखें।"
+  "swipeEmptyEndOfDeckSubtitle": "हम आपके लिए नए मैच ढूंढ रहे हैं! बाद में दोबारा देखें।",
+  "locationServicesDisabled": "लोकेशन सेवाएं बंद हैं। कृपया अपनी डिवाइस सेटिंग में GPS/लोकेशन चालू करें।",
+  "locationServicesDisabledAction": "सेटिंग खोलें",
+  "locationPermissionDeniedForever": "लोकेशन की अनुमति अस्वीकार की गई। कृपया ऐप सेटिंग में इसे चालू करें।",
+  "locationOpenAppSettings": "ऐप सेटिंग खोलें",
+  "locationNoMatchFound": "आस-पास कोई मेल खाता शहर नहीं मिला। कृपया मैन्युअल रूप से चुनें।",
+  "searchCityOrAreaHint": "शहर या क्षेत्र खोजें",
+  "suggestionsLabel": "सुझाव",
+  "locationPickerTitle": "लोकेशन चुनें",
+  "locationPickerSearchHint": "क्षेत्र, लोकैलिटी, शहर खोजें...",
+  "matchingCitiesLabel": "मेल खाते शहर",
+  "noCitiesFound": "कोई शहर नहीं मिला",
+  "searchRadiusLabel": "खोज त्रिज्या",
+  "distanceKmLabel": "{distance} किमी",
+  "@distanceKmLabel": {
+    "placeholders": {
+      "distance": {
+        "type": "int"
+      }
+    }
+  },
+  "currentLocationLabel": "वर्तमान लोकेशन",
+  "locationDetailsFailed": "लोकेशन विवरण नहीं मिल सका",
+  "selectLocationLabel": "लोकेशन चुनें",
+  "locationSectionTitle": "लोकेशन",
+  "getDirectionsLabel": "दिशा-निर्देश प्राप्त करें",
+  "propertyFallbackLabel": "प्रॉपर्टी",
+  "distanceMeters": "{distance}मी दूर",
+  "@distanceMeters": {
+    "placeholders": {
+      "distance": {
+        "type": "int"
+      }
+    }
+  },
+  "distanceKmDecimal": "{distance}किमी दूर",
+  "@distanceKmDecimal": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "distanceKm": "{distance}किमी दूर",
+  "@distanceKm": {
+    "placeholders": {
+      "distance": {
+        "type": "int"
+      }
+    }
   }
+}

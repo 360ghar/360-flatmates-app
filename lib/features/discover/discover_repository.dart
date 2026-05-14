@@ -23,6 +23,9 @@ class DiscoverFilters {
     this.smoking,
     this.vibe,
     this.moveInTimeline,
+    this.latitude,
+    this.longitude,
+    this.radiusKm,
   });
 
   final String? query;
@@ -37,6 +40,11 @@ class DiscoverFilters {
   final String? smoking;
   final String? vibe;
   final String? moveInTimeline;
+  final double? latitude;
+  final double? longitude;
+  final double? radiusKm;
+
+  bool get hasGeoLocation => latitude != null && longitude != null;
 
   bool get isEmpty =>
       (query == null || query!.trim().isEmpty) &&
@@ -50,7 +58,10 @@ class DiscoverFilters {
       pets == null &&
       smoking == null &&
       vibe == null &&
-      normalizeMoveInFilter(moveInTimeline) == null;
+      normalizeMoveInFilter(moveInTimeline) == null &&
+      latitude == null &&
+      longitude == null &&
+      radiusKm == null;
 
   DiscoverFilters copyWith({
     String? query,
@@ -65,6 +76,9 @@ class DiscoverFilters {
     String? smoking,
     String? vibe,
     String? moveInTimeline,
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
     bool clearQuery = false,
     bool clearBedrooms = false,
     bool clearLocation = false,
@@ -76,6 +90,9 @@ class DiscoverFilters {
     bool clearSmoking = false,
     bool clearVibe = false,
     bool clearMoveInTimeline = false,
+    bool clearLatitude = false,
+    bool clearLongitude = false,
+    bool clearRadiusKm = false,
   }) {
     return DiscoverFilters(
       query: clearQuery ? null : (query ?? this.query),
@@ -94,6 +111,9 @@ class DiscoverFilters {
       moveInTimeline: clearMoveInTimeline
           ? null
           : (moveInTimeline ?? this.moveInTimeline),
+      latitude: clearLatitude ? null : (latitude ?? this.latitude),
+      longitude: clearLongitude ? null : (longitude ?? this.longitude),
+      radiusKm: clearRadiusKm ? null : (radiusKm ?? this.radiusKm),
     );
   }
 }
@@ -115,6 +135,14 @@ class DiscoverRepository {
       'offset': offset,
       'limit': limit,
     };
+    if (filters?.hasGeoLocation ?? false) {
+      final f = filters!;
+      queryParameters['lat'] = f.latitude!.toStringAsFixed(6);
+      queryParameters['lng'] = f.longitude!.toStringAsFixed(6);
+      if (f.radiusKm != null) {
+        queryParameters['radius'] = f.radiusKm!.round();
+      }
+    }
     if (filters != null && !filters.isEmpty) {
       final query = [
         filters.query,

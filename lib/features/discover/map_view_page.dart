@@ -10,6 +10,8 @@ import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
 import '../discover/discover_repository.dart';
 import '../discover/application/move_in_filter.dart';
+import '../location/application/location_controller.dart';
+import '../location/presentation/map_widgets.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_search_bar.dart';
@@ -32,6 +34,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   String _moveInFilter = 'all';
   String _genderPref = 'any';
   bool _verifiedOnly = false;
+  final double _searchRadiusKm = 10.0;
   final _searchController = TextEditingController();
 
   final FlatmatesMapController _flatmatesMapController = FlatmatesMapController();
@@ -102,33 +105,27 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                   );
 
                   // Determine initial center from first marker position.
-                  LatLng? firstPosition;
+                  LatLng mapCenter;
                   if (markers.isNotEmpty) {
-                    firstPosition = markers.first.point;
+                    mapCenter = markers.first.point;
                   } else if (items.isNotEmpty &&
                       items.first.latitude != null &&
                       items.first.longitude != null) {
-                    firstPosition = LatLng(
+                    mapCenter = LatLng(
                       items.first.latitude!,
                       items.first.longitude!,
                     );
+                  } else {
+                    mapCenter = const LatLng(28.6139, 77.2090);
                   }
 
-                  if (firstPosition == null) {
-                    return FlatmatesEmptyState(
-                      title: items.isEmpty
-                          ? locale.emptyListings
-                          : locale.noListingsMatchFilters,
-                      icon: Icons.map_outlined,
-                    );
-                  }
                   return Stack(
                     children: [
                       FlutterMap(
                         mapController:
                             _flatmatesMapController.controller,
                         options: MapOptions(
-                          initialCenter: firstPosition,
+                          initialCenter: mapCenter,
                           initialZoom: kDefaultInitialZoom,
                           minZoom: kDefaultMinZoom,
                           maxZoom: kDefaultMaxZoom,
@@ -139,8 +136,22 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                         ),
                         children: [
                           createOsmTileLayer(),
+                          MapRadiusCircle(
+                            center: mapCenter,
+                            radiusKm: _searchRadiusKm,
+                          ),
                           MarkerLayer(markers: markers),
                         ],
+                      ),
+                      Positioned(
+                        right: AppSpacing.md,
+                        top: AppSpacing.md,
+                        child: MapControlButtons(
+                          onRecenter: _recenterToUserLocation,
+                          onFitBounds: _fitBoundsToMarkers,
+                          onZoomIn: () => _flatmatesMapController.zoomIn(),
+                          onZoomOut: () => _flatmatesMapController.zoomOut(),
+                        ),
                       ),
                       if (filtered.isEmpty)
                         FlatmatesEmptyState(
@@ -212,6 +223,35 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       clusterItems: clusterItems,
       onListingTap: _handleListingTap,
     );
+  }
+
+  void _recenterToUserLocation() async {
+    final locState = ref.read(locationControllerProvider);
+    if (locState.currentPosition != null) {
+      final pos = locState.currentPosition!;
+      _flatmatesMapController.move(
+        LatLng(pos.latitude, pos.longitude),
+        kDefaultInitialZoom,
+      );
+    } else {
+      await ref.read(locationControllerProvider.notifier).getCurrentLocation();
+      final newPos = ref.read(locationControllerProvider).currentPosition;
+      if (newPos != null) {
+        _flatmatesMapController.move(
+          LatLng(newPos.latitude, newPos.longitude),
+          kDefaultInitialZoom,
+        );
+      }
+    }
+  }
+
+  void _fitBoundsToMarkers() {
+    if (_previousListings == null || _previousListings!.isEmpty) return;
+    final points = _previousListings!
+        .where((item) => item.latitude != null && item.longitude != null)
+        .map((item) => LatLng(item.latitude!, item.longitude!))
+        .toList();
+    _flatmatesMapController.fitBounds(points);
   }
 
   List<PropertyListing> _applyFilters(List<PropertyListing> items) {

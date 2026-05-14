@@ -21,7 +21,6 @@ class DiscoverFilterChips extends StatelessWidget {
   const DiscoverFilterChips({
     required this.bedroomOptions,
     required this.featureOptions,
-    required this.currentLocation,
     required this.selectedBedrooms,
     required this.selectedFeature,
     required this.selectedVibe,
@@ -35,7 +34,6 @@ class DiscoverFilterChips extends StatelessWidget {
 
   final List<int> bedroomOptions;
   final List<String> featureOptions;
-  final String currentLocation;
   final int? selectedBedrooms;
   final String? selectedFeature;
   final String? selectedVibe;
@@ -118,37 +116,6 @@ class DiscoverFilterChips extends StatelessWidget {
               ),
             );
           }),
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: FlatmatesChip(
-              label: locale.nearbyChipLabel,
-              icon: Icons.near_me_outlined,
-              selected: false,
-              onSelected: (_) {},
-              variant: FlatmatesChipVariant.filter,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: FlatmatesChip(
-              label: locale.budgetPlusChipLabel,
-              icon: Icons.add_outlined,
-              selected: false,
-              onSelected: (_) {},
-              variant: FlatmatesChipVariant.filter,
-            ),
-          ),
-          if (currentLocation.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: FlatmatesChip(
-                label: currentLocation,
-                icon: Icons.near_me_outlined,
-                selected: false,
-                onSelected: (_) {},
-                variant: FlatmatesChipVariant.filter,
-              ),
-            ),
           ...bedroomOptions.map((value) {
             final selected = selectedBedrooms == value;
             return Padding(

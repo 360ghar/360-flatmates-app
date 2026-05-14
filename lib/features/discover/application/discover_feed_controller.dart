@@ -55,19 +55,33 @@ class DiscoverFeedState {
 }
 
 class DiscoverFeedController extends Notifier<DiscoverFeedState> {
+  static const double defaultLocationRadiusKm = 10.0;
   static const int _pageSize = 20;
   bool _isLoadingActive = false;
+  bool _reloadAfterActiveLoad = false;
 
   @override
   DiscoverFeedState build() {
+    final initialFilters =
+        ref.read(discoverFiltersProvider) ?? const DiscoverFilters();
     Future.microtask(() {
       if (state.isLoading) load();
     });
-    return const DiscoverFeedState(isLoading: true);
+    return DiscoverFeedState(isLoading: true, filters: initialFilters);
   }
 
   Future<void> load({bool clearAll = true}) async {
-    if (_isLoadingActive) return;
+    if (_isLoadingActive) {
+      if (clearAll) {
+        _reloadAfterActiveLoad = true;
+        state = state.copyWith(
+          isLoading: true,
+          isLoadingMore: false,
+          clearError: true,
+        );
+      }
+      return;
+    }
     _isLoadingActive = true;
     if (clearAll) {
       state = state.copyWith(isLoading: true, clearError: true);
@@ -75,6 +89,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       state = state.copyWith(isLoadingMore: true, clearError: true);
     }
 
+    DiscoverFilters? requestFilters;
     try {
       final profile = ref
           .read(bootstrapControllerProvider)
@@ -82,26 +97,46 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
       final offset = clearAll ? 0 : state.fetchedCount;
+      requestFilters = state.filters;
       final newListings = await repo.fetchListings(
         currentUser: profile,
-        filters: state.filters,
+        filters: requestFilters,
         offset: offset,
         limit: _pageSize,
       );
 
-      state = state.copyWith(
-        listings: clearAll ? newListings : [...state.listings, ...newListings],
-        fetchedCount: clearAll
-            ? newListings.length
-            : state.fetchedCount + newListings.length,
-        isLoading: false,
-        isLoadingMore: false,
-        hasMore: newListings.length >= _pageSize,
-      );
+      if (!identical(requestFilters, state.filters)) {
+        _reloadAfterActiveLoad = true;
+      } else {
+        state = state.copyWith(
+          listings: clearAll
+              ? newListings
+              : [...state.listings, ...newListings],
+          fetchedCount: clearAll
+              ? newListings.length
+              : state.fetchedCount + newListings.length,
+          isLoading: false,
+          isLoadingMore: false,
+          hasMore: newListings.length >= _pageSize,
+        );
+      }
     } catch (e) {
-      state = state.copyWith(isLoading: false, isLoadingMore: false, error: e);
+      if (requestFilters != null && !identical(requestFilters, state.filters)) {
+        _reloadAfterActiveLoad = true;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          isLoadingMore: false,
+          error: e,
+        );
+      }
     } finally {
       _isLoadingActive = false;
+    }
+
+    if (_reloadAfterActiveLoad) {
+      _reloadAfterActiveLoad = false;
+      await load();
     }
   }
 
@@ -136,7 +171,28 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
   }
 
   void updateFilters(DiscoverFilters filters) {
-    _setFilters(filters);
+    _setFilters(_mergePersistentLocation(filters));
+    load();
+  }
+
+  void updateLocationFilter({
+    required double latitude,
+    required double longitude,
+    required double radiusKm,
+  }) {
+    if (!latitude.isFinite || !longitude.isFinite) return;
+
+    final normalizedRadiusKm = radiusKm.isFinite && radiusKm > 0
+        ? radiusKm
+        : defaultLocationRadiusKm;
+
+    _setFilters(
+      state.filters.copyWith(
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm: normalizedRadiusKm,
+      ),
+    );
     load();
   }
 
@@ -182,8 +238,43 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
   }
 
   void clearFilters() {
-    _setFilters(const DiscoverFilters());
+    _setFilters(_locationOnlyFilters(state.filters));
     load();
+  }
+
+  DiscoverFilters _mergePersistentLocation(DiscoverFilters filters) {
+    if (filters.hasGeoLocation || _hasTextLocation(filters)) return filters;
+    return _locationOnlyFilters(state.filters).copyWith(
+      query: filters.query,
+      priceMin: filters.priceMin,
+      priceMax: filters.priceMax,
+      sharingType: filters.sharingType,
+      genderPreference: filters.genderPreference,
+      features: filters.features,
+      bedrooms: filters.bedrooms,
+      pets: filters.pets,
+      smoking: filters.smoking,
+      vibe: filters.vibe,
+      moveInTimeline: filters.moveInTimeline,
+    );
+  }
+
+  DiscoverFilters _locationOnlyFilters(DiscoverFilters filters) {
+    if (filters.hasGeoLocation) {
+      return DiscoverFilters(
+        latitude: filters.latitude,
+        longitude: filters.longitude,
+        radiusKm: filters.radiusKm,
+      );
+    }
+    if (_hasTextLocation(filters)) {
+      return DiscoverFilters(location: filters.location);
+    }
+    return const DiscoverFilters();
+  }
+
+  bool _hasTextLocation(DiscoverFilters filters) {
+    return filters.location?.trim().isNotEmpty ?? false;
   }
 
   void _setFilters(DiscoverFilters filters) {

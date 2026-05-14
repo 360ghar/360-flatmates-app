@@ -40,6 +40,7 @@ class PropertyListing {
     this.securityDeposit,
     this.maintenanceCharges,
     this.owner,
+    this.distanceKm,
   });
 
   final int id;
@@ -78,6 +79,14 @@ class PropertyListing {
   final String? propertyStatus;
   final DateTime? expiresAt;
   final PropertyOwner? owner;
+  final double? distanceKm;
+
+  String get distanceText {
+    if (distanceKm == null) return '';
+    if (distanceKm! < 1) return '${(distanceKm! * 1000).round()}m away';
+    if (distanceKm! < 10) return '${distanceKm!.toStringAsFixed(1)}km away';
+    return '${distanceKm!.round()}km away';
+  }
 
   bool get isUnderReview =>
       status == 'pending_review' || status == 'under_review';

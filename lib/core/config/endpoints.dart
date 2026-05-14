@@ -4,6 +4,7 @@
 abstract final class FlatmatesEndpoints {
   // -- Auth / User --
   static const me = '/users/me';
+  static const userLocation = '/users/location';
 
   // -- Bootstrap & Profile --
   static const bootstrap = '/flatmates/bootstrap';

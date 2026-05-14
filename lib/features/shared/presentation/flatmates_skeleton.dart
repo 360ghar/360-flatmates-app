@@ -51,20 +51,30 @@ class _FlatmatesSkeletonState extends State<FlatmatesSkeleton> {
         if (widget.itemCount <= 1) {
           return const _ShimmerBox(child: _CardSkeleton());
         }
-        return Column(
-          children: List.generate(
-            widget.itemCount,
-            (_) => const _ShimmerBox(child: _CardSkeleton()),
+        return SingleChildScrollView(
+          child: Column(
+            children: List.generate(
+              widget.itemCount,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _ShimmerBox(child: const _CardSkeleton()),
+              ),
+            ),
           ),
         );
       case SkeletonVariant.listItem:
         if (widget.itemCount <= 1) {
           return const _ShimmerBox(child: _ListItemSkeleton());
         }
-        return Column(
-          children: List.generate(
-            widget.itemCount,
-            (_) => const _ShimmerBox(child: _ListItemSkeleton()),
+        return SingleChildScrollView(
+          child: Column(
+            children: List.generate(
+              widget.itemCount,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _ShimmerBox(child: const _ListItemSkeleton()),
+              ),
+            ),
           ),
         );
       case SkeletonVariant.profile:

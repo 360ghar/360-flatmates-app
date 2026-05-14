@@ -100,6 +100,17 @@ class AppLocalizationsHi extends AppLocalizations {
       'डिस्कवरी को बेहतर बनाने के लिए अपना शहर और लोकैलिटी सेट करें।';
 
   @override
+  String get locationUpdated => 'स्थान अपडेट किया गया';
+
+  @override
+  String get locationPermissionRequired =>
+      'आपका शहर पता लगाने के लिए स्थान अनुमति आवश्यक है।';
+
+  @override
+  String get locationDetectionFailed =>
+      'आपका स्थान पता नहीं लगा सके। कृपया मैन्युअली चुनें।';
+
+  @override
   String get homeSearchHint => 'लोकेशन, एरिया या लैंडमार्क से खोजें';
 
   @override
@@ -2512,4 +2523,81 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get swipeEmptyEndOfDeckSubtitle =>
       'हम आपके लिए नए मैच ढूंढ रहे हैं! बाद में दोबारा देखें।';
+
+  @override
+  String get locationServicesDisabled =>
+      'लोकेशन सेवाएं बंद हैं। कृपया अपनी डिवाइस सेटिंग में GPS/लोकेशन चालू करें।';
+
+  @override
+  String get locationServicesDisabledAction => 'सेटिंग खोलें';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      'लोकेशन की अनुमति अस्वीकार की गई। कृपया ऐप सेटिंग में इसे चालू करें।';
+
+  @override
+  String get locationOpenAppSettings => 'ऐप सेटिंग खोलें';
+
+  @override
+  String get locationNoMatchFound =>
+      'आस-पास कोई मेल खाता शहर नहीं मिला। कृपया मैन्युअल रूप से चुनें।';
+
+  @override
+  String get searchCityOrAreaHint => 'शहर या क्षेत्र खोजें';
+
+  @override
+  String get suggestionsLabel => 'सुझाव';
+
+  @override
+  String get locationPickerTitle => 'लोकेशन चुनें';
+
+  @override
+  String get locationPickerSearchHint => 'क्षेत्र, लोकैलिटी, शहर खोजें...';
+
+  @override
+  String get matchingCitiesLabel => 'मेल खाते शहर';
+
+  @override
+  String get noCitiesFound => 'कोई शहर नहीं मिला';
+
+  @override
+  String get searchRadiusLabel => 'खोज त्रिज्या';
+
+  @override
+  String distanceKmLabel(int distance) {
+    return '$distance किमी';
+  }
+
+  @override
+  String get currentLocationLabel => 'वर्तमान लोकेशन';
+
+  @override
+  String get locationDetailsFailed => 'लोकेशन विवरण नहीं मिल सका';
+
+  @override
+  String get selectLocationLabel => 'लोकेशन चुनें';
+
+  @override
+  String get locationSectionTitle => 'लोकेशन';
+
+  @override
+  String get getDirectionsLabel => 'दिशा-निर्देश प्राप्त करें';
+
+  @override
+  String get propertyFallbackLabel => 'प्रॉपर्टी';
+
+  @override
+  String distanceMeters(int distance) {
+    return '$distanceमी दूर';
+  }
+
+  @override
+  String distanceKmDecimal(String distance) {
+    return '$distanceकिमी दूर';
+  }
+
+  @override
+  String distanceKm(int distance) {
+    return '$distanceकिमी दूर';
+  }
 }

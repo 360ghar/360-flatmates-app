@@ -7,6 +7,8 @@ import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../chats/chats_repository.dart';
+import '../location/application/location_controller.dart';
+import '../location/presentation/location_picker_modal.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_search_bar.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
@@ -33,6 +35,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   final _likeDebouncer = ActionDebouncer(
     duration: const Duration(milliseconds: 500),
   );
+  final _locationRadiusDebouncer = ActionDebouncer();
 
   @override
   void initState() {
@@ -52,7 +55,53 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     _searchController.dispose();
     _scrollController.dispose();
     _likeDebouncer.dispose();
+    _locationRadiusDebouncer.dispose();
     super.dispose();
+  }
+
+  void _showLocationPicker(
+    BuildContext context, {
+    required String currentLocation,
+    required double currentRadiusKm,
+  }) {
+    var selectedRadiusKm = currentRadiusKm;
+    var didSelectLocation = false;
+
+    showLocationPickerModal(
+      context,
+      currentLocationName: currentLocation,
+      currentRadius: currentRadiusKm,
+      onRadiusChanged: (radiusKm) {
+        selectedRadiusKm = radiusKm;
+        _locationRadiusDebouncer.run(() {
+          if (!mounted || didSelectLocation) return;
+
+          final activeLocation = ref
+              .read(locationControllerProvider)
+              .selectedLocation;
+          if (activeLocation == null) return;
+
+          ref
+              .read(discoverFeedControllerProvider.notifier)
+              .updateLocationFilter(
+                latitude: activeLocation.latitude,
+                longitude: activeLocation.longitude,
+                radiusKm: radiusKm,
+              );
+        });
+      },
+      onLocationSelected: (location) {
+        didSelectLocation = true;
+        ref.read(locationControllerProvider.notifier).selectLocation(location);
+        ref
+            .read(discoverFeedControllerProvider.notifier)
+            .updateLocationFilter(
+              latitude: location.latitude,
+              longitude: location.longitude,
+              radiusKm: selectedRadiusKm,
+            );
+      },
+    );
   }
 
   @override
@@ -65,13 +114,21 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     final filtered = ref.watch(filteredListingsProvider(locale));
     final bedroomOptions = ref.watch(bedroomOptionsProvider);
     final featureOptions = ref.watch(featureOptionsProvider(locale));
+    final selectedLocation = ref.watch(
+      locationControllerProvider.select((state) => state.selectedLocation),
+    );
 
     final locality = profile?.locality?.trim();
     final city = profile?.city?.trim();
-    final currentLocation = [
+    final profileLocation = [
       if (locality != null && locality.isNotEmpty) locality,
       if (city != null && city.isNotEmpty) city,
     ].join(', ');
+    final currentLocation = selectedLocation?.displayText ?? profileLocation;
+    final counterLocation = selectedLocation?.displayText ?? city;
+    final currentRadiusKm =
+        feedState.filters.radiusKm ??
+        DiscoverFeedController.defaultLocationRadiusKm;
 
     return Scaffold(
       body: SafeArea(
@@ -84,7 +141,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                   controller: _scrollController,
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.xl,
-                    AppSpacing.screen,
+                    AppSpacing.lg,
                     AppSpacing.xl,
                     120,
                   ),
@@ -96,12 +153,21 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       location: currentLocation,
                       avatarUrl: profile?.profileImageUrl,
                       userName: profile?.fullName,
-                      cityCounterLabel: city == null || city.isEmpty
+                      cityCounterLabel:
+                          counterLocation == null || counterLocation.isEmpty
                           ? null
-                          : locale.cityCounter(filtered.length, city),
+                          : locale.cityCounter(
+                              filtered.length,
+                              counterLocation,
+                            ),
+                      onLocationTap: () => _showLocationPicker(
+                        context,
+                        currentLocation: currentLocation,
+                        currentRadiusKm: currentRadiusKm,
+                      ),
                       onNotificationTap: () => context.push('/notifications'),
                     ),
-                    const SizedBox(height: AppSpacing.screen),
+                    const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
                         Expanded(
@@ -127,7 +193,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                     DiscoverFilterChips(
                       bedroomOptions: bedroomOptions,
                       featureOptions: featureOptions,
-                      currentLocation: currentLocation,
                       selectedBedrooms: feedState.filters.bedrooms,
                       selectedFeature: feedState.filters.features.firstOrNull,
                       selectedVibe: feedState.filters.vibe,
@@ -169,7 +234,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                           : null,
                       onActionTap: () => context.push('/search-filters'),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppSpacing.md),
                     if (filtered.isEmpty && !feedState.isLoading)
                       FlatmatesEmptyState(
                         title: locale.homeNoResults,
@@ -178,13 +243,13 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       )
                     else
                       SizedBox(
-                        height: 370,
+                        height: 170,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount:
                               filtered.length +
                               (feedState.isLoadingMore ? 1 : 0),
-                          separatorBuilder: (_, _) => const SizedBox(width: 14),
+                          separatorBuilder: (_, _) => const SizedBox(width: 12),
                           itemBuilder: (context, index) {
                             if (index >= filtered.length) {
                               return const SizedBox(
@@ -203,10 +268,13 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                                     ? locale.badgeTrending
                                     : null,
                             };
+                            final cardWidth =
+                                MediaQuery.of(context).size.width -
+                                AppSpacing.xl * 2;
                             return StaggeredCardAppear(
                               index: index,
                               child: SizedBox(
-                                width: 300,
+                                width: cardWidth,
                                 child: DiscoverListingCard(
                                   item: item,
                                   badgeLabel: badgeLabel,
@@ -263,9 +331,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         ),
                       ),
                     if (city != null) ...[
-                      const SizedBox(height: AppSpacing.section),
+                      const SizedBox(height: AppSpacing.lg),
                       FlatmatesSectionHeader(title: locale.homeNewInCity(city)),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: AppSpacing.md),
                       NewInCitySection(
                         items: filtered,
                         onExplore: () => context.go('/map'),

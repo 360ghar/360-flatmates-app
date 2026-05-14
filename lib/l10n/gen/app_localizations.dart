@@ -266,6 +266,24 @@ abstract class AppLocalizations {
   /// **'Set your city and locality to personalize discovery.'**
   String get homeLocationFallback;
 
+  /// No description provided for @locationUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Location updated'**
+  String get locationUpdated;
+
+  /// No description provided for @locationPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is required to detect your city.'**
+  String get locationPermissionRequired;
+
+  /// No description provided for @locationDetectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not detect your location. Please select manually.'**
+  String get locationDetectionFailed;
+
   /// No description provided for @homeSearchHint.
   ///
   /// In en, this message translates to:
@@ -4765,6 +4783,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We\'re finding new matches for you! Check back later.'**
   String get swipeEmptyEndOfDeckSubtitle;
+
+  /// No description provided for @locationServicesDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are turned off. Please enable GPS/Location in your device settings.'**
+  String get locationServicesDisabled;
+
+  /// No description provided for @locationServicesDisabledAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get locationServicesDisabledAction;
+
+  /// No description provided for @locationPermissionDeniedForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission was denied. Please enable it in app settings.'**
+  String get locationPermissionDeniedForever;
+
+  /// No description provided for @locationOpenAppSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open App Settings'**
+  String get locationOpenAppSettings;
+
+  /// No description provided for @locationNoMatchFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find a matching city nearby. Please select manually.'**
+  String get locationNoMatchFound;
+
+  /// No description provided for @searchCityOrAreaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search city or area'**
+  String get searchCityOrAreaHint;
+
+  /// No description provided for @suggestionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SUGGESTIONS'**
+  String get suggestionsLabel;
+
+  /// No description provided for @locationPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Location'**
+  String get locationPickerTitle;
+
+  /// No description provided for @locationPickerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search area, locality, city...'**
+  String get locationPickerSearchHint;
+
+  /// No description provided for @matchingCitiesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCHING CITIES'**
+  String get matchingCitiesLabel;
+
+  /// No description provided for @noCitiesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No cities found'**
+  String get noCitiesFound;
+
+  /// No description provided for @searchRadiusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Radius'**
+  String get searchRadiusLabel;
+
+  /// No description provided for @distanceKmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} km'**
+  String distanceKmLabel(int distance);
+
+  /// No description provided for @currentLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Location'**
+  String get currentLocationLabel;
+
+  /// No description provided for @locationDetailsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get location details'**
+  String get locationDetailsFailed;
+
+  /// No description provided for @selectLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Location'**
+  String get selectLocationLabel;
+
+  /// No description provided for @locationSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get locationSectionTitle;
+
+  /// No description provided for @getDirectionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Directions'**
+  String get getDirectionsLabel;
+
+  /// No description provided for @propertyFallbackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Property'**
+  String get propertyFallbackLabel;
+
+  /// No description provided for @distanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance}m away'**
+  String distanceMeters(int distance);
+
+  /// No description provided for @distanceKmDecimal.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance}km away'**
+  String distanceKmDecimal(String distance);
+
+  /// No description provided for @distanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance}km away'**
+  String distanceKm(int distance);
 }
 
 class _AppLocalizationsDelegate

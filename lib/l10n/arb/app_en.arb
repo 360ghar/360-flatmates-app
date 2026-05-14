@@ -42,6 +42,9 @@
     }
   },
   "homeLocationFallback": "Set your city and locality to personalize discovery.",
+  "locationUpdated": "Location updated",
+  "locationPermissionRequired": "Location permission is required to detect your city.",
+  "locationDetectionFailed": "Could not detect your location. Please select manually.",
   "homeSearchHint": "Search by location, area or landmark",
   "homePickedForYou": "Picked for You",
   "homePickedSubtitle": "Top flats that match your preferences and vibe",
@@ -1168,5 +1171,55 @@
   "swipeEmptyAllFilteredTitle": "No profiles match your preferences",
   "swipeEmptyAllFilteredSubtitle": "Try adjusting your non-negotiables to see more profiles.",
   "swipeEmptyEndOfDeckTitle": "You've seen everyone for now",
-  "swipeEmptyEndOfDeckSubtitle": "We're finding new matches for you! Check back later."
+  "swipeEmptyEndOfDeckSubtitle": "We're finding new matches for you! Check back later.",
+  "locationServicesDisabled": "Location services are turned off. Please enable GPS/Location in your device settings.",
+  "locationServicesDisabledAction": "Open Settings",
+  "locationPermissionDeniedForever": "Location permission was denied. Please enable it in app settings.",
+  "locationOpenAppSettings": "Open App Settings",
+  "locationNoMatchFound": "Could not find a matching city nearby. Please select manually.",
+  "searchCityOrAreaHint": "Search city or area",
+  "suggestionsLabel": "SUGGESTIONS",
+  "locationPickerTitle": "Choose Location",
+  "locationPickerSearchHint": "Search area, locality, city...",
+  "matchingCitiesLabel": "MATCHING CITIES",
+  "noCitiesFound": "No cities found",
+  "searchRadiusLabel": "Search Radius",
+  "distanceKmLabel": "{distance} km",
+  "@distanceKmLabel": {
+    "placeholders": {
+      "distance": {
+        "type": "int"
+      }
+    }
+  },
+  "currentLocationLabel": "Current Location",
+  "locationDetailsFailed": "Could not get location details",
+  "selectLocationLabel": "Select Location",
+  "locationSectionTitle": "Location",
+  "getDirectionsLabel": "Get Directions",
+  "propertyFallbackLabel": "Property",
+  "distanceMeters": "{distance}m away",
+  "@distanceMeters": {
+    "placeholders": {
+      "distance": {
+        "type": "int"
+      }
+    }
+  },
+  "distanceKmDecimal": "{distance}km away",
+  "@distanceKmDecimal": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "distanceKm": "{distance}km away",
+  "@distanceKm": {
+    "placeholders": {
+      "distance": {
+        "type": "int"
+      }
+    }
+  }
 }

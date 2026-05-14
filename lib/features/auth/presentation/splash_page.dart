@@ -68,116 +68,129 @@ class _SplashPageState extends ConsumerState<SplashPage>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: AppSpacing.screen * 2),
-            // Logo — fade + slide up
-            _StaggeredFadeSlide(
-              animation: logoAnimation,
-              child: const FlatmatesLogo(centered: true),
-            ),
-            const SizedBox(height: AppSpacing.section),
-            // Tagline — Display 32sp Fraunces Regular (not bold)
-            _StaggeredFadeSlide(
-              animation: taglineAnimation,
-              child: Text(
-                locale.splashTagline,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.fraunces(
-                  fontWeight: AppTypography.displayWeight,
-                  fontSize: AppTypography.displaySize,
-                  height: AppTypography.displayHeight,
-                  letterSpacing: AppTypography.displayLetterSpacing,
-                  color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                ).copyWith(
-                  fontVariations: const [
-                    FontVariation('opsz', 144),
-                    FontVariation('SOFT', 50),
-                    FontVariation('WONK', 0),
-                  ],
-                ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: AppSpacing.screen * 2),
+              // Logo — fade + slide up
+              _StaggeredFadeSlide(
+                animation: logoAnimation,
+                child: const FlatmatesLogo(centered: true),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            // Sub-tagline — Body Large Inter
-            _StaggeredFadeSlide(
-              animation: subtaglineAnimation,
-              child: Text(
-                locale.splashSubtagline,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontWeight: AppTypography.bodyMediumWeight,
-                  fontSize: 15,
-                  height: 1.5,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                ),
-              ),
-            ),
-            const Spacer(flex: 2),
-            // Illustration — fade in
-            _StaggeredFadeSlide(
-              animation: illustrationAnimation,
-              child: Image.asset(
-                'assets/illustrations/splash_living_room.png',
-                fit: BoxFit.contain,
-                width: MediaQuery.of(context).size.width * 0.8,
-              ),
-            ),
-            const Spacer(flex: 1),
-            // Progress / error area
-            _StaggeredFadeSlide(
-              animation: progressAnimation,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                child: bootstrap.when(
-                  data: (_) => const _SplashProgress(),
-                  loading: () => const _SplashProgress(),
-                  error: (error, _) {
-                    final message = error is AppFailure
-                        ? error.userMessage(
-                            UserMessageL10n(
-                              errorNetwork: locale.errorNetwork,
-                              errorAuthExpired: locale.errorAuthExpired,
-                              errorServer: locale.errorServer,
-                              errorPermission: locale.errorPermission,
-                              errorNotFound: locale.errorNotFound,
-                              errorValidation: locale.errorValidation,
-                              errorRateLimit: locale.errorRateLimit,
-                              errorConflict: locale.errorConflict,
-                              errorUpload: locale.errorUpload,
-                              errorUnknown: locale.errorUnknown,
-                            ),
-                          )
-                        : locale.errorUnknown;
-                    return Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.screen + AppSpacing.lg,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            message,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppSemanticColors.error,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          FlatmatesButton(
-                            label: locale.commonRetry,
-                            onPressed: () => ref
-                                .read(bootstrapControllerProvider.notifier)
-                                .load(),
-                          ),
+              const SizedBox(height: AppSpacing.section),
+              // Tagline — Display 32sp Fraunces Regular (not bold)
+              _StaggeredFadeSlide(
+                animation: taglineAnimation,
+                child: Text(
+                  locale.splashTagline,
+                  textAlign: TextAlign.center,
+                  style:
+                      GoogleFonts.fraunces(
+                        fontWeight: AppTypography.displayWeight,
+                        fontSize: AppTypography.displaySize,
+                        height: AppTypography.displayHeight,
+                        letterSpacing: AppTypography.displayLetterSpacing,
+                        color: AppSemanticColors.textPrimaryFor(
+                          theme.brightness,
+                        ),
+                      ).copyWith(
+                        fontVariations: const [
+                          FontVariation('opsz', 144),
+                          FontVariation('SOFT', 50),
+                          FontVariation('WONK', 0),
                         ],
                       ),
-                    );
-                  },
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              // Sub-tagline — Body Large Inter
+              _StaggeredFadeSlide(
+                animation: subtaglineAnimation,
+                child: Text(
+                  locale.splashSubtagline,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontWeight: AppTypography.bodyMediumWeight,
+                    fontSize: 15,
+                    height: 1.5,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height < 560
+                    ? AppSpacing.lg
+                    : AppSpacing.section,
+              ),
+              // Illustration — fade in
+              _StaggeredFadeSlide(
+                animation: illustrationAnimation,
+                child: Image.asset(
+                  'assets/illustrations/splash_living_room.png',
+                  fit: BoxFit.contain,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height < 560
+                    ? AppSpacing.md
+                    : AppSpacing.section,
+              ),
+              // Progress / error area
+              _StaggeredFadeSlide(
+                animation: progressAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                  child: bootstrap.when(
+                    data: (_) => const _SplashProgress(),
+                    loading: () => const _SplashProgress(),
+                    error: (error, _) {
+                      final message = error is AppFailure
+                          ? error.userMessage(
+                              UserMessageL10n(
+                                errorNetwork: locale.errorNetwork,
+                                errorAuthExpired: locale.errorAuthExpired,
+                                errorServer: locale.errorServer,
+                                errorPermission: locale.errorPermission,
+                                errorNotFound: locale.errorNotFound,
+                                errorValidation: locale.errorValidation,
+                                errorRateLimit: locale.errorRateLimit,
+                                errorConflict: locale.errorConflict,
+                                errorUpload: locale.errorUpload,
+                                errorUnknown: locale.errorUnknown,
+                              ),
+                            )
+                          : locale.errorUnknown;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.screen + AppSpacing.lg,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              message,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppSemanticColors.error,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            FlatmatesButton(
+                              label: locale.commonRetry,
+                              onPressed: () => ref
+                                  .read(bootstrapControllerProvider.notifier)
+                                  .load(),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -186,10 +199,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
 /// Staggered fade-in + slide-up for splash elements.
 class _StaggeredFadeSlide extends StatelessWidget {
-  const _StaggeredFadeSlide({
-    required this.animation,
-    required this.child,
-  });
+  const _StaggeredFadeSlide({required this.animation, required this.child});
 
   final Animation<double> animation;
   final Widget child;
@@ -226,8 +236,7 @@ class _SplashProgress extends StatelessWidget {
           backgroundColor: AppSemanticColors.disabledSurfaceFor(
             Theme.of(context).brightness,
           ),
-          valueColor:
-              AlwaysStoppedAnimation<Color>(AppSemanticColors.accent),
+          valueColor: AlwaysStoppedAnimation<Color>(AppSemanticColors.accent),
         ),
       ),
     );

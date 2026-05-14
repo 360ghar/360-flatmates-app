@@ -8,6 +8,7 @@ import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../location/presentation/map_widgets.dart';
 import '../shared/presentation/components.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/flat_details_carousel.dart';
@@ -271,7 +272,27 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 22),
+                           const SizedBox(height: 22),
+
+                          if (listing.latitude != null &&
+                              listing.longitude != null) ...[
+                            FlatmatesSectionHeader(
+                              title: 'Location',
+                            ),
+                            const SizedBox(height: 8),
+                            MiniMapView(
+                              latitude: listing.latitude!,
+                              longitude: listing.longitude!,
+                              height: 220,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            GetDirectionsButton(
+                              latitude: listing.latitude!,
+                              longitude: listing.longitude!,
+                              label: listing.locality ?? listing.city ?? 'Property',
+                            ),
+                            const SizedBox(height: 22),
+                          ],
 
                           if (listing.isLive)
                             Wrap(
@@ -288,13 +309,13 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                 ),
                               ],
                             ),
-                          const SizedBox(height: 100), // space for bottom bar
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                          const SizedBox(height: 100),
+                         ],
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
 
               FlatmatesBottomActionBar(
                 primaryButtonKey: const Key('flat_contact_button'),

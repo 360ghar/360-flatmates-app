@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
+import 'package:flatmates_app/core/widgets/location_selector.dart';
 
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
@@ -37,45 +38,14 @@ class DiscoverHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(greeting, style: theme.textTheme.headlineLarge),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: onLocationTap,
-                behavior: HitTestBehavior.opaque,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 18,
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        location.isEmpty
-                            ? locale.homeLocationFallback
-                            : location,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: AppSemanticColors.textSecondaryFor(
-                            theme.brightness,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 18,
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                  ],
-                ),
+              Text(greeting, style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 4),
+              LocationSelector(
+                displayText: location.isEmpty ? null : location,
+                onTap: onLocationTap ?? () {},
               ),
               if (cityCounterLabel != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(
@@ -100,18 +70,14 @@ class DiscoverHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              key: const Key('discover_notifications_button'),
-              onPressed: onNotificationTap,
-              icon: const Icon(Icons.notifications_outlined),
-              tooltip: 'Notifications',
-            ),
-            FlatmatesAvatar(name: userName, imageUrl: avatarUrl, size: 52),
-          ],
+        IconButton.filledTonal(
+          key: const Key('discover_notifications_button'),
+          onPressed: onNotificationTap,
+          tooltip: locale.notificationsTooltip,
+          icon: const Icon(Icons.notifications_none_rounded),
         ),
+        const SizedBox(width: 8),
+        FlatmatesAvatar(name: userName, imageUrl: avatarUrl, size: 48),
       ],
     );
   }
