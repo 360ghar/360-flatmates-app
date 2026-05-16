@@ -41,7 +41,8 @@ class LocationSelector extends StatelessWidget {
               color: AppSemanticColors.accent,
             ),
             const SizedBox(width: AppSpacing.xs),
-            Flexible(
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
               child: Text(
                 displayText ?? locale.selectLocationLabel,
                 maxLines: 1,

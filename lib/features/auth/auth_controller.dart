@@ -71,7 +71,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   String _userSafeMessage(Object error) {
-    if (error is AppFailure) return 'Something went wrong. Please try again.';
+    if (error is AppFailure) return error.label;
     return 'Something went wrong';
   }
 

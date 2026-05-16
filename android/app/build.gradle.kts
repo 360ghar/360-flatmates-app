@@ -45,6 +45,7 @@ val releaseSigningRequested = keystorePropertiesFile.exists()
     || System.getenv("KEY_ALIAS") != null
     || System.getenv("KEY_PASSWORD") != null
     || System.getenv("KEYSTORE_PASSWORD") != null
+>>>>>>> origin/main
 val releaseSigningComplete = releaseKeyAlias.isNotBlank()
     && releaseKeyPassword.isNotBlank()
     && releaseStorePassword.isNotBlank()

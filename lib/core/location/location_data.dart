@@ -9,7 +9,7 @@ class LocationData {
     required this.longitude,
   });
 
-  String get displayText => name;
+  String get displayText => name.isNotEmpty ? name : 'Select Location';
 
   @override
   bool operator ==(Object other) =>
