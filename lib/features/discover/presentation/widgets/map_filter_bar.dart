@@ -53,7 +53,7 @@ class MapFilterBar extends StatelessWidget {
               label:
                   '₹${budgetMin.toStringAsFixed(0)}-₹${budgetMax.toStringAsFixed(0)}',
               variant: FlatmatesChipVariant.filter,
-              selected: true,
+              selected: budgetMin != 5000 || budgetMax != 100000,
               onSelected: (_) => _showBudgetDialog(context),
             ),
             const SizedBox(width: AppSpacing.sm),

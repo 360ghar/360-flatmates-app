@@ -248,6 +248,10 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                     ],
+                    _PostYourSpaceCard(
+                      onTap: () => context.push('/post/new'),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
                     _HomeSectionHeader(
                       title: locale.homePickedForYou,
                       actionLabel: filtered.length > 2
@@ -493,6 +497,77 @@ class _HomeSectionHeader extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _PostYourSpaceCard extends StatelessWidget {
+  const _PostYourSpaceCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+
+    return FlatmatesCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
+      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.08),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppSemanticColors.accent.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.add_home_outlined,
+              color: AppSemanticColors.accent,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.postListingTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  locale.postListingCta,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppSemanticColors.accent,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppSemanticColors.accent,
+            size: 20,
+          ),
+        ],
+      ),
     );
   }
 }

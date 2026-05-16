@@ -284,7 +284,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     ref.read(swipeDeckControllerProvider.notifier).markSwiped(item.id);
 
     setState(() {
-      _currentIndex++;
       _isExpanded = false;
     });
 

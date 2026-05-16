@@ -517,7 +517,16 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
 
     widget.onVideoUploadingChanged(true);
     final result = await service.uploadVideoTour(file);
-    widget.onVideoTourUrlChanged(result is UploadSuccess ? result.url : null);
+    if (result is UploadSuccess) {
+      widget.onVideoTourUrlChanged(result.url);
+    } else if (result is UploadFailure) {
+      widget.onVideoTourUrlChanged(null);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.reason)),
+        );
+      }
+    }
     widget.onVideoUploadingChanged(false);
   }
 }

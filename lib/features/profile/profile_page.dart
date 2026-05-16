@@ -197,6 +197,12 @@ class ProfilePage extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         FlatmatesMenuItem(
+                          icon: Icons.add_home_outlined,
+                          label: locale.profileMenuPostListing,
+                          onTap: () => context.push('/manage-listings'),
+                        ),
+                        const Divider(height: 1, indent: 68, endIndent: 16),
+                        FlatmatesMenuItem(
                           icon: Icons.calendar_month_outlined,
                           label: locale.profileMenuVisits,
                           onTap: () => context.push('/profile/visits'),

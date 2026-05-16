@@ -40,9 +40,9 @@ class DiscoverListingCard extends StatelessWidget {
     ];
 
     final genderSuffix = switch (item.genderPreference) {
-      'male' => '· M Only',
-      'female' => '· F Only',
-      _ => '· Any Gender',
+      'male' => locale.genderSuffixMaleOnly,
+      'female' => locale.genderSuffixFemaleOnly,
+      _ => locale.genderSuffixAny,
     };
     metaParts.add(genderSuffix);
 
@@ -69,7 +69,7 @@ class DiscoverListingCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'Available Now',
+              locale.availableNowLabel,
               style: TextStyle(
                 fontSize: 10,
                 color: Colors.green.shade700,
@@ -92,7 +92,9 @@ class DiscoverListingCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'From ${item.availableFrom!.day} $monthStr',
+              locale.availableFromShort(
+                '${item.availableFrom!.day} $monthStr',
+              ),
               style: TextStyle(
                 fontSize: 10,
                 color: Colors.orange.shade700,
@@ -115,7 +117,7 @@ class DiscoverListingCard extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'Available',
+            locale.availableLabel,
             style: TextStyle(
               fontSize: 10,
               color: Colors.green.shade700,
@@ -158,7 +160,7 @@ class DiscoverListingCard extends StatelessWidget {
                   if (item.owner?.fullName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'by ${item.owner!.fullName}',
+                      locale.byOwnerLabel(item.owner!.fullName),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 11,
                         color: AppSemanticColors.textSecondaryFor(theme.brightness),

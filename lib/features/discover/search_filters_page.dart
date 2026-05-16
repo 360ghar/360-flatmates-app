@@ -29,6 +29,7 @@ class SearchFiltersPage extends ConsumerStatefulWidget {
 
 class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
   final _searchController = TextEditingController();
+  bool _initialized = false;
 
   static const double _budgetMin = 5000;
   static const double _budgetMax = 100000;
@@ -276,6 +277,31 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_initialized) {
+      _initialized = true;
+      final existing = ref.read(discoverFiltersProvider);
+      if (existing != null) {
+        _budgetValues = RangeValues(
+          existing.priceMin ?? _budgetMin,
+          existing.priceMax ?? _budgetMax,
+        );
+        _selectedRoomType = switch (existing.sharingType) {
+          'private_room' => 'private',
+          'shared_room' => 'shared',
+          _ => existing.sharingType,
+        };
+        _selectedFurnishing =
+            existing.features.isNotEmpty ? existing.features.first : null;
+        _selectedGender = existing.genderPreference;
+        _selectedMoveIn = existing.moveInTimeline;
+        _selectedPets = existing.pets;
+        _selectedSmoking = existing.smoking;
+        if (existing.query != null && existing.query!.isNotEmpty) {
+          _searchController.text = existing.query!;
+        }
+      }
+    }
+
     final locale = AppLocalizations.of(context);
     final listings = ref.watch(discoverListingsProvider);
     final activeFilters = _activeFilters;

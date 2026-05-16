@@ -128,7 +128,7 @@ void showClusterSheet(
                           top: 2,
                         ),
                         child: Text(
-                          'by ${item.owner!.fullName}',
+                          locale.byOwnerLabel(item.owner!.fullName),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppSemanticColors.textSecondaryFor(
                               theme.brightness,
@@ -204,7 +204,7 @@ void showListingSheet(
                     ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    'by ${item.owner!.fullName}',
+                    locale.byOwnerLabel(item.owner!.fullName),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(
                         theme.brightness,
@@ -238,8 +238,10 @@ void showListingSheet(
                   const SizedBox(width: AppSpacing.sm),
                   Text(
                     !item.availableFrom!.isAfter(now)
-                        ? 'Available Now'
-                        : 'Available from ${DateFormat.yMMMd().format(item.availableFrom!)}',
+                        ? locale.availableNowLabel
+                        : locale.availableFromFull(
+                            DateFormat.yMMMd().format(item.availableFrom!),
+                          ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(
                         theme.brightness,
@@ -287,7 +289,7 @@ void showListingSheet(
                 if (item.isFurnished)
                   FlatmatesChip(
                     icon: Icons.chair_outlined,
-                    label: 'Furnished',
+                    label: locale.featureFurnished,
                     variant: FlatmatesChipVariant.info,
                   ),
               ],

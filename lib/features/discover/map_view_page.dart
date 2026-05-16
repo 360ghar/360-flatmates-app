@@ -361,7 +361,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   void _fitBoundsToMarkers() {
     if (_previousListings == null || _previousListings!.isEmpty) return;
-    final points = _previousListings!
+    final filtered = _applyFilters(_previousListings!);
+    final points = filtered
         .where((item) => item.latitude != null && item.longitude != null)
         .map((item) => LatLng(item.latitude!, item.longitude!))
         .toList();

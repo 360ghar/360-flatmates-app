@@ -258,6 +258,7 @@
   "availableFromUnset": "मूव-इन उपलब्धता चुनें",
   "selectDateCta": "तारीख चुनें",
   "postListingTitle": "अपना स्पेस पोस्ट करें",
+  "postListingCta": "कुछ ही मिनटों में अपना स्पेस लिस्ट करें",
   "postListingSubtitle": "मौजूदा 360 Ghar इन्वेंटरी बैकएंड का उपयोग करके असली फ्लैटमेट लिस्टिंग बनाएं।",
   "postListingBasics": "बेसिक्स",
   "postListingPricing": "प्राइसिंग",
@@ -1261,5 +1262,26 @@
         "type": "int"
       }
     }
-  }
+  },
+  "availableNowLabel": "अभी उपलब्ध",
+  "availableLabel": "उपलब्ध",
+  "availableFromShort": "{date} से",
+  "@availableFromShort": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "availableFromFull": "{date} से उपलब्ध",
+  "@availableFromFull": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "genderSuffixMaleOnly": "केवल पुरुष",
+  "genderSuffixFemaleOnly": "केवल महिला",
+  "genderSuffixAny": "कोई भी जेंडर"
 }

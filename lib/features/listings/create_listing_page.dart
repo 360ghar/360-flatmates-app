@@ -186,6 +186,12 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
             _roomPhotoUrls.add(result.url);
             _showPhotosValidation = false;
           });
+        } else if (result is UploadFailure) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.reason)),
+          );
+          break;
         }
       }
     } catch (e) {

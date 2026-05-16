@@ -624,10 +624,8 @@ class _CompactMatchChip extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: TextStyle(
-              color: isDark
-                  ? AppSemanticColors.greenInk
-                  : AppSemanticColors.greenInk,
+            style: const TextStyle(
+              color: AppSemanticColors.greenInk,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),

@@ -72,8 +72,8 @@ class FlatmatesNetworkImage extends ConsumerWidget {
         fallbackName: fallbackName,
       ),
       fadeInDuration: const Duration(milliseconds: 200),
-      memCacheWidth: width != null ? (width! * 2).toInt() : null,
-      memCacheHeight: height != null ? (height! * 2).toInt() : null,
+      memCacheWidth: width != null && width!.isFinite ? (width! * 2).toInt() : null,
+      memCacheHeight: height != null && height!.isFinite ? (height! * 2).toInt() : null,
     );
 
     Widget child = image;

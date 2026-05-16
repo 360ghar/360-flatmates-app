@@ -98,46 +98,51 @@ class ImageUploadService {
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'profile-photos', onProgress: onProgress);
+    return _upload(file, 'profile', onProgress: onProgress);
   }
 
   Future<UploadResult> uploadListingPhoto(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'listing-photos', onProgress: onProgress);
+    return _upload(file, 'listings', onProgress: onProgress);
   }
 
   Future<UploadResult> uploadChatPhoto(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'chat-photos', onProgress: onProgress);
+    return _upload(file, 'chats', onProgress: onProgress);
   }
 
   Future<UploadResult> uploadVideoTour(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'listing-videos', onProgress: onProgress);
+    return _upload(file, 'listings', onProgress: onProgress);
   }
+
+  static const _bucket = '360ghar-storage';
 
   Future<UploadResult> _upload(
     File file,
-    String bucket, {
+    String folder, {
     UploadProgressCallback? onProgress,
   }) async {
     final supabase = Supabase.instance.client;
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) {
+      return const UploadFailure(reason: 'Not authenticated — please log in again.');
+    }
 
-    // Generate a unique, collision-resistant filename.
     final ext = file.path.split('.').last;
     final safeExt = ext.isEmpty ? 'jpg' : ext;
     final name =
-        '${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(999999)}.$safeExt';
+        'users/$uid/$folder/${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(999999)}.$safeExt';
 
     try {
-      await supabase.storage.from(bucket).upload(name, file);
-      final url = supabase.storage.from(bucket).getPublicUrl(name);
+      await supabase.storage.from(_bucket).upload(name, file);
+      final url = await supabase.storage.from(_bucket).createSignedUrl(name, 315360000);
       return UploadSuccess(url);
     } on StorageException catch (e) {
       return UploadFailure(

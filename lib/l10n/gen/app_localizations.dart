@@ -1058,6 +1058,12 @@ abstract class AppLocalizations {
   /// **'Post your space'**
   String get postListingTitle;
 
+  /// No description provided for @postListingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'List your space in minutes'**
+  String get postListingCta;
+
   /// No description provided for @postListingSubtitle.
   ///
   /// In en, this message translates to:
@@ -5029,6 +5035,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{distance}km away'**
   String distanceKm(int distance);
+
+  /// No description provided for @availableNowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Now'**
+  String get availableNowLabel;
+
+  /// No description provided for @availableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availableLabel;
+
+  /// No description provided for @availableFromShort.
+  ///
+  /// In en, this message translates to:
+  /// **'From {date}'**
+  String availableFromShort(String date);
+
+  /// No description provided for @availableFromFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Available from {date}'**
+  String availableFromFull(String date);
+
+  /// No description provided for @genderSuffixMaleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'M Only'**
+  String get genderSuffixMaleOnly;
+
+  /// No description provided for @genderSuffixFemaleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'F Only'**
+  String get genderSuffixFemaleOnly;
+
+  /// No description provided for @genderSuffixAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any Gender'**
+  String get genderSuffixAny;
 }
 
 class _AppLocalizationsDelegate

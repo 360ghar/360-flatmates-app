@@ -24,6 +24,7 @@ import '../../features/discover/map_view_page.dart';
 import '../../features/discover/search_filters_page.dart';
 import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
+import '../../features/listings/manage_listing_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_page.dart';
 import '../../features/onboarding/waitlist_page.dart';
@@ -80,6 +81,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location.startsWith('/chats/') ||
           location.startsWith('/flat-details/') ||
           location.startsWith('/listing-review/') ||
+          location.startsWith('/manage-listings') ||
           location == '/notifications' ||
           location == '/schedule-visit' ||
           location == '/search-filters' ||
@@ -290,6 +292,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => CreateListingPage(
           listingId: int.tryParse(state.uri.queryParameters['listingId'] ?? ''),
         ),
+      ),
+      GoRoute(
+        path: '/manage-listings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageListingPage(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

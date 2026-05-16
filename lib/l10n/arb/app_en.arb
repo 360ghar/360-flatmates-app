@@ -258,6 +258,7 @@
   "availableFromUnset": "Select move-in availability",
   "selectDateCta": "Select date",
   "postListingTitle": "Post your space",
+  "postListingCta": "List your space in minutes",
   "postListingSubtitle": "Create a real flatmate listing using the existing 360 Ghar inventory backend.",
   "postListingBasics": "Basics",
   "postListingPricing": "Pricing",
@@ -1261,5 +1262,26 @@
         "type": "int"
       }
     }
-  }
+  },
+  "availableNowLabel": "Available Now",
+  "availableLabel": "Available",
+  "availableFromShort": "From {date}",
+  "@availableFromShort": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "availableFromFull": "Available from {date}",
+  "@availableFromFull": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "genderSuffixMaleOnly": "M Only",
+  "genderSuffixFemaleOnly": "F Only",
+  "genderSuffixAny": "Any Gender"
 }

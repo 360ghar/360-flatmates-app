@@ -526,6 +526,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get postListingTitle => 'अपना स्पेस पोस्ट करें';
 
   @override
+  String get postListingCta => 'कुछ ही मिनटों में अपना स्पेस लिस्ट करें';
+
+  @override
   String get postListingSubtitle =>
       'मौजूदा 360 Ghar इन्वेंटरी बैकएंड का उपयोग करके असली फ्लैटमेट लिस्टिंग बनाएं।';
 
@@ -2665,4 +2668,29 @@ class AppLocalizationsHi extends AppLocalizations {
   String distanceKm(int distance) {
     return '$distanceकिमी दूर';
   }
+
+  @override
+  String get availableNowLabel => 'अभी उपलब्ध';
+
+  @override
+  String get availableLabel => 'उपलब्ध';
+
+  @override
+  String availableFromShort(String date) {
+    return '$date से';
+  }
+
+  @override
+  String availableFromFull(String date) {
+    return '$date से उपलब्ध';
+  }
+
+  @override
+  String get genderSuffixMaleOnly => 'केवल पुरुष';
+
+  @override
+  String get genderSuffixFemaleOnly => 'केवल महिला';
+
+  @override
+  String get genderSuffixAny => 'कोई भी जेंडर';
 }

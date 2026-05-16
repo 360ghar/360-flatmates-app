@@ -526,6 +526,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postListingTitle => 'Post your space';
 
   @override
+  String get postListingCta => 'List your space in minutes';
+
+  @override
   String get postListingSubtitle =>
       'Create a real flatmate listing using the existing 360 Ghar inventory backend.';
 
@@ -2651,4 +2654,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String distanceKm(int distance) {
     return '${distance}km away';
   }
+
+  @override
+  String get availableNowLabel => 'Available Now';
+
+  @override
+  String get availableLabel => 'Available';
+
+  @override
+  String availableFromShort(String date) {
+    return 'From $date';
+  }
+
+  @override
+  String availableFromFull(String date) {
+    return 'Available from $date';
+  }
+
+  @override
+  String get genderSuffixMaleOnly => 'M Only';
+
+  @override
+  String get genderSuffixFemaleOnly => 'F Only';
+
+  @override
+  String get genderSuffixAny => 'Any Gender';
 }
