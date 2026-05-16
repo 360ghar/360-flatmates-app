@@ -257,8 +257,32 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Hi, {name}'**
+  /// **'Good afternoon, {name}'**
   String homeGreeting(String name);
+
+  /// No description provided for @homeGuestName.
+  ///
+  /// In en, this message translates to:
+  /// **'there'**
+  String get homeGuestName;
+
+  /// No description provided for @homeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your next flatmate in {city}'**
+  String homeSubtitle(String city);
+
+  /// No description provided for @homeMarketInsight.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} verified people are actively looking nearby'**
+  String homeMarketInsight(int count);
+
+  /// No description provided for @homeMarketInsightCta.
+  ///
+  /// In en, this message translates to:
+  /// **'View active seekers'**
+  String get homeMarketInsightCta;
 
   /// No description provided for @homeLocationFallback.
   ///
@@ -287,13 +311,19 @@ abstract class AppLocalizations {
   /// No description provided for @homeSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search by name, budget or features'**
+  /// **'Search area, budget, flatmate...'**
   String get homeSearchHint;
+
+  /// No description provided for @searchMapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search location, sector, society...'**
+  String get searchMapHint;
 
   /// No description provided for @homePickedForYou.
   ///
   /// In en, this message translates to:
-  /// **'Picked for You'**
+  /// **'Best matches for you'**
   String get homePickedForYou;
 
   /// No description provided for @homePickedSubtitle.
@@ -401,19 +431,19 @@ abstract class AppLocalizations {
   /// No description provided for @likesChatTitle.
   ///
   /// In en, this message translates to:
-  /// **'Likes & Chat'**
+  /// **'Inbox'**
   String get likesChatTitle;
 
   /// No description provided for @likesTabLabel.
   ///
   /// In en, this message translates to:
-  /// **'Likes'**
+  /// **'Likes You'**
   String get likesTabLabel;
 
   /// No description provided for @likedTabLabel.
   ///
   /// In en, this message translates to:
-  /// **'Liked'**
+  /// **'You Liked'**
   String get likedTabLabel;
 
   /// No description provided for @chatsTabLabel.
@@ -425,7 +455,7 @@ abstract class AppLocalizations {
   /// No description provided for @likesIncomingLabel.
   ///
   /// In en, this message translates to:
-  /// **'This connection is ready for a first message.'**
+  /// **'You matched. Start the conversation.'**
   String get likesIncomingLabel;
 
   /// No description provided for @emptyLikes.
@@ -491,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetyFirstSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We verify profiles to keep the community safer.'**
+  /// **'Visit the room before paying.'**
   String get safetyFirstSubtitle;
 
   /// No description provided for @scheduleTitle.
@@ -545,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @profilePageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Profile'**
+  /// **'Me'**
   String get profilePageTitle;
 
   /// No description provided for @profileTitle.
@@ -553,6 +583,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile & Settings'**
   String get profileTitle;
+
+  /// No description provided for @profileStrengthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile strength: {percent}%'**
+  String profileStrengthTitle(int percent);
+
+  /// No description provided for @profileStrengthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete 2 steps to get 3x more responses'**
+  String get profileStrengthSubtitle;
+
+  /// No description provided for @completeProfileCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete profile'**
+  String get completeProfileCta;
+
+  /// No description provided for @discoverySectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery'**
+  String get discoverySectionLabel;
+
+  /// No description provided for @trustSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust'**
+  String get trustSectionLabel;
+
+  /// No description provided for @accountSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountSectionLabel;
 
   /// No description provided for @profileFallbackName.
   ///
@@ -713,25 +779,25 @@ abstract class AppLocalizations {
   /// No description provided for @modeRoomPoster.
   ///
   /// In en, this message translates to:
-  /// **'Room Poster'**
+  /// **'Has a room'**
   String get modeRoomPoster;
 
   /// No description provided for @modeSeeker.
   ///
   /// In en, this message translates to:
-  /// **'Seeker'**
+  /// **'Looking for a room'**
   String get modeSeeker;
 
   /// No description provided for @modeCoHunter.
   ///
   /// In en, this message translates to:
-  /// **'Co-Hunter'**
+  /// **'Looking together'**
   String get modeCoHunter;
 
   /// No description provided for @modeOpenToBoth.
   ///
   /// In en, this message translates to:
-  /// **'Open to Both'**
+  /// **'Looking for room + flatmate'**
   String get modeOpenToBoth;
 
   /// No description provided for @cityLabel.
@@ -1079,7 +1145,7 @@ abstract class AppLocalizations {
   /// No description provided for @navLikesChat.
   ///
   /// In en, this message translates to:
-  /// **'Likes & Chat'**
+  /// **'Inbox'**
   String get navLikesChat;
 
   /// No description provided for @navSchedule.
@@ -1097,13 +1163,13 @@ abstract class AppLocalizations {
   /// No description provided for @navExplore.
   ///
   /// In en, this message translates to:
-  /// **'Explore'**
+  /// **'Search'**
   String get navExplore;
 
   /// No description provided for @navProfile.
   ///
   /// In en, this message translates to:
-  /// **'Profile'**
+  /// **'Me'**
   String get navProfile;
 
   /// No description provided for @navVisits.
@@ -1643,8 +1709,14 @@ abstract class AppLocalizations {
   /// No description provided for @tapToSeeMore.
   ///
   /// In en, this message translates to:
-  /// **'Tap to see more'**
+  /// **'View full profile'**
   String get tapToSeeMore;
+
+  /// No description provided for @whyThisMatchWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'WHY THIS MATCH WORKS'**
+  String get whyThisMatchWorks;
 
   /// No description provided for @tapToCollapse.
   ///
@@ -2567,14 +2639,38 @@ abstract class AppLocalizations {
   /// No description provided for @superLikeCapLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} Super Likes left today'**
+  /// **'{count} Super Likes left'**
   String superLikeCapLabel(int count);
 
   /// No description provided for @swipeCounterLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} swipes remaining today'**
+  /// **'{count} swipes left today'**
   String swipeCounterLabel(int count);
+
+  /// No description provided for @passActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get passActionLabel;
+
+  /// No description provided for @superLikeActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Super Like'**
+  String get superLikeActionLabel;
+
+  /// No description provided for @likeActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get likeActionLabel;
+
+  /// No description provided for @photoPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo pending'**
+  String get photoPendingLabel;
 
   /// No description provided for @readReceiptSent.
   ///
@@ -4313,19 +4409,19 @@ abstract class AppLocalizations {
   /// No description provided for @keepSwipingToFindMatches.
   ///
   /// In en, this message translates to:
-  /// **'Keep swiping to find matches'**
+  /// **'Complete your profile to get more visibility.'**
   String get keepSwipingToFindMatches;
 
   /// No description provided for @noConversations.
   ///
   /// In en, this message translates to:
-  /// **'No conversations'**
+  /// **'No chats yet'**
   String get noConversations;
 
   /// No description provided for @startChatWithMatch.
   ///
   /// In en, this message translates to:
-  /// **'Start a chat with a match'**
+  /// **'Like a few profiles to start conversations.'**
   String get startChatWithMatch;
 
   /// No description provided for @matchAction.

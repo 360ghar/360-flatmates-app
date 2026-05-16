@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../core/theme/app_radius.dart';
 import '../core/theme/app_semantic_colors.dart';
 import '../l10n/gen/app_localizations.dart';
-import '../features/bootstrap/bootstrap_controller.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({required this.navigationShell, super.key});
@@ -18,17 +17,9 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    // CRITICAL FIX: Use select so AppShell only rebuilds when mode changes,
-    // not on every bootstrap async lifecycle event.
-    final mode = ref.watch(
-          bootstrapControllerProvider.select(
-            (v) => v.valueOrNull?.profile.mode,
-          ),
-        ) ??
-        'co_hunter';
     final isDark = theme.brightness == Brightness.dark;
 
-    final destinations = _buildDestinations(mode, locale);
+    final destinations = _buildDestinations(locale);
 
     return Scaffold(
       body: navigationShell,
@@ -54,22 +45,19 @@ class AppShell extends ConsumerWidget {
               top: false,
               child: NavigationBar(
                 height: 76,
-                selectedIndex: _mapToVisibleIndex(
-                  navigationShell.currentIndex,
-                  mode,
-                ),
+                selectedIndex: _mapToVisibleIndex(navigationShell.currentIndex),
                 onDestinationSelected: (index) {
-                  final branchIndex = _mapToBranchIndex(index, mode);
+                  final branchIndex = _mapToBranchIndex(index);
                   navigationShell.goBranch(branchIndex);
                 },
-                labelBehavior:
-                    NavigationDestinationLabelBehavior.alwaysShow,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-                indicatorColor:
-                    AppSemanticColors.accent.withValues(alpha: 0.14),
+                indicatorColor: AppSemanticColors.accent.withValues(
+                  alpha: 0.14,
+                ),
                 indicatorShape: const RoundedRectangleBorder(
                   borderRadius: AppRadius.smBorder,
                 ),
@@ -86,34 +74,18 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  List<NavigationDestination> _buildDestinations(
-    String mode,
-    AppLocalizations locale,
-  ) {
-    final isRoomPoster = mode.trim().toLowerCase() == 'room_poster';
-
+  List<NavigationDestination> _buildDestinations(AppLocalizations locale) {
     return [
       NavigationDestination(
         icon: _navIcon('nav_home_tab', Icons.home_outlined),
         selectedIcon: _navIcon('nav_home_tab_selected', Icons.home_rounded),
         label: locale.navHome,
       ),
-      if (isRoomPoster)
-        NavigationDestination(
-          icon: _navIcon('nav_post_tab', Icons.add_home_outlined),
-          selectedIcon: _navIcon(
-            'nav_post_tab_selected',
-            Icons.add_home_rounded,
-          ),
-          label: locale.navPost,
-        )
-      else
-        NavigationDestination(
-          icon: _navIcon('nav_explore_tab', Icons.map_outlined),
-          selectedIcon:
-              _navIcon('nav_explore_tab_selected', Icons.map_rounded),
-          label: locale.navExplore,
-        ),
+      NavigationDestination(
+        icon: _navIcon('nav_search_tab', Icons.search_rounded),
+        selectedIcon: _navIcon('nav_search_tab_selected', Icons.search_rounded),
+        label: locale.navExplore,
+      ),
       NavigationDestination(
         icon: _navIcon('nav_swipe_tab', Icons.swap_horiz_rounded),
         selectedIcon: _navIcon(
@@ -123,19 +95,16 @@ class AppShell extends ConsumerWidget {
         label: locale.navSwipe,
       ),
       NavigationDestination(
-        icon: _navIcon('nav_likes_chat_tab', Icons.favorite_border_rounded),
+        icon: _navIcon('nav_inbox_tab', Icons.markunread_outlined),
         selectedIcon: _navIcon(
-          'nav_likes_chat_tab_selected',
-          Icons.favorite_rounded,
+          'nav_inbox_tab_selected',
+          Icons.markunread_rounded,
         ),
         label: locale.navLikesChat,
       ),
       NavigationDestination(
-        icon: _navIcon('nav_profile_tab', Icons.person_outline),
-        selectedIcon: _navIcon(
-          'nav_profile_tab_selected',
-          Icons.person_rounded,
-        ),
+        icon: _navIcon('nav_me_tab', Icons.person_outline),
+        selectedIcon: _navIcon('nav_me_tab_selected', Icons.person_rounded),
         label: locale.navProfile,
       ),
     ];
@@ -144,18 +113,15 @@ class AppShell extends ConsumerWidget {
   /// CRITICAL FIX: Removed ValueKey recreation that reset animation state.
   /// Semantics.identifier is sufficient for Maestro testing.
   Widget _navIcon(String identifier, IconData icon) {
-    return Semantics(
-      identifier: identifier,
-      child: Icon(icon),
-    );
+    return Semantics(identifier: identifier, child: Icon(icon));
   }
 
-  int _mapToBranchIndex(int visibleIndex, String mode) {
+  int _mapToBranchIndex(int visibleIndex) {
     if (visibleIndex < 0 || visibleIndex > 4) return 0;
     return visibleIndex;
   }
 
-  int _mapToVisibleIndex(int branchIndex, String mode) {
+  int _mapToVisibleIndex(int branchIndex) {
     if (branchIndex < 0 || branchIndex > 4) return 0;
     return branchIndex;
   }

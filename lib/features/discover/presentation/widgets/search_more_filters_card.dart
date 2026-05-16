@@ -3,10 +3,8 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
-import '../../../shared/presentation/flatmates_card.dart';
 import 'search_filter_widgets.dart';
 
-/// The "More filters" card containing Pets and Smoking options.
 class MoreFiltersCard extends StatelessWidget {
   const MoreFiltersCard({
     required this.selectedPets,
@@ -22,58 +20,99 @@ class MoreFiltersCard extends StatelessWidget {
   final void Function(String?) onPetsChanged;
   final void Function(String?) onSmokingChanged;
   final List<({String id, String label})> Function(String, List<String>)
-  catalogOrFallback;
+      catalogOrFallback;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return FlatmatesCard(
-      padding: EdgeInsets.zero,
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: ExpansionTile(
-        title: Row(
-          children: [
-            const Icon(Icons.more_horiz_rounded, size: 16),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              locale.moreFiltersLabel,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm + AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: isDark ? AppSemanticColors.darkSurface : AppSemanticColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppSemanticColors.line.withValues(alpha: 0.5),
+          width: 1,
         ),
-        subtitle:
-            [
-              _petsSubtitle(locale),
-              _smokingSubtitle(locale),
-            ].where((s) => s != null).isNotEmpty
-            ? Text(
-                [
-                  _petsSubtitle(locale),
-                  _smokingSubtitle(locale),
-                ].where((s) => s != null).join(' · '),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 12,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                ),
-              )
-            : null,
-        initiallyExpanded: false,
-        shape: const RoundedRectangleBorder(),
-        collapsedShape: const RoundedRectangleBorder(),
-        childrenPadding: const EdgeInsets.only(bottom: 14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x061F1A14),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Pets
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppSemanticColors.tealSoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.tune_rounded,
+                    size: 16,
+                    color: AppSemanticColors.tealMid,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
+                Text(
+                  locale.moreFiltersLabel,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(
+            height: 1,
+            indent: AppSpacing.lg,
+            endIndent: AppSpacing.lg,
+            color: AppSemanticColors.line,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(locale.petsLabel, style: theme.textTheme.bodyLarge),
-                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.pets_outlined,
+                      size: 16,
+                      color: AppSemanticColors.orangeMid,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      locale.petsLabel,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 CatalogFilterChips(
                   options: catalogOrFallback('flatmates_pets_options', [
                     'no_preference',
@@ -85,44 +124,40 @@ class MoreFiltersCard extends StatelessWidget {
                   onSelected: (id) =>
                       onPetsChanged(id == 'no_preference' ? null : id),
                 ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.smoke_free_outlined,
+                      size: 16,
+                      color: AppSemanticColors.purpleMid,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      locale.smokingLabel,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                CatalogFilterChips(
+                  options: catalogOrFallback('flatmates_smoking_options', [
+                    'no_preference',
+                    'no',
+                    'yes',
+                  ]),
+                  selectedId: selectedSmoking ?? 'no_preference',
+                  anyKey: 'no_preference',
+                  onSelected: (id) =>
+                      onSmokingChanged(id == 'no_preference' ? null : id),
+                ),
               ],
             ),
-          ),
-          // Smoking
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(locale.smokingLabel, style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 8),
-              CatalogFilterChips(
-                options: catalogOrFallback('flatmates_smoking_options', [
-                  'no_preference',
-                  'no',
-                  'yes',
-                ]),
-                selectedId: selectedSmoking ?? 'no_preference',
-                anyKey: 'no_preference',
-                onSelected: (id) =>
-                    onSmokingChanged(id == 'no_preference' ? null : id),
-              ),
-            ],
           ),
         ],
       ),
     );
-  }
-
-  String? _petsSubtitle(AppLocalizations locale) {
-    if (selectedPets == null) return locale.petsNoPreference;
-    if (selectedPets == 'yes') return locale.petsYes;
-    if (selectedPets == 'no') return locale.petsNo;
-    return null;
-  }
-
-  String? _smokingSubtitle(AppLocalizations locale) {
-    if (selectedSmoking == null) return locale.smokingNoPreference;
-    if (selectedSmoking == 'yes') return locale.smokingYes;
-    if (selectedSmoking == 'no') return locale.smokingNo;
-    return null;
   }
 }

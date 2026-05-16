@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
@@ -29,29 +30,17 @@ class SearchFiltersPage extends ConsumerStatefulWidget {
 class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
   final _searchController = TextEditingController();
 
-  // Budget filter
   static const double _budgetMin = 5000;
   static const double _budgetMax = 100000;
   RangeValues _budgetValues = const RangeValues(5000, 50000);
 
-  // Room type filter: null = Any
-  String? _selectedRoomType; // 'private' | 'shared' | null
+  String? _selectedRoomType;
+  String? _selectedFurnishing;
+  String? _selectedGender;
+  String? _selectedMoveIn;
+  String? _selectedPets;
+  String? _selectedSmoking;
 
-  // Furnishing filter: null = Any
-  String? _selectedFurnishing; // 'furnished' | 'unfurnished' | null
-
-  // Gender filter: null = Any
-  String? _selectedGender; // 'male' | 'female' | null
-
-  // Move-in filter: null = Anytime
-  String? _selectedMoveIn; // 'immediate' | 'this_month' | 'next_month' | null
-
-  // More filters
-  String? _selectedPets; // 'yes' | 'no' | null (null = no preference)
-  String? _selectedSmoking; // 'yes' | 'no' | null (null = no preference)
-
-  /// Resolve a catalog's options as a list of (id, label) pairs.
-  /// Falls back to hardcoded keys with localized labels when catalog is empty.
   List<({String id, String label})> _catalogOrFallback(
     String catalogKey,
     List<String> fallbackIds,
@@ -64,13 +53,11 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
           .map((opt) => (id: opt.id, label: opt.label))
           .toList();
     }
-    // Build fallback with localized labels
     return fallbackIds
         .map((id) => (id: id, label: _localizedLabel(locale, catalogKey, id)))
         .toList();
   }
 
-  /// Resolve localized label for fallback filter option keys.
   String _localizedLabel(
     AppLocalizations locale,
     String catalogKey,
@@ -211,7 +198,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
     };
   }
 
-  /// Returns a list of (label, onRemove) pairs for all active filters.
   List<({String label, VoidCallback onRemove})> get _activeFilters {
     return [
       if (_budgetValues.start != _budgetMin || _budgetValues.end != _budgetMax)
@@ -314,25 +300,19 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screen,
-                      AppSpacing.md,
-                      AppSpacing.screen,
                       AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      AppSpacing.xl,
                     ),
                     children: [
-                      // Search bar
                       FlatmatesSearchBar(
                         controller: _searchController,
                         hint: locale.homeSearchHint,
                         trailingIcon: Icons.search_rounded,
                       ),
-
-                      // Selected filter summary (removable chips)
                       ActiveFilterChips(filters: activeFilters),
-
                       const SizedBox(height: AppSpacing.lg),
-
-                      // Budget filter
                       BudgetFilterCard(
                         budgetValues: _budgetValues,
                         budgetMin: _budgetMin,
@@ -341,12 +321,12 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                             setState(() => _budgetValues = values),
                         formatBudget: _formatBudget,
                       ),
-
-                      // Room Type filter
                       FilterSectionCard(
                         title: locale.roomTypeFilterLabel,
                         subtitle: _roomTypeSubtitle(),
                         icon: Icons.bed_outlined,
+                        iconColor: AppSemanticColors.blueMid,
+                        iconBgColor: AppSemanticColors.blueSoft,
                         child: CatalogFilterChips(
                           options: _catalogOrFallback('flatmates_room_types', [
                             'any',
@@ -360,14 +340,15 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                           ),
                         ),
                       ),
-
-                      // Furnishing filter
                       FilterSectionCard(
                         title: locale.furnishingFilterLabel,
                         subtitle: _furnishingSubtitle(),
                         icon: Icons.chair_outlined,
+                        iconColor: AppSemanticColors.orangeMid,
+                        iconBgColor: AppSemanticColors.orangeSoft,
                         child: CatalogFilterChips(
-                          options: _catalogOrFallback('flatmates_furnishing', [
+                          options:
+                              _catalogOrFallback('flatmates_furnishing', [
                             'any',
                             'furnished',
                             'unfurnished',
@@ -375,16 +356,17 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                           selectedId: _selectedFurnishing ?? 'any',
                           anyKey: 'any',
                           onSelected: (id) => setState(
-                            () => _selectedFurnishing = id == 'any' ? null : id,
+                            () =>
+                                _selectedFurnishing = id == 'any' ? null : id,
                           ),
                         ),
                       ),
-
-                      // Gender filter
                       FilterSectionCard(
                         title: locale.genderFilterLabel,
                         subtitle: _genderSubtitle(),
                         icon: Icons.people_outlined,
+                        iconColor: AppSemanticColors.purpleMid,
+                        iconBgColor: AppSemanticColors.purpleSoft,
                         child: CatalogFilterChips(
                           options: _catalogOrFallback(
                             'flatmates_gender_options',
@@ -397,12 +379,12 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                           ),
                         ),
                       ),
-
-                      // Move-in filter
                       FilterSectionCard(
                         title: locale.moveInFilterLabel,
                         subtitle: _moveInSubtitle(),
                         icon: Icons.calendar_today_outlined,
+                        iconColor: AppSemanticColors.tealMid,
+                        iconBgColor: AppSemanticColors.tealSoft,
                         child: CatalogFilterChips(
                           options: _catalogOrFallback(
                             'flatmates_move_in_timelines',
@@ -415,12 +397,11 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                           ),
                         ),
                       ),
-
-                      // More filters (Pets & Smoking)
                       MoreFiltersCard(
                         selectedPets: _selectedPets,
                         selectedSmoking: _selectedSmoking,
-                        onPetsChanged: (v) => setState(() => _selectedPets = v),
+                        onPetsChanged: (v) =>
+                            setState(() => _selectedPets = v),
                         onSmokingChanged: (v) =>
                             setState(() => _selectedSmoking = v),
                         catalogOrFallback: _catalogOrFallback,
@@ -428,8 +409,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
                     ],
                   ),
                 ),
-
-                // Sticky bottom bar
                 FlatmatesBottomActionBar(
                   primaryButtonKey: const Key('search_show_results_button'),
                   label: locale.showResultsCta,

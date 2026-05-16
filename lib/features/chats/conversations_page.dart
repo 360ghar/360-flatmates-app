@@ -29,7 +29,7 @@ class ConversationsPage extends ConsumerStatefulWidget {
 
 class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   final Set<int> _matchingLikeIds = {};
-  String _tab = 'likes';
+  String _tab = 'chats';
 
   Future<void> _refresh() async {
     ref.invalidate(conversationsProvider);
@@ -119,11 +119,16 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
               const SizedBox(height: AppSpacing.xl),
               FlatmatesSegmentedControl<String>(
                 segmentKeys: const [
+                  Key('chats_chats_tab'),
                   Key('chats_likes_tab'),
                   Key('chats_liked_tab'),
-                  Key('chats_chats_tab'),
                 ],
                 segments: [
+                  (
+                    'chats',
+                    locale.chatsTabLabel,
+                    Icons.chat_bubble_outline_rounded,
+                  ),
                   (
                     'likes',
                     locale.likesTabLabel,
@@ -133,11 +138,6 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                     'liked',
                     locale.likedTabLabel,
                     Icons.favorite_rounded,
-                  ),
-                  (
-                    'chats',
-                    locale.chatsTabLabel,
-                    Icons.chat_bubble_outline_rounded,
                   ),
                 ],
                 selected: _tab,

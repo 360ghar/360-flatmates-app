@@ -91,8 +91,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeGreeting(String name) {
-    return 'Hi, $name';
+    return 'Good afternoon, $name';
   }
+
+  @override
+  String get homeGuestName => 'there';
+
+  @override
+  String homeSubtitle(String city) {
+    return 'Find your next flatmate in $city';
+  }
+
+  @override
+  String homeMarketInsight(int count) {
+    return '$count verified people are actively looking nearby';
+  }
+
+  @override
+  String get homeMarketInsightCta => 'View active seekers';
 
   @override
   String get homeLocationFallback =>
@@ -110,10 +126,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not detect your location. Please select manually.';
 
   @override
-  String get homeSearchHint => 'Search by name, budget or features';
+  String get homeSearchHint => 'Search area, budget, flatmate...';
 
   @override
-  String get homePickedForYou => 'Picked for You';
+  String get searchMapHint => 'Search location, sector, society...';
+
+  @override
+  String get homePickedForYou => 'Best matches for you';
 
   @override
   String get homePickedSubtitle =>
@@ -188,20 +207,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get likeListingCta => 'Like listing';
 
   @override
-  String get likesChatTitle => 'Likes & Chat';
+  String get likesChatTitle => 'Inbox';
 
   @override
-  String get likesTabLabel => 'Likes';
+  String get likesTabLabel => 'Likes You';
 
   @override
-  String get likedTabLabel => 'Liked';
+  String get likedTabLabel => 'You Liked';
 
   @override
   String get chatsTabLabel => 'Chats';
 
   @override
-  String get likesIncomingLabel =>
-      'This connection is ready for a first message.';
+  String get likesIncomingLabel => 'You matched. Start the conversation.';
 
   @override
   String get emptyLikes => 'No new likes yet.';
@@ -234,8 +252,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safetyFirstTitle => 'Safety first';
 
   @override
-  String get safetyFirstSubtitle =>
-      'We verify profiles to keep the community safer.';
+  String get safetyFirstSubtitle => 'Visit the room before paying.';
 
   @override
   String get scheduleTitle => 'Schedule';
@@ -263,10 +280,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleVisitCta => 'Schedule visit';
 
   @override
-  String get profilePageTitle => 'Profile';
+  String get profilePageTitle => 'Me';
 
   @override
   String get profileTitle => 'Profile & Settings';
+
+  @override
+  String profileStrengthTitle(int percent) {
+    return 'Profile strength: $percent%';
+  }
+
+  @override
+  String get profileStrengthSubtitle =>
+      'Complete 2 steps to get 3x more responses';
+
+  @override
+  String get completeProfileCta => 'Complete profile';
+
+  @override
+  String get discoverySectionLabel => 'Discovery';
+
+  @override
+  String get trustSectionLabel => 'Trust';
+
+  @override
+  String get accountSectionLabel => 'Account';
 
   @override
   String get profileFallbackName => 'Your Flatmates profile';
@@ -347,16 +385,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modeTitle => 'Mode';
 
   @override
-  String get modeRoomPoster => 'Room Poster';
+  String get modeRoomPoster => 'Has a room';
 
   @override
-  String get modeSeeker => 'Seeker';
+  String get modeSeeker => 'Looking for a room';
 
   @override
-  String get modeCoHunter => 'Co-Hunter';
+  String get modeCoHunter => 'Looking together';
 
   @override
-  String get modeOpenToBoth => 'Open to Both';
+  String get modeOpenToBoth => 'Looking for room + flatmate';
 
   @override
   String get cityLabel => 'City';
@@ -531,7 +569,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSwipe => 'Swipe';
 
   @override
-  String get navLikesChat => 'Likes & Chat';
+  String get navLikesChat => 'Inbox';
 
   @override
   String get navSchedule => 'Schedule';
@@ -540,10 +578,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navPost => 'Post';
 
   @override
-  String get navExplore => 'Explore';
+  String get navExplore => 'Search';
 
   @override
-  String get navProfile => 'Profile';
+  String get navProfile => 'Me';
 
   @override
   String get navVisits => 'Visits';
@@ -832,7 +870,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tapToSeeMore => 'Tap to see more';
+  String get tapToSeeMore => 'View full profile';
+
+  @override
+  String get whyThisMatchWorks => 'WHY THIS MATCH WORKS';
 
   @override
   String get tapToCollapse => 'Tap to collapse';
@@ -1317,13 +1358,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String superLikeCapLabel(int count) {
-    return '$count Super Likes left today';
+    return '$count Super Likes left';
   }
 
   @override
   String swipeCounterLabel(int count) {
-    return '$count swipes remaining today';
+    return '$count swipes left today';
   }
+
+  @override
+  String get passActionLabel => 'Pass';
+
+  @override
+  String get superLikeActionLabel => 'Super Like';
+
+  @override
+  String get likeActionLabel => 'Like';
+
+  @override
+  String get photoPendingLabel => 'Photo pending';
 
   @override
   String get readReceiptSent => 'Sent';
@@ -2232,13 +2285,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noLikedYet => 'No liked profiles yet';
 
   @override
-  String get keepSwipingToFindMatches => 'Keep swiping to find matches';
+  String get keepSwipingToFindMatches =>
+      'Complete your profile to get more visibility.';
 
   @override
-  String get noConversations => 'No conversations';
+  String get noConversations => 'No chats yet';
 
   @override
-  String get startChatWithMatch => 'Start a chat with a match';
+  String get startChatWithMatch =>
+      'Like a few profiles to start conversations.';
 
   @override
   String get matchAction => 'Match';

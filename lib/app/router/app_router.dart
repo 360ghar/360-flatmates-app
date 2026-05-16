@@ -24,7 +24,6 @@ import '../../features/discover/map_view_page.dart';
 import '../../features/discover/search_filters_page.dart';
 import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
-import '../../features/listings/manage_listing_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_page.dart';
 import '../../features/onboarding/waitlist_page.dart';
@@ -390,12 +389,6 @@ class _ModeTab2Switcher extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
-    final mode = bootstrap?.profile.mode ?? 'co_hunter';
-    final isRoomPoster = mode.trim().toLowerCase() == 'room_poster';
-    if (isRoomPoster) {
-      return const ManageListingPage();
-    }
     return const MapViewPage();
   }
 }

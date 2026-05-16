@@ -1,26 +1,28 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/compatibility/compatibility_engine.dart';
 import '../../../../core/compatibility/compatibility_ring.dart';
 import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../location/presentation/map_widgets.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
-import '../../../shared/presentation/flatmates_trust_badge.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../../shared/presentation/flatmates_video_tour_player.dart';
 import '../../swipe_repository.dart';
 
+// ── Collapsed Card ──────────────────────────────────────────────────────
+
 /// Collapsed (compact) profile card shown in the swipe deck.
 ///
-/// Displays the profile photo with a gradient overlay, compatibility ring,
-/// mode chip, and basic info (name, age, profession, location, budget).
-/// Bottom section shows compatibility match chips and a "tap to see more" hint.
+/// Photo-first design with dark gradient overlay, match pill, mode chip,
+/// key info overlay, and a "Why this match works" section.
 class CollapsedCard extends StatelessWidget {
   const CollapsedCard({
     required this.item,
@@ -35,222 +37,232 @@ class CollapsedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: FlatmatesCard(
         padding: EdgeInsets.zero,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Full-bleed photo with gradient overlay
-            Expanded(
-              flex: 5,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Photo
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppRadius.card),
-                    ),
-                    child: item.profileImageUrl != null
-                        ? FlatmatesNetworkImage(
-                            imageUrl: item.profileImageUrl!,
-                            fit: BoxFit.cover,
-                          )
-                        : _PhotoFallback(name: item.fullName),
-                  ),
-                  // Dark gradient overlay at the bottom for text readability
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.6),
-                          ],
-                          stops: const [0.0, 0.45, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Top-left: mode chip
-                  Positioned(
-                    left: AppSpacing.md,
-                    top: AppSpacing.md,
-                    child: FlatmatesChip(
-                      label: localizedFlatmatesModeLabel(
-                        locale,
-                        item.mode ?? 'open_to_both',
-                      ),
-                      selected: true,
-                      variant: FlatmatesChipVariant.filter,
-                    ),
-                  ),
-                  // Top-right: compatibility ring
-                  Positioned(
-                    right: AppSpacing.md,
-                    top: AppSpacing.md,
-                    child: CompatibilityRing(
-                      percentage: compatibility.percentage,
-                      size: 56,
-                    ),
-                  ),
-                  // Top-right below compat ring: verified trust badge
-                  if (item.listingDetails['verified'] == true)
-                    Positioned(
-                      right: AppSpacing.md,
-                      top: 76,
-                      child: FlatmatesTrustBadge(
-                        label: locale.verifiedFilterLabel,
-                        variant: FlatmatesTrustBadgeVariant.verified,
-                        compact: true,
-                      ),
-                    ),
-                  // Bottom: profile info overlay (white text on gradient)
-                  Positioned(
-                    left: AppSpacing.lg,
-                    right: AppSpacing.lg,
-                    bottom: AppSpacing.lg,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.fullName ?? '',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: Colors.white,
-                            shadows: AppShadows.asList(AppShadows.card),
-                          ),
-                        ),
-                        if (item.age != null || item.profession != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            '${item.age != null ? '${item.age}' : ''} ${item.profession ?? ''}'
-                                .trim(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              size: 16,
-                              color: Colors.white.withValues(alpha: 0.85),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                [
-                                  item.locality,
-                                  item.city,
-                                ].whereType<String>().join(', '),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (item.budgetMin != null ||
-                            item.budgetMax != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '₹${(item.budgetMin ?? 0).toStringAsFixed(0)} - ₹${(item.budgetMax ?? 100000).toStringAsFixed(0)}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+            // ── Photo area (~65% of card) ──
+            _buildPhotoArea(context, locale, isDark),
+            // ── "Why this match works" section ──
+            _buildMatchSection(context, locale, isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoArea(
+    BuildContext context,
+    AppLocalizations locale,
+    bool isDark,
+  ) {
+    return Expanded(
+      flex: 13,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Photo or premium fallback
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.card),
+            ),
+            child: _ProfilePhoto(
+              imageUrl: item.profileImageUrl,
+              name: item.fullName,
+            ),
+          ),
+          // Dark gradient overlay
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.35),
+                    Colors.black.withValues(alpha: 0.75),
+                  ],
+                  stops: const [0.0, 0.4, 0.7, 1.0],
+                ),
               ),
             ),
-            // Bottom section: compatibility chips + tap hint
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.lg,
+          ),
+          // Top-left: mode chip
+          Positioned(
+            left: AppSpacing.md,
+            top: AppSpacing.md,
+            child: _ModeChip(mode: item.mode ?? 'open_to_both', locale: locale),
+          ),
+          // Top-right: match pill
+          Positioned(
+            right: AppSpacing.md,
+            top: AppSpacing.md,
+            child: _MatchPill(percentage: compatibility.percentage),
+          ),
+          // Bottom info overlay
+          Positioned(
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            bottom: AppSpacing.lg,
+            child: _InfoOverlay(
+              item: item,
+              locale: locale,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatchSection(
+    BuildContext context,
+    AppLocalizations locale,
+    bool isDark,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title
+          Text(
+            locale.whyThisMatchWorks,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: AppSemanticColors.textTertiaryFor(Theme.of(context).brightness),
+              fontSize: AppTypography.labelMediumSize,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Compatibility chips
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: compatibility.topMatchChips.take(3).map((chip) {
+              return _CompactMatchChip(label: chip);
+            }).toList(),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // View full profile CTA
+          Listener(
+            onPointerDown: (_) {},
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  locale.tapToSeeMore,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppSemanticColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 16,
+                  color: AppSemanticColors.accent,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Photo with premium fallback ─────────────────────────────────────────
+
+class _ProfilePhoto extends StatelessWidget {
+  const _ProfilePhoto({required this.imageUrl, required this.name});
+
+  final String? imageUrl;
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
+
+    if (hasImage) {
+      return FlatmatesNetworkImage(
+        imageUrl: imageUrl!,
+        fit: BoxFit.cover,
+        fallbackName: name,
+      );
+    }
+
+    return _PremiumPhotoFallback(name: name);
+  }
+}
+
+class _PremiumPhotoFallback extends StatelessWidget {
+  const _PremiumPhotoFallback({required this.name});
+
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = initialsFromName(name);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: const [
+            Color(0xFFD4A574),
+            Color(0xFFC96442),
+            Color(0xFF8B4513),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 2,
+                ),
               ),
-              child: Column(
-                children: [
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
-                    children: [
-                      ...compatibility.topMatchChips.map((chip) {
-                        return FlatmatesChip(
-                          icon: Icons.check_circle_outline,
-                          label: chip,
-                          variant: FlatmatesChipVariant.info,
-                        );
-                      }),
-                      if (item.listingDetails['available_from'] != null) ...[
-                        () {
-                          final availableFrom = DateTime.tryParse(
-                            item.listingDetails['available_from'].toString(),
-                          );
-                          if (availableFrom != null) {
-                            final daysUntilMoveIn = availableFrom
-                                .difference(DateTime.now())
-                                .inDays;
-                            if (daysUntilMoveIn == 0) {
-                              return FlatmatesChip(
-                                icon: Icons.event_outlined,
-                                label: locale.moveInToday,
-                                selected: true,
-                              );
-                            } else if (daysUntilMoveIn >= 1 &&
-                                daysUntilMoveIn <= 7) {
-                              return FlatmatesChip(
-                                icon: Icons.event_outlined,
-                                label: locale.moveInCountdownBadge(
-                                  daysUntilMoveIn,
-                                ),
-                                selected: true,
-                              );
-                            }
-                          }
-                          return const SizedBox.shrink();
-                        }(),
-                      ],
-                    ],
+              child: Center(
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: AppTypography.fontFamilySerif,
+                    letterSpacing: 1,
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.keyboard_arrow_up_rounded,
-                        size: 18,
-                        color: AppSemanticColors.textSecondaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        locale.tapToSeeMore,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppSemanticColors.textSecondaryFor(
-                            theme.brightness,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              name ?? '',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                fontFamily: AppTypography.fontFamilySerif,
               ),
             ),
           ],
@@ -260,10 +272,375 @@ class CollapsedCard extends StatelessWidget {
   }
 }
 
+// ── Mode chip ───────────────────────────────────────────────────────────
+
+class _ModeChip extends StatelessWidget {
+  const _ModeChip({required this.mode, required this.locale});
+
+  final String mode;
+  final AppLocalizations locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = localizedFlatmatesModeLabel(locale, mode);
+    return ClipRRect(
+      borderRadius: AppRadius.pillBorder,
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: AppRadius.pillBorder,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _modeIcon(mode),
+                size: 13,
+                color: Colors.white,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _modeIcon(String mode) {
+    switch (mode.trim().toLowerCase()) {
+      case 'room_poster':
+        return Icons.home_outlined;
+      case 'seeker':
+        return Icons.search_outlined;
+      case 'co_hunter':
+        return Icons.group_outlined;
+      default:
+        return Icons.swap_horiz_outlined;
+    }
+  }
+}
+
+// ── Match pill ──────────────────────────────────────────────────────────
+
+class _MatchPill extends StatelessWidget {
+  const _MatchPill({required this.percentage});
+
+  final double percentage;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasReliableScore = percentage > 0;
+    final color = hasReliableScore
+        ? compatibilityScoreColor(percentage)
+        : AppSemanticColors.accent;
+    final label = hasReliableScore ? '${percentage.round()}%' : 'New';
+    final tier = _matchTier(percentage);
+
+    return ClipRRect(
+      borderRadius: AppRadius.pillBorder,
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: AppRadius.pillBorder,
+            border: Border.all(
+              color: color.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (tier != null) ...[
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  tier,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String? _matchTier(double percentage) {
+    if (percentage >= 85) return 'Excellent';
+    if (percentage >= 70) return 'Great';
+    if (percentage >= 50) return 'Good';
+    if (percentage > 0) return 'Fair';
+    return null;
+  }
+}
+
+// ── Info overlay on photo ───────────────────────────────────────────────
+
+class _InfoOverlay extends StatelessWidget {
+  const _InfoOverlay({required this.item, required this.locale});
+
+  final SwipeProfile item;
+  final AppLocalizations locale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Name + Age
+        Text(
+          _nameWithAge(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: AppTypography.h2Size,
+            fontWeight: AppTypography.h2Weight,
+            fontFamily: AppTypography.fontFamilySerif,
+            height: AppTypography.h2Height,
+            letterSpacing: AppTypography.h2LetterSpacing,
+            shadows: [
+              Shadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+        // Profession
+        if (item.profession != null && item.profession!.isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Text(
+            item.profession!,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: AppTypography.bodyMediumSize,
+              fontWeight: FontWeight.w400,
+              shadows: const [
+                Shadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+        // Location
+        _InfoRow(
+          icon: Icons.location_on_outlined,
+          text: [item.locality, item.city].whereType<String>().join(', '),
+        ),
+        // Budget + Move-in
+        if (item.budgetMin != null || item.budgetMax != null) ...[
+          const SizedBox(height: 4),
+          _InfoRow(
+            icon: Icons.currency_rupee_rounded,
+            text: _budgetText(),
+          ),
+        ],
+        if (item.moveInTimeline != null) ...[
+          const SizedBox(height: 4),
+          _InfoRow(
+            icon: Icons.event_outlined,
+            text: localizedFlatmatesMoveInTimeline(
+              locale,
+              item.moveInTimeline!,
+            ),
+          ),
+        ],
+        // Activity status
+        const SizedBox(height: AppSpacing.sm),
+        _ActivityStatus(),
+      ],
+    );
+  }
+
+  String _nameWithAge() {
+    final name = item.fullName ?? '';
+    if (item.age != null) {
+      return '$name, ${item.age}';
+    }
+    return name;
+  }
+
+  String _budgetText() {
+    final min = item.budgetMin;
+    final max = item.budgetMax;
+    if (min != null && max != null) {
+      return '₹${min.toStringAsFixed(0)} – ₹${max.toStringAsFixed(0)}/mo';
+    }
+    if (min != null) return '₹${min.toStringAsFixed(0)}/mo+';
+    if (max != null) return 'Up to ₹${max.toStringAsFixed(0)}/mo';
+    return '';
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.isEmpty) return const SizedBox.shrink();
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: Colors.white.withValues(alpha: 0.8)),
+        const SizedBox(width: AppSpacing.xs),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: AppTypography.bodyMediumSize,
+              shadows: const [
+                Shadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActivityStatus extends StatelessWidget {
+  const _ActivityStatus();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppSemanticColors.ink4,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          'Active recently',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Compact match chip ──────────────────────────────────────────────────
+
+class _CompactMatchChip extends StatelessWidget {
+  const _CompactMatchChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + AppSpacing.xs,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppSemanticColors.successSoftDark
+            : AppSemanticColors.successSoft,
+        borderRadius: AppRadius.pillBorder,
+        border: Border.all(
+          color: AppSemanticColors.success.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            size: 14,
+            color: AppSemanticColors.success,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark
+                  ? AppSemanticColors.greenInk
+                  : AppSemanticColors.greenInk,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Expanded Card (unchanged structure, minor polish) ───────────────────
+
 /// Expanded (full-detail) profile card shown in the swipe deck.
-///
-/// Displays the complete profile with sections for About Me, Compatibility
-/// Breakdown, The Society, The Room, The Flat & Flatmates, and Costs Breakdown.
 class ExpandedCard extends StatelessWidget {
   const ExpandedCard({
     required this.item,
@@ -280,7 +657,6 @@ class ExpandedCard extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final details = item.listingDetails;
 
-    // Helpers to read typed values from listingDetails.
     String? str(String key) {
       final v = details[key];
       return v is String ? v : null;
@@ -749,40 +1125,6 @@ class _FlatmateMiniProfile extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Fallback widget when a profile has no photo.
-/// Shows initials over a gradient background.
-class _PhotoFallback extends StatelessWidget {
-  const _PhotoFallback({required this.name});
-
-  final String? name;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.accent.withValues(alpha: 0.9),
-            AppSemanticColors.accent.withValues(alpha: 0.35),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          initialsFromName(name),
-          style: theme.textTheme.headlineLarge?.copyWith(
-            color: Colors.white,
-            fontSize: 48,
-          ),
-        ),
       ),
     );
   }

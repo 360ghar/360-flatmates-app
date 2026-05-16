@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import 'search_filter_widgets.dart';
 
-/// Budget range filter card with a RangeSlider.
 class BudgetFilterCard extends StatelessWidget {
   const BudgetFilterCard({
     required this.budgetValues,
@@ -32,27 +33,63 @@ class BudgetFilterCard extends StatelessWidget {
         formatBudget(budgetValues.end),
       ),
       icon: Icons.account_balance_wallet_outlined,
+      iconColor: AppSemanticColors.greenMid,
+      iconBgColor: AppSemanticColors.successSoft,
       initiallyExpanded: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RangeSlider(
-            values: budgetValues,
-            min: budgetMin,
-            max: budgetMax,
-            divisions: 19,
-            labels: RangeLabels(
-              formatBudget(budgetValues.start),
-              formatBudget(budgetValues.end),
+          Theme(
+            data: theme.copyWith(
+              sliderTheme: SliderThemeData(
+                activeTrackColor: AppSemanticColors.accent,
+                inactiveTrackColor: AppSemanticColors.accent
+                    .withValues(alpha: 0.15),
+                thumbColor: AppSemanticColors.accent,
+                overlayColor:
+                    AppSemanticColors.accent.withValues(alpha: 0.08),
+                rangeThumbShape: const RoundRangeSliderThumbShape(
+                  enabledThumbRadius: 10,
+                  elevation: 2,
+                ),
+                trackHeight: 4,
+              ),
             ),
-            onChanged: onChanged,
+            child: RangeSlider(
+              values: budgetValues,
+              min: budgetMin,
+              max: budgetMax,
+              divisions: 19,
+              labels: RangeLabels(
+                formatBudget(budgetValues.start),
+                formatBudget(budgetValues.end),
+              ),
+              onChanged: onChanged,
+            ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(formatBudget(budgetMin), style: theme.textTheme.bodySmall),
-              Text(formatBudget(budgetMax), style: theme.textTheme.bodySmall),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  formatBudget(budgetMin),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppSemanticColors.ink3,
+                    fontSize: 11,
+                  ),
+                ),
+                Text(
+                  formatBudget(budgetMax),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppSemanticColors.ink3,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

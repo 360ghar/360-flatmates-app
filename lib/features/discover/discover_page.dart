@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_semantic_colors.dart';
 import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
@@ -10,9 +11,9 @@ import '../chats/chats_repository.dart';
 import '../location/application/location_controller.dart';
 import '../location/presentation/location_picker_modal.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
+import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_search_bar.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
-import '../shared/presentation/flatmates_ui.dart';
 import 'discover_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'presentation/widgets/discover_filter_chips.dart';
@@ -126,6 +127,15 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     ].join(', ');
     final currentLocation = selectedLocation?.displayText ?? profileLocation;
     final counterLocation = selectedLocation?.displayText ?? city;
+    final subtitleCity = (city != null && city.isNotEmpty)
+        ? city
+        : currentLocation.isNotEmpty
+        ? currentLocation
+        : 'Gurugram';
+    final displayName = _firstName(
+      profile?.fullName,
+      fallback: locale.homeGuestName,
+    );
     final currentRadiusKm =
         feedState.filters.radiusKm ??
         DiscoverFeedController.defaultLocationRadiusKm;
@@ -147,9 +157,8 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                   ),
                   children: [
                     DiscoverHeader(
-                      greeting: locale.homeGreeting(
-                        profile?.fullName ?? locale.profileFallbackName,
-                      ),
+                      greeting: locale.homeGreeting(displayName),
+                      subtitle: locale.homeSubtitle(subtitleCity),
                       location: currentLocation,
                       avatarUrl: profile?.profileImageUrl,
                       userName: profile?.fullName,
@@ -166,6 +175,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         currentRadiusKm: currentRadiusKm,
                       ),
                       onNotificationTap: () => context.push('/notifications'),
+                      onAvatarTap: () => context.push('/profile'),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Row(
@@ -189,7 +199,14 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    if (filtered.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      _MarketInsightCard(
+                        count: filtered.length,
+                        onTap: () => context.go('/swipe'),
+                      ),
+                    ],
+                    const SizedBox(height: AppSpacing.md),
                     DiscoverFilterChips(
                       bedroomOptions: bedroomOptions,
                       featureOptions: featureOptions,
@@ -218,7 +235,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                             .updateMoveInTimeline(value);
                       },
                     ),
-                    const SizedBox(height: AppSpacing.section),
+                    const SizedBox(height: AppSpacing.lg),
                     if (filtered.length < 5 && city != null) ...[
                       WaitlistNudgeCard(
                         city: city,
@@ -226,15 +243,14 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                     ],
-                    FlatmatesSectionHeader(
+                    _HomeSectionHeader(
                       title: locale.homePickedForYou,
-                      subtitle: locale.homePickedSubtitle,
                       actionLabel: filtered.length > 2
                           ? locale.seeAllCta
                           : null,
                       onActionTap: () => context.push('/search-filters'),
                     ),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.sm),
                     if (filtered.isEmpty && !feedState.isLoading)
                       FlatmatesEmptyState(
                         title: locale.homeNoResults,
@@ -243,7 +259,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       )
                     else
                       SizedBox(
-                        height: 170,
+                        height: 160,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount:
@@ -331,9 +347,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         ),
                       ),
                     if (city != null) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      FlatmatesSectionHeader(title: locale.homeNewInCity(city)),
                       const SizedBox(height: AppSpacing.md),
+                      _HomeSectionHeader(title: locale.homeNewInCity(city)),
+                      const SizedBox(height: AppSpacing.sm),
                       NewInCitySection(
                         items: filtered,
                         onExplore: () => context.go('/map'),
@@ -344,6 +360,134 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                 ),
               ),
       ),
+    );
+  }
+}
+
+String _firstName(String? fullName, {required String fallback}) {
+  final trimmed = fullName?.trim();
+  if (trimmed == null || trimmed.isEmpty) return fallback;
+  return trimmed.split(RegExp(r'\s+')).first;
+}
+
+class _MarketInsightCard extends StatelessWidget {
+  const _MarketInsightCard({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+
+    return FlatmatesCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
+      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.08),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppSemanticColors.accent.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.verified_user_outlined,
+              color: AppSemanticColors.accent,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.homeMarketInsight(count),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  locale.homeMarketInsightCta,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppSemanticColors.accent,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppSemanticColors.accent,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeSectionHeader extends StatelessWidget {
+  const _HomeSectionHeader({
+    required this.title,
+    this.actionLabel,
+    this.onActionTap,
+  });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onActionTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppSemanticColors.textPrimaryFor(theme.brightness),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (actionLabel != null) ...[
+          const SizedBox(width: AppSpacing.sm),
+          TextButton(
+            onPressed: onActionTap,
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            ),
+            child: Text(
+              actionLabel!,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: AppSemanticColors.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

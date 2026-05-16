@@ -33,7 +33,7 @@
   },
   "discoverTitle": "डिस्कवर",
   "emptyListings": "अभी कोई फ्लैटमेट लिस्टिंग उपलब्ध नहीं है।",
-  "homeGreeting": "हाय, {name}",
+  "homeGreeting": "नमस्ते, {name}",
   "@homeGreeting": {
     "placeholders": {
       "name": {
@@ -41,12 +41,31 @@
       }
     }
   },
+  "homeGuestName": "दोस्त",
+  "homeSubtitle": "{city} में अपना अगला फ्लैटमेट खोजें",
+  "@homeSubtitle": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "homeMarketInsight": "पास में {count} सत्यापित लोग सक्रिय रूप से खोज रहे हैं",
+  "@homeMarketInsight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeMarketInsightCta": "सक्रिय सीकर देखें",
   "homeLocationFallback": "डिस्कवरी को बेहतर बनाने के लिए अपना शहर और लोकैलिटी सेट करें।",
   "locationUpdated": "स्थान अपडेट किया गया",
   "locationPermissionRequired": "आपका शहर पता लगाने के लिए स्थान अनुमति आवश्यक है।",
   "locationDetectionFailed": "आपका स्थान पता नहीं लगा सके। कृपया मैन्युअली चुनें।",
-  "homeSearchHint": "नाम, बजट या सुविधाओं से खोजें",
-  "homePickedForYou": "आपके लिए चुना गया",
+  "homeSearchHint": "इलाका, बजट, फ्लैटमेट खोजें...",
+  "searchMapHint": "लोकेशन, सेक्टर, सोसाइटी खोजें...",
+  "homePickedForYou": "आपके लिए बेहतरीन मैच",
   "homePickedSubtitle": "आपकी पसंद और वाइब से मेल खाने वाले फ्लैट्स",
   "homeNoResults": "इन फ़िल्टर्स से कोई लिस्टिंग नहीं मिली।",
   "homeNoResultsSubtitle": "अपने फ़िल्टर बदलकर देखें या किसी अन्य लोकेशन के लिए खोजें।",
@@ -127,11 +146,11 @@
     }
   },
   "likeListingCta": "लिस्टिंग पसंद करें",
-  "likesChatTitle": "लाइक्स और चैट",
-  "likesTabLabel": "लाइक्स",
-  "likedTabLabel": "पसंद किए",
+  "likesChatTitle": "इनबॉक्स",
+  "likesTabLabel": "आपको लाइक किया",
+  "likedTabLabel": "आपने लाइक किया",
   "chatsTabLabel": "चैट्स",
-  "likesIncomingLabel": "यह कनेक्शन पहली बातचीत के लिए तैयार है।",
+  "likesIncomingLabel": "आपका मैच हो गया। बातचीत शुरू करें।",
   "emptyLikes": "अभी कोई नया लाइक नहीं है।",
   "chatsTitle": "चैट्स",
   "emptyChats": "अभी कोई बातचीत नहीं है।",
@@ -142,7 +161,7 @@
   "openConversationCta": "बातचीत खोलें",
   "todayLabel": "आज",
   "safetyFirstTitle": "सुरक्षा पहले",
-  "safetyFirstSubtitle": "हम समुदाय को सुरक्षित रखने के लिए प्रोफ़ाइल सत्यापित करते हैं।",
+  "safetyFirstSubtitle": "पेमेंट से पहले कमरा ज़रूर देखें।",
   "scheduleTitle": "शेड्यूल",
   "scheduleSubtitle": "अपने फ्लैट विज़िट और मीटअप एक ही जगह ट्रैक करें।",
   "visitsTitle": "विज़िट्स",
@@ -151,8 +170,21 @@
   "flatmateMeetLabel": "फ्लैटमेट मीट",
   "propertyTourLabel": "प्रॉपर्टी टूर",
   "scheduleVisitCta": "विज़िट शेड्यूल करें",
-  "profilePageTitle": "प्रोफ़ाइल",
+  "profilePageTitle": "मैं",
   "profileTitle": "प्रोफ़ाइल और सेटिंग्स",
+  "profileStrengthTitle": "प्रोफ़ाइल मज़बूती: {percent}%",
+  "@profileStrengthTitle": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileStrengthSubtitle": "3x ज़्यादा रिस्पॉन्स के लिए 2 स्टेप पूरे करें",
+  "completeProfileCta": "प्रोफ़ाइल पूरी करें",
+  "discoverySectionLabel": "डिस्कवरी",
+  "trustSectionLabel": "ट्रस्ट",
+  "accountSectionLabel": "अकाउंट",
   "profileFallbackName": "आपकी फ्लैटमेट्स प्रोफ़ाइल",
   "profileStatListings": "लिस्टिंग्स",
   "profileStatChats": "चैट्स",
@@ -179,10 +211,10 @@
   "languageHindi": "हिंदी",
   "logoutCta": "लॉगआउट",
   "modeTitle": "मोड",
-  "modeRoomPoster": "रूम पोस्टर",
-  "modeSeeker": "सीकर",
-  "modeCoHunter": "को-हंटर",
-  "modeOpenToBoth": "दोनों के लिए खुला",
+  "modeRoomPoster": "कमरा उपलब्ध है",
+  "modeSeeker": "कमरा खोज रहे हैं",
+  "modeCoHunter": "साथ में खोज रहे हैं",
+  "modeOpenToBoth": "कमरा और फ्लैटमेट खोज रहे हैं",
   "cityLabel": "शहर",
   "localityLabel": "लोकैलिटी",
   "subLocalityLabel": "सब-लोकैलिटी",
@@ -240,11 +272,11 @@
   "settingsSessionSection": "सेशन",
   "navHome": "होम",
   "navSwipe": "स्वाइप",
-  "navLikesChat": "लाइक्स और चैट",
+  "navLikesChat": "इनबॉक्स",
   "navSchedule": "शेड्यूल",
   "navPost": "पोस्ट",
-  "navExplore": "एक्सप्लोर",
-  "navProfile": "प्रोफ़ाइल",
+  "navExplore": "सर्च",
+  "navProfile": "मैं",
   "navVisits": "विज़िट",
   "onboardingGetStarted": "शुरू करें",
   "onboardingNext": "आगे",
@@ -351,7 +383,8 @@
       }
     }
   },
-  "tapToSeeMore": "और देखने के लिए टैप करें",
+  "tapToSeeMore": "पूरी प्रोफ़ाइल देखें",
+  "whyThisMatchWorks": "यह मैच क्यों काम करता है",
   "tapToCollapse": "छोटा करने के लिए टैप करें",
   "aboutMeSection": "मेरे बारे में",
   "noBioYet": "अभी कोई बायो नहीं है।",
@@ -560,7 +593,7 @@
   "videoTooShort": "वीडियो कम से कम 15 सेकंड का होना चाहिए",
   "tapToUnmute": "अनम्यूट करने के लिए टैप करें",
   "soundOn": "आवाज़ चालू",
-  "superLikeCapLabel": "आज {count} सुपर लाइक बचे हैं",
+  "superLikeCapLabel": "{count} सुपर लाइक बचे हैं",
   "@superLikeCapLabel": {
     "placeholders": {
       "count": {
@@ -568,7 +601,7 @@
       }
     }
   },
-  "swipeCounterLabel": "आज {count} स्वाइप बचे हैं",
+  "swipeCounterLabel": "{count} स्वाइप आज बचे हैं",
   "@swipeCounterLabel": {
     "placeholders": {
       "count": {
@@ -576,6 +609,10 @@
       }
     }
   },
+  "passActionLabel": "पास",
+  "superLikeActionLabel": "सुपर लाइक",
+  "likeActionLabel": "लाइक",
+  "photoPendingLabel": "फ़ोटो बाकी है",
   "readReceiptSent": "भेजा गया",
   "readReceiptDelivered": "पहुंचाया गया",
   "readReceiptRead": "पढ़ा गया",
@@ -968,9 +1005,9 @@
   "failedToUpdateListingStatus": "लिस्टिंग स्टेटस अपडेट नहीं हो सका।",
   "noLikesYet": "अभी कोई लाइक नहीं",
   "noLikedYet": "अभी कोई प्रोफ़ाइल पसंद नहीं",
-  "keepSwipingToFindMatches": "मैच ढूंढने के लिए स्वाइप करते रहें",
-  "noConversations": "कोई बातचीत नहीं",
-  "startChatWithMatch": "मैच के साथ चैट शुरू करें",
+  "keepSwipingToFindMatches": "ज़्यादा विज़िबिलिटी के लिए अपनी प्रोफ़ाइल पूरी करें।",
+  "noConversations": "अभी कोई चैट नहीं",
+  "startChatWithMatch": "बातचीत शुरू करने के लिए कुछ प्रोफ़ाइल लाइक करें।",
   "matchAction": "मैच करें",
   "waitingForResponse": "प्रतीक्षा",
   "matchCreateFailed": "मैच नहीं बन सका। फिर से प्रयास करें।",

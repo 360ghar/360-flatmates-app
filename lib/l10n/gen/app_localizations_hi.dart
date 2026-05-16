@@ -92,8 +92,24 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String homeGreeting(String name) {
-    return 'हाय, $name';
+    return 'नमस्ते, $name';
   }
+
+  @override
+  String get homeGuestName => 'दोस्त';
+
+  @override
+  String homeSubtitle(String city) {
+    return '$city में अपना अगला फ्लैटमेट खोजें';
+  }
+
+  @override
+  String homeMarketInsight(int count) {
+    return 'पास में $count सत्यापित लोग सक्रिय रूप से खोज रहे हैं';
+  }
+
+  @override
+  String get homeMarketInsightCta => 'सक्रिय सीकर देखें';
 
   @override
   String get homeLocationFallback =>
@@ -111,10 +127,13 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपका स्थान पता नहीं लगा सके। कृपया मैन्युअली चुनें।';
 
   @override
-  String get homeSearchHint => 'नाम, बजट या सुविधाओं से खोजें';
+  String get homeSearchHint => 'इलाका, बजट, फ्लैटमेट खोजें...';
 
   @override
-  String get homePickedForYou => 'आपके लिए चुना गया';
+  String get searchMapHint => 'लोकेशन, सेक्टर, सोसाइटी खोजें...';
+
+  @override
+  String get homePickedForYou => 'आपके लिए बेहतरीन मैच';
 
   @override
   String get homePickedSubtitle => 'आपकी पसंद और वाइब से मेल खाने वाले फ्लैट्स';
@@ -188,19 +207,19 @@ class AppLocalizationsHi extends AppLocalizations {
   String get likeListingCta => 'लिस्टिंग पसंद करें';
 
   @override
-  String get likesChatTitle => 'लाइक्स और चैट';
+  String get likesChatTitle => 'इनबॉक्स';
 
   @override
-  String get likesTabLabel => 'लाइक्स';
+  String get likesTabLabel => 'आपको लाइक किया';
 
   @override
-  String get likedTabLabel => 'पसंद किए';
+  String get likedTabLabel => 'आपने लाइक किया';
 
   @override
   String get chatsTabLabel => 'चैट्स';
 
   @override
-  String get likesIncomingLabel => 'यह कनेक्शन पहली बातचीत के लिए तैयार है।';
+  String get likesIncomingLabel => 'आपका मैच हो गया। बातचीत शुरू करें।';
 
   @override
   String get emptyLikes => 'अभी कोई नया लाइक नहीं है।';
@@ -233,8 +252,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get safetyFirstTitle => 'सुरक्षा पहले';
 
   @override
-  String get safetyFirstSubtitle =>
-      'हम समुदाय को सुरक्षित रखने के लिए प्रोफ़ाइल सत्यापित करते हैं।';
+  String get safetyFirstSubtitle => 'पेमेंट से पहले कमरा ज़रूर देखें।';
 
   @override
   String get scheduleTitle => 'शेड्यूल';
@@ -262,10 +280,31 @@ class AppLocalizationsHi extends AppLocalizations {
   String get scheduleVisitCta => 'विज़िट शेड्यूल करें';
 
   @override
-  String get profilePageTitle => 'प्रोफ़ाइल';
+  String get profilePageTitle => 'मैं';
 
   @override
   String get profileTitle => 'प्रोफ़ाइल और सेटिंग्स';
+
+  @override
+  String profileStrengthTitle(int percent) {
+    return 'प्रोफ़ाइल मज़बूती: $percent%';
+  }
+
+  @override
+  String get profileStrengthSubtitle =>
+      '3x ज़्यादा रिस्पॉन्स के लिए 2 स्टेप पूरे करें';
+
+  @override
+  String get completeProfileCta => 'प्रोफ़ाइल पूरी करें';
+
+  @override
+  String get discoverySectionLabel => 'डिस्कवरी';
+
+  @override
+  String get trustSectionLabel => 'ट्रस्ट';
+
+  @override
+  String get accountSectionLabel => 'अकाउंट';
 
   @override
   String get profileFallbackName => 'आपकी फ्लैटमेट्स प्रोफ़ाइल';
@@ -346,16 +385,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get modeTitle => 'मोड';
 
   @override
-  String get modeRoomPoster => 'रूम पोस्टर';
+  String get modeRoomPoster => 'कमरा उपलब्ध है';
 
   @override
-  String get modeSeeker => 'सीकर';
+  String get modeSeeker => 'कमरा खोज रहे हैं';
 
   @override
-  String get modeCoHunter => 'को-हंटर';
+  String get modeCoHunter => 'साथ में खोज रहे हैं';
 
   @override
-  String get modeOpenToBoth => 'दोनों के लिए खुला';
+  String get modeOpenToBoth => 'कमरा और फ्लैटमेट खोज रहे हैं';
 
   @override
   String get cityLabel => 'शहर';
@@ -530,7 +569,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get navSwipe => 'स्वाइप';
 
   @override
-  String get navLikesChat => 'लाइक्स और चैट';
+  String get navLikesChat => 'इनबॉक्स';
 
   @override
   String get navSchedule => 'शेड्यूल';
@@ -539,10 +578,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get navPost => 'पोस्ट';
 
   @override
-  String get navExplore => 'एक्सप्लोर';
+  String get navExplore => 'सर्च';
 
   @override
-  String get navProfile => 'प्रोफ़ाइल';
+  String get navProfile => 'मैं';
 
   @override
   String get navVisits => 'विज़िट';
@@ -830,7 +869,10 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get tapToSeeMore => 'और देखने के लिए टैप करें';
+  String get tapToSeeMore => 'पूरी प्रोफ़ाइल देखें';
+
+  @override
+  String get whyThisMatchWorks => 'यह मैच क्यों काम करता है';
 
   @override
   String get tapToCollapse => 'छोटा करने के लिए टैप करें';
@@ -1315,13 +1357,25 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String superLikeCapLabel(int count) {
-    return 'आज $count सुपर लाइक बचे हैं';
+    return '$count सुपर लाइक बचे हैं';
   }
 
   @override
   String swipeCounterLabel(int count) {
-    return 'आज $count स्वाइप बचे हैं';
+    return '$count स्वाइप आज बचे हैं';
   }
+
+  @override
+  String get passActionLabel => 'पास';
+
+  @override
+  String get superLikeActionLabel => 'सुपर लाइक';
+
+  @override
+  String get likeActionLabel => 'लाइक';
+
+  @override
+  String get photoPendingLabel => 'फ़ोटो बाकी है';
 
   @override
   String get readReceiptSent => 'भेजा गया';
@@ -2242,13 +2296,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noLikedYet => 'अभी कोई प्रोफ़ाइल पसंद नहीं';
 
   @override
-  String get keepSwipingToFindMatches => 'मैच ढूंढने के लिए स्वाइप करते रहें';
+  String get keepSwipingToFindMatches =>
+      'ज़्यादा विज़िबिलिटी के लिए अपनी प्रोफ़ाइल पूरी करें।';
 
   @override
-  String get noConversations => 'कोई बातचीत नहीं';
+  String get noConversations => 'अभी कोई चैट नहीं';
 
   @override
-  String get startChatWithMatch => 'मैच के साथ चैट शुरू करें';
+  String get startChatWithMatch =>
+      'बातचीत शुरू करने के लिए कुछ प्रोफ़ाइल लाइक करें।';
 
   @override
   String get matchAction => 'मैच करें';

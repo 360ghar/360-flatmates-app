@@ -27,27 +27,60 @@ class NewInCitySection extends StatelessWidget {
 
     return FlatmatesCard(
       onTap: onExplore,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm + 2,
+      ),
       child: Row(
         children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppSemanticColors.accentSoft,
+              borderRadius: AppRadius.smBorder,
+            ),
+            child: Icon(
+              Icons.location_city_rounded,
+              size: 18,
+              color: AppSemanticColors.accent,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Text(
+              locale.homeNewInCity(items.first.city ?? ''),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          TextButton(
+            onPressed: onExplore,
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  locale.homeNewInCity(items.first.city ?? ''),
-                  style: theme.textTheme.titleLarge,
+                  locale.navExplore,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppSemanticColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  locale.cityCounter(items.length, items.first.city ?? ''),
-                  style: theme.textTheme.bodyMedium,
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 12,
+                  color: AppSemanticColors.accent,
                 ),
               ],
             ),
-          ),
-          FlatmatesButton.secondary(
-            label: locale.navExplore,
-            onPressed: onExplore,
           ),
         ],
       ),
@@ -79,10 +112,18 @@ class MovingSoonSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: AppSpacing.lg),
-        FlatmatesSectionHeader(title: locale.homeMovingSoon),
-        const SizedBox(height: AppSpacing.md),
+        Text(
+          locale.homeMovingSoon,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppSemanticColors.textPrimaryFor(theme.brightness),
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 170,
+          height: 140,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: movingSoon.length,
@@ -94,7 +135,7 @@ class MovingSoonSection extends StatelessWidget {
                   ? locale.moveInToday
                   : locale.moveInCountdownBadge(daysLeft);
               return SizedBox(
-                width: 140,
+                width: 120,
                 child: FlatmatesCard(
                   padding: EdgeInsets.zero,
                   child: Stack(
@@ -102,7 +143,7 @@ class MovingSoonSection extends StatelessWidget {
                       if (item.mainImageUrl != null)
                         Positioned.fill(
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             child: FlatmatesNetworkImage(
                               imageUrl: item.mainImageUrl!,
                               fit: BoxFit.cover,
@@ -112,7 +153,7 @@ class MovingSoonSection extends StatelessWidget {
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -134,7 +175,7 @@ class MovingSoonSection extends StatelessWidget {
                           children: [
                             Text(
                               badgeText,
-                              style: theme.textTheme.labelMedium?.copyWith(
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 color: AppSemanticColors.coralSoftFor(
                                   theme.brightness,
                                 ),
@@ -144,7 +185,7 @@ class MovingSoonSection extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               item.title,
-                              style: theme.textTheme.bodySmall?.copyWith(
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -256,9 +297,7 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
               vertical: AppSpacing.xs,
             ),
             decoration: BoxDecoration(
-              color: AppSemanticColors.disabledSurfaceFor(
-                theme.brightness,
-              ),
+              color: AppSemanticColors.disabledSurfaceFor(theme.brightness),
               borderRadius: AppRadius.pillBorder,
             ),
             child: Row(
@@ -267,16 +306,11 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
                 Icon(
                   Icons.people_outline,
                   size: 14,
-                  color: AppSemanticColors.textSecondaryFor(
-                    theme.brightness,
-                  ),
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  locale.cityCounterShort(
-                    widget.listingCount,
-                    widget.city,
-                  ),
+                  locale.cityCounterShort(widget.listingCount, widget.city),
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w600,
@@ -294,9 +328,7 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
                 vertical: 6,
               ),
               decoration: BoxDecoration(
-                color: AppSemanticColors.coralSoftFor(
-                  theme.brightness,
-                ),
+                color: AppSemanticColors.coralSoftFor(theme.brightness),
                 borderRadius: AppRadius.smBorder,
               ),
               child: Row(

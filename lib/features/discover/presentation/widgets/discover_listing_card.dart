@@ -39,8 +39,95 @@ class DiscoverListingCard extends StatelessWidget {
         locale.homeAreaValue(item.areaSqft!.toStringAsFixed(0)),
     ];
 
+    final genderSuffix = switch (item.genderPreference) {
+      'male' => '· M Only',
+      'female' => '· F Only',
+      _ => '· Any Gender',
+    };
+    metaParts.add(genderSuffix);
+
+    Widget? availabilityWidget;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (item.availableFrom != null) {
+      final availableDate = DateTime(
+        item.availableFrom!.year,
+        item.availableFrom!.month,
+        item.availableFrom!.day,
+      );
+      if (!availableDate.isAfter(today)) {
+        availabilityWidget = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.green.shade600,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Available Now',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.green.shade700,
+              ),
+            ),
+          ],
+        );
+      } else {
+        final monthStr = _shortMonth(item.availableFrom!);
+        availabilityWidget = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade600,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'From ${item.availableFrom!.day} $monthStr',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.orange.shade700,
+              ),
+            ),
+          ],
+        );
+      }
+    } else if (item.isAvailable) {
+      availabilityWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.green.shade600,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Available',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.green.shade700,
+            ),
+          ),
+        ],
+      );
+    }
+
     return FlatmatesCard(
       key: Key('discover_listing_card_${item.id}'),
+      padding: const EdgeInsets.all(10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,95 +136,94 @@ class DiscoverListingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _formatRent(item.monthlyRent.round()),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                    fontWeight: FontWeight.w700,
-                    height: 1.1,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (titleLocation.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 12,
-                        color: AppSemanticColors.textSecondaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                          titleLocation,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 11,
-                            color: AppSemanticColors.textSecondaryFor(
-                              theme.brightness,
-                            ),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (metaParts.isNotEmpty) ...[
-                  const SizedBox(height: 3),
                   Text(
-                    metaParts.join(' · '),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 10,
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
+                    _formatRent(item.monthlyRent.round()),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                      fontWeight: FontWeight.w700,
+                      height: 1.1,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ],
-                const Spacer(),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: SizedBox(
-                    width: 34,
-                    height: 34,
-                    child: IconButton(
-                      key: Key('discover_like_${item.id}'),
-                      onPressed: onLike,
-                      icon: const Icon(Icons.favorite_border_rounded, size: 18),
-                      padding: EdgeInsets.zero,
-                      style: IconButton.styleFrom(
-                        foregroundColor: AppSemanticColors.accent,
-                        backgroundColor: AppSemanticColors.accent.withValues(
-                          alpha: 0.1,
+                  const SizedBox(height: 4),
+                  Text(
+                    item.title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (item.owner?.fullName != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'by ${item.owner!.fullName}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (titleLocation.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 12,
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.smBorder,
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            titleLocation,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: AppSemanticColors.textSecondaryFor(
+                                theme.brightness,
+                              ),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (availabilityWidget != null) ...[
+                    const SizedBox(height: 3),
+                    availabilityWidget,
+                  ],
+                  if (metaParts.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      metaParts.join(' · '),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: 10,
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
                         ),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                ],
+              ),
             ),
+            const SizedBox(width: 12),
+          _ListingImage(
+            imageUrl: item.mainImageUrl,
+            title: item.title,
+            sharingType: item.sharingType,
+            onLike: onLike,
+            itemId: item.id,
           ),
-          const SizedBox(width: 14),
-          _ListingImage(imageUrl: item.mainImageUrl, title: item.title),
         ],
       ),
     );
@@ -152,13 +238,30 @@ class DiscoverListingCard extends StatelessWidget {
     }
     return FlatmatesPriceText.formatRupee(amount);
   }
+
+  static String _shortMonth(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return months[date.month - 1];
+  }
 }
 
 class _ListingImage extends StatelessWidget {
-  const _ListingImage({required this.imageUrl, required this.title});
+  const _ListingImage({
+    required this.imageUrl,
+    required this.title,
+    this.sharingType,
+    this.onLike,
+    this.itemId,
+  });
 
   final String? imageUrl;
   final String title;
+  final String? sharingType;
+  final VoidCallback? onLike;
+  final int? itemId;
 
   @override
   Widget build(BuildContext context) {
@@ -192,6 +295,56 @@ class _ListingImage extends StatelessWidget {
                   ),
                 ),
               ),
+              if (sharingType != null &&
+                  (sharingType == 'private_room' ||
+                      sharingType == 'shared_room'))
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      sharingType == 'private_room' ? 'Private' : 'Shared',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              if (onLike != null)
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: IconButton(
+                      key: Key('discover_like_$itemId'),
+                      onPressed: onLike,
+                      icon: const Icon(
+                        Icons.favorite_border_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      ),
+                      padding: EdgeInsets.zero,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black38,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

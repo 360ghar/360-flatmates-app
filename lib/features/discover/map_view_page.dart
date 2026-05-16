@@ -41,7 +41,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   final _searchController = TextEditingController();
   final _locationRadiusDebouncer = ActionDebouncer();
 
-  final FlatmatesMapController _flatmatesMapController = FlatmatesMapController();
+  final FlatmatesMapController _flatmatesMapController =
+      FlatmatesMapController();
   List<PropertyListing>? _previousListings;
 
   @override
@@ -54,7 +55,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   void _showLocationPicker(BuildContext context) {
     final feedState = ref.read(discoverFeedControllerProvider);
-    final selectedLocation = ref.read(locationControllerProvider).selectedLocation;
+    final selectedLocation = ref
+        .read(locationControllerProvider)
+        .selectedLocation;
     final profile = ref.read(bootstrapControllerProvider).valueOrNull?.profile;
 
     final locality = profile?.locality?.trim();
@@ -64,7 +67,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       if (city != null && city.isNotEmpty) city,
     ].join(', ');
     final currentLocation = selectedLocation?.displayText ?? profileLocation;
-    final currentRadiusKm = feedState.filters.radiusKm ?? DiscoverFeedController.defaultLocationRadiusKm;
+    final currentRadiusKm =
+        feedState.filters.radiusKm ??
+        DiscoverFeedController.defaultLocationRadiusKm;
 
     var selectedRadiusKm = currentRadiusKm;
     var didSelectLocation = false;
@@ -77,23 +82,29 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         selectedRadiusKm = radiusKm;
         _locationRadiusDebouncer.run(() {
           if (!mounted || didSelectLocation) return;
-          final activeLocation = ref.read(locationControllerProvider).selectedLocation;
+          final activeLocation = ref
+              .read(locationControllerProvider)
+              .selectedLocation;
           if (activeLocation == null) return;
-          ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
-            latitude: activeLocation.latitude,
-            longitude: activeLocation.longitude,
-            radiusKm: radiusKm,
-          );
+          ref
+              .read(discoverFeedControllerProvider.notifier)
+              .updateLocationFilter(
+                latitude: activeLocation.latitude,
+                longitude: activeLocation.longitude,
+                radiusKm: radiusKm,
+              );
         });
       },
       onLocationSelected: (location) {
         didSelectLocation = true;
         ref.read(locationControllerProvider.notifier).selectLocation(location);
-        ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
-          latitude: location.latitude,
-          longitude: location.longitude,
-          radiusKm: selectedRadiusKm,
-        );
+        ref
+            .read(discoverFeedControllerProvider.notifier)
+            .updateLocationFilter(
+              latitude: location.latitude,
+              longitude: location.longitude,
+              radiusKm: selectedRadiusKm,
+            );
       },
     );
   }
@@ -107,7 +118,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    final searchRadiusKm = feedState.filters.radiusKm ?? DiscoverFeedController.defaultLocationRadiusKm;
+    final searchRadiusKm =
+        feedState.filters.radiusKm ??
+        DiscoverFeedController.defaultLocationRadiusKm;
 
     return Scaffold(
       body: SafeArea(
@@ -130,7 +143,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                   Expanded(
                     child: FlatmatesSearchBar(
                       controller: _searchController,
-                      hint: locale.homeSearchHint,
+                      hint: locale.searchMapHint,
                       readOnly: true,
                       onTap: () => _showFilterSheet(context),
                       trailingIcon: Icons.tune_rounded,
@@ -160,13 +173,19 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
               child: feedState.isLoading && feedState.listings.isEmpty
                   ? const FlatmatesSkeleton.card()
                   : feedState.hasError
-                      ? FlatmatesErrorState(
-                          message: locale.couldNotLoadListing,
-                          onRetry: () =>
-                              ref.read(discoverFeedControllerProvider.notifier).load(),
-                          retryLabel: locale.commonRetry,
-                        )
-                      : _buildMap(feedState.listings, searchRadiusKm, theme, locale),
+                  ? FlatmatesErrorState(
+                      message: locale.couldNotLoadListing,
+                      onRetry: () => ref
+                          .read(discoverFeedControllerProvider.notifier)
+                          .load(),
+                      retryLabel: locale.commonRetry,
+                    )
+                  : _buildMap(
+                      feedState.listings,
+                      searchRadiusKm,
+                      theme,
+                      locale,
+                    ),
             ),
           ],
         ),
@@ -191,13 +210,18 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       onClusterTap: _handleClusterTap,
     );
 
-    final selectedLocation = ref.read(locationControllerProvider).selectedLocation;
+    final selectedLocation = ref
+        .read(locationControllerProvider)
+        .selectedLocation;
     final feedState = ref.read(discoverFeedControllerProvider);
     LatLng mapCenter;
     if (selectedLocation != null) {
       mapCenter = LatLng(selectedLocation.latitude, selectedLocation.longitude);
     } else if (feedState.filters.hasGeoLocation) {
-      mapCenter = LatLng(feedState.filters.latitude!, feedState.filters.longitude!);
+      mapCenter = LatLng(
+        feedState.filters.latitude!,
+        feedState.filters.longitude!,
+      );
     } else if (markers.isNotEmpty) {
       mapCenter = markers.first.point;
     } else if (filtered.isNotEmpty &&
@@ -223,10 +247,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           ),
           children: [
             createOsmTileLayer(),
-            MapRadiusCircle(
-              center: mapCenter,
-              radiusKm: searchRadiusKm,
-            ),
+            MapRadiusCircle(center: mapCenter, radiusKm: searchRadiusKm),
             MarkerLayer(markers: markers),
           ],
         ),
@@ -272,8 +293,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
               content: Text(
                 conversationId == null
                     ? AppLocalizations.of(context).contactRequestSent
-                    : AppLocalizations.of(context)
-                        .contactRequestWithConversation(conversationId),
+                    : AppLocalizations.of(
+                        context,
+                      ).contactRequestWithConversation(conversationId),
               ),
             ),
           );
@@ -303,24 +325,30 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       final pos = locState.currentPosition!;
       final center = LatLng(pos.latitude, pos.longitude);
       _flatmatesMapController.move(center, kDefaultInitialZoom);
-      ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
-        latitude: pos.latitude,
-        longitude: pos.longitude,
-        radiusKm: ref.read(discoverFeedControllerProvider).filters.radiusKm ??
-            DiscoverFeedController.defaultLocationRadiusKm,
-      );
+      ref
+          .read(discoverFeedControllerProvider.notifier)
+          .updateLocationFilter(
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+            radiusKm:
+                ref.read(discoverFeedControllerProvider).filters.radiusKm ??
+                DiscoverFeedController.defaultLocationRadiusKm,
+          );
     } else {
       await ref.read(locationControllerProvider.notifier).getCurrentLocation();
       final newPos = ref.read(locationControllerProvider).currentPosition;
       if (newPos != null) {
         final center = LatLng(newPos.latitude, newPos.longitude);
         _flatmatesMapController.move(center, kDefaultInitialZoom);
-        ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
-          latitude: newPos.latitude,
-          longitude: newPos.longitude,
-          radiusKm: ref.read(discoverFeedControllerProvider).filters.radiusKm ??
-              DiscoverFeedController.defaultLocationRadiusKm,
-        );
+        ref
+            .read(discoverFeedControllerProvider.notifier)
+            .updateLocationFilter(
+              latitude: newPos.latitude,
+              longitude: newPos.longitude,
+              radiusKm:
+                  ref.read(discoverFeedControllerProvider).filters.radiusKm ??
+                  DiscoverFeedController.defaultLocationRadiusKm,
+            );
       }
     }
   }

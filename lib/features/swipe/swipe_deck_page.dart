@@ -24,6 +24,8 @@ import 'presentation/widgets/swipe_empty_state.dart';
 import 'presentation/widgets/swipe_quota_header.dart';
 import 'swipe_repository.dart';
 
+part 'swipe_deck_actions.dart';
+
 class SwipeDeckPage extends ConsumerStatefulWidget {
   const SwipeDeckPage({super.key});
 
@@ -113,10 +115,15 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (_isAnimating) return;
     _snapBackController.stop();
     if (_isExpanded) {
-      setState(() { _isExpanded = false; });
+      setState(() {
+        _isExpanded = false;
+      });
       _recordExpandedProfileView();
     }
-    setState(() { _isDragging = true; _dragOffset = Offset.zero; });
+    setState(() {
+      _isDragging = true;
+      _dragOffset = Offset.zero;
+    });
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
@@ -215,7 +222,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (status != AnimationStatus.completed) return;
     _flyOffController.removeListener(_onFlyOffTick);
     _flyOffController.removeStatusListener(_onFlyOffStatus);
-    setState(() { _dragOffset = Offset.zero; });
+    setState(() {
+      _dragOffset = Offset.zero;
+    });
     _processSwipeAction(_actionFromDirection());
   }
 
@@ -309,12 +318,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     _flyOffController.addStatusListener(_onFlyOffStatus);
   }
 
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
   void _recordExpandedProfileView() {
     final sample = _profileViewTracker.finish();
     if (sample == null) return;
@@ -339,27 +342,11 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     setState(() => _isExpanded = !_isExpanded);
   }
 
-  void _showMatchCelebration({
-    required String peerName,
-    required String? peerImageUrl,
-    required int? conversationId,
-  }) {
-    final userProfile = ref
-        .read(bootstrapControllerProvider)
-        .valueOrNull
-        ?.profile;
-    pushMatchCelebration(
-      context,
-      userName: userProfile?.fullName ?? 'You',
-      userImageUrl: userProfile?.profileImageUrl,
-      peerName: peerName,
-      peerImageUrl: peerImageUrl,
-      conversationId: conversationId,
-    );
-  }
-
   void _resetAfterSwipe() {
-    setState(() { _dragOffset = Offset.zero; _isAnimating = false; });
+    setState(() {
+      _dragOffset = Offset.zero;
+      _isAnimating = false;
+    });
     _flyOffController.addListener(_onFlyOffTick);
     _flyOffController.addStatusListener(_onFlyOffStatus);
   }
@@ -368,6 +355,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (_flyOffDirectionY < 0) return 'super_like';
     if (_flyOffDirectionX > 0) return 'like';
     return 'pass';
+  }
+
+  void _beginButtonFlyOff() {
+    setState(() {
+      _isAnimating = true;
+    });
   }
 
   void _refreshProfiles() {
@@ -480,54 +473,10 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       error: (e, _) => Scaffold(
         body: FlatmatesErrorState(
           message: locale.failedToLoadProfiles,
-          onRetry: () => ref.read(swipeDeckControllerProvider.notifier).refresh(),
+          onRetry: () =>
+              ref.read(swipeDeckControllerProvider.notifier).refresh(),
         ),
       ),
     );
-  }
-
-  Future<void> _handleActionButton(String action) async {
-    if (_isAnimating) return;
-
-    HapticFeedback.lightImpact();
-
-    final quota = ref.read(swipeQuotaControllerProvider);
-    if (action == 'super_like' && quota.superLikesRemaining <= 0) {
-      final locale = AppLocalizations.of(context);
-      _showSnack(locale.superLikeCapLabel(0));
-      return;
-    }
-
-    if (quota.isCapped) {
-      final locale = AppLocalizations.of(context);
-      _showSnack(locale.swipeCounterLabel(0));
-      return;
-    }
-
-    switch (action) {
-      case 'like':
-        _flyOffDirectionX = 1;
-        _flyOffDirectionY = 0;
-        break;
-      case 'pass':
-        _flyOffDirectionX = -1;
-        _flyOffDirectionY = 0;
-        break;
-      case 'super_like':
-        _flyOffDirectionX = 0;
-        _flyOffDirectionY = -1;
-        break;
-    }
-
-    _flyOffStartOffset = Offset.zero;
-    _dragOffset = Offset.zero;
-    _isButtonTriggered = true;
-    setState(() { _isAnimating = true; });
-
-    _flyOffController.removeListener(_onFlyOffTick);
-    _flyOffController.removeStatusListener(_onFlyOffStatus);
-    _flyOffController.addListener(_onFlyOffTick);
-    _flyOffController.addStatusListener(_onFlyOffStatus);
-    _flyOffController.forward(from: 0);
   }
 }

@@ -11,7 +11,6 @@ import '../auth/auth_controller.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_error_state.dart';
-import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 
@@ -38,6 +37,7 @@ class ProfilePage extends ConsumerWidget {
             if (profile == null) {
               return const FlatmatesSkeleton.card();
             }
+            final profileStrength = _profileStrengthPercent(profile);
             return ListView(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.xl,
@@ -46,68 +46,53 @@ class ProfilePage extends ConsumerWidget {
                 AppSpacing.xl,
               ),
               children: [
-                // --- Header row ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      locale.profilePageTitle,
-                      style: theme.textTheme.headlineLarge,
-                    ),
-                    IconButton(
-                      key: const Key('profile_settings_button'),
-                      onPressed: () => context.push('/profile/settings'),
-                      icon: const Icon(Icons.settings),
-                      tooltip: 'Settings',
-                    ),
-                  ],
+                Text(
+                  locale.profilePageTitle,
+                  style: theme.textTheme.headlineLarge,
                 ),
                 const SizedBox(height: AppSpacing.section),
                 // --- Compact header: avatar left, text right, whole group centered ---
-                Center(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Avatar with animated ring + edit FAB
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          FlatmatesAvatar(
-                            name: profile.fullName,
-                            imageUrl: profile.profileImageUrl,
-                            size: 80,
-                            showRing: true,
-                          ),
-                          Positioned(
-                            right: -2,
-                            bottom: 2,
-                            child: Material(
-                              color: AppSemanticColors.accent,
-                              shape: const CircleBorder(),
-                              elevation: 3,
-                              child: InkWell(
-                                key: const Key('profile_edit_button'),
-                                onTap: () => context.push('/profile/edit'),
-                                customBorder: const CircleBorder(),
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  alignment: Alignment.center,
-                                  child: const Icon(
-                                    Icons.edit,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        FlatmatesAvatar(
+                          name: profile.fullName,
+                          imageUrl: profile.profileImageUrl,
+                          size: 80,
+                          showRing: true,
+                        ),
+                        Positioned(
+                          right: -2,
+                          bottom: 2,
+                          child: Material(
+                            color: AppSemanticColors.accent,
+                            shape: const CircleBorder(),
+                            elevation: 3,
+                            child: InkWell(
+                              key: const Key('profile_edit_button'),
+                              onTap: () => context.push('/profile/edit'),
+                              customBorder: const CircleBorder(),
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.edit,
+                                  size: 14,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(width: AppSpacing.xl),
-                      // Name, role badge, location
-                      IntrinsicWidth(
-                        child: Column(
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: AppSpacing.xl),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -116,6 +101,8 @@ class ProfilePage extends ConsumerWidget {
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                           if (profile.mode != null) ...[
                             const SizedBox(height: 6),
@@ -125,11 +112,13 @@ class ProfilePage extends ConsumerWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.pill),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
                                 border: Border.all(
-                                  color: AppSemanticColors.accent
-                                      .withValues(alpha: 0.5),
+                                  color: AppSemanticColors.accent.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                               ),
                               child: Row(
@@ -141,12 +130,18 @@ class ProfilePage extends ConsumerWidget {
                                     color: AppSemanticColors.accent,
                                   ),
                                   const SizedBox(width: 6),
-                                  Text(
-                                    localizedFlatmatesModeLabel(
-                                        locale, profile.mode!),
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppSemanticColors.accent,
+                                  Flexible(
+                                    child: Text(
+                                      localizedFlatmatesModeLabel(
+                                        locale,
+                                        profile.mode!,
+                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: AppSemanticColors.accent,
+                                          ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -165,39 +160,35 @@ class ProfilePage extends ConsumerWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
-                                  location,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppSemanticColors.textSecondaryFor(
-                                      theme.brightness,
+                                Expanded(
+                                  child: Text(
+                                    location,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: AppSemanticColors.textSecondaryFor(
+                                        theme.brightness,
+                                      ),
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ],
                             ),
                           ],
                         ],
                       ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 32),
-                // --- Verified trust badge ---
-                if (profile.profileStatus == 'verified' ||
-                    profile.profileStatus == 'active')
-                  Center(
-                    child: FlatmatesTrustBadge(
-                      label: locale.verifiedFilterLabel,
-                      variant: FlatmatesTrustBadgeVariant.verified,
-                    ),
-                  ),
-                if (profile.profileStatus == 'verified' ||
-                    profile.profileStatus == 'active')
-                  const SizedBox(height: AppSpacing.lg),
+                _ProfileStrengthCard(
+                  percent: profileStrength,
+                  onTap: () => context.push('/profile/edit'),
+                ),
+                const SizedBox(height: AppSpacing.section),
                 // --- Menu items with staggered appear ---
+                _MenuGroupLabel(label: locale.discoverySectionLabel),
+                const SizedBox(height: AppSpacing.sm),
                 _StaggeredMenuGroup(
                   delayIndex: 0,
                   child: FlatmatesCard(
@@ -227,6 +218,8 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.section),
+                _MenuGroupLabel(label: locale.trustSectionLabel),
+                const SizedBox(height: AppSpacing.sm),
                 _StaggeredMenuGroup(
                   delayIndex: 1,
                   child: FlatmatesCard(
@@ -250,6 +243,8 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.section),
+                _MenuGroupLabel(label: locale.accountSectionLabel),
+                const SizedBox(height: AppSpacing.sm),
                 _StaggeredMenuGroup(
                   delayIndex: 2,
                   child: FlatmatesCard(
@@ -288,6 +283,104 @@ class ProfilePage extends ConsumerWidget {
           error: (error, _) =>
               const FlatmatesErrorState(message: 'Could not load profile'),
         ),
+      ),
+    );
+  }
+}
+
+int _profileStrengthPercent(FlatmatesProfileModel profile) {
+  final checks = <bool>[
+    profile.fullName?.trim().isNotEmpty ?? false,
+    profile.profileImageUrl?.trim().isNotEmpty ?? false,
+    profile.city?.trim().isNotEmpty ?? false,
+    profile.locality?.trim().isNotEmpty ?? false,
+    profile.mode?.trim().isNotEmpty ?? false,
+    profile.budgetMin != null && profile.budgetMax != null,
+    profile.moveInTimeline?.trim().isNotEmpty ?? false,
+    profile.bio?.trim().isNotEmpty ?? false,
+    profile.cleanliness?.trim().isNotEmpty ?? false,
+    profile.foodHabits?.trim().isNotEmpty ?? false,
+  ];
+  final completed = checks.where((value) => value).length;
+  return ((completed / checks.length) * 100).round().clamp(0, 100);
+}
+
+class _ProfileStrengthCard extends StatelessWidget {
+  const _ProfileStrengthCard({required this.percent, required this.onTap});
+
+  final int percent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+
+    return FlatmatesCard(
+      onTap: onTap,
+      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
+      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.08),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  locale.profileStrengthTitle(percent),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Text(
+                locale.completeProfileCta,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppSemanticColors.accent,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: AppRadius.pillBorder,
+            child: LinearProgressIndicator(
+              value: percent / 100,
+              minHeight: 8,
+              backgroundColor: AppSemanticColors.line.withValues(alpha: 0.35),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppSemanticColors.accent,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            locale.profileStrengthSubtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuGroupLabel extends StatelessWidget {
+  const _MenuGroupLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      label.toUpperCase(),
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: AppSemanticColors.textTertiaryFor(theme.brightness),
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1,
       ),
     );
   }

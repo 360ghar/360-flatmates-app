@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_bottom_sheet.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_listing_mini_card.dart';
+import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../discover_repository.dart';
 
-/// Shows a bottom sheet with all listings in a cluster.
 void showClusterSheet(
   BuildContext context, {
   required List<PropertyListing> clusterItems,
@@ -17,6 +19,7 @@ void showClusterSheet(
 }) {
   final theme = Theme.of(context);
   final locale = AppLocalizations.of(context);
+  const thumbSize = 88.0;
 
   FlatmatesBottomSheet.show(
     context: context,
@@ -60,22 +63,81 @@ void showClusterSheet(
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
               itemBuilder: (_, index) {
                 final item = clusterItems[index];
-                return FlatmatesListingMiniCard(
-                  title: item.title,
-                  rent: item.monthlyRent.toInt(),
-                  imageUrl: item.mainImageUrl,
-                  locality: item.locality,
-                  subtitle: item.bedrooms != null
-                      ? locale.homeBedsValue(item.bedrooms!)
-                      : null,
-                  trailing: FlatmatesPriceText.card(
-                    amount: item.monthlyRent.toInt(),
-                    period: 'mo',
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    onListingTap(item);
-                  },
+                final subtitleParts = <String>[
+                  if (item.bedrooms != null)
+                    '${item.bedrooms} BHK',
+                  if (item.sharingType != null)
+                    localizedFlatmatesSharingTypeLabel(
+                      locale,
+                      item.sharingType!,
+                    ),
+                ];
+                final genderDot = switch (item.genderPreference) {
+                  'male' => Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  'female' => Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.pink,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  _ => null,
+                };
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FlatmatesListingMiniCard(
+                      title: item.title,
+                      rent: item.monthlyRent.toInt(),
+                      imageUrl: item.mainImageUrl,
+                      locality: item.locality,
+                      subtitle: subtitleParts.isNotEmpty
+                          ? subtitleParts.join(' · ')
+                          : null,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (genderDot != null) ...[
+                            genderDot,
+                            const SizedBox(width: AppSpacing.sm),
+                          ],
+                          FlatmatesPriceText.card(
+                            amount: item.monthlyRent.toInt(),
+                            period: 'mo',
+                          ),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        onListingTap(item);
+                      },
+                    ),
+                    if (item.owner?.fullName != null)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: thumbSize + AppSpacing.md,
+                          top: 2,
+                        ),
+                        child: Text(
+                          'by ${item.owner!.fullName}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppSemanticColors.textSecondaryFor(
+                              theme.brightness,
+                            ),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                  ],
                 );
               },
             ),
@@ -86,13 +148,14 @@ void showClusterSheet(
   );
 }
 
-/// Shows a bottom sheet for a single listing with details and a like action.
 void showListingSheet(
   BuildContext context, {
   required PropertyListing item,
   required VoidCallback onLike,
 }) {
+  final theme = Theme.of(context);
   final locale = AppLocalizations.of(context);
+  final now = DateTime.now();
 
   FlatmatesBottomSheet.show(
     context: context,
@@ -118,6 +181,74 @@ void showListingSheet(
                 period: 'mo',
               ),
             ),
+            if (item.owner != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  if (item.owner!.profileImageUrl != null)
+                    FlatmatesNetworkImage(
+                      imageUrl: item.owner!.profileImageUrl!,
+                      width: 28,
+                      height: 28,
+                      borderRadius: BorderRadius.circular(14),
+                    )
+                  else
+                    CircleAvatar(
+                      radius: 14,
+                      child: Text(
+                        item.owner!.fullName.isNotEmpty
+                            ? item.owner!.fullName[0].toUpperCase()
+                            : '?',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'by ${item.owner!.fullName}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                    ),
+                  ),
+                  if (item.owner!.mode != null) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    FlatmatesChip(
+                      label: item.owner!.mode!,
+                      variant: FlatmatesChipVariant.info,
+                    ),
+                  ],
+                ],
+              ),
+            ],
+            if (item.availableFrom != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: !item.availableFrom!.isAfter(now)
+                          ? Colors.green.shade600
+                          : Colors.orange.shade700,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    !item.availableFrom!.isAfter(now)
+                        ? 'Available Now'
+                        : 'Available from ${DateFormat.yMMMd().format(item.availableFrom!)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             Wrap(
               spacing: AppSpacing.sm,
@@ -151,6 +282,12 @@ void showListingSheet(
                       locale,
                       item.sharingType!,
                     ),
+                    variant: FlatmatesChipVariant.info,
+                  ),
+                if (item.isFurnished)
+                  FlatmatesChip(
+                    icon: Icons.chair_outlined,
+                    label: 'Furnished',
                     variant: FlatmatesChipVariant.info,
                   ),
               ],

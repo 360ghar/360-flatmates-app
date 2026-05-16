@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../discover_repository.dart';
 
-/// Builds clustered map markers from a list of property listings.
-///
-/// Groups listings by locality (or rounded coordinates as fallback).
-/// Single-item groups get normal markers; multi-item groups get cluster markers.
-///
-/// Returns a list of [Marker] widgets compatible with flutter_map's [FlutterMap].
+String _formatCompactPrice(int amount) {
+  if (amount >= 100000) {
+    final lakhs = amount / 100000;
+    final value = lakhs.toStringAsFixed(lakhs >= 10 ? 1 : 2);
+    final compact = value.replaceAll(RegExp(r'\.?0+$'), '');
+    return '₹${compact}L';
+  }
+  final thousands = amount / 1000;
+  return '₹${thousands.toStringAsFixed(thousands == thousands.roundToDouble() ? 0 : 1)}K';
+}
+
 List<Marker> buildClusteredMarkers({
   required List<PropertyListing> items,
   required ThemeData theme,
   required void Function(PropertyListing) onListingTap,
   required void Function(List<PropertyListing>) onClusterTap,
 }) {
-  // Step 1: Group by locality (or by rounded coordinates as fallback).
   final groups = <String, List<PropertyListing>>{};
   for (final item in items) {
     if (item.latitude == null || item.longitude == null) continue;
@@ -32,7 +38,6 @@ List<Marker> buildClusteredMarkers({
     final groupItems = entry.value;
 
     if (groupItems.length == 1) {
-      // Single listing — normal marker.
       final item = groupItems.first;
       final isRoom = item.ownerId != null;
       final color =
@@ -40,18 +45,18 @@ List<Marker> buildClusteredMarkers({
       markers.add(
         Marker(
           point: LatLng(item.latitude!, item.longitude!),
-          width: 40,
-          height: 40,
+          width: 72,
+          height: 68,
           child: _ListingMarkerWidget(
-            title: item.title,
             price: item.monthlyRent.toInt(),
             color: color,
+            bedrooms: item.bedrooms,
+            sharingType: item.sharingType,
             onTap: () => onListingTap(item),
           ),
         ),
       );
     } else {
-      // Cluster marker — use average position of all items in group.
       final avgLat =
           groupItems.map((i) => i.latitude!).reduce((a, b) => a + b) /
           groupItems.length;
@@ -62,10 +67,10 @@ List<Marker> buildClusteredMarkers({
       markers.add(
         Marker(
           point: LatLng(avgLat, avgLng),
-          width: 48,
-          height: 48,
+          width: 56,
+          height: 70,
           child: _ClusterMarkerWidget(
-            count: groupItems.length,
+            clusterItems: groupItems,
             label: groupItems.first.locality ?? 'listings',
             onTap: () => onClusterTap(groupItems),
           ),
@@ -77,89 +82,210 @@ List<Marker> buildClusteredMarkers({
   return markers;
 }
 
-/// Custom widget for single listing markers on the map.
 class _ListingMarkerWidget extends StatelessWidget {
   const _ListingMarkerWidget({
-    required this.title,
     required this.price,
     required this.color,
     required this.onTap,
+    this.bedrooms,
+    this.sharingType,
   });
 
-  final String title;
   final int price;
   final Color color;
   final VoidCallback onTap;
+  final int? bedrooms;
+  final String? sharingType;
 
   @override
   Widget build(BuildContext context) {
+    final priceText = _formatCompactPrice(price);
+
+    String? bhkLabel;
+    if (bedrooms != null) {
+      if (bedrooms == 1) {
+        bhkLabel = '1 RK';
+      } else if (bedrooms! >= 2) {
+        bhkLabel = '$bedrooms BHK';
+      }
+    }
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.4),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+      child: SizedBox(
+        width: 72,
+        height: 68,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs + 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(AppRadius.md),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.4),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    priceText,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                CustomPaint(
+                  size: const Size(12, 8),
+                  painter: _TrianglePainter(color: color),
+                ),
+              ],
             ),
+            if (bhkLabel != null)
+              Positioned(
+                top: -4,
+                right: -4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: AppRadius.smBorder,
+                    border: Border.all(color: color, width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    bhkLabel,
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+              ),
           ],
-          border: Border.all(color: color, width: 2.5),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.home_rounded,
-            size: 20,
-            color: color,
-          ),
         ),
       ),
     );
   }
 }
 
-/// Custom widget for cluster markers showing listing count.
+class _TrianglePainter extends CustomPainter {
+  const _TrianglePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrianglePainter oldDelegate) =>
+      color != oldDelegate.color;
+}
+
 class _ClusterMarkerWidget extends StatelessWidget {
   const _ClusterMarkerWidget({
-    required this.count,
+    required this.clusterItems,
     required this.label,
     required this.onTap,
   });
 
-  final int count;
+  final List<PropertyListing> clusterItems;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final clusterColor = const Color(0xFF673AB7);
+    final count = clusterItems.length;
+
+    final rents = clusterItems
+        .map((i) => i.monthlyRent.toInt())
+        .toList()
+      ..sort();
+    final minRent = rents.first;
+    final maxRent = rents.last;
+    final rangeText = minRent == maxRent
+        ? _formatCompactPrice(minRent)
+        : '${_formatCompactPrice(minRent)}-${_formatCompactPrice(maxRent)}';
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: clusterColor.withValues(alpha: 0.4),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+      child: SizedBox(
+        width: 56,
+        height: 70,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: clusterColor.withValues(alpha: 0.4),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+                border: Border.all(color: clusterColor, width: 2.5),
+              ),
+              child: Center(
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: clusterColor,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              rangeText,
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w600,
+                color: clusterColor,
+              ),
             ),
           ],
-          border: Border.all(color: clusterColor, width: 2.5),
-        ),
-        child: Center(
-          child: Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: clusterColor,
-            ),
-          ),
         ),
       ),
     );

@@ -14,6 +14,7 @@ void main() {
         child: const Scaffold(
           body: DiscoverHeader(
             greeting: 'Hi, Test',
+            subtitle: 'Find your next flatmate in Bangalore',
             location: 'Koramangala, Bangalore',
             avatarUrl: null,
             userName: 'Test User',
