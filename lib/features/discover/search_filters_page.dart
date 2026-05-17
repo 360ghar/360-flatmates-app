@@ -263,9 +263,7 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
       priceMax: _budgetValues.end == _budgetMax ? null : _budgetValues.end,
       sharingType: _normalizedSharingType(),
       genderPreference: _normalizedGenderPreference(),
-      features: [
-        if (_selectedFurnishing != null) _selectedFurnishing!,
-      ],
+      features: [?_selectedFurnishing],
       pets: _selectedPets,
       smoking: _selectedSmoking,
       moveInTimeline: _selectedMoveIn,

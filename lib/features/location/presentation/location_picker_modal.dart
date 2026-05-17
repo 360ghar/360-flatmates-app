@@ -86,6 +86,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
         Navigator.of(context).pop();
       } else {
         final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!mounted) return;
         if (!serviceEnabled) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -100,8 +101,10 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
           return;
         }
         var permission = await Geolocator.checkPermission();
+        if (!mounted) return;
         if (permission == LocationPermission.denied) {
           permission = await Geolocator.requestPermission();
+          if (!mounted) return;
         }
         if (permission == LocationPermission.denied ||
             permission == LocationPermission.deniedForever) {
