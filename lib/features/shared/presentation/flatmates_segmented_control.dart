@@ -44,35 +44,31 @@ class FlatmatesSegmentedControl<T> extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final totalWidth = constraints.maxWidth;
-          final segmentWidth = totalWidth / segments.length;
-          final indicatorLeft = selectedIndex >= 0
-              ? selectedIndex * segmentWidth + AppSpacing.xs
-              : 0.0;
-          final indicatorWidth = segmentWidth - AppSpacing.xs * 2;
+          final segmentWidth = constraints.maxWidth / segments.length;
 
           return Stack(
             children: [
-              // Sliding pill indicator
+              // Sliding pill indicator — aligned to exact segment boundaries
               if (selectedIndex >= 0)
                 AnimatedPositioned(
-                  left: indicatorLeft,
-                  top: AppSpacing.xs,
-                  width: indicatorWidth,
+                  left: selectedIndex * segmentWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
                   duration: AppMotion.segmentTransition,
                   curve: AppMotion.easeOutQuart,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.sm + AppSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppSemanticColors.accent,
-                      borderRadius: AppRadius.pillBorder,
-                      boxShadow: [AppShadows.subtleGlowFor(theme.brightness)],
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppSemanticColors.accent,
+                        borderRadius: AppRadius.pillBorder,
+                        boxShadow: [AppShadows.subtleGlowFor(theme.brightness)],
+                      ),
                     ),
                   ),
                 ),
-              // Segment labels
+              // Segment labels — non-positioned, determines Stack height
               Row(
                 children: segments.asMap().entries.map((entry) {
                   final index = entry.key;

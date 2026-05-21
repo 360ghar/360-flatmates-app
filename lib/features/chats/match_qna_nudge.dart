@@ -46,94 +46,96 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(locale.qnaNudgeTitle, style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          locale.qnaNudgeSubtitle,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(locale.qnaNudgeTitle, style: theme.textTheme.headlineMedium),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            locale.qnaNudgeSubtitle,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.screen),
-        FlatmatesCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(locale.qnaQuestion1, style: theme.textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _q1Controller,
-                maxLength: 100,
-                decoration: InputDecoration(
-                  hintText: locale.qnaQuestion1Hint,
-                  counterStyle: theme.textTheme.bodySmall,
+          const SizedBox(height: AppSpacing.screen),
+          FlatmatesCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(locale.qnaQuestion1, style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _q1Controller,
+                  maxLength: 100,
+                  decoration: InputDecoration(
+                    hintText: locale.qnaQuestion1Hint,
+                    counterStyle: theme.textTheme.bodySmall,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        FlatmatesCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(locale.qnaQuestion2, style: theme.textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              Slider(
-                value: _q2Value.toDouble(),
-                min: 1,
-                max: 5,
-                divisions: 4,
-                label: _q2Labels[_q2Value - 1],
-                onChanged: (v) => setState(() => _q2Value = v.round()),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        FlatmatesCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(locale.qnaQuestion3, style: theme.textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _q3Controller,
-                maxLength: 60,
-                decoration: InputDecoration(
-                  hintText: locale.qnaQuestion3Hint,
-                  counterStyle: theme.textTheme.bodySmall,
+          const SizedBox(height: AppSpacing.lg),
+          FlatmatesCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(locale.qnaQuestion2, style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                Slider(
+                  value: _q2Value.toDouble(),
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  label: _q2Labels[_q2Value - 1],
+                  onChanged: (v) => setState(() => _q2Value = v.round()),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.screen),
-        FlatmatesButton(
-          label: locale.qnaAnswerCta,
-          onPressed: () {
-            widget.onComplete({
-              'q1': _q1Controller.text.trim(),
-              'q2': _q2Value.toString(),
-              'q3': _q3Controller.text.trim(),
-            });
-            Navigator.pop(context);
-          },
-          icon: Icons.check_rounded,
-          fullWidth: true,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Center(
-          child: FlatmatesButton.tertiary(
-            label: locale.qnaSkipCta,
-            onPressed: () => Navigator.pop(context),
+          const SizedBox(height: AppSpacing.lg),
+          FlatmatesCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(locale.qnaQuestion3, style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _q3Controller,
+                  maxLength: 60,
+                  decoration: InputDecoration(
+                    hintText: locale.qnaQuestion3Hint,
+                    counterStyle: theme.textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: AppSpacing.screen),
+          FlatmatesButton(
+            label: locale.qnaAnswerCta,
+            onPressed: () {
+              widget.onComplete({
+                'q1': _q1Controller.text.trim(),
+                'q2': _q2Value.toString(),
+                'q3': _q3Controller.text.trim(),
+              });
+              Navigator.pop(context);
+            },
+            icon: Icons.check_rounded,
+            fullWidth: true,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Center(
+            child: FlatmatesButton.tertiary(
+              label: locale.qnaSkipCta,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

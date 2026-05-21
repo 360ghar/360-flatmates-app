@@ -4,27 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/compatibility/compatibility_engine.dart';
-import '../../../../core/compatibility/compatibility_ring.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../location/presentation/map_widgets.dart';
 import '../../../shared/presentation/flatmates_card.dart';
-import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../../shared/presentation/flatmates_video_tour_player.dart';
 import '../../swipe_repository.dart';
 
-// ── Collapsed Card ──────────────────────────────────────────────────────
+// ── Scrollable Swipe Profile Card ───────────────────────────────────────
 
-/// Collapsed (compact) profile card shown in the swipe deck.
+/// Single scrollable profile card for the swipe deck.
 ///
-/// Photo-first design with dark gradient overlay, match pill, mode chip,
-/// key info overlay, and a "Why this match works" section.
-class CollapsedCard extends StatelessWidget {
-  const CollapsedCard({
+/// Shows a fixed-height photo hero area at the top with gradient overlay,
+/// mode chip, match pill, and key info overlay. Scrolling down reveals the
+/// full profile details (About Me, Compatibility, Society, Room, Flat,
+/// Costs, etc.). No separate collapsed/expanded states.
+class SwipeProfileCard extends StatelessWidget {
+  const SwipeProfileCard({
     required this.item,
     required this.compatibility,
     super.key,
@@ -37,32 +37,269 @@ class CollapsedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final details = item.listingDetails;
+
+    String? str(String key) {
+      final v = details[key];
+      return v is String ? v : null;
+    }
+
+    List<String> strList(String key) {
+      final v = details[key];
+      if (v is List) return v.map((e) => e.toString()).toList();
+      return const [];
+    }
+
+    double? dbl(String key) {
+      final v = details[key];
+      if (v is num) return v.toDouble();
+      return null;
+    }
+
+    List<Map<String, String>> flatmates() {
+      final v = details['existing_flatmates'];
+      if (v is! List) return const [];
+      return v
+          .whereType<Map>()
+          .map(
+            (m) => Map<String, String>.from(
+              m.map((k, val) => MapEntry(k.toString(), val?.toString() ?? '')),
+            ),
+          )
+          .toList();
+    }
+
+    final societyAmenities = strList('society_amenities');
+    final societyVibes = strList('society_vibes');
+    final furnishing = strList('furnishing');
+    final roomFeatures = strList('room_features');
+    final flatAmenities = strList('flat_amenities');
+    final existingFlatmates = flatmates();
+
+    final monthlyRent = dbl('monthly_rent') ?? item.budgetMin;
+    final securityDeposit = dbl('security_deposit');
+    final maintenance = dbl('maintenance');
+    final videoTourUrl = str('video_tour_url');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: FlatmatesCard(
         padding: EdgeInsets.zero,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Photo area (~65% of card) ──
-            _buildPhotoArea(context, locale, isDark),
-            // ── "Why this match works" section ──
-            _buildMatchSection(context, locale, isDark),
-          ],
+        child: ClipRRect(
+          borderRadius: AppRadius.cardBorder,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: [
+              // ── Photo hero area (scrolls with content) ──
+              _buildPhotoHero(context, locale),
+              // ── Detail content ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildMatchSection(context, locale),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (videoTourUrl != null && videoTourUrl.isNotEmpty) ...[
+                      FlatmatesVideoTourPlayer(videoUrl: videoTourUrl),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+
+                    // About Me — no header, just text
+                    if (item.bio != null && item.bio!.isNotEmpty)
+                      Text(
+                        item.bio!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
+                      ),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // Compatibility Breakdown — mini progress bars
+                    _EyebrowLabel(label: locale.compatibilityBreakdown),
+                    const SizedBox(height: AppSpacing.sm),
+                    _CompactCompatibilityBreakdown(result: compatibility),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // --- The Society ---
+                    if (item.locality != null ||
+                        item.city != null ||
+                        str('society_name') != null ||
+                        societyAmenities.isNotEmpty ||
+                        societyVibes.isNotEmpty) ...[
+                      _EyebrowLabel(label: locale.societySectionTitle),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (item.locality != null || item.city != null)
+                        _CompactDetailRow(
+                          icon: Icons.location_on_outlined,
+                          text: [
+                            item.locality,
+                            item.city,
+                          ].whereType<String>().join(', '),
+                        ),
+                      if (str('society_name') != null)
+                        _CompactDetailRow(
+                          icon: Icons.apartment_outlined,
+                          text: str('society_name')!,
+                        ),
+                      if (societyAmenities.isNotEmpty)
+                        _CompactChipRow(labels: societyAmenities),
+                      if (societyVibes.isNotEmpty)
+                        _CompactChipRow(labels: societyVibes),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+
+                    // --- Location Map ---
+                    if (dbl('latitude') != null &&
+                        dbl('longitude') != null) ...[
+                      MiniMapView(
+                        latitude: dbl('latitude')!,
+                        longitude: dbl('longitude')!,
+                        height: 140,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      GetDirectionsButton(
+                        latitude: dbl('latitude')!,
+                        longitude: dbl('longitude')!,
+                        label:
+                            item.locality ??
+                            item.city ??
+                            locale.propertyFallbackLabel,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+
+                    // --- The Room ---
+                    if (str('room_type') != null ||
+                        furnishing.isNotEmpty ||
+                        roomFeatures.isNotEmpty) ...[
+                      _EyebrowLabel(label: locale.roomSectionTitle),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (str('room_type') != null)
+                        _CompactDetailRow(
+                          icon: Icons.bed_outlined,
+                          text: humanizeFlatmatesToken(str('room_type')!),
+                        ),
+                      if (furnishing.isNotEmpty)
+                        _CompactChipRow(labels: furnishing),
+                      if (roomFeatures.isNotEmpty)
+                        _CompactChipRow(labels: roomFeatures),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+
+                    // --- The Flat & Flatmates ---
+                    if (str('flat_config') != null ||
+                        str('floor') != null ||
+                        flatAmenities.isNotEmpty ||
+                        existingFlatmates.isNotEmpty) ...[
+                      _EyebrowLabel(label: locale.flatAndFlatmatesSectionTitle),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (str('flat_config') != null)
+                        _CompactDetailRow(
+                          icon: Icons.home_outlined,
+                          text: str('flat_config')!,
+                        ),
+                      if (str('floor') != null)
+                        _CompactDetailRow(
+                          icon: Icons.stairs_outlined,
+                          text: str('floor')!,
+                        ),
+                      if (flatAmenities.isNotEmpty)
+                        _CompactChipRow(labels: flatAmenities),
+                      if (existingFlatmates.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          locale.existingFlatmatesLabel,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        ...existingFlatmates.map(
+                          (fm) => _FlatmateMiniProfile(
+                            name: fm['name'] ?? '',
+                            profession: fm['profession'] ?? '',
+                            lifestyleChips: const [],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                    ],
+
+                    // --- Costs Breakdown ---
+                    if (monthlyRent != null) ...[
+                      _EyebrowLabel(label: locale.costsBreakdownSectionTitle),
+                      const SizedBox(height: AppSpacing.sm),
+                      _CompactCostRow(
+                        label: locale.monthlyRentRow,
+                        value: '₹${monthlyRent.toStringAsFixed(0)}',
+                      ),
+                      if (securityDeposit != null)
+                        _CompactCostRow(
+                          label: locale.securityDepositRow,
+                          value: '₹${securityDeposit.toStringAsFixed(0)}',
+                        ),
+                      if (maintenance != null)
+                        _CompactCostRow(
+                          label: locale.maintenanceRow,
+                          value: '₹${maintenance.toStringAsFixed(0)}',
+                        ),
+                      Divider(height: 20, color: AppSemanticColors.line),
+                      _CompactCostRow(
+                        label: locale.estimatedTotalRow,
+                        value:
+                            '₹${(monthlyRent + (maintenance ?? 0)).toStringAsFixed(0)}',
+                        isBold: true,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+
+                    // Budget + Move-in as compact info pills
+                    if (item.budgetMin != null ||
+                        item.budgetMax != null ||
+                        item.moveInTimeline != null)
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: [
+                          if (item.budgetMin != null || item.budgetMax != null)
+                            _InfoPill(
+                              icon: Icons.currency_rupee_rounded,
+                              label:
+                                  '₹${(item.budgetMin ?? 0).toStringAsFixed(0)} - ₹${(item.budgetMax ?? 100000).toStringAsFixed(0)}/mo',
+                            ),
+                          if (item.moveInTimeline != null)
+                            _InfoPill(
+                              icon: Icons.event_outlined,
+                              label: localizedFlatmatesMoveInTimeline(
+                                locale,
+                                item.moveInTimeline!,
+                              ),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPhotoArea(
-    BuildContext context,
-    AppLocalizations locale,
-    bool isDark,
-  ) {
-    return Expanded(
-      flex: 13,
+  // ── Photo hero area (fixed height) ──────────────────────────────────
+
+  Widget _buildPhotoHero(BuildContext context, AppLocalizations locale) {
+    return SizedBox(
+      height: 300,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -94,13 +331,13 @@ class CollapsedCard extends StatelessWidget {
               ),
             ),
           ),
-          // Top-left: mode chip
+          // Top-left: mode chip (compact)
           Positioned(
             left: AppSpacing.md,
             top: AppSpacing.md,
             child: _ModeChip(mode: item.mode ?? 'open_to_both', locale: locale),
           ),
-          // Top-right: match pill
+          // Top-right: match pill (compact)
           Positioned(
             right: AppSpacing.md,
             top: AppSpacing.md,
@@ -111,74 +348,36 @@ class CollapsedCard extends StatelessWidget {
             left: AppSpacing.lg,
             right: AppSpacing.lg,
             bottom: AppSpacing.lg,
-            child: _InfoOverlay(
-              item: item,
-              locale: locale,
-            ),
+            child: _InfoOverlay(item: item, locale: locale),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMatchSection(
-    BuildContext context,
-    AppLocalizations locale,
-    bool isDark,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.md,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section title
-          Text(
-            locale.whyThisMatchWorks,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: AppSemanticColors.textTertiaryFor(Theme.of(context).brightness),
-              fontSize: AppTypography.labelMediumSize,
-              letterSpacing: 0.6,
+  Widget _buildMatchSection(BuildContext context, AppLocalizations locale) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          locale.whyThisMatchWorks,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: AppSemanticColors.textTertiaryFor(
+              Theme.of(context).brightness,
             ),
+            fontSize: AppTypography.labelMediumSize,
+            letterSpacing: 0.6,
           ),
-          const SizedBox(height: AppSpacing.sm),
-          // Compatibility chips
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: compatibility.topMatchChips.take(3).map((chip) {
-              return _CompactMatchChip(label: chip);
-            }).toList(),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // View full profile CTA
-          Listener(
-            onPointerDown: (_) {},
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  locale.tapToSeeMore,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppSemanticColors.accent,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: AppSemanticColors.accent,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: compatibility.topMatchChips.take(3).map((chip) {
+            return _CompactMatchChip(label: chip);
+          }).toList(),
+        ),
+      ],
     );
   }
 }
@@ -288,32 +487,25 @@ class _ModeChip extends StatelessWidget {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.35),
             borderRadius: AppRadius.pillBorder,
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.2),
-              width: 1,
+              width: 0.5,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                _modeIcon(mode),
-                size: 13,
-                color: Colors.white,
-              ),
-              const SizedBox(width: AppSpacing.xs),
+              Icon(_modeIcon(mode), size: 11, color: Colors.white),
+              const SizedBox(width: 3),
               Text(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -359,45 +551,36 @@ class _MatchPill extends StatelessWidget {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.35),
             borderRadius: AppRadius.pillBorder,
-            border: Border.all(
-              color: color.withValues(alpha: 0.5),
-              width: 1,
-            ),
+            border: Border.all(color: color.withValues(alpha: 0.5), width: 0.5),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color,
-                ),
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
               ),
-              const SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: 3),
               Text(
                 label,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: hasReliableScore ? 11 : 10,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               if (tier != null) ...[
-                const SizedBox(width: AppSpacing.xs),
+                const SizedBox(width: 3),
                 Text(
                   tier,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 11,
+                    fontSize: 9,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -437,11 +620,10 @@ class _InfoOverlay extends StatelessWidget {
           _nameWithAge(),
           style: const TextStyle(
             color: Colors.white,
-            fontSize: AppTypography.h2Size,
-            fontWeight: AppTypography.h2Weight,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
             fontFamily: AppTypography.fontFamilySerif,
-            height: AppTypography.h2Height,
-            letterSpacing: AppTypography.h2LetterSpacing,
+            height: 1.2,
             shadows: [
               Shadow(
                 color: Colors.black26,
@@ -453,12 +635,12 @@ class _InfoOverlay extends StatelessWidget {
         ),
         // Profession
         if (item.profession != null && item.profession!.isNotEmpty) ...[
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             item.profession!,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
-              fontSize: AppTypography.bodyMediumSize,
+              fontSize: 12,
               fontWeight: FontWeight.w400,
               shadows: const [
                 Shadow(
@@ -479,10 +661,7 @@ class _InfoOverlay extends StatelessWidget {
         // Budget + Move-in
         if (item.budgetMin != null || item.budgetMax != null) ...[
           const SizedBox(height: 4),
-          _InfoRow(
-            icon: Icons.currency_rupee_rounded,
-            text: _budgetText(),
-          ),
+          _InfoRow(icon: Icons.currency_rupee_rounded, text: _budgetText()),
         ],
         if (item.moveInTimeline != null) ...[
           const SizedBox(height: 4),
@@ -532,14 +711,14 @@ class _InfoRow extends StatelessWidget {
     if (text.isEmpty) return const SizedBox.shrink();
     return Row(
       children: [
-        Icon(icon, size: 15, color: Colors.white.withValues(alpha: 0.8)),
-        const SizedBox(width: AppSpacing.xs),
+        Icon(icon, size: 13, color: Colors.white.withValues(alpha: 0.8)),
+        const SizedBox(width: 3),
         Flexible(
           child: Text(
             text,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
-              fontSize: AppTypography.bodyMediumSize,
+              fontSize: 11,
               shadows: const [
                 Shadow(
                   color: Colors.black26,
@@ -561,23 +740,24 @@ class _ActivityStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: 6,
+          height: 6,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppSemanticColors.ink4,
           ),
         ),
-        const SizedBox(width: AppSpacing.xs),
+        const SizedBox(width: 3),
         Text(
-          'Active recently',
+          locale.activeRecentlyLabel,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -636,388 +816,30 @@ class _CompactMatchChip extends StatelessWidget {
   }
 }
 
-// ── Expanded Card (unchanged structure, minor polish) ───────────────────
+// ── Eyebrow label (quiet section header) ─────────────────────────────────
 
-/// Expanded (full-detail) profile card shown in the swipe deck.
-class ExpandedCard extends StatelessWidget {
-  const ExpandedCard({
-    required this.item,
-    required this.compatibility,
-    super.key,
-  });
-
-  final SwipeProfile item;
-  final CompatibilityResult compatibility;
+class _EyebrowLabel extends StatelessWidget {
+  const _EyebrowLabel({required this.label});
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-    final details = item.listingDetails;
-
-    String? str(String key) {
-      final v = details[key];
-      return v is String ? v : null;
-    }
-
-    List<String> strList(String key) {
-      final v = details[key];
-      if (v is List) return v.map((e) => e.toString()).toList();
-      return const [];
-    }
-
-    double? dbl(String key) {
-      final v = details[key];
-      if (v is num) return v.toDouble();
-      return null;
-    }
-
-    List<Map<String, String>> flatmates() {
-      final v = details['existing_flatmates'];
-      if (v is! List) return const [];
-      return v
-          .whereType<Map>()
-          .map(
-            (m) => Map<String, String>.from(
-              m.map((k, val) => MapEntry(k.toString(), val?.toString() ?? '')),
-            ),
-          )
-          .toList();
-    }
-
-    final societyAmenities = strList('society_amenities');
-    final societyVibes = strList('society_vibes');
-    final furnishing = strList('furnishing');
-    final roomFeatures = strList('room_features');
-    final flatAmenities = strList('flat_amenities');
-    final existingFlatmates = flatmates();
-
-    final monthlyRent = dbl('monthly_rent') ?? item.budgetMin;
-    final securityDeposit = dbl('security_deposit');
-    final maintenance = dbl('maintenance');
-    final videoTourUrl = str('video_tour_url');
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: FlatmatesCard(
-        padding: EdgeInsets.zero,
-        child: ListView(
-          padding: AppSpacing.edgeLg,
-          children: [
-            // Header row: avatar + name + compatibility
-            Row(
-              children: [
-                FlatmatesAvatar(
-                  name: item.fullName,
-                  imageUrl: item.profileImageUrl,
-                  size: 64,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.fullName ?? '',
-                        style: theme.textTheme.headlineMedium,
-                      ),
-                      FlatmatesChip(
-                        label: localizedFlatmatesModeLabel(
-                          locale,
-                          item.mode ?? 'open_to_both',
-                        ),
-                        selected: true,
-                        variant: FlatmatesChipVariant.filter,
-                      ),
-                    ],
-                  ),
-                ),
-                CompatibilityRing(
-                  percentage: compatibility.percentage,
-                  newLabel: locale.badgeNew,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            if (videoTourUrl != null && videoTourUrl.isNotEmpty) ...[
-              FlatmatesVideoTourPlayer(videoUrl: videoTourUrl),
-              const SizedBox(height: AppSpacing.xl),
-            ],
-
-            // About Me
-            FlatmatesSectionHeader(title: locale.aboutMeSection),
-            const SizedBox(height: AppSpacing.sm),
-            if (item.bio != null && item.bio!.isNotEmpty)
-              Text(item.bio!, style: theme.textTheme.bodyLarge)
-            else
-              Text(locale.noBioYet, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Compatibility Breakdown
-            FlatmatesSectionHeader(title: locale.compatibilityBreakdown),
-            const SizedBox(height: AppSpacing.md),
-            CompatibilityBreakdown(result: compatibility),
-            const SizedBox(height: AppSpacing.xl),
-
-            // --- The Society ---
-            FlatmatesSectionHeader(title: locale.societySectionTitle),
-            const SizedBox(height: AppSpacing.sm),
-            if (item.locality != null || item.city != null)
-              _DetailRow(
-                icon: Icons.location_on_outlined,
-                text: [item.locality, item.city].whereType<String>().join(', '),
-              ),
-            if (str('society_name') != null)
-              _DetailRow(
-                icon: Icons.apartment_outlined,
-                text: str('society_name')!,
-              ),
-            if (societyAmenities.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: societyAmenities
-                      .map(
-                        (a) => FlatmatesChip(
-                          icon: Icons.check_circle_outline,
-                          label: humanizeFlatmatesToken(a),
-                          variant: FlatmatesChipVariant.info,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            if (societyVibes.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: societyVibes
-                      .map(
-                        (v) => FlatmatesChip(
-                          icon: Icons.wb_sunny_outlined,
-                          label: humanizeFlatmatesToken(v),
-                          variant: FlatmatesChipVariant.info,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            if (item.locality == null &&
-                item.city == null &&
-                str('society_name') == null &&
-                societyAmenities.isEmpty &&
-                societyVibes.isEmpty)
-              Text(locale.notAvailable, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: AppSpacing.xl),
-
-            // --- Location Map ---
-            if (dbl('latitude') != null && dbl('longitude') != null) ...[
-              FlatmatesSectionHeader(title: locale.locationSectionTitle),
-              const SizedBox(height: AppSpacing.sm),
-              MiniMapView(
-                latitude: dbl('latitude')!,
-                longitude: dbl('longitude')!,
-                height: 160,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              GetDirectionsButton(
-                latitude: dbl('latitude')!,
-                longitude: dbl('longitude')!,
-                label: item.locality ?? item.city ?? locale.propertyFallbackLabel,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-            ],
-
-            // --- The Room ---
-            FlatmatesSectionHeader(title: locale.roomSectionTitle),
-            const SizedBox(height: AppSpacing.sm),
-            if (str('room_type') != null)
-              _DetailRow(
-                icon: Icons.bed_outlined,
-                text: humanizeFlatmatesToken(str('room_type')!),
-              ),
-            if (furnishing.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: furnishing
-                      .map(
-                        (f) => FlatmatesChip(
-                          icon: Icons.chair_outlined,
-                          label: humanizeFlatmatesToken(f),
-                          variant: FlatmatesChipVariant.info,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            if (roomFeatures.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: roomFeatures
-                      .map(
-                        (f) => FlatmatesChip(
-                          icon: Icons.window_outlined,
-                          label: humanizeFlatmatesToken(f),
-                          variant: FlatmatesChipVariant.info,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            if (str('room_type') == null &&
-                furnishing.isEmpty &&
-                roomFeatures.isEmpty)
-              Text(locale.notAvailable, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: AppSpacing.xl),
-
-            // --- The Flat & Flatmates ---
-            FlatmatesSectionHeader(title: locale.flatAndFlatmatesSectionTitle),
-            const SizedBox(height: AppSpacing.sm),
-            if (str('flat_config') != null)
-              _DetailRow(icon: Icons.home_outlined, text: str('flat_config')!),
-            if (str('floor') != null)
-              _DetailRow(icon: Icons.stairs_outlined, text: str('floor')!),
-            if (flatAmenities.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: flatAmenities
-                      .map(
-                        (a) => FlatmatesChip(
-                          icon: Icons.kitchen_outlined,
-                          label: humanizeFlatmatesToken(a),
-                          variant: FlatmatesChipVariant.info,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            if (existingFlatmates.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(
-                locale.existingFlatmatesLabel,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...existingFlatmates.map(
-                (fm) => _FlatmateMiniProfile(
-                  name: fm['name'] ?? '',
-                  profession: fm['profession'] ?? '',
-                  lifestyleChips:
-                      fm['lifestyle_chips']
-                          ?.split(',')
-                          .where((c) => c.trim().isNotEmpty)
-                          .toList() ??
-                      const [],
-                ),
-              ),
-            ],
-            if (str('flat_config') == null &&
-                flatAmenities.isEmpty &&
-                existingFlatmates.isEmpty)
-              Text(locale.notAvailable, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 20),
-
-            // --- Costs Breakdown ---
-            FlatmatesSectionHeader(title: locale.costsBreakdownSectionTitle),
-            const SizedBox(height: 8),
-            FlatmatesCard(
-              child: Column(
-                children: [
-                  if (monthlyRent != null)
-                    _CostRow(
-                      label: locale.monthlyRentRow,
-                      value: '₹${monthlyRent.toStringAsFixed(0)}',
-                    ),
-                  if (securityDeposit != null)
-                    _CostRow(
-                      label: locale.securityDepositRow,
-                      value: '₹${securityDeposit.toStringAsFixed(0)}',
-                    ),
-                  if (maintenance != null)
-                    _CostRow(
-                      label: locale.maintenanceRow,
-                      value: '₹${maintenance.toStringAsFixed(0)}',
-                    ),
-                  if (monthlyRent != null) ...[
-                    const Divider(height: 20),
-                    _CostRow(
-                      label: locale.estimatedTotalRow,
-                      value:
-                          '₹${(monthlyRent + (maintenance ?? 0)).toStringAsFixed(0)}',
-                      isBold: true,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Budget (original section, kept for budget range)
-            if (item.budgetMin != null || item.budgetMax != null) ...[
-              FlatmatesSectionHeader(title: locale.budgetLabel),
-              const SizedBox(height: AppSpacing.sm),
-              FlatmatesChip(
-                icon: Icons.currency_rupee_rounded,
-                label:
-                    '₹${(item.budgetMin ?? 0).toStringAsFixed(0)} - ₹${(item.budgetMax ?? 100000).toStringAsFixed(0)}/mo',
-                variant: FlatmatesChipVariant.info,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-            ],
-            if (item.moveInTimeline != null) ...[
-              FlatmatesChip(
-                icon: Icons.event_outlined,
-                label: localizedFlatmatesMoveInTimeline(
-                  locale,
-                  item.moveInTimeline!,
-                ),
-                variant: FlatmatesChipVariant.info,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-            ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: 18,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  locale.tapToCollapse,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.8,
+        color: AppSemanticColors.textTertiaryFor(Theme.of(context).brightness),
       ),
     );
   }
 }
 
-/// Single icon + text row used inside expanded card sections.
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.icon, required this.text});
+// ── Compact detail row (icon + text, smaller) ──────────────────────────
+
+class _CompactDetailRow extends StatelessWidget {
+  const _CompactDetailRow({required this.icon, required this.text});
   final IconData icon;
   final String text;
 
@@ -1025,25 +847,70 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
           Icon(
             icon,
-            size: 18,
+            size: 15,
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
           ),
-          const SizedBox(width: 8),
-          Flexible(child: Text(text, style: theme.textTheme.bodyMedium)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-/// Cost row with label on left and value on right.
-class _CostRow extends StatelessWidget {
-  const _CostRow({
+// ── Compact chip row (no icons, small pills) ────────────────────────────
+
+class _CompactChipRow extends StatelessWidget {
+  const _CompactChipRow({required this.labels});
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: labels.map((label) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppSemanticColors.paper2,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: AppSemanticColors.line, width: 0.5),
+            ),
+            child: Text(
+              humanizeFlatmatesToken(label),
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 11,
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+// ── Compact cost row ────────────────────────────────────────────────────
+
+class _CompactCostRow extends StatelessWidget {
+  const _CompactCostRow({
     required this.label,
     required this.value,
     this.isBold = false,
@@ -1056,20 +923,23 @@ class _CostRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: theme.textTheme.bodyLarge?.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 13,
               fontWeight: isBold ? FontWeight.w700 : FontWeight.normal,
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
             ),
           ),
           Text(
             value,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 13,
+              fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
               color: isBold ? AppSemanticColors.accent : null,
             ),
           ),
@@ -1079,13 +949,116 @@ class _CostRow extends StatelessWidget {
   }
 }
 
-/// Mini profile card for an existing flatmate shown in the expanded card.
+// ── Compact compatibility breakdown (mini progress bars) ────────────────
+
+class _CompactCompatibilityBreakdown extends StatelessWidget {
+  const _CompactCompatibilityBreakdown({required this.result});
+  final CompatibilityResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: result.dimensions.map((dim) {
+        final score = dim.score / 100;
+        final color = compatibilityScoreColor(dim.score);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  dim.summary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 11,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: score,
+                    backgroundColor: color.withValues(alpha: 0.12),
+                    valueColor: AlwaysStoppedAnimation(color),
+                    minHeight: 4,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              SizedBox(
+                width: 32,
+                child: Text(
+                  '${dim.score.round()}%',
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ── Info pill (compact icon + text) ─────────────────────────────────────
+
+class _InfoPill extends StatelessWidget {
+  const _InfoPill({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppSemanticColors.paper2,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppSemanticColors.line, width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppSemanticColors.accent),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 11,
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Flatmate mini profile ───────────────────────────────────────────────
+
 class _FlatmateMiniProfile extends StatelessWidget {
   const _FlatmateMiniProfile({
     required this.name,
     required this.profession,
     required this.lifestyleChips,
   });
+
   final String name;
   final String profession;
   final List<String> lifestyleChips;

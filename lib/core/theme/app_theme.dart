@@ -1,3 +1,5 @@
+// ignore: unnecessary_import
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -86,6 +88,13 @@ abstract final class AppTheme {
         letterSpacing: AppTypography.h4LetterSpacing,
         color: textPrimary,
       ),
+      titleSmall: GoogleFonts.inter(
+        fontWeight: AppTypography.titleSmallWeight,
+        fontSize: AppTypography.titleSmallSize,
+        height: AppTypography.titleSmallHeight,
+        letterSpacing: AppTypography.titleSmallLetterSpacing,
+        color: textPrimary,
+      ),
       bodyLarge: GoogleFonts.inter(
         fontWeight: AppTypography.bodyLargeWeight,
         fontSize: AppTypography.bodyLargeSize,
@@ -109,6 +118,13 @@ abstract final class AppTheme {
         fontSize: AppTypography.labelMediumSize,
         height: AppTypography.labelMediumHeight,
         letterSpacing: AppTypography.labelMediumLetterSpacing,
+      ),
+      labelSmall: GoogleFonts.inter(
+        fontWeight: AppTypography.labelSmallWeight,
+        fontSize: AppTypography.labelSmallSize,
+        height: AppTypography.labelSmallHeight,
+        letterSpacing: AppTypography.labelSmallLetterSpacing,
+        color: textSecondary,
       ),
       bodySmall: GoogleFonts.inter(
         fontWeight: AppTypography.captionWeight,

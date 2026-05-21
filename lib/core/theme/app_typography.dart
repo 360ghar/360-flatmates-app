@@ -67,6 +67,18 @@ abstract final class AppTypography {
   static const double labelMediumHeight = 1.4;
   static const double labelMediumLetterSpacing = 0.2;
 
+  // Title Small — 14sp SemiBold (card prices, emphasized labels)
+  static const double titleSmallSize = 14;
+  static const FontWeight titleSmallWeight = FontWeight.w600;
+  static const double titleSmallHeight = 1.4;
+  static const double titleSmallLetterSpacing = 0.01;
+
+  // Label Small — 11sp Medium (fine print, metadata)
+  static const double labelSmallSize = 11;
+  static const FontWeight labelSmallWeight = FontWeight.w500;
+  static const double labelSmallHeight = 1.4;
+  static const double labelSmallLetterSpacing = 0.04;
+
   // Caption — 12sp Regular
   static const double captionSize = 12;
   static const FontWeight captionWeight = FontWeight.w400;

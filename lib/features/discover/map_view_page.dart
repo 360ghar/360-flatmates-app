@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/map/map_controller.dart';
+import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -15,11 +20,10 @@ import '../location/presentation/location_picker_modal.dart';
 import '../location/presentation/map_widgets.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
-import '../shared/presentation/flatmates_search_bar.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import 'application/discover_feed_controller.dart';
-import 'application/move_in_filter.dart';
 import 'discover_repository.dart';
+import 'presentation/widgets/discover_listing_card.dart';
 import 'presentation/widgets/map_filter_bar.dart';
 import 'presentation/widgets/map_listing_sheets.dart';
 import 'presentation/widgets/map_marker_builder.dart';
@@ -32,22 +36,17 @@ class MapViewPage extends ConsumerStatefulWidget {
 }
 
 class _MapViewPageState extends ConsumerState<MapViewPage> {
-  double _budgetMin = 5000;
-  double _budgetMax = 100000;
-  String _roomType = 'all';
-  String _moveInFilter = 'all';
-  String _genderPref = 'any';
-  bool _verifiedOnly = false;
-  final _searchController = TextEditingController();
   final _locationRadiusDebouncer = ActionDebouncer();
+  final ScrollController _cardScrollController = ScrollController();
 
   final FlatmatesMapController _flatmatesMapController =
       FlatmatesMapController();
   List<PropertyListing>? _previousListings;
+  List<PropertyListing> _currentFiltered = [];
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _cardScrollController.dispose();
     _flatmatesMapController.dispose();
     _locationRadiusDebouncer.dispose();
     super.dispose();
@@ -120,100 +119,311 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     );
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     final searchRadiusKm =
         feedState.filters.radiusKm ??
         DiscoverFeedController.defaultLocationRadiusKm;
     final selectedDisplayText = selectedLocation?.displayText ?? '';
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                AppSpacing.md,
-                AppSpacing.screen,
-                AppSpacing.xs,
-              ),
-              child: Row(
-                children: [
-                  _MapLocationChip(
-                    locationName: selectedDisplayText.isNotEmpty
-                        ? selectedDisplayText
-                        : null,
-                    onTap: () => _showLocationPicker(context),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: FlatmatesSearchBar(
-                      controller: _searchController,
-                      hint: locale.searchMapHint,
-                      readOnly: true,
-                      onTap: () => _showFilterSheet(context),
-                      trailingIcon: Icons.tune_rounded,
-                      onTrailingTap: () => _showFilterSheet(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            MapFilterBar(
-              budgetMin: _budgetMin,
-              budgetMax: _budgetMax,
-              roomType: _roomType,
-              moveInFilter: _moveInFilter,
-              genderPref: _genderPref,
-              verifiedOnly: _verifiedOnly,
-              onBudgetChanged: (min, max) => setState(() {
-                _budgetMin = min;
-                _budgetMax = max;
-              }),
-              onRoomTypeChanged: (v) => setState(() => _roomType = v),
-              onMoveInChanged: (v) => setState(() => _moveInFilter = v),
-              onGenderChanged: (v) => setState(() => _genderPref = v),
-              onVerifiedChanged: (v) => setState(() => _verifiedOnly = v),
-            ),
-            Expanded(
-              child: feedState.isLoading && feedState.listings.isEmpty
-                  ? const FlatmatesSkeleton.card()
-                  : feedState.hasError
-                  ? FlatmatesErrorState(
-                      message: locale.couldNotLoadListing,
-                      onRetry: () => ref
-                          .read(discoverFeedControllerProvider.notifier)
-                          .load(),
-                      retryLabel: locale.commonRetry,
-                    )
-                  : _buildMap(
-                      feedState.listings,
-                      searchRadiusKm,
-                      theme,
-                      locale,
-                    ),
-            ),
-          ],
+    final filtered = feedState.listings;
+    _currentFiltered = filtered;
+
+    // Frost surface colors
+    final frostOverlayColor = isDark
+        ? AppSemanticColors.frostOverlayDark
+        : AppSemanticColors.frostOverlayLight;
+
+    if (feedState.isLoading && feedState.listings.isEmpty) {
+      return const Scaffold(body: SafeArea(child: FlatmatesSkeleton.card()));
+    }
+
+    if (feedState.hasError) {
+      return Scaffold(
+        body: SafeArea(
+          child: FlatmatesErrorState(
+            message: locale.couldNotLoadListing,
+            onRetry: () =>
+                ref.read(discoverFeedControllerProvider.notifier).load(),
+            retryLabel: locale.commonRetry,
+          ),
         ),
+      );
+    }
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Full-screen map
+          Positioned.fill(
+            child: _buildMap(filtered, searchRadiusKm, theme, locale),
+          ),
+
+          // Top bar overlay with frosted glass background
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(
+                  sigmaX: AppSemanticColors.frostBlur,
+                  sigmaY: AppSemanticColors.frostBlur,
+                ),
+                child: Container(
+                  color: frostOverlayColor,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.screen,
+                            AppSpacing.md,
+                            AppSpacing.screen,
+                            AppSpacing.xs,
+                          ),
+                          child: Row(
+                            children: [
+                              MapLocationChip(
+                                locationName: selectedDisplayText.isNotEmpty
+                                    ? selectedDisplayText
+                                    : null,
+                                onTap: () => _showLocationPicker(context),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                onPressed: () =>
+                                    context.push('/search-filters'),
+                                icon: const Icon(Icons.search_rounded),
+                                style: IconButton.styleFrom(
+                                  backgroundColor:
+                                      theme.brightness == Brightness.dark
+                                      ? AppSemanticColors.darkSurfaceElevated
+                                      : AppSemanticColors.paper,
+                                  foregroundColor:
+                                      AppSemanticColors.textPrimaryFor(
+                                        theme.brightness,
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              IconButton(
+                                onPressed: () => _showFilterSheet(context),
+                                icon: const Icon(Icons.tune_rounded),
+                                style: IconButton.styleFrom(
+                                  backgroundColor:
+                                      theme.brightness == Brightness.dark
+                                      ? AppSemanticColors.darkSurfaceElevated
+                                      : AppSemanticColors.paper,
+                                  foregroundColor:
+                                      AppSemanticColors.textPrimaryFor(
+                                        theme.brightness,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Bottom draggable sheet with listing cards
+          DraggableScrollableSheet(
+            initialChildSize: 0.35,
+            minChildSize: 0.08,
+            maxChildSize: 0.45,
+            snap: true,
+            snapSizes: const [0.08, 0.35, 0.45],
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: frostOverlayColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.card),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom + 76,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Drag handle
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.sm,
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.2,
+                                ),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Listing count
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            0,
+                            AppSpacing.lg,
+                            AppSpacing.sm,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              locale.clusterListingsCount(filtered.length),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppSemanticColors.textPrimaryFor(
+                                  theme.brightness,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Horizontal card list — fixed height, own scroll
+                        SizedBox(
+                          height: 180,
+                          child: filtered.isEmpty
+                              ? FlatmatesEmptyState(
+                                  title: locale.noListingsMatchFilters,
+                                  icon: Icons.search_off_rounded,
+                                )
+                              : NotificationListener<ScrollNotification>(
+                                  onNotification: (notification) {
+                                    if (notification
+                                            is ScrollUpdateNotification ||
+                                        notification is ScrollEndNotification) {
+                                      final offset =
+                                          _cardScrollController.offset;
+                                      final itemWidth = 130.0 + AppSpacing.sm;
+                                      final index = (offset / itemWidth)
+                                          .round()
+                                          .clamp(0, filtered.length - 1);
+                                      final visibleItem = filtered[index];
+                                      final currentSelected = ref.read(
+                                        selectedPropertyProvider,
+                                      );
+                                      if (currentSelected?.id !=
+                                          visibleItem.id) {
+                                        ref
+                                                .read(
+                                                  selectedPropertyProvider
+                                                      .notifier,
+                                                )
+                                                .state =
+                                            visibleItem;
+                                      }
+                                    }
+                                    return false;
+                                  },
+                                  child: ListView.builder(
+                                    controller: _cardScrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.md,
+                                    ),
+                                    itemCount: filtered.length,
+                                    itemBuilder: (context, index) {
+                                      final item = filtered[index];
+                                      final selectedProperty = ref.watch(
+                                        selectedPropertyProvider,
+                                      );
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: AppSpacing.sm,
+                                        ),
+                                        child: SizedBox(
+                                          width: 130,
+                                          child: DiscoverListingCard(
+                                            item: item,
+                                            isSelected:
+                                                item.id == selectedProperty?.id,
+                                            onTap: () => context.push(
+                                              '/flat-details/${item.id}',
+                                            ),
+                                            onLike: () => _likeListing(item),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
+  void _likeListing(PropertyListing item) async {
+    final locale = AppLocalizations.of(context);
+    try {
+      final conversationId = await ref
+          .read(discoverRepositoryProvider)
+          .likeListing(item.id);
+      ref.invalidate(discoverListingsProvider);
+      ref.invalidate(conversationsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            conversationId == null
+                ? locale.contactRequestSent
+                : locale.contactRequestWithConversation(conversationId),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(locale.actionFailedRetry)));
+    }
+  }
+
   Widget _buildMap(
-    List<PropertyListing> listings,
+    List<PropertyListing> filtered,
     double searchRadiusKm,
     ThemeData theme,
     AppLocalizations locale,
   ) {
-    if (!identical(listings, _previousListings)) {
-      _previousListings = listings;
+    if (!identical(filtered, _previousListings)) {
+      _previousListings = filtered;
     }
-    final filtered = _applyFilters(listings);
+    final selectedPropertyId = ref.watch(
+      selectedPropertyProvider.select((s) => s?.id),
+    );
     final markers = buildClusteredMarkers(
       items: filtered,
       theme: theme,
       onListingTap: _handleListingTap,
       onClusterTap: _handleClusterTap,
+      selectedPropertyId: selectedPropertyId?.toString(),
     );
 
     final selectedLocation = ref
@@ -283,38 +493,24 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _handleListingTap(PropertyListing item) {
-    showListingSheet(
-      context,
-      item: item,
-      onLike: () async {
-        try {
-          final conversationId = await ref
-              .read(discoverRepositoryProvider)
-              .likeListing(item.id);
-          ref.invalidate(discoverListingsProvider);
-          ref.invalidate(conversationsProvider);
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                conversationId == null
-                    ? AppLocalizations.of(context).contactRequestSent
-                    : AppLocalizations.of(
-                        context,
-                      ).contactRequestWithConversation(conversationId),
-              ),
-            ),
-          );
-        } catch (_) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context).actionFailedRetry),
-            ),
-          );
-        }
-      },
-    );
+    ref.read(selectedPropertyProvider.notifier).state = item;
+
+    if (item.latitude != null && item.longitude != null) {
+      _flatmatesMapController.move(
+        LatLng(item.latitude!, item.longitude!),
+        15.0,
+      );
+    }
+
+    final index = _currentFiltered.indexWhere((e) => e.id == item.id);
+    if (index >= 0 && _cardScrollController.hasClients) {
+      final itemWidth = 130.0 + AppSpacing.sm;
+      _cardScrollController.animateTo(
+        index * itemWidth,
+        duration: AppMotion.standard,
+        curve: AppMotion.easeOutCubic,
+      );
+    }
   }
 
   void _handleClusterTap(List<PropertyListing> clusterItems) {
@@ -361,92 +557,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   void _fitBoundsToMarkers() {
     if (_previousListings == null || _previousListings!.isEmpty) return;
-    final filtered = _applyFilters(_previousListings!);
-    final points = filtered
+    final points = _previousListings!
         .where((item) => item.latitude != null && item.longitude != null)
         .map((item) => LatLng(item.latitude!, item.longitude!))
         .toList();
     _flatmatesMapController.fitBounds(points);
-  }
-
-  List<PropertyListing> _applyFilters(List<PropertyListing> items) {
-    return items.where((item) {
-      if (item.monthlyRent < _budgetMin || item.monthlyRent > _budgetMax) {
-        return false;
-      }
-      if (_roomType != 'all') {
-        if (item.sharingType != _roomType) return false;
-      }
-      if (_genderPref != 'any') {
-        if (item.genderPreference != null &&
-            item.genderPreference != 'any' &&
-            item.genderPreference != _genderPref) {
-          return false;
-        }
-      }
-      if (!listingMatchesMoveInFilter(item.availableFrom, _moveInFilter)) {
-        return false;
-      }
-      if (_verifiedOnly) {
-        final isVerified =
-            item.features.contains('verified') ||
-            item.features.contains('is_verified');
-        if (!isVerified) return false;
-      }
-      return true;
-    }).toList();
-  }
-}
-
-class _MapLocationChip extends StatelessWidget {
-  const _MapLocationChip({this.locationName, this.onTap});
-
-  final String? locationName;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs + 2,
-        ),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.location_on_rounded,
-              size: 16,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 4),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 100),
-              child: Text(
-                locationName ?? locale.selectLocationLabel,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 16,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

@@ -20,11 +20,9 @@ class SwipeCardStack extends StatelessWidget {
     required this.currentRotation,
     required this.cardScaleAnimation,
     required this.isDragging,
-    required this.isExpanded,
-    required this.onTap,
-    required this.onPanStart,
-    required this.onPanUpdate,
-    required this.onPanEnd,
+    required this.onHorizontalDragStart,
+    required this.onHorizontalDragUpdate,
+    required this.onHorizontalDragEnd,
     super.key,
   });
 
@@ -37,11 +35,10 @@ class SwipeCardStack extends StatelessWidget {
   final double currentRotation;
   final Animation<double> cardScaleAnimation;
   final bool isDragging;
-  final bool isExpanded;
-  final VoidCallback onTap;
-  final void Function(DragStartDetails) onPanStart;
-  final void Function(DragUpdateDetails) onPanUpdate;
-  final void Function(DragEndDetails) onPanEnd;
+
+  final void Function(DragStartDetails) onHorizontalDragStart;
+  final void Function(DragUpdateDetails) onHorizontalDragUpdate;
+  final void Function(DragEndDetails) onHorizontalDragEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +56,7 @@ class SwipeCardStack extends StatelessWidget {
                 opacity: 0.5 + 0.5 * progress,
                 child: Transform.scale(
                   scale: 0.92 + 0.08 * progress,
-                  child: CollapsedCard(
+                  child: SwipeProfileCard(
                     item: nextItem!,
                     compatibility: nextCompatibility!,
                   ),
@@ -75,10 +72,9 @@ class SwipeCardStack extends StatelessWidget {
       right: 0,
       bottom: 8,
       child: GestureDetector(
-        onPanStart: onPanStart,
-        onPanUpdate: onPanUpdate,
-        onPanEnd: onPanEnd,
-        onTap: onTap,
+        onHorizontalDragStart: onHorizontalDragStart,
+        onHorizontalDragUpdate: onHorizontalDragUpdate,
+        onHorizontalDragEnd: onHorizontalDragEnd,
         child: AnimatedBuilder(
           animation: cardScaleAnimation,
           builder: (context, child) {
@@ -129,9 +125,7 @@ class SwipeCardStack extends StatelessWidget {
               ),
             );
           },
-          child: isExpanded
-              ? ExpandedCard(item: item, compatibility: compatibility)
-              : CollapsedCard(item: item, compatibility: compatibility),
+          child: SwipeProfileCard(item: item, compatibility: compatibility),
         ),
       ),
     );

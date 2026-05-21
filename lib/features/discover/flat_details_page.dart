@@ -5,8 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
-import '../../core/theme/app_semantic_colors.dart';
-import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../location/presentation/map_widgets.dart';
 import '../shared/presentation/components.dart';
@@ -40,7 +39,8 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       data: (listing) {
         final images = listing.imageUrls;
 
-        return Scaffold(
+        return FlatmatesScreen(
+          useSafeArea: false,
           body: Column(
             children: [
               Expanded(
@@ -59,7 +59,12 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xl,
+                        AppSpacing.xl,
+                        AppSpacing.xl,
+                        AppSpacing.screen,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -70,8 +75,22 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               Expanded(
                                 child: Text(
                                   listing.title,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                  style: TextStyle(
+                                    fontFamily: AppTypography.fontFamilyDisplay,
+                                    fontSize: AppTypography.h2Size,
+                                    fontWeight: AppTypography.h2Weight,
+                                    height: AppTypography.h2Height,
+                                    letterSpacing:
+                                        AppTypography.h2LetterSpacing,
+                                    color: AppSemanticColors.textPrimaryFor(
+                                      theme.brightness,
+                                    ),
+                                    fontVariations: const [
+                                      FontVariation('opsz', 96),
+                                      FontVariation('SOFT', 30),
+                                      FontVariation('WONK', 0),
+                                    ],
+                                  ),
                                 ),
                               ),
                               FlatmatesPriceText.hero(
@@ -81,7 +100,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: AppSpacing.md),
 
                           Row(
                             children: [
@@ -92,14 +111,14 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                   theme.brightness,
                                 ),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: AppSpacing.sm),
                               Flexible(
                                 child: Text(
                                   [
                                     listing.locality,
                                     listing.city,
                                   ].whereType<String>().join(', '),
-                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppSemanticColors.textSecondaryFor(
                                       theme.brightness,
                                     ),
@@ -108,7 +127,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
 
                           Wrap(
                             spacing: AppSpacing.sm,
@@ -166,18 +185,18 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 22),
+                          const SizedBox(height: AppSpacing.screen),
 
                           FlatmatesSectionHeader(
                             title: locale.aboutThisFlatSection,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppSpacing.sm),
                           if (listing.description != null &&
                               listing.description!.trim().isNotEmpty)
                             Text(
                               listing.description!,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                height: 1.5,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                height: 1.6,
                                 color: AppSemanticColors.textPrimaryFor(
                                   theme.brightness,
                                 ).withValues(alpha: 0.85),
@@ -192,14 +211,14 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 22),
+                          const SizedBox(height: AppSpacing.screen),
 
                           if (listing.videoTourUrl != null &&
                               listing.videoTourUrl!.isNotEmpty) ...[
                             FlatmatesVideoTourPlayer(
                               videoUrl: listing.videoTourUrl!,
                             ),
-                            const SizedBox(height: 22),
+                            const SizedBox(height: AppSpacing.screen),
                           ],
 
                           // Cost breakdown section
@@ -208,7 +227,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                             FlatmatesSectionHeader(
                               title: locale.costsBreakdownSectionTitle,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                             FlatmatesCard(
                               padding: const EdgeInsets.all(AppSpacing.md),
                               child: Column(
@@ -244,7 +263,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 22),
+                            const SizedBox(height: AppSpacing.screen),
                           ],
 
                           Row(
@@ -259,7 +278,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                       : locale.flexibleLabel,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: AvailabilityTile(
                                   label: locale.postedOnLabel,
@@ -272,14 +291,14 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               ),
                             ],
                           ),
-                           const SizedBox(height: 22),
+                          const SizedBox(height: AppSpacing.screen),
 
                           if (listing.latitude != null &&
                               listing.longitude != null) ...[
                             FlatmatesSectionHeader(
                               title: locale.locationSectionTitle,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                             MiniMapView(
                               latitude: listing.latitude!,
                               longitude: listing.longitude!,
@@ -289,9 +308,12 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                             GetDirectionsButton(
                               latitude: listing.latitude!,
                               longitude: listing.longitude!,
-                              label: listing.locality ?? listing.city ?? 'Property',
+                              label:
+                                  listing.locality ??
+                                  listing.city ??
+                                  'Property',
                             ),
-                            const SizedBox(height: 22),
+                            const SizedBox(height: AppSpacing.screen),
                           ],
 
                           if (listing.isLive)
@@ -310,12 +332,12 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               ],
                             ),
                           const SizedBox(height: 100),
-                         ],
-                       ),
-                     ),
-                   ],
-                 ),
-               ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               FlatmatesBottomActionBar(
                 primaryButtonKey: const Key('flat_contact_button'),
@@ -331,20 +353,19 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
           ),
         );
       },
-      loading: () => Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: AppSpacing.horizontalScreen,
-            child: const FlatmatesSkeleton.card(),
-          ),
+      loading: () => const FlatmatesScreen(
+        useSafeArea: true,
+        body: Padding(
+          padding: AppSpacing.horizontalScreen,
+          child: FlatmatesSkeleton.card(),
         ),
       ),
       error: (e, _) {
         final message = e is AppFailure
             ? e.userMessage(locale.toUserMessageL10n())
             : locale.couldNotLoadListing;
-        return Scaffold(
-          appBar: AppBar(),
+        return FlatmatesScreen(
+          useSafeArea: true,
           body: FlatmatesErrorState(
             message: message,
             onRetry: () =>
@@ -360,7 +381,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       context: context,
       isScrollControlled: true,
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: ShareListingCard(listing: listing),
       ),
     );

@@ -17,6 +17,7 @@ import '../../features/chats/chat_thread_page.dart';
 import '../../features/chats/chats_repository.dart';
 import '../../features/chats/conversations_page.dart';
 import '../../features/discover/discover_page.dart';
+import '../../features/discover/presentation/browse_listings_page.dart';
 import '../../features/discover/change_location_page.dart';
 import '../../features/location_search/location_search_page.dart';
 import '../../features/discover/flat_details_page.dart';
@@ -34,10 +35,12 @@ import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/settings/blocked_users_page.dart';
 import '../../features/settings/change_password_page.dart';
+import '../../features/settings/notification_settings_page.dart';
 import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
 import '../../features/swipe/match_celebration_screen.dart';
 import '../../features/swipe/match_qna_nudge.dart';
+import '../../features/profile/legal_content_page.dart';
 import '../../features/visits/schedule_visit_page.dart';
 import '../../features/visits/visits_page.dart';
 
@@ -85,9 +88,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location.startsWith('/listing-review/') ||
           location.startsWith('/manage-listings') ||
           location == '/notifications' ||
+          location == '/notification-settings' ||
           location == '/schedule-visit' ||
           location == '/search-filters' ||
-          location == '/help-safety' ||
+          location.startsWith('/help-safety') ||
+          location == '/privacy-policy' ||
+          location == '/terms-of-service' ||
           location == '/change-password' ||
           location == '/blocked-users' ||
           location == '/match-celebration' ||
@@ -193,13 +199,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/flatmates/chat/:id',
         parentNavigatorKey: _rootNavigatorKey,
-        redirect: (context, state) =>
-            '/chats/${state.pathParameters['id']}',
+        redirect: (context, state) => '/chats/${state.pathParameters['id']}',
       ),
       GoRoute(
         path: '/notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NotificationsPage(),
+      ),
+      GoRoute(
+        path: '/notification-settings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationSettingsPage(),
       ),
       GoRoute(
         path: '/change-location',
@@ -237,6 +247,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/help-safety',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const HelpSafetyPage(),
+        routes: [
+          GoRoute(
+            path: 'faq',
+            builder: (context, state) =>
+                const HelpSafetyTopicPage(topic: HelpSafetyTopic.faq),
+          ),
+          GoRoute(
+            path: 'popular-topics',
+            builder: (context, state) =>
+                const HelpSafetyTopicPage(topic: HelpSafetyTopic.popularTopics),
+          ),
+          GoRoute(
+            path: 'bookings',
+            builder: (context, state) => const HelpSafetyTopicPage(
+              topic: HelpSafetyTopic.bookingAgreements,
+            ),
+          ),
+          GoRoute(
+            path: 'account',
+            builder: (context, state) => const HelpSafetyTopicPage(
+              topic: HelpSafetyTopic.accountProfile,
+            ),
+          ),
+          GoRoute(
+            path: 'contact',
+            builder: (context, state) =>
+                const HelpSafetyTopicPage(topic: HelpSafetyTopic.contact),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/privacy-policy',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LegalContentPage(
+          title: 'Privacy Policy',
+          assetPath: 'assets/legal/privacy_policy.md',
+        ),
+      ),
+      GoRoute(
+        path: '/terms-of-service',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LegalContentPage(
+          title: 'Terms of Service',
+          assetPath: 'assets/legal/terms_of_service.md',
+        ),
       ),
       GoRoute(
         path: '/change-password',
@@ -322,6 +377,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/discover',
                 builder: (context, state) => const DiscoverPage(),
+                routes: [
+                  GoRoute(
+                    path: 'browse-listings',
+                    builder: (context, state) => const BrowseListingsPage(),
+                  ),
+                ],
               ),
             ],
           ),

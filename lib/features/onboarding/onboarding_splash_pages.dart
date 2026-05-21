@@ -36,87 +36,85 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
     final locale = AppLocalizations.of(context);
     final isLast = _page == _pageCount - 1;
 
-    return Scaffold(
-      backgroundColor: AppSemanticColors.paperFor(Theme.of(context).brightness),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: _pageCount,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (context, index) => _OnboardingContent(
-                  key: ValueKey('onboarding_page_$index'),
-                  illustrationAsset:
-                      'assets/illustrations/onboarding_illustration.png',
-                  headline: switch (index) {
-                    0 => locale.onboardingHeadline1,
-                    1 => locale.onboardingHeadline2,
-                    2 => locale.onboardingHeadline3,
-                    _ => locale.onboardingHeadline4,
-                  },
-                  subheadline: switch (index) {
-                    0 => locale.onboardingSubheadline1,
-                    1 => locale.onboardingSubheadline2,
-                    2 => locale.onboardingSubheadline3,
-                    _ => locale.onboardingSubheadline4,
-                  },
-                ),
+    return FlatmatesScreen(
+      useSafeArea: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: _pageCount,
+              onPageChanged: (i) => setState(() => _page = i),
+              itemBuilder: (context, index) => _OnboardingContent(
+                key: ValueKey('onboarding_page_$index'),
+                illustrationAsset:
+                    'assets/illustrations/onboarding_illustration.png',
+                headline: switch (index) {
+                  0 => locale.onboardingHeadline1,
+                  1 => locale.onboardingHeadline2,
+                  2 => locale.onboardingHeadline3,
+                  _ => locale.onboardingHeadline4,
+                },
+                subheadline: switch (index) {
+                  0 => locale.onboardingSubheadline1,
+                  1 => locale.onboardingSubheadline2,
+                  2 => locale.onboardingSubheadline3,
+                  _ => locale.onboardingSubheadline4,
+                },
               ),
             ),
-            // --- Step progress dots (outline circles, active filled) ---
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                AppSpacing.sm,
-                AppSpacing.screen,
-                AppSpacing.md,
-              ),
-              child: _OutlineDotsProgress(
-                currentStep: _page,
-                totalSteps: _pageCount,
-              ),
+          ),
+          // --- Step progress dots (outline circles, active filled) ---
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.sm,
+              AppSpacing.screen,
+              AppSpacing.md,
             ),
-            // --- Action buttons ---
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                0,
-                AppSpacing.screen,
-                AppSpacing.screen + AppSpacing.lg,
-              ),
-              child: isLast
-                  ? FlatmatesButton(
-                      key: const Key('onboarding_get_started'),
-                      label: locale.onboardingGetStarted,
-                      onPressed: widget.onComplete,
-                      icon: Icons.arrow_forward_rounded,
-                      fullWidth: true,
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        FlatmatesButton.tertiary(
-                          key: const Key('onboarding_skip'),
-                          label: locale.onboardingSkip,
-                          onPressed: widget.onComplete,
+            child: _OutlineDotsProgress(
+              currentStep: _page,
+              totalSteps: _pageCount,
+            ),
+          ),
+          // --- Action buttons ---
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              0,
+              AppSpacing.screen,
+              AppSpacing.screen + AppSpacing.lg,
+            ),
+            child: isLast
+                ? FlatmatesButton(
+                    key: const Key('onboarding_get_started'),
+                    label: locale.onboardingGetStarted,
+                    onPressed: widget.onComplete,
+                    icon: Icons.arrow_forward_rounded,
+                    fullWidth: true,
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      FlatmatesButton.tertiary(
+                        key: const Key('onboarding_skip'),
+                        label: locale.onboardingSkip,
+                        onPressed: widget.onComplete,
+                      ),
+                      FlatmatesButton(
+                        key: const Key('onboarding_next'),
+                        label: locale.onboardingNext,
+                        onPressed: () => _controller.nextPage(
+                          duration: AppMotion.pageTransition,
+                          curve: AppMotion.easeOutCubic,
                         ),
-                        FlatmatesButton(
-                          key: const Key('onboarding_next'),
-                          label: locale.onboardingNext,
-                          onPressed: () => _controller.nextPage(
-                            duration: AppMotion.pageTransition,
-                            curve: AppMotion.easeOutCubic,
-                          ),
-                          icon: Icons.arrow_forward_rounded,
-                          height: 44,
-                        ),
-                      ],
-                    ),
-            ),
-          ],
-        ),
+                        icon: Icons.arrow_forward_rounded,
+                        height: 44,
+                      ),
+                    ],
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -224,7 +222,9 @@ class _OnboardingContentState extends State<_OnboardingContent>
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen + AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screen + AppSpacing.lg,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -312,19 +312,20 @@ class _OnboardingContentState extends State<_OnboardingContent>
       spans.add(
         TextSpan(
           text: raw,
-          style: GoogleFonts.fraunces(
-            fontWeight: AppTypography.h1Weight,
-            fontSize: AppTypography.h1Size,
-            height: AppTypography.h1Height,
-            letterSpacing: AppTypography.h1LetterSpacing,
-            color: textColor,
-          ).copyWith(
-            fontVariations: const [
-              FontVariation('opsz', 112),
-              FontVariation('SOFT', 40),
-              FontVariation('WONK', 0),
-            ],
-          ),
+          style:
+              GoogleFonts.fraunces(
+                fontWeight: AppTypography.h1Weight,
+                fontSize: AppTypography.h1Size,
+                height: AppTypography.h1Height,
+                letterSpacing: AppTypography.h1LetterSpacing,
+                color: textColor,
+              ).copyWith(
+                fontVariations: const [
+                  FontVariation('opsz', 112),
+                  FontVariation('SOFT', 40),
+                  FontVariation('WONK', 0),
+                ],
+              ),
         ),
       );
     }
@@ -334,10 +335,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
 
 /// Staggered fade-in + slide-up for onboarding page elements.
 class _StaggeredFadeSlide extends StatelessWidget {
-  const _StaggeredFadeSlide({
-    required this.animation,
-    required this.child,
-  });
+  const _StaggeredFadeSlide({required this.animation, required this.child});
 
   final Animation<double> animation;
   final Widget child;

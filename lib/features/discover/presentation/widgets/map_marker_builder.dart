@@ -22,6 +22,7 @@ List<Marker> buildClusteredMarkers({
   required ThemeData theme,
   required void Function(PropertyListing) onListingTap,
   required void Function(List<PropertyListing>) onClusterTap,
+  String? selectedPropertyId,
 }) {
   final groups = <String, List<PropertyListing>>{};
   for (final item in items) {
@@ -40,8 +41,7 @@ List<Marker> buildClusteredMarkers({
     if (groupItems.length == 1) {
       final item = groupItems.first;
       final isRoom = item.ownerId != null;
-      final color =
-          isRoom ? const Color(0xFFFF9800) : const Color(0xFF2196F3);
+      final color = isRoom ? const Color(0xFFFF9800) : const Color(0xFF2196F3);
       markers.add(
         Marker(
           point: LatLng(item.latitude!, item.longitude!),
@@ -52,6 +52,7 @@ List<Marker> buildClusteredMarkers({
             color: color,
             bedrooms: item.bedrooms,
             sharingType: item.sharingType,
+            isSelected: selectedPropertyId == item.id.toString(),
             onTap: () => onListingTap(item),
           ),
         ),
@@ -89,6 +90,7 @@ class _ListingMarkerWidget extends StatelessWidget {
     required this.onTap,
     this.bedrooms,
     this.sharingType,
+    this.isSelected = false,
   });
 
   final int price;
@@ -96,6 +98,7 @@ class _ListingMarkerWidget extends StatelessWidget {
   final VoidCallback onTap;
   final int? bedrooms;
   final String? sharingType;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -131,10 +134,13 @@ class _ListingMarkerWidget extends StatelessWidget {
                     borderRadius: BorderRadius.all(
                       Radius.circular(AppRadius.md),
                     ),
+                    border: isSelected
+                        ? Border.all(color: Colors.white, width: 3)
+                        : null,
                     boxShadow: [
                       BoxShadow(
-                        color: color.withValues(alpha: 0.4),
-                        blurRadius: 6,
+                        color: color.withValues(alpha: isSelected ? 0.6 : 0.4),
+                        blurRadius: isSelected ? 10 : 6,
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -232,9 +238,7 @@ class _ClusterMarkerWidget extends StatelessWidget {
     final clusterColor = const Color(0xFF673AB7);
     final count = clusterItems.length;
 
-    final rents = clusterItems
-        .map((i) => i.monthlyRent.toInt())
-        .toList()
+    final rents = clusterItems.map((i) => i.monthlyRent.toInt()).toList()
       ..sort();
     final minRent = rents.first;
     final maxRent = rents.last;

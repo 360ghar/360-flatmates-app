@@ -260,6 +260,24 @@ abstract class AppLocalizations {
   /// **'Good afternoon, {name}'**
   String homeGreeting(String name);
 
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning, {name}'**
+  String homeGreetingMorning(String name);
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon, {name}'**
+  String homeGreetingAfternoon(String name);
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening, {name}'**
+  String homeGreetingEvening(String name);
+
   /// No description provided for @homeGuestName.
   ///
   /// In en, this message translates to:
@@ -679,12 +697,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Documents'**
   String get profileMenuDocuments;
-
-  /// No description provided for @profileMenuPaymentMethods.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment Methods'**
-  String get profileMenuPaymentMethods;
 
   /// No description provided for @editProfileCta.
   ///
@@ -3086,6 +3098,90 @@ abstract class AppLocalizations {
   /// **'Notification Settings'**
   String get notificationSettingsLabel;
 
+  /// No description provided for @notificationSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Preferences'**
+  String get notificationSettingsTitle;
+
+  /// No description provided for @notificationSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which notifications you want to receive'**
+  String get notificationSettingsSubtitle;
+
+  /// No description provided for @notifNewMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'New Messages'**
+  String get notifNewMessages;
+
+  /// No description provided for @notifNewMessagesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when you receive a new message'**
+  String get notifNewMessagesDesc;
+
+  /// No description provided for @notifVisitReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit Reminders'**
+  String get notifVisitReminders;
+
+  /// No description provided for @notifVisitRemindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders for upcoming property visits'**
+  String get notifVisitRemindersDesc;
+
+  /// No description provided for @notifNewMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'New Matches'**
+  String get notifNewMatches;
+
+  /// No description provided for @notifNewMatchesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when someone likes your profile'**
+  String get notifNewMatchesDesc;
+
+  /// No description provided for @notifListingUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing Updates'**
+  String get notifListingUpdates;
+
+  /// No description provided for @notifListingUpdatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates about your listing views and interest'**
+  String get notifListingUpdatesDesc;
+
+  /// No description provided for @notifPromotions.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotions & Tips'**
+  String get notifPromotions;
+
+  /// No description provided for @notifPromotionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers, tips, and product updates'**
+  String get notifPromotionsDesc;
+
+  /// No description provided for @notifEnableAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable All'**
+  String get notifEnableAll;
+
+  /// No description provided for @notifDisableAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable All'**
+  String get notifDisableAll;
+
   /// No description provided for @blockedUsersLabel.
   ///
   /// In en, this message translates to:
@@ -3188,18 +3284,6 @@ abstract class AppLocalizations {
   /// **'Explore trending help topics'**
   String get popularTopicsSubtitle;
 
-  /// No description provided for @paymentsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Payments & Refunds'**
-  String get paymentsLabel;
-
-  /// No description provided for @paymentsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment issues, refunds and more'**
-  String get paymentsSubtitle;
-
   /// No description provided for @bookingAgreementsLabel.
   ///
   /// In en, this message translates to:
@@ -3247,6 +3331,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We usually reply in a few minutes'**
   String get replyTimeNote;
+
+  /// No description provided for @helpFaqIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick answers for the most common 360 FlatMates questions.'**
+  String get helpFaqIntro;
+
+  /// No description provided for @helpFaqStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I start finding a flatmate?'**
+  String get helpFaqStartTitle;
+
+  /// No description provided for @helpFaqStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete onboarding, set your city and budget, then use Discover, Map, Swipe, and Chats to connect with relevant flatmates or listings.'**
+  String get helpFaqStartBody;
+
+  /// No description provided for @helpFaqSafetyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How should I stay safe before meeting?'**
+  String get helpFaqSafetyTitle;
+
+  /// No description provided for @helpFaqSafetyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep early conversations in the app, meet in a familiar or shared place, verify rent and deposit details, and do not send sensitive documents before you trust the other person.'**
+  String get helpFaqSafetyBody;
+
+  /// No description provided for @helpFaqReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I report or block someone?'**
+  String get helpFaqReportTitle;
+
+  /// No description provided for @helpFaqReportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the chat with that person and use the report or block actions. Reports are sent to the 360 FlatMates team for review.'**
+  String get helpFaqReportBody;
+
+  /// No description provided for @helpFaqListingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I list my flat?'**
+  String get helpFaqListingTitle;
+
+  /// No description provided for @helpFaqListingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Post Listing from your profile, complete the required flat details, and submit it for review before it appears to other users.'**
+  String get helpFaqListingBody;
+
+  /// No description provided for @helpPopularIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The most useful safety and support topics for active users.'**
+  String get helpPopularIntro;
+
+  /// No description provided for @helpPopularMeetingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safer first meetings'**
+  String get helpPopularMeetingsTitle;
+
+  /// No description provided for @helpPopularMeetingsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet during the day when possible, tell someone you trust where you are going, and avoid cash handovers until terms are clear.'**
+  String get helpPopularMeetingsBody;
+
+  /// No description provided for @helpPopularVerifiedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile trust basics'**
+  String get helpPopularVerifiedTitle;
+
+  /// No description provided for @helpPopularVerifiedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your real name, add a clear profile photo, and keep lifestyle preferences accurate so matches can evaluate compatibility.'**
+  String get helpPopularVerifiedBody;
+
+  /// No description provided for @helpPopularVisitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chats and visits'**
+  String get helpPopularVisitsTitle;
+
+  /// No description provided for @helpPopularVisitsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use in-app chats to confirm availability, schedule visits from listing or conversation screens, and keep important decisions written down.'**
+  String get helpPopularVisitsBody;
+
+  /// No description provided for @helpBookingsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Guidance for visits, agreements, and listing review. 360 FlatMates helps you connect; final rental terms stay between the people involved.'**
+  String get helpBookingsIntro;
+
+  /// No description provided for @helpBookingsDecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before confirming a move'**
+  String get helpBookingsDecisionTitle;
+
+  /// No description provided for @helpBookingsDecisionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm monthly rent, deposit, maintenance, move-in date, notice period, house rules, and who will be named on the agreement.'**
+  String get helpBookingsDecisionBody;
+
+  /// No description provided for @helpBookingsAgreementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Agreements and documents'**
+  String get helpBookingsAgreementsTitle;
+
+  /// No description provided for @helpBookingsAgreementsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep written copies of agreed terms and verify IDs or ownership details through trusted channels before signing or paying outside the app.'**
+  String get helpBookingsAgreementsBody;
+
+  /// No description provided for @helpBookingsListingReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing review'**
+  String get helpBookingsListingReviewTitle;
+
+  /// No description provided for @helpBookingsListingReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted listings may be reviewed for quality and safety before going live. You can edit and resubmit if details change.'**
+  String get helpBookingsListingReviewBody;
+
+  /// No description provided for @helpAccountIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage profile, password, privacy, and blocked users from one safe place.'**
+  String get helpAccountIntro;
+
+  /// No description provided for @helpAccountEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile details'**
+  String get helpAccountEditTitle;
+
+  /// No description provided for @helpAccountEditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your photo, location, budget, move-in timeline, and lifestyle answers current so recommendations stay relevant.'**
+  String get helpAccountEditBody;
+
+  /// No description provided for @helpAccountPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy controls'**
+  String get helpAccountPrivacyTitle;
+
+  /// No description provided for @helpAccountPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Settings to manage theme, language, and privacy preferences such as hiding your last name or exact location.'**
+  String get helpAccountPrivacyBody;
+
+  /// No description provided for @helpAccountBlockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked users'**
+  String get helpAccountBlockedTitle;
+
+  /// No description provided for @helpAccountBlockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked people cannot contact you through the app. You can review and unblock them from Blocked Users.'**
+  String get helpAccountBlockedBody;
+
+  /// No description provided for @helpContactIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support when something looks wrong, unsafe, or stuck.'**
+  String get helpContactIntro;
+
+  /// No description provided for @helpContactWhatToSendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What to include'**
+  String get helpContactWhatToSendTitle;
+
+  /// No description provided for @helpContactWhatToSendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your phone number, the listing or conversation involved, screenshots if useful, and a short description of what happened.'**
+  String get helpContactWhatToSendBody;
+
+  /// No description provided for @helpContactUrgentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent safety issues'**
+  String get helpContactUrgentTitle;
+
+  /// No description provided for @helpContactUrgentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If there is immediate danger, contact local emergency services first, then report the issue to support with the details you can safely share.'**
+  String get helpContactUrgentBody;
+
+  /// No description provided for @emailSupportCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Email support'**
+  String get emailSupportCta;
+
+  /// No description provided for @supportEmailSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'360 FlatMates support request'**
+  String get supportEmailSubject;
+
+  /// No description provided for @supportEmailBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi 360 FlatMates Support, I need help with:'**
+  String get supportEmailBody;
+
+  /// No description provided for @supportEmailFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Email us at {email}'**
+  String supportEmailFallback(String email);
+
+  /// No description provided for @externalLinkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this link. Please try again.'**
+  String get externalLinkUnavailable;
 
   /// No description provided for @stepLabel.
   ///
@@ -5077,6 +5401,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Any Gender'**
   String get genderSuffixAny;
+
+  /// No description provided for @activeRecentlyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active recently'**
+  String get activeRecentlyLabel;
+
+  /// No description provided for @couldNotLoadContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load content.'**
+  String get couldNotLoadContent;
+
+  /// No description provided for @forceUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update required'**
+  String get forceUpdateTitle;
+
+  /// No description provided for @forceUpdateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version of 360 FlatMates is available. Please update to continue using the app.'**
+  String get forceUpdateMessage;
+
+  /// No description provided for @forceUpdateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get forceUpdateCta;
+
+  /// No description provided for @optionalUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get optionalUpdateTitle;
+
+  /// No description provided for @optionalUpdateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A newer version of 360 FlatMates is available with improvements and bug fixes.'**
+  String get optionalUpdateMessage;
+
+  /// No description provided for @optionalUpdateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get optionalUpdateCta;
+
+  /// No description provided for @optionalUpdateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get optionalUpdateLater;
+
+  /// No description provided for @maintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Under maintenance'**
+  String get maintenanceTitle;
+
+  /// No description provided for @maintenanceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re making things better. Please check back in a little while.'**
+  String get maintenanceMessage;
+
+  /// No description provided for @maintenanceRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get maintenanceRetry;
 }
 
 class _AppLocalizationsDelegate

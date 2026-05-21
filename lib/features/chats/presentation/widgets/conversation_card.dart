@@ -12,6 +12,13 @@ import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../domain/chat_models.dart';
 
+const double _avatarSize = 44;
+const double _avatarRadius = _avatarSize / 2;
+const double _privacyBlurSigma = 8;
+const double _propertyPreviewSize = 40;
+const double _locationIconSize = 13;
+const double _inlineGap = 2;
+
 class ConversationCard extends StatelessWidget {
   const ConversationCard({
     required this.item,
@@ -35,7 +42,7 @@ class ConversationCard extends StatelessWidget {
         item.peer.city!.trim(),
     ].join(', ');
     final timestamp = item.lastMessageAt == null
-        ? locale.chatReady
+        ? ''
         : DateFormat(
             'd MMM, h:mm a',
             locale.localeName,
@@ -43,176 +50,184 @@ class ConversationCard extends StatelessWidget {
 
     return FlatmatesCard(
       onTap: onTap,
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              highlightMode && item.peer.profileImageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(29),
-                      child: ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                        child: FlatmatesAvatar(
-                          name: item.peer.fullName,
-                          imageUrl: item.peer.profileImageUrl,
-                          size: 58,
-                        ),
-                      ),
-                    )
-                  : FlatmatesAvatar(
+          highlightMode && item.peer.profileImageUrl != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(_avatarRadius),
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                      sigmaX: _privacyBlurSigma,
+                      sigmaY: _privacyBlurSigma,
+                    ),
+                    child: FlatmatesAvatar(
                       name: item.peer.fullName,
                       imageUrl: item.peer.profileImageUrl,
-                      size: 58,
+                      size: _avatarSize,
                     ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                )
+              : FlatmatesAvatar(
+                  name: item.peer.fullName,
+                  imageUrl: item.peer.profileImageUrl,
+                  size: _avatarSize,
+                ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.peer.fullName,
-                            style: theme.textTheme.titleLarge,
+                    Expanded(
+                      child: Text(
+                        item.peer.fullName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (item.unreadCount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppSemanticColors.accent.withValues(
+                            alpha: 0.12,
+                          ),
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        child: Text(
+                          '${item.unreadCount}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppSemanticColors.accent,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        if (item.unreadCount > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                              vertical: AppSpacing.sm,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppSemanticColors.accent.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: AppRadius.pillBorder,
-                            ),
-                            child: Text(
-                              '${item.unreadCount}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppSemanticColors.accent,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (item.peer.mode != null) ...[
-                      const SizedBox(height: AppSpacing.xs),
+                      ),
+                    if (timestamp.isNotEmpty) ...[
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
-                        localizedFlatmatesModeLabel(locale, item.peer.mode!),
-                        style: theme.textTheme.bodyLarge?.copyWith(
+                        timestamp,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: AppSemanticColors.textSecondaryFor(
                             theme.brightness,
                           ),
                         ),
                       ),
                     ],
-                    if (location.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
+                  ],
+                ),
+                if (item.peer.mode != null) ...[
+                  const SizedBox(height: _inlineGap),
+                  Text(
+                    localizedFlatmatesModeLabel(locale, item.peer.mode!),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                    ),
+                  ),
+                ],
+                if (location.isNotEmpty) ...[
+                  const SizedBox(height: _inlineGap),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: _locationIconSize,
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                      const SizedBox(width: _inlineGap),
+                      Expanded(
+                        child: Text(
+                          location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: AppSemanticColors.textSecondaryFor(
                               theme.brightness,
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              location,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (item.contextProperty != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
-                borderRadius: AppRadius.sheetBorder,
-              ),
-              child: Row(
-                children: [
-                  if (item.contextProperty!.mainImageUrl != null)
-                    FlatmatesNetworkImage(
-                      imageUrl: item.contextProperty!.mainImageUrl!,
-                      width: 76,
-                      height: 76,
-                      borderRadius: AppRadius.cardBorder,
-                    )
-                  else
-                    _PropertyPreviewFallback(
-                      title: item.contextProperty!.title,
+                  ),
+                ],
+                if (item.lastMessagePreview != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    item.lastMessagePreview!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
                     ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ],
+                if (item.contextProperty != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppSemanticColors.secondarySurfaceFor(
+                        theme.brightness,
+                      ),
+                      borderRadius: AppRadius.sheetBorder,
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          item.contextProperty!.title,
-                          style: theme.textTheme.titleMedium,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        if (item.contextProperty!.monthlyRent != null)
-                          Text(
-                            locale.monthlyRentLabel(
-                              item.contextProperty!.monthlyRent!
-                                  .toStringAsFixed(0),
-                            ),
+                        if (item.contextProperty!.mainImageUrl != null)
+                          FlatmatesNetworkImage(
+                            imageUrl: item.contextProperty!.mainImageUrl!,
+                            width: _propertyPreviewSize,
+                            height: _propertyPreviewSize,
+                            borderRadius: AppRadius.cardBorder,
+                          )
+                        else
+                          _PropertyPreviewFallback(
+                            title: item.contextProperty!.title,
                           ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.contextProperty!.title,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (item.contextProperty!.monthlyRent != null)
+                                Text(
+                                  locale.monthlyRentLabel(
+                                    item.contextProperty!.monthlyRent!
+                                        .toStringAsFixed(0),
+                                  ),
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-          ],
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.lastMessagePreview ?? locale.likesIncomingLabel,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyLarge,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(timestamp, style: theme.textTheme.bodyMedium),
-            ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          highlightMode
-              ? FlatmatesButton(
-                  label: locale.openConversationCta,
-                  onPressed: onTap,
-                  icon: Icons.chat_bubble_outline_rounded,
-                )
-              : Align(
-                  alignment: Alignment.centerRight,
-                  child: FlatmatesButton.tertiary(
-                    label: locale.openConversationCta,
-                    onPressed: onTap,
-                  ),
-                ),
         ],
       ),
     );
@@ -228,9 +243,9 @@ class _PropertyPreviewFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      width: 76,
-      height: 76,
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      width: _propertyPreviewSize,
+      height: _propertyPreviewSize,
+      padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         borderRadius: AppRadius.cardBorder,
         gradient: LinearGradient(
@@ -243,7 +258,10 @@ class _PropertyPreviewFallback extends StatelessWidget {
       child: Center(
         child: Text(
           initialsFromName(title),
-          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

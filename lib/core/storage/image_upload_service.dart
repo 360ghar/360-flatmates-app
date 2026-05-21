@@ -132,7 +132,9 @@ class ImageUploadService {
     final supabase = Supabase.instance.client;
     final uid = supabase.auth.currentUser?.id;
     if (uid == null) {
-      return const UploadFailure(reason: 'Not authenticated — please log in again.');
+      return const UploadFailure(
+        reason: 'Not authenticated — please log in again.',
+      );
     }
 
     final ext = file.path.split('.').last;
@@ -144,7 +146,9 @@ class ImageUploadService {
       await supabase.storage.from(_bucket).upload(name, file);
       // 7-day signed URL. TODO: migrate to path-based storage and generate
       // fresh signed URLs on read so URLs are short-lived and revocable.
-      final url = await supabase.storage.from(_bucket).createSignedUrl(name, 604800);
+      final url = await supabase.storage
+          .from(_bucket)
+          .createSignedUrl(name, 604800);
       return UploadSuccess(url);
     } on StorageException catch (e) {
       return UploadFailure(

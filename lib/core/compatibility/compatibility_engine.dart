@@ -154,7 +154,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: score >= 50,
-      summary: score == 100 ? 'Same sleep schedule' : 'Similar sleep habits',
+      summary: 'Sleep habits',
     );
   }
 
@@ -175,7 +175,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: gap <= 1,
-      summary: score == 100 ? 'Same cleanliness level' : 'Similar cleanliness',
+      summary: 'Cleanliness',
     );
   }
 
@@ -214,7 +214,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: score >= 50,
-      summary: score == 100 ? 'Same food habits' : 'Different food preferences',
+      summary: score == 100 ? 'Food preferences' : 'Different food preferences',
     );
   }
 
@@ -264,9 +264,9 @@ class CompatibilityEngine {
       score: score,
       isMatch: score >= 50,
       summary: score >= 80
-          ? 'Very compatible habits'
+          ? 'Aligned lifestyle'
           : score >= 50
-          ? 'Compatible habits'
+          ? 'Mixed lifestyle'
           : 'Lifestyle differences',
     );
   }
@@ -288,7 +288,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: gap <= 1,
-      summary: score == 100 ? 'Same guest policy' : 'Similar guest policy',
+      summary: 'Guest policy',
     );
   }
 
@@ -308,7 +308,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: score >= 50,
-      summary: score == 100 ? 'Same work style' : 'Different work styles',
+      summary: score == 100 ? 'Work style' : 'Different work styles',
     );
   }
 }

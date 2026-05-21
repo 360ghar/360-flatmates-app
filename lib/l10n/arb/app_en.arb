@@ -41,6 +41,30 @@
       }
     }
   },
+  "homeGreetingMorning": "Good morning, {name}",
+  "@homeGreetingMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreetingAfternoon": "Good afternoon, {name}",
+  "@homeGreetingAfternoon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreetingEvening": "Good evening, {name}",
+  "@homeGreetingEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "homeGuestName": "there",
   "homeSubtitle": "Find your next flatmate in {city}",
   "@homeSubtitle": {
@@ -195,7 +219,6 @@
   "profileMenuShortlisted": "Shortlisted",
   "profileMenuChats": "My Chats",
   "profileMenuDocuments": "Documents",
-  "profileMenuPaymentMethods": "Payment Methods",
   "editProfileCta": "Edit profile",
   "themeModeTitle": "Theme mode",
   "themeSystem": "System",
@@ -690,6 +713,20 @@
   "privacySecurityLabel": "Privacy & Security",
   "preferencesLabel": "Preferences",
   "notificationSettingsLabel": "Notification Settings",
+  "notificationSettingsTitle": "Notification Preferences",
+  "notificationSettingsSubtitle": "Choose which notifications you want to receive",
+  "notifNewMessages": "New Messages",
+  "notifNewMessagesDesc": "Get notified when you receive a new message",
+  "notifVisitReminders": "Visit Reminders",
+  "notifVisitRemindersDesc": "Reminders for upcoming property visits",
+  "notifNewMatches": "New Matches",
+  "notifNewMatchesDesc": "Get notified when someone likes your profile",
+  "notifListingUpdates": "Listing Updates",
+  "notifListingUpdatesDesc": "Updates about your listing views and interest",
+  "notifPromotions": "Promotions & Tips",
+  "notifPromotionsDesc": "Offers, tips, and product updates",
+  "notifEnableAll": "Enable All",
+  "notifDisableAll": "Disable All",
   "blockedUsersLabel": "Blocked Users",
   "noBlockedUsers": "You haven't blocked anyone yet.",
   "unblockCta": "Unblock",
@@ -709,8 +746,6 @@
   "faqSubtitle": "Find answers to common questions",
   "popularTopicsLabel": "Popular Topics",
   "popularTopicsSubtitle": "Explore trending help topics",
-  "paymentsLabel": "Payments & Refunds",
-  "paymentsSubtitle": "Payment issues, refunds and more",
   "bookingAgreementsLabel": "Booking & Agreements",
   "bookingAgreementsSubtitle": "Bookings, agreements & policies",
   "accountProfileLabel": "Account & Profile",
@@ -719,6 +754,53 @@
   "chatWithUsCta": "Chat with Us",
   "comingSoon": "Coming soon",
   "replyTimeNote": "We usually reply in a few minutes",
+  "helpFaqIntro": "Quick answers for the most common 360 FlatMates questions.",
+  "helpFaqStartTitle": "How do I start finding a flatmate?",
+  "helpFaqStartBody": "Complete onboarding, set your city and budget, then use Discover, Map, Swipe, and Chats to connect with relevant flatmates or listings.",
+  "helpFaqSafetyTitle": "How should I stay safe before meeting?",
+  "helpFaqSafetyBody": "Keep early conversations in the app, meet in a familiar or shared place, verify rent and deposit details, and do not send sensitive documents before you trust the other person.",
+  "helpFaqReportTitle": "How do I report or block someone?",
+  "helpFaqReportBody": "Open the chat with that person and use the report or block actions. Reports are sent to the 360 FlatMates team for review.",
+  "helpFaqListingTitle": "How do I list my flat?",
+  "helpFaqListingBody": "Use Post Listing from your profile, complete the required flat details, and submit it for review before it appears to other users.",
+  "helpPopularIntro": "The most useful safety and support topics for active users.",
+  "helpPopularMeetingsTitle": "Safer first meetings",
+  "helpPopularMeetingsBody": "Meet during the day when possible, tell someone you trust where you are going, and avoid cash handovers until terms are clear.",
+  "helpPopularVerifiedTitle": "Profile trust basics",
+  "helpPopularVerifiedBody": "Use your real name, add a clear profile photo, and keep lifestyle preferences accurate so matches can evaluate compatibility.",
+  "helpPopularVisitsTitle": "Chats and visits",
+  "helpPopularVisitsBody": "Use in-app chats to confirm availability, schedule visits from listing or conversation screens, and keep important decisions written down.",
+  "helpBookingsIntro": "Guidance for visits, agreements, and listing review. 360 FlatMates helps you connect; final rental terms stay between the people involved.",
+  "helpBookingsDecisionTitle": "Before confirming a move",
+  "helpBookingsDecisionBody": "Confirm monthly rent, deposit, maintenance, move-in date, notice period, house rules, and who will be named on the agreement.",
+  "helpBookingsAgreementsTitle": "Agreements and documents",
+  "helpBookingsAgreementsBody": "Keep written copies of agreed terms and verify IDs or ownership details through trusted channels before signing or paying outside the app.",
+  "helpBookingsListingReviewTitle": "Listing review",
+  "helpBookingsListingReviewBody": "Submitted listings may be reviewed for quality and safety before going live. You can edit and resubmit if details change.",
+  "helpAccountIntro": "Manage profile, password, privacy, and blocked users from one safe place.",
+  "helpAccountEditTitle": "Edit profile details",
+  "helpAccountEditBody": "Keep your photo, location, budget, move-in timeline, and lifestyle answers current so recommendations stay relevant.",
+  "helpAccountPrivacyTitle": "Privacy controls",
+  "helpAccountPrivacyBody": "Use Settings to manage theme, language, and privacy preferences such as hiding your last name or exact location.",
+  "helpAccountBlockedTitle": "Blocked users",
+  "helpAccountBlockedBody": "Blocked people cannot contact you through the app. You can review and unblock them from Blocked Users.",
+  "helpContactIntro": "Contact support when something looks wrong, unsafe, or stuck.",
+  "helpContactWhatToSendTitle": "What to include",
+  "helpContactWhatToSendBody": "Send your phone number, the listing or conversation involved, screenshots if useful, and a short description of what happened.",
+  "helpContactUrgentTitle": "Urgent safety issues",
+  "helpContactUrgentBody": "If there is immediate danger, contact local emergency services first, then report the issue to support with the details you can safely share.",
+  "emailSupportCta": "Email support",
+  "supportEmailSubject": "360 FlatMates support request",
+  "supportEmailBody": "Hi 360 FlatMates Support, I need help with:",
+  "supportEmailFallback": "Email us at {email}",
+  "@supportEmailFallback": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "externalLinkUnavailable": "Could not open this link. Please try again.",
   "@@listing_create_new_keys": {},
   "stepLabel": "Step",
   "stepOfLabel": "of",
@@ -1283,5 +1365,18 @@
   },
   "genderSuffixMaleOnly": "M Only",
   "genderSuffixFemaleOnly": "F Only",
-  "genderSuffixAny": "Any Gender"
+  "genderSuffixAny": "Any Gender",
+  "activeRecentlyLabel": "Active recently",
+  "couldNotLoadContent": "Could not load content.",
+  "@@app_infra_keys": {},
+  "forceUpdateTitle": "Update required",
+  "forceUpdateMessage": "A new version of 360 FlatMates is available. Please update to continue using the app.",
+  "forceUpdateCta": "Update now",
+  "optionalUpdateTitle": "Update available",
+  "optionalUpdateMessage": "A newer version of 360 FlatMates is available with improvements and bug fixes.",
+  "optionalUpdateCta": "Update now",
+  "optionalUpdateLater": "Later",
+  "maintenanceTitle": "Under maintenance",
+  "maintenanceMessage": "We're making things better. Please check back in a little while.",
+  "maintenanceRetry": "Check again"
 }

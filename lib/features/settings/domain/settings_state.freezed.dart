@@ -23,6 +23,11 @@ mixin _$SettingsState {
   bool get loaded => throw _privateConstructorUsedError;
   bool get hideLastName => throw _privateConstructorUsedError;
   bool get hideExactLocation => throw _privateConstructorUsedError;
+  bool get notifNewMessages => throw _privateConstructorUsedError;
+  bool get notifVisitReminders => throw _privateConstructorUsedError;
+  bool get notifNewMatches => throw _privateConstructorUsedError;
+  bool get notifListingUpdates => throw _privateConstructorUsedError;
+  bool get notifPromotions => throw _privateConstructorUsedError;
 
   /// Create a copy of SettingsState
   /// with the given fields replaced by the non-null parameter values.
@@ -45,6 +50,11 @@ abstract class $SettingsStateCopyWith<$Res> {
     bool loaded,
     bool hideLastName,
     bool hideExactLocation,
+    bool notifNewMessages,
+    bool notifVisitReminders,
+    bool notifNewMatches,
+    bool notifListingUpdates,
+    bool notifPromotions,
   });
 }
 
@@ -69,6 +79,11 @@ class _$SettingsStateCopyWithImpl<$Res, $Val extends SettingsState>
     Object? loaded = null,
     Object? hideLastName = null,
     Object? hideExactLocation = null,
+    Object? notifNewMessages = null,
+    Object? notifVisitReminders = null,
+    Object? notifNewMatches = null,
+    Object? notifListingUpdates = null,
+    Object? notifPromotions = null,
   }) {
     return _then(
       _value.copyWith(
@@ -96,6 +111,26 @@ class _$SettingsStateCopyWithImpl<$Res, $Val extends SettingsState>
                 ? _value.hideExactLocation
                 : hideExactLocation // ignore: cast_nullable_to_non_nullable
                       as bool,
+            notifNewMessages: null == notifNewMessages
+                ? _value.notifNewMessages
+                : notifNewMessages // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            notifVisitReminders: null == notifVisitReminders
+                ? _value.notifVisitReminders
+                : notifVisitReminders // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            notifNewMatches: null == notifNewMatches
+                ? _value.notifNewMatches
+                : notifNewMatches // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            notifListingUpdates: null == notifListingUpdates
+                ? _value.notifListingUpdates
+                : notifListingUpdates // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            notifPromotions: null == notifPromotions
+                ? _value.notifPromotions
+                : notifPromotions // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -118,6 +153,11 @@ abstract class _$$SettingsStateImplCopyWith<$Res>
     bool loaded,
     bool hideLastName,
     bool hideExactLocation,
+    bool notifNewMessages,
+    bool notifVisitReminders,
+    bool notifNewMatches,
+    bool notifListingUpdates,
+    bool notifPromotions,
   });
 }
 
@@ -141,6 +181,11 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
     Object? loaded = null,
     Object? hideLastName = null,
     Object? hideExactLocation = null,
+    Object? notifNewMessages = null,
+    Object? notifVisitReminders = null,
+    Object? notifNewMatches = null,
+    Object? notifListingUpdates = null,
+    Object? notifPromotions = null,
   }) {
     return _then(
       _$SettingsStateImpl(
@@ -168,6 +213,26 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
             ? _value.hideExactLocation
             : hideExactLocation // ignore: cast_nullable_to_non_nullable
                   as bool,
+        notifNewMessages: null == notifNewMessages
+            ? _value.notifNewMessages
+            : notifNewMessages // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        notifVisitReminders: null == notifVisitReminders
+            ? _value.notifVisitReminders
+            : notifVisitReminders // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        notifNewMatches: null == notifNewMatches
+            ? _value.notifNewMatches
+            : notifNewMatches // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        notifListingUpdates: null == notifListingUpdates
+            ? _value.notifListingUpdates
+            : notifListingUpdates // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        notifPromotions: null == notifPromotions
+            ? _value.notifPromotions
+            : notifPromotions // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -183,6 +248,11 @@ class _$SettingsStateImpl extends _SettingsState {
     this.loaded = false,
     this.hideLastName = false,
     this.hideExactLocation = false,
+    this.notifNewMessages = true,
+    this.notifVisitReminders = true,
+    this.notifNewMatches = true,
+    this.notifListingUpdates = true,
+    this.notifPromotions = false,
   }) : super._();
 
   @override
@@ -203,10 +273,25 @@ class _$SettingsStateImpl extends _SettingsState {
   @override
   @JsonKey()
   final bool hideExactLocation;
+  @override
+  @JsonKey()
+  final bool notifNewMessages;
+  @override
+  @JsonKey()
+  final bool notifVisitReminders;
+  @override
+  @JsonKey()
+  final bool notifNewMatches;
+  @override
+  @JsonKey()
+  final bool notifListingUpdates;
+  @override
+  @JsonKey()
+  final bool notifPromotions;
 
   @override
   String toString() {
-    return 'SettingsState(themeMode: $themeMode, palette: $palette, locale: $locale, loaded: $loaded, hideLastName: $hideLastName, hideExactLocation: $hideExactLocation)';
+    return 'SettingsState(themeMode: $themeMode, palette: $palette, locale: $locale, loaded: $loaded, hideLastName: $hideLastName, hideExactLocation: $hideExactLocation, notifNewMessages: $notifNewMessages, notifVisitReminders: $notifVisitReminders, notifNewMatches: $notifNewMatches, notifListingUpdates: $notifListingUpdates, notifPromotions: $notifPromotions)';
   }
 
   @override
@@ -222,7 +307,17 @@ class _$SettingsStateImpl extends _SettingsState {
             (identical(other.hideLastName, hideLastName) ||
                 other.hideLastName == hideLastName) &&
             (identical(other.hideExactLocation, hideExactLocation) ||
-                other.hideExactLocation == hideExactLocation));
+                other.hideExactLocation == hideExactLocation) &&
+            (identical(other.notifNewMessages, notifNewMessages) ||
+                other.notifNewMessages == notifNewMessages) &&
+            (identical(other.notifVisitReminders, notifVisitReminders) ||
+                other.notifVisitReminders == notifVisitReminders) &&
+            (identical(other.notifNewMatches, notifNewMatches) ||
+                other.notifNewMatches == notifNewMatches) &&
+            (identical(other.notifListingUpdates, notifListingUpdates) ||
+                other.notifListingUpdates == notifListingUpdates) &&
+            (identical(other.notifPromotions, notifPromotions) ||
+                other.notifPromotions == notifPromotions));
   }
 
   @override
@@ -234,6 +329,11 @@ class _$SettingsStateImpl extends _SettingsState {
     loaded,
     hideLastName,
     hideExactLocation,
+    notifNewMessages,
+    notifVisitReminders,
+    notifNewMatches,
+    notifListingUpdates,
+    notifPromotions,
   );
 
   /// Create a copy of SettingsState
@@ -253,6 +353,11 @@ abstract class _SettingsState extends SettingsState {
     final bool loaded,
     final bool hideLastName,
     final bool hideExactLocation,
+    final bool notifNewMessages,
+    final bool notifVisitReminders,
+    final bool notifNewMatches,
+    final bool notifListingUpdates,
+    final bool notifPromotions,
   }) = _$SettingsStateImpl;
   const _SettingsState._() : super._();
 
@@ -268,6 +373,16 @@ abstract class _SettingsState extends SettingsState {
   bool get hideLastName;
   @override
   bool get hideExactLocation;
+  @override
+  bool get notifNewMessages;
+  @override
+  bool get notifVisitReminders;
+  @override
+  bool get notifNewMatches;
+  @override
+  bool get notifListingUpdates;
+  @override
+  bool get notifPromotions;
 
   /// Create a copy of SettingsState
   /// with the given fields replaced by the non-null parameter values.

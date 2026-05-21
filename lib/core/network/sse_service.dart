@@ -24,6 +24,8 @@ typedef TokenRefresher = Future<String?> Function();
 class SseService {
   StreamController<SseEvent>? _controller;
   Timer? _reconnectTimer;
+  HttpClient? _httpClient;
+  StreamSubscription<String>? _responseSubscription;
   String? _baseUrl;
   TokenRefresher? _tokenRefresher;
   int _reconnectDelaySeconds = 1;
@@ -77,26 +79,35 @@ class SseService {
     _closeConnection();
 
     // Fire-and-forget: get token, then open the connection.
-    _tokenRefresher!().then((token) {
-      if (_disposed || _intentionalDisconnect || token == null) return;
-      _startStream(token);
-    }).catchError((_) {
-      // Token refresh failed — schedule reconnect
-      if (!_disposed && !_intentionalDisconnect) _scheduleReconnect();
-    });
+    _tokenRefresher!()
+        .then((token) {
+          if (_disposed || _intentionalDisconnect || token == null) return;
+          _startStream(token);
+        })
+        .catchError((_) {
+          // Token refresh failed — schedule reconnect
+          if (!_disposed && !_intentionalDisconnect) _scheduleReconnect();
+        });
   }
 
   void _startStream(String token) {
-    final client = HttpClient()..idleTimeout = const Duration(minutes: 10);
+    _httpClient = HttpClient()..idleTimeout = const Duration(minutes: 10);
 
-    _doConnect(client, token).then((_) {
-      // Stream ended normally
-      client.close(force: true);
-      if (!_disposed && !_intentionalDisconnect) _scheduleReconnect();
-    }).catchError((_) {
-      client.close(force: true);
-      if (!_disposed && !_intentionalDisconnect) _scheduleReconnect();
-    });
+    _doConnect(_httpClient!, token)
+        .then((_) {
+          _responseSubscription?.cancel();
+          _responseSubscription = null;
+          _httpClient?.close(force: true);
+          _httpClient = null;
+          if (!_disposed && !_intentionalDisconnect) _scheduleReconnect();
+        })
+        .catchError((_) {
+          _responseSubscription?.cancel();
+          _responseSubscription = null;
+          _httpClient?.close(force: true);
+          _httpClient = null;
+          if (!_disposed && !_intentionalDisconnect) _scheduleReconnect();
+        });
   }
 
   Future<void> _doConnect(HttpClient client, String token) async {
@@ -109,63 +120,62 @@ class SseService {
     final response = await request.close();
 
     if (response.statusCode != 200) {
-      // Auth failure or server error — don't parse as SSE.
-      // Drain the response body to free resources.
       await response.drain<void>();
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        // Auth error — clear stale token so next reconnect fetches a new one.
-        // But don't give up entirely; the token refresher will try again.
-      }
-      return; // triggers reconnect via the .then() in _startStream
+      return;
     }
 
-    _reconnectDelaySeconds = 1; // reset backoff on successful connect
+    _reconnectDelaySeconds = 1;
 
     String? eventType;
     final buffer = StringBuffer();
 
-    await for (final chunk
-        in response.transform(utf8.decoder).transform(const LineSplitter())) {
-      if (_disposed || _intentionalDisconnect) break;
+    _responseSubscription = response
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(
+          (chunk) {
+            if (_disposed || _intentionalDisconnect) {
+              _responseSubscription?.cancel();
+              return;
+            }
 
-      if (chunk.isEmpty) {
-        // Blank line → dispatch accumulated event
-        final data = buffer.toString().trim();
-        if (data.isNotEmpty &&
-            _controller != null &&
-            !_controller!.isClosed) {
-          try {
-            final parsed = jsonDecode(data) as Map<String, dynamic>;
-            _controller!.add(SseEvent(
-              type: eventType ?? 'message',
-              data: parsed,
-            ));
-          } catch (_) {
-            // Ignore malformed JSON
-          }
-        }
-        eventType = null;
-        buffer.clear();
-        continue;
-      }
+            if (chunk.isEmpty) {
+              final data = buffer.toString().trim();
+              if (data.isNotEmpty &&
+                  _controller != null &&
+                  !_controller!.isClosed) {
+                try {
+                  final parsed = jsonDecode(data) as Map<String, dynamic>;
+                  _controller!.add(
+                    SseEvent(type: eventType ?? 'message', data: parsed),
+                  );
+                } catch (_) {}
+              }
+              eventType = null;
+              buffer.clear();
+              return;
+            }
 
-      if (chunk.startsWith(':')) {
-        // SSE comment (keepalive) — ignore
-        continue;
-      }
+            if (chunk.startsWith(':')) return;
 
-      if (chunk.startsWith('event:')) {
-        eventType = chunk.substring(6).trim();
-      } else if (chunk.startsWith('data:')) {
-        // Handles both "data:value" and "data: value" via trim.
-        buffer.writeln(chunk.substring(5).trim());
-      }
-    }
+            if (chunk.startsWith('event:')) {
+              eventType = chunk.substring(6).trim();
+            } else if (chunk.startsWith('data:')) {
+              buffer.writeln(chunk.substring(5).trim());
+            }
+          },
+          onDone: () {},
+          onError: (_) {},
+        );
+
+    await _responseSubscription?.asFuture();
   }
 
   void _closeConnection() {
-    // HttpClient is owned by each _startStream call and closed there.
-    // Nothing to close here — this method is kept for future use.
+    _responseSubscription?.cancel();
+    _responseSubscription = null;
+    _httpClient?.close(force: true);
+    _httpClient = null;
   }
 
   void _scheduleReconnect() {

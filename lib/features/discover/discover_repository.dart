@@ -359,6 +359,10 @@ final discoverRepositoryProvider = Provider<DiscoverRepository>(
 
 final discoverFiltersProvider = StateProvider<DiscoverFilters?>((ref) => null);
 
+final selectedPropertyProvider = StateProvider.autoDispose<PropertyListing?>(
+  (ref) => null,
+);
+
 final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
   final profile = ref.watch(
     bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
@@ -370,12 +374,12 @@ final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
   final effectiveFilters = filters?.hasGeoLocation == true
       ? filters
       : selectedLocation != null
-          ? (filters ?? const DiscoverFilters()).copyWith(
-              latitude: selectedLocation.latitude,
-              longitude: selectedLocation.longitude,
-              radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
-            )
-          : filters;
+      ? (filters ?? const DiscoverFilters()).copyWith(
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
+        )
+      : filters;
   return ref
       .watch(discoverRepositoryProvider)
       .fetchListings(currentUser: profile, filters: effectiveFilters);

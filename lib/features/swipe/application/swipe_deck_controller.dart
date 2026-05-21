@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../discover/discover_repository.dart';
@@ -16,14 +19,29 @@ class SwipeDeckController extends Notifier<AsyncValue<List<SwipeProfile>>> {
     state = const AsyncLoading();
     try {
       final filters = ref.read(discoverFiltersProvider);
+      if (kDebugMode) {
+        log('[SwipeDeck] Loading profiles, filters=$filters');
+      } else {
+        log('[SwipeDeck] Loading profiles');
+      }
       final profiles = await ref
           .read(swipeRepositoryProvider)
           .fetchSwipeProfiles(filters: filters);
+      if (kDebugMode) {
+        log('[SwipeDeck] Loaded ${profiles.length} profiles');
+      } else {
+        log('[SwipeDeck] Loaded ${profiles.length} profiles');
+      }
       final filtered = profiles
           .where((p) => !_swipedUserIds.contains(p.id))
           .toList();
       state = AsyncData(filtered);
     } catch (e, st) {
+      if (kDebugMode) {
+        log('[SwipeDeck] ERROR loading profiles: $e', error: e, stackTrace: st);
+      } else {
+        log('[SwipeDeck] ERROR loading profiles');
+      }
       state = AsyncError(e, st);
     }
   }
@@ -44,5 +62,5 @@ class SwipeDeckController extends Notifier<AsyncValue<List<SwipeProfile>>> {
 
 final swipeDeckControllerProvider =
     NotifierProvider<SwipeDeckController, AsyncValue<List<SwipeProfile>>>(
-  SwipeDeckController.new,
-);
+      SwipeDeckController.new,
+    );

@@ -20,7 +20,8 @@ class AppShell extends ConsumerWidget {
     final theme = Theme.of(context);
     // Use select so AppShell only rebuilds when mode changes,
     // not on every bootstrap async lifecycle event.
-    final mode = ref.watch(
+    final mode =
+        ref.watch(
           bootstrapControllerProvider.select(
             (v) => v.valueOrNull?.profile.mode,
           ),
@@ -60,16 +61,20 @@ class AppShell extends ConsumerWidget {
                 ),
                 onDestinationSelected: (index) {
                   final branchIndex = _mapToBranchIndex(index, mode);
-                  navigationShell.goBranch(branchIndex);
+                  navigationShell.goBranch(
+                    branchIndex,
+                    initialLocation:
+                        branchIndex == navigationShell.currentIndex,
+                  );
                 },
-                labelBehavior:
-                    NavigationDestinationLabelBehavior.alwaysShow,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-                indicatorColor:
-                    AppSemanticColors.accent.withValues(alpha: 0.14),
+                indicatorColor: AppSemanticColors.accent.withValues(
+                  alpha: 0.14,
+                ),
                 indicatorShape: const RoundedRectangleBorder(
                   borderRadius: AppRadius.smBorder,
                 ),
@@ -110,8 +115,7 @@ class AppShell extends ConsumerWidget {
       else
         NavigationDestination(
           icon: _navIcon('nav_explore_tab', Icons.map_outlined),
-          selectedIcon:
-              _navIcon('nav_explore_tab_selected', Icons.map_rounded),
+          selectedIcon: _navIcon('nav_explore_tab_selected', Icons.map_rounded),
           label: locale.navExplore,
         ),
       NavigationDestination(
@@ -141,10 +145,7 @@ class AppShell extends ConsumerWidget {
   /// CRITICAL FIX: Removed ValueKey recreation that reset animation state.
   /// Semantics.identifier is sufficient for Maestro testing.
   Widget _navIcon(String identifier, IconData icon) {
-    return Semantics(
-      identifier: identifier,
-      child: Icon(icon),
-    );
+    return Semantics(identifier: identifier, child: Icon(icon));
   }
 
   int _mapToBranchIndex(int visibleIndex, String mode) {

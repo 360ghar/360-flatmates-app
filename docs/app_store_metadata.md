@@ -60,17 +60,17 @@ flatmate,roommate,flat,rent,India,Bangalore,flatmate finder,room share,co-living
 
 ## Privacy Policy URL
 
-```
-https://the360ghar.com/privacy
+```text
+https://360ghar.com/policies/privacy-policy
 ```
 
 ## Support URL
 
-```
-https://the360ghar.com/support
+```text
+https://360ghar.com/support
 ```
 
-> Update these URLs when the actual pages are live.
+> Privacy policy and terms pages are live; replace the placeholder URLs above with the final page URLs.
 
 ---
 

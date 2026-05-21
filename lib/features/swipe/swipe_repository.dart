@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
@@ -186,7 +188,25 @@ class SwipeRepository {
           FlatmatesEndpoints.flatmatesProfiles,
           queryParameters: queryParams,
         );
-    final rows = (response.data as List? ?? const []);
+    final responseData = response.data;
+    // Handle both bare array and wrapped object response formats.
+    List<dynamic> rows;
+    if (responseData is List) {
+      rows = responseData;
+    } else if (responseData is Map) {
+      final data = Map<String, dynamic>.from(responseData);
+      rows =
+          (data['data'] as List?) ??
+          (data['profiles'] as List?) ??
+          (data['results'] as List?) ??
+          const [];
+    } else {
+      rows = const [];
+    }
+    log(
+      '[SwipeRepo] Response status: ${response.statusCode}, '
+      'rows: ${rows.length}',
+    );
     final profiles = rows
         .map(
           (item) =>

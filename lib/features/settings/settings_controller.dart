@@ -35,6 +35,20 @@ class SettingsController extends Notifier<SettingsState> {
           : Locale(languageCode, countryCode),
       hideLastName: _prefs.getBool(PrefKeys.hideLastName),
       hideExactLocation: _prefs.getBool(PrefKeys.hideExactLocation),
+      notifNewMessages: _prefs.getBoolOrDefault(
+        PrefKeys.notifNewMessages,
+        true,
+      ),
+      notifVisitReminders: _prefs.getBoolOrDefault(
+        PrefKeys.notifVisitReminders,
+        true,
+      ),
+      notifNewMatches: _prefs.getBoolOrDefault(PrefKeys.notifNewMatches, true),
+      notifListingUpdates: _prefs.getBoolOrDefault(
+        PrefKeys.notifListingUpdates,
+        true,
+      ),
+      notifPromotions: _prefs.getBoolOrDefault(PrefKeys.notifPromotions, false),
       loaded: true,
     );
   }
@@ -78,6 +92,31 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> updateHideExactLocation(bool value) async {
     await _prefs.setBool(PrefKeys.hideExactLocation, value);
     state = state.copyWith(hideExactLocation: value);
+  }
+
+  Future<void> updateNotifNewMessages(bool value) async {
+    await _prefs.setBool(PrefKeys.notifNewMessages, value);
+    state = state.copyWith(notifNewMessages: value);
+  }
+
+  Future<void> updateNotifVisitReminders(bool value) async {
+    await _prefs.setBool(PrefKeys.notifVisitReminders, value);
+    state = state.copyWith(notifVisitReminders: value);
+  }
+
+  Future<void> updateNotifNewMatches(bool value) async {
+    await _prefs.setBool(PrefKeys.notifNewMatches, value);
+    state = state.copyWith(notifNewMatches: value);
+  }
+
+  Future<void> updateNotifListingUpdates(bool value) async {
+    await _prefs.setBool(PrefKeys.notifListingUpdates, value);
+    state = state.copyWith(notifListingUpdates: value);
+  }
+
+  Future<void> updateNotifPromotions(bool value) async {
+    await _prefs.setBool(PrefKeys.notifPromotions, value);
+    state = state.copyWith(notifPromotions: value);
   }
 }
 

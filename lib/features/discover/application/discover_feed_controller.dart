@@ -336,9 +336,7 @@ final filteredListingsProvider =
 
         final matchesFeature =
             filters.features.isEmpty ||
-            filters.features.every(
-              (fKey) => item.features.contains(fKey),
-            );
+            filters.features.every((fKey) => item.features.contains(fKey));
 
         final searchable = [
           item.title,

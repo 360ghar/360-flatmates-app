@@ -110,7 +110,12 @@ class FlatmatesBottomActionBar extends StatelessWidget {
                     ),
                   ],
                 )
-              : FlatmatesButton(key: primaryButtonKey, label: label, onPressed: onPressed, icon: icon),
+              : FlatmatesButton(
+                  key: primaryButtonKey,
+                  label: label,
+                  onPressed: onPressed,
+                  icon: icon,
+                ),
         ),
       ),
     );

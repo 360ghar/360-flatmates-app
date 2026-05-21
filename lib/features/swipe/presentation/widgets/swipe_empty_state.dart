@@ -46,20 +46,20 @@ class SwipeEmptyState extends StatelessWidget {
   }
 
   String _title(AppLocalizations locale) => switch (reason) {
-        SwipeEmptyReason.noProfiles => locale.swipeEmptyNoProfilesTitle,
-        SwipeEmptyReason.allFiltered => locale.swipeEmptyAllFilteredTitle,
-        SwipeEmptyReason.endOfDeck => locale.swipeEmptyEndOfDeckTitle,
-      };
+    SwipeEmptyReason.noProfiles => locale.swipeEmptyNoProfilesTitle,
+    SwipeEmptyReason.allFiltered => locale.swipeEmptyAllFilteredTitle,
+    SwipeEmptyReason.endOfDeck => locale.swipeEmptyEndOfDeckTitle,
+  };
 
   String _subtitle(AppLocalizations locale) => switch (reason) {
-        SwipeEmptyReason.noProfiles => locale.swipeEmptyNoProfilesSubtitle,
-        SwipeEmptyReason.allFiltered => locale.swipeEmptyAllFilteredSubtitle,
-        SwipeEmptyReason.endOfDeck => locale.swipeEmptyEndOfDeckSubtitle,
-      };
+    SwipeEmptyReason.noProfiles => locale.swipeEmptyNoProfilesSubtitle,
+    SwipeEmptyReason.allFiltered => locale.swipeEmptyAllFilteredSubtitle,
+    SwipeEmptyReason.endOfDeck => locale.swipeEmptyEndOfDeckSubtitle,
+  };
 
   IconData get _icon => switch (reason) {
-        SwipeEmptyReason.noProfiles => Icons.explore_off_rounded,
-        SwipeEmptyReason.allFiltered => Icons.filter_alt_off_rounded,
-        SwipeEmptyReason.endOfDeck => Icons.favorite_border_rounded,
-      };
+    SwipeEmptyReason.noProfiles => Icons.explore_off_rounded,
+    SwipeEmptyReason.allFiltered => Icons.filter_alt_off_rounded,
+    SwipeEmptyReason.endOfDeck => Icons.favorite_border_rounded,
+  };
 }

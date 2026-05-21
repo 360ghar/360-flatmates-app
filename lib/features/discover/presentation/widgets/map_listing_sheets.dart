@@ -64,8 +64,7 @@ void showClusterSheet(
               itemBuilder: (_, index) {
                 final item = clusterItems[index];
                 final subtitleParts = <String>[
-                  if (item.bedrooms != null)
-                    '${item.bedrooms} BHK',
+                  if (item.bedrooms != null) '${item.bedrooms} BHK',
                   if (item.sharingType != null)
                     localizedFlatmatesSharingTypeLabel(
                       locale,
@@ -74,21 +73,21 @@ void showClusterSheet(
                 ];
                 final genderDot = switch (item.genderPreference) {
                   'male' => Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                      ),
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
                     ),
+                  ),
                   'female' => Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Colors.pink,
-                        shape: BoxShape.circle,
-                      ),
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Colors.pink,
+                      shape: BoxShape.circle,
                     ),
+                  ),
                   _ => null,
                 };
                 return Column(

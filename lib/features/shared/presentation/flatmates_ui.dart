@@ -564,7 +564,7 @@ class FlatmatesSectionHeader extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppSemanticColors.ink2,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
                 ),
               ],
@@ -1051,7 +1051,9 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
                         gradient: LinearGradient(
                           colors: [
                             AppSemanticColors.accent.withValues(alpha: 0.18),
-                            AppSemanticColors.paper2,
+                            AppSemanticColors.secondarySurfaceFor(
+                              theme.brightness,
+                            ),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -1101,8 +1103,10 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
                         child: Container(
                           width: 44,
                           height: 44,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: AppSemanticColors.surfaceFor(
+                              theme.brightness,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,

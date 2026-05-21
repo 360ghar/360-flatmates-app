@@ -1,6 +1,6 @@
-const kPrivacyPolicyUrl = 'https://the360ghar.com/privacy';
-const kTermsOfServiceUrl = 'https://the360ghar.com/terms';
-const kSupportEmail = 'support@the360ghar.com';
+const kPrivacyPolicyUrl = 'https://360ghar.com/policies/privacy-policy';
+const kTermsOfServiceUrl = 'https://360ghar.com/policies/terms-of-service';
+const kSupportEmail = 'info@360ghar.com';
 
 /// Apple App Store ID supplied at build time once App Store Connect assigns it.
 const kAppStoreId = String.fromEnvironment('APP_STORE_ID');

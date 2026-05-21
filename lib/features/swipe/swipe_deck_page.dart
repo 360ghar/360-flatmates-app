@@ -36,12 +36,12 @@ class SwipeDeckPage extends ConsumerStatefulWidget {
 class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     with TickerProviderStateMixin {
   int _currentIndex = 0;
-  bool _isExpanded = false;
   bool _isAnimating = false;
 
   Offset _dragOffset = Offset.zero;
   bool _isDragging = false;
   final _profileViewTracker = ProfileViewTracker();
+  int? _trackedProfileId;
 
   late final AnimationController _flyOffController;
   late final AnimationController _snapBackController;
@@ -111,37 +111,28 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     super.dispose();
   }
 
-  void _onPanStart(DragStartDetails details) {
+  void _onHorizontalDragStart(DragStartDetails details) {
     if (_isAnimating) return;
     _snapBackController.stop();
-    if (_isExpanded) {
-      setState(() {
-        _isExpanded = false;
-      });
-      _recordExpandedProfileView();
-    }
     setState(() {
       _isDragging = true;
       _dragOffset = Offset.zero;
     });
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
     if (!_isDragging || _isAnimating) return;
     setState(() {
-      _dragOffset += details.delta;
+      _dragOffset = Offset(_dragOffset.dx + details.delta.dx, 0.0);
     });
   }
 
-  void _onPanEnd(DragEndDetails details) {
+  void _onHorizontalDragEnd(DragEndDetails details) {
     if (!_isDragging || _isAnimating) return;
     _isDragging = false;
     final screenWidth = MediaQuery.of(context).size.width;
     final threshold = screenWidth * 0.20;
-    if (_dragOffset.dy < -threshold) {
-      _triggerFlyOff(superLike: true);
-      return;
-    }
+
     if (_dragOffset.dx.abs() > threshold) {
       _triggerFlyOff(superLike: false);
       return;
@@ -186,7 +177,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       return;
     }
 
-    _recordExpandedProfileView();
     if (superLike) {
       _flyOffDirectionX = 0;
       _flyOffDirectionY = -1;
@@ -229,7 +219,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   }
 
   Future<void> _processSwipeAction(String action) async {
-    _recordExpandedProfileView();
+    _recordProfileView();
     final locale = AppLocalizations.of(context);
     final quota = ref.read(swipeQuotaControllerProvider);
 
@@ -281,23 +271,24 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         .read(swipeQuotaControllerProvider.notifier)
         .recordSwipe(isSuperLike: action == 'super_like');
 
+    // Reset tracked profile since we're moving to the next card.
+    _trackedProfileId = null;
+
+    // Remove swiped profile so the next rebuild shows the next card.
+    // The entrance animation (scale 0→1) hides the card swap.
     ref.read(swipeDeckControllerProvider.notifier).markSwiped(item.id);
 
-    setState(() {
-      _isExpanded = false;
-    });
-
     final isLikeAction = action == 'like' || action == 'super_like';
-
+    final didMatch = swipeResult.didMatch;
     if (isLikeAction) {
       ref.invalidate(conversationsProvider);
       ref.invalidate(outgoingLikesProvider);
-      if (swipeResult.didMatch) {
+      if (didMatch) {
         ref.invalidate(incomingLikesProvider);
       }
     }
 
-    if (isLikeAction && swipeResult.didMatch) {
+    if (isLikeAction && didMatch) {
       _showMatchCelebration(
         peerName: item.fullName ?? 'Flatmate',
         peerImageUrl: item.profileImageUrl,
@@ -305,6 +296,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       );
     }
 
+    // Scale new card from 0 → 1 so the swap is invisible.
     _cardEntranceController.forward(from: 0).then((_) {
       if (mounted) {
         setState(() {
@@ -317,7 +309,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     _flyOffController.addStatusListener(_onFlyOffStatus);
   }
 
-  void _recordExpandedProfileView() {
+  void _recordProfileView() {
     final sample = _profileViewTracker.finish();
     if (sample == null) return;
     unawaited(
@@ -330,15 +322,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           )
           .catchError((_) {}),
     );
-  }
-
-  void _toggleExpanded(SwipeProfile item) {
-    if (_isExpanded) {
-      _recordExpandedProfileView();
-    } else {
-      _profileViewTracker.start(item.id);
-    }
-    setState(() => _isExpanded = !_isExpanded);
   }
 
   void _resetAfterSwipe() {
@@ -408,6 +391,14 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         }
 
         final item = visible[_currentIndex];
+
+        // Start view tracking for current card
+        if (_trackedProfileId != item.id) {
+          _recordProfileView();
+          _trackedProfileId = item.id;
+          _profileViewTracker.start(item.id);
+        }
+
         final compatibility = calculateProfileCompatibility(userProfile, item);
 
         final hasNextCard = _currentIndex + 1 < visible.length;
@@ -440,15 +431,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
                     currentRotation: rotation,
                     cardScaleAnimation: _cardScaleAnimation,
                     isDragging: _isDragging,
-                    isExpanded: _isExpanded,
-                    onTap: () {
-                      if (!_isAnimating) {
-                        _toggleExpanded(item);
-                      }
-                    },
-                    onPanStart: _onPanStart,
-                    onPanUpdate: _onPanUpdate,
-                    onPanEnd: _onPanEnd,
+                    onHorizontalDragStart: _onHorizontalDragStart,
+                    onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                    onHorizontalDragEnd: _onHorizontalDragEnd,
                   ),
                 ),
                 SwipeActionBar(

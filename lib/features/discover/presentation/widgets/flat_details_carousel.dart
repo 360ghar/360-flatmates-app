@@ -163,7 +163,11 @@ class FlatDetailsCarousel extends StatelessWidget {
 
 /// Frosted glass icon button for floating over hero images.
 class _FrostedIconButton extends StatelessWidget {
-  const _FrostedIconButton({required this.icon, required this.onTap, super.key});
+  const _FrostedIconButton({
+    required this.icon,
+    required this.onTap,
+    super.key,
+  });
   final IconData icon;
   final VoidCallback onTap;
 

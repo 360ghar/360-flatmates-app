@@ -105,6 +105,7 @@ class ChatsRepository {
   Stream<List<ChatMessage>> watchMessages(int conversationId) {
     late final StreamController<List<ChatMessage>> controller;
     StreamSubscription<List<ChatMessage>>? realtimeSubscription;
+    Timer? pollTimer;
     var hasEmittedMessages = false;
 
     void emitMessages(List<ChatMessage> messages) {
@@ -125,9 +126,18 @@ class ChatsRepository {
 
     controller = StreamController<List<ChatMessage>>(
       onListen: () {
-        // Initial fetch to populate the stream before realtime kicks in.
+        var realtimeHealthy = false;
+
+        void startPollingIfNeeded() {
+          if (realtimeHealthy || pollTimer != null) return;
+          pollTimer = Timer.periodic(
+            const Duration(seconds: 3),
+            (_) => unawaited(pollMessages()),
+          );
+        }
+
         unawaited(pollMessages());
-        // Supabase Realtime provides live updates; no HTTP polling needed.
+
         try {
           realtimeSubscription = Supabase.instance.client
               .from(_messagesRealtimeTable)
@@ -135,12 +145,26 @@ class ChatsRepository {
               .eq('conversation_id', conversationId)
               .order('created_at', ascending: true)
               .map(_parseMessageRows)
-              .listen(emitMessages, onError: (_) => unawaited(pollMessages()));
+              .listen(
+                (messages) {
+                  if (!realtimeHealthy) {
+                    realtimeHealthy = true;
+                    pollTimer?.cancel();
+                    pollTimer = null;
+                  }
+                  emitMessages(messages);
+                },
+                onError: (_) {
+                  realtimeHealthy = false;
+                  startPollingIfNeeded();
+                },
+              );
         } catch (_) {
-          unawaited(pollMessages());
+          startPollingIfNeeded();
         }
       },
       onCancel: () async {
+        pollTimer?.cancel();
         await realtimeSubscription?.cancel();
       },
     );

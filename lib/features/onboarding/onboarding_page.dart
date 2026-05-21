@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
+import 'package:flatmates_app/core/theme/theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,17 +30,19 @@ class OnboardingPage extends ConsumerWidget {
       Future.microtask(() {
         if (context.mounted) context.go('/discover');
       });
-      return const Scaffold(body: Center(child: FlatmatesSkeleton.card()));
+      return const FlatmatesScreen(
+        body: Center(child: FlatmatesSkeleton.card()),
+      );
     }
 
     if (state.isSubmitting) {
-      return Scaffold(
+      return FlatmatesScreen(
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const CircularProgressIndicator(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Text(locale.onboardingSubmitting),
             ],
           ),
@@ -49,13 +51,13 @@ class OnboardingPage extends ConsumerWidget {
     }
 
     if (state.error != null) {
-      return Scaffold(
+      return FlatmatesScreen(
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(state.error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               FlatmatesButton(
                 label: locale.commonRetry,
                 onPressed: () =>
@@ -102,52 +104,62 @@ class OnboardingPage extends ConsumerWidget {
       ),
     };
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Progress indicator
-            if (state.step != OnboardingStep.splash)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Profile Setup',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${state.completionPercentage.toInt()}%',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: AppSemanticColors.accent,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: AppSemanticColors.disabledSurfaceFor(
-                        theme.brightness,
-                      ),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppSemanticColors.accent,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
+    return FlatmatesScreen(
+      body: Column(
+        children: [
+          // Progress indicator
+          if (state.step != OnboardingStep.splash)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.lg,
+                AppSpacing.xl,
+                0,
               ),
-            // Step content
-            Expanded(child: stepWidget),
-          ],
-        ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Profile Setup',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${state.completionPercentage.toInt()}%',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: AppSemanticColors.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: progress),
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    builder: (context, animatedValue, child) {
+                      return LinearProgressIndicator(
+                        value: animatedValue,
+                        backgroundColor: AppSemanticColors.disabledSurfaceFor(
+                          theme.brightness,
+                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppSemanticColors.accent,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+              ),
+            ),
+          // Step content
+          Expanded(child: stepWidget),
+        ],
       ),
     );
   }

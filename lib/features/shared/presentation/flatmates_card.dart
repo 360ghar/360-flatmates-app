@@ -124,24 +124,29 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
       onPointerCancel: isInteractive
           ? (_) => setState(() => _pressed = false)
           : null,
-      child: AnimatedContainer(
+      child: AnimatedScale(
+        scale: isInteractive && _pressed ? 0.97 : 1.0,
         duration: AppMotion.fast,
         curve: AppMotion.easeOutCubic,
-        margin: widget.margin,
-        decoration: BoxDecoration(
-          color: widget.gradient != null ? null : resolvedBg,
-          gradient: widget.gradient,
-          borderRadius: resolvedRadius,
-          border: border,
-          boxShadow: shadows,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: resolvedRadius,
-          child: InkWell(
-            onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          curve: AppMotion.easeOutCubic,
+          margin: widget.margin,
+          decoration: BoxDecoration(
+            color: widget.gradient != null ? null : resolvedBg,
+            gradient: widget.gradient,
             borderRadius: resolvedRadius,
-            child: Padding(padding: resolvedPadding, child: widget.child),
+            border: border,
+            boxShadow: shadows,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: resolvedRadius,
+            child: InkWell(
+              onTap: widget.onTap,
+              borderRadius: resolvedRadius,
+              child: Padding(padding: resolvedPadding, child: widget.child),
+            ),
           ),
         ),
       ),

@@ -10,14 +10,12 @@ class ChatInputArea extends StatelessWidget {
     required this.controller,
     required this.onSend,
     required this.onAttachment,
-    required this.onEmoji,
     super.key,
   });
 
   final TextEditingController controller;
   final VoidCallback onSend;
   final VoidCallback onAttachment;
-  final VoidCallback onEmoji;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +36,6 @@ class ChatInputArea extends StatelessWidget {
           controller: controller,
           onSend: onSend,
           onAttachment: onAttachment,
-          onEmoji: onEmoji,
         ),
       ],
     );

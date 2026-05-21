@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_bottom_sheet.dart';
@@ -373,7 +374,7 @@ class ManageListingCard extends StatelessWidget {
       height: fullWidth ? 160 : 80,
       decoration: BoxDecoration(
         color: AppSemanticColors.accent.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(fullWidth ? 0 : 14),
+        borderRadius: BorderRadius.circular(fullWidth ? 0 : AppRadius.md),
       ),
       child: const Icon(Icons.apartment_rounded),
     );

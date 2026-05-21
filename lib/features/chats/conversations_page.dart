@@ -10,12 +10,7 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../shared/presentation/flatmates_async_view.dart';
-import '../shared/presentation/flatmates_bottom_sheet.dart';
-import '../shared/presentation/flatmates_card.dart';
-import '../shared/presentation/flatmates_empty_state.dart';
-import '../shared/presentation/flatmates_segmented_control.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
 import '../swipe/match_qna_nudge.dart';
 import 'chats_repository.dart';
 import 'presentation/widgets/conversation_card.dart';
@@ -28,6 +23,7 @@ class ConversationsPage extends ConsumerStatefulWidget {
 }
 
 class _ConversationsPageState extends ConsumerState<ConversationsPage> {
+  static const double _kBottomNavOffset = 120;
   final Set<int> _matchingLikeIds = {};
   String _tab = 'chats';
 
@@ -89,82 +85,58 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refresh,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.lg,
-              AppSpacing.xl,
-              120,
-            ),
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const FlatmatesLogo(compact: true),
-                  const Spacer(),
-                  Text(
-                    locale.likesChatTitle,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: AppTypography.displayWeight,
-                    ),
-                  ),
-                  const Spacer(),
-                  const SizedBox(width: AppSpacing.screen),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              FlatmatesSegmentedControl<String>(
-                segmentKeys: const [
-                  Key('chats_chats_tab'),
-                  Key('chats_likes_tab'),
-                  Key('chats_liked_tab'),
-                ],
-                segments: [
-                  (
-                    'chats',
-                    locale.chatsTabLabel,
-                    Icons.chat_bubble_outline_rounded,
-                  ),
-                  (
-                    'likes',
-                    locale.likesTabLabel,
-                    Icons.favorite_border_rounded,
-                  ),
-                  (
-                    'liked',
-                    locale.likedTabLabel,
-                    Icons.favorite_rounded,
-                  ),
-                ],
-                selected: _tab,
-                onChanged: (v) => setState(() => _tab = v),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              if (_tab == 'likes')
-                _LikesTab(
-                  likes: incomingLikes,
-                  matchingLikeIds: _matchingLikeIds,
-                  onRetry: () => ref.invalidate(incomingLikesProvider),
-                  onMatchTap: _matchIncomingLike,
-                )
-              else if (_tab == 'liked')
-                _LikedTab(
-                  likes: outgoingLikes,
-                  onRetry: () => ref.invalidate(outgoingLikesProvider),
-                )
-              else
-                _ChatsTab(
-                  conversations: conversations,
-                  onRetry: () => ref.invalidate(conversationsProvider),
-                ),
-              const SizedBox(height: AppSpacing.md),
-              _buildSafetyBanner(context, theme, locale),
-            ],
+    return FlatmatesScreen(
+      useSafeArea: true,
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.lg,
+            AppSpacing.xl,
+            _kBottomNavOffset,
           ),
+          children: [
+            const SizedBox(height: AppSpacing.md),
+            FlatmatesSegmentedControl<String>(
+              segmentKeys: const [
+                Key('chats_chats_tab'),
+                Key('chats_likes_tab'),
+                Key('chats_liked_tab'),
+              ],
+              segments: [
+                (
+                  'chats',
+                  locale.chatsTabLabel,
+                  Icons.chat_bubble_outline_rounded,
+                ),
+                ('likes', locale.likesTabLabel, Icons.favorite_border_rounded),
+                ('liked', locale.likedTabLabel, Icons.favorite_rounded),
+              ],
+              selected: _tab,
+              onChanged: (v) => setState(() => _tab = v),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            if (_tab == 'likes')
+              _LikesTab(
+                likes: incomingLikes,
+                matchingLikeIds: _matchingLikeIds,
+                onRetry: () => ref.invalidate(incomingLikesProvider),
+                onMatchTap: _matchIncomingLike,
+              )
+            else if (_tab == 'liked')
+              _LikedTab(
+                likes: outgoingLikes,
+                onRetry: () => ref.invalidate(outgoingLikesProvider),
+              )
+            else
+              _ChatsTab(
+                conversations: conversations,
+                onRetry: () => ref.invalidate(conversationsProvider),
+              ),
+            const SizedBox(height: AppSpacing.md),
+            _buildSafetyBanner(context, theme, locale),
+          ],
         ),
       ),
     );
@@ -175,48 +147,81 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     ThemeData theme,
     AppLocalizations locale,
   ) {
-    return FlatmatesCard(
-      margin: EdgeInsets.zero,
-      borderRadius: AppRadius.mdBorder,
-      backgroundColor: AppSemanticColors.coralSoftFor(
-        theme.brightness,
-      ).withValues(alpha: 0.4),
-      onTap: () => context.push('/help-safety'),
-      child: Row(
-        children: [
-          Icon(
-            Icons.shield_outlined,
-            size: 22,
-            color: AppSemanticColors.accent,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  locale.safetyFirstTitle,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: AppTypography.h3Weight,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  locale.safetyFirstSubtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: AppTypography.captionSize,
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                ),
-              ],
+    return _InteractivePressScale(
+      child: FlatmatesCard(
+        margin: EdgeInsets.zero,
+        borderRadius: AppRadius.mdBorder,
+        backgroundColor: AppSemanticColors.coralSoftFor(
+          theme.brightness,
+        ).withValues(alpha: 0.4),
+        onTap: () => context.push('/help-safety'),
+        child: Row(
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: 22,
+              color: AppSemanticColors.accent,
             ),
-          ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
-            size: 20,
-          ),
-        ],
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    locale.safetyFirstTitle,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: AppTypography.h3Weight,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    locale.safetyFirstSubtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: AppTypography.captionSize,
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Applies standard interactive scale animation to any child when pressed.
+class _InteractivePressScale extends StatefulWidget {
+  const _InteractivePressScale({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_InteractivePressScale> createState() => _InteractivePressScaleState();
+}
+
+class _InteractivePressScaleState extends State<_InteractivePressScale> {
+  double _scale = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => setState(() => _scale = 0.97),
+      onPointerUp: (_) => setState(() => _scale = 1.0),
+      onPointerCancel: (_) => setState(() => _scale = 1.0),
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutCubic,
+        child: widget.child,
       ),
     );
   }
@@ -238,6 +243,14 @@ class _LikesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    const padding = AppSpacing.xl * 2;
+    final gridWidth = screenWidth - padding;
+    final itemWidth = (gridWidth - AppSpacing.md) / 2;
+    // With match button, fixed elements height is ~116
+    final totalHeight = itemWidth + 116;
+    final childAspectRatio = itemWidth / totalHeight;
+
     return FlatmatesAsyncView<List<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
@@ -249,11 +262,11 @@ class _LikesTab extends StatelessWidget {
       data: (items) => GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.md,
           mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 0.75,
+          childAspectRatio: childAspectRatio,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
@@ -287,6 +300,14 @@ class _LikedTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    const padding = AppSpacing.xl * 2;
+    final gridWidth = screenWidth - padding;
+    final itemWidth = (gridWidth - AppSpacing.md) / 2;
+    // Without match button, fixed elements height is ~72
+    final totalHeight = itemWidth + 72;
+    final childAspectRatio = itemWidth / totalHeight;
+
     return FlatmatesAsyncView<List<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
@@ -298,11 +319,11 @@ class _LikedTab extends StatelessWidget {
       data: (items) => GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.md,
           mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 0.68,
+          childAspectRatio: childAspectRatio,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {

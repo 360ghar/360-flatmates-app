@@ -188,9 +188,9 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
           });
         } else if (result is UploadFailure) {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result.reason)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(result.reason)));
           break;
         }
       }
@@ -272,8 +272,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         primaryButtonKey: _step < totalSteps - 1
             ? const Key('listing_next_button')
             : const Key('listing_publish_button'),
-        secondaryButtonKey:
-            _step > 0 ? const Key('listing_back_button') : null,
+        secondaryButtonKey: _step > 0 ? const Key('listing_back_button') : null,
         label: _submitting
             ? locale.postingInProgress
             : (_step < totalSteps - 1

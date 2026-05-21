@@ -7,18 +7,18 @@ This directory contains placeholder legal document references for the 360 FlatMa
 1. **Privacy Policy URL** — Must be hosted and accessible. Set the URL in:
    - Android: `android/app/src/main/AndroidManifest.xml` (via meta-data or app linking)
    - iOS: App Store Connect metadata
-   - App: `lib/core/config/app_config.dart` → `privacyPolicyUrl`
+   - App: `lib/core/config/constants.dart` → `kPrivacyPolicyUrl`
 
 2. **Terms & Conditions URL** — Must be hosted and accessible. Set the URL in:
-   - App: `lib/core/config/app_config.dart` → `termsAndConditionsUrl`
+   - App: `lib/core/config/constants.dart` → `kTermsOfServiceUrl`
 
 3. **Support URL** — Must be hosted and accessible. Set the URL in:
    - iOS: App Store Connect metadata
-   - App: `lib/core/config/app_config.dart` → `supportUrl`
+   - App: `lib/core/config/constants.dart` → `kSupportEmail`
 
 ## Placeholders
 
 Replace these with actual hosted URLs before production release:
-- `https://the360ghar.com/flatmates/privacy` → Privacy Policy
-- `https://the360ghar.com/flatmates/terms` → Terms & Conditions
-- `https://the360ghar.com/flatmates/support` → Support / Help
+- `https://360ghar.com/policies/privacy-policy` → Privacy Policy
+- `https://360ghar.com/policies/terms-of-service` → Terms & Conditions
+- `https://360ghar.com/support` → Support / Help

@@ -20,7 +20,7 @@ class MoreFiltersCard extends StatelessWidget {
   final void Function(String?) onPetsChanged;
   final void Function(String?) onSmokingChanged;
   final List<({String id, String label})> Function(String, List<String>)
-      catalogOrFallback;
+  catalogOrFallback;
 
   @override
   Widget build(BuildContext context) {

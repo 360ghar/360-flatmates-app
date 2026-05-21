@@ -64,15 +64,12 @@ class _CollapsibleFilterSectionState extends State<CollapsibleFilterSection> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: widget.iconBgColor ??
+                      color:
+                          widget.iconBgColor ??
                           accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
-                      widget.icon,
-                      size: 16,
-                      color: accentColor,
-                    ),
+                    child: Icon(widget.icon, size: 16, color: accentColor),
                   ),
                 if (widget.icon != null)
                   const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
@@ -114,21 +111,22 @@ class _CollapsibleFilterSectionState extends State<CollapsibleFilterSection> {
             ),
           ),
         ),
-        AnimatedCrossFade(
-          firstChild: const SizedBox(width: double.infinity, height: 0),
-          secondChild: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              0,
-              AppSpacing.lg,
-              AppSpacing.md,
-            ),
-            child: widget.child,
+        ClipRect(
+          child: AnimatedSize(
+            duration: AppMotion.standard,
+            curve: AppMotion.easeOutCubic,
+            child: _expanded
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                    ),
+                    child: widget.child,
+                  )
+                : const SizedBox(width: double.infinity, height: 0),
           ),
-          crossFadeState:
-              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-          duration: AppMotion.standard,
-          sizeCurve: AppMotion.easeOutCubic,
         ),
       ],
     );

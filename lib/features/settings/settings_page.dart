@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../core/config/constants.dart';
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
 import 'settings_controller.dart';
-import '../shared/presentation/flatmates_bottom_sheet.dart';
-import '../shared/presentation/flatmates_card.dart';
-import '../shared/presentation/flatmates_chip.dart';
-import '../shared/presentation/flatmates_header.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -22,134 +15,151 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
-    return Scaffold(
+    return FlatmatesScreen(
       appBar: FlatmatesHeader.backTitle(
         title: locale.settingsTitle,
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Scrollable content
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xl,
-                  vertical: AppSpacing.md,
-                ),
-                children: [
-                  // Account group
-                  _SectionHeader(label: locale.settingsGroupAccount),
-                  FlatmatesCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FlatmatesMenuItem(
-                          icon: Icons.person_outline,
-                          label: locale.editProfileCta,
-                          onTap: () => context.push('/profile/edit'),
-                        ),
-                        const Divider(height: 1, indent: 68, endIndent: 16),
-                        FlatmatesMenuItem(
-                          icon: Icons.lock_outline,
-                          label: locale.changePasswordLabel,
-                          onTap: () => context.push('/change-password'),
-                        ),
-                        const Divider(height: 1, indent: 68, endIndent: 16),
-                        FlatmatesMenuItem(
-                          icon: Icons.shield_outlined,
-                          label: locale.privacySecurityLabel,
-                          onTap: () => context.push('/help-safety'),
-                        ),
-                        const Divider(height: 1, indent: 68, endIndent: 16),
-                        FlatmatesMenuItem(
-                          key: const Key('preferences_menu_item'),
-                          icon: Icons.tune,
-                          label: locale.preferencesLabel,
-                          onTap: () => _showPreferences(context, ref, theme),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.section),
-
-                  // App group
-                  _SectionHeader(label: locale.settingsGroupApp),
-                  FlatmatesCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FlatmatesMenuItem(
-                          icon: Icons.notifications_outlined,
-                          label: locale.notificationSettingsLabel,
-                          onTap: () => context.push('/notifications'),
-                        ),
-                        const Divider(height: 1, indent: 68, endIndent: 16),
-                        FlatmatesMenuItem(
-                          icon: Icons.person_off_outlined,
-                          label: locale.blockedUsersLabel,
-                          onTap: () => context.push('/blocked-users'),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.section),
-
-                  // Legal group
-                  _SectionHeader(label: locale.settingsGroupLegal),
-                  FlatmatesCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FlatmatesMenuItem(
-                          icon: Icons.info_outline,
-                          label: locale.aboutLabel,
-                          onTap: () => _showAboutDialog(context),
-                        ),
-                        const Divider(height: 1, indent: 68, endIndent: 16),
-                        FlatmatesMenuItem(
-                          icon: Icons.description_outlined,
-                          label: locale.termsAndConditionsLabel,
-                          onTap: () => _launchTermsOfService(),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.section),
-
-                  // Standalone Logout
-                  FlatmatesButton.tertiary(
-                    key: const Key('logout_button'),
-                    label: locale.logoutCta,
-                    destructive: true,
-                    onPressed: () =>
-                        ref.read(authControllerProvider.notifier).signOut(),
-                  ),
-
-                  const SizedBox(height: AppSpacing.screen),
-                ],
+      body: Column(
+        children: [
+          // Scrollable content
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl,
+                vertical: AppSpacing.md,
               ),
+              children: [
+                // Account group
+                _SectionHeader(label: locale.settingsGroupAccount),
+                FlatmatesCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FlatmatesMenuItem(
+                        icon: Icons.person_outline,
+                        label: locale.editProfileCta,
+                        onTap: () => context.push('/profile/edit'),
+                      ),
+                      const Divider(
+                        height: 1,
+                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        endIndent: AppSpacing.lg,
+                      ),
+                      FlatmatesMenuItem(
+                        icon: Icons.lock_outline,
+                        label: locale.changePasswordLabel,
+                        onTap: () => context.push('/change-password'),
+                      ),
+                      const Divider(
+                        height: 1,
+                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        endIndent: AppSpacing.lg,
+                      ),
+                      FlatmatesMenuItem(
+                        icon: Icons.shield_outlined,
+                        label: locale.privacySecurityLabel,
+                        onTap: () => context.push('/help-safety'),
+                      ),
+                      const Divider(
+                        height: 1,
+                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        endIndent: AppSpacing.lg,
+                      ),
+                      FlatmatesMenuItem(
+                        key: const Key('preferences_menu_item'),
+                        icon: Icons.tune,
+                        label: locale.preferencesLabel,
+                        onTap: () => _showPreferences(context, ref),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.section),
+
+                // App group
+                _SectionHeader(label: locale.settingsGroupApp),
+                FlatmatesCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FlatmatesMenuItem(
+                        icon: Icons.notifications_outlined,
+                        label: locale.notificationSettingsLabel,
+                        onTap: () => context.push('/notification-settings'),
+                      ),
+                      const Divider(
+                        height: 1,
+                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        endIndent: AppSpacing.lg,
+                      ),
+                      FlatmatesMenuItem(
+                        icon: Icons.person_off_outlined,
+                        label: locale.blockedUsersLabel,
+                        onTap: () => context.push('/blocked-users'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.section),
+
+                // Legal group
+                _SectionHeader(label: locale.settingsGroupLegal),
+                FlatmatesCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FlatmatesMenuItem(
+                        icon: Icons.info_outline,
+                        label: locale.aboutLabel,
+                        onTap: () => _showAboutDialog(context),
+                      ),
+                      const Divider(
+                        height: 1,
+                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        endIndent: AppSpacing.lg,
+                      ),
+                      FlatmatesMenuItem(
+                        icon: Icons.description_outlined,
+                        label: locale.termsAndConditionsLabel,
+                        onTap: () => _openTermsOfService(context),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.section),
+
+                // Standalone Logout
+                FlatmatesButton.tertiary(
+                  key: const Key('logout_button'),
+                  label: locale.logoutCta,
+                  destructive: true,
+                  onPressed: () =>
+                      ref.read(authControllerProvider.notifier).signOut(),
+                ),
+
+                const SizedBox(height: AppSpacing.screen),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  void _showPreferences(BuildContext context, WidgetRef ref, ThemeData theme) {
+  void _showPreferences(BuildContext context, WidgetRef ref) {
     FlatmatesBottomSheet.show(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) =>
-          Consumer(builder: (context, ref, _) => _PreferencesSheet()),
+          Consumer(builder: (context, ref, _) => const _PreferencesSheet()),
     );
   }
 
@@ -163,11 +173,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _launchTermsOfService() async {
-    final uri = Uri.parse(kTermsOfServiceUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+  void _openTermsOfService(BuildContext context) {
+    context.push('/terms-of-service');
   }
 }
 
@@ -241,36 +248,35 @@ class _PreferencesSheet extends StatelessWidget {
                         style: theme.textTheme.titleMedium,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      SegmentedButton<ThemeMode>(
+                      FlatmatesSegmentedControl<ThemeMode>(
                         segments: [
-                          ButtonSegment(
-                            value: ThemeMode.system,
-                            label: Text(
-                              locale.themeSystem,
-                              key: const Key('theme_mode_system_option'),
-                            ),
+                          (
+                            ThemeMode.system,
+                            locale.themeSystem,
+                            Icons.brightness_auto_outlined,
                           ),
-                          ButtonSegment(
-                            value: ThemeMode.light,
-                            label: Text(
-                              locale.themeLight,
-                              key: const Key('theme_mode_light_option'),
-                            ),
+                          (
+                            ThemeMode.light,
+                            locale.themeLight,
+                            Icons.light_mode_outlined,
                           ),
-                          ButtonSegment(
-                            value: ThemeMode.dark,
-                            label: Text(
-                              locale.themeDark,
-                              key: const Key('theme_mode_dark_option'),
-                            ),
+                          (
+                            ThemeMode.dark,
+                            locale.themeDark,
+                            Icons.dark_mode_outlined,
                           ),
                         ],
-                        selected: {settings.themeMode},
-                        onSelectionChanged: (selection) {
+                        selected: settings.themeMode,
+                        onChanged: (value) {
                           ref
                               .read(settingsControllerProvider.notifier)
-                              .updateThemeMode(selection.first);
+                              .updateThemeMode(value);
                         },
+                        segmentKeys: const [
+                          Key('theme_mode_system_option'),
+                          Key('theme_mode_light_option'),
+                          Key('theme_mode_dark_option'),
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.xl),
 
@@ -304,60 +310,58 @@ class _PreferencesSheet extends StatelessWidget {
                         style: theme.textTheme.titleMedium,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      SegmentedButton<String>(
+                      FlatmatesSegmentedControl<String>(
                         segments: [
-                          ButtonSegment(
-                            value: 'en',
-                            label: Text(
-                              locale.languageEnglish,
-                              key: const Key('language_english_option'),
-                            ),
-                          ),
-                          ButtonSegment(
-                            value: 'hi',
-                            label: Text(
-                              locale.languageHindi,
-                              key: const Key('language_hindi_option'),
-                            ),
-                          ),
+                          ('en', locale.languageEnglish, null),
+                          ('hi', locale.languageHindi, null),
                         ],
-                        selected: {settings.locale?.languageCode ?? 'en'},
-                        onSelectionChanged: (selection) {
+                        selected: settings.locale?.languageCode ?? 'en',
+                        onChanged: (value) {
                           ref
                               .read(settingsControllerProvider.notifier)
-                              .updateLocale(Locale(selection.first));
+                              .updateLocale(Locale(value));
                         },
+                        segmentKeys: const [
+                          Key('language_english_option'),
+                          Key('language_hindi_option'),
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.xl),
 
-                      SwitchListTile(
-                        key: const Key('setting_hide_last_name'),
-                        secondary: Icon(
-                          Icons.person_off_outlined,
-                          color: AppSemanticColors.accent,
+                      Material(
+                        color: Colors.transparent,
+                        child: SwitchListTile(
+                          key: const Key('setting_hide_last_name'),
+                          secondary: Icon(
+                            Icons.person_off_outlined,
+                            color: AppSemanticColors.accent,
+                          ),
+                          title: Text(locale.hideLastNameLabel),
+                          value: settings.hideLastName,
+                          onChanged: (v) {
+                            ref
+                                .read(settingsControllerProvider.notifier)
+                                .updateHideLastName(v);
+                          },
                         ),
-                        title: Text(locale.hideLastNameLabel),
-                        value: settings.hideLastName,
-                        onChanged: (v) {
-                          ref
-                              .read(settingsControllerProvider.notifier)
-                              .updateHideLastName(v);
-                        },
                       ),
                       const Divider(),
-                      SwitchListTile(
-                        key: const Key('setting_hide_location'),
-                        secondary: Icon(
-                          Icons.location_off_outlined,
-                          color: AppSemanticColors.accent,
+                      Material(
+                        color: Colors.transparent,
+                        child: SwitchListTile(
+                          key: const Key('setting_hide_location'),
+                          secondary: Icon(
+                            Icons.location_off_outlined,
+                            color: AppSemanticColors.accent,
+                          ),
+                          title: Text(locale.hideExactLocationLabel),
+                          value: settings.hideExactLocation,
+                          onChanged: (v) {
+                            ref
+                                .read(settingsControllerProvider.notifier)
+                                .updateHideExactLocation(v);
+                          },
                         ),
-                        title: Text(locale.hideExactLocationLabel),
-                        value: settings.hideExactLocation,
-                        onChanged: (v) {
-                          ref
-                              .read(settingsControllerProvider.notifier)
-                              .updateHideExactLocation(v);
-                        },
                       ),
                     ],
                   ),
@@ -396,12 +400,17 @@ class _SectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.sm,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(
             label,
             style: theme.textTheme.labelLarge?.copyWith(

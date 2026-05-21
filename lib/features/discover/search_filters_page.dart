@@ -7,12 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
-import '../shared/presentation/flatmates_bottom_action_bar.dart';
-import '../shared/presentation/flatmates_error_state.dart';
-import '../shared/presentation/flatmates_header.dart';
-import '../shared/presentation/flatmates_skeleton.dart';
-import '../shared/presentation/flatmates_search_bar.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
 import 'application/discover_feed_controller.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/search_active_filter_chips.dart';
@@ -288,8 +283,9 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
           'shared_room' => 'shared',
           _ => existing.sharingType,
         };
-        _selectedFurnishing =
-            existing.features.isNotEmpty ? existing.features.first : null;
+        _selectedFurnishing = existing.features.isNotEmpty
+            ? existing.features.first
+            : null;
         _selectedGender = existing.genderPreference;
         _selectedMoveIn = existing.moveInTimeline;
         _selectedPets = existing.pets;
@@ -304,7 +300,8 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
     final listings = ref.watch(discoverListingsProvider);
     final activeFilters = _activeFilters;
 
-    return Scaffold(
+    return FlatmatesScreen(
+      useSafeArea: true,
       appBar: FlatmatesHeader.backTitle(
         title: locale.searchFiltersTitle,
         actions: [
@@ -316,136 +313,131 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
             ),
         ],
       ),
-      body: SafeArea(
-        child: listings.when(
-          data: (items) {
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                    ),
-                    children: [
-                      FlatmatesSearchBar(
-                        controller: _searchController,
-                        hint: locale.homeSearchHint,
-                        trailingIcon: Icons.search_rounded,
-                      ),
-                      ActiveFilterChips(filters: activeFilters),
-                      const SizedBox(height: AppSpacing.lg),
-                      BudgetFilterCard(
-                        budgetValues: _budgetValues,
-                        budgetMin: _budgetMin,
-                        budgetMax: _budgetMax,
-                        onChanged: (values) =>
-                            setState(() => _budgetValues = values),
-                        formatBudget: _formatBudget,
-                      ),
-                      FilterSectionCard(
-                        title: locale.roomTypeFilterLabel,
-                        subtitle: _roomTypeSubtitle(),
-                        icon: Icons.bed_outlined,
-                        iconColor: AppSemanticColors.blueMid,
-                        iconBgColor: AppSemanticColors.blueSoft,
-                        child: CatalogFilterChips(
-                          options: _catalogOrFallback('flatmates_room_types', [
-                            'any',
-                            'private',
-                            'shared',
-                          ]),
-                          selectedId: _selectedRoomType ?? 'any',
-                          anyKey: 'any',
-                          onSelected: (id) => setState(
-                            () => _selectedRoomType = id == 'any' ? null : id,
-                          ),
-                        ),
-                      ),
-                      FilterSectionCard(
-                        title: locale.furnishingFilterLabel,
-                        subtitle: _furnishingSubtitle(),
-                        icon: Icons.chair_outlined,
-                        iconColor: AppSemanticColors.orangeMid,
-                        iconBgColor: AppSemanticColors.orangeSoft,
-                        child: CatalogFilterChips(
-                          options:
-                              _catalogOrFallback('flatmates_furnishing', [
-                            'any',
-                            'furnished',
-                            'unfurnished',
-                          ]),
-                          selectedId: _selectedFurnishing ?? 'any',
-                          anyKey: 'any',
-                          onSelected: (id) => setState(
-                            () =>
-                                _selectedFurnishing = id == 'any' ? null : id,
-                          ),
-                        ),
-                      ),
-                      FilterSectionCard(
-                        title: locale.genderFilterLabel,
-                        subtitle: _genderSubtitle(),
-                        icon: Icons.people_outlined,
-                        iconColor: AppSemanticColors.purpleMid,
-                        iconBgColor: AppSemanticColors.purpleSoft,
-                        child: CatalogFilterChips(
-                          options: _catalogOrFallback(
-                            'flatmates_gender_options',
-                            ['any', 'male', 'female'],
-                          ),
-                          selectedId: _selectedGender ?? 'any',
-                          anyKey: 'any',
-                          onSelected: (id) => setState(
-                            () => _selectedGender = id == 'any' ? null : id,
-                          ),
-                        ),
-                      ),
-                      FilterSectionCard(
-                        title: locale.moveInFilterLabel,
-                        subtitle: _moveInSubtitle(),
-                        icon: Icons.calendar_today_outlined,
-                        iconColor: AppSemanticColors.tealMid,
-                        iconBgColor: AppSemanticColors.tealSoft,
-                        child: CatalogFilterChips(
-                          options: _catalogOrFallback(
-                            'flatmates_move_in_timelines',
-                            ['any', 'immediate', 'this_month', 'next_month'],
-                          ),
-                          selectedId: _selectedMoveIn ?? 'any',
-                          anyKey: 'any',
-                          onSelected: (id) => setState(
-                            () => _selectedMoveIn = id == 'any' ? null : id,
-                          ),
-                        ),
-                      ),
-                      MoreFiltersCard(
-                        selectedPets: _selectedPets,
-                        selectedSmoking: _selectedSmoking,
-                        onPetsChanged: (v) =>
-                            setState(() => _selectedPets = v),
-                        onSmokingChanged: (v) =>
-                            setState(() => _selectedSmoking = v),
-                        catalogOrFallback: _catalogOrFallback,
-                      ),
-                    ],
+      body: listings.when(
+        data: (items) {
+          return Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.sm,
+                    AppSpacing.lg,
+                    AppSpacing.xl,
                   ),
+                  children: [
+                    FlatmatesSearchBar(
+                      controller: _searchController,
+                      hint: locale.homeSearchHint,
+                      trailingIcon: Icons.search_rounded,
+                    ),
+                    ActiveFilterChips(filters: activeFilters),
+                    const SizedBox(height: AppSpacing.lg),
+                    BudgetFilterCard(
+                      budgetValues: _budgetValues,
+                      budgetMin: _budgetMin,
+                      budgetMax: _budgetMax,
+                      onChanged: (values) =>
+                          setState(() => _budgetValues = values),
+                      formatBudget: _formatBudget,
+                    ),
+                    FilterSectionCard(
+                      title: locale.roomTypeFilterLabel,
+                      subtitle: _roomTypeSubtitle(),
+                      icon: Icons.bed_outlined,
+                      iconColor: AppSemanticColors.blueMid,
+                      iconBgColor: AppSemanticColors.blueSoft,
+                      child: CatalogFilterChips(
+                        options: _catalogOrFallback('flatmates_room_types', [
+                          'any',
+                          'private',
+                          'shared',
+                        ]),
+                        selectedId: _selectedRoomType ?? 'any',
+                        anyKey: 'any',
+                        onSelected: (id) => setState(
+                          () => _selectedRoomType = id == 'any' ? null : id,
+                        ),
+                      ),
+                    ),
+                    FilterSectionCard(
+                      title: locale.furnishingFilterLabel,
+                      subtitle: _furnishingSubtitle(),
+                      icon: Icons.chair_outlined,
+                      iconColor: AppSemanticColors.orangeMid,
+                      iconBgColor: AppSemanticColors.orangeSoft,
+                      child: CatalogFilterChips(
+                        options: _catalogOrFallback('flatmates_furnishing', [
+                          'any',
+                          'furnished',
+                          'unfurnished',
+                        ]),
+                        selectedId: _selectedFurnishing ?? 'any',
+                        anyKey: 'any',
+                        onSelected: (id) => setState(
+                          () => _selectedFurnishing = id == 'any' ? null : id,
+                        ),
+                      ),
+                    ),
+                    FilterSectionCard(
+                      title: locale.genderFilterLabel,
+                      subtitle: _genderSubtitle(),
+                      icon: Icons.people_outlined,
+                      iconColor: AppSemanticColors.purpleMid,
+                      iconBgColor: AppSemanticColors.purpleSoft,
+                      child: CatalogFilterChips(
+                        options: _catalogOrFallback(
+                          'flatmates_gender_options',
+                          ['any', 'male', 'female'],
+                        ),
+                        selectedId: _selectedGender ?? 'any',
+                        anyKey: 'any',
+                        onSelected: (id) => setState(
+                          () => _selectedGender = id == 'any' ? null : id,
+                        ),
+                      ),
+                    ),
+                    FilterSectionCard(
+                      title: locale.moveInFilterLabel,
+                      subtitle: _moveInSubtitle(),
+                      icon: Icons.calendar_today_outlined,
+                      iconColor: AppSemanticColors.tealMid,
+                      iconBgColor: AppSemanticColors.tealSoft,
+                      child: CatalogFilterChips(
+                        options: _catalogOrFallback(
+                          'flatmates_move_in_timelines',
+                          ['any', 'immediate', 'this_month', 'next_month'],
+                        ),
+                        selectedId: _selectedMoveIn ?? 'any',
+                        anyKey: 'any',
+                        onSelected: (id) => setState(
+                          () => _selectedMoveIn = id == 'any' ? null : id,
+                        ),
+                      ),
+                    ),
+                    MoreFiltersCard(
+                      selectedPets: _selectedPets,
+                      selectedSmoking: _selectedSmoking,
+                      onPetsChanged: (v) => setState(() => _selectedPets = v),
+                      onSmokingChanged: (v) =>
+                          setState(() => _selectedSmoking = v),
+                      catalogOrFallback: _catalogOrFallback,
+                    ),
+                  ],
                 ),
-                FlatmatesBottomActionBar(
-                  primaryButtonKey: const Key('search_show_results_button'),
-                  label: locale.showResultsCta,
-                  icon: Icons.filter_list_rounded,
-                  onPressed: _applyFilters,
-                ),
-              ],
-            );
-          },
-          loading: () => const FlatmatesSkeleton.list(),
-          error: (error, _) =>
-              const FlatmatesErrorState(message: 'Could not load filters'),
-        ),
+              ),
+              FlatmatesBottomActionBar(
+                primaryButtonKey: const Key('search_show_results_button'),
+                label: locale.showResultsCta,
+                icon: Icons.filter_list_rounded,
+                onPressed: _applyFilters,
+              ),
+            ],
+          );
+        },
+        loading: () => const FlatmatesSkeleton.list(),
+        error: (error, _) =>
+            const FlatmatesErrorState(message: 'Could not load filters'),
       ),
     );
   }

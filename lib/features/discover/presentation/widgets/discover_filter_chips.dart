@@ -4,19 +4,6 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
-/// Vibe preset filter data.
-class VibePreset {
-  const VibePreset({
-    required this.key,
-    required this.icon,
-    required this.label,
-  });
-
-  final String key;
-  final IconData icon;
-  final String label;
-}
-
 /// Horizontal scrollable filter chips for the discover page.
 class DiscoverFilterChips extends StatelessWidget {
   const DiscoverFilterChips({
@@ -24,11 +11,9 @@ class DiscoverFilterChips extends StatelessWidget {
     required this.featureOptions,
     required this.selectedBedrooms,
     required this.selectedFeature,
-    required this.selectedVibe,
     required this.selectedMoveIn,
     required this.onBedroomsChanged,
     required this.onFeatureChanged,
-    required this.onVibeChanged,
     required this.onMoveInChanged,
     super.key,
   });
@@ -37,62 +22,20 @@ class DiscoverFilterChips extends StatelessWidget {
   final List<String> featureOptions;
   final int? selectedBedrooms;
   final String? selectedFeature;
-  final String? selectedVibe;
   final String? selectedMoveIn;
 
   final ValueChanged<int?> onBedroomsChanged;
   final ValueChanged<String?> onFeatureChanged;
-  final ValueChanged<String?> onVibeChanged;
   final ValueChanged<String?> onMoveInChanged;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
 
-    final vibePresets = [
-      VibePreset(
-        key: 'quiet',
-        icon: Icons.bedtime_outlined,
-        label: locale.vibeQuiet,
-      ),
-      VibePreset(
-        key: 'social',
-        icon: Icons.celebration_outlined,
-        label: locale.vibeSocial,
-      ),
-      VibePreset(
-        key: 'professional',
-        icon: Icons.work_outlined,
-        label: locale.vibeProfessional,
-      ),
-      VibePreset(
-        key: 'student',
-        icon: Icons.school_outlined,
-        label: locale.vibeStudent,
-      ),
-      VibePreset(key: 'pet', icon: Icons.pets_outlined, label: locale.vibePet),
-    ];
-
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          // Vibe preset filter chips
-          ...vibePresets.map((vibe) {
-            final selected = selectedVibe == vibe.key;
-            return Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: FlatmatesChip(
-                label: vibe.label,
-                icon: vibe.icon,
-                selected: selected,
-                onSelected: (_) {
-                  onVibeChanged(selected ? null : vibe.key);
-                },
-                variant: FlatmatesChipVariant.filter,
-              ),
-            );
-          }),
           ...[
             (key: 'immediate', label: locale.timelineImmediate),
             (key: 'this_month', label: locale.moveInThisMonth),

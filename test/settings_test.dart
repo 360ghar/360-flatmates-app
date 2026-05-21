@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flatmates_app/core/theme/app_palette.dart';
 import 'package:flatmates_app/features/settings/settings_page.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_chip.dart';
+import 'package:flatmates_app/features/shared/presentation/flatmates_segmented_control.dart';
 
 import 'helpers/test_helpers.dart';
 
@@ -30,7 +31,7 @@ void main() {
 
       await openPreferencesSheet(tester);
 
-      expect(find.byType(SegmentedButton<ThemeMode>), findsOneWidget);
+      expect(find.byType(FlatmatesSegmentedControl<ThemeMode>), findsOneWidget);
       expect(find.byKey(const Key('theme_mode_system_option')), findsOneWidget);
       expect(find.byKey(const Key('theme_mode_light_option')), findsOneWidget);
       expect(find.byKey(const Key('theme_mode_dark_option')), findsOneWidget);
@@ -65,10 +66,11 @@ void main() {
       await tester.tap(find.byKey(const Key('theme_mode_dark_option')));
       await tester.pumpAndSettle();
 
-      final segmentedButton = tester.widget<SegmentedButton<ThemeMode>>(
-        find.byType(SegmentedButton<ThemeMode>),
-      );
-      expect(segmentedButton.selected, contains(ThemeMode.dark));
+      final segmentedControl = tester
+          .widget<FlatmatesSegmentedControl<ThemeMode>>(
+            find.byType(FlatmatesSegmentedControl<ThemeMode>),
+          );
+      expect(segmentedControl.selected, equals(ThemeMode.dark));
     });
 
     testWidgets('tapping a palette chip updates state', (tester) async {

@@ -24,14 +24,14 @@ class FlatmatesMapController {
     move(center, zoom);
   }
 
-  void fitBounds(List<LatLng> points, {EdgeInsets padding = const EdgeInsets.all(48)}) {
+  void fitBounds(
+    List<LatLng> points, {
+    EdgeInsets padding = const EdgeInsets.all(48),
+  }) {
     if (points.isEmpty) return;
     final bounds = LatLngBounds.fromPoints(points);
     _mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: padding,
-      ),
+      CameraFit.bounds(bounds: bounds, padding: padding),
     );
   }
 

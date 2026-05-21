@@ -126,7 +126,8 @@ abstract final class AppSemanticColors {
   static Color textSecondaryFor(Brightness brightness) =>
       brightness == Brightness.dark ? paper3 : ink2;
 
-  static Color textTertiaryFor(Brightness brightness) => ink3;
+  static Color textTertiaryFor(Brightness brightness) =>
+      brightness == Brightness.dark ? ink4 : ink3;
 
   static Color surfaceFor(Brightness brightness) =>
       brightness == Brightness.dark ? darkSurface : card;

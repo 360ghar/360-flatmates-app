@@ -43,11 +43,11 @@ class BudgetFilterCard extends StatelessWidget {
             data: theme.copyWith(
               sliderTheme: SliderThemeData(
                 activeTrackColor: AppSemanticColors.accent,
-                inactiveTrackColor: AppSemanticColors.accent
-                    .withValues(alpha: 0.15),
+                inactiveTrackColor: AppSemanticColors.accent.withValues(
+                  alpha: 0.15,
+                ),
                 thumbColor: AppSemanticColors.accent,
-                overlayColor:
-                    AppSemanticColors.accent.withValues(alpha: 0.08),
+                overlayColor: AppSemanticColors.accent.withValues(alpha: 0.08),
                 rangeThumbShape: const RoundRangeSliderThumbShape(
                   enabledThumbRadius: 10,
                   elevation: 2,
@@ -68,9 +68,7 @@ class BudgetFilterCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xs,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

@@ -90,7 +90,9 @@ class _CompatibilityRingState extends ConsumerState<CompatibilityRing>
             },
           ),
           Text(
-            _hasReliableScore ? '${widget.percentage.round()}%' : widget.newLabel,
+            _hasReliableScore
+                ? '${widget.percentage.round()}%'
+                : widget.newLabel,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w800,
               color: color,

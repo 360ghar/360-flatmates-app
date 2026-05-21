@@ -15,5 +15,10 @@ class SettingsState with _$SettingsState {
     @Default(false) bool loaded,
     @Default(false) bool hideLastName,
     @Default(false) bool hideExactLocation,
+    @Default(true) bool notifNewMessages,
+    @Default(true) bool notifVisitReminders,
+    @Default(true) bool notifNewMatches,
+    @Default(true) bool notifListingUpdates,
+    @Default(false) bool notifPromotions,
   }) = _SettingsState;
 }
