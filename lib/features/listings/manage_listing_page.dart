@@ -30,37 +30,27 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
     final theme = Theme.of(context);
 
     return FlatmatesScreen(
-      body: Column(
-        children: [
-          // Custom header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              AppSpacing.lg,
-              AppSpacing.screen,
-              AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                const FlatmatesLogo(compact: true),
-                const Spacer(),
-                _InteractivePressScale(
-                  child: IconButton(
-                    onPressed: () => context.push('/notifications'),
-                    icon: const Icon(Icons.notifications_outlined),
-                    tooltip: locale.notificationsTooltip,
-                  ),
-                ),
-                _InteractivePressScale(
-                  child: IconButton(
-                    onPressed: () => context.go('/chats'),
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    tooltip: locale.chatTooltip,
-                  ),
-                ),
-              ],
+      appBar: FlatmatesHeader.logo(
+        onBack: () => context.pop(),
+        actions: [
+          _InteractivePressScale(
+            child: IconButton(
+              onPressed: () => context.push('/notifications'),
+              icon: const Icon(Icons.notifications_outlined),
+              tooltip: locale.notificationsTooltip,
             ),
           ),
+          _InteractivePressScale(
+            child: IconButton(
+              onPressed: () => context.go('/chats'),
+              icon: const Icon(Icons.chat_bubble_outline),
+              tooltip: locale.chatTooltip,
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screen,

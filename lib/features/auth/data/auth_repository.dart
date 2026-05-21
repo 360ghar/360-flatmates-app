@@ -74,7 +74,36 @@ final class AuthRepository {
     await _apiClient.get(FlatmatesEndpoints.me);
   }
 
+  Future<void> sendPasswordResetOtp(String phone) async {
+    await _supabase.auth.signInWithOtp(
+      phone: phone,
+      shouldCreateUser: false,
+    );
+  }
+
+  Future<void> verifyPasswordResetOtp({
+    required String phone,
+    required String otp,
+  }) async {
+    final response = await _supabase.auth.verifyOTP(
+      phone: phone,
+      token: otp,
+      type: OtpType.sms,
+    );
+    final session = response.session ?? _supabase.auth.currentSession;
+    if (session == null) {
+      throw StateError('Session missing after password reset OTP verification.');
+    }
+    await _tokenStorage.save(session.accessToken);
+  }
+
   Future<void> signOut() async {
+    await _supabase.auth.signOut();
+    await _tokenStorage.clear();
+  }
+
+  Future<void> deleteAccount() async {
+    await _apiClient.delete(FlatmatesEndpoints.deleteAccount);
     await _supabase.auth.signOut();
     await _tokenStorage.clear();
   }

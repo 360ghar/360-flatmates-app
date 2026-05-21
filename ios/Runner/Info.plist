@@ -59,13 +59,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
+
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photos to upload profile and listing photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -74,16 +68,19 @@
 	<string>We need camera access to take profile and listing photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We use your location to show nearby listings on the map.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We use your location to show nearby listings on the map and provide location-based features.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need microphone access to record video tours for your listing.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 		<string>fetch</string>
 	</array>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

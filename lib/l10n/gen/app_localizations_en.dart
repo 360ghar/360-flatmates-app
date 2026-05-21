@@ -37,7 +37,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPhoneTitle => 'Enter your phone number';
 
   @override
-  String get enterPhoneSubtitle => 'Use password login or continue with OTP.';
+  String get enterPhoneSubtitle =>
+      'Sign in or create an account to get started.';
 
   @override
   String get phoneNumberLabel => 'Phone number';
@@ -337,7 +338,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuVisits => 'My Schedule';
 
   @override
-  String get profileMenuLikesChat => 'Likes & Chat';
+  String get profileMenuLikesChat => 'Matches & Chat';
 
   @override
   String get profileMenuPostListing => 'Post Listing';
@@ -1385,7 +1386,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passActionLabel => 'Pass';
 
   @override
-  String get superLikeActionLabel => 'Super Like';
+  String get superLikeActionLabel => 'Star Match';
 
   @override
   String get likeActionLabel => 'Like';
@@ -1455,6 +1456,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportListing => 'Report listing';
+
+  @override
+  String get reportListingTitle => 'Report this listing';
+
+  @override
+  String get reportListingReason => 'Why are you reporting this listing?';
+
+  @override
+  String get reportListingSubmitted =>
+      'Thank you. We will review this listing.';
+
+  @override
+  String get reportReasonInappropriate => 'Inappropriate content';
+
+  @override
+  String get reportReasonScam => 'Suspected scam or fraud';
+
+  @override
+  String get reportReasonOutdated => 'Listing is outdated or unavailable';
+
+  @override
+  String get reportReasonOther => 'Other';
 
   @override
   String get compatibilityScore => 'Compatibility score';
@@ -1687,6 +1710,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsAndConditionsLabel => 'Terms & Conditions';
+
+  @override
+  String get termsAgreementPrefix => 'I agree to the ';
+
+  @override
+  String get termsAgreementConjunction => ' and ';
 
   @override
   String get searchHelpPlaceholder => 'Search for help';
@@ -2260,7 +2289,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanToOpen => 'Scan to open listing';
 
   @override
-  String get matchItsAMatch => 'It\'s a Match!';
+  String get matchItsAMatch => 'Great Match!';
 
   @override
   String matchLikedEachOther(String peerName) {
@@ -2283,7 +2312,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get swipeLikeLabel => 'LIKE';
 
   @override
-  String get swipeNopeLabel => 'NOPE';
+  String get swipeNopeLabel => 'PASS';
 
   @override
   String get failedToLoadProfiles => 'Failed to load profiles';
@@ -2914,4 +2943,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maintenanceRetry => 'Check again';
+
+  @override
+  String get deleteAccountCta => 'Delete Account';
+
+  @override
+  String get deleteAccountTitle => 'Delete Your Account';
+
+  @override
+  String get deleteAccountWarning =>
+      'This action is permanent and cannot be undone. All your data including profile, listings, chats, and matches will be permanently deleted.';
+
+  @override
+  String get deleteAccountConfirmLabel => 'Type DELETE to confirm';
+
+  @override
+  String get deleteAccountConfirmHint => 'Type DELETE';
+
+  @override
+  String get deleteAccountButton => 'Delete My Account';
+
+  @override
+  String get deleteAccountCancelled => 'Account deletion cancelled.';
+
+  @override
+  String get deleteAccountFailed =>
+      'Failed to delete account. Please try again or contact support.';
+
+  @override
+  String get forgotPasswordTitle => 'Forgot Password';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Enter your phone number and we\'ll send you an OTP to reset your password.';
+
+  @override
+  String get sendOtpCta => 'Send OTP';
+
+  @override
+  String get resetPasswordTitle => 'Reset Password';
+
+  @override
+  String resetPasswordSubtitle(String phone) {
+    return 'Enter the OTP sent to $phone and set your new password.';
+  }
+
+  @override
+  String get forgotPasswordCta => 'Forgot Password?';
+
+  @override
+  String get noAccountCta => 'Don\'t have an account?';
+
+  @override
+  String get passwordResetSuccess =>
+      'Password reset successfully. Please sign in.';
+
+  @override
+  String get phoneNotRegistered => 'This phone number is not registered.';
+
+  @override
+  String get loginWithPasswordCta => 'Login with password';
 }

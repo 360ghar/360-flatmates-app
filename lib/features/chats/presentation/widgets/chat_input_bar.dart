@@ -45,19 +45,6 @@ class ChatInputBar extends StatelessWidget {
                 ),
               ),
             ),
-            _InteractivePressScale(
-              child: IconButton(
-                key: const Key('chat_smiley_button'),
-                onPressed: () {
-                  // Smiley button placeholder action
-                },
-                icon: Icon(
-                  Icons.sentiment_satisfied_alt_rounded,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  size: 22,
-                ),
-              ),
-            ),
             Expanded(
               child: TextField(
                 key: const Key('chat_message_input'),

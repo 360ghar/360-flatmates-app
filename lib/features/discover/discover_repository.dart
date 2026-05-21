@@ -351,6 +351,13 @@ class DiscoverRepository {
         ? int.tryParse(rawConversationId.toString())
         : null;
   }
+
+  Future<void> reportListing(int propertyId, String reason) async {
+    await _ref.read(apiClientProvider).post(
+      FlatmatesEndpoints.reports,
+      data: {'reported_property_id': propertyId, 'reason': reason},
+    );
+  }
 }
 
 final discoverRepositoryProvider = Provider<DiscoverRepository>(

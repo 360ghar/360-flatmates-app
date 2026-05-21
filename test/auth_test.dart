@@ -68,7 +68,7 @@ void main() {
   });
 
   group('EnterPhonePage', () {
-    testWidgets('renders phone input and OTP CTA', (tester) async {
+    testWidgets('renders phone input and login CTA', (tester) async {
       await tester.pumpWidget(testableWidget(child: const EnterPhonePage()));
       await tester.pump();
       await tester.pump();
@@ -76,11 +76,11 @@ void main() {
       // Should show the phone text field.
       expect(find.byKey(const Key('enter_phone_input')), findsOneWidget);
 
-      // Should show the OTP CTA (always visible).
-      expect(find.byKey(const Key('enter_phone_otp_cta')), findsOneWidget);
+      // Should show the login with password CTA.
+      expect(find.byKey(const Key('enter_phone_login_cta')), findsOneWidget);
 
-      // The password CTA and signup CTA are gated behind enableDebugLogs
-      // in the production widget, so they won't appear with our test config.
+      // Should show the create account tertiary link.
+      expect(find.text('Create account'), findsOneWidget);
     });
 
     testWidgets('starts with +91 prefix in phone field', (tester) async {

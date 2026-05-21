@@ -74,6 +74,18 @@ class SettingsPage extends ConsumerWidget {
                         label: locale.preferencesLabel,
                         onTap: () => _showPreferences(context, ref),
                       ),
+                      const Divider(
+                        height: 1,
+                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        endIndent: AppSpacing.lg,
+                      ),
+                      FlatmatesMenuItem(
+                        key: const Key('delete_account_menu_item'),
+                        icon: Icons.delete_forever_outlined,
+                        label: locale.deleteAccountCta,
+                        isDestructive: true,
+                        onTap: () => context.push('/delete-account'),
+                      ),
                     ],
                   ),
                 ),
@@ -168,7 +180,7 @@ class SettingsPage extends ConsumerWidget {
     showAboutDialog(
       context: context,
       applicationName: locale.appName,
-      applicationVersion: '1.0.0',
+      applicationVersion: '1.0.3',
       applicationIcon: const FlutterLogo(size: 32),
     );
   }

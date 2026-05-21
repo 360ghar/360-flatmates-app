@@ -12,6 +12,7 @@ import '../shared/presentation/components.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/flat_details_carousel.dart';
 import 'presentation/widgets/flat_details_sections.dart';
+import 'presentation/widgets/report_listing_dialog.dart';
 import 'share_listing_card.dart';
 
 class FlatDetailsPage extends ConsumerStatefulWidget {
@@ -56,6 +57,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                       onBack: () => context.pop(),
                       onShare: () => _showShareSheet(listing),
                       onFavorite: () => _handleShortlist(),
+                      onReport: () => _handleReportListing(),
                     ),
 
                     Padding(
@@ -453,6 +455,28 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
 
     if (mounted) {
       setState(() => _isContacting = false);
+    }
+  }
+
+  Future<void> _handleReportListing() async {
+    final selected = await showReportListingDialog(context);
+    if (selected == null || !mounted) return;
+
+    try {
+      await ref
+          .read(discoverRepositoryProvider)
+          .reportListing(widget.listingId, selected);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).reportListingSubmitted)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).actionFailedRetry)),
+        );
+      }
     }
   }
 }

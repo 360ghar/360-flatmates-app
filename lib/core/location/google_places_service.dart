@@ -27,11 +27,17 @@ final class GooglePlacesService {
     String query, {
     LatLng? currentLocation,
   }) async {
-    final apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '';
+    const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
+    final apiKey = dartDefine.trim().isNotEmpty
+        ? dartDefine
+        : (dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '');
     if (apiKey.isEmpty || query.trim().length < 2) return const [];
 
     try {
-      final countryCode = dotenv.env['DEFAULT_COUNTRY'] ?? 'in';
+      const countryDefine = String.fromEnvironment('DEFAULT_COUNTRY');
+      final countryCode = countryDefine.trim().isNotEmpty
+          ? countryDefine
+          : (dotenv.env['DEFAULT_COUNTRY'] ?? 'in');
       final queryParameters = <String, dynamic>{
         'input': query,
         'components': 'country:$countryCode',
@@ -86,7 +92,10 @@ final class GooglePlacesService {
     String placeId, {
     String? preferredName,
   }) async {
-    final apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '';
+    const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
+    final apiKey = dartDefine.trim().isNotEmpty
+        ? dartDefine
+        : (dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '');
     if (apiKey.isEmpty) return null;
 
     try {

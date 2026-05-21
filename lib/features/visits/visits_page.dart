@@ -8,6 +8,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_async_view.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
+import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'visits_repository.dart';
@@ -27,8 +28,8 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: SafeArea(
-        child: FlatmatesAsyncView<List<VisitItem>>(
+      appBar: FlatmatesHeader.backTitle(title: locale.scheduleTitle),
+      body: FlatmatesAsyncView<List<VisitItem>>(
           value: visits,
           empty: FlatmatesEmptyState(
             title: locale.emptyVisits,
@@ -121,7 +122,6 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
             );
           },
         ),
-      ),
     );
   }
 

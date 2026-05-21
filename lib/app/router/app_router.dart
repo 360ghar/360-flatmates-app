@@ -8,8 +8,10 @@ import '../app_shell.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../features/auth/presentation/enter_phone_page.dart';
+import '../../features/auth/presentation/forgot_password_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/otp_page.dart';
+import '../../features/auth/presentation/reset_password_page.dart';
 import '../../features/auth/presentation/signup_page.dart';
 import '../../features/auth/presentation/splash_page.dart';
 import '../../features/bootstrap/bootstrap_controller.dart';
@@ -35,6 +37,7 @@ import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/settings/blocked_users_page.dart';
 import '../../features/settings/change_password_page.dart';
+import '../../features/settings/delete_account_page.dart';
 import '../../features/settings/notification_settings_page.dart';
 import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
@@ -78,7 +81,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/enter-phone' ||
           location == '/login' ||
           location == '/signup' ||
-          location == '/otp';
+          location == '/otp' ||
+          location == '/forgot-password' ||
+          location == '/reset-password';
       final isOnboarding = location == '/onboarding';
       final isDeepLink =
           location.startsWith('/chats/') ||
@@ -95,6 +100,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/privacy-policy' ||
           location == '/terms-of-service' ||
           location == '/change-password' ||
+          location == '/delete-account' ||
           location == '/blocked-users' ||
           location == '/match-celebration' ||
           location == '/waitlist' ||
@@ -107,7 +113,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (!auth.isLoggedIn) {
-        return isAuthRoute ? null : '/enter-phone';
+        return isAuthRoute ? null : '/login';
       }
 
       if (bootstrap.isLoading) {
@@ -165,6 +171,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/otp',
         builder: (context, state) =>
             OtpPage(phone: state.uri.queryParameters['phone'] ?? ''),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => ForgotPasswordPage(
+          phone: state.uri.queryParameters['phone'],
+        ),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => const ResetPasswordPage(),
       ),
       GoRoute(
         path: '/onboarding',
@@ -297,6 +313,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/change-password',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ChangePasswordPage(),
+      ),
+      GoRoute(
+        path: '/delete-account',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DeleteAccountPage(),
       ),
       GoRoute(
         path: '/blocked-users',

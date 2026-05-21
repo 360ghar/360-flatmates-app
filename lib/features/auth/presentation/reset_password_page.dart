@@ -2,37 +2,40 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
+import 'package:flatmates_app/core/theme/app_radius.dart';
+import 'package:flatmates_app/core/theme/app_typography.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
 import '../auth_controller.dart';
-import '../../../core/theme/app_radius.dart';
+import '../password_reset_controller.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
-class OtpPage extends ConsumerStatefulWidget {
-  const OtpPage({required this.phone, super.key});
-
-  final String phone;
+class ResetPasswordPage extends ConsumerStatefulWidget {
+  const ResetPasswordPage({super.key});
 
   @override
-  ConsumerState<OtpPage> createState() => _OtpPageState();
+  ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
+class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
+    with CodeAutoFill {
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _focusNodes = List.generate(6, (_) => FocusNode());
   final _keyboardFocusNodes = List.generate(6, (_) => FocusNode());
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
   String _currentOtp = '';
   bool _isListening = false;
 
-  String get _phone => widget.phone.isNotEmpty
-      ? widget.phone
-      : (ref.read(pendingPhoneProvider) ?? '');
+  String get _phone =>
+      ref.read(pendingPhoneProvider) ?? '';
 
-  // Resend countdown
   static const _resendCooldownSeconds = 60;
   int _countdownSeconds = _resendCooldownSeconds;
   Timer? _countdownTimer;
@@ -57,6 +60,8 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
     for (final f in _keyboardFocusNodes) {
       f.dispose();
     }
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -74,9 +79,8 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
         setState(() => _isListening = true);
       }
     } catch (e) {
-      // SMS auto-fill not available on this platform (e.g. iOS simulator).
-      // The user will enter the OTP manually.
-      debugPrint('OtpPage._startListeningForSms: SMS auto-fill unavailable: $e');
+      debugPrint(
+          'ResetPasswordPage._startListeningForSms: SMS auto-fill unavailable: $e');
     }
   }
 
@@ -92,9 +96,7 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
         setState(() => _countdownSeconds = 0);
         timer.cancel();
       } else {
-        setState(() {
-          _countdownSeconds--;
-        });
+        setState(() => _countdownSeconds--);
       }
     });
   }
@@ -108,39 +110,26 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
         _otpControllers[i].clear();
       }
     }
-    // Move focus to the last filled field or unfocus if complete.
     if (otp.length == 6) {
       _focusNodes[5].unfocus();
-      _submitOtp();
     } else if (otp.length < 6) {
       _focusNodes[otp.length].requestFocus();
     }
   }
 
   void _onOtpDigitChanged(int index, String value) {
-    // If a digit was entered and it's more than one char, take only the last.
     if (value.length > 1) {
       final lastChar = value.substring(value.length - 1);
       _otpControllers[index].text = lastChar;
       value = lastChar;
     }
-
-    // Build the full OTP string.
     final buffer = StringBuffer();
     for (var i = 0; i < 6; i++) {
       buffer.write(_otpControllers[i].text);
     }
     _currentOtp = buffer.toString();
-
-    // Auto-advance focus.
     if (value.isNotEmpty && index < 5) {
       _focusNodes[index + 1].requestFocus();
-    }
-
-    // Auto-submit when all 6 digits are filled.
-    if (_currentOtp.length == 6) {
-      _focusNodes[5].unfocus();
-      _submitOtp();
     }
   }
 
@@ -149,7 +138,6 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
       _otpControllers[index - 1].clear();
       _focusNodes[index - 1].requestFocus();
     }
-    // Rebuild current otp.
     final buffer = StringBuffer();
     for (var i = 0; i < 6; i++) {
       buffer.write(_otpControllers[i].text);
@@ -157,33 +145,44 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
     _currentOtp = buffer.toString();
   }
 
-  void _submitOtp() {
-    if (_currentOtp.length != 6) return;
-    final auth = ref.read(authControllerProvider);
-    if (auth.status == AuthStatus.submitting) return;
-    ref
-        .read(authControllerProvider.notifier)
-        .verifyOtp(phone: _phone, otp: _currentOtp);
-  }
-
   Future<void> _resendOtp() async {
     if (_countdownSeconds > 0) return;
-    final notifier = ref.read(authControllerProvider.notifier);
-    await notifier.requestOtp(_phone);
+    await ref.read(passwordResetControllerProvider.notifier).sendOtp(_phone);
     if (mounted) {
-      final auth = ref.read(authControllerProvider);
-      if (auth.status != AuthStatus.error) {
+      final state = ref.read(passwordResetControllerProvider);
+      if (state.step == PasswordResetStep.otpSent) {
         _startCountdown();
       }
     }
   }
 
+  Future<void> _submit() async {
+    if (_currentOtp.length != 6) return;
+    if (_passwordController.text != _confirmPasswordController.text) return;
+    if (_passwordController.text.length < 8) return;
+
+    final success = await ref
+        .read(passwordResetControllerProvider.notifier)
+        .verifyOtpAndSetPassword(
+          otp: _currentOtp,
+          newPassword: _passwordController.text,
+        );
+
+    if (!mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).passwordResetSuccess)),
+      );
+      context.go('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(authControllerProvider);
+    final resetState = ref.watch(passwordResetControllerProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isSuccess = auth.status == AuthStatus.authenticated;
+    final isVerifying = resetState.step == PasswordResetStep.verifying;
 
     return FlatmatesScreen(
       appBar: AppBar(),
@@ -191,9 +190,13 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(locale.otpTitle, style: theme.textTheme.headlineMedium),
+          Text(locale.resetPasswordTitle,
+              style: theme.textTheme.headlineMedium),
           const SizedBox(height: AppSpacing.sm),
-          Text(locale.otpSubtitle(_phone)),
+          Text(locale.resetPasswordSubtitle(_phone),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              )),
           if (_isListening) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -203,17 +206,9 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
               ),
             ),
           ],
-          if (isSuccess) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Center(
-              child: FlatmatesTrustBadge(
-                label: locale.phoneVerifiedLabel,
-                variant: FlatmatesTrustBadgeVariant.verified,
-                compact: true,
-              ),
-            ),
-          ],
           const SizedBox(height: AppSpacing.screen),
+
+          // OTP digit row
           LayoutBuilder(
             builder: (context, constraints) {
               const digitCount = 6;
@@ -247,7 +242,7 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
                           }
                         },
                         child: TextField(
-                          key: Key('otp_digit_$index'),
+                          key: Key('reset_otp_digit_$index'),
                           controller: _otpControllers[index],
                           focusNode: _focusNodes[index],
                           keyboardType: TextInputType.number,
@@ -292,42 +287,92 @@ class _OtpPageState extends ConsumerState<OtpPage> with CodeAutoFill {
               );
             },
           ),
-          if (auth.status == AuthStatus.error &&
-              auth.errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              auth.errorMessage!,
-              style: TextStyle(color: AppSemanticColors.error),
-            ),
-          ],
           const SizedBox(height: AppSpacing.screen),
-          // Resend OTP button with countdown.
+
+          // New password field
+          FlatmatesCard(
+            child: Column(
+              children: [
+                TextField(
+                  key: const Key('reset_new_password_input'),
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: locale.newPasswordLabel,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextField(
+                  key: const Key('reset_confirm_password_input'),
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirm,
+                  decoration: InputDecoration(
+                    labelText: locale.confirmPasswordLabel,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirm
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                  ),
+                ),
+                if (_passwordController.text.isNotEmpty &&
+                    _confirmPasswordController.text.isNotEmpty &&
+                    _passwordController.text != _confirmPasswordController.text) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    locale.passwordsDoNotMatch,
+                    style: TextStyle(color: AppSemanticColors.error),
+                  ),
+                ],
+                if (resetState.step == PasswordResetStep.error &&
+                    resetState.errorMessage != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    resetState.errorMessage!,
+                    style: TextStyle(color: AppSemanticColors.error),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.screen),
+
+          // Resend OTP
           Center(
             child: _countdownSeconds > 0
                 ? Text(
                     locale.resendOtpCountdown(_countdownSeconds),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
+                          theme.brightness),
                     ),
                   )
                 : FlatmatesButton.tertiary(
                     label: locale.resendOtpCta,
-                    onPressed: auth.status == AuthStatus.submitting
-                        ? null
-                        : _resendOtp,
+                    onPressed: isVerifying ? null : _resendOtp,
                   ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          // Verify button.
+
+          // Reset password CTA
           FlatmatesButton(
-            key: const Key('otp_submit_button'),
-            label: locale.verifyOtpCta,
+            key: const Key('reset_password_submit'),
+            label: locale.updatePasswordCta,
             fullWidth: true,
-            onPressed: auth.status == AuthStatus.submitting
-                ? null
-                : _submitOtp,
+            onPressed: isVerifying ? null : _submit,
           ),
         ],
       ),

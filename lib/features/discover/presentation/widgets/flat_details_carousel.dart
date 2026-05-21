@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_radius.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
@@ -17,6 +18,7 @@ class FlatDetailsCarousel extends StatelessWidget {
     required this.onBack,
     required this.onShare,
     required this.onFavorite,
+    this.onReport,
     super.key,
   });
 
@@ -27,11 +29,13 @@ class FlatDetailsCarousel extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onShare;
   final VoidCallback onFavorite;
+  final VoidCallback? onReport;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const heroHeight = 220.0;
+    final locale = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -108,6 +112,8 @@ class FlatDetailsCarousel extends StatelessWidget {
                     _FrostedIconButton(
                       key: const Key('flat_back_button'),
                       icon: Icons.arrow_back_rounded,
+                      tooltip: MaterialLocalizations.of(context)
+                          .backButtonTooltip,
                       onTap: onBack,
                     ),
                     Row(
@@ -115,14 +121,25 @@ class FlatDetailsCarousel extends StatelessWidget {
                         _FrostedIconButton(
                           key: const Key('flat_share_button'),
                           icon: Icons.share_outlined,
+                          tooltip: locale.shareListingCta,
                           onTap: onShare,
                         ),
                         const SizedBox(width: 10),
                         _FrostedIconButton(
                           key: const Key('flat_shortlist_button'),
                           icon: Icons.favorite_border_rounded,
+                          tooltip: locale.shortlistCta,
                           onTap: onFavorite,
                         ),
+                        if (onReport != null) ...[
+                          const SizedBox(width: 10),
+                          _FrostedIconButton(
+                            key: const Key('flat_report_button'),
+                            icon: Icons.flag_outlined,
+                            tooltip: locale.reportListing,
+                            onTap: onReport!,
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -166,31 +183,37 @@ class _FrostedIconButton extends StatelessWidget {
   const _FrostedIconButton({
     required this.icon,
     required this.onTap,
+    this.tooltip,
     super.key,
   });
   final IconData icon;
   final VoidCallback onTap;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: AppRadius.mdBorder,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppSemanticColors.surfaceFor(
-                theme.brightness,
-              ).withValues(alpha: 0.2),
-              borderRadius: AppRadius.mdBorder,
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: AppRadius.mdBorder,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppSemanticColors.surfaceFor(
+                  theme.brightness,
+                ).withValues(alpha: 0.2),
+                borderRadius: AppRadius.mdBorder,
+              ),
+              child: Icon(icon, color: Colors.white, size: 18),
             ),
-            child: Icon(icon, color: Colors.white, size: 18),
           ),
         ),
       ),

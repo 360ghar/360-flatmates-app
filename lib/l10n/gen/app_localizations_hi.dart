@@ -38,7 +38,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get enterPhoneSubtitle =>
-      'पासवर्ड लॉगिन करें या OTP के साथ जारी रखें।';
+      'शुरू करने के लिए साइन इन करें या खाता बनाएं।';
 
   @override
   String get phoneNumberLabel => 'फोन नंबर';
@@ -337,7 +337,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get profileMenuVisits => 'मेरा शेड्यूल';
 
   @override
-  String get profileMenuLikesChat => 'लाइक्स और चैट';
+  String get profileMenuLikesChat => 'मैच और चैट';
 
   @override
   String get profileMenuPostListing => 'लिस्टिंग पोस्ट करें';
@@ -1372,7 +1372,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String superLikeCapLabel(int count) {
-    return '$count सुपर लाइक बचे हैं';
+    return '$count स्टार मैच बचे हैं';
   }
 
   @override
@@ -1384,7 +1384,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get passActionLabel => 'पास';
 
   @override
-  String get superLikeActionLabel => 'सुपर लाइक';
+  String get superLikeActionLabel => 'स्टार मैच';
 
   @override
   String get likeActionLabel => 'लाइक';
@@ -1454,6 +1454,28 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get reportListing => 'लिस्टिंग की रिपोर्ट करें';
+
+  @override
+  String get reportListingTitle => 'इस लिस्टिंग की रिपोर्ट करें';
+
+  @override
+  String get reportListingReason => 'आप यह लिस्टिंग क्यों रिपोर्ट कर रहे हैं?';
+
+  @override
+  String get reportListingSubmitted =>
+      'धन्यवाद। हम इस लिस्टिंग की समीक्षा करेंगे।';
+
+  @override
+  String get reportReasonInappropriate => 'अनुपयुक्त सामग्री';
+
+  @override
+  String get reportReasonScam => 'संदिग्ध घोटाला या धोखाधड़ी';
+
+  @override
+  String get reportReasonOutdated => 'लिस्टिंग पुरानी या अनुपलब्ध है';
+
+  @override
+  String get reportReasonOther => 'अन्य';
 
   @override
   String get compatibilityScore => 'कंपैटिबिलिटी स्कोर';
@@ -1685,6 +1707,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get termsAndConditionsLabel => 'नियम और शर्तें';
+
+  @override
+  String get termsAgreementPrefix => 'मैं इनसे सहमत हूं: ';
+
+  @override
+  String get termsAgreementConjunction => ' और ';
 
   @override
   String get searchHelpPlaceholder => 'सहायता खोजें';
@@ -2261,7 +2289,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get scanToOpen => 'लिस्टिंग खोलने के लिए स्कैन करें';
 
   @override
-  String get matchItsAMatch => 'यह एक मैच है!';
+  String get matchItsAMatch => 'बढ़िया मैच!';
 
   @override
   String matchLikedEachOther(String peerName) {
@@ -2927,4 +2955,64 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get maintenanceRetry => 'फिर से जांचें';
+
+  @override
+  String get deleteAccountCta => 'खाता हटाएं';
+
+  @override
+  String get deleteAccountTitle => 'अपना खाता हटाएं';
+
+  @override
+  String get deleteAccountWarning =>
+      'यह कार्रवाई स्थायी है और इसे पूर्ववत नहीं किया जा सकता। आपका सारा डेटा जिसमें प्रोफ़ाइल, लिस्टिंग, चैट और मैच शामिल हैं, स्थायी रूप से हटा दिया जाएगा।';
+
+  @override
+  String get deleteAccountConfirmLabel => 'पुष्टि करने के लिए DELETE टाइप करें';
+
+  @override
+  String get deleteAccountConfirmHint => 'DELETE टाइप करें';
+
+  @override
+  String get deleteAccountButton => 'मेरा खाता हटाएं';
+
+  @override
+  String get deleteAccountCancelled => 'खाता हटाना रद्द किया गया।';
+
+  @override
+  String get deleteAccountFailed =>
+      'खाता हटाने में विफल। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।';
+
+  @override
+  String get forgotPasswordTitle => 'पासवर्ड भूल गए';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'अपना फोन नंबर दर्ज करें और हम पासवर्ड रीसेट करने के लिए OTP भेजेंगे।';
+
+  @override
+  String get sendOtpCta => 'OTP भेजें';
+
+  @override
+  String get resetPasswordTitle => 'पासवर्ड रीसेट करें';
+
+  @override
+  String resetPasswordSubtitle(String phone) {
+    return '$phone पर भेजा गया OTP दर्ज करें और अपना नया पासवर्ड सेट करें।';
+  }
+
+  @override
+  String get forgotPasswordCta => 'पासवर्ड भूल गए?';
+
+  @override
+  String get noAccountCta => 'खाता नहीं है?';
+
+  @override
+  String get passwordResetSuccess =>
+      'पासवर्ड सफलतापूर्वक रीसेट किया गया। कृपया साइन इन करें।';
+
+  @override
+  String get phoneNotRegistered => 'यह फोन नंबर पंजीकृत नहीं है।';
+
+  @override
+  String get loginWithPasswordCta => 'पासवर्ड से लॉगिन करें';
 }

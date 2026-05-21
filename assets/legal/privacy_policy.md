@@ -15,7 +15,7 @@ We collect "Personal Data" (information that can identify you) and "Non-Personal
 
 ### A. Information You Provide Directly
 
-- **Account Registration Data**: When you create an account or fill forms on 360Ghar, we ask for basic contact and profile details. This includes your full name, email address, phone number, date of birth, gender, and password. We may also request your postal address or city to customize search results. If you register via social media or Google, we receive the basic profile info you authorize (such as name and email).
+- **Account Registration Data**: When you create an account or fill forms on 360Ghar, we ask for basic contact and profile details. This includes your full name, email address (optional), phone number, date of birth, gender, and password. We may also request your postal address or city to customize search results.
 - **Identity and Verification Data (Property Owners)**: If you list a property with us, we require additional information to verify authenticity. This may include property ownership documents, title deed or registry copies, government-issued photo ID (e.g., PAN, Aadhaar, Passport), recent utility bills for address proof, and any relevant RERA registration number for new developments.
 - **Property Listing Details**: Owners provide extensive information about their property: property type, address and exact location coordinates, photographs, videos or 360° tour imagery, floor plans, amenities, price, rental terms, maintenance fees, description, etc.
 - **Profile and Preferences**: We may collect additional details when you fill out your profile or answer onboarding questions — for example, your property preferences (budget range, location preference, property type needed), family size, occupation, etc. Providing these is optional.
@@ -28,12 +28,11 @@ We collect "Personal Data" (information that can identify you) and "Non-Personal
 - **Device and Log Information**: We log details about your usage of the Services, including your IP address, device type, device identifiers, operating system version, app version, browser type, pages or screens viewed, actions taken, and access times.
 - **Location Data**: With your permission, we collect precise geolocation data of your device. This can help show your location relative to properties on the map or suggest nearby listings.
 - **Cookies and Similar Tech**: We use cookies and similar tracking technologies on our website to enhance user experience. You can control cookies through your browser settings.
-- **Analytics and Usage Data**: We use third-party analytics tools (such as Google Analytics) to collect information about user interactions with our Services.
+- **Analytics and Usage Data**: We use Firebase Analytics to collect information about user interactions with our Services, such as screen views and feature usage events.
 - **Advertising Partners**: While currently 360Ghar does not show third-party ads, if in the future we partner with advertisers, they may use cookies or pixels to deliver relevant ads.
 
 ### C. Information from Third Parties
 
-- If you choose to integrate or sign up via a social media or Google account, we import the data you permit from that account.
 - If a friend refers you to our platform, we may receive your email or phone from them to send an invite.
 - We may work with third-party data providers or marketing partners that provide demographic information or interest data.
 - If you use a co-branded service or interact with a third-party service through our platform, those third parties might share back information with us about the interaction.

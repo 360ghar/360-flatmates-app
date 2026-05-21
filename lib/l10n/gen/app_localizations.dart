@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @enterPhoneSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Use password login or continue with OTP.'**
+  /// **'Sign in or create an account to get started.'**
   String get enterPhoneSubtitle;
 
   /// No description provided for @phoneNumberLabel.
@@ -671,7 +671,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileMenuLikesChat.
   ///
   /// In en, this message translates to:
-  /// **'Likes & Chat'**
+  /// **'Matches & Chat'**
   String get profileMenuLikesChat;
 
   /// No description provided for @profileMenuPostListing.
@@ -2675,7 +2675,7 @@ abstract class AppLocalizations {
   /// No description provided for @superLikeActionLabel.
   ///
   /// In en, this message translates to:
-  /// **'Super Like'**
+  /// **'Star Match'**
   String get superLikeActionLabel;
 
   /// No description provided for @likeActionLabel.
@@ -2815,6 +2815,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report listing'**
   String get reportListing;
+
+  /// No description provided for @reportListingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report this listing'**
+  String get reportListingTitle;
+
+  /// No description provided for @reportListingReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reporting this listing?'**
+  String get reportListingReason;
+
+  /// No description provided for @reportListingSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you. We will review this listing.'**
+  String get reportListingSubmitted;
+
+  /// No description provided for @reportReasonInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate content'**
+  String get reportReasonInappropriate;
+
+  /// No description provided for @reportReasonScam.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspected scam or fraud'**
+  String get reportReasonScam;
+
+  /// No description provided for @reportReasonOutdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing is outdated or unavailable'**
+  String get reportReasonOutdated;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get reportReasonOther;
 
   /// No description provided for @compatibilityScore.
   ///
@@ -3259,6 +3301,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms & Conditions'**
   String get termsAndConditionsLabel;
+
+  /// No description provided for @termsAgreementPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the '**
+  String get termsAgreementPrefix;
+
+  /// No description provided for @termsAgreementConjunction.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get termsAgreementConjunction;
 
   /// No description provided for @searchHelpPlaceholder.
   ///
@@ -4319,7 +4373,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchItsAMatch.
   ///
   /// In en, this message translates to:
-  /// **'It\'s a Match!'**
+  /// **'Great Match!'**
   String get matchItsAMatch;
 
   /// No description provided for @matchLikedEachOther.
@@ -4361,7 +4415,7 @@ abstract class AppLocalizations {
   /// No description provided for @swipeNopeLabel.
   ///
   /// In en, this message translates to:
-  /// **'NOPE'**
+  /// **'PASS'**
   String get swipeNopeLabel;
 
   /// No description provided for @failedToLoadProfiles.
@@ -5473,6 +5527,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check again'**
   String get maintenanceRetry;
+
+  /// No description provided for @deleteAccountCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccountCta;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Your Account'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is permanent and cannot be undone. All your data including profile, listings, chats, and matches will be permanently deleted.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @deleteAccountConfirmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm'**
+  String get deleteAccountConfirmLabel;
+
+  /// No description provided for @deleteAccountConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE'**
+  String get deleteAccountConfirmHint;
+
+  /// No description provided for @deleteAccountButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete My Account'**
+  String get deleteAccountButton;
+
+  /// No description provided for @deleteAccountCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deletion cancelled.'**
+  String get deleteAccountCancelled;
+
+  /// No description provided for @deleteAccountFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account. Please try again or contact support.'**
+  String get deleteAccountFailed;
+
+  /// No description provided for @forgotPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password'**
+  String get forgotPasswordTitle;
+
+  /// No description provided for @forgotPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number and we\'ll send you an OTP to reset your password.'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @sendOtpCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send OTP'**
+  String get sendOtpCta;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the OTP sent to {phone} and set your new password.'**
+  String resetPasswordSubtitle(String phone);
+
+  /// No description provided for @forgotPasswordCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPasswordCta;
+
+  /// No description provided for @noAccountCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get noAccountCta;
+
+  /// No description provided for @passwordResetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset successfully. Please sign in.'**
+  String get passwordResetSuccess;
+
+  /// No description provided for @phoneNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone number is not registered.'**
+  String get phoneNotRegistered;
+
+  /// No description provided for @loginWithPasswordCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with password'**
+  String get loginWithPasswordCta;
 }
 
 class _AppLocalizationsDelegate

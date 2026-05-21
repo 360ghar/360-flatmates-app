@@ -36,7 +36,11 @@ final class NominatimService {
     if (query.trim().length < 2) return const [];
 
     try {
-      final countryCode = dotenv.env['DEFAULT_COUNTRY'] ?? 'in';
+      final countryCode = const String.fromEnvironment('DEFAULT_COUNTRY')
+          .trim()
+          .isNotEmpty
+          ? const String.fromEnvironment('DEFAULT_COUNTRY')
+          : (dotenv.env['DEFAULT_COUNTRY'] ?? 'in');
       final response = await _dio.get(
         '$_baseUrl/search',
         queryParameters: <String, dynamic>{

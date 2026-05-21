@@ -9,7 +9,7 @@
   "seeAllCta": "See all",
   "cancelCta": "Cancel",
   "enterPhoneTitle": "Enter your phone number",
-  "enterPhoneSubtitle": "Use password login or continue with OTP.",
+  "enterPhoneSubtitle": "Sign in or create an account to get started.",
   "phoneNumberLabel": "Phone number",
   "loginWithPassword": "Login with password",
   "continueWithOtp": "Continue with OTP",
@@ -214,7 +214,7 @@
   "profileStatChats": "Chats",
   "profileStatUnread": "Unread",
   "profileMenuVisits": "My Schedule",
-  "profileMenuLikesChat": "Likes & Chat",
+  "profileMenuLikesChat": "Matches & Chat",
   "profileMenuPostListing": "Post Listing",
   "profileMenuShortlisted": "Shortlisted",
   "profileMenuChats": "My Chats",
@@ -634,7 +634,7 @@
     }
   },
   "passActionLabel": "Pass",
-  "superLikeActionLabel": "Super Like",
+  "superLikeActionLabel": "Star Match",
   "likeActionLabel": "Like",
   "photoPendingLabel": "Photo pending",
   "readReceiptSent": "Sent",
@@ -658,6 +658,13 @@
   "viewListing": "View Listing",
   "editResubmit": "Edit & Resubmit",
   "reportListing": "Report listing",
+  "reportListingTitle": "Report this listing",
+  "reportListingReason": "Why are you reporting this listing?",
+  "reportListingSubmitted": "Thank you. We will review this listing.",
+  "reportReasonInappropriate": "Inappropriate content",
+  "reportReasonScam": "Suspected scam or fraud",
+  "reportReasonOutdated": "Listing is outdated or unavailable",
+  "reportReasonOther": "Other",
   "compatibilityScore": "Compatibility score",
   "aboutMe": "About me",
   "flatDetails": "Flat details",
@@ -740,6 +747,8 @@
   "passwordMinLength": "Password must be at least 8 characters.",
   "aboutLabel": "About",
   "termsAndConditionsLabel": "Terms & Conditions",
+  "termsAgreementPrefix": "I agree to the ",
+  "termsAgreementConjunction": " and ",
   "@@notifications_new_keys": {},
   "@@help_safety_new_keys": {},
   "searchHelpPlaceholder": "Search for help",
@@ -983,7 +992,7 @@
   "shareToWhatsapp": "Share to WhatsApp",
   "whatsappNotInstalled": "WhatsApp is not installed",
   "scanToOpen": "Scan to open listing",
-  "matchItsAMatch": "It's a Match!",
+  "matchItsAMatch": "Great Match!",
   "matchLikedEachOther": "You and {peerName} liked each other",
   "@matchLikedEachOther": {
     "placeholders": {
@@ -997,7 +1006,7 @@
   "swipeNoMoreProfiles": "No more profiles",
   "swipeCheckBackLater": "Check back later for new matches",
   "swipeLikeLabel": "LIKE",
-  "swipeNopeLabel": "NOPE",
+  "swipeNopeLabel": "PASS",
   "failedToLoadProfiles": "Failed to load profiles",
   "actionFailedRetry": "Action failed. Please try again.",
   "wifiChipLabel": "WiFi",
@@ -1378,5 +1387,30 @@
   "optionalUpdateLater": "Later",
   "maintenanceTitle": "Under maintenance",
   "maintenanceMessage": "We're making things better. Please check back in a little while.",
-  "maintenanceRetry": "Check again"
+  "maintenanceRetry": "Check again",
+  "deleteAccountCta": "Delete Account",
+  "deleteAccountTitle": "Delete Your Account",
+  "deleteAccountWarning": "This action is permanent and cannot be undone. All your data including profile, listings, chats, and matches will be permanently deleted.",
+  "deleteAccountConfirmLabel": "Type DELETE to confirm",
+  "deleteAccountConfirmHint": "Type DELETE",
+  "deleteAccountButton": "Delete My Account",
+  "deleteAccountCancelled": "Account deletion cancelled.",
+  "deleteAccountFailed": "Failed to delete account. Please try again or contact support.",
+  "forgotPasswordTitle": "Forgot Password",
+  "forgotPasswordSubtitle": "Enter your phone number and we'll send you an OTP to reset your password.",
+  "sendOtpCta": "Send OTP",
+  "resetPasswordTitle": "Reset Password",
+  "resetPasswordSubtitle": "Enter the OTP sent to {phone} and set your new password.",
+  "@resetPasswordSubtitle": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "forgotPasswordCta": "Forgot Password?",
+  "noAccountCta": "Don't have an account?",
+  "passwordResetSuccess": "Password reset successfully. Please sign in.",
+  "phoneNotRegistered": "This phone number is not registered.",
+  "loginWithPasswordCta": "Login with password"
 }

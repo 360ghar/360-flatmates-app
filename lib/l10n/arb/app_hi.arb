@@ -9,7 +9,7 @@
   "seeAllCta": "सभी देखें",
   "cancelCta": "रद्द करें",
   "enterPhoneTitle": "अपना फोन नंबर दर्ज करें",
-  "enterPhoneSubtitle": "पासवर्ड लॉगिन करें या OTP के साथ जारी रखें।",
+  "enterPhoneSubtitle": "शुरू करने के लिए साइन इन करें या खाता बनाएं।",
   "phoneNumberLabel": "फोन नंबर",
   "loginWithPassword": "पासवर्ड से लॉगिन करें",
   "continueWithOtp": "OTP के साथ जारी रखें",
@@ -214,7 +214,7 @@
   "profileStatChats": "चैट्स",
   "profileStatUnread": "अनरीड",
   "profileMenuVisits": "मेरा शेड्यूल",
-  "profileMenuLikesChat": "लाइक्स और चैट",
+  "profileMenuLikesChat": "मैच और चैट",
   "profileMenuPostListing": "लिस्टिंग पोस्ट करें",
   "profileMenuShortlisted": "शॉर्टलिस्टेड",
   "profileMenuChats": "मेरी चैट",
@@ -617,7 +617,7 @@
   "videoTooShort": "वीडियो कम से कम 15 सेकंड का होना चाहिए",
   "tapToUnmute": "अनम्यूट करने के लिए टैप करें",
   "soundOn": "आवाज़ चालू",
-  "superLikeCapLabel": "{count} सुपर लाइक बचे हैं",
+  "superLikeCapLabel": "{count} स्टार मैच बचे हैं",
   "@superLikeCapLabel": {
     "placeholders": {
       "count": {
@@ -634,7 +634,7 @@
     }
   },
   "passActionLabel": "पास",
-  "superLikeActionLabel": "सुपर लाइक",
+  "superLikeActionLabel": "स्टार मैच",
   "likeActionLabel": "लाइक",
   "photoPendingLabel": "फ़ोटो बाकी है",
   "readReceiptSent": "भेजा गया",
@@ -658,6 +658,13 @@
   "viewListing": "लिस्टिंग देखें",
   "editResubmit": "संपादित करें और फिर से भेजें",
   "reportListing": "लिस्टिंग की रिपोर्ट करें",
+  "reportListingTitle": "इस लिस्टिंग की रिपोर्ट करें",
+  "reportListingReason": "आप यह लिस्टिंग क्यों रिपोर्ट कर रहे हैं?",
+  "reportListingSubmitted": "धन्यवाद। हम इस लिस्टिंग की समीक्षा करेंगे।",
+  "reportReasonInappropriate": "अनुपयुक्त सामग्री",
+  "reportReasonScam": "संदिग्ध घोटाला या धोखाधड़ी",
+  "reportReasonOutdated": "लिस्टिंग पुरानी या अनुपलब्ध है",
+  "reportReasonOther": "अन्य",
   "compatibilityScore": "कंपैटिबिलिटी स्कोर",
   "aboutMe": "मेरे बारे में",
   "flatDetails": "फ्लैट विवरण",
@@ -740,6 +747,8 @@
   "passwordMinLength": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।",
   "aboutLabel": "के बारे में",
   "termsAndConditionsLabel": "नियम और शर्तें",
+  "termsAgreementPrefix": "मैं इनसे सहमत हूं: ",
+  "termsAgreementConjunction": " और ",
   "@@notifications_new_keys": {},
   "@@help_safety_new_keys": {},
   "searchHelpPlaceholder": "सहायता खोजें",
@@ -983,7 +992,7 @@
   "shareToWhatsapp": "WhatsApp पर शेयर करें",
   "whatsappNotInstalled": "WhatsApp इंस्टॉल नहीं है",
   "scanToOpen": "लिस्टिंग खोलने के लिए स्कैन करें",
-  "matchItsAMatch": "यह एक मैच है!",
+  "matchItsAMatch": "बढ़िया मैच!",
   "matchLikedEachOther": "आप और {peerName} ने एक-दूसरे को पसंद किया",
   "@matchLikedEachOther": {
     "placeholders": {
@@ -1378,5 +1387,30 @@
   "optionalUpdateLater": "बाद में",
   "maintenanceTitle": "मेंटेनेंस चल रहा है",
   "maintenanceMessage": "हम चीज़ें बेहतर बना रहे हैं। कृपया कुछ देर बाद दोबारा देखें।",
-  "maintenanceRetry": "फिर से जांचें"
+  "maintenanceRetry": "फिर से जांचें",
+  "deleteAccountCta": "खाता हटाएं",
+  "deleteAccountTitle": "अपना खाता हटाएं",
+  "deleteAccountWarning": "यह कार्रवाई स्थायी है और इसे पूर्ववत नहीं किया जा सकता। आपका सारा डेटा जिसमें प्रोफ़ाइल, लिस्टिंग, चैट और मैच शामिल हैं, स्थायी रूप से हटा दिया जाएगा।",
+  "deleteAccountConfirmLabel": "पुष्टि करने के लिए DELETE टाइप करें",
+  "deleteAccountConfirmHint": "DELETE टाइप करें",
+  "deleteAccountButton": "मेरा खाता हटाएं",
+  "deleteAccountCancelled": "खाता हटाना रद्द किया गया।",
+  "deleteAccountFailed": "खाता हटाने में विफल। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।",
+  "forgotPasswordTitle": "पासवर्ड भूल गए",
+  "forgotPasswordSubtitle": "अपना फोन नंबर दर्ज करें और हम पासवर्ड रीसेट करने के लिए OTP भेजेंगे।",
+  "sendOtpCta": "OTP भेजें",
+  "resetPasswordTitle": "पासवर्ड रीसेट करें",
+  "resetPasswordSubtitle": "{phone} पर भेजा गया OTP दर्ज करें और अपना नया पासवर्ड सेट करें।",
+  "@resetPasswordSubtitle": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "forgotPasswordCta": "पासवर्ड भूल गए?",
+  "noAccountCta": "खाता नहीं है?",
+  "passwordResetSuccess": "पासवर्ड सफलतापूर्वक रीसेट किया गया। कृपया साइन इन करें।",
+  "phoneNotRegistered": "यह फोन नंबर पंजीकृत नहीं है।",
+  "loginWithPasswordCta": "पासवर्ड से लॉगिन करें"
 }

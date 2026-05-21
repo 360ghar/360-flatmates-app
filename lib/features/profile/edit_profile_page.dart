@@ -6,6 +6,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
+import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'presentation/widgets/edit_profile_sections.dart';
 import 'profile_repository.dart';
@@ -289,7 +290,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(locale.editProfileCta)),
+      appBar: FlatmatesHeader.backTitle(title: locale.editProfileCta),
       body: SafeArea(
         minimum: const EdgeInsets.all(AppSpacing.lg),
         child: ListView(

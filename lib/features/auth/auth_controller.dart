@@ -169,6 +169,22 @@ class AuthController extends Notifier<AuthState> {
     }
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
+
+  Future<bool> deleteAccount() async {
+    try {
+      await ref.read(notificationServiceProvider).clearToken();
+    } catch (e) {
+      debugPrint('AuthController.deleteAccount: clearToken failed: $e');
+    }
+    try {
+      await _repository.deleteAccount();
+      state = const AuthState(status: AuthStatus.unauthenticated);
+      return true;
+    } catch (e) {
+      debugPrint('AuthController.deleteAccount: failed: $e');
+      return false;
+    }
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>(

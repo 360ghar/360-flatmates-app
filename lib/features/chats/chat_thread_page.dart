@@ -9,6 +9,7 @@ import '../../core/providers.dart';
 import '../../core/storage/image_upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
+import '../../core/utils/profanity_filter.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
@@ -137,8 +138,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   Future<void> _sendMessage() async {
-    final body = _messageController.text.trim();
+    var body = _messageController.text.trim();
     if (body.isEmpty) return;
+    body = ProfanityFilter.censor(body);
     final locale = AppLocalizations.of(context);
     final previousText = _messageController.text;
     final previousSelection = _messageController.selection;
