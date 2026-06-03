@@ -3007,4 +3007,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginWithPasswordCta => 'Login with password';
+
+  @override
+  String get reportABug => 'Report a Bug';
+
+  @override
+  String get reportABugSubtitle => 'Something not working? Let us know.';
+
+  @override
+  String get requestAFeature => 'Request a Feature';
+
+  @override
+  String get requestAFeatureSubtitle => 'Share an idea to make the app better.';
+
+  @override
+  String get reportABugIntro =>
+      'Tell us what went wrong and we\'ll look into it.';
+
+  @override
+  String get requestAFeatureIntro =>
+      'Tell us what you\'d love to see in the app.';
+
+  @override
+  String get feedbackTitleLabel => 'Title';
+
+  @override
+  String get feedbackTitleBugHint => 'Brief summary of the bug';
+
+  @override
+  String get feedbackTitleFeatureHint => 'Brief summary of your idea';
+
+  @override
+  String get feedbackTitleRequired => 'Please enter a title.';
+
+  @override
+  String get feedbackDescriptionLabel => 'Description';
+
+  @override
+  String get feedbackDescriptionBugHint =>
+      'Steps to reproduce, what you expected, and what happened';
+
+  @override
+  String get feedbackDescriptionFeatureHint =>
+      'Describe the feature and how it would help';
+
+  @override
+  String get feedbackDescriptionRequired => 'Please enter a description.';
+
+  @override
+  String get feedbackBugTypeLabel => 'Bug type';
+
+  @override
+  String get feedbackBugTypeFunctionality => 'Functionality bug';
+
+  @override
+  String get feedbackBugTypeUi => 'UI bug';
+
+  @override
+  String get feedbackBugTypePerformance => 'Performance issue';
+
+  @override
+  String get feedbackBugTypeCrash => 'Crash';
+
+  @override
+  String get feedbackBugTypeOther => 'Other';
+
+  @override
+  String get feedbackSeverityLabel => 'Severity';
+
+  @override
+  String get feedbackSeverityLow => 'Low';
+
+  @override
+  String get feedbackSeverityMedium => 'Medium';
+
+  @override
+  String get feedbackSeverityHigh => 'High';
+
+  @override
+  String get feedbackSeverityCritical => 'Critical';
+
+  @override
+  String get feedbackSubmitCta => 'Submit';
+
+  @override
+  String get feedbackSubmitSuccess => 'Thanks for your feedback!';
 }

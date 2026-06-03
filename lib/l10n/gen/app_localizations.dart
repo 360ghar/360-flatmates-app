@@ -5641,6 +5641,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login with password'**
   String get loginWithPasswordCta;
+
+  /// No description provided for @reportABug.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a Bug'**
+  String get reportABug;
+
+  /// No description provided for @reportABugSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something not working? Let us know.'**
+  String get reportABugSubtitle;
+
+  /// No description provided for @requestAFeature.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a Feature'**
+  String get requestAFeature;
+
+  /// No description provided for @requestAFeatureSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share an idea to make the app better.'**
+  String get requestAFeatureSubtitle;
+
+  /// No description provided for @reportABugIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what went wrong and we\'ll look into it.'**
+  String get reportABugIntro;
+
+  /// No description provided for @requestAFeatureIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what you\'d love to see in the app.'**
+  String get requestAFeatureIntro;
+
+  /// No description provided for @feedbackTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get feedbackTitleLabel;
+
+  /// No description provided for @feedbackTitleBugHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief summary of the bug'**
+  String get feedbackTitleBugHint;
+
+  /// No description provided for @feedbackTitleFeatureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief summary of your idea'**
+  String get feedbackTitleFeatureHint;
+
+  /// No description provided for @feedbackTitleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a title.'**
+  String get feedbackTitleRequired;
+
+  /// No description provided for @feedbackDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get feedbackDescriptionLabel;
+
+  /// No description provided for @feedbackDescriptionBugHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps to reproduce, what you expected, and what happened'**
+  String get feedbackDescriptionBugHint;
+
+  /// No description provided for @feedbackDescriptionFeatureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the feature and how it would help'**
+  String get feedbackDescriptionFeatureHint;
+
+  /// No description provided for @feedbackDescriptionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a description.'**
+  String get feedbackDescriptionRequired;
+
+  /// No description provided for @feedbackBugTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug type'**
+  String get feedbackBugTypeLabel;
+
+  /// No description provided for @feedbackBugTypeFunctionality.
+  ///
+  /// In en, this message translates to:
+  /// **'Functionality bug'**
+  String get feedbackBugTypeFunctionality;
+
+  /// No description provided for @feedbackBugTypeUi.
+  ///
+  /// In en, this message translates to:
+  /// **'UI bug'**
+  String get feedbackBugTypeUi;
+
+  /// No description provided for @feedbackBugTypePerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance issue'**
+  String get feedbackBugTypePerformance;
+
+  /// No description provided for @feedbackBugTypeCrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash'**
+  String get feedbackBugTypeCrash;
+
+  /// No description provided for @feedbackBugTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get feedbackBugTypeOther;
+
+  /// No description provided for @feedbackSeverityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Severity'**
+  String get feedbackSeverityLabel;
+
+  /// No description provided for @feedbackSeverityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get feedbackSeverityLow;
+
+  /// No description provided for @feedbackSeverityMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get feedbackSeverityMedium;
+
+  /// No description provided for @feedbackSeverityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get feedbackSeverityHigh;
+
+  /// No description provided for @feedbackSeverityCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get feedbackSeverityCritical;
+
+  /// No description provided for @feedbackSubmitCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get feedbackSubmitCta;
+
+  /// No description provided for @feedbackSubmitSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for your feedback!'**
+  String get feedbackSubmitSuccess;
 }
 
 class _AppLocalizationsDelegate

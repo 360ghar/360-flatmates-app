@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
 
 import 'place_suggestion.dart';
 
@@ -25,7 +24,7 @@ final class GooglePlacesService {
 
   Future<List<PlaceSuggestion>> getPlaceSuggestions(
     String query, {
-    LatLng? currentLocation,
+    ({double latitude, double longitude})? currentLocation,
   }) async {
     const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
     final apiKey = dartDefine.trim().isNotEmpty

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' hide Path;
+import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
@@ -18,7 +17,36 @@ String _formatCompactPrice(int amount) {
   return '₹${thousands.toStringAsFixed(thousands == thousands.roundToDouble() ? 0 : 1)}K';
 }
 
-List<Marker> buildClusteredMarkers({
+/// A map marker described as data: a geographic [point] plus the Flutter widget
+/// that should be drawn at that point. The map page projects [point] to screen
+/// pixels via the MapLibre controller and positions [child] as an overlay.
+///
+/// We deliberately keep the rich Flutter chip widgets (price bubble, BHK badge,
+/// cluster ring) rather than rendering native symbol layers, so the existing
+/// visual design and tap-to-open-sheet behavior carry over unchanged. The
+/// app's clustering is locality-based (not zoom-based), which an overlay
+/// preserves exactly; native GeoJSON clustering would change that semantics.
+class FlatmatesMapMarker {
+  const FlatmatesMapMarker({
+    required this.id,
+    required this.point,
+    required this.size,
+    required this.child,
+  });
+
+  /// Stable key for diffing/positioning (listing id or cluster key).
+  final String id;
+
+  /// MapLibre coordinate (latitude first).
+  final LatLng point;
+
+  /// The pixel footprint of [child]; used to center the overlay on [point].
+  final Size size;
+
+  final Widget child;
+}
+
+List<FlatmatesMapMarker> buildClusteredMarkers({
   required List<PropertyListing> items,
   required ThemeData theme,
   required void Function(PropertyListing) onListingTap,
@@ -34,7 +62,7 @@ List<Marker> buildClusteredMarkers({
     groups.putIfAbsent(key, () => []).add(item);
   }
 
-  final markers = <Marker>[];
+  final markers = <FlatmatesMapMarker>[];
 
   for (final entry in groups.entries) {
     final groupItems = entry.value;
@@ -46,10 +74,10 @@ List<Marker> buildClusteredMarkers({
           ? AppSemanticColors.mapMarkerRoom
           : AppSemanticColors.mapMarkerProperty;
       markers.add(
-        Marker(
+        FlatmatesMapMarker(
+          id: 'listing-${item.id}',
           point: LatLng(item.latitude!, item.longitude!),
-          width: 72,
-          height: 68,
+          size: const Size(72, 68),
           child: _ListingMarkerWidget(
             price: item.monthlyRent.toInt(),
             color: color,
@@ -69,10 +97,10 @@ List<Marker> buildClusteredMarkers({
           groupItems.length;
 
       markers.add(
-        Marker(
+        FlatmatesMapMarker(
+          id: 'cluster-${entry.key}',
           point: LatLng(avgLat, avgLng),
-          width: 56,
-          height: 70,
+          size: const Size(56, 70),
           child: _ClusterMarkerWidget(
             clusterItems: groupItems,
             label: groupItems.first.locality ?? 'listings',

@@ -79,10 +79,13 @@ void main() {
       expect(find.text('Booking & Agreements'), findsOneWidget);
       expect(find.text('Account & Profile'), findsOneWidget);
       expect(find.text('Contact support'), findsWidgets);
-      expect(find.byKey(const Key('help_chat_with_us_button')), findsOneWidget);
+      expect(find.text('Report a Bug'), findsOneWidget);
+      expect(find.text('Request a Feature'), findsOneWidget);
 
       await tester.drag(find.byType(ListView), const Offset(0, -500));
       await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('help_chat_with_us_button')), findsOneWidget);
 
       expect(find.text('Support available 24/7'), findsOneWidget);
     });

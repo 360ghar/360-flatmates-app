@@ -89,6 +89,22 @@ class HelpSafetyPage extends StatelessWidget {
               subtitle: locale.contactSupportSubtitle,
               onTap: () => _navigateToSubPage(context, '/help-safety/contact'),
             ),
+            FlatmatesMenuItem(
+              key: const Key('report_a_bug_menu_item'),
+              icon: Icons.bug_report_outlined,
+              label: locale.reportABug,
+              subtitle: locale.reportABugSubtitle,
+              onTap: () =>
+                  _navigateToSubPage(context, '/help-safety/report-bug'),
+            ),
+            FlatmatesMenuItem(
+              key: const Key('request_a_feature_menu_item'),
+              icon: Icons.lightbulb_outline,
+              label: locale.requestAFeature,
+              subtitle: locale.requestAFeatureSubtitle,
+              onTap: () =>
+                  _navigateToSubPage(context, '/help-safety/request-feature'),
+            ),
             const SizedBox(height: AppSpacing.section),
             FlatmatesButton(
               key: const Key('help_chat_with_us_button'),

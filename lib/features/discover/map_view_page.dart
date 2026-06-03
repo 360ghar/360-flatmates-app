@@ -1,10 +1,9 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../core/map/map_controller.dart';
 import '../../core/theme/app_motion.dart';
@@ -22,10 +21,10 @@ import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import 'application/discover_feed_controller.dart';
 import 'discover_repository.dart';
+import 'presentation/widgets/discover_map.dart';
 import 'presentation/widgets/map_filter_bar.dart';
 import 'presentation/widgets/map_listing_sheets.dart';
 import 'presentation/widgets/map_listings_bottom_sheet.dart';
-import 'presentation/widgets/map_marker_builder.dart';
 
 class MapViewPage extends ConsumerStatefulWidget {
   const MapViewPage({super.key});
@@ -34,27 +33,18 @@ class MapViewPage extends ConsumerStatefulWidget {
   ConsumerState<MapViewPage> createState() => _MapViewPageState();
 }
 
-class _MapViewPageState extends ConsumerState<MapViewPage>
-    with TickerProviderStateMixin {
+class _MapViewPageState extends ConsumerState<MapViewPage> {
   final _locationRadiusDebouncer = ActionDebouncer();
   final ScrollController _cardScrollController = ScrollController();
 
-  final FlatmatesMapController _flatmatesMapController =
-      FlatmatesMapController();
-  List<PropertyListing>? _previousListings;
-  List<PropertyListing> _currentFiltered = [];
+  // Bound once the DiscoverMap hands back its controller via onMapReady.
+  FlatmatesMapController? _mapController;
 
-  @override
-  void initState() {
-    super.initState();
-    // Provide a vsync so FlatmatesMapController.animateTo can animate.
-    _flatmatesMapController.attachTicker(this);
-  }
+  List<PropertyListing> _currentFiltered = [];
 
   @override
   void dispose() {
     _cardScrollController.dispose();
-    _flatmatesMapController.dispose();
     _locationRadiusDebouncer.dispose();
     super.dispose();
   }
@@ -133,10 +123,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
           (prevLoc?.latitude != nextLoc.latitude ||
               prevLoc?.longitude != nextLoc.longitude)) {
         // Preserve the user's current zoom level and animate smoothly.
-        _flatmatesMapController.animateTo(
-          LatLng(nextLoc.latitude, nextLoc.longitude),
-          zoom: _flatmatesMapController.zoom,
-        );
+        _mapController?.animateTo(LatLng(nextLoc.latitude, nextLoc.longitude));
       }
     });
 
@@ -152,7 +139,6 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
     final filtered = feedState.listings;
     _currentFiltered = filtered;
 
-    // Frost surface colors
     final frostOverlayColor = isDark
         ? AppSemanticColors.frostOverlayDark
         : AppSemanticColors.frostOverlayLight;
@@ -178,9 +164,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
       body: Stack(
         children: [
           // Full-screen map
-          Positioned.fill(
-            child: _buildMap(filtered, searchRadiusKm, theme, locale),
-          ),
+          Positioned.fill(child: _buildMap(filtered, searchRadiusKm, locale)),
 
           // Top bar overlay with frosted glass background
           Positioned(
@@ -301,63 +285,25 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
   Widget _buildMap(
     List<PropertyListing> filtered,
     double searchRadiusKm,
-    ThemeData theme,
     AppLocalizations locale,
   ) {
-    if (!identical(filtered, _previousListings)) {
-      _previousListings = filtered;
-    }
     final selectedPropertyId = ref.watch(
       selectedPropertyProvider.select((s) => s?.id),
     );
-    final markers = buildClusteredMarkers(
-      items: filtered,
-      theme: theme,
-      onListingTap: _handleListingTap,
-      onClusterTap: _handleClusterTap,
-      selectedPropertyId: selectedPropertyId?.toString(),
+    final hasMarkers = filtered.any(
+      (item) => item.latitude != null && item.longitude != null,
     );
-
-    final selectedLocation = ref
-        .read(locationControllerProvider)
-        .selectedLocation;
-    final feedState = ref.read(discoverFeedControllerProvider);
-    LatLng mapCenter;
-    if (selectedLocation != null) {
-      mapCenter = LatLng(selectedLocation.latitude, selectedLocation.longitude);
-    } else if (feedState.filters.hasGeoLocation) {
-      mapCenter = LatLng(
-        feedState.filters.latitude!,
-        feedState.filters.longitude!,
-      );
-    } else if (markers.isNotEmpty) {
-      mapCenter = markers.first.point;
-    } else if (filtered.isNotEmpty &&
-        filtered.first.latitude != null &&
-        filtered.first.longitude != null) {
-      mapCenter = LatLng(filtered.first.latitude!, filtered.first.longitude!);
-    } else {
-      mapCenter = const LatLng(28.4595, 77.0266);
-    }
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _flatmatesMapController.controller,
-          options: MapOptions(
-            initialCenter: mapCenter,
-            initialZoom: kDefaultInitialZoom,
-            minZoom: kDefaultMinZoom,
-            maxZoom: kDefaultMaxZoom,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-            ),
-          ),
-          children: [
-            createOsmTileLayer(),
-            MapRadiusCircle(center: mapCenter, radiusKm: searchRadiusKm),
-            MarkerLayer(markers: markers),
-          ],
+        DiscoverMap(
+          listings: filtered,
+          searchRadiusKm: searchRadiusKm,
+          initialCenter: _resolveCenter(filtered),
+          selectedPropertyId: selectedPropertyId?.toString(),
+          onMapReady: (controller) => _mapController = controller,
+          onListingTap: _handleListingTap,
+          onClusterTap: _handleClusterTap,
         ),
         Positioned(
           right: AppSpacing.md,
@@ -365,11 +311,11 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
           child: MapControlButtons(
             onRecenter: _recenterToUserLocation,
             onFitBounds: _fitBoundsToMarkers,
-            onZoomIn: () => _flatmatesMapController.zoomIn(),
-            onZoomOut: () => _flatmatesMapController.zoomOut(),
+            onZoomIn: () => _mapController?.zoomIn(),
+            onZoomOut: () => _mapController?.zoomOut(),
           ),
         ),
-        if (markers.isEmpty)
+        if (!hasMarkers)
           FlatmatesEmptyState(
             title: filtered.isEmpty
                 ? locale.emptyListings
@@ -380,6 +326,25 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
     );
   }
 
+  LatLng _resolveCenter(List<PropertyListing> filtered) {
+    final selectedLocation = ref
+        .read(locationControllerProvider)
+        .selectedLocation;
+    final feedState = ref.read(discoverFeedControllerProvider);
+    if (selectedLocation != null) {
+      return LatLng(selectedLocation.latitude, selectedLocation.longitude);
+    }
+    if (feedState.filters.hasGeoLocation) {
+      return LatLng(feedState.filters.latitude!, feedState.filters.longitude!);
+    }
+    for (final item in filtered) {
+      if (item.latitude != null && item.longitude != null) {
+        return LatLng(item.latitude!, item.longitude!);
+      }
+    }
+    return const LatLng(28.4595, 77.0266);
+  }
+
   void _showFilterSheet(BuildContext context) {
     context.push('/search-filters');
   }
@@ -388,10 +353,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
     ref.read(selectedPropertyProvider.notifier).state = item;
 
     if (item.latitude != null && item.longitude != null) {
-      _flatmatesMapController.move(
-        LatLng(item.latitude!, item.longitude!),
-        15.0,
-      );
+      _mapController?.move(LatLng(item.latitude!, item.longitude!), 15.0);
     }
 
     final index = _currentFiltered.indexWhere((e) => e.id == item.id);
@@ -417,8 +379,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
     final locState = ref.read(locationControllerProvider);
     if (locState.currentPosition != null) {
       final pos = locState.currentPosition!;
-      final center = LatLng(pos.latitude, pos.longitude);
-      _flatmatesMapController.move(center, kDefaultInitialZoom);
+      _mapController?.move(
+        LatLng(pos.latitude, pos.longitude),
+        kDefaultInitialZoom,
+      );
       ref
           .read(discoverFeedControllerProvider.notifier)
           .updateLocationFilter(
@@ -432,8 +396,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
       await ref.read(locationControllerProvider.notifier).getCurrentLocation();
       final newPos = ref.read(locationControllerProvider).currentPosition;
       if (newPos != null) {
-        final center = LatLng(newPos.latitude, newPos.longitude);
-        _flatmatesMapController.move(center, kDefaultInitialZoom);
+        _mapController?.move(
+          LatLng(newPos.latitude, newPos.longitude),
+          kDefaultInitialZoom,
+        );
         ref
             .read(discoverFeedControllerProvider.notifier)
             .updateLocationFilter(
@@ -448,11 +414,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage>
   }
 
   void _fitBoundsToMarkers() {
-    if (_previousListings == null || _previousListings!.isEmpty) return;
-    final points = _previousListings!
+    final points = _currentFiltered
         .where((item) => item.latitude != null && item.longitude != null)
         .map((item) => LatLng(item.latitude!, item.longitude!))
         .toList();
-    _flatmatesMapController.fitBounds(points);
+    _mapController?.fitBounds(points);
   }
 }

@@ -26,13 +26,11 @@ dependencies:
   flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^9.2.4
   freezed_annotation: ^2.4.4
-  flutter_map: ^8.2.2
-  flutter_map_marker_cluster: ^8.2.2
+  maplibre_gl: 0.26.1
   geocoding: ^3.0.0
   geolocator: ^13.0.2
   go_router: ^16.2.1
   google_fonts: ^6.3.2
-  latlong2: ^0.9.1
   image_picker: ^1.1.2
   intl: ^0.20.2
   json_annotation: ^4.9.0

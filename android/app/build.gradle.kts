@@ -95,7 +95,10 @@ android {
 
     defaultConfig {
         applicationId = "com.the360ghar.flatmates360"
-        minSdk = flutter.minSdkVersion
+        // maplibre_gl requires minSdk >= 21. Flutter's default (24) already
+        // satisfies this; guard explicitly so the requirement survives any
+        // future change to the Flutter default.
+        minSdk = maxOf(21, flutter.minSdkVersion)
         // Pin to 35 to match the previous Play Store release's device catalog.
         // Flutter 3.41.x defaults to 36 which drops ~18k device profiles.
         targetSdk = 35

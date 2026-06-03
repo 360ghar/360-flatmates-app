@@ -3019,4 +3019,88 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get loginWithPasswordCta => 'पासवर्ड से लॉगिन करें';
+
+  @override
+  String get reportABug => 'बग की रिपोर्ट करें';
+
+  @override
+  String get reportABugSubtitle => 'कुछ काम नहीं कर रहा? हमें बताएं।';
+
+  @override
+  String get requestAFeature => 'फीचर का अनुरोध करें';
+
+  @override
+  String get requestAFeatureSubtitle => 'ऐप को बेहतर बनाने का सुझाव साझा करें।';
+
+  @override
+  String get reportABugIntro => 'हमें बताएं कि क्या गलत हुआ और हम इसे देखेंगे।';
+
+  @override
+  String get requestAFeatureIntro =>
+      'हमें बताएं कि आप ऐप में क्या देखना चाहेंगे।';
+
+  @override
+  String get feedbackTitleLabel => 'शीर्षक';
+
+  @override
+  String get feedbackTitleBugHint => 'बग का संक्षिप्त सारांश';
+
+  @override
+  String get feedbackTitleFeatureHint => 'आपके विचार का संक्षिप्त सारांश';
+
+  @override
+  String get feedbackTitleRequired => 'कृपया एक शीर्षक दर्ज करें।';
+
+  @override
+  String get feedbackDescriptionLabel => 'विवरण';
+
+  @override
+  String get feedbackDescriptionBugHint =>
+      'दोहराने के चरण, आपने क्या उम्मीद की थी और क्या हुआ';
+
+  @override
+  String get feedbackDescriptionFeatureHint =>
+      'फीचर का वर्णन करें और यह कैसे मदद करेगा';
+
+  @override
+  String get feedbackDescriptionRequired => 'कृपया एक विवरण दर्ज करें।';
+
+  @override
+  String get feedbackBugTypeLabel => 'बग का प्रकार';
+
+  @override
+  String get feedbackBugTypeFunctionality => 'कार्यक्षमता बग';
+
+  @override
+  String get feedbackBugTypeUi => 'यूआई बग';
+
+  @override
+  String get feedbackBugTypePerformance => 'प्रदर्शन समस्या';
+
+  @override
+  String get feedbackBugTypeCrash => 'क्रैश';
+
+  @override
+  String get feedbackBugTypeOther => 'अन्य';
+
+  @override
+  String get feedbackSeverityLabel => 'गंभीरता';
+
+  @override
+  String get feedbackSeverityLow => 'कम';
+
+  @override
+  String get feedbackSeverityMedium => 'मध्यम';
+
+  @override
+  String get feedbackSeverityHigh => 'उच्च';
+
+  @override
+  String get feedbackSeverityCritical => 'गंभीर';
+
+  @override
+  String get feedbackSubmitCta => 'सबमिट करें';
+
+  @override
+  String get feedbackSubmitSuccess => 'आपकी प्रतिक्रिया के लिए धन्यवाद!';
 }

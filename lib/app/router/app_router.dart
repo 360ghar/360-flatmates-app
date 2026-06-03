@@ -25,6 +25,8 @@ import '../../features/location_search/location_search_page.dart';
 import '../../features/discover/flat_details_page.dart';
 import '../../features/discover/map_view_page.dart';
 import '../../features/discover/search_filters_page.dart';
+import '../../features/feedback/domain/feedback_model.dart';
+import '../../features/feedback/presentation/feedback_form_page.dart';
 import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
 import '../../features/listings/manage_listing_page.dart' as listings;
@@ -289,6 +291,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'contact',
             builder: (context, state) =>
                 const HelpSafetyTopicPage(topic: HelpSafetyTopic.contact),
+          ),
+          GoRoute(
+            path: 'report-bug',
+            builder: (context, state) =>
+                const FeedbackFormPage(type: FeedbackType.bug),
+          ),
+          GoRoute(
+            path: 'request-feature',
+            builder: (context, state) =>
+                const FeedbackFormPage(type: FeedbackType.feature),
           ),
         ],
       ),

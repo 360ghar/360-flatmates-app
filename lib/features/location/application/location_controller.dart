@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
 
 import '../../../core/location/google_places_service.dart';
 import '../../../core/location/location_data.dart';
@@ -181,7 +180,7 @@ class LocationController extends Notifier<LocationState> {
 
   Future<List<PlaceSuggestion>> getPlaceSuggestions(
     String query, {
-    LatLng? currentLocation,
+    ({double latitude, double longitude})? currentLocation,
   }) async {
     final service = ref.read(googlePlacesServiceProvider);
     return service.getPlaceSuggestions(query, currentLocation: currentLocation);

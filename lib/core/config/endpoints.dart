@@ -55,6 +55,9 @@ abstract final class FlatmatesEndpoints {
   // -- App Config --
   static const appConfig = '/flatmates/app-config';
 
+  // -- Feedback (GLOBAL path, not under /flatmates) --
+  static const bugs = '/bugs';
+
   // -- Flatmates --
   static const sse = '/flatmates/sse';
   static const flatmatesProfile = '/flatmates/profile';
