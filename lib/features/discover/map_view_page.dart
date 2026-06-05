@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
+import '../../core/location/location_data.dart';
 import '../../core/map/map_controller.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_semantic_colors.dart';
@@ -41,6 +42,50 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   FlatmatesMapController? _mapController;
 
   List<PropertyListing> _currentFiltered = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureLocationData();
+    });
+  }
+
+  void _ensureLocationData() {
+    final feedState = ref.read(discoverFeedControllerProvider);
+    if (feedState.filters.hasGeoLocation) return;
+
+    final selectedLocation = ref.read(locationControllerProvider).selectedLocation;
+    if (selectedLocation != null) {
+      ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+        radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
+      );
+      return;
+    }
+
+    ref.read(locationControllerProvider.notifier).getCurrentLocation().then((_) {
+      final locState = ref.read(locationControllerProvider);
+      final pos = locState.currentPosition;
+      final address = locState.currentAddress;
+      if (pos != null && address != null && address.isNotEmpty) {
+        final location = LocationData(
+          name: address,
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+        );
+        ref.read(locationControllerProvider.notifier).selectLocation(location);
+        if (!ref.read(discoverFeedControllerProvider).filters.hasGeoLocation) {
+          ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
+            latitude: location.latitude,
+            longitude: location.longitude,
+            radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
+          );
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {

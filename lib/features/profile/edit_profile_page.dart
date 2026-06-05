@@ -281,12 +281,35 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
+  String? _validated(String? value, List<DropdownMenuItem<String>> items) {
+    if (value == null) return null;
+    final validValues = items.map((e) => e.value).toSet();
+    return validValues.contains(value) ? value : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     String? nullableText(TextEditingController controller) {
       final value = controller.text.trim();
       return value.isEmpty ? null : value;
+    }
+
+    final timelineItems = _buildTimelineItems();
+    final workStyleItems = _buildWorkStyleItems();
+    final modeItems = _buildModeItems();
+
+    final validTimelineValues = timelineItems.map((e) => e.value).toSet();
+    if (!validTimelineValues.contains(_moveInTimeline)) {
+      _moveInTimeline = timelineItems.first.value ?? _moveInTimeline;
+    }
+    final validWorkStyleValues = workStyleItems.map((e) => e.value).toSet();
+    if (!validWorkStyleValues.contains(_workStyle)) {
+      _workStyle = workStyleItems.first.value ?? _workStyle;
+    }
+    final validModeValues = modeItems.map((e) => e.value).toSet();
+    if (!validModeValues.contains(_mode)) {
+      _mode = modeItems.first.value ?? _mode;
     }
 
     return Scaffold(
@@ -314,7 +337,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             EditProfileModeSection(
               locale: locale,
               mode: _mode,
-              items: _buildModeItems(),
+              items: modeItems,
               onChanged: (value) => setState(() => _mode = value),
             ),
             const SizedBox(height: AppSpacing.section),
@@ -324,8 +347,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               budgetMaxController: _budgetMaxController,
               moveInTimeline: _moveInTimeline,
               workStyle: _workStyle,
-              timelineItems: _buildTimelineItems(),
-              workStyleItems: _buildWorkStyleItems(),
+              timelineItems: timelineItems,
+              workStyleItems: workStyleItems,
               onMoveInTimelineChanged: (value) =>
                   setState(() => _moveInTimeline = value),
               onWorkStyleChanged: (value) => setState(() => _workStyle = value),
@@ -333,11 +356,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             const SizedBox(height: AppSpacing.section),
             EditProfileLifestyleSection(
               locale: locale,
-              sleepSchedule: _sleepSchedule,
-              cleanliness: _cleanliness,
-              foodHabits: _foodHabits,
-              smokingDrinking: _smokingDrinking,
-              guestsPolicy: _guestsPolicy,
+              sleepSchedule: _validated(_sleepSchedule, _buildSleepItems()),
+              cleanliness: _validated(_cleanliness, _buildCleanlinessItems()),
+              foodHabits: _validated(_foodHabits, _buildFoodItems()),
+              smokingDrinking: _validated(_smokingDrinking, _buildSmokingItems()),
+              guestsPolicy: _validated(_guestsPolicy, _buildGuestsItems()),
               sleepItems: _buildSleepItems(),
               cleanlinessItems: _buildCleanlinessItems(),
               foodItems: _buildFoodItems(),

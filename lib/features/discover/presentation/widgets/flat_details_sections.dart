@@ -58,13 +58,15 @@ class CostRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+        Flexible(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
           ),
         ),
-        child,
+        Flexible(child: child),
       ],
     );
   }

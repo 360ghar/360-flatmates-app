@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth_controller.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_radius.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/terms_checkbox.dart';
@@ -121,63 +120,30 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   },
           ),
           const SizedBox(height: AppSpacing.md),
-          _GoogleSignInButton(
+          FlatmatesGoogleSignInButton(
+            key: const Key('signup_google_signin_button'),
             label: locale.signUpWithGoogleCta,
             isLoading: auth.status == AuthStatus.submitting,
-            onPressed: () {
-              ref.read(authControllerProvider.notifier).signInWithGoogle();
-            },
+            onPressed: !_termsAccepted
+                ? null
+                : () {
+                    ref.read(authControllerProvider.notifier).signInWithGoogle();
+                  },
           ),
+          if (!_termsAccepted && auth.status == AuthStatus.unauthenticated)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Text(
+                locale.termsAgreementRequired,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
 ],
        ),
      );
    }
  }
 
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({
-    required this.label,
-    required this.onPressed,
-    this.isLoading = false,
-  });
 
-  final String label;
-  final VoidCallback onPressed;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: theme.colorScheme.outline),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
-        ),
-        child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.g_mobiledata, size: 24),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}

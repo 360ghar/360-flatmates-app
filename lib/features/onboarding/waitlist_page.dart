@@ -68,7 +68,9 @@ class _WaitlistPageState extends ConsumerState<WaitlistPage> {
                   fullWidth: true,
                   onPressed: () {
                     final url = DeepLinkService.flatmatesUrl(city: widget.city);
-                    Share.share(locale.waitlistShareMessage(widget.city, url));
+                    SharePlus.instance.share(
+                      ShareParams(text: locale.waitlistShareMessage(widget.city, url)),
+                    );
                   },
                   icon: Icons.share_outlined,
                 ),

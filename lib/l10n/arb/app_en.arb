@@ -1464,5 +1464,7 @@
   "signUpWithGoogleCta": "Sign up with Google",
   "continueWithGoogleCta": "Continue with Google",
   "googleSignInCancelled": "Google Sign-In was cancelled.",
-  "googleSignInFailed": "Google Sign-In failed. Please try again."
+  "googleSignInFailed": "Google Sign-In failed. Please try again.",
+  "pressBackAgainToExit": "Press back again to exit",
+  "termsAgreementRequired": "Please accept the terms to continue"
 }

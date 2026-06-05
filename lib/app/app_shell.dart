@@ -48,9 +48,9 @@ class _AppShellState extends ConsumerState<AppShell> {
         } else {
           _lastBackPress = now;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Press back again to exit'),
-              duration: Duration(seconds: 3),
+            SnackBar(
+              content: Text(locale.pressBackAgainToExit),
+              duration: const Duration(seconds: 3),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -80,7 +80,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 top: false,
                 child: NavigationBar(
                   height: 76,
-                  selectedIndex: widget.navigationShell.currentIndex.clamp(0, 4),
+                  selectedIndex: widget.navigationShell.currentIndex.clamp(0, 4).toInt(),
                   onDestinationSelected: (index) {
                     widget.navigationShell.goBranch(
                       index,

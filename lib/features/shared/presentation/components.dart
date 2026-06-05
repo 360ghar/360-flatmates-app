@@ -7,6 +7,7 @@
 library;
 
 export 'flatmates_async_view.dart';
+export 'flatmates_google_sign_in_button.dart';
 export 'flatmates_bottom_action_bar.dart';
 export 'flatmates_bottom_sheet.dart';
 export 'flatmates_card.dart';

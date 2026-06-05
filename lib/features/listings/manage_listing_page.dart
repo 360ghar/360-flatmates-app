@@ -156,8 +156,10 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
                           isPausing: _pausingListingIds.contains(listing.id),
                           onTogglePause: (listingId, currentlyPaused) =>
                               _togglePause(listingId, currentlyPaused),
-                          onShare: () => Share.share(
-                            'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent.toStringAsFixed(0)}/mo in ${listing.locality ?? listing.city ?? ""}\n${DeepLinkService.listingUrl(listing.id)}',
+                          onShare: () => SharePlus.instance.share(
+                            ShareParams(
+                              text: 'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent.toStringAsFixed(0)}/mo in ${listing.locality ?? listing.city ?? ""}\n${DeepLinkService.listingUrl(listing.id)}',
+                            ),
                           ),
                           onEdit: () =>
                               context.push('/post/new?listingId=${listing.id}'),

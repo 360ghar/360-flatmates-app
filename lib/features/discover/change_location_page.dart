@@ -3,17 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/location/location_data.dart';
 import '../../core/location/location_helpers.dart';
 import '../../core/location/place_suggestion.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../location/application/location_controller.dart';
 import '../location/application/location_search_provider.dart';
 import '../location/presentation/location_picker_rows.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 import '../profile/profile_repository.dart';
+import 'application/discover_feed_controller.dart';
 
 class ChangeLocationPage extends ConsumerStatefulWidget {
   const ChangeLocationPage({super.key});
@@ -136,6 +139,24 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
           .read(profileRepositoryProvider)
           .updateProfile(payload: {'city': _selectedCity!.label});
       await ref.read(bootstrapControllerProvider.notifier).load();
+
+      // Sync the in-memory location state with the new city.
+      final meta = _selectedCity!.meta;
+      final lat = (meta['latitude'] as num?)?.toDouble();
+      final lng = (meta['longitude'] as num?)?.toDouble();
+      if (lat != null && lng != null) {
+        final newLocation = LocationData(
+          name: _selectedCity!.label,
+          latitude: lat,
+          longitude: lng,
+        );
+        ref.read(locationControllerProvider.notifier).selectLocation(newLocation);
+        ref.read(discoverFeedControllerProvider.notifier).updateLocationFilter(
+          latitude: lat,
+          longitude: lng,
+          radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
+        );
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

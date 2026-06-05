@@ -1,8 +1,9 @@
-const kPrivacyPolicyUrl = 'https://360ghar.com/policies/privacy-policy';
-
-// TODO: Replace with the actual Web application OAuth client ID from Google Cloud Console.
-const kGoogleWebClientId = 'YOUR_GOOGLE_WEB_CLIENT_ID';
-const kTermsOfServiceUrl = 'https://360ghar.com/policies/terms-of-service';
+/// Google Web OAuth client ID for Google Sign-In.
+/// Provide via --dart-define=GOOGLE_WEB_CLIENT_ID=... at build time.
+const kGoogleWebClientId = String.fromEnvironment(
+  'GOOGLE_WEB_CLIENT_ID',
+  defaultValue: '',
+);
 const kSupportEmail = 'info@360ghar.com';
 
 /// Apple App Store ID supplied at build time once App Store Connect assigns it.

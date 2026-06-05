@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/bootstrap_controller.dart';
+import '../../location/application/location_controller.dart';
 import '../discover_repository.dart';
 import 'move_in_filter.dart';
 
@@ -92,6 +93,19 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       state = state.copyWith(isLoading: true, clearError: true);
     } else {
       state = state.copyWith(isLoadingMore: true, clearError: true);
+    }
+
+    // Auto-inject location from selectedLocation if filters lack coordinates.
+    if (!state.filters.hasGeoLocation) {
+      final selectedLocation =
+          ref.read(locationControllerProvider).selectedLocation;
+      if (selectedLocation != null) {
+        _setFilters(state.filters.copyWith(
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          radiusKm: defaultLocationRadiusKm,
+        ));
+      }
     }
 
     final myVersion = _filterVersion;

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../auth_controller.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_radius.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
@@ -119,7 +118,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   },
           ),
           const SizedBox(height: AppSpacing.md),
-          _GoogleSignInButton(
+          FlatmatesGoogleSignInButton(
+            key: const Key('login_google_signin_button'),
             label: locale.signInWithGoogleCta,
             isLoading: auth.status == AuthStatus.submitting,
             onPressed: () {
@@ -143,50 +143,4 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({
-    required this.label,
-    required this.onPressed,
-    this.isLoading = false,
-  });
 
-  final String label;
-  final VoidCallback onPressed;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: theme.colorScheme.outline),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
-        ),
-        child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.g_mobiledata, size: 24),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}

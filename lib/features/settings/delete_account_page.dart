@@ -155,7 +155,12 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
       },
     );
 
-    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    bool launched = false;
+    try {
+      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      launched = false;
+    }
 
     if (!mounted) return;
 
@@ -163,7 +168,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(locale.deleteAccountRequestSent)),
       );
-      context.go('/settings');
+      context.go('/profile/settings');
     } else {
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(

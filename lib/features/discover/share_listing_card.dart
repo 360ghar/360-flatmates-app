@@ -116,11 +116,14 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                         size: 16,
                       ),
                       const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        l.locality!,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
+                      Flexible(
+                        child: Text(
+                          l.locality!,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ],
@@ -574,9 +577,12 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/flatmates_share_card.png');
       await file.writeAsBytes(byteData!.buffer.asUint8List());
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: '${locale.checkOutListingShare} $deepLink');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: '${locale.checkOutListingShare} $deepLink',
+        ),
+      );
     } catch (e) {
       debugPrint(
         'ShareListingCard._share: image capture failed, falling back to text: $e',
@@ -592,7 +598,7 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
       text.writeln();
       text.writeln(locale.findYourFlatmateShare);
       text.writeln(deepLink);
-      await Share.share(text.toString());
+      await SharePlus.instance.share(ShareParams(text: text.toString()));
     }
   }
 

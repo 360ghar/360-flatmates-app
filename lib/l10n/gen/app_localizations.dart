@@ -5845,6 +5845,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google Sign-In failed. Please try again.'**
   String get googleSignInFailed;
+
+  /// No description provided for @pressBackAgainToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get pressBackAgainToExit;
+
+  /// No description provided for @termsAgreementRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please accept the terms to continue'**
+  String get termsAgreementRequired;
 }
 
 class _AppLocalizationsDelegate

@@ -3130,4 +3130,11 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get googleSignInFailed =>
       'Google साइन-इन विफल। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get pressBackAgainToExit => 'बाहर निकलने के लिए फिर से पीछे जाएं';
+
+  @override
+  String get termsAgreementRequired =>
+      'कृपया जारी रखने के लिए शर्तें स्वीकार करें';
 }

@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../core/config/constants.dart';
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
-import '../bootstrap/bootstrap_controller.dart';
 import 'settings_controller.dart';
 import '../shared/presentation/components.dart';
 
@@ -87,7 +84,7 @@ class SettingsPage extends ConsumerWidget {
                         icon: Icons.delete_forever_outlined,
                         label: locale.deleteAccountCta,
                         isDestructive: true,
-                        onTap: () => _showDeleteAccountDialog(context, ref),
+                        onTap: () => context.push('/delete-account'),
                       ),
                     ],
                   ),
@@ -198,74 +195,6 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDeleteAccountDialog(BuildContext context, WidgetRef ref) async {
-    final locale = AppLocalizations.of(context);
-    const emailSubject = 'Account Deletion Request';
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(locale.deleteAccountTitle),
-        content: Text(locale.deleteAccountWarning),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(locale.cancelCta),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppSemanticColors.error),
-            child: Text(locale.deleteAccountCta),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    final registeredEmail =
-        ref.read(bootstrapControllerProvider).valueOrNull?.profile.email?.trim();
-    final emailLine = (registeredEmail != null && registeredEmail.isNotEmpty)
-        ? registeredEmail
-        : 'Not available';
-    final body = 'Hello 360 Ghar Support,\n\n'
-        'I would like to request the deletion of my account.\n\n'
-        'Registered email: $emailLine\n\n'
-        'Thank you.';
-    final uri = Uri(
-      scheme: 'mailto',
-      path: kSupportEmail,
-      queryParameters: <String, String>{
-        'subject': emailSubject,
-        'body': body,
-      },
-    );
-
-    try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!context.mounted) return;
-      if (launched) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(locale.deleteAccountRequestSent)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              locale.deleteAccountEmailFallback(kSupportEmail, emailSubject),
-            ),
-          ),
-        );
-      }
-    } catch (_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            locale.deleteAccountEmailFallback(kSupportEmail, emailSubject),
-          ),
-        ),
-      );
-    }
-  }
 }
 
 /// Bottom sheet for Preferences — holds theme mode, palette, and language

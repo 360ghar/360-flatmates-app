@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth_controller.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_radius.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/terms_checkbox.dart';
@@ -99,63 +99,37 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
                   },
           ),
           const SizedBox(height: AppSpacing.lg),
-          _GoogleSignInButton(
+          FlatmatesGoogleSignInButton(
+            key: const Key('enter_phone_google_signin'),
             label: locale.continueWithGoogleCta,
             isLoading: auth.status == AuthStatus.submitting,
             onPressed: () {
               ref.read(authControllerProvider.notifier).signInWithGoogle();
             },
           ),
-],
+          // Terms gate: Google sign-in requires acceptance
+          if (!_termsAccepted && auth.status == AuthStatus.unauthenticated)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Text(
+                locale.termsAgreementRequired,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+          if (auth.status == AuthStatus.error &&
+              auth.errorMessage != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              auth.errorMessage!,
+              style: TextStyle(color: AppSemanticColors.error),
+            ),
+          ],
+ ],
        ),
      );
    }
  }
 
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({
-    required this.label,
-    required this.onPressed,
-    this.isLoading = false,
-  });
 
-  final String label;
-  final VoidCallback onPressed;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: theme.colorScheme.outline),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
-        ),
-        child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.g_mobiledata, size: 24),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}

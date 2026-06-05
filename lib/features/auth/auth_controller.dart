@@ -166,14 +166,13 @@ class AuthController extends Notifier<AuthState> {
         phone: _repository.currentPhone,
       );
     } on StateError catch (e) {
-      if (e.message.contains('missing ID token') ||
-          e.message.contains('not available')) {
+      if (e.message.contains('cancelled')) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      } else {
         state = AuthState(
           status: AuthStatus.error,
           errorMessage: e.message,
         );
-      } else {
-        state = const AuthState(status: AuthStatus.unauthenticated);
       }
     } catch (error) {
       state = AuthState(

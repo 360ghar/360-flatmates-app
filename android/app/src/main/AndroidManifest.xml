@@ -54,6 +54,13 @@
                 <data android:scheme="https" android:host="the360ghar.com" android:pathPrefix="/flatmates"/>
                 <data android:scheme="https" android:host="app.the360ghar.com" android:pathPrefix="/flatmates"/>
             </intent-filter>
+            <!-- Supabase OAuth redirect (PKCE) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="io.supabase.flutter" android:host="pezjtoivkrmepydqminz"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

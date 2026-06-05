@@ -13,10 +13,10 @@ dependencies:
   connectivity_plus: ^6.1.4
   cupertino_icons: ^1.0.8
   dio: ^5.9.0
-  firebase_analytics: ^11.6.0
-  firebase_core: ^3.14.0
-  firebase_crashlytics: ^4.3.10
-  firebase_messaging: ^15.2.9
+  firebase_analytics: ^12.4.2
+  firebase_core: ^4.10.0
+  firebase_crashlytics: ^5.2.3
+  firebase_messaging: ^16.3.0
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.2.1
@@ -24,7 +24,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^2.6.1
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^10.3.1
   freezed_annotation: ^2.4.4
   maplibre_gl: 0.26.1
   geocoding: ^3.0.0
@@ -34,20 +34,19 @@ dependencies:
   image_picker: ^1.1.2
   intl: ^0.20.2
   json_annotation: ^4.9.0
-  package_info_plus: ^8.3.0
+  package_info_plus: ^10.1.0
   path_provider: ^2.1.5
-  share_plus: ^10.1.4
-  shared_preferences: ^2.5.3
+  share_plus: ^13.1.0
+  shared_preferences: ^2.5.5
   sms_autofill: ^2.3.0
   url_launcher: ^6.3.1
   supabase_flutter: ^2.10.4
-  google_sign_in: ^6.2.1
   confetti: ^0.7.0
   flutter_markdown: ^0.7.4+1
   qr_flutter: ^4.1.0
   video_player: ^2.11.1
   stack_trace: ^1.12.1
-
+  google_sign_in: ^6.2.1
 
 
 dev_dependencies:
@@ -64,6 +63,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/icons/
     - assets/illustrations/
     - .env
 

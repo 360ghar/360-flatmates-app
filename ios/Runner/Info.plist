@@ -99,13 +99,20 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>REVERSED_GOOGLE_CLIENT_ID</string>
+			<string>com.the360ghar.flatmates360</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<!-- TODO: Replace with the reversed iOS client ID from Google Cloud Console.
-				     Format: com.googleusercontent.apps.YOUR_IOS_CLIENT_ID
-				     This is required for Google Sign-In on iOS. -->
-				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.$(GOOGLE_REVERSED_CLIENT_ID)</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>io.supabase.flutter</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>io.supabase.flutter</string>
 			</array>
 		</dict>
 	</array>

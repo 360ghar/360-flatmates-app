@@ -1,8 +1,8 @@
-import 'package:flutter/services.dart';
+import 'dart:async';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/config/constants.dart';
 import '../../../core/config/endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/auth_token_storage.dart';
@@ -16,6 +16,7 @@ final class AuthRepository {
 
   final ApiClient _apiClient;
   final AuthTokenStorage _tokenStorage;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   SupabaseClient get _supabase => Supabase.instance.client;
 
@@ -43,46 +44,27 @@ final class AuthRepository {
   }
 
   Future<void> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn(
-      serverClientId: kGoogleWebClientId,
-      scopes: ['openid', 'email', 'profile'],
-    );
-
-    final GoogleSignInAccount? account;
-    try {
-      account = await googleSignIn.signIn();
-    } on PlatformException catch (e) {
-      if (e.code == 'network_error' || e.code == 'internal_error') {
-        throw StateError('Google Sign-In is not available. Please try again.');
-      }
-      rethrow;
-    }
-
+    final account = await _googleSignIn.signIn();
     if (account == null) {
-      return;
+      throw StateError('Google Sign-In was cancelled.');
     }
 
-    final GoogleSignInAuthentication auth;
-    try {
-      auth = await account.authentication;
-    } on PlatformException catch (e) {
-      if (e.code == 'network_error') {
-        throw StateError('Network error during Google Sign-In. Please try again.');
-      }
-      rethrow;
-    }
-
+    final auth = await account.authentication;
     final idToken = auth.idToken;
     if (idToken == null) {
-      throw StateError('Google Sign-In failed: missing ID token.');
+      await _googleSignIn.disconnect();
+      throw StateError(
+        'Failed to get Google ID token. '
+        'Ensure the web client ID is configured for this app.',
+      );
     }
 
-    final response = await _supabase.auth.signInWithIdToken(
+    await _supabase.auth.signInWithIdToken(
       provider: OAuthProvider.google,
       idToken: idToken,
     );
 
-    final session = response.session ?? _supabase.auth.currentSession;
+    final session = _supabase.auth.currentSession;
     if (session == null) {
       throw StateError('Session missing after Google sign in.');
     }
@@ -148,6 +130,7 @@ final class AuthRepository {
   }
 
   Future<void> signOut() async {
+    await _googleSignIn.signOut();
     await _supabase.auth.signOut();
     await _tokenStorage.clear();
   }

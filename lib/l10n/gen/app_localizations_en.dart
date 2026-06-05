@@ -3117,4 +3117,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get googleSignInFailed => 'Google Sign-In failed. Please try again.';
+
+  @override
+  String get pressBackAgainToExit => 'Press back again to exit';
+
+  @override
+  String get termsAgreementRequired => 'Please accept the terms to continue';
 }

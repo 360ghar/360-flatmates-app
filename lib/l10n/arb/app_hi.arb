@@ -1464,5 +1464,7 @@
   "signUpWithGoogleCta": "Google से खाता बनाएं",
   "continueWithGoogleCta": "Google से जारी रखें",
   "googleSignInCancelled": "Google साइन-इन रद्द किया गया।",
-  "googleSignInFailed": "Google साइन-इन विफल। कृपया पुनः प्रयास करें।"
+  "googleSignInFailed": "Google साइन-इन विफल। कृपया पुनः प्रयास करें।",
+  "pressBackAgainToExit": "बाहर निकलने के लिए फिर से पीछे जाएं",
+  "termsAgreementRequired": "कृपया जारी रखने के लिए शर्तें स्वीकार करें"
 }

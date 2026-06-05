@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/constants.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/deep_links/deep_link_service.dart';
 import '../app_shell.dart';
@@ -40,6 +39,7 @@ import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/settings/blocked_users_page.dart';
 import '../../features/settings/change_password_page.dart';
+import '../../features/settings/delete_account_page.dart';
 import '../../features/settings/notification_settings_page.dart';
 import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
@@ -102,6 +102,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/privacy-policy' ||
           location == '/terms-of-service' ||
           location == '/change-password' ||
+          location == '/delete-account' ||
           location == '/blocked-users' ||
           location == '/match-celebration' ||
           location == '/waitlist' ||
@@ -306,18 +307,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/privacy-policy',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => LegalContentPage(
-          title: 'Privacy Policy',
-          url: kPrivacyPolicyUrl,
-        ),
+        builder: (context, state) {
+          final locale = AppLocalizations.of(context);
+          return LegalContentPage(
+            title: locale.privacyPolicy,
+            type: LegalContentType.privacyPolicy,
+          );
+        },
       ),
       GoRoute(
         path: '/terms-of-service',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => LegalContentPage(
-          title: 'Terms of Service',
-          url: kTermsOfServiceUrl,
-        ),
+        builder: (context, state) {
+          final locale = AppLocalizations.of(context);
+          return LegalContentPage(
+            title: locale.termsOfService,
+            type: LegalContentType.termsOfService,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/delete-account',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DeleteAccountPage(),
       ),
       GoRoute(
         path: '/change-password',
