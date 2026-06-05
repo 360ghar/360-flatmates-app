@@ -165,15 +165,13 @@ class AuthController extends Notifier<AuthState> {
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
       );
+    } on TimeoutException {
+      state = const AuthState(status: AuthStatus.unauthenticated);
     } on StateError catch (e) {
-      if (e.message.contains('cancelled')) {
-        state = const AuthState(status: AuthStatus.unauthenticated);
-      } else {
-        state = AuthState(
-          status: AuthStatus.error,
-          errorMessage: e.message,
-        );
-      }
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.message,
+      );
     } catch (error) {
       state = AuthState(
         status: AuthStatus.error,

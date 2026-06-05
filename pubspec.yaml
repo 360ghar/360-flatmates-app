@@ -46,7 +46,6 @@ dependencies:
   qr_flutter: ^4.1.0
   video_player: ^2.11.1
   stack_trace: ^1.12.1
-  google_sign_in: ^6.2.1
 
 
 dev_dependencies:

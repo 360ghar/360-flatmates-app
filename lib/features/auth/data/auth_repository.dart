@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/endpoints.dart';
@@ -16,12 +15,14 @@ final class AuthRepository {
 
   final ApiClient _apiClient;
   final AuthTokenStorage _tokenStorage;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   SupabaseClient get _supabase => Supabase.instance.client;
 
   Session? get currentSession => _supabase.auth.currentSession;
   String? get currentPhone => currentSession?.user.phone;
+
+  static const _supabaseRedirectUrl =
+      'io.supabase.flutter://pezjtoivkrmepydqminz/auth-callback';
 
   Future<void> requestOtp(String phone) async {
     await _supabase.auth.signInWithOtp(phone: phone);
@@ -44,32 +45,37 @@ final class AuthRepository {
   }
 
   Future<void> signInWithGoogle() async {
-    final account = await _googleSignIn.signIn();
-    if (account == null) {
-      throw StateError('Google Sign-In was cancelled.');
-    }
+    final completer = Completer<void>();
+    StreamSubscription? authSub;
 
-    final auth = await account.authentication;
-    final idToken = auth.idToken;
-    if (idToken == null) {
-      await _googleSignIn.disconnect();
-      throw StateError(
-        'Failed to get Google ID token. '
-        'Ensure the web client ID is configured for this app.',
+    authSub = _supabase.auth.onAuthStateChange.listen((data) {
+      if (data.session != null && !completer.isCompleted) {
+        completer.complete();
+      }
+    });
+
+    try {
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: _supabaseRedirectUrl,
       );
-    }
 
-    await _supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-    );
+      await completer.future.timeout(
+        const Duration(minutes: 5),
+        onTimeout: () => throw TimeoutException(
+          'Google Sign-In timed out. Please try again.',
+        ),
+      );
 
-    final session = _supabase.auth.currentSession;
-    if (session == null) {
-      throw StateError('Session missing after Google sign in.');
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw StateError('Session missing after Google sign in.');
+      }
+      await _tokenStorage.save(session.accessToken);
+      await _apiClient.get(FlatmatesEndpoints.me);
+    } finally {
+      await authSub.cancel();
     }
-    await _tokenStorage.save(session.accessToken);
-    await _apiClient.get(FlatmatesEndpoints.me);
   }
 
   Future<void> signUpWithPassword({
@@ -130,7 +136,6 @@ final class AuthRepository {
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
     await _supabase.auth.signOut();
     await _tokenStorage.clear();
   }

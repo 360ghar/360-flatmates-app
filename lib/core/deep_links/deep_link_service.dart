@@ -9,6 +9,9 @@ import 'package:go_router/go_router.dart';
 /// Supported paths:
 ///   /flatmates/listing/{id}  → /flat-details/{id}
 ///   /flatmates/chat/{id}     → /chats/{id}
+///
+/// Supabase OAuth PKCE callbacks are handled internally by supabase_flutter
+/// via the authCallbackUrlHostname set in bootstrap.dart.
 class DeepLinkService {
   DeepLinkService({required GoRouter router}) : _router = router;
 
