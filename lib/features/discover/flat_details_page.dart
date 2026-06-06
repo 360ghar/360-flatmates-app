@@ -13,6 +13,8 @@ import 'discover_repository.dart';
 import 'presentation/widgets/flat_details_carousel.dart';
 import 'presentation/widgets/flat_details_sections.dart';
 import 'presentation/widgets/report_listing_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'share_listing_card.dart';
 
 class FlatDetailsPage extends ConsumerStatefulWidget {
@@ -214,6 +216,69 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               ),
                             ),
                           const SizedBox(height: AppSpacing.screen),
+
+                          if (listing.effectiveFloorPlanUrl != null) ...[
+                            FlatmatesSectionHeader(
+                              title: 'Floor Plan',
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            ClipRRect(
+                              borderRadius: AppRadius.mdBorder,
+                              child: FlatmatesNetworkImage(
+                                imageUrl: listing.effectiveFloorPlanUrl!,
+                                width: double.infinity,
+                                height: 200,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.screen),
+                          ],
+
+                          if (listing.virtualTourUrl != null &&
+                              listing.virtualTourUrl!.isNotEmpty) ...[
+                            FlatmatesSectionHeader(
+                              title: '360° Virtual Tour',
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            FlatmatesCard(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.view_in_ar_rounded,
+                                    size: 48,
+                                    color: AppSemanticColors.accent,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  Text(
+                                    'Explore this property in 360°',
+                                    style:
+                                        theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      final uri =
+                                          Uri.tryParse(listing.virtualTourUrl!);
+                                      if (uri != null) {
+                                        launchUrl(
+                                          uri,
+                                          mode:
+                                              LaunchMode.externalApplication,
+                                        );
+                                      }
+                                    },
+                                    icon:
+                                        const Icon(Icons.open_in_new_rounded),
+                                    label: const Text('Open Virtual Tour'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.screen),
+                          ],
 
                           if (listing.videoTourUrl != null &&
                               listing.videoTourUrl!.isNotEmpty) ...[

@@ -35,6 +35,8 @@ class PropertyListingDto {
       monthlyRent: (json['monthly_rent'] as num?)?.toDouble() ?? 0,
       mainImageUrl: json['main_image_url'] as String?,
       imageUrls: _parseImageUrls(json),
+      virtualTourUrl: json['virtual_tour_url'] as String?,
+      floorPlanUrl: json['floor_plan_url'] as String?,
       areaSqft: (json['area_sqft'] as num?)?.toDouble(),
       bedrooms: (json['bedrooms'] as num?)?.toInt(),
       bathrooms: (json['bathrooms'] as num?)?.toInt(),
@@ -87,7 +89,9 @@ class PropertyListingDto {
   static List<String> _parseImageUrls(Map<String, dynamic> json) {
     final raw = json['image_urls'];
     if (raw is List && raw.isNotEmpty) {
-      return raw.map((item) => item.toString()).toList();
+      if (raw.every((e) => e is String)) {
+        return List<String>.from(raw);
+      }
     }
     final imageRows = json['images'];
     if (imageRows is List && imageRows.isNotEmpty) {
@@ -100,7 +104,11 @@ class PropertyListingDto {
       if (urls.isNotEmpty) return urls;
     }
     final main = json['main_image_url'] as String?;
-    if (main != null && main.isNotEmpty) return [main];
+    if (main != null &&
+        main.isNotEmpty &&
+        (main.startsWith('http://') || main.startsWith('https://'))) {
+      return [main];
+    }
     return const [];
   }
 }

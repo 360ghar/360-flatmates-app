@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
+import '../../core/location/location_data.dart';
 import '../../core/map/map_controller.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_semantic_colors.dart';
@@ -19,7 +20,7 @@ import '../location/presentation/map_widgets.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
-import 'application/discover_feed_controller.dart';
+import 'application/map_listings_controller.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/discover_map.dart';
 import 'presentation/widgets/map_filter_bar.dart';
@@ -43,6 +44,51 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   List<PropertyListing> _currentFiltered = [];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureLocationData();
+    });
+  }
+
+  void _ensureLocationData() {
+    final mapState = ref.read(mapListingsProvider);
+    if (mapState.filters.hasGeoLocation) return;
+
+    final selectedLocation = ref.read(locationControllerProvider).selectedLocation;
+    if (selectedLocation != null) {
+      ref.read(mapListingsProvider.notifier).updateLocationFilter(
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+        radiusKm: MapListingsController.defaultLocationRadiusKm,
+      );
+      return;
+    }
+
+    ref.read(locationControllerProvider.notifier).getCurrentLocation().then((_) {
+      if (!mounted) return;
+      final locState = ref.read(locationControllerProvider);
+      final pos = locState.currentPosition;
+      final address = locState.currentAddress;
+      if (pos != null && address != null && address.isNotEmpty) {
+        final location = LocationData(
+          name: address,
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+        );
+        ref.read(locationControllerProvider.notifier).selectLocation(location);
+        if (!ref.read(mapListingsProvider).filters.hasGeoLocation) {
+          ref.read(mapListingsProvider.notifier).updateLocationFilter(
+            latitude: location.latitude,
+            longitude: location.longitude,
+            radiusKm: MapListingsController.defaultLocationRadiusKm,
+          );
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _cardScrollController.dispose();
     _locationRadiusDebouncer.dispose();
@@ -50,7 +96,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _showLocationPicker(BuildContext context) {
-    final feedState = ref.read(discoverFeedControllerProvider);
+    final mapState = ref.read(mapListingsProvider);
     final selectedLocation = ref
         .read(locationControllerProvider)
         .selectedLocation;
@@ -67,8 +113,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         ? selectedDisplayText
         : profileLocation;
     final currentRadiusKm =
-        feedState.filters.radiusKm ??
-        DiscoverFeedController.defaultLocationRadiusKm;
+        mapState.filters.radiusKm ??
+        MapListingsController.defaultLocationRadiusKm;
 
     var selectedRadiusKm = currentRadiusKm;
     var didSelectLocation = false;
@@ -86,7 +132,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
               .selectedLocation;
           if (activeLocation == null) return;
           ref
-              .read(discoverFeedControllerProvider.notifier)
+              .read(mapListingsProvider.notifier)
               .updateLocationFilter(
                 latitude: activeLocation.latitude,
                 longitude: activeLocation.longitude,
@@ -98,7 +144,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         didSelectLocation = true;
         ref.read(locationControllerProvider.notifier).selectLocation(location);
         ref
-            .read(discoverFeedControllerProvider.notifier)
+            .read(mapListingsProvider.notifier)
             .updateLocationFilter(
               latitude: location.latitude,
               longitude: location.longitude,
@@ -110,7 +156,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final feedState = ref.watch(discoverFeedControllerProvider);
+    final mapState = ref.watch(mapListingsProvider);
     final selectedLocation = ref.watch(
       locationControllerProvider.select((s) => s.selectedLocation),
     );
@@ -122,7 +168,6 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       if (nextLoc != null &&
           (prevLoc?.latitude != nextLoc.latitude ||
               prevLoc?.longitude != nextLoc.longitude)) {
-        // Preserve the user's current zoom level and animate smoothly.
         _mapController?.animateTo(LatLng(nextLoc.latitude, nextLoc.longitude));
       }
     });
@@ -132,28 +177,28 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     final searchRadiusKm =
-        feedState.filters.radiusKm ??
-        DiscoverFeedController.defaultLocationRadiusKm;
+        mapState.filters.radiusKm ??
+        MapListingsController.defaultLocationRadiusKm;
     final selectedDisplayText = selectedLocation?.displayText ?? '';
 
-    final filtered = feedState.listings;
+    final filtered = mapState.listings;
     _currentFiltered = filtered;
 
     final frostOverlayColor = isDark
         ? AppSemanticColors.frostOverlayDark
         : AppSemanticColors.frostOverlayLight;
 
-    if (feedState.isLoading && feedState.listings.isEmpty) {
+    if (mapState.isLoading && mapState.listings.isEmpty) {
       return const Scaffold(body: SafeArea(child: FlatmatesSkeleton.card()));
     }
 
-    if (feedState.hasError) {
+    if (mapState.hasError) {
       return Scaffold(
         body: SafeArea(
           child: FlatmatesErrorState(
             message: locale.couldNotLoadListing,
             onRetry: () =>
-                ref.read(discoverFeedControllerProvider.notifier).load(),
+                ref.read(mapListingsProvider.notifier).load(),
             retryLabel: locale.commonRetry,
           ),
         ),
@@ -164,7 +209,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       body: Stack(
         children: [
           // Full-screen map
-          Positioned.fill(child: _buildMap(filtered, searchRadiusKm, locale)),
+          Positioned.fill(child: _buildMap(filtered, searchRadiusKm, locale, isDark)),
 
           // Top bar overlay with frosted glass background
           Positioned(
@@ -261,7 +306,6 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       final conversationId = await ref
           .read(discoverRepositoryProvider)
           .likeListing(item.id);
-      ref.read(discoverFeedControllerProvider.notifier).refresh();
       ref.invalidate(conversationsProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -286,6 +330,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     List<PropertyListing> filtered,
     double searchRadiusKm,
     AppLocalizations locale,
+    bool isDark,
   ) {
     final selectedPropertyId = ref.watch(
       selectedPropertyProvider.select((s) => s?.id),
@@ -316,11 +361,20 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           ),
         ),
         if (!hasMarkers)
-          FlatmatesEmptyState(
-            title: filtered.isEmpty
-                ? locale.emptyListings
-                : locale.noListingsMatchFilters,
-            icon: Icons.map_outlined,
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                color: isDark
+                    ? AppSemanticColors.darkSurface.withValues(alpha: 0.7)
+                    : Colors.white.withValues(alpha: 0.7),
+                child: FlatmatesEmptyState(
+                  title: filtered.isEmpty
+                      ? locale.emptyListings
+                      : locale.noListingsMatchFilters,
+                  icon: Icons.map_outlined,
+                ),
+              ),
+            ),
           ),
       ],
     );
@@ -330,12 +384,12 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final selectedLocation = ref
         .read(locationControllerProvider)
         .selectedLocation;
-    final feedState = ref.read(discoverFeedControllerProvider);
+    final mapState = ref.read(mapListingsProvider);
     if (selectedLocation != null) {
       return LatLng(selectedLocation.latitude, selectedLocation.longitude);
     }
-    if (feedState.filters.hasGeoLocation) {
-      return LatLng(feedState.filters.latitude!, feedState.filters.longitude!);
+    if (mapState.filters.hasGeoLocation) {
+      return LatLng(mapState.filters.latitude!, mapState.filters.longitude!);
     }
     for (final item in filtered) {
       if (item.latitude != null && item.longitude != null) {
@@ -384,13 +438,13 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         kDefaultInitialZoom,
       );
       ref
-          .read(discoverFeedControllerProvider.notifier)
+          .read(mapListingsProvider.notifier)
           .updateLocationFilter(
             latitude: pos.latitude,
             longitude: pos.longitude,
             radiusKm:
-                ref.read(discoverFeedControllerProvider).filters.radiusKm ??
-                DiscoverFeedController.defaultLocationRadiusKm,
+                ref.read(mapListingsProvider).filters.radiusKm ??
+                MapListingsController.defaultLocationRadiusKm,
           );
     } else {
       await ref.read(locationControllerProvider.notifier).getCurrentLocation();
@@ -401,13 +455,13 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           kDefaultInitialZoom,
         );
         ref
-            .read(discoverFeedControllerProvider.notifier)
+            .read(mapListingsProvider.notifier)
             .updateLocationFilter(
               latitude: newPos.latitude,
               longitude: newPos.longitude,
               radiusKm:
-                  ref.read(discoverFeedControllerProvider).filters.radiusKm ??
-                  DiscoverFeedController.defaultLocationRadiusKm,
+                  ref.read(mapListingsProvider).filters.radiusKm ??
+                  MapListingsController.defaultLocationRadiusKm,
             );
       }
     }

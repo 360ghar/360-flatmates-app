@@ -97,7 +97,7 @@ void showClusterSheet(
                     FlatmatesListingMiniCard(
                       title: item.title,
                       rent: item.monthlyRent.toInt(),
-                      imageUrl: item.mainImageUrl,
+                      imageUrl: item.effectiveMainImageUrl,
                       locality: item.locality,
                       subtitle: subtitleParts.isNotEmpty
                           ? subtitleParts.join(' · ')
@@ -173,7 +173,7 @@ void showListingSheet(
             FlatmatesListingMiniCard(
               title: item.title,
               rent: item.monthlyRent.toInt(),
-              imageUrl: item.mainImageUrl,
+              imageUrl: item.effectiveMainImageUrl,
               locality: item.locality,
               trailing: FlatmatesPriceText.card(
                 amount: item.monthlyRent.toInt(),

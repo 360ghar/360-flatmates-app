@@ -28,6 +28,8 @@ class PropertyListing {
     required this.genderPreference,
     required this.sharingType,
     this.videoTourUrl,
+    this.virtualTourUrl,
+    this.floorPlanUrl,
     required this.interestCount,
     required this.viewCount,
     required this.likeCount,
@@ -67,6 +69,8 @@ class PropertyListing {
   final String? genderPreference;
   final String? sharingType;
   final String? videoTourUrl;
+  final String? virtualTourUrl;
+  final String? floorPlanUrl;
   final double? securityDeposit;
   final double? maintenanceCharges;
   final int interestCount;
@@ -80,6 +84,32 @@ class PropertyListing {
   final DateTime? expiresAt;
   final PropertyOwner? owner;
   final double? distanceKm;
+
+  /// Returns [mainImageUrl] if it is an absolute URL, otherwise falls back to
+  /// the first entry in [imageUrls]. Handles the case where the backend stores
+  /// `main_image_url` as a relative path that cannot be resolved by the app.
+  String? get effectiveMainImageUrl {
+    if (mainImageUrl != null &&
+        (mainImageUrl!.startsWith('http://') ||
+            mainImageUrl!.startsWith('https://'))) {
+      return mainImageUrl;
+    }
+    return imageUrls.isNotEmpty ? imageUrls.first : null;
+  }
+
+  /// Returns [floorPlanUrl] if it is an absolute URL, otherwise falls back to
+  /// checking the [imageUrls] array for any entry whose `image_category` might
+  /// be `floor_plan` (currently not parsed in the DTO, but future-proofed).
+  /// Handles the case where the backend stores `floor_plan_url` as a relative
+  /// path that cannot be resolved by the app (same issue as `main_image_url`).
+  String? get effectiveFloorPlanUrl {
+    if (floorPlanUrl != null &&
+        (floorPlanUrl!.startsWith('http://') ||
+            floorPlanUrl!.startsWith('https://'))) {
+      return floorPlanUrl;
+    }
+    return null;
+  }
 
   bool get isUnderReview =>
       status == 'pending_review' || status == 'under_review';

@@ -50,7 +50,7 @@ class DiscoverListingCard extends StatelessWidget {
     metaParts.add(genderSuffix);
 
     final hasImage =
-        item.mainImageUrl != null && item.mainImageUrl!.trim().isNotEmpty;
+        item.effectiveMainImageUrl != null && item.effectiveMainImageUrl!.trim().isNotEmpty;
 
     return FlatmatesCard(
       key: Key('discover_listing_card_${item.id}'),
@@ -79,7 +79,7 @@ class DiscoverListingCard extends StatelessWidget {
                     ),
                     child: hasImage
                         ? FlatmatesNetworkImage(
-                            imageUrl: item.mainImageUrl!,
+                            imageUrl: item.effectiveMainImageUrl!,
                             fit: BoxFit.cover,
                           )
                         : _CardImageFallback(title: item.title),

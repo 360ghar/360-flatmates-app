@@ -140,12 +140,12 @@ class MovingSoonSection extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   child: Stack(
                     children: [
-                      if (item.mainImageUrl != null)
+                      if (item.effectiveMainImageUrl != null)
                         Positioned.fill(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(AppRadius.md),
                             child: FlatmatesNetworkImage(
-                              imageUrl: item.mainImageUrl!,
+                              imageUrl: item.effectiveMainImageUrl!,
                               fit: BoxFit.cover,
                             ),
                           ),

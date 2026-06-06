@@ -189,7 +189,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
     metaParts.add(genderSuffix);
 
     final hasImage =
-        item.mainImageUrl != null && item.mainImageUrl!.trim().isNotEmpty;
+        item.effectiveMainImageUrl != null && item.effectiveMainImageUrl!.trim().isNotEmpty;
 
     return Listener(
       onPointerDown: (_) => setState(() => _pressed = true),
@@ -226,7 +226,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                     height: 110,
                     child: hasImage
                         ? FlatmatesNetworkImage(
-                            imageUrl: item.mainImageUrl!,
+                            imageUrl: item.effectiveMainImageUrl!,
                             width: 110,
                             height: 110,
                             fit: BoxFit.cover,

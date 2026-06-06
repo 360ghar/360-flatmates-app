@@ -348,9 +348,9 @@ class _ListingUnderReviewPageState
                     FlatmatesCard(
                       child: Row(
                         children: [
-                          if (listing.mainImageUrl != null)
+                          if (listing.effectiveMainImageUrl != null)
                             FlatmatesNetworkImage(
-                              imageUrl: listing.mainImageUrl!,
+                              imageUrl: listing.effectiveMainImageUrl!,
                               width: 72,
                               height: 72,
                               borderRadius: AppRadius.mdBorder,

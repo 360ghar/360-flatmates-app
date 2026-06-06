@@ -64,9 +64,9 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               children: [
                 Row(
                   children: [
-                    if (l.mainImageUrl != null)
+                    if (l.effectiveMainImageUrl != null)
                       FlatmatesNetworkImage(
-                        imageUrl: l.mainImageUrl!,
+                        imageUrl: l.effectiveMainImageUrl!,
                         width: 28,
                         height: 28,
                         borderRadius: BorderRadius.circular(8),
@@ -279,9 +279,9 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (l.mainImageUrl != null && l.mainImageUrl!.isNotEmpty)
+                  if (l.effectiveMainImageUrl != null && l.effectiveMainImageUrl!.isNotEmpty)
                     FlatmatesNetworkImage(
-                      imageUrl: l.mainImageUrl!,
+                      imageUrl: l.effectiveMainImageUrl!,
                       fit: BoxFit.cover,
                     )
                   else
@@ -401,9 +401,9 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
           fit: StackFit.expand,
           children: [
             // Full-bleed image
-            if (l.mainImageUrl != null && l.mainImageUrl!.isNotEmpty)
+            if (l.effectiveMainImageUrl != null && l.effectiveMainImageUrl!.isNotEmpty)
               FlatmatesNetworkImage(
-                imageUrl: l.mainImageUrl!,
+                imageUrl: l.effectiveMainImageUrl!,
                 fit: BoxFit.cover,
               )
             else
