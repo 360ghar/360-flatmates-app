@@ -622,11 +622,11 @@
   "visitConfirmed": "विज़िट पुष्ट",
   "visitCancelled": "विज़िट रद्द की गई।",
   "videoTourLabel": "वीडियो टूर (वैकल्पिक)",
-  "videoTourHint": "15-30 सेकंड का वर्टिकल वीडियो, अधिकतम 50MB",
+  "videoTourHint": "15-60 सेकंड का वर्टिकल वीडियो, अधिकतम 50MB",
   "addVideoCta": "वीडियो टूर जोड़ें",
   "videoTourAdded": "वीडियो टूर जोड़ दिया गया",
   "videoTooLarge": "वीडियो 50MB से कम होना चाहिए",
-  "videoTooLong": "वीडियो 30 सेकंड से कम होना चाहिए",
+  "videoTooLong": "वीडियो 60 सेकंड से कम होना चाहिए",
   "videoTooShort": "वीडियो कम से कम 15 सेकंड का होना चाहिए",
   "tapToUnmute": "अनम्यूट करने के लिए टैप करें",
   "soundOn": "आवाज़ चालू",
@@ -1484,5 +1484,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "trendingNeighborhoodsIn": "{city} में ट्रेंडिंग",
+  "@trendingNeighborhoodsIn": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें"
 }

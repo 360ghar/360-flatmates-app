@@ -41,6 +41,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   final _locationRadiusDebouncer = ActionDebouncer();
   final ScrollController _cardScrollController = ScrollController();
   int _scrollAnimGen = 0;
+  bool _autoLocationRunning = false;
 
   // Bound once the DiscoverMap hands back its controller via onMapReady.
   FlatmatesMapController? _mapController;
@@ -73,10 +74,16 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       return;
     }
 
+    if (_autoLocationRunning) return;
+    _autoLocationRunning = true;
+
     ref.read(locationControllerProvider.notifier).getCurrentLocation().then((
       _,
     ) {
+      _autoLocationRunning = false;
       if (!mounted) return;
+      if (ref.read(locationControllerProvider).selectedLocation != null) return;
+
       final locState = ref.read(locationControllerProvider);
       final pos = locState.currentPosition;
       final address = locState.currentAddress;

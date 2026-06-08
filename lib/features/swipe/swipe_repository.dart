@@ -145,11 +145,9 @@ class SwipeProfile {
 
   static List<String> _parseImageUrls(dynamic raw) {
     if (raw is List && raw.isNotEmpty) {
-      if (raw.every((e) => e is String)) {
-        return List<String>.from(raw)
-            .where((url) => url.startsWith('http://') || url.startsWith('https://'))
-            .toList(growable: false);
-      }
+      return raw.whereType<String>()
+          .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+          .toList(growable: false);
     }
     return const [];
   }

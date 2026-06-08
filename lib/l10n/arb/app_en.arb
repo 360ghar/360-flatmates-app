@@ -622,11 +622,11 @@
   "visitConfirmed": "Visit confirmed",
   "visitCancelled": "Visit cancelled.",
   "videoTourLabel": "Video tour (optional)",
-  "videoTourHint": "15-30 second vertical video, max 50MB",
+  "videoTourHint": "15-60 second vertical video, max 50MB",
   "addVideoCta": "Add video tour",
   "videoTourAdded": "Video tour added",
   "videoTooLarge": "Video must be under 50MB",
-  "videoTooLong": "Video must be under 30 seconds",
+  "videoTooLong": "Video must be under 60 seconds",
   "videoTooShort": "Video must be at least 15 seconds",
   "tapToUnmute": "Tap to unmute",
   "soundOn": "Sound on",
@@ -1484,5 +1484,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "trendingNeighborhoodsIn": "Trending in {city}",
+  "@trendingNeighborhoodsIn": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "meetPotentialFlatmates": "Meet potential flatmates"
 }

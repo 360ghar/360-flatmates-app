@@ -2378,6 +2378,18 @@ abstract class AppLocalizations {
   /// **'Moving soon'**
   String get homeMovingSoon;
 
+  /// No description provided for @trendingNeighborhoodsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending in {city}'**
+  String trendingNeighborhoodsIn(String city);
+
+  /// No description provided for @meetPotentialFlatmates.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet potential flatmates'**
+  String get meetPotentialFlatmates;
+
   /// No description provided for @vibeAll.
   ///
   /// In en, this message translates to:

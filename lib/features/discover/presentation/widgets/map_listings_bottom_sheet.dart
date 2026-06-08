@@ -42,11 +42,7 @@ class MapListingsBottomSheet extends ConsumerWidget {
         // Handle area (8 top + 4 line + 8 bottom) = 20
         // Title area (0 top + roughly 20 text + 8 bottom) = 28
         // Cards area = 180
-        // Bottom padding (AppSpacing.lg) = 24
-        // Handle area (8 top + 4 line + 8 bottom) = 20
-        // Title area (0 top + roughly 20 text + 8 bottom) = 28
-        // Cards area = 180
-        // Bottom padding (AppSpacing.lg) = 16 + safeArea
+        // Bottom padding (AppSpacing.lg = 16) + safeArea
         final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
         final bottomPadding = AppSpacing.lg + safeAreaBottom;
         final contentHeight = 20.0 + 28.0 + 180.0 + bottomPadding;

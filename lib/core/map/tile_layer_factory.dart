@@ -16,9 +16,16 @@ class TileLayerFactory {
 
   static const String _attribution = '\u00a9 OpenStreetMap contributors';
 
-  /// A single shared HTTP client so TLS connections are reused across tile
-  /// requests and map instances.
-  static final Client _sharedClient = Client();
+  /// A shared HTTP client so TLS connections are reused across tile requests
+  /// and map instances. Lazily recreated after [dispose].
+  static Client? _sharedClient;
+
+  static Client get _client {
+    if (_sharedClient == null) {
+      _sharedClient = Client();
+    }
+    return _sharedClient!;
+  }
 
   /// Creates a [TileLayer] configured with OpenStreetMap standard tiles and
   /// proper HTTP headers (User-Agent, Referer) required by the OSM tile usage
@@ -28,7 +35,7 @@ class TileLayerFactory {
       urlTemplate: _urlTemplate,
       userAgentPackageName: '360Flatmates',
       tileProvider: NetworkTileProvider(
-        httpClient: _sharedClient,
+        httpClient: _client,
         headers: {'Referer': 'https://360ghar.com'},
       ),
       minZoom: 2,
@@ -41,6 +48,7 @@ class TileLayerFactory {
 
   /// Cleanup method for tests / app shutdown.
   static void dispose() {
-    _sharedClient.close();
+    _sharedClient?.close();
+    _sharedClient = null;
   }
 }

@@ -14,7 +14,5 @@
         <string>applinks:app.the360ghar.com</string>
         <string>webcredentials:360ghar.com</string>
     </array>
-    <key>com.apple.developer.authentication-services.autofill-credential-provider</key>
-    <true/>
 </dict>
 </plist>

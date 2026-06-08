@@ -155,6 +155,7 @@ class OnboardingController extends Notifier<OnboardingState> {
     try {
       final lifestyleAnswers = state.lifestyleAnswers;
       final preferences = state.preferences;
+      final normalizedPreferences = _normalizePreferences(preferences);
       final payload = <String, dynamic>{
         'mode': state.mode,
         'full_name': state.fullName,
@@ -170,7 +171,7 @@ class OnboardingController extends Notifier<OnboardingState> {
           'photo_urls': state.photoUrls,
           'non_negotiables': state.nonNegotiables,
           ...lifestyleAnswers,
-          ...preferences,
+          ...normalizedPreferences,
         },
       };
 
@@ -193,6 +194,45 @@ class OnboardingController extends Notifier<OnboardingState> {
       );
       await _saveState();
     }
+  }
+
+  /// Normalizes preference values to API-friendly format.
+  /// Maps UI-facing labels like 'male', 'female', 'veg', 'non_veg' to the
+  /// canonical strings the backend expects.
+  static Map<String, dynamic> _normalizePreferences(Map<String, dynamic> prefs) {
+    if (prefs.isEmpty) return prefs;
+    final normalized = Map<String, dynamic>.from(prefs);
+
+    if (normalized.containsKey('gender_preference')) {
+      final val = normalized['gender_preference']?.toString().toLowerCase();
+      if (val == 'any' || val == 'no_preference') {
+        normalized['gender_preference'] = 'any';
+      } else if (val == 'male' || val == 'male_only') {
+        normalized['gender_preference'] = 'male';
+      } else if (val == 'female' || val == 'female_only') {
+        normalized['gender_preference'] = 'female';
+      }
+    }
+
+    if (normalized.containsKey('pets')) {
+      final val = normalized['pets']?.toString().toLowerCase();
+      if (val == 'yes' || val == 'true') {
+        normalized['pets'] = 'yes';
+      } else if (val == 'no' || val == 'false') {
+        normalized['pets'] = 'no';
+      }
+    }
+
+    if (normalized.containsKey('smoking')) {
+      final val = normalized['smoking']?.toString().toLowerCase();
+      if (val == 'yes' || val == 'true') {
+        normalized['smoking'] = 'yes';
+      } else if (val == 'no' || val == 'false') {
+        normalized['smoking'] = 'no';
+      }
+    }
+
+    return normalized;
   }
 }
 

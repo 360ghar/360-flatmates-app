@@ -60,9 +60,15 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     // Normalize phone numbers to include the country code
     if (!identifier.contains('@')) {
       String digits = identifier.replaceAll(RegExp(r'\D'), '');
-      digits = digits.replaceFirst(RegExp(r'^0+'), '');
+      if (digits.length == 11 && digits.startsWith('0')) {
+        digits = digits.substring(1);
+      } else if (digits.startsWith('0')) {
+        digits = digits.replaceFirst(RegExp(r'^0+'), '');
+      }
       if (digits.length == 10) {
         identifier = '+91$digits';
+      } else if (digits.length == 12 && digits.startsWith('91')) {
+        identifier = '+$digits';
       }
     }
     

@@ -130,6 +130,7 @@ class ChatsRepository {
     late final StreamController<List<ChatMessage>> controller;
     StreamSubscription<List<ChatMessage>>? realtimeSubscription;
     var hasEmittedMessages = false;
+    var _isRefetching = false;
 
     void emitMessages(List<ChatMessage> messages) {
       if (controller.isClosed) return;
@@ -138,6 +139,8 @@ class ChatsRepository {
     }
 
     Future<void> refetch() async {
+      if (_isRefetching) return;
+      _isRefetching = true;
       try {
         final response = await fetchMessages(conversationId);
         emitMessages(response.messages);
@@ -145,6 +148,8 @@ class ChatsRepository {
         if (!controller.isClosed && !hasEmittedMessages) {
           controller.addError(error, stackTrace);
         }
+      } finally {
+        _isRefetching = false;
       }
     }
 

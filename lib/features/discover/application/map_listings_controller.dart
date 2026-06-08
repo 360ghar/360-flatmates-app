@@ -45,6 +45,26 @@ class MapListingsController extends Notifier<MapListingsState> {
 
   @override
   MapListingsState build() {
+    final sharedFilters = ref.watch(discoverFiltersProvider);
+    final merged = sharedFilters != null
+        ? state.filters.copyWith(
+            query: sharedFilters.query,
+            location: sharedFilters.location,
+            priceMin: sharedFilters.priceMin,
+            priceMax: sharedFilters.priceMax,
+            sharingType: sharedFilters.sharingType,
+            genderPreference: sharedFilters.genderPreference,
+            features: sharedFilters.features,
+            bedrooms: sharedFilters.bedrooms,
+            pets: sharedFilters.pets,
+            smoking: sharedFilters.smoking,
+            vibe: sharedFilters.vibe,
+            moveInTimeline: sharedFilters.moveInTimeline,
+          )
+        : state.filters;
+    if (merged != state.filters) {
+      state = state.copyWith(filters: merged);
+    }
     Future.microtask(() => _autoInjectLocationThenLoad());
     return const MapListingsState(isLoading: true);
   }

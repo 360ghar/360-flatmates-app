@@ -65,7 +65,7 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               children: [
                 Row(
                   children: [
-                    if (l.effectiveMainImageUrl != null)
+                    if (l.effectiveMainImageUrl != null && l.effectiveMainImageUrl!.isNotEmpty)
                       FlatmatesNetworkImage(
                         imageUrl: l.effectiveMainImageUrl!,
                         width: 28,

@@ -1221,6 +1221,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMovingSoon => 'Moving soon';
 
   @override
+  String trendingNeighborhoodsIn(String city) {
+    return 'Trending in $city';
+  }
+
+  @override
+  String get meetPotentialFlatmates => 'Meet potential flatmates';
+
+  @override
   String get vibeAll => 'All';
 
   @override

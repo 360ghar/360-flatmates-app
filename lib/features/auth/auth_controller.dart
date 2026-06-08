@@ -130,7 +130,7 @@ class AuthController extends Notifier<AuthState> {
       return 'failure:${error.label}';
     }
     if (error is AuthException) {
-      if (error.statusCode == '429' || error.statusCode == 'too_many_requests') {
+      if (error.statusCode == '429' || error.code == 'too_many_requests') {
         return 'failure:rate_limit';
       }
       // Token invalid / expired / already consumed → treat as invalid OTP.
@@ -138,9 +138,6 @@ class AuthController extends Notifier<AuthState> {
     }
 
     if (error is StateError) {
-      if (error.message.toLowerCase().contains('session')) {
-        return 'failure:auth_session_missing';
-      }
       return 'failure:unknown';
     }
     debugPrint('AuthController._userSafeMessage: unhandled ${error.runtimeType}: $error');

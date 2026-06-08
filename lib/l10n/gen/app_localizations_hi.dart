@@ -1223,6 +1223,14 @@ class AppLocalizationsHi extends AppLocalizations {
   String get homeMovingSoon => 'जल्दी शिफ्ट हो रहे हैं';
 
   @override
+  String trendingNeighborhoodsIn(String city) {
+    return '$city में ट्रेंडिंग';
+  }
+
+  @override
+  String get meetPotentialFlatmates => 'संभावित फ्लैटमेट्स से मिलें';
+
+  @override
   String get vibeAll => 'सभी';
 
   @override

@@ -149,11 +149,10 @@ class PropertyListingDto {
   static List<String> _parseFallbackImageUrls(Map<String, dynamic> json) {
     final raw = json['image_urls'];
     if (raw is List && raw.isNotEmpty) {
-      if (raw.every((e) => e is String)) {
-        return List<String>.from(raw)
-            .where(_isAbsoluteUrl)
-            .toList(growable: false);
-      }
+      final strings = raw.whereType<String>().where(
+        (url) => url.startsWith('http://') || url.startsWith('https://'),
+      ).toList();
+      if (strings.isNotEmpty) return strings;
     }
     final imageRows = json['images'];
     if (imageRows is List && imageRows.isNotEmpty) {

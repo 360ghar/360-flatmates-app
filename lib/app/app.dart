@@ -77,20 +77,28 @@ class _AppState extends ConsumerState<App> {
 
     switch (status) {
       case AppUpdateStatus.forceUpdate:
+        final downloadUrl = result.downloadUrl;
+        if (downloadUrl == null || downloadUrl.isEmpty) {
+          _appConfigChecked = true;
+          return;
+        }
         analytics.logForceUpdateShown();
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (_) => ForceUpdatePage(
-              updateUrl: result.downloadUrl ?? '',
-            ),
+            builder: (_) => ForceUpdatePage(updateUrl: downloadUrl),
           ),
           (_) => false,
         );
       case AppUpdateStatus.optionalUpdate:
+        final downloadUrl = result.downloadUrl;
+        if (downloadUrl == null || downloadUrl.isEmpty) {
+          _appConfigChecked = true;
+          return;
+        }
         analytics.logOptionalUpdateShown();
         OptionalUpdateDialog.show(
           context,
-          updateUrl: result.downloadUrl ?? '',
+          updateUrl: downloadUrl,
           message: result.releaseNotes ?? '',
           onDismiss: () {
             final version = result.latestVersion;

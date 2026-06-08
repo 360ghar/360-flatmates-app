@@ -15,6 +15,11 @@ appId: com.the360ghar.flatmates
       id: "swipe_card"
     direction: RIGHT
 
+# If match celebration appeared, dismiss it
+- tapOn:
+    id: "match_keep_swiping"
+    optional: true
+
 # Wait for the next card to settle
 - extendedWaitUntil:
     visible:

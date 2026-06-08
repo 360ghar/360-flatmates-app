@@ -55,7 +55,8 @@ class SwipeDeckController extends Notifier<AsyncValue<List<SwipeProfile>>> {
   }
 
   void undoSwipe(SwipeProfile profile) {
-    _swipedUserIds.remove(profile.id);
+    final wasSwiped = _swipedUserIds.remove(profile.id);
+    if (!wasSwiped) return;
     final current = state.valueOrNull;
     if (current != null) {
       state = AsyncData([profile, ...current]);

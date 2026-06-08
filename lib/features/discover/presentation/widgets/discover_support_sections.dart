@@ -385,9 +385,12 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    List<String> locations;
+    final locale = AppLocalizations.of(context);
+
+    if (city.isEmpty) return const SizedBox.shrink();
+
     final cityLower = city.toLowerCase();
+    List<String> locations;
     if (cityLower.contains('gurgaon') || cityLower.contains('gurugram')) {
       locations = ['DLF Phase 3', 'Sector 43', 'Sector 55', 'Sector 14'];
     } else if (cityLower.contains('bangalore') || cityLower.contains('bengaluru')) {
@@ -404,7 +407,7 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Trending in $city', // We can localize this later
+          locale.trendingNeighborhoodsIn(city),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w800,
             color: AppSemanticColors.textPrimaryFor(theme.brightness),
@@ -474,7 +477,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Meet potential flatmates', // We can localize this later
+              AppLocalizations.of(context).meetPotentialFlatmates,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppSemanticColors.textPrimaryFor(theme.brightness),

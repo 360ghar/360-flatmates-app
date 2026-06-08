@@ -731,9 +731,6 @@ notification card, profile grid card, and many more inline widgets.
 - `AppSemanticColors.compatHigh` / `compatMedium` / `compatLow` → updated values
 - `AppGradients.primaryGradient` → auto via gradient update
 
-### 8.6 `swipe/presentation/widgets/swipe_quota_header.dart`
-- `colorScheme.onSurface` / `onSurfaceVariant` → `ink` / `ink2`
-
 ---
 
 ## 9. Chats Feature (`lib/features/chats/`)

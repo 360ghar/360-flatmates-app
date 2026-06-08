@@ -112,14 +112,17 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     if (!PasswordPolicy.isValid(_passwordController.text)) return;
 
     _isSubmitting = true;
-    final success = await ref
-        .read(passwordResetControllerProvider.notifier)
-        .verifyOtpAndSetPassword(
-          otp: currentOtp,
-          newPassword: _passwordController.text,
-        );
-
-    _isSubmitting = false;
+    bool success;
+    try {
+      success = await ref
+          .read(passwordResetControllerProvider.notifier)
+          .verifyOtpAndSetPassword(
+            otp: currentOtp,
+            newPassword: _passwordController.text,
+          );
+    } finally {
+      _isSubmitting = false;
+    }
     if (!mounted) return;
     if (success) {
       FlatmatesToast.success(
