@@ -292,7 +292,7 @@ class ListingDraftController extends Notifier<ListingDraftState> {
       // Refresh discover feed so the new listing shows up.
       ref.read(discoverFeedControllerProvider.notifier).refresh();
 
-      await ref.read(bootstrapControllerProvider.notifier).load();
+      await ref.read(bootstrapControllerProvider.notifier).refresh();
 
       // Clear draft on success
       final prefs = await SharedPreferences.getInstance();

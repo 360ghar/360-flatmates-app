@@ -110,7 +110,6 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
             children: amenities.map((opt) {
               final selected = widget.roomFurnishing.contains(opt.id);
               return FlatmatesChip(
-                variant: FlatmatesChipVariant.filter,
                 icon: widget.iconForOption(opt.id),
                 label: opt.label,
                 selected: selected,
@@ -132,7 +131,6 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
             children: amenities.map((opt) {
               final selected = widget.roomFeatures.contains(opt.id);
               return FlatmatesChip(
-                variant: FlatmatesChipVariant.filter,
                 icon: widget.iconForOption(opt.id),
                 label: opt.label,
                 selected: selected,
@@ -158,7 +156,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.error_outline_rounded,
                   size: 16,
                   color: AppSemanticColors.error,
@@ -336,7 +334,6 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               onTap: widget.onPickPhotos,
               child: DashedBorderContainer(
                 color: AppSemanticColors.line,
-                borderRadius: AppRadius.card,
                 child: SizedBox(
                   width: double.infinity,
                   height: 140,
@@ -352,7 +349,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
                           ).withValues(alpha: 0.4),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.camera_alt_outlined,
                           color: AppSemanticColors.accent,
                           size: 24,
@@ -426,7 +423,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
         else if (widget.videoTourUrl != null)
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.videocam_rounded,
                 color: AppSemanticColors.accent,
                 size: 28,
@@ -443,10 +440,11 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               ),
               IconButton(
                 onPressed: () => widget.onVideoTourUrlChanged(null),
-                icon: Icon(
+                icon: const Icon(
                   Icons.delete_outline_rounded,
                   color: AppSemanticColors.error,
                 ),
+                tooltip: 'Remove video tour',
               ),
             ],
           )
@@ -468,7 +466,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.video_call_outlined,
                       color: AppSemanticColors.accent,
                       size: 28,
@@ -501,16 +499,13 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
     if (!validation.isValid) {
       if (!mounted) return;
       final locale = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            validation.tooLarge
-                ? locale.videoTooLarge
-                : validation.tooShort
-                ? locale.videoTooShort
-                : locale.videoTooLong,
-          ),
-        ),
+      FlatmatesToast.error(
+        context,
+        validation.tooLarge
+            ? locale.videoTooLarge
+            : validation.tooShort
+            ? locale.videoTooShort
+            : locale.videoTooLong,
       );
       return;
     }
@@ -522,9 +517,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
     } else if (result is UploadFailure) {
       widget.onVideoTourUrlChanged(null);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(result.reason)));
+        FlatmatesToast.error(context, result.reason);
       }
     }
     widget.onVideoUploadingChanged(false);

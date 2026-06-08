@@ -68,7 +68,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
             ),
             ListTile(
-              leading: Icon(
+              leading: const Icon(
                 Icons.block_outlined,
                 color: AppSemanticColors.error,
               ),
@@ -99,6 +99,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, size: 22),
         onPressed: () => context.pop(),
+        tooltip: 'Back',
       ),
       title: Row(
         children: [
@@ -175,6 +176,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
             size: 20,
           ),
+          tooltip: 'Call',
         ),
         if (conversation?.contextProperty != null)
           IconButton(
@@ -185,6 +187,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: AppSemanticColors.textSecondaryFor(theme.brightness),
               size: 20,
             ),
+            tooltip: 'Schedule visit',
           ),
         IconButton(
           key: const Key('chat_more_button'),
@@ -194,6 +197,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
             size: 20,
           ),
+          tooltip: 'More options',
         ),
       ],
     );

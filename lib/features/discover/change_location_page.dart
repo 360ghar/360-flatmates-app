@@ -135,7 +135,8 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       await ref
           .read(profileRepositoryProvider)
           .updateProfile(payload: {'city': _selectedCity!.label});
-      await ref.read(bootstrapControllerProvider.notifier).load();
+      await ref.read(bootstrapControllerProvider.notifier).refresh();
+      if (!mounted) return;
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -301,8 +302,8 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
                 onTap: _locating ? null : _useCurrentLocation,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
+            const Padding(
+              padding: EdgeInsets.symmetric(
                 horizontal: AppSpacing.screen,
               ),
               child: Divider(color: AppSemanticColors.line),

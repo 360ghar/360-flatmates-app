@@ -47,7 +47,7 @@ class FlatmatesChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = _resolveColors(theme);
-    final borderRadius = AppRadius.pillBorder;
+    const borderRadius = AppRadius.pillBorder;
 
     return AnimatedScale(
       scale: selected ? 1.03 : 1.0,
@@ -63,7 +63,7 @@ class FlatmatesChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.background,
           borderRadius: borderRadius,
-          border: Border.all(color: colors.border, width: 1),
+          border: Border.all(color: colors.border),
         ),
         child: InkWell(
           onTap: enabled && onSelected != null

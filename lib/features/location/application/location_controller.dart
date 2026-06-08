@@ -67,7 +67,7 @@ class LocationController extends Notifier<LocationState> {
     if (state.isLoading) return;
     if (!forceRefresh && state.currentPosition != null) return;
 
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();

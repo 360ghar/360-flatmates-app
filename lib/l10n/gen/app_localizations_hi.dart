@@ -41,6 +41,25 @@ class AppLocalizationsHi extends AppLocalizations {
       'शुरू करने के लिए साइन इन करें या खाता बनाएं।';
 
   @override
+  String get authEntryTitle => 'स्वागत है';
+
+  @override
+  String get authEntrySubtitle =>
+      'Google से जारी रखें, या अपना फोन या ईमेल उपयोग करें।';
+
+  @override
+  String get continueWithGoogleCta => 'Google से जारी रखें';
+
+  @override
+  String get authDividerOr => 'या';
+
+  @override
+  String get identifierLabel => 'फोन या ईमेल';
+
+  @override
+  String get continueCta => 'जारी रखें';
+
+  @override
   String get phoneNumberLabel => 'फोन नंबर';
 
   @override
@@ -51,6 +70,31 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get createAccountCta => 'खाता बनाएं';
+
+  @override
+  String get addPhoneTitle => 'अपना फोन नंबर जोड़ें';
+
+  @override
+  String get addPhoneSubtitle =>
+      'ताकि फ्लैटमेट आप तक पहुंच सकें, फोन नंबर जोड़ें। आप इसे अभी छोड़ सकते हैं।';
+
+  @override
+  String get addPhoneCta => 'कोड भेजें';
+
+  @override
+  String get skipCta => 'अभी के लिए छोड़ें';
+
+  @override
+  String get setPasswordTitle => 'पासवर्ड सेट करें';
+
+  @override
+  String get setPasswordSubtitle =>
+      'अपने खाते को सुरक्षित करने के लिए पासवर्ड बनाएं।';
+
+  @override
+  String lastUsedMethodHint(String method) {
+    return 'आपने पिछली बार $method से साइन इन किया था';
+  }
 
   @override
   String get loginTitle => 'लॉगिन';
@@ -690,15 +734,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get profilePhotoTitle => 'अपनी फ़ोटो जोड़ें';
 
   @override
-  String get profilePhotoSubtitle => 'अच्छी फ़ोटो से ज़्यादा मैच मिलते हैं।';
+  String get profilePhotoSubtitle =>
+      'जब तक आप फ़ोटो नहीं जोड़ते, हम आपके नाम के शुरुआती अक्षर दिखाएँगे। आप इसे बाद में भी जोड़ सकते हैं।';
 
   @override
   String get profilePhotoNudge =>
-      '3+ फ़ोटो वाली प्रोफ़ाइल्स को 4 गुना ज़्यादा मैच मिलते हैं!';
-
-  @override
-  String get profilePhotoMinimumRequired =>
-      'आगे बढ़ने के लिए कम से कम एक फ़ोटो जोड़ें।';
+      'फ़ोटो वाली प्रोफ़ाइल्स को ज़्यादा मैच मिलते हैं।';
 
   @override
   String get addPhotoCta => 'फ़ोटो जोड़ें';
@@ -743,6 +784,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get quizNonVegetarian => 'मांसाहारी';
+
+  @override
+  String get quizEggetarian => 'एगेटेरियन';
 
   @override
   String get quizNoFoodPref => 'कोई प्राथमिकता नहीं';
@@ -881,11 +925,6 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get emptySwipeDeck =>
       'अभी दिखाने के लिए कोई प्रोफ़ाइल नहीं है। बाद में दोबारा देखें!';
-
-  @override
-  String swipeDeckRemaining(int count) {
-    return '$count बचे हुए';
-  }
 
   @override
   String get tapToSeeMore => 'पूरी प्रोफ़ाइल देखें';
@@ -1184,6 +1223,14 @@ class AppLocalizationsHi extends AppLocalizations {
   String get homeMovingSoon => 'जल्दी शिफ्ट हो रहे हैं';
 
   @override
+  String trendingNeighborhoodsIn(String city) {
+    return '$city में ट्रेंडिंग';
+  }
+
+  @override
+  String get meetPotentialFlatmates => 'संभावित फ्लैटमेट्स से मिलें';
+
+  @override
   String get vibeAll => 'सभी';
 
   @override
@@ -1375,20 +1422,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get soundOn => 'आवाज़ चालू';
 
   @override
-  String superLikeCapLabel(int count) {
-    return '$count स्टार मैच बचे हैं';
-  }
-
-  @override
-  String swipeCounterLabel(int count) {
-    return '$count स्वाइप आज बचे हैं';
-  }
-
-  @override
   String get passActionLabel => 'पास';
-
-  @override
-  String get superLikeActionLabel => 'स्टार मैच';
 
   @override
   String get likeActionLabel => 'लाइक';
@@ -2066,6 +2100,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get phoneNotAvailable => 'फोन नंबर उपलब्ध नहीं है';
 
   @override
+  String get emailNotAvailable => 'ईमेल उपलब्ध नहीं है';
+
+  @override
   String get emojiPickerComingSoon => 'इमोजी पिकर जल्द आ रहा है';
 
   @override
@@ -2707,6 +2744,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorUpload => 'अपलोड विफल। कृपया पुनः प्रयास करें।';
 
   @override
+  String get errorOtpInvalid => 'अमान्य या समाप्त कोड। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get errorAuthSessionMissing => 'सत्यापन विफल। कृपया पुनः प्रयास करें।';
+
+  @override
   String get errorUnknown => 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।';
 
   @override
@@ -3103,4 +3146,106 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get feedbackSubmitSuccess => 'आपकी प्रतिक्रिया के लिए धन्यवाद!';
+
+  @override
+  String get profileUpdated => 'प्रोफ़ाइल सफलतापूर्वक अपडेट की गई';
+
+  @override
+  String get listingPublished => 'लिस्टिंग सफलतापूर्वक प्रकाशित हुई';
+
+  @override
+  String get listingResumed => 'लिस्टिंग फिर से शुरू की गई';
+
+  @override
+  String get shortlisted => 'शॉर्टलिस्ट में जोड़ा गया';
+
+  @override
+  String get shortlistRemoved => 'शॉर्टलिस्ट से हटाया गया';
+
+  @override
+  String get contactRequestSentToast => 'संपर्क अनुरोध भेजा गया';
+
+  @override
+  String get listingLabel => 'लिस्टिंग';
+
+  @override
+  String get liveBadge => 'लाइव';
+
+  @override
+  String get floorPlanSectionTitle => 'फ़्लोर प्लान';
+
+  @override
+  String get virtualTourSectionTitle => '360° वर्चुअल टूर';
+
+  @override
+  String get exploreVirtualTourPrompt => 'इस प्रॉपर्टी को 360° में देखें';
+
+  @override
+  String get openVirtualTourCta => 'वर्चुअल टूर खोलें';
+
+  @override
+  String get streetViewCta => 'स्ट्रीट व्यू';
+
+  @override
+  String get societyVibeSectionTitle => 'सोसाइटी वाइब';
+
+  @override
+  String get safetyBannerTitle => 'सुरक्षित रहें';
+
+  @override
+  String get safetyBannerBody =>
+      'भुगतान करने से पहले प्रॉपर्टी को व्यक्तिगत रूप से देखें। बिना देखे डिपॉज़िट या किराया न भेजें।';
+
+  @override
+  String get viewsLabel => 'दृश्य';
+
+  @override
+  String get interestedLabel => 'इच्छुक';
+
+  @override
+  String get likesLabel => 'पसंद';
+
+  @override
+  String get openChatCta => 'चैट खोलें';
+
+  @override
+  String get visitRequestSent => 'विज़िट अनुरोध भेजा गया!';
+
+  @override
+  String get visitFromDetailPageNote =>
+      'इस प्रॉपर्टी में रुचि — लिस्टिंग पेज से शेड्यूल किया गया।';
+
+  @override
+  String get readMoreCta => 'और पढ़ें';
+
+  @override
+  String get showLessCta => 'कम दिखाएं';
+
+  @override
+  String get viewProfileCta => 'प्रोफ़ाइल देखें';
+
+  @override
+  String visitScheduledBanner(String date) {
+    return 'आपकी विज़िट $date को है';
+  }
+
+  @override
+  String get thePlaceSectionTitle => 'जगह';
+
+  @override
+  String get peopleSectionTitle => 'लोग';
+
+  @override
+  String get estimatedTotalLabel => 'अनुमानित कुल';
+
+  @override
+  String get perMonthSuffix => '/महीना';
+
+  @override
+  String get viewOnMapLabel => 'नक्शे पर देखें';
+
+  @override
+  String andNMore(int count) {
+    return '+$count और';
+  }
 }

@@ -36,89 +36,107 @@ class MapListingsBottomSheet extends ConsumerWidget {
         ? AppSemanticColors.frostOverlayDark
         : AppSemanticColors.frostOverlayLight;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.35,
-      minChildSize: 0.08,
-      maxChildSize: 0.45,
-      snap: true,
-      snapSizes: const [0.08, 0.35, 0.45],
-      builder: (context, sheetScrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: frostOverlayColor,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.card),
-            ),
-          ),
-          child: SingleChildScrollView(
-            controller: sheetScrollController,
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + 76,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Exact height calculation to tightly wrap the content:
+        // Handle area (8 top + 4 line + 8 bottom) = 20
+        // Title area (0 top + roughly 20 text + 8 bottom) = 28
+        // Cards area = 180
+        // Bottom padding (AppSpacing.lg = 16) + safeArea
+        final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
+        final bottomPadding = AppSpacing.lg + safeAreaBottom;
+        final contentHeight = 20.0 + 28.0 + 180.0 + bottomPadding;
+        const collapsedHeight = 60.0;
+        
+        final maxFraction = (contentHeight / constraints.maxHeight).clamp(0.1, 1.0);
+        final minFraction = (collapsedHeight / constraints.maxHeight).clamp(0.05, maxFraction);
+
+        return DraggableScrollableSheet(
+          initialChildSize: maxFraction,
+          minChildSize: minFraction,
+          maxChildSize: maxFraction,
+          snap: true,
+          snapSizes: [minFraction, maxFraction],
+          builder: (context, sheetScrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: frostOverlayColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.card),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.sm,
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.2,
-                          ),
-                          borderRadius: BorderRadius.circular(2),
+              child: SingleChildScrollView(
+                controller: sheetScrollController,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: bottomPadding),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.sm,
                         ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        locale.clusterListingsCount(listings.length),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppSemanticColors.textPrimaryFor(
-                            theme.brightness,
+                        child: Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.2,
+                              ),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 180,
-                    child: listings.isEmpty
-                        ? FlatmatesEmptyState(
-                            title: locale.noListingsMatchFilters,
-                            icon: Icons.search_off_rounded,
-                          )
-                        : _HorizontalCardList(
-                            listings: listings,
-                            scrollController: scrollController,
-                            onTap: onTap,
-                            onLike: onLike,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          0,
+                          AppSpacing.lg,
+                          AppSpacing.sm,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            locale.clusterListingsCount(listings.length),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppSemanticColors.textPrimaryFor(
+                                theme.brightness,
+                              ),
+                            ),
                           ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 180,
+                        child: listings.isEmpty
+                            ? FlatmatesEmptyState(
+                                title: locale.noListingsMatchFilters,
+                                icon: Icons.search_off_rounded,
+                              )
+                            : _HorizontalCardList(
+                                listings: listings,
+                                scrollController: scrollController,
+                                onTap: onTap,
+                                onLike: onLike,
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
   }
 }
+
+/// Tracks whether the list is scrolling due to a programmatic tap on the map.
+final mapProgrammaticScrollProvider = StateProvider<bool>((ref) => false);
 
 class _HorizontalCardList extends ConsumerWidget {
   const _HorizontalCardList({
@@ -137,14 +155,23 @@ class _HorizontalCardList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
+        if (ref.read(mapProgrammaticScrollProvider)) return false;
+
         if (notification is ScrollUpdateNotification ||
             notification is ScrollEndNotification) {
+          if (!scrollController.hasClients) return false;
+
           final offset = scrollController.offset;
-          final itemWidth = 130.0 + AppSpacing.sm;
-          final index = (offset / itemWidth).round().clamp(
-            0,
-            listings.length - 1,
-          );
+          final viewportWidth = MediaQuery.sizeOf(context).width;
+          const itemWidth = 130.0;
+          const padding = AppSpacing.md;
+          const spacing = AppSpacing.sm;
+          const totalItemWidth = itemWidth + spacing;
+
+          final centerOffset = offset + viewportWidth / 2;
+          final rawIndex = (centerOffset - padding - itemWidth / 2) / totalItemWidth;
+          final index = rawIndex.round().clamp(0, listings.length - 1);
+
           final visibleItem = listings[index];
           final currentSelected = ref.read(selectedPropertyProvider);
           if (currentSelected?.id != visibleItem.id) {

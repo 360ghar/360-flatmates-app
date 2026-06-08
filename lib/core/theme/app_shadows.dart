@@ -73,7 +73,7 @@ abstract final class AppShadows {
   static BoxShadow inputFocusGlow(Color accent) => BoxShadow(
     color: accent.withValues(alpha: 0.12),
     blurRadius: 12,
-    offset: Offset(0, 2),
+    offset: const Offset(0, 2),
   );
 
   // Dark mode — reduced intensity

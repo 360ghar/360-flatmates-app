@@ -63,6 +63,7 @@ class _ListingStub {
   final int id = 7;
   final String title = 'Test room';
   final String? mainImageUrl = null;
+  final List<String> imageUrls = const [];
   final double? monthlyRent = 25000;
   final int? bedrooms = 2;
   final int? bathrooms = 2;
@@ -72,4 +73,13 @@ class _ListingStub {
   final int? viewCount = 12;
   final DateTime? expiresAt;
   final DateTime? availableFrom = null;
+
+  String? get effectiveMainImageUrl {
+    if (mainImageUrl != null &&
+        (mainImageUrl!.startsWith('http://') ||
+            mainImageUrl!.startsWith('https://'))) {
+      return mainImageUrl;
+    }
+    return imageUrls.isNotEmpty ? imageUrls.first : null;
+  }
 }

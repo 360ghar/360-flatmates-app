@@ -15,6 +15,8 @@ void main() {
       errorRateLimit: 'Too many requests',
       errorConflict: 'Conflict',
       errorUpload: 'Upload failed',
+      errorOtpInvalid: 'OTP invalid',
+      errorAuthSessionMissing: 'Auth session missing',
       errorUnknown: 'Unknown error',
     );
   });

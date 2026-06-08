@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-360 FlatMates — a Flutter mobile client for flatmate-finding in India. Uses Supabase for auth/storage and a FastAPI backend monolith at `../backend` for all business logic and product data.
+360 FlatMates — a Flutter mobile client for flatmate-finding in India. Uses Supabase for auth and a FastAPI backend monolith at `../backend` for all business logic, product data, and storage (Cloudinary).
 
 - **Flutter:** 3.35.2 (pinned via FVM in `.fvmrc`)
 - **Dart SDK:** ^3.11.0
@@ -30,6 +30,9 @@ dart run build_runner build --delete-conflicting-outputs
 flutter analyze
 flutter test
 bash scripts/banned_patterns.sh
+
+# Auto-fix lint issues (prefer_const_constructors, avoid_redundant_argument_values, etc.)
+dart fix --apply lib/
 
 # Localization (auto-generated on build, but can be triggered manually)
 flutter gen-l10n
@@ -88,10 +91,12 @@ lib/
 - `Provider` for repositories and services (injected via `ref.watch`)
 - `FutureProvider` / `FutureProvider.family` for one-shot async data (swipe profiles, conversations, notifications, visits)
 - `StreamProvider` for streams (`connectivityProvider`)
+- `StateProvider` for local UI state (loading flags, visibility toggles, form values) — define at file level as `final _myFlagProvider = StateProvider<bool>((ref) => false);`
 - `PagedState<T>` for paginated data with initial/refresh/load-more loading states
 - `OptimisticUpdate.perform<T>()` for optimistic UI writes with rollback on failure
 - Three providers overridden at `ProviderScope` root: `appConfigProvider`, `appPreferencesProvider`, `secureStoreProvider`
 - After write operations, **invalidate** the relevant provider rather than manually syncing widget state
+- **Read state via `ref.watch()` in `build()`, write state via `ref.read(provider.notifier).state = value` in callbacks.** Never use `ref.read()` to read state in `build()`. Never use `setState()` in `ConsumerStatefulWidget` — use `StateProvider` instead.
 
 ### Routing — GoRouter
 
@@ -109,6 +114,7 @@ lib/
 - `UserMessageL10n` bridge decouples `AppFailure.userMessage()` from generated l10n
 - `FlatmatesAsyncView` renders `AsyncValue<T>` into loading/data/empty/error states using `AppFailure.userMessage()`
 - **Banned in pages:** `error.toString()` (enforced by `scripts/banned_patterns.sh`)
+- **No empty catch blocks.** Every `catch` must at minimum log via `debugPrint('ClassName.methodName: $e')`. In fire-and-forget contexts, use `unawaited()`.
 
 ### Networking
 
@@ -160,10 +166,16 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Staggered list animations via `StaggeredCardAppear` (discover feed) or `Future.delayed` pattern (profile menu groups). Frosted-glass via `BackdropFilter` + `AppSemanticColors.frostBlur`. Ring animations via `CustomPaint` inside `AnimatedBuilder`. Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
 - Card theme: light mode elevation 1 (refined from 2). Dialog theme: 24px radius, elevation 4. Android page transitions: `FadeUpwardsPageTransitionsBuilder`. iOS: `CupertinoPageTransitionsBuilder`.
 - `FlatmatesEndpoints` centralizes all API path constants — no hardcoded backend paths.
-- Image uploads go to Supabase Storage via `ImageUploadService` (supports photos and video tours up to 50MB).
+- Image uploads go through the backend API (Cloudinary) via `ImageUploadService` (supports photos and video tours up to 50MB).
 - Compatibility scoring runs client-side in `core/compatibility/` with 6 weighted dimensions.
 - Chat uses Supabase realtime (`user_messages` table, filtered by `conversation_id`) for the open thread, with an SSE event-driven refetch fallback when realtime drops. `MessagesController` is a `FamilyNotifier` that handles optimistic message sending; live message arrival flows through `messagesStreamProvider`, not the controller. No HTTP polling.
 - Banned patterns (enforced by `scripts/banned_patterns.sh`): no `error.toString()` in pages, no `apiClientProvider` in pages (use a repository), no `Supabase.instance` in pages, no raw `Image.network` in features (use `FlatmatesNetworkImage`), page files under 500 lines.
+- **Business logic in controllers, not widgets.** Create `application/` layer controllers that wrap repository calls. Widgets call `ref.read(controllerProvider.notifier).method()` instead of calling repositories directly. Examples: `FeedbackController`, `ChatActionsController`.
+- **Local UI state via `StateProvider`.** Avoid `setState()` in `ConsumerStatefulWidget`. Define `final _loadingProvider = StateProvider<bool>((ref) => false);` at file level. Read with `ref.watch()`, write with `ref.read(provider.notifier).state = value`.
+- **Always use `const` constructors** for stateless widgets, SizedBox, Padding, Icon, Text, etc. Run `dart fix --apply lib/` to auto-fix `prefer_const_constructors` issues.
+- **Add `tooltip` to all `IconButton` widgets** for accessibility. Common values: `'Back'`, `'Toggle password visibility'`, `'Call'`, `'More options'`, `'Search'`.
+- **No empty catch blocks.** Every `catch` must log via `debugPrint`. Use `unawaited()` for fire-and-forget futures.
+- **Check `mounted` before using `context` after `await`.** Use `if (!mounted) return;` before `context.push(...)`, `context.pop()`, etc. after any `await` call.
 
 ## iOS Simulator Browser Preview
 
@@ -187,3 +199,8 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - Keep English and Hindi localization in sync for primary flows.
 - Use meaningful `Key` values on interactive widgets for Maestro stability.
 - Update `docs/` when API surface, architecture, theme/localization strategy, auth flow, or Maestro assumptions change.
+- **`StateProvider` over `setState()`** in `ConsumerStatefulWidget`. Use `ref.watch()`/`ref.read()` instead.
+- **Controllers over direct repository calls** in widgets. Create `application/` layer controllers.
+- **`debugPrint` over empty catch blocks.** Never use `catch (_) {}` without logging.
+- **`const` constructors everywhere.** Run `dart fix --apply lib/` to auto-fix.
+- **`tooltip` on every `IconButton`** for accessibility.

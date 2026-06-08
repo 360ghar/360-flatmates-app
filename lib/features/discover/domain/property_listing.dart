@@ -1,7 +1,3 @@
-/// Domain model for a property listing.
-///
-/// This is the clean model used throughout the UI and business logic.
-/// Construction from raw backend JSON is handled by [PropertyListingDto].
 class PropertyListing {
   const PropertyListing({
     required this.id,
@@ -28,6 +24,8 @@ class PropertyListing {
     required this.genderPreference,
     required this.sharingType,
     this.videoTourUrl,
+    this.virtualTourUrl,
+    this.floorPlanUrl,
     required this.interestCount,
     required this.viewCount,
     required this.likeCount,
@@ -41,6 +39,19 @@ class PropertyListing {
     this.maintenanceCharges,
     this.owner,
     this.distanceKm,
+    this.liked,
+    this.userHasScheduledVisit,
+    this.userNextVisitDate,
+    this.googleStreetViewUrl,
+    this.ownerContact,
+    this.floorNumber,
+    this.totalFloors,
+    this.parkingSpaces,
+    this.ageOfProperty,
+    this.images = const [],
+    this.amenities = const [],
+    this.societyTagVoteCounts = const {},
+    this.societyTagUserVotes = const {},
   });
 
   final int id;
@@ -67,6 +78,8 @@ class PropertyListing {
   final String? genderPreference;
   final String? sharingType;
   final String? videoTourUrl;
+  final String? virtualTourUrl;
+  final String? floorPlanUrl;
   final double? securityDeposit;
   final double? maintenanceCharges;
   final int interestCount;
@@ -80,6 +93,41 @@ class PropertyListing {
   final DateTime? expiresAt;
   final PropertyOwner? owner;
   final double? distanceKm;
+  final bool? liked;
+  final bool? userHasScheduledVisit;
+  final DateTime? userNextVisitDate;
+  final String? googleStreetViewUrl;
+  final String? ownerContact;
+  final int? floorNumber;
+  final int? totalFloors;
+  final int? parkingSpaces;
+  final int? ageOfProperty;
+  final List<PropertyImageInfo> images;
+  final List<PropertyAmenityInfo> amenities;
+  final Map<String, Map<String, int>> societyTagVoteCounts;
+  final Map<String, String> societyTagUserVotes;
+
+  String? get effectiveMainImageUrl {
+    if (mainImageUrl != null &&
+        (mainImageUrl!.startsWith('http://') ||
+            mainImageUrl!.startsWith('https://'))) {
+      return mainImageUrl;
+    }
+    return imageUrls.isNotEmpty ? imageUrls.first : null;
+  }
+
+  String? get effectiveFloorPlanUrl {
+    if (floorPlanUrl != null &&
+        (floorPlanUrl!.startsWith('http://') ||
+            floorPlanUrl!.startsWith('https://'))) {
+      return floorPlanUrl;
+    }
+    final floorPlanImage = images.where(
+      (img) => img.imageCategory == 'floor_plan',
+    );
+    if (floorPlanImage.isNotEmpty) return floorPlanImage.first.imageUrl;
+    return null;
+  }
 
   bool get isUnderReview =>
       status == 'pending_review' || status == 'under_review';
@@ -90,7 +138,6 @@ class PropertyListing {
       features.any((feature) => feature.toLowerCase().contains('furnished'));
 }
 
-/// Lightweight owner info embedded in a [PropertyListing].
 class PropertyOwner {
   const PropertyOwner({
     required this.id,
@@ -103,4 +150,36 @@ class PropertyOwner {
   final String fullName;
   final String? profileImageUrl;
   final String? mode;
+}
+
+class PropertyImageInfo {
+  const PropertyImageInfo({
+    required this.id,
+    required this.imageUrl,
+    this.caption,
+    this.imageCategory,
+    this.displayOrder,
+    this.isMainImage = false,
+  });
+
+  final int id;
+  final String imageUrl;
+  final String? caption;
+  final String? imageCategory;
+  final int? displayOrder;
+  final bool isMainImage;
+}
+
+class PropertyAmenityInfo {
+  const PropertyAmenityInfo({
+    required this.id,
+    required this.title,
+    this.icon,
+    this.category,
+  });
+
+  final int id;
+  final String title;
+  final String? icon;
+  final String? category;
 }

@@ -114,17 +114,15 @@ Current behavior to preserve:
 
 - Left swipe: Pass
 - Right swipe: Like
-- Up swipe: Super Like
 - Tap card: expanded profile
 
 Required UI:
 
-- Header with quota: "100 swipes left today" and "3 Super Likes left"
 - Large real photo or premium "Photo pending" fallback
 - Mode chip: Looking for a room, Has a room, Looking together
 - Match ring only when data is available, otherwise "New"
 - Match explanation chips below the photo
-- Action buttons with icon and text: Pass, Super Like, Like
+- Swipe gestures only (no on-screen action buttons): swipe right to Like, swipe left to Pass
 - Expanded profile includes compatibility breakdown, lifestyle, budget, location, trust, and report/block access
 
 Match scores:
@@ -185,7 +183,7 @@ Conversion CTAs:
 
 - Home: View active seekers
 - Search: Like listing, View details
-- Swipe: Pass, Super Like, Like, View full profile
+- Swipe: Pass, Like, View full profile
 - Inbox: Match, Open conversation
 - Me: Complete profile
 

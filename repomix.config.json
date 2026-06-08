@@ -57,7 +57,13 @@
       ".env",
       "*.iml",
       "deliverables/**",
-      "skills-lock.json"
+      "skills-lock.json",
+      "supabase/**",
+      ".github/**",
+      ".playwright-mcp/**",
+      ".metadata",
+      ".flutter-plugins-dependencies",
+      "repomix-output.md"
     ]
   },
   "security": {

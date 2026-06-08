@@ -20,6 +20,7 @@ class FlatmatesSearchBar extends StatefulWidget {
     this.onTap,
     this.leadingIcon,
     this.trailingIcon,
+    this.trailingTooltip,
     this.onTrailingTap,
     this.readOnly = false,
     this.autofocus = false,
@@ -32,6 +33,7 @@ class FlatmatesSearchBar extends StatefulWidget {
   final VoidCallback? onTap;
   final IconData? leadingIcon;
   final IconData? trailingIcon;
+  final String? trailingTooltip;
   final VoidCallback? onTrailingTap;
   final bool readOnly;
   final bool autofocus;
@@ -112,6 +114,7 @@ class _FlatmatesSearchBarState extends State<FlatmatesSearchBar> {
                         color: AppSemanticColors.ink3,
                       ),
                       onPressed: widget.onTrailingTap,
+                      tooltip: widget.trailingTooltip,
                     )
                   : null,
               filled: true,
@@ -122,17 +125,17 @@ class _FlatmatesSearchBarState extends State<FlatmatesSearchBar> {
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.md,
               ),
-              border: OutlineInputBorder(
+              border: const OutlineInputBorder(
                 borderRadius: AppRadius.smBorder,
-                borderSide: const BorderSide(color: AppSemanticColors.line),
+                borderSide: BorderSide(color: AppSemanticColors.line),
               ),
-              enabledBorder: OutlineInputBorder(
+              enabledBorder: const OutlineInputBorder(
                 borderRadius: AppRadius.smBorder,
-                borderSide: const BorderSide(color: AppSemanticColors.line),
+                borderSide: BorderSide(color: AppSemanticColors.line),
               ),
-              focusedBorder: OutlineInputBorder(
+              focusedBorder: const OutlineInputBorder(
                 borderRadius: AppRadius.smBorder,
-                borderSide: const BorderSide(
+                borderSide: BorderSide(
                   color: AppSemanticColors.accent,
                   width: 1.5,
                 ),

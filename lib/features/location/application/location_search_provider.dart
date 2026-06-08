@@ -80,7 +80,7 @@ class LocationSearchNotifier extends Notifier<LocationSearchState> {
       }
     }
 
-    state = LocationSearchState(suggestions: merged, isLoading: false);
+    state = LocationSearchState(suggestions: merged);
   }
 
   Future<PlaceDetails?> resolveSuggestion(PlaceSuggestion suggestion) {

@@ -75,9 +75,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   }
 
   void _showMatchFailure(AppLocalizations locale) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(locale.matchCreateFailed)));
+    FlatmatesToast.error(context, locale.matchCreateFailed);
   }
 
   @override
@@ -89,7 +87,6 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     final theme = Theme.of(context);
 
     return FlatmatesScreen(
-      useSafeArea: true,
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
@@ -136,6 +133,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
               _ChatsTab(
                 conversations: conversations,
                 onRetry: () => ref.invalidate(conversationsProvider),
+                loading: const FlatmatesSkeleton.conversationList(),
               ),
             const SizedBox(height: AppSpacing.md),
             _buildSafetyBanner(context, theme, locale),
@@ -160,7 +158,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
         onTap: () => context.push('/help-safety'),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.shield_outlined,
               size: 22,
               color: AppSemanticColors.accent,
@@ -349,10 +347,15 @@ class _LikedTab extends StatelessWidget {
 }
 
 class _ChatsTab extends StatelessWidget {
-  const _ChatsTab({required this.conversations, required this.onRetry});
+  const _ChatsTab({
+    required this.conversations,
+    required this.onRetry,
+    this.loading,
+  });
 
   final AsyncValue<List<ConversationSummaryModel>> conversations;
   final VoidCallback onRetry;
+  final Widget? loading;
 
   @override
   Widget build(BuildContext context) {
@@ -360,6 +363,7 @@ class _ChatsTab extends StatelessWidget {
     return FlatmatesAsyncView<List<ConversationSummaryModel>>(
       value: conversations,
       onRetry: onRetry,
+      loading: loading,
       empty: FlatmatesEmptyState(
         title: locale.noConversations,
         subtitle: locale.startChatWithMatch,

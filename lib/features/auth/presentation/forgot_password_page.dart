@@ -11,9 +11,10 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
-  const ForgotPasswordPage({this.phone, super.key});
+  const ForgotPasswordPage({this.phone, this.email, super.key});
 
   final String? phone;
+  final String? email;
 
   @override
   ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
@@ -22,10 +23,14 @@ class ForgotPasswordPage extends ConsumerStatefulWidget {
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   late final TextEditingController _controller;
 
+  bool get _isEmail => widget.email != null && widget.email!.trim().isNotEmpty;
+
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.phone ?? '+91');
+    _controller = TextEditingController(
+      text: _isEmail ? widget.email : (widget.phone ?? '+91'),
+    );
   }
 
   @override
@@ -44,70 +49,82 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     return FlatmatesScreen(
       appBar: AppBar(),
       scrollable: true,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            locale.forgotPasswordTitle,
-            style: theme.textTheme.headlineMedium,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            locale.forgotPasswordSubtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+      body: AutofillGroup(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              locale.forgotPasswordTitle,
+              style: theme.textTheme.headlineMedium,
             ),
-          ),
-          const SizedBox(height: AppSpacing.screen),
-          FlatmatesCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  key: const Key('forgot_password_phone_input'),
-                  controller: _controller,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: locale.phoneNumberLabel,
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              locale.forgotPasswordSubtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    key: const Key('forgot_password_phone_input'),
+                    controller: _controller,
+                    keyboardType: _isEmail
+                        ? TextInputType.emailAddress
+                        : TextInputType.phone,
+                    autofillHints: _isEmail
+                        ? const [AutofillHints.email]
+                        : const [AutofillHints.telephoneNumber],
+                    decoration: InputDecoration(
+                      labelText: _isEmail
+                          ? locale.emailLabel
+                          : locale.identifierLabel,
+                    ),
                   ),
-                ),
-                if (resetState.step == PasswordResetStep.error &&
-                    resetState.failure != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    resetState.failure!.userMessage(locale.toUserMessageL10n()),
-                    style: TextStyle(color: AppSemanticColors.error),
-                  ),
+                  if (resetState.step == PasswordResetStep.error &&
+                      resetState.failure != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      resetState.failure!.userMessage(
+                        locale.toUserMessageL10n(),
+                      ),
+                      style: const TextStyle(color: AppSemanticColors.error),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.screen),
-          FlatmatesButton(
-            key: const Key('forgot_password_send_otp'),
-            label: locale.sendOtpCta,
-            fullWidth: true,
-            onPressed: isSubmitting
-                ? null
-                : () async {
-                    final phone = _controller.text.trim();
-                    await ref
-                        .read(passwordResetControllerProvider.notifier)
-                        .sendOtp(phone);
-                    if (!context.mounted) return;
-                    final state = ref.read(passwordResetControllerProvider);
-                    if (state.step == PasswordResetStep.otpSent) {
-                      ref.read(pendingPhoneProvider.notifier).state = phone;
-                      context.push('/reset-password');
-                    }
-                  },
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FlatmatesButton.tertiary(
-            label: locale.backCta,
-            onPressed: () => context.pop(),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesButton(
+              key: const Key('forgot_password_send_otp'),
+              label: locale.sendOtpCta,
+              fullWidth: true,
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      final phone = _controller.text.trim();
+                      await ref
+                          .read(passwordResetControllerProvider.notifier)
+                          .sendOtp(phone);
+                      if (!context.mounted) return;
+                      final state = ref.read(passwordResetControllerProvider);
+                      if (state.step == PasswordResetStep.otpSent) {
+                        ref.read(pendingPhoneProvider.notifier).state = phone;
+                        context.push('/reset-password');
+                      }
+                    },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            FlatmatesButton.tertiary(
+              label: locale.backCta,
+              onPressed: () => context.pop(),
+            ),
+          ],
+        ),
       ),
     );
   }

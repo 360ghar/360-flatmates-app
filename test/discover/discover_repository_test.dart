@@ -35,7 +35,6 @@ void main() {
         final apiClient = ApiClient(
           baseUrl: 'https://api.test.example.com',
           tokenProvider: FakeAuthTokenProvider(),
-          enableLogging: false,
         );
         apiClient.dio.httpClientAdapter = adapter;
         final container = ProviderContainer(
@@ -60,7 +59,6 @@ void main() {
       final apiClient = ApiClient(
         baseUrl: 'https://api.test.example.com',
         tokenProvider: FakeAuthTokenProvider(),
-        enableLogging: false,
       );
       apiClient.dio.httpClientAdapter = adapter;
       final container = ProviderContainer(

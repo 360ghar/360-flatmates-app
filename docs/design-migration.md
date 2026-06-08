@@ -727,16 +727,9 @@ notification card, profile grid card, and many more inline widgets.
 - `colorScheme.onSurface` → `AppSemanticColors.ink`
 - `AppShadows.card` / `.cardHover` / `.subtleGlow` → updated values in token file
 
-### 8.5 `swipe/presentation/widgets/swipe_action_buttons.dart`
-- `AppSemanticColors.compatHigh` / `compatMedium` / `compatLow` → updated values in token file
-- `AppSemanticColors.error` → updated value
-
-### 8.6 `swipe/presentation/widgets/swipe_card_stack.dart`
+### 8.5 `swipe/presentation/widgets/swipe_card_stack.dart`
 - `AppSemanticColors.compatHigh` / `compatMedium` / `compatLow` → updated values
 - `AppGradients.primaryGradient` → auto via gradient update
-
-### 8.7 `swipe/presentation/widgets/swipe_quota_header.dart`
-- `colorScheme.onSurface` / `onSurfaceVariant` → `ink` / `ink2`
 
 ---
 

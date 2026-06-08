@@ -42,8 +42,9 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     } catch (e, st) {
       debugPrint('[ProfilePhotoPage] _pickFromGallery error: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload photos. Please try again.')),
+        FlatmatesToast.error(
+          context,
+          AppLocalizations.of(context).errorUpload,
         );
       }
     } finally {
@@ -62,8 +63,9 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     } catch (e, st) {
       debugPrint('[ProfilePhotoPage] _pickFromCamera error: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload photo. Please try again.')),
+        FlatmatesToast.error(
+          context,
+          AppLocalizations.of(context).errorUpload,
         );
       }
     } finally {
@@ -79,6 +81,9 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final state = ref.watch(onboardingControllerProvider);
+    final fullName = state.fullName;
+    final displayUrl = _photoUrls.isEmpty ? null : _photoUrls.first;
 
     return Scaffold(
       body: SafeArea(
@@ -86,8 +91,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
         child: ListView(
           children: [
             const SizedBox(height: AppSpacing.sm),
-            // Step progress
-            FlatmatesStepProgress.dots(currentStep: 3, totalSteps: 4),
+            const FlatmatesStepProgress.dots(currentStep: 3, totalSteps: 4),
             const SizedBox(height: AppSpacing.section),
             Text(
               locale.profilePhotoTitle,
@@ -101,66 +105,41 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (_photoUrls.length < 3)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.xs),
-                child: InfoPill(
-                  icon: Icons.lightbulb_outline,
-                  label: locale.profilePhotoNudge,
-                  highlighted: true,
-                ),
-              ),
+            InfoPill(
+              icon: Icons.lightbulb_outline,
+              label: locale.profilePhotoNudge,
+              highlighted: true,
+            ),
             const SizedBox(height: AppSpacing.screen),
-            // Large primary photo preview circle
-            if (_photoUrls.isNotEmpty)
-              Center(
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        AppSemanticColors.accent.withValues(alpha: 0.95),
-                        AppSemanticColors.accent.withValues(alpha: 0.72),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppSemanticColors.accent.withValues(alpha: 0.18),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: FlatmatesNetworkImage(
-                    imageUrl: _photoUrls.first,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            if (_photoUrls.isNotEmpty)
-              const SizedBox(height: AppSpacing.screen),
-            // Photo grid in card
-            FlatmatesCard(
-              child: Wrap(
-                spacing: AppSpacing.md + AppSpacing.xs,
-                runSpacing: AppSpacing.md + AppSpacing.xs,
-                children: [
-                  ..._photoUrls.asMap().entries.map((entry) {
-                    return _PhotoTile(
-                      imageUrl: entry.value,
-                      onRemove: () => _removePhoto(entry.key),
-                    );
-                  }),
-                  if (_photoUrls.length < 5)
-                    _AddPhotoTile(
-                      onGallery: _pickFromGallery,
-                      onCamera: _pickFromCamera,
-                    ),
-                ],
+            Center(
+              child: FlatmatesAvatar(
+                name: fullName,
+                imageUrl: displayUrl,
+                size: 140,
               ),
             ),
+            if (_photoUrls.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.screen),
+              FlatmatesCard(
+                child: Wrap(
+                  spacing: AppSpacing.md + AppSpacing.xs,
+                  runSpacing: AppSpacing.md + AppSpacing.xs,
+                  children: [
+                    ..._photoUrls.asMap().entries.map((entry) {
+                      return _PhotoTile(
+                        imageUrl: entry.value,
+                        onRemove: () => _removePhoto(entry.key),
+                      );
+                    }),
+                    if (_photoUrls.length < 5)
+                      _AddPhotoTile(
+                        onGallery: _pickFromGallery,
+                        onCamera: _pickFromCamera,
+                      ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
             if (_uploading)
               const Center(child: FlatmatesSkeleton.card())
@@ -169,21 +148,17 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
                 key: const Key('onboarding_photo_next'),
                 label: locale.onboardingNext,
                 fullWidth: true,
-                onPressed: _photoUrls.isEmpty
-                    ? null
-                    : () => widget.onComplete(_photoUrls),
+                onPressed: () => widget.onComplete(List.of(_photoUrls)),
                 icon: Icons.arrow_forward_rounded,
               ),
-              if (_photoUrls.isEmpty) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  locale.profilePhotoMinimumRequired,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
+              const SizedBox(height: AppSpacing.sm),
+              Center(
+                child: FlatmatesButton.tertiary(
+                  key: const Key('onboarding_photo_skip'),
+                  label: locale.skipCta,
+                  onPressed: () => widget.onComplete(const <String>[]),
                 ),
-              ],
+              ),
             ],
           ],
         ),
@@ -262,7 +237,7 @@ class _AddPhotoTile extends StatelessWidget {
                   color: AppSemanticColors.accent.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.camera_alt_outlined,
                   size: 24,
                   color: AppSemanticColors.accent,

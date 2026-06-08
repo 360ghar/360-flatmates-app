@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/location/location_data.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
@@ -36,13 +38,10 @@ class DiscoverPage extends ConsumerStatefulWidget {
 class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   static const double _loadMoreThreshold = 500;
   static const double _kBottomNavOffset = 120.0;
-  static const double _kCardWidthCoefficient = 2.15;
-  static const double _kCardImageAspectRatio = 10 / 16;
-  static const double _kCardExtraHeight = 68.0;
 
   final _scrollController = ScrollController();
   final _likeDebouncer = ActionDebouncer(
-    duration: const Duration(milliseconds: 500),
+    
   );
   final _locationRadiusDebouncer = ActionDebouncer();
 
@@ -150,7 +149,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     );
     final locale = AppLocalizations.of(context);
     final feedState = ref.watch(discoverFeedControllerProvider);
-    final filtered = ref.watch(filteredListingsProvider(locale));
+    final filtered = ref.watch(filteredListingsProvider);
     final selectedLocation = ref.watch(
       locationControllerProvider.select((state) => state.selectedLocation),
     );
@@ -176,9 +175,8 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     final isSeeker = mode != 'room_poster';
 
     return FlatmatesScreen(
-      useSafeArea: true,
       body: feedState.isLoading && filtered.isEmpty
-          ? const Center(child: FlatmatesSkeleton.feed())
+          ? const FlatmatesSkeleton.discoverFeed()
           : RefreshIndicator(
               onRefresh: () =>
                   ref.read(discoverFeedControllerProvider.notifier).refresh(),
@@ -186,7 +184,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.xl,
-                  AppSpacing.lg,
+                  AppSpacing.sm,
                   AppSpacing.xl,
                   _kBottomNavOffset,
                 ),
@@ -203,14 +201,19 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       currentRadiusKm: currentRadiusKm,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sm),
+                  HomeSearchBar(
+                    onTap: () => context.push('/search-filters'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   if (filtered.length < 5 && city != null) ...[
                     WaitlistNudgeCard(
                       city: city,
                       listingCount: filtered.length,
                     ),
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.sm),
                   ],
+                  /*
                   if (isSeeker && city != null) ...[
                     HomeSectionHeader(title: locale.homeNewInCity(city)),
                     const SizedBox(height: AppSpacing.sm),
@@ -219,10 +222,18 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       onExplore: () => context.go('/tab2'),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                  ] else if (!isSeeker) ...[
+                  ] else */ if (!isSeeker) ...[
                     PostYourSpaceCard(onTap: () => context.push('/post/new')),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.sm),
                   ],
+                  if (city != null) ...[
+                    TrendingNeighborhoodsSection(city: city),
+                    const SizedBox(height: AppSpacing.sm),
+                  ],
+                  const MeetFlatmatesSection(),
+                  const SizedBox(height: AppSpacing.sm),
+                  MovingSoonSection(items: filtered),
+                  const SizedBox(height: AppSpacing.sm),
                   HomeSectionHeader(
                     title: locale.homePickedForYou,
                     actionLabel: filtered.length > 2 ? locale.seeAllCta : null,
@@ -237,91 +248,54 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       icon: Icons.search_off_rounded,
                     )
                   else
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final cardWidth =
-                            constraints.maxWidth / _kCardWidthCoefficient;
-                        final imageHeight = cardWidth * _kCardImageAspectRatio;
-                        final cardHeight =
-                            imageHeight + AppSpacing.sm * 2 + _kCardExtraHeight;
-                        return SizedBox(
-                          height: cardHeight,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: filtered.take(2).length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: AppSpacing.sm),
-                            itemBuilder: (context, index) {
-                              final item = filtered[index];
-                              final badgeLabel = switch (index) {
-                                0 => locale.badgeNew,
-                                _ => locale.badgePopular,
-                              };
-                              return StaggeredCardAppear(
-                                index: index,
-                                child: SizedBox(
-                                  width: cardWidth,
-                                  child: DiscoverListingCard(
-                                    item: item,
-                                    badgeLabel: badgeLabel,
-                                    onTap: () => context.push(
-                                      '/flat-details/${item.id}',
-                                    ),
-                                    onLike: () {
-                                      _likeDebouncer.run(() {
-                                        ref
-                                            .read(discoverRepositoryProvider)
-                                            .likeListing(item.id)
-                                            .then((conversationId) {
-                                              ref
-                                                  .read(
-                                                    discoverFeedControllerProvider
-                                                        .notifier,
-                                                  )
-                                                  .refresh();
-                                              ref.invalidate(
-                                                conversationsProvider,
-                                              );
-                                              if (!context.mounted) return;
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    conversationId == null
-                                                        ? locale
-                                                              .contactRequestSent
-                                                        : locale
-                                                              .contactRequestWithConversation(
-                                                                conversationId,
-                                                              ),
-                                                  ),
-                                                ),
-                                              );
-                                            })
-                                            .catchError((_) {
-                                              if (!context.mounted) return;
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    locale.actionFailedRetry,
-                                                  ),
-                                                ),
-                                              );
-                                            });
-                                      });
-                                    },
-                                  ),
-                                ),
-                              );
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        final badgeLabel = switch (index) {
+                          0 => locale.badgeNew,
+                          1 => locale.badgePopular,
+                          _ => null,
+                        };
+                        return StaggeredCardAppear(
+                          index: index,
+                          child: DiscoverListingCard(
+                            item: item,
+                            badgeLabel: badgeLabel,
+                            onTap: () => context.push('/flat-details/${item.id}'),
+                            onLike: () {
+                              _likeDebouncer.run(() {
+                                ref
+                                    .read(discoverRepositoryProvider)
+                                    .setLiked(item.id, true)
+                                    .then((conversationId) {
+                                      ref.read(discoverFeedControllerProvider.notifier).refresh();
+                                      ref.invalidate(conversationsProvider);
+                                      if (!context.mounted) return;
+                                      FlatmatesToast.success(
+                                        context,
+                                        conversationId == null
+                                            ? locale.contactRequestSent
+                                            : locale.contactRequestWithConversation(conversationId),
+                                      );
+                                    })
+                                    .catchError((e) {
+                                      if (!context.mounted) return;
+                                      final msg = e is AppFailure
+                                          ? e.userMessage(locale.toUserMessageL10n())
+                                          : locale.actionFailedRetry;
+                                      FlatmatesToast.error(context, msg);
+                                    });
+                              });
                             },
                           ),
                         );
                       },
                     ),
-                  MovingSoonSection(items: filtered),
+                  // The moved sections used to be here
                 ],
               ),
             ),

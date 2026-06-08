@@ -14,7 +14,7 @@ The backend reuses existing shared platform entities wherever possible.
 - `properties` is the flatmate room and PG listing record.
 - `user_swipes` is extended to support both property swipes and person swipes.
 - `visits` is extended to support flatmate meet requests without introducing a second visit resource.
-- Existing Supabase bearer-token auth, upload infrastructure, notification infrastructure, and websocket infrastructure remain part of the monolith.
+- Existing Supabase bearer-token auth, Cloudinary upload infrastructure, notification infrastructure, and websocket infrastructure remain part of the monolith.
 
 The only new persistence layer introduced is the reusable social layer that did not already exist in the monolith.
 
@@ -152,7 +152,7 @@ This implementation establishes the platform foundation, the first usable produc
 
 - Password and OTP auth
 - Backend bootstrap
-- Full onboarding flow (splash screens, mode selection, basic info, photo upload, lifestyle quiz, budget/timeline, non-negotiables)
+- Full onboarding flow (splash screens, mode selection, basic info, **skippable** photo step with name-initials avatar fallback, lifestyle quiz, budget/timeline, non-negotiables)
 - Compatibility engine (6-dimension scoring with animated ring)
 - Swipe deck (collapsed/expanded cards, action bar, user-to-user swipes)
 - Match celebration screen with Q&A nudge, answer storage, and chat-thread answer display
@@ -177,7 +177,7 @@ This implementation establishes the platform foundation, the first usable produc
 - Privacy settings (hide last name, hide exact location)
 - Push notification service (FCM token management)
 - 401 auth interceptor with token refresh retry
-- Image upload service (camera/gallery + Supabase Storage)
+- Image upload service (camera/gallery + Cloudinary via backend API)
 - Video tour upload and playback with client-side size and duration enforcement
 - Theme, palette, and locale switching
 - EN + HI localization (150+ strings)

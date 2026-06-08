@@ -18,7 +18,6 @@ void main() {
       final apiClient = ApiClient(
         baseUrl: 'https://api.test.example.com',
         tokenProvider: FakeAuthTokenProvider(),
-        enableLogging: false,
       );
       apiClient.dio.httpClientAdapter = adapter;
       final container = ProviderContainer(
@@ -49,15 +48,17 @@ void main() {
       () async {
         final adapter = _CapturingAdapter()
           ..responseBody = '''
-[
-  {"id": 1, "full_name": "A", "move_in_timeline": "within_1_month"},
-  {"id": 2, "full_name": "B", "move_in_timeline": "next_month"}
-]
+{
+  "profiles": [
+    {"id": 1, "full_name": "A", "move_in_timeline": "within_1_month"},
+    {"id": 2, "full_name": "B", "move_in_timeline": "next_month"}
+  ],
+  "total": 2
+}
 ''';
         final apiClient = ApiClient(
           baseUrl: 'https://api.test.example.com',
           tokenProvider: FakeAuthTokenProvider(),
-          enableLogging: false,
         );
         apiClient.dio.httpClientAdapter = adapter;
         final container = ProviderContainer(

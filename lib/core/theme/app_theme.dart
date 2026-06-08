@@ -29,7 +29,7 @@ abstract final class AppTheme {
     final textSecondary = isDark
         ? AppSemanticColors.paper3
         : AppSemanticColors.ink2;
-    final textTertiary = AppSemanticColors.ink3;
+    const textTertiary = AppSemanticColors.ink3;
     final scheme =
         ColorScheme.fromSeed(
           seedColor: palette.seedColor,
@@ -160,30 +160,30 @@ abstract final class AppTheme {
         color: surface,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.cardBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.cardBorder),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: surface,
         elevation: 4,
         shadowColor: AppSemanticColors.ink.withValues(alpha: 0.12),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.sheetBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetBorder),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark
             ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
             : surface,
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppSemanticColors.line),
+          borderSide: BorderSide(color: AppSemanticColors.line),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppSemanticColors.line),
+          borderSide: BorderSide(color: AppSemanticColors.line),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppSemanticColors.accent,
             width: 1.5,
           ),
@@ -226,7 +226,7 @@ abstract final class AppTheme {
             horizontal: AppSpacing.xl + AppSpacing.sm,
             vertical: AppSpacing.lg,
           ),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -237,16 +237,16 @@ abstract final class AppTheme {
             horizontal: AppSpacing.xl + AppSpacing.sm,
             vertical: AppSpacing.lg,
           ),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppSemanticColors.ink,
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: Colors.white),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.cardBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.cardBorder),
       ),
-      dividerTheme: DividerThemeData(
+      dividerTheme: const DividerThemeData(
         color: AppSemanticColors.line,
         thickness: 1,
         space: 1,

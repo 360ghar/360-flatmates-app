@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/l10n_bridge.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
@@ -13,10 +15,15 @@ import '../../shared/presentation/flatmates_empty_state.dart';
 import '../../shared/presentation/flatmates_error_state.dart';
 import '../../shared/presentation/flatmates_network_image.dart';
 import '../../shared/presentation/flatmates_price_text.dart';
+import '../../shared/presentation/flatmates_toast.dart';
 import '../../shared/presentation/flatmates_search_bar.dart';
 import '../../shared/presentation/flatmates_skeleton.dart';
 import '../discover_repository.dart';
 import '../application/discover_feed_controller.dart';
+
+final _isSearchActiveProvider = StateProvider<bool>((ref) => false);
+final _searchRebuildTriggerProvider = StateProvider<int>((ref) => 0);
+final _cardPressedProvider = StateProvider.family<bool, int>((ref, index) => false);
 
 class BrowseListingsPage extends ConsumerStatefulWidget {
   const BrowseListingsPage({super.key});
@@ -27,14 +34,15 @@ class BrowseListingsPage extends ConsumerStatefulWidget {
 
 class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
   final _searchController = TextEditingController();
-  bool _isSearchActive = false;
 
   @override
   void initState() {
     super.initState();
     final filters = ref.read(discoverFeedControllerProvider).filters;
     _searchController.text = filters.query ?? '';
-    if (_searchController.text.isNotEmpty) _isSearchActive = true;
+    if (_searchController.text.isNotEmpty) {
+      ref.read(_isSearchActiveProvider.notifier).state = true;
+    }
   }
 
   @override
@@ -47,13 +55,16 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final feedState = ref.watch(discoverFeedControllerProvider);
-    final filtered = ref.watch(filteredListingsProvider(locale));
+    final filtered = ref.watch(filteredListingsProvider);
+    final isSearchActive = ref.watch(_isSearchActiveProvider);
+    ref.watch(_searchRebuildTriggerProvider);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back',
         ),
         title: Text(locale.homePickedForYou),
       ),
@@ -68,7 +79,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
             ),
             child: Row(
               children: [
-                if (_isSearchActive) ...[
+                if (isSearchActive) ...[
                   Expanded(
                     child: FlatmatesSearchBar(
                       controller: _searchController,
@@ -77,7 +88,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                         ref
                             .read(discoverFeedControllerProvider.notifier)
                             .updateSearchQuery(query.isEmpty ? null : query);
-                        setState(() {});
+                        ref.read(_searchRebuildTriggerProvider.notifier).state++;
                       },
                       trailingIcon: _searchController.text.isNotEmpty
                           ? Icons.close_rounded
@@ -87,7 +98,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                         ref
                             .read(discoverFeedControllerProvider.notifier)
                             .updateSearchQuery(null);
-                        setState(() {});
+                        ref.read(_searchRebuildTriggerProvider.notifier).state++;
                       },
                       autofocus: _searchController.text.isEmpty,
                     ),
@@ -95,7 +106,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                   const SizedBox(width: AppSpacing.sm),
                 ] else ...[
                   IconButton.outlined(
-                    onPressed: () => setState(() => _isSearchActive = true),
+                    onPressed: () => ref.read(_isSearchActiveProvider.notifier).state = true,
                     icon: const Icon(Icons.search_rounded),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -110,7 +121,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
           ),
           Expanded(
             child: feedState.isLoading && filtered.isEmpty
-                ? const Center(child: FlatmatesSkeleton.feed())
+                ? const FlatmatesSkeleton.browseListings()
                 : filtered.isEmpty && feedState.hasError
                 ? FlatmatesErrorState(
                     message: locale.actionFailedRetry,
@@ -160,7 +171,6 @@ class _BrowseListingsCard extends ConsumerStatefulWidget {
 }
 
 class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
-  bool _pressed = false;
   final Set<int> _pendingLikeIds = {};
 
   @override
@@ -189,12 +199,13 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
     metaParts.add(genderSuffix);
 
     final hasImage =
-        item.mainImageUrl != null && item.mainImageUrl!.trim().isNotEmpty;
+        item.effectiveMainImageUrl != null && item.effectiveMainImageUrl!.trim().isNotEmpty;
+    final pressed = ref.watch(_cardPressedProvider(widget.index));
 
     return Listener(
-      onPointerDown: (_) => setState(() => _pressed = true),
-      onPointerUp: (_) => setState(() => _pressed = false),
-      onPointerCancel: (_) => setState(() => _pressed = false),
+      onPointerDown: (_) => ref.read(_cardPressedProvider(widget.index).notifier).state = true,
+      onPointerUp: (_) => ref.read(_cardPressedProvider(widget.index).notifier).state = false,
+      onPointerCancel: (_) => ref.read(_cardPressedProvider(widget.index).notifier).state = false,
       child: AnimatedContainer(
         duration: AppMotion.fast,
         curve: AppMotion.easeOutCubic,
@@ -206,7 +217,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
           borderRadius: AppRadius.cardBorder,
           boxShadow: [
             AppShadows.cardFor(theme.brightness),
-            if (_pressed) AppShadows.subtleGlowFor(theme.brightness),
+            if (pressed) AppShadows.subtleGlowFor(theme.brightness),
           ],
         ),
         child: Material(
@@ -226,7 +237,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                     height: 110,
                     child: hasImage
                         ? FlatmatesNetworkImage(
-                            imageUrl: item.mainImageUrl!,
+                            imageUrl: item.effectiveMainImageUrl!,
                             width: 110,
                             height: 110,
                             fit: BoxFit.cover,
@@ -350,7 +361,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                         _pendingLikeIds.add(item.id);
                         ref
                             .read(discoverRepositoryProvider)
-                            .likeListing(item.id)
+                            .setLiked(item.id, true)
                             .then((conversationId) {
                               _pendingLikeIds.remove(item.id);
                               ref
@@ -358,29 +369,26 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                                   .refresh();
                               ref.invalidate(conversationsProvider);
                               if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    conversationId == null
-                                        ? locale.contactRequestSent
-                                        : locale.contactRequestWithConversation(
-                                            conversationId,
-                                          ),
-                                  ),
-                                ),
+                              FlatmatesToast.success(
+                                context,
+                                conversationId == null
+                                    ? locale.contactRequestSent
+                                    : locale.contactRequestWithConversation(
+                                        conversationId,
+                                      ),
                               );
                             })
-                            .catchError((_) {
+                            .catchError((e) {
                               _pendingLikeIds.remove(item.id);
                               if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(locale.actionFailedRetry),
-                                ),
-                              );
+                              final msg = e is AppFailure
+                                  ? e.userMessage(locale.toUserMessageL10n())
+                                  : locale.actionFailedRetry;
+                              FlatmatesToast.error(context, msg);
                             });
                       },
                       icon: const Icon(Icons.favorite_border_rounded, size: 14),
+                      tooltip: 'Like',
                       padding: EdgeInsets.zero,
                       style: IconButton.styleFrom(
                         backgroundColor: AppSemanticColors.accentSoft,

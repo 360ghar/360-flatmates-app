@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/deep_links/deep_link_service.dart';
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/components.dart';
@@ -174,7 +176,7 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
                   ),
                 );
               },
-              loading: () => const FlatmatesSkeleton.list(),
+              loading: () => const FlatmatesSkeleton.manageListings(),
               error: (e, _) =>
                   const FlatmatesErrorState(message: 'Could not load listings'),
             ),
@@ -298,12 +300,19 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
         }
       });
       ref.invalidate(myListingsProvider);
+      if (!mounted) return;
+      final locale = AppLocalizations.of(context);
+      FlatmatesToast.success(
+        context,
+        currentlyPaused ? locale.listingResumed : locale.listingPaused,
+      );
     } catch (e) {
       if (mounted) {
         final locale = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(locale.failedToUpdateListingStatus)),
-        );
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.failedToUpdateListingStatus;
+        FlatmatesToast.error(context, msg);
       }
     } finally {
       if (mounted) {

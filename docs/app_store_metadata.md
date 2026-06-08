@@ -34,7 +34,7 @@ Browse curated listings personalized to your city, budget, and preferences. Sear
 
 SWIPE TO MATCH
 
-Like what you see? Swipe right to like, or use Star Match to stand out. When both sides like each other, it is a match. Start chatting instantly with built-in icebreakers or answer three quick Q&A questions to break the ice with more context. Your compatibility breakdown is always visible, so conversations start with understanding — not small talk.
+Like what you see? Swipe right to like, or swipe left to pass. When both sides like each other, it is a match. Start chatting instantly with built-in icebreakers or answer three quick Q&A questions to break the ice with more context. Your compatibility breakdown is always visible, so conversations start with understanding — not small talk.
 
 CHAT WITH CONTEXT
 

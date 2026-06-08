@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../l10n/gen/app_localizations.dart';
 
 /// Friendly error state with animated entry and retry CTA.
 ///
@@ -57,6 +58,7 @@ class _FlatmatesErrorStateState extends State<FlatmatesErrorState>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
 
     return Center(
       child: FadeTransition(
@@ -87,7 +89,7 @@ class _FlatmatesErrorStateState extends State<FlatmatesErrorState>
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     onPressed: widget.onRetry,
-                    child: Text(widget.retryLabel ?? 'Try again'),
+                    child: Text(widget.retryLabel ?? locale.commonRetry),
                   ),
                 ],
               ],

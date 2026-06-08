@@ -13,6 +13,13 @@ abstract final class PrefKeys {
   static const notifListingUpdates = 'notif_listing_updates';
   static const notifPromotions = 'notif_promotions';
   static const notifPermissionRequested = 'notif_permission_requested';
+
+  /// Last auth method used (wire value: google|email_password|...), so the
+  /// auth-entry screen can pre-select / highlight it on return.
+  static const lastAuthMethod = 'last_auth_method';
+
+  /// Masked last identifier (phone/email) used, for display hints.
+  static const lastAuthIdentifier = 'last_auth_identifier';
 }
 
 final class AppPreferences {

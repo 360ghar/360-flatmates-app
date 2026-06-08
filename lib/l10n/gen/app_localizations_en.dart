@@ -41,6 +41,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in or create an account to get started.';
 
   @override
+  String get authEntryTitle => 'Welcome';
+
+  @override
+  String get authEntrySubtitle =>
+      'Continue with Google, or use your phone or email.';
+
+  @override
+  String get continueWithGoogleCta => 'Continue with Google';
+
+  @override
+  String get authDividerOr => 'or';
+
+  @override
+  String get identifierLabel => 'Phone or email';
+
+  @override
+  String get continueCta => 'Continue';
+
+  @override
   String get phoneNumberLabel => 'Phone number';
 
   @override
@@ -51,6 +70,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createAccountCta => 'Create account';
+
+  @override
+  String get addPhoneTitle => 'Add your phone number';
+
+  @override
+  String get addPhoneSubtitle =>
+      'Add a phone number so flatmates can reach you. You can skip this for now.';
+
+  @override
+  String get addPhoneCta => 'Send code';
+
+  @override
+  String get skipCta => 'Skip for now';
+
+  @override
+  String get setPasswordTitle => 'Set a password';
+
+  @override
+  String get setPasswordSubtitle => 'Create a password to secure your account.';
+
+  @override
+  String lastUsedMethodHint(String method) {
+    return 'You last signed in with $method';
+  }
 
   @override
   String get loginTitle => 'Login';
@@ -692,15 +735,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilePhotoSubtitle =>
-      'A great photo helps you get more matches.';
+      'We\'ll show your initials until you add a photo. You can skip and add one later.';
 
   @override
-  String get profilePhotoNudge =>
-      'Profiles with 3+ photos get 4x more matches!';
-
-  @override
-  String get profilePhotoMinimumRequired =>
-      'Add at least one photo to continue.';
+  String get profilePhotoNudge => 'Profiles with photos get 4x more matches.';
 
   @override
   String get addPhotoCta => 'Add photo';
@@ -745,6 +783,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quizNonVegetarian => 'Non-vegetarian';
+
+  @override
+  String get quizEggetarian => 'Eggetarian';
 
   @override
   String get quizNoFoodPref => 'No preference';
@@ -883,11 +924,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emptySwipeDeck =>
       'No more profiles to show right now. Check back later!';
-
-  @override
-  String swipeDeckRemaining(int count) {
-    return '$count remaining';
-  }
 
   @override
   String get tapToSeeMore => 'View full profile';
@@ -1185,6 +1221,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMovingSoon => 'Moving soon';
 
   @override
+  String trendingNeighborhoodsIn(String city) {
+    return 'Trending in $city';
+  }
+
+  @override
+  String get meetPotentialFlatmates => 'Meet potential flatmates';
+
+  @override
   String get vibeAll => 'All';
 
   @override
@@ -1377,20 +1421,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get soundOn => 'Sound on';
 
   @override
-  String superLikeCapLabel(int count) {
-    return '$count Super Likes left';
-  }
-
-  @override
-  String swipeCounterLabel(int count) {
-    return '$count swipes left today';
-  }
-
-  @override
   String get passActionLabel => 'Pass';
-
-  @override
-  String get superLikeActionLabel => 'Star Match';
 
   @override
   String get likeActionLabel => 'Like';
@@ -2067,6 +2098,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNotAvailable => 'Phone number not available';
 
   @override
+  String get emailNotAvailable => 'Email not available';
+
+  @override
   String get emojiPickerComingSoon => 'Emoji picker coming soon';
 
   @override
@@ -2696,6 +2730,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUpload => 'Upload failed. Please try again.';
 
   @override
+  String get errorOtpInvalid => 'Invalid or expired code. Please try again.';
+
+  @override
+  String get errorAuthSessionMissing =>
+      'Verification failed. Please try again.';
+
+  @override
   String get errorUnknown => 'Something went wrong. Please try again.';
 
   @override
@@ -3092,4 +3133,106 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackSubmitSuccess => 'Thanks for your feedback!';
+
+  @override
+  String get profileUpdated => 'Profile updated successfully';
+
+  @override
+  String get listingPublished => 'Listing published successfully';
+
+  @override
+  String get listingResumed => 'Listing resumed';
+
+  @override
+  String get shortlisted => 'Added to shortlist';
+
+  @override
+  String get shortlistRemoved => 'Removed from shortlist';
+
+  @override
+  String get contactRequestSentToast => 'Contact request sent';
+
+  @override
+  String get listingLabel => 'LISTING';
+
+  @override
+  String get liveBadge => 'Live';
+
+  @override
+  String get floorPlanSectionTitle => 'Floor Plan';
+
+  @override
+  String get virtualTourSectionTitle => '360° Virtual Tour';
+
+  @override
+  String get exploreVirtualTourPrompt => 'Explore this property in 360°';
+
+  @override
+  String get openVirtualTourCta => 'Open Virtual Tour';
+
+  @override
+  String get streetViewCta => 'Street View';
+
+  @override
+  String get societyVibeSectionTitle => 'Society Vibe';
+
+  @override
+  String get safetyBannerTitle => 'Stay Safe';
+
+  @override
+  String get safetyBannerBody =>
+      'Always inspect the property in person before paying. Never wire deposits or rent without visiting first.';
+
+  @override
+  String get viewsLabel => 'views';
+
+  @override
+  String get interestedLabel => 'interested';
+
+  @override
+  String get likesLabel => 'likes';
+
+  @override
+  String get openChatCta => 'Open Chat';
+
+  @override
+  String get visitRequestSent => 'Visit request sent!';
+
+  @override
+  String get visitFromDetailPageNote =>
+      'Interested in this property — scheduled from listing page.';
+
+  @override
+  String get readMoreCta => 'Read more';
+
+  @override
+  String get showLessCta => 'Show less';
+
+  @override
+  String get viewProfileCta => 'View Profile';
+
+  @override
+  String visitScheduledBanner(String date) {
+    return 'Your visit is on $date';
+  }
+
+  @override
+  String get thePlaceSectionTitle => 'The Place';
+
+  @override
+  String get peopleSectionTitle => 'People';
+
+  @override
+  String get estimatedTotalLabel => 'Estimated total';
+
+  @override
+  String get perMonthSuffix => '/month';
+
+  @override
+  String get viewOnMapLabel => 'View on Map';
+
+  @override
+  String andNMore(int count) {
+    return '+$count more';
+  }
 }

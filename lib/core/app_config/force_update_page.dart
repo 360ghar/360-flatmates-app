@@ -24,7 +24,7 @@ class ForceUpdatePage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.system_update_outlined,
                     size: 64,
                     color: AppSemanticColors.accent,
@@ -41,7 +41,7 @@ class ForceUpdatePage extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     locale.forceUpdateMessage,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
                       color: AppSemanticColors.textSecondary,
                     ),

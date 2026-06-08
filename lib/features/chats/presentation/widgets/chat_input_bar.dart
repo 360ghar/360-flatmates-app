@@ -43,6 +43,7 @@ class ChatInputBar extends StatelessWidget {
                   color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   size: 22,
                 ),
+                tooltip: 'Attach file',
               ),
             ),
             Expanded(

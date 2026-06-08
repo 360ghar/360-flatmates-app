@@ -40,7 +40,7 @@ class ChatPreMessageArea extends StatelessWidget {
               onTap: onQnATap,
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.quiz_outlined,
                     color: AppSemanticColors.accent,
                     size: 28,
@@ -69,7 +69,7 @@ class ChatPreMessageArea extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.chevron_right_rounded,
                     color: AppSemanticColors.accent,
                   ),
@@ -80,23 +80,26 @@ class ChatPreMessageArea extends StatelessWidget {
           ],
           Text(locale.icebreakerTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Row(
-              children: icebreakers.map((prompt) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: AppSpacing.sm),
-                  child: FlatmatesChip(
-                    variant: FlatmatesChipVariant.filter,
-                    label: prompt,
-                    onSelected: (_) => onIcebreakerSelected(prompt),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+          _buildIcebreakerChips(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIcebreakerChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      child: Row(
+        children: icebreakers.map((prompt) {
+          return Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: FlatmatesChip(
+              label: prompt,
+              onSelected: (_) => onIcebreakerSelected(prompt),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/providers.dart';
 import '../../core/storage/image_upload_service.dart';
 import '../../core/theme/app_spacing.dart';
@@ -15,6 +17,7 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 import '../visits/visits_repository.dart';
+import 'application/chat_actions_controller.dart';
 import 'chats_repository.dart';
 import 'domain/chat_report_reason.dart';
 import 'match_qna_nudge.dart';
@@ -131,6 +134,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   Future<void> _scheduleVisit() async {
     final conversation = _conversation;
     if (conversation?.contextProperty == null) return;
+    if (!mounted) return;
     await context.push(
       '/schedule-visit?conversationId=${widget.conversationId}',
       extra: conversation,
@@ -156,9 +160,10 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       _messageController.text = previousText;
       _messageController.selection = previousSelection;
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.failedToSendMessage)));
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.failedToSendMessage;
+        FlatmatesToast.error(context, msg);
       }
     }
   }
@@ -173,9 +178,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       final result = await service.uploadChatPhoto(files.first);
       if (result is! UploadSuccess) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(locale.failedToSendPhoto)));
+          FlatmatesToast.error(context, locale.failedToSendPhoto);
         }
         return;
       }
@@ -183,7 +186,6 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
           .read(chatsRepositoryProvider)
           .sendMessage(
             conversationId: widget.conversationId,
-            body: null,
             attachmentUrl: result.url,
             messageType: 'image',
           );
@@ -192,9 +194,10 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     } catch (e) {
       debugPrint('ChatThreadPage._sendPhoto failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.failedToSendPhoto)));
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.failedToSendPhoto;
+        FlatmatesToast.error(context, msg);
       }
     }
   }
@@ -205,7 +208,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     await ChatDialogs.showBlockDialog(
       context: context,
       peerId: peerId,
-      repository: ref.read(chatsRepositoryProvider),
+      controller: ref.read(chatActionsControllerProvider),
     );
   }
 
@@ -216,7 +219,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       context: context,
       peerId: peerId,
       reasons: _reportReasons,
-      repository: ref.read(chatsRepositoryProvider),
+      controller: ref.read(chatActionsControllerProvider),
     );
   }
 
@@ -227,7 +230,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       context: context,
       conversationId: widget.conversationId,
       peerId: peerId,
-      repository: ref.read(chatsRepositoryProvider),
+      controller: ref.read(chatActionsControllerProvider),
     );
   }
 
@@ -281,14 +284,10 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.phoneNotAvailable)));
+        FlatmatesToast.info(context, locale.phoneNotAvailable);
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.phoneNotAvailable)));
+      FlatmatesToast.info(context, locale.phoneNotAvailable);
     }
   }
 
@@ -320,13 +319,11 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     if (_conversation == null && fetchedConversation != null) {
       if (fetchedConversation.isLoading) {
         return const FlatmatesScreen(
-          useSafeArea: true,
-          body: Center(child: FlatmatesSkeleton.card()),
+          body: FlatmatesSkeleton.chatMessages(),
         );
       }
       if (fetchedConversation.hasError) {
         return FlatmatesScreen(
-          useSafeArea: true,
           body: FlatmatesErrorState(
             message: locale.errorUnknown,
             onRetry: () =>
@@ -346,7 +343,6 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     }
 
     return FlatmatesScreen(
-      useSafeArea: true,
       appBar: ChatAppBar(
         conversationId: widget.conversationId,
         conversation: conversation,

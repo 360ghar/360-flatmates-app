@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../errors/error_presenter.dart';
 import 'auth_token_provider.dart';
@@ -8,30 +9,28 @@ final class ApiClient {
   ApiClient({
     required String baseUrl,
     required AuthTokenProvider tokenProvider,
-    required bool enableLogging,
   }) : _dio = Dio(
-         BaseOptions(
-           baseUrl: baseUrl,
-           connectTimeout: const Duration(seconds: 30),
-           receiveTimeout: const Duration(seconds: 30),
-           sendTimeout: const Duration(seconds: 30),
-           headers: const {'Accept': 'application/json'},
-         ),
-       ) {
+          BaseOptions(
+            baseUrl: baseUrl,
+            connectTimeout: const Duration(seconds: 60),
+            receiveTimeout: const Duration(seconds: 60),
+            sendTimeout: const Duration(seconds: 60),
+            headers: const {'Accept': 'application/json'},
+          ),
+        ) {
     _dio.interceptors.add(
       AuthInterceptor(tokenProvider: tokenProvider, dio: _dio),
     );
-    if (enableLogging) {
+    if (kDebugMode) {
       _dio.interceptors.add(
         LogInterceptor(
-          request: false,
-          requestBody: false,
           requestHeader: false,
-          responseBody: false,
           responseHeader: false,
-          error: true,
+          logPrint: (obj) => debugPrint('🌐 $obj'),
         ),
       );
+      // TODO: Add Alice HTTP inspector when compatible version is available
+      // Currently alice dev_dependency conflicts with share_plus ^10.1.4
     }
   }
 

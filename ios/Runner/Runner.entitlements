@@ -4,10 +4,15 @@
 <dict>
     <key>aps-environment</key>
     <string>production</string>
+    <key>com.apple.developer.applesignin</key>
+    <array>
+        <string>Default</string>
+    </array>
     <key>com.apple.developer.associated-domains</key>
     <array>
         <string>applinks:the360ghar.com</string>
         <string>applinks:app.the360ghar.com</string>
+        <string>webcredentials:360ghar.com</string>
     </array>
 </dict>
 </plist>

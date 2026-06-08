@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
 
@@ -36,7 +37,7 @@ class HelpSafetyPage extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: AppSemanticColors.accent.withValues(alpha: 0.12),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.shield_rounded,
                       size: 24,
                       color: AppSemanticColors.accent,
@@ -428,8 +429,6 @@ class _ContactActions extends StatelessWidget {
       return;
     }
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(locale.supportEmailFallback(kSupportEmail))),
-    );
+    FlatmatesToast.info(context, locale.supportEmailFallback(kSupportEmail));
   }
 }

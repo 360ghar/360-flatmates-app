@@ -7,11 +7,13 @@ import '../../core/deep_links/deep_link_service.dart';
 import '../app_shell.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../features/auth/presentation/add_phone_page.dart';
 import '../../features/auth/presentation/enter_phone_page.dart';
 import '../../features/auth/presentation/forgot_password_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/otp_page.dart';
 import '../../features/auth/presentation/reset_password_page.dart';
+import '../../features/auth/presentation/set_password_page.dart';
 import '../../features/auth/presentation/signup_page.dart';
 import '../../features/auth/presentation/splash_page.dart';
 import '../../features/bootstrap/bootstrap_controller.dart';
@@ -69,6 +71,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       refreshNotifier.refresh();
     }
   });
+  // Re-evaluate the redirect chain when the post-Google add-phone prompt
+  // toggles (set after a phone-less Google sign-in, cleared on add/skip).
+  ref.listen<bool>(addPhonePromptProvider, (previous, next) {
+    if (previous != next) {
+      refreshNotifier.refresh();
+    }
+  });
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -86,6 +95,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/otp' ||
           location == '/forgot-password' ||
           location == '/reset-password';
+      final isAddPhone = location == '/add-phone';
+      final isSetPassword = location == '/set-password';
       final isOnboarding = location == '/onboarding';
       final isDeepLink =
           location.startsWith('/chats/') ||
@@ -115,7 +126,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (!auth.isLoggedIn) {
-        return isAuthRoute ? null : '/login';
+        return isAuthRoute ? null : '/enter-phone';
+      }
+
+      // Requirement 6: mandatory set-password after an OTP verify for a
+      // passwordless account. Gate everything until it's completed (cleared
+      // when the password is set). Never set for Google/Apple.
+      if (auth.needsPassword) {
+        return isSetPassword ? null : '/set-password';
+      }
+      if (isSetPassword) {
+        // Password set — leave the gate and continue the redirect chain.
+        return '/splash';
       }
 
       if (bootstrap.isLoading) {
@@ -128,6 +150,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final bootstrapData = bootstrap.valueOrNull!;
       final profile = bootstrapData.profile;
+
+      // Post-Google add-phone (skippable): a phone-less Google account is sent
+      // through /add-phone before onboarding. Cleared on add or skip.
+      final wantsAddPhone = ref.read(addPhonePromptProvider);
+      final hasPhone = (profile.phone ?? '').trim().isNotEmpty;
+      if (wantsAddPhone && !hasPhone) {
+        return isAddPhone ? null : '/add-phone';
+      }
+      if (isAddPhone) {
+        // Prompt resolved (added or skipped) — fall through to onboarding/home.
+        return profile.onboardingCompleted ? '/discover' : '/onboarding';
+      }
 
       if (!profile.onboardingCompleted && !isOnboarding) {
         return '/onboarding';
@@ -161,8 +195,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) =>
-            LoginPage(phone: state.uri.queryParameters['phone']),
+        builder: (context, state) => LoginPage(
+          phone: state.uri.queryParameters['phone'],
+          email: state.uri.queryParameters['email'],
+        ),
       ),
       GoRoute(
         path: '/signup',
@@ -171,17 +207,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/otp',
-        builder: (context, state) =>
-            OtpPage(phone: state.uri.queryParameters['phone'] ?? ''),
+        builder: (context, state) => OtpPage(
+          phone: state.uri.queryParameters['phone'] ?? '',
+          email: state.uri.queryParameters['email'],
+        ),
       ),
       GoRoute(
         path: '/forgot-password',
-        builder: (context, state) =>
-            ForgotPasswordPage(phone: state.uri.queryParameters['phone']),
+        builder: (context, state) => ForgotPasswordPage(
+          phone: state.uri.queryParameters['phone'],
+          email: state.uri.queryParameters['email'],
+        ),
       ),
       GoRoute(
         path: '/reset-password',
         builder: (context, state) => const ResetPasswordPage(),
+      ),
+      GoRoute(
+        path: '/set-password',
+        builder: (context, state) => const SetPasswordPage(),
+      ),
+      GoRoute(
+        path: '/add-phone',
+        builder: (context, state) => const AddPhonePage(),
       ),
       GoRoute(
         path: '/onboarding',
@@ -422,7 +470,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/tab2',
-                builder: (context, state) => const _ModeTab2Switcher(),
+                builder: (context, state) => const ModeTab2Switcher(),
               ),
             ],
           ),
@@ -498,21 +546,44 @@ class RouterRefreshNotifier extends ChangeNotifier {
   }
 }
 
-class _ModeTab2Switcher extends ConsumerWidget {
-  const _ModeTab2Switcher();
+/// Mode lookup for the `/tab2` shell branch.
+///
+/// Extracted from the widget so the production widget ([ModeTab2Switcher])
+/// can be tested without standing up the full bootstrap chain.
+final tab2ModeProvider = Provider<String?>((ref) {
+  return ref.watch(
+    bootstrapControllerProvider.select((v) => v.valueOrNull?.profile.mode),
+  );
+});
+
+/// Stable wrapper for the `/tab2` shell branch.
+///
+/// The slot in the parent `IndexedStack` always has the same runtime type
+/// ([ModeTab2Switcher]). The internal `build()` picks which child to show
+/// based on the current mode. This keeps the wrapper's Element (and its
+/// SemanticsNode) alive across mode flips, so the Semantics tree is mutated
+/// in place rather than torn down + rebuilt — which is what previously
+/// triggered the `!semantics.parentDataDirty` assertion in
+/// `rendering/object.dart`.
+///
+/// Children are returned *without* `ValueKey`s. The author had previously
+/// added keys to force a clean State rebuild on mode flip, but the
+/// `ValueKey` swap is exactly what made the SemanticsNode detach/attach
+/// race the parent-data flush.
+class ModeTab2Switcher extends ConsumerStatefulWidget {
+  const ModeTab2Switcher({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(
-      bootstrapControllerProvider.select((v) => v.valueOrNull?.profile.mode),
-    );
-    // Keyed by mode so the branch's State is rebuilt cleanly when the
-    // user switches seeker_mode mid-session.
+  ConsumerState<ModeTab2Switcher> createState() => _ModeTab2SwitcherState();
+}
+
+class _ModeTab2SwitcherState extends ConsumerState<ModeTab2Switcher> {
+  @override
+  Widget build(BuildContext context) {
+    final mode = ref.watch(tab2ModeProvider);
     if (mode == 'room_poster') {
-      return const listings.ManageListingPage(
-        key: ValueKey('tab2_room_poster'),
-      );
+      return const listings.ManageListingPage();
     }
-    return const MapViewPage(key: ValueKey('tab2_map'));
+    return const MapViewPage();
   }
 }

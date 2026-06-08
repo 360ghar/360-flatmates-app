@@ -41,7 +41,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
-          Icon(
+          const Icon(
             Icons.warning_amber_rounded,
             size: 56,
             color: AppSemanticColors.error,
@@ -126,9 +126,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
     } else {
       final locale = AppLocalizations.of(context);
       setState(() => _isDeleting = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.deleteAccountFailed)));
+      FlatmatesToast.error(context, locale.deleteAccountFailed);
     }
   }
 }

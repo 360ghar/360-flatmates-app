@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/map/map_controller.dart';
+import '../../../core/map/tile_layer_factory.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 
-/// Canonical "simple map" example: a non-interactive MapLibre map centered on a
+/// Canonical "simple map" example: a non-interactive flutter_map centered on a
 /// single coordinate with one pin. Because all gestures are disabled the camera
 /// can never move, so the pin is drawn as a centered Flutter overlay instead of
 /// a map symbol — this avoids depending on the style's glyph/sprite sheet and
@@ -31,6 +33,7 @@ class MiniMapView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final center = LatLng(latitude, longitude);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ClipRRect(
       borderRadius: AppRadius.mdBorder,
@@ -39,26 +42,39 @@ class MiniMapView extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            MapLibreMap(
-              styleString: kLibertyStyle,
-              initialCameraPosition: CameraPosition(target: center, zoom: 15),
-              // Fully non-interactive single-pin map.
-              scrollGesturesEnabled: false,
-              zoomGesturesEnabled: false,
-              rotateGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              dragEnabled: false,
-              doubleClickZoomEnabled: false,
-              compassEnabled: false,
-              myLocationEnabled: false,
-              // Keep attribution visible per OSM/OpenFreeMap license.
-              attributionButtonPosition: AttributionButtonPosition.bottomRight,
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: 15,
+                minZoom: kDefaultMinZoom,
+                maxZoom: kDefaultMaxZoom,
+                // Fully non-interactive single-pin map.
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayerFactory.build(context),
+            RichAttributionWidget(
+              attributions: [
+                TextSourceAttribution(
+                  TileLayerFactory.attribution,
+                  textStyle: TextStyle(
+                    fontSize: 8,
+                    color: isDark
+                        ? AppSemanticColors.paper3
+                        : AppSemanticColors.ink2,
+                  ),
+                ),
+              ],
+            ),
+              ],
             ),
             // The pin: map is locked on `center`, so screen-center == `center`.
-            IgnorePointer(
+            const IgnorePointer(
               child: Padding(
                 // Anchor the tip of the pin (icon bottom) on the centre point.
-                padding: const EdgeInsets.only(bottom: 40),
+                padding: EdgeInsets.only(bottom: 40),
                 child: Icon(
                   Icons.location_on,
                   color: AppSemanticColors.accent,
@@ -66,7 +82,51 @@ class MiniMapView extends StatelessWidget {
                 ),
               ),
             ),
+            // Attribution overlay
+            Positioned(
+              bottom: AppSpacing.xs,
+              left: AppSpacing.xs,
+              child: _AttributionWidget(isDark: isDark),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AttributionWidget extends StatelessWidget {
+  final bool isDark;
+
+  const _AttributionWidget({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppSemanticColors.darkSurfaceElevated
+            : AppSemanticColors.card,
+        borderRadius: AppRadius.smBorder,
+        boxShadow: [
+          AppShadows.floatingFor(isDark ? Brightness.dark : Brightness.light),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.smBorder,
+        child: Text(
+          TileLayerFactory.attribution,
+          style: TextStyle(
+            fontSize: 8,
+            color: isDark
+                ? AppSemanticColors.paper3
+                : AppSemanticColors.ink2,
+          ),
         ),
       ),
     );
@@ -190,7 +250,7 @@ class GetDirectionsButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: AppSemanticColors.accent,
         side: const BorderSide(color: AppSemanticColors.accent),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.smBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.smBorder),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,

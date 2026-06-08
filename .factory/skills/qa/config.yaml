@@ -71,7 +71,7 @@ integrations:
   maps:
     provider: google_maps
   storage:
-    provider: supabase_storage
+    provider: cloudinary
   auth:
     provider: supabase
 

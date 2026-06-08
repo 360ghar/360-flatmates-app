@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/compatibility/compatibility_engine.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../swipe_repository.dart';
 import 'swipe_profile_card.dart';
@@ -15,6 +16,8 @@ class SwipeCardStack extends StatelessWidget {
     required this.compatibility,
     required this.nextItem,
     required this.nextCompatibility,
+    this.thirdItem,
+    this.thirdCompatibility,
     required this.dragOffset,
     required this.dragProgress,
     required this.currentRotation,
@@ -30,6 +33,8 @@ class SwipeCardStack extends StatelessWidget {
   final CompatibilityResult compatibility;
   final SwipeProfile? nextItem;
   final CompatibilityResult? nextCompatibility;
+  final SwipeProfile? thirdItem;
+  final CompatibilityResult? thirdCompatibility;
   final Offset dragOffset;
   final double dragProgress;
   final double currentRotation;
@@ -45,33 +50,60 @@ class SwipeCardStack extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final progress = dragProgress;
 
-    final Widget backgroundCard = nextItem != null && nextCompatibility != null
-        ? Positioned(
-            top: 8,
-            left: 20,
-            right: 20,
-            bottom: 0,
-            child: IgnorePointer(
-              child: Opacity(
-                opacity: 0.5 + 0.5 * progress,
-                child: Transform.scale(
-                  scale: 0.92 + 0.08 * progress,
-                  child: SwipeProfileCard(
-                    item: nextItem!,
-                    compatibility: nextCompatibility!,
+    // Card 3: deepest background card (only if a third profile exists)
+    final Widget thirdCard =
+        thirdItem != null && thirdCompatibility != null
+            ? Positioned(
+                top: AppSpacing.md,
+                left: AppSpacing.screen,
+                right: AppSpacing.screen,
+                bottom: 0,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.3 + 0.2 * progress,
+                    child: Transform.scale(
+                      scale: 0.88 + 0.06 * progress,
+                      child: SwipeProfileCard(
+                        item: thirdItem!,
+                        compatibility: thirdCompatibility!,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          )
-        : const SizedBox.shrink();
+              )
+            : const SizedBox.shrink();
 
+    // Card 2: middle background card (next card)
+    final Widget nextCard =
+        nextItem != null && nextCompatibility != null
+            ? Positioned(
+                top: AppSpacing.xs + AppSpacing.xs / 2,
+                left: AppSpacing.md,
+                right: AppSpacing.md,
+                bottom: 0,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.6 + 0.4 * progress,
+                    child: Transform.scale(
+                      scale: 0.94 + 0.06 * progress,
+                      child: SwipeProfileCard(
+                        item: nextItem!,
+                        compatibility: nextCompatibility!,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : const SizedBox.shrink();
+
+    // Card 1: foreground card (active, draggable)
     final Widget currentCard = Positioned(
       top: 0,
       left: 0,
       right: 0,
-      bottom: 8,
+      bottom: AppSpacing.xs,
       child: GestureDetector(
+        key: const Key('swipe_card'),
         onHorizontalDragStart: onHorizontalDragStart,
         onHorizontalDragUpdate: onHorizontalDragUpdate,
         onHorizontalDragEnd: onHorizontalDragEnd,
@@ -131,8 +163,7 @@ class SwipeCardStack extends StatelessWidget {
     );
 
     return Stack(
-      clipBehavior: Clip.hardEdge,
-      children: [backgroundCard, currentCard],
+      children: [thirdCard, nextCard, currentCard],
     );
   }
 }
@@ -154,6 +185,12 @@ class _SwipeOverlay extends StatelessWidget {
     return alignment == SwipeOverlayAlignment.like
         ? AppSemanticColors.success
         : AppSemanticColors.compatLow;
+  }
+
+  IconData get _icon {
+    return alignment == SwipeOverlayAlignment.like
+        ? Icons.favorite_rounded
+        : Icons.close_rounded;
   }
 
   double get _angle {
@@ -181,14 +218,21 @@ class _SwipeOverlay extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(_icon, color: Colors.white, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -208,15 +252,24 @@ class _DirectionalTint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = dragOffset.dx > 0
+    final isLike = dragOffset.dx > 0;
+    final color = isLike
         ? AppSemanticColors.success
         : AppSemanticColors.compatLow;
+    final alpha = dragProgress * 0.15;
     return Positioned.fill(
       child: IgnorePointer(
         child: Container(
           decoration: BoxDecoration(
             borderRadius: AppRadius.cardBorder,
-            color: color.withValues(alpha: dragProgress * 0.12),
+            gradient: LinearGradient(
+              begin: isLike ? Alignment.centerRight : Alignment.centerLeft,
+              end: isLike ? Alignment.centerLeft : Alignment.centerRight,
+              colors: [
+                color.withValues(alpha: alpha),
+                color.withValues(alpha: alpha * 0.2),
+              ],
+            ),
           ),
         ),
       ),

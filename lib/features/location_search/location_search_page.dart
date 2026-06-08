@@ -14,6 +14,10 @@ import '../bootstrap/catalog_helpers.dart';
 import '../location/application/location_search_provider.dart';
 import '../shared/presentation/components.dart';
 
+final _locatingProvider = StateProvider<bool>((ref) => false);
+final _selectingPlaceProvider = StateProvider<bool>((ref) => false);
+final _searchTextVersionProvider = StateProvider<int>((ref) => 0);
+
 class LocationSearchPage extends ConsumerStatefulWidget {
   final ValueChanged<LocationData>? onLocationSelected;
   final bool showRadiusSlider;
@@ -31,8 +35,7 @@ class LocationSearchPage extends ConsumerStatefulWidget {
 class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
-  bool _locating = false;
-  bool _selectingPlace = false;
+
 
   @override
   void initState() {
@@ -55,7 +58,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
   }
 
   Future<void> _useCurrentLocation() async {
-    setState(() => _locating = true);
+    ref.read(_locatingProvider.notifier).state = true;
     try {
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
@@ -139,12 +142,12 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
         );
       }
     } finally {
-      if (mounted) setState(() => _locating = false);
+      if (mounted) ref.read(_locatingProvider.notifier).state = false;
     }
   }
 
   Future<void> _selectPlace(PlaceSuggestion suggestion) async {
-    setState(() => _selectingPlace = true);
+    ref.read(_selectingPlaceProvider.notifier).state = true;
     try {
       final details = await ref
           .read(locationSearchProvider.notifier)
@@ -178,7 +181,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
         );
       }
     } finally {
-      if (mounted) setState(() => _selectingPlace = false);
+      if (mounted) ref.read(_selectingPlaceProvider.notifier).state = false;
     }
   }
 
@@ -195,8 +198,9 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final searchState = ref.watch(locationSearchProvider);
+    ref.watch(_searchTextVersionProvider);
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
-    final isPlacesLoading = searchState.isLoading || _selectingPlace;
+    final isPlacesLoading = searchState.isLoading || ref.watch(_selectingPlaceProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -239,7 +243,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                 controller: _searchController,
                 hint: locale.searchCityOrAreaHint,
                 autofocus: true,
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => ref.read(_searchTextVersionProvider.notifier).state++,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -248,20 +252,20 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                 horizontal: AppSpacing.screen,
               ),
               child: InkWell(
-                onTap: _locating ? null : _useCurrentLocation,
+                onTap: ref.watch(_locatingProvider) ? null : _useCurrentLocation,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.my_location_outlined,
                         color: AppSemanticColors.accent,
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
-                          _locating
+                          ref.watch(_locatingProvider)
                               ? locale.detectingLocation
                               : locale.useCurrentLocation,
                           style: theme.textTheme.bodyLarge?.copyWith(
@@ -270,14 +274,14 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                           ),
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: AppSemanticColors.line),
+                      const Icon(Icons.chevron_right, color: AppSemanticColors.line),
                     ],
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
+            const Padding(
+              padding: EdgeInsets.symmetric(
                 horizontal: AppSpacing.screen,
               ),
               child: Divider(color: AppSemanticColors.line),
@@ -319,7 +323,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                   itemBuilder: (context, index) {
                     final suggestion = searchState.suggestions[index];
                     return FlatmatesCard(
-                      onTap: _selectingPlace
+                      onTap: ref.watch(_selectingPlaceProvider)
                           ? null
                           : () => _selectPlace(suggestion),
                       borderColor: AppSemanticColors.line.withValues(
@@ -327,7 +331,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.location_on_outlined,
                             color: AppSemanticColors.accent,
                           ),
@@ -352,7 +356,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                               ],
                             ),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.chevron_right,
                             color: AppSemanticColors.line,
                           ),

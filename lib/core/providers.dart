@@ -5,6 +5,7 @@ import 'network/api_client.dart';
 import 'network/auth_token_provider.dart';
 import 'storage/app_preferences.dart';
 import 'storage/auth_token_storage.dart';
+import 'storage/onboarding_draft_storage.dart';
 import 'storage/secure_kv_store.dart';
 
 final appConfigProvider = Provider<AppConfig>(
@@ -29,10 +30,13 @@ final authTokenProviderProvider = Provider<AuthTokenProvider>(
   (ref) => RefreshingAuthTokenProvider(ref.watch(authTokenStorageProvider)),
 );
 
+final onboardingDraftStorageProvider = Provider<OnboardingDraftStorage>((ref) {
+  return OnboardingDraftStorage(ref.watch(appPreferencesProvider));
+});
+
 final apiClientProvider = Provider<ApiClient>(
   (ref) => ApiClient(
     baseUrl: ref.watch(appConfigProvider).apiBaseUrl,
     tokenProvider: ref.watch(authTokenProviderProvider),
-    enableLogging: ref.watch(appConfigProvider).enableDebugLogs,
   ),
 );

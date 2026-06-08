@@ -37,7 +37,6 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
     final isLast = _page == _pageCount - 1;
 
     return FlatmatesScreen(
-      useSafeArea: true,
       body: Column(
         children: [
           Expanded(
@@ -66,7 +65,7 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
           ),
           // --- Step progress dots (outline circles, active filled) ---
           Padding(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               AppSpacing.screen,
               AppSpacing.sm,
               AppSpacing.screen,
@@ -79,7 +78,7 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
           ),
           // --- Action buttons ---
           Padding(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               AppSpacing.screen,
               0,
               AppSpacing.screen,
@@ -148,7 +147,7 @@ class _OutlineDotsProgress extends StatelessWidget {
           width: 10,
           height: 10,
           decoration: isActive || isCompleted
-              ? BoxDecoration(
+              ? const BoxDecoration(
                   color: AppSemanticColors.accent,
                   shape: BoxShape.circle,
                 )

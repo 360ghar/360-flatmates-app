@@ -8,7 +8,6 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
-/// Hero image carousel with page indicators and frosted glass icon buttons.
 class FlatDetailsCarousel extends StatelessWidget {
   const FlatDetailsCarousel({
     required this.images,
@@ -18,7 +17,8 @@ class FlatDetailsCarousel extends StatelessWidget {
     required this.onBack,
     required this.onShare,
     required this.onFavorite,
-    this.onReport,
+    this.isFavorite = false,
+    this.onImageTap,
     super.key,
   });
 
@@ -29,12 +29,13 @@ class FlatDetailsCarousel extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onShare;
   final VoidCallback onFavorite;
-  final VoidCallback? onReport;
+  final bool isFavorite;
+  final VoidCallback? onImageTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const heroHeight = 220.0;
+    const heroHeight = 280.0;
     final locale = AppLocalizations.of(context);
 
     return Column(
@@ -72,12 +73,14 @@ class FlatDetailsCarousel extends StatelessWidget {
                         itemBuilder: (context, index) => Stack(
                           fit: StackFit.expand,
                           children: [
-                            FlatmatesNetworkImage(
-                              imageUrl: images[index],
-                              width: double.infinity,
-                              fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: onImageTap,
+                              child: FlatmatesNetworkImage(
+                                imageUrl: images[index],
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                            // Gradient overlay at bottom of hero image
                             Positioned(
                               left: 0,
                               right: 0,
@@ -127,29 +130,57 @@ class FlatDetailsCarousel extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         _FrostedIconButton(
-                          key: const Key('flat_shortlist_button'),
-                          icon: Icons.favorite_border_rounded,
+                          key: const Key('flat_header_shortlist_button'),
+                          icon: isFavorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          iconColor: isFavorite
+                              ? Colors.red
+                              : Colors.white,
                           tooltip: locale.shortlistCta,
                           onTap: onFavorite,
                         ),
-                        if (onReport != null) ...[
-                          const SizedBox(width: 10),
-                          _FrostedIconButton(
-                            key: const Key('flat_report_button'),
-                            icon: Icons.flag_outlined,
-                            tooltip: locale.reportListing,
-                            onTap: onReport!,
-                          ),
-                        ],
                       ],
                     ),
                   ],
                 ),
               ),
 
+              // Image counter pill
               if (images.length > 1)
                 Positioned(
                   bottom: 14,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${currentIndex + 1} / ${images.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Page indicator dots
+              if (images.length > 1)
+                Positioned(
+                  bottom: 40,
                   left: 0,
                   right: 0,
                   child: Row(
@@ -158,11 +189,11 @@ class FlatDetailsCarousel extends StatelessWidget {
                       images.length,
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: currentIndex == index ? 20 : 7,
-                        height: 7,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: currentIndex == index ? 16 : 5,
+                        height: 5,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(3),
                           color: currentIndex == index
                               ? Colors.white
                               : Colors.white.withValues(alpha: 0.5),
@@ -179,17 +210,18 @@ class FlatDetailsCarousel extends StatelessWidget {
   }
 }
 
-/// Frosted glass icon button for floating over hero images.
 class _FrostedIconButton extends StatelessWidget {
   const _FrostedIconButton({
     required this.icon,
     required this.onTap,
     this.tooltip,
+    this.iconColor,
     super.key,
   });
   final IconData icon;
   final VoidCallback onTap;
   final String? tooltip;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +245,7 @@ class _FrostedIconButton extends StatelessWidget {
                 ).withValues(alpha: 0.2),
                 borderRadius: AppRadius.mdBorder,
               ),
-              child: Icon(icon, color: Colors.white, size: 18),
+              child: Icon(icon, color: iconColor ?? Colors.white, size: 18),
             ),
           ),
         ),

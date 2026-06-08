@@ -30,12 +30,12 @@ class LocationSelector extends StatelessWidget {
               ? AppSemanticColors.darkSurface.withValues(alpha: 0.8)
               : AppSemanticColors.card.withValues(alpha: 0.9),
           borderRadius: AppRadius.pillBorder,
-          border: Border.all(color: AppSemanticColors.line, width: 1),
+          border: Border.all(color: AppSemanticColors.line),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.location_on_outlined,
               size: 18,
               color: AppSemanticColors.accent,
@@ -57,7 +57,7 @@ class LocationSelector extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 18,
               color: AppSemanticColors.ink3,

@@ -50,7 +50,7 @@ class DiscoverListingCard extends StatelessWidget {
     metaParts.add(genderSuffix);
 
     final hasImage =
-        item.mainImageUrl != null && item.mainImageUrl!.trim().isNotEmpty;
+        item.effectiveMainImageUrl != null && item.effectiveMainImageUrl!.trim().isNotEmpty;
 
     return FlatmatesCard(
       key: Key('discover_listing_card_${item.id}'),
@@ -61,7 +61,7 @@ class DiscoverListingCard extends StatelessWidget {
         decoration: isSelected
             ? BoxDecoration(
                 border: Border.all(color: AppSemanticColors.accent, width: 2),
-                borderRadius: BorderRadius.all(Radius.circular(AppRadius.card)),
+                borderRadius: const BorderRadius.all(Radius.circular(AppRadius.card)),
               )
             : null,
         child: Column(
@@ -79,7 +79,7 @@ class DiscoverListingCard extends StatelessWidget {
                     ),
                     child: hasImage
                         ? FlatmatesNetworkImage(
-                            imageUrl: item.mainImageUrl!,
+                            imageUrl: item.effectiveMainImageUrl!,
                             fit: BoxFit.cover,
                           )
                         : _CardImageFallback(title: item.title),
@@ -108,7 +108,7 @@ class DiscoverListingCard extends StatelessWidget {
                           horizontal: AppSpacing.sm,
                           vertical: AppSpacing.xs - 1,
                         ),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppSemanticColors.accent,
                           borderRadius: AppRadius.pillBorder,
                         ),
@@ -172,6 +172,7 @@ class DiscoverListingCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(7),
                           ),
                         ),
+                        tooltip: 'Like',
                       ),
                     ),
                   ),
@@ -291,18 +292,18 @@ class _CardImageFallback extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
       ),
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Spacer(),
-          const Icon(Icons.apartment_rounded, color: Colors.white, size: 22),
-          const SizedBox(height: AppSpacing.sm),
+          const Icon(Icons.apartment_rounded, color: Colors.white, size: 18),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+            style: theme.textTheme.labelSmall?.copyWith(color: Colors.white),
           ),
         ],
       ),

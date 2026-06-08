@@ -204,7 +204,7 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
 
   String _timelineLabel(AppLocalizations locale, String key) {
     // Try to find the label from the catalog first
-    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
     final catalogOptions = bootstrap?.catalogOptions(
       'flatmates_move_in_timelines',
     );

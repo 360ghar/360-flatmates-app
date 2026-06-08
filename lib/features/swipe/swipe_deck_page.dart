@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_spacing.dart';
-import '../../core/utils/debouncer.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../chats/chats_repository.dart';
@@ -16,12 +17,9 @@ import '../shared/presentation/flatmates_skeleton.dart';
 import 'application/profile_compatibility.dart';
 import 'application/profile_view_tracker.dart';
 import 'application/swipe_deck_controller.dart';
-import 'application/swipe_quota_controller.dart';
 import 'presentation/match_celebration_route.dart';
-import 'presentation/widgets/swipe_action_buttons.dart';
 import 'presentation/widgets/swipe_card_stack.dart';
 import 'presentation/widgets/swipe_empty_state.dart';
-import 'presentation/widgets/swipe_quota_header.dart';
 import 'swipe_repository.dart';
 
 part 'swipe_deck_actions.dart';
@@ -56,12 +54,13 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   late Animation<double> _cardScaleAnimation;
 
   int _flyOffDirectionX = 0;
-  int _flyOffDirectionY = 0;
-  bool _isButtonTriggered = false;
 
-  final _swipeDebouncer = ActionDebouncer(
-    duration: const Duration(milliseconds: 300),
-  );
+  // Undo state
+  SwipeProfile? _lastSwipedProfile;
+  // ignore: unused_field
+  String? _lastSwipedAction;
+  bool _showUndo = false;
+  Timer? _undoTimer;
 
   static const Duration _snapBackDuration = Duration(milliseconds: 300);
   static const Duration _flyOffDuration = Duration(milliseconds: 200);
@@ -103,11 +102,11 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
   @override
   void dispose() {
+    _undoTimer?.cancel();
     _profileViewTracker.clear();
     _flyOffController.dispose();
     _snapBackController.dispose();
     _cardEntranceController.dispose();
-    _swipeDebouncer.dispose();
     super.dispose();
   }
 
@@ -134,7 +133,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final threshold = screenWidth * 0.20;
 
     if (_dragOffset.dx.abs() > threshold) {
-      _triggerFlyOff(superLike: false);
+      _triggerFlyOff();
       return;
     }
 
@@ -158,41 +157,10 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     }
   }
 
-  void _triggerFlyOff({required bool superLike}) {
-    final quota = ref.read(swipeQuotaControllerProvider);
-    if (!quota.isReady) {
-      // Quota still hydrating from prefs. Snap back rather than letting the
-      // user swipe past yesterday's persisted count.
-      _triggerSnapBack();
-      return;
-    }
-    if (superLike && quota.superLikesRemaining <= 0) {
-      if (mounted) {
-        final locale = AppLocalizations.of(context);
-        _showSnack(locale.superLikeCapLabel(0));
-      }
-      _triggerSnapBack();
-      return;
-    }
-    if (quota.isCapped) {
-      if (mounted) {
-        final locale = AppLocalizations.of(context);
-        _showSnack(locale.swipeCounterLabel(0));
-      }
-      _triggerSnapBack();
-      return;
-    }
-
-    if (superLike) {
-      _flyOffDirectionX = 0;
-      _flyOffDirectionY = -1;
-    } else {
-      _flyOffDirectionX = _dragOffset.dx > 0 ? 1 : -1;
-      _flyOffDirectionY = 0;
-    }
+  void _triggerFlyOff() {
+    _flyOffDirectionX = _dragOffset.dx > 0 ? 1 : -1;
 
     _flyOffStartOffset = _dragOffset;
-    _isButtonTriggered = false;
     _isAnimating = true;
     _flyOffController.forward(from: 0);
   }
@@ -200,17 +168,14 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   void _onFlyOffTick() {
     final t = _flyOffAnimation.value;
     final screenSize = MediaQuery.of(context).size;
-    final start = _isButtonTriggered ? Offset.zero : _flyOffStartOffset;
 
     final targetOffset = Offset(
-      _flyOffDirectionX != 0 ? _flyOffDirectionX * screenSize.width * 1.5 : 0.0,
-      _flyOffDirectionY != 0
-          ? _flyOffDirectionY * screenSize.height * 1.5
-          : 0.0,
+      _flyOffDirectionX * screenSize.width * 1.5,
+      0.0,
     );
 
     setState(() {
-      _dragOffset = Offset.lerp(start, targetOffset, t)!;
+      _dragOffset = Offset.lerp(_flyOffStartOffset, targetOffset, t)!;
     });
   }
 
@@ -218,32 +183,13 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (status != AnimationStatus.completed) return;
     _flyOffController.removeListener(_onFlyOffTick);
     _flyOffController.removeStatusListener(_onFlyOffStatus);
-    setState(() {
-      _dragOffset = Offset.zero;
-    });
+    // Keep the card offscreen until the backend accepts the swipe.
     _processSwipeAction(_actionFromDirection());
   }
 
   Future<void> _processSwipeAction(String action) async {
     _recordProfileView();
     final locale = AppLocalizations.of(context);
-    await ref.read(swipeQuotaControllerProvider.notifier).ensureReady();
-    if (!mounted) return;
-    final quota = ref.read(swipeQuotaControllerProvider);
-
-    if (action == 'super_like' && quota.superLikesRemaining <= 0) {
-      if (!mounted) return;
-      _showSnack(locale.superLikeCapLabel(0));
-      _resetAfterSwipe();
-      return;
-    }
-
-    if (quota.isCapped) {
-      if (!mounted) return;
-      _showSnack(locale.swipeCounterLabel(0));
-      _resetAfterSwipe();
-      return;
-    }
 
     final profiles = ref.read(swipeDeckControllerProvider).valueOrNull ?? [];
     final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
@@ -256,7 +202,10 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     }
 
     final item = visible[_currentIndex];
-    HapticFeedback.mediumImpact();
+    // Save for potential undo
+    _lastSwipedProfile = item;
+    _lastSwipedAction = action;
+    unawaited(HapticFeedback.mediumImpact());
     SwipeResult? swipeResult;
     try {
       swipeResult = await ref
@@ -275,18 +224,29 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
     if (!mounted) return;
 
-    ref
-        .read(swipeQuotaControllerProvider.notifier)
-        .recordSwipe(isSuperLike: action == 'super_like');
-
     // Reset tracked profile since we're moving to the next card.
     _trackedProfileId = null;
 
+    setState(() {
+      _dragOffset = Offset.zero;
+    });
+
     // Remove swiped profile so the next rebuild shows the next card.
-    // The entrance animation (scale 0→1) hides the card swap.
+    // The entrance animation hides the card swap.
     ref.read(swipeDeckControllerProvider.notifier).markSwiped(item.id);
 
-    final isLikeAction = action == 'like' || action == 'super_like';
+    // Show undo button for 3 seconds
+    _undoTimer?.cancel();
+    if (mounted) {
+      setState(() => _showUndo = true);
+      _undoTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() => _showUndo = false);
+        }
+      });
+    }
+
+    final isLikeAction = action == 'like';
     final didMatch = swipeResult.didMatch;
     if (isLikeAction) {
       ref.invalidate(conversationsProvider);
@@ -304,14 +264,15 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       );
     }
 
-    // Scale new card from 0 → 1 so the swap is invisible.
-    _cardEntranceController.forward(from: 0).then((_) {
-      if (mounted) {
-        setState(() {
-          _isAnimating = false;
-        });
-      }
-    });
+    unawaited(
+      _cardEntranceController.forward(from: 0).then((_) {
+        if (mounted) {
+          setState(() {
+            _isAnimating = false;
+          });
+        }
+      }),
+    );
 
     _flyOffController.addListener(_onFlyOffTick);
     _flyOffController.addStatusListener(_onFlyOffStatus);
@@ -346,15 +307,18 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   }
 
   String _actionFromDirection() {
-    if (_flyOffDirectionY < 0) return 'super_like';
     if (_flyOffDirectionX > 0) return 'like';
     return 'pass';
   }
 
-  void _beginButtonFlyOff() {
-    setState(() {
-      _isAnimating = true;
-    });
+  void _undoLastSwipe() {
+    final last = _lastSwipedProfile;
+    if (last == null) return;
+    _undoTimer?.cancel();
+    setState(() => _showUndo = false);
+    ref.read(swipeDeckControllerProvider.notifier).undoSwipe(last);
+    _lastSwipedProfile = null;
+    _lastSwipedAction = null;
   }
 
   void _refreshProfiles() {
@@ -368,7 +332,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final userProfile = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
     );
-    final quota = ref.watch(swipeQuotaControllerProvider);
     final locale = AppLocalizations.of(context);
 
     return profiles.when(
@@ -419,6 +382,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
             ? calculateProfileCompatibility(userProfile, nextItem)
             : null;
 
+        final hasThirdCard = _currentIndex + 2 < visible.length;
+        final thirdItem = hasThirdCard ? visible[_currentIndex + 2] : null;
+        final thirdCompatibility = hasThirdCard && thirdItem != null
+            ? calculateProfileCompatibility(userProfile, thirdItem)
+            : null;
+
         final screenWidth = MediaQuery.of(context).size.width;
         final rotation = calculateRotation(_dragOffset, screenWidth);
         final progress = calculateDragProgress(_dragOffset, screenWidth);
@@ -427,36 +396,33 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           body: SafeArea(
             child: Column(
               children: [
-                SwipeQuotaHeader(
-                  swipesRemaining: quota.swipesRemaining,
-                  superLikesRemaining: quota.superLikesRemaining,
-                ),
-                const SizedBox(height: AppSpacing.lg),
                 Expanded(
-                  child: SwipeCardStack(
-                    item: item,
-                    compatibility: compatibility,
-                    nextItem: nextItem,
-                    nextCompatibility: nextCompatibility,
-                    dragOffset: _dragOffset,
-                    dragProgress: progress,
-                    currentRotation: rotation,
-                    cardScaleAnimation: _cardScaleAnimation,
-                    isDragging: _isDragging,
-                    onHorizontalDragStart: _onHorizontalDragStart,
-                    onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                    onHorizontalDragEnd: _onHorizontalDragEnd,
+                  child: Stack(
+                    children: [
+                      SwipeCardStack(
+                        item: item,
+                        compatibility: compatibility,
+                        nextItem: nextItem,
+                        nextCompatibility: nextCompatibility,
+                        thirdItem: thirdItem,
+                        thirdCompatibility: thirdCompatibility,
+                        dragOffset: _dragOffset,
+                        dragProgress: progress,
+                        currentRotation: rotation,
+                        cardScaleAnimation: _cardScaleAnimation,
+                        isDragging: _isDragging,
+                        onHorizontalDragStart: _onHorizontalDragStart,
+                        onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                        onHorizontalDragEnd: _onHorizontalDragEnd,
+                      ),
+                      if (_showUndo)
+                        Positioned(
+                          top: AppSpacing.md,
+                          right: AppSpacing.xl,
+                          child: _UndoButton(onPressed: _undoLastSwipe),
+                        ),
+                    ],
                   ),
-                ),
-                SwipeActionBar(
-                  onPass: () =>
-                      _swipeDebouncer.run(() => _handleActionButton('pass')),
-                  onSuperLike: () => _swipeDebouncer.run(
-                    () => _handleActionButton('super_like'),
-                  ),
-                  onLike: () =>
-                      _swipeDebouncer.run(() => _handleActionButton('like')),
-                  isAnimating: _isAnimating,
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],
@@ -471,6 +437,44 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           message: locale.failedToLoadProfiles,
           onRetry: () =>
               ref.read(swipeDeckControllerProvider.notifier).refresh(),
+        ),
+      ),
+    );
+  }
+}
+
+class _UndoButton extends StatelessWidget {
+  const _UndoButton({required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Undo',
+      child: Listener(
+        onPointerDown: (_) => onPressed(),
+        child: ClipRRect(
+          borderRadius: AppRadius.mdBorder,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.35),
+                borderRadius: AppRadius.mdBorder,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 0.5,
+                ),
+              ),
+              child: const Icon(
+                Icons.undo_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
         ),
       ),
     );

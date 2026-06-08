@@ -1,8 +1,5 @@
 import '../domain/property_listing.dart';
 
-/// Data-transfer object that constructs a [PropertyListing] from raw backend JSON.
-///
-/// All backend-specific parsing logic lives here so the domain model stays clean.
 class PropertyListingDto {
   static PropertyListing fromJson(Map<String, dynamic> json) {
     final preferences = Map<String, dynamic>.from(
@@ -20,6 +17,32 @@ class PropertyListingDto {
 
     final ownerJson = json['owner'] as Map<String, dynamic>?;
 
+    final parsedImages = _parseImages(json);
+    final parsedImageUrls = parsedImages
+        .map((img) => img.imageUrl)
+        .toList(growable: false);
+
+    final parsedAmenities = _parseAmenities(json);
+
+    final rawSocietyTagVotes =
+        preferences['society_tag_vote_counts'] as Map? ?? {};
+    final societyTagVoteCounts = <String, Map<String, int>>{};
+    rawSocietyTagVotes.forEach((tag, counts) {
+      if (counts is Map) {
+        societyTagVoteCounts[tag.toString()] = {
+          'up': (counts['up'] as num?)?.toInt() ?? 0,
+          'down': (counts['down'] as num?)?.toInt() ?? 0,
+        };
+      }
+    });
+
+    final rawUserVotes =
+        preferences['society_tag_user_votes'] as Map? ?? {};
+    final societyTagUserVotes = <String, String>{};
+    rawUserVotes.forEach((userId, vote) {
+      societyTagUserVotes[userId.toString()] = vote.toString();
+    });
+
     return PropertyListing(
       id: (json['id'] as num?)?.toInt() ?? 0,
       ownerId: (json['owner_id'] as num?)?.toInt(),
@@ -33,8 +56,12 @@ class PropertyListingDto {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       monthlyRent: (json['monthly_rent'] as num?)?.toDouble() ?? 0,
-      mainImageUrl: json['main_image_url'] as String?,
-      imageUrls: _parseImageUrls(json),
+      mainImageUrl: _ensureAbsoluteUrl(json['main_image_url'] as String?),
+      imageUrls: parsedImageUrls.isNotEmpty
+          ? parsedImageUrls
+          : _parseFallbackImageUrls(json),
+      virtualTourUrl: _ensureAbsoluteUrl(json['virtual_tour_url'] as String?),
+      floorPlanUrl: _ensureAbsoluteUrl(json['floor_plan_url'] as String?),
       areaSqft: (json['area_sqft'] as num?)?.toDouble(),
       bedrooms: (json['bedrooms'] as num?)?.toInt(),
       bathrooms: (json['bathrooms'] as num?)?.toInt(),
@@ -49,8 +76,8 @@ class PropertyListingDto {
       genderPreference: preferences['gender_preference'] as String?,
       sharingType: preferences['sharing_type'] as String?,
       videoTourUrl:
-          preferences['video_tour_url'] as String? ??
-          json['video_tour_url'] as String?,
+          _ensureAbsoluteUrl(preferences['video_tour_url'] as String?) ??
+          _ensureAbsoluteUrl(json['video_tour_url'] as String?),
       interestCount: (json['interest_count'] as num?)?.toInt() ?? 0,
       viewCount: (json['view_count'] as num?)?.toInt() ?? 0,
       likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
@@ -75,6 +102,21 @@ class PropertyListingDto {
             )
           : null,
       distanceKm: (json['distance_km'] as num?)?.toDouble(),
+      liked: json['liked'] as bool?,
+      userHasScheduledVisit: json['user_has_scheduled_visit'] as bool?,
+      userNextVisitDate: DateTime.tryParse(
+        json['user_next_visit_date']?.toString() ?? '',
+      ),
+      googleStreetViewUrl: _ensureAbsoluteUrl(json['google_street_view_url'] as String?),
+      ownerContact: json['owner_contact'] as String?,
+      floorNumber: (json['floor_number'] as num?)?.toInt(),
+      totalFloors: (json['total_floors'] as num?)?.toInt(),
+      parkingSpaces: (json['parking_spaces'] as num?)?.toInt(),
+      ageOfProperty: (json['age_of_property'] as num?)?.toInt(),
+      images: parsedImages,
+      amenities: parsedAmenities,
+      societyTagVoteCounts: societyTagVoteCounts,
+      societyTagUserVotes: societyTagUserVotes,
     );
   }
 
@@ -84,10 +126,33 @@ class PropertyListingDto {
         .toList();
   }
 
-  static List<String> _parseImageUrls(Map<String, dynamic> json) {
+  static List<PropertyImageInfo> _parseImages(Map<String, dynamic> json) {
+    final rows = json['images'];
+    if (rows is! List || rows.isEmpty) return const [];
+    final images = <PropertyImageInfo>[];
+    for (final item in rows) {
+      if (item is! Map) continue;
+      final url = item['image_url']?.toString();
+      if (url == null || url.isEmpty || !_isAbsoluteUrl(url)) continue;
+      images.add(PropertyImageInfo(
+        id: (item['id'] as num?)?.toInt() ?? 0,
+        imageUrl: url,
+        caption: item['caption']?.toString(),
+        imageCategory: item['image_category']?.toString(),
+        displayOrder: (item['display_order'] as num?)?.toInt(),
+        isMainImage: item['is_main_image'] as bool? ?? false,
+      ));
+    }
+    return images;
+  }
+
+  static List<String> _parseFallbackImageUrls(Map<String, dynamic> json) {
     final raw = json['image_urls'];
     if (raw is List && raw.isNotEmpty) {
-      return raw.map((item) => item.toString()).toList();
+      final strings = raw.whereType<String>().where(
+        (url) => url.startsWith('http://') || url.startsWith('https://'),
+      ).toList();
+      if (strings.isNotEmpty) return strings;
     }
     final imageRows = json['images'];
     if (imageRows is List && imageRows.isNotEmpty) {
@@ -96,11 +161,42 @@ class PropertyListingDto {
           .map((item) => item['image_url']?.toString())
           .whereType<String>()
           .where((url) => url.isNotEmpty)
+          .where(_isAbsoluteUrl)
           .toList(growable: false);
       if (urls.isNotEmpty) return urls;
     }
     final main = json['main_image_url'] as String?;
-    if (main != null && main.isNotEmpty) return [main];
+    if (main != null && main.isNotEmpty && _isAbsoluteUrl(main)) {
+      return [main];
+    }
     return const [];
+  }
+
+  static List<PropertyAmenityInfo> _parseAmenities(Map<String, dynamic> json) {
+    final raw = json['amenities'] ?? json['property_amenities'];
+    if (raw is! List || raw.isEmpty) return const [];
+    final amenities = <PropertyAmenityInfo>[];
+    for (final item in raw) {
+      if (item is! Map) continue;
+      amenities.add(PropertyAmenityInfo(
+        id: (item['id'] as num?)?.toInt() ?? 0,
+        title: item['title']?.toString() ?? '',
+        icon: item['icon']?.toString(),
+        category: item['category']?.toString(),
+      ));
+    }
+    return amenities;
+  }
+
+  static bool _isAbsoluteUrl(String url) =>
+      url.startsWith('http://') || url.startsWith('https://');
+
+  /// Returns [url] only if it is an absolute http/https URL, otherwise null.
+  /// Prevents relative paths from being joined with the API base URL (which
+  /// would produce broken localhost URLs like
+  /// `http://localhost:3600/api/v1/hc_properties/...`).
+  static String? _ensureAbsoluteUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    return _isAbsoluteUrl(url) ? url : null;
   }
 }

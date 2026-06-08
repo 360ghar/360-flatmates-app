@@ -116,7 +116,7 @@ class MessageList extends StatelessWidget {
           },
         );
       },
-      loading: () => const FlatmatesSkeleton.list(),
+      loading: () => const FlatmatesSkeleton.chatMessages(),
       error: (error, _) =>
           FlatmatesErrorState(message: locale.couldNotLoadMessages),
     );

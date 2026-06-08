@@ -1,15 +1,15 @@
 import 'dart:io';
-import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:video_player/video_player.dart';
 
+import '../network/api_client.dart';
+import '../providers.dart';
+
 /// Callback for tracking upload progress (0.0 – 1.0).
-/// Note: Supabase storage upload does not expose progress events yet,
-/// so this callback is accepted but currently unused.
 typedef UploadProgressCallback = void Function(double progress);
 
 /// Sealed result type for upload operations.
@@ -32,9 +32,10 @@ final class UploadFailure extends UploadResult {
 }
 
 class ImageUploadService {
-  const ImageUploadService();
+  ImageUploadService({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
-  static final _random = Random.secure();
+  final ApiClient _apiClient;
 
   Future<List<File>> pickImages({int limit = 10}) async {
     final picker = ImagePicker();
@@ -54,7 +55,7 @@ class ImageUploadService {
   }
 
   Future<File?> pickVideo({
-    Duration maxDuration = const Duration(seconds: 30),
+    Duration maxDuration = const Duration(seconds: 60),
   }) async {
     final picker = ImagePicker();
     final video = await picker.pickVideo(
@@ -78,7 +79,7 @@ class ImageUploadService {
     final hasDuration = duration > Duration.zero;
     return VideoValidationResult(
       tooLarge: false,
-      tooLong: hasDuration && duration > const Duration(seconds: 30),
+      tooLong: hasDuration && duration > const Duration(seconds: 60),
       tooShort: hasDuration && duration < const Duration(seconds: 15),
     );
   }
@@ -100,63 +101,69 @@ class ImageUploadService {
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'profile', onProgress: onProgress);
+    return _upload(file, folder: 'avatars', visibility: 'public', onProgress: onProgress);
   }
 
   Future<UploadResult> uploadListingPhoto(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'listings', onProgress: onProgress);
+    return _upload(file, folder: 'property_image', visibility: 'public', onProgress: onProgress);
   }
 
   Future<UploadResult> uploadChatPhoto(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'chats', onProgress: onProgress);
+    return _upload(file, folder: 'chats', visibility: 'private', onProgress: onProgress);
   }
 
   Future<UploadResult> uploadVideoTour(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, 'listings', onProgress: onProgress);
+    return _upload(file, folder: 'property_video', visibility: 'public', onProgress: onProgress);
   }
 
-  static const _bucket = '360ghar-storage';
-
+  /// Upload a file through the backend API which routes to Cloudinary.
   Future<UploadResult> _upload(
-    File file,
-    String folder, {
+    File file, {
+    required String folder,
+    required String visibility,
     UploadProgressCallback? onProgress,
   }) async {
-    final supabase = Supabase.instance.client;
-    final uid = supabase.auth.currentUser?.id;
-    if (uid == null) {
-      return const UploadFailure(
-        reason: 'Not authenticated — please log in again.',
-      );
-    }
-
-    final ext = file.path.split('.').last;
-    final safeExt = ext.isEmpty ? 'jpg' : ext;
-    final name =
-        'users/$uid/$folder/${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(999999)}.$safeExt';
-
     try {
-      await supabase.storage.from(_bucket).upload(name, file);
-      // 7-day signed URL. TODO: migrate to path-based storage and generate
-      // fresh signed URLs on read so URLs are short-lived and revocable.
-      final url = await supabase.storage
-          .from(_bucket)
-          .createSignedUrl(name, 604800);
-      return UploadSuccess(url);
-    } on StorageException catch (e) {
-      return UploadFailure(
-        reason: 'Storage upload failed: ${e.message}',
-        underlyingError: e,
+      final fileName = file.path.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(file.path, filename: fileName),
+        'folder': folder,
+        'visibility': visibility,
+      });
+
+      final response = await _apiClient.dio.post(
+        '/upload',
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+          sendTimeout: const Duration(seconds: 120),
+          receiveTimeout: const Duration(seconds: 120),
+        ),
+        onSendProgress: (sent, total) {
+          if (onProgress != null && total > 0) {
+            onProgress(sent / total);
+          }
+        },
       );
+
+      final data = response.data;
+      final url = data['public_url'] as String? ?? '';
+      if (url.isEmpty) {
+        return const UploadFailure(reason: 'Upload succeeded but no URL returned.');
+      }
+      return UploadSuccess(url);
+    } on DioException catch (e) {
+      final message = e.response?.data?['detail'] ?? e.message ?? 'Upload failed';
+      return UploadFailure(reason: 'Upload failed: $message', underlyingError: e);
     } on SocketException catch (e) {
       return UploadFailure(
         reason: 'Network error during upload — please check your connection.',
@@ -183,5 +190,5 @@ class VideoValidationResult {
 }
 
 final imageUploadServiceProvider = Provider<ImageUploadService>(
-  (ref) => const ImageUploadService(),
+  (ref) => ImageUploadService(apiClient: ref.watch(apiClientProvider)),
 );

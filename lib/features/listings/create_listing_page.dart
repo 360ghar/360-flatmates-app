@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/errors/app_failure.dart' hide UploadFailure;
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/storage/image_upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -180,6 +182,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   }
 
   Future<void> _pickRoomPhotos() async {
+    final locale = AppLocalizations.of(context);
     try {
       final service = ref.read(imageUploadServiceProvider);
       final files = await service.pickImages(limit: 10 - _roomPhotoUrls.length);
@@ -193,18 +196,16 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
           });
         } else if (result is UploadFailure) {
           if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(result.reason)));
+          FlatmatesToast.error(context, result.reason);
           break;
         }
       }
     } catch (e) {
       if (!mounted) return;
-      final locale = AppLocalizations.of(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.listingSubmitFailed)));
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.listingSubmitFailed;
+      FlatmatesToast.error(context, msg);
     }
   }
 
@@ -217,11 +218,9 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
           .read(listingsRepositoryProvider)
           .createListing(request);
       ref.read(discoverFeedControllerProvider.notifier).refresh();
-      await ref.read(bootstrapControllerProvider.notifier).load();
+      await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.postListingSuccess)));
+      FlatmatesToast.success(context, locale.postListingSuccess);
       if (listingId != null) {
         context.go('/listing-review/$listingId');
       } else {
@@ -229,9 +228,10 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.listingSubmitFailed)));
+      final msg = error is AppFailure
+          ? error.userMessage(locale.toUserMessageL10n())
+          : locale.listingSubmitFailed;
+      FlatmatesToast.error(context, msg);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

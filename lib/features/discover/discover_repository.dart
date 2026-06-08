@@ -233,6 +233,42 @@ class DiscoverRepository {
     );
   }
 
+  Future<Map<String, dynamic>?> fetchOwnerPeer(int ownerId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .get('${FlatmatesEndpoints.flatmatesProfiles}/$ownerId');
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<int?> setLiked(int propertyId, bool liked) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.swipes,
+          data: {
+            'target_type': 'property',
+            'action': liked ? 'like' : 'pass',
+            'property_id': propertyId,
+          },
+        );
+    final responseData = response.data;
+    final data = Map<String, dynamic>.from(
+      responseData is Map ? responseData : const {},
+    );
+    final rawConversationId = data['conversation_id'];
+    return rawConversationId != null
+        ? int.tryParse(rawConversationId.toString())
+        : null;
+  }
+
   Future<void> voteSocietyTag({
     required int listingId,
     required String tag,
@@ -244,6 +280,33 @@ class DiscoverRepository {
           FlatmatesEndpoints.societyTagVotes(listingId),
           data: {'tag': tag, 'vote': vote},
         );
+  }
+
+  Future<Map<String, dynamic>> scheduleVisit({
+    required int propertyId,
+    required int counterpartyUserId,
+    required int conversationId,
+    required DateTime scheduledDate,
+    String? note,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.visits,
+          data: {
+            'property_id': propertyId,
+            'scheduled_date': scheduledDate.toUtc().toIso8601String(),
+            'visit_context': 'flatmate_meet',
+            'counterparty_user_id': counterpartyUserId,
+            'conversation_id': conversationId,
+            if (note != null && note.trim().isNotEmpty)
+              'special_requirements': note.trim(),
+          },
+        );
+    final data = Map<String, dynamic>.from(
+      response.data is Map ? response.data : const {},
+    );
+    return data;
   }
 
   List<String> _extractUserNonNegotiables(Map<String, dynamic>? preferences) {
@@ -329,36 +392,6 @@ class DiscoverRepository {
       }
       return true;
     }).toList();
-  }
-
-  Future<int?> likeListing(int propertyId) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .post(
-          FlatmatesEndpoints.swipes,
-          data: {
-            'target_type': 'property',
-            'action': 'like',
-            'property_id': propertyId,
-          },
-        );
-    final responseData = response.data;
-    final data = Map<String, dynamic>.from(
-      responseData is Map ? responseData : const {},
-    );
-    final rawConversationId = data['conversation_id'];
-    return rawConversationId != null
-        ? int.tryParse(rawConversationId.toString())
-        : null;
-  }
-
-  Future<void> reportListing(int propertyId, String reason) async {
-    await _ref
-        .read(apiClientProvider)
-        .post(
-          FlatmatesEndpoints.reports,
-          data: {'reported_property_id': propertyId, 'reason': reason},
-        );
   }
 }
 

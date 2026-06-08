@@ -74,7 +74,6 @@ class StepSocietySection extends StatelessWidget {
               final key = opt.id;
               final selected = societyAmenities.contains(key);
               return FlatmatesChip(
-                variant: FlatmatesChipVariant.filter,
                 icon: iconForOption(key),
                 label: opt.label,
                 selected: selected,
@@ -97,7 +96,6 @@ class StepSocietySection extends StatelessWidget {
               final key = opt.id;
               final selected = societyVibeTags.contains(key);
               return FlatmatesChip(
-                variant: FlatmatesChipVariant.filter,
                 icon: iconForOption(key),
                 label: opt.label,
                 selected: selected,

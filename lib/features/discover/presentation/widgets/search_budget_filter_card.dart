@@ -35,7 +35,6 @@ class BudgetFilterCard extends StatelessWidget {
       icon: Icons.account_balance_wallet_outlined,
       iconColor: AppSemanticColors.greenMid,
       iconBgColor: AppSemanticColors.successSoft,
-      initiallyExpanded: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,7 +48,6 @@ class BudgetFilterCard extends StatelessWidget {
                 thumbColor: AppSemanticColors.accent,
                 overlayColor: AppSemanticColors.accent.withValues(alpha: 0.08),
                 rangeThumbShape: const RoundRangeSliderThumbShape(
-                  enabledThumbRadius: 10,
                   elevation: 2,
                 ),
                 trackHeight: 4,

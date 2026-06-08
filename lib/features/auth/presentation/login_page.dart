@@ -4,35 +4,70 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth_controller.dart';
+import '../../../core/errors/l10n_bridge.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({required this.phone, super.key});
+  const LoginPage({this.phone, this.email, super.key});
 
   final String? phone;
+
+  /// When set, this is an **email** password login (verified email that has a
+  /// password set; `next_step == password`).
+  final String? email;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  late final TextEditingController _phoneController;
+  late final TextEditingController _identifierController;
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  bool get _isEmail => widget.email != null && widget.email!.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _phoneController = TextEditingController(text: widget.phone ?? '+91');
+    _identifierController = TextEditingController(
+      text: _isEmail ? widget.email : (widget.phone ?? '+91'),
+    );
   }
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    final notifier = ref.read(authControllerProvider.notifier);
+    final identifier = _identifierController.text.trim();
+    if (_isEmail) {
+      notifier.signInWithEmailPassword(
+        email: identifier,
+        password: _passwordController.text,
+      );
+    } else {
+      notifier.signInWithPassword(
+        phone: identifier,
+        password: _passwordController.text,
+      );
+    }
+  }
+
+  void _onForgotPassword() {
+    final identifier = _identifierController.text.trim();
+    ref.read(pendingPhoneProvider.notifier).state = identifier;
+    if (_isEmail) {
+      context.push('/forgot-password?email=$identifier');
+    } else {
+      context.push('/forgot-password?phone=$identifier');
+    }
   }
 
   @override
@@ -44,91 +79,98 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return FlatmatesScreen(
       appBar: AppBar(),
       scrollable: true,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(locale.loginTitle, style: theme.textTheme.headlineMedium),
-          const SizedBox(height: AppSpacing.screen),
-          FlatmatesCard(
-            child: Column(
-              children: [
-                TextField(
-                  key: const Key('login_phone_input'),
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: locale.phoneNumberLabel,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                TextField(
-                  key: const Key('login_password_input'),
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: locale.passwordLabel,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+      body: AutofillGroup(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(locale.loginTitle, style: theme.textTheme.headlineMedium),
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesCard(
+              child: Column(
+                children: [
+                  TextField(
+                    key: const Key('login_phone_input'),
+                    controller: _identifierController,
+                    keyboardType: _isEmail
+                        ? TextInputType.emailAddress
+                        : TextInputType.phone,
+                    autofillHints: _isEmail
+                        ? const [AutofillHints.email]
+                        : const [AutofillHints.telephoneNumber],
+                    decoration: InputDecoration(
+                      labelText: _isEmail
+                          ? locale.emailLabel
+                          : locale.phoneNumberLabel,
                     ),
                   ),
-                ),
-                if (auth.status == AuthStatus.error &&
-                    auth.errorMessage != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    auth.errorMessage!,
-                    style: TextStyle(color: AppSemanticColors.error),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextField(
+                    key: const Key('login_password_input'),
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    autofillHints: const [AutofillHints.password],
+                    onSubmitted: (_) =>
+                        auth.status == AuthStatus.submitting ? null : _submit(),
+                    decoration: InputDecoration(
+                      labelText: locale.passwordLabel,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
+                        tooltip: 'Toggle password visibility',
+                      ),
+                    ),
                   ),
+                  if (auth.status == AuthStatus.error &&
+                      auth.errorMessage != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      resolveAuthError(auth.errorMessage, locale),
+                      style: const TextStyle(color: AppSemanticColors.error),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FlatmatesButton.tertiary(
-              label: locale.forgotPasswordCta,
-              onPressed: () {
-                final phone = _phoneController.text.trim();
-                ref.read(pendingPhoneProvider.notifier).state = phone;
-                context.push('/forgot-password?phone=$phone');
-              },
+            const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FlatmatesButton.tertiary(
+                label: locale.forgotPasswordCta,
+                onPressed: _onForgotPassword,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.screen),
-          FlatmatesButton(
-            key: const Key('login_submit_button'),
-            label: locale.signInCta,
-            fullWidth: true,
-            onPressed: auth.status == AuthStatus.submitting
-                ? null
-                : () {
-                    ref
-                        .read(authControllerProvider.notifier)
-                        .signInWithPassword(
-                          phone: _phoneController.text.trim(),
-                          password: _passwordController.text,
-                        );
-                  },
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Center(
-            child: FlatmatesButton.tertiary(
-              label: locale.noAccountCta,
-              onPressed: () {
-                final phone = _phoneController.text.trim();
-                ref.read(pendingPhoneProvider.notifier).state = phone;
-                context.push('/signup?phone=$phone');
-              },
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesButton(
+              key: const Key('login_submit_button'),
+              label: locale.signInCta,
+              fullWidth: true,
+              onPressed: auth.status == AuthStatus.submitting ? null : _submit,
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.md),
+            Center(
+              child: FlatmatesButton.tertiary(
+                label: locale.noAccountCta,
+                onPressed: () {
+                  final identifier = _identifierController.text.trim();
+                  ref.read(pendingPhoneProvider.notifier).state = identifier;
+                  // Email signups still go through the OTP-first entry flow.
+                  if (_isEmail) {
+                    context.go('/enter-phone');
+                  } else {
+                    context.push('/signup?phone=$identifier');
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

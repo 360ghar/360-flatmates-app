@@ -11,23 +11,34 @@ enum PasswordResetStep { idle, sendingOtp, otpSent, verifying, success, error }
 
 class PasswordResetState {
   final PasswordResetStep step;
-  final String? phone;
+
+  /// The identifier (phone or email) the reset OTP was sent to.
+  final String? identifier;
+
+  /// Whether the reset is running over the phone (SMS) or email channel.
+  final AuthChannel channel;
   final AppFailure? failure;
 
   const PasswordResetState({
     this.step = PasswordResetStep.idle,
-    this.phone,
+    this.identifier,
+    this.channel = AuthChannel.phone,
     this.failure,
   });
 
+  /// Back-compat alias used by the phone reset UI.
+  String? get phone => identifier;
+
   PasswordResetState copyWith({
     PasswordResetStep? step,
-    String? phone,
+    String? identifier,
+    AuthChannel? channel,
     AppFailure? failure,
     bool clearFailure = false,
   }) => PasswordResetState(
     step: step ?? this.step,
-    phone: phone ?? this.phone,
+    identifier: identifier ?? this.identifier,
+    channel: channel ?? this.channel,
     failure: clearFailure ? null : (failure ?? this.failure),
   );
 }
@@ -47,20 +58,35 @@ class PasswordResetController extends Notifier<PasswordResetState> {
     }
   }
 
-  Future<void> sendOtp(String phone) async {
+  /// Sends a reset OTP. Auto-detects the channel from the identifier (an `@`
+  /// means email; otherwise phone) — decision 1: OTP for both channels.
+  Future<void> sendOtp(String identifier) async {
+    final channel = identifier.contains('@')
+        ? AuthChannel.email
+        : AuthChannel.phone;
     state = PasswordResetState(
       step: PasswordResetStep.sendingOtp,
-      phone: phone,
+      identifier: identifier,
+      channel: channel,
     );
     try {
-      await _repository.sendPasswordResetOtp(phone);
-      state = PasswordResetState(step: PasswordResetStep.otpSent, phone: phone);
+      if (channel == AuthChannel.email) {
+        await _repository.sendPasswordResetEmailOtp(identifier);
+      } else {
+        await _repository.sendPasswordResetOtp(identifier);
+      }
+      state = PasswordResetState(
+        step: PasswordResetStep.otpSent,
+        identifier: identifier,
+        channel: channel,
+      );
     } catch (e, st) {
       final failure = _toFailure(e, st);
       debugPrint('PasswordResetController.sendOtp failed: ${failure.label}');
       state = PasswordResetState(
         step: PasswordResetStep.error,
-        phone: phone,
+        identifier: identifier,
+        channel: channel,
         failure: failure,
       );
     }
@@ -70,12 +96,19 @@ class PasswordResetController extends Notifier<PasswordResetState> {
     required String otp,
     required String newPassword,
   }) async {
-    final phone = state.phone;
-    if (phone == null) return false;
+    final identifier = state.identifier;
+    if (identifier == null) return false;
 
     state = state.copyWith(step: PasswordResetStep.verifying);
     try {
-      await _repository.verifyPasswordResetOtp(phone: phone, otp: otp);
+      if (state.channel == AuthChannel.email) {
+        await _repository.verifyPasswordResetEmailOtp(
+          email: identifier,
+          otp: otp,
+        );
+      } else {
+        await _repository.verifyPasswordResetOtp(phone: identifier, otp: otp);
+      }
       await _repository.changePassword(newPassword);
       // Sign out the temporary session created by OTP verification
       await _repository.signOut();

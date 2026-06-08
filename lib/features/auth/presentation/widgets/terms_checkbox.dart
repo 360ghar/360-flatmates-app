@@ -42,7 +42,7 @@ class TermsCheckbox extends StatelessWidget {
                 TextSpan(text: locale.termsAgreementPrefix),
                 TextSpan(
                   text: locale.termsAndConditionsLabel,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppSemanticColors.accent,
                     decoration: TextDecoration.underline,
                     decorationColor: AppSemanticColors.accent,
@@ -53,7 +53,7 @@ class TermsCheckbox extends StatelessWidget {
                 TextSpan(text: locale.termsAgreementConjunction),
                 TextSpan(
                   text: locale.privacyPolicy,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppSemanticColors.accent,
                     decoration: TextDecoration.underline,
                     decorationColor: AppSemanticColors.accent,

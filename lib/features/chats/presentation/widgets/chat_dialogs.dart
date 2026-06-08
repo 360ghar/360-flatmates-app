@@ -6,15 +6,16 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_bottom_sheet.dart';
+import '../../../shared/presentation/flatmates_toast.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
-import '../../chats_repository.dart';
+import '../../application/chat_actions_controller.dart';
 import '../../domain/chat_report_reason.dart';
 
 class ChatDialogs {
   static Future<void> showBlockDialog({
     required BuildContext context,
     required int peerId,
-    required ChatsRepository repository,
+    required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
 
@@ -38,26 +39,23 @@ class ChatDialogs {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await repository.blockUser(peerId);
+      await controller.blockUser(peerId);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.userBlocked)));
+      FlatmatesToast.success(context, locale.userBlocked);
       if (context.mounted) {
         context.pop();
       }
     } on AppFailure catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.userMessage(locale.toUserMessageL10n()))),
+        FlatmatesToast.error(
+          context,
+          e.userMessage(locale.toUserMessageL10n()),
         );
       }
     } catch (e) {
       debugPrint('ChatDialogs.showBlockDialog failed for peer $peerId: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.failedToBlockUser)));
+        FlatmatesToast.error(context, locale.failedToBlockUser);
       }
     }
   }
@@ -66,7 +64,7 @@ class ChatDialogs {
     required BuildContext context,
     required int peerId,
     required List<ChatReportReason> reasons,
-    required ChatsRepository repository,
+    required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
     String? selectedReason;
@@ -111,23 +109,20 @@ class ChatDialogs {
     if (confirmed == null || !context.mounted) return;
 
     try {
-      await repository.reportUser(peerId, confirmed);
+      await controller.reportUser(peerId, confirmed);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.reportSubmitted)));
+      FlatmatesToast.success(context, locale.reportSubmitted);
     } on AppFailure catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.userMessage(locale.toUserMessageL10n()))),
+        FlatmatesToast.error(
+          context,
+          e.userMessage(locale.toUserMessageL10n()),
         );
       }
     } catch (e) {
       debugPrint('ChatDialogs.showReportDialog failed for peer $peerId: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.failedToReportUser)));
+        FlatmatesToast.error(context, locale.failedToReportUser);
       }
     }
   }
@@ -136,7 +131,7 @@ class ChatDialogs {
     required BuildContext context,
     required int conversationId,
     required int peerId,
-    required ChatsRepository repository,
+    required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
 
@@ -160,13 +155,14 @@ class ChatDialogs {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await repository.unmatchConversation(conversationId, peerId);
+      await controller.unmatchConversation(conversationId, peerId);
       if (!context.mounted) return;
       context.pop();
     } on AppFailure catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.userMessage(locale.toUserMessageL10n()))),
+        FlatmatesToast.error(
+          context,
+          e.userMessage(locale.toUserMessageL10n()),
         );
       }
     } catch (e) {
@@ -174,9 +170,7 @@ class ChatDialogs {
         'ChatDialogs.showUnmatchDialog failed for conversation $conversationId: $e',
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.failedToUnmatch)));
+        FlatmatesToast.error(context, locale.failedToUnmatch);
       }
     }
   }
@@ -211,7 +205,7 @@ class ChatDialogs {
               },
             ),
             ListTile(
-              leading: Icon(
+              leading: const Icon(
                 Icons.block_outlined,
                 color: AppSemanticColors.error,
               ),

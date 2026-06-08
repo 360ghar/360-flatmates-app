@@ -1,50 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/map/map_controller.dart';
+import '../../../../core/map/tile_layer_factory.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../discover_repository.dart';
 import 'map_marker_builder.dart';
 
-// Style ids for the search-radius circle (fill + outline) GeoJSON layers.
-const String _radiusSourceId = 'search-radius-source';
-const String _radiusFillLayerId = 'search-radius-fill';
-const String _radiusLineLayerId = 'search-radius-line';
-
-/// The interactive discover map: an OpenFreeMap Liberty vector map with a
-/// km-accurate search-radius ring (GeoJSON fill + line) and listing/cluster
-/// markers rendered as Flutter widget overlays.
-///
-/// MARKER STRATEGY — widget overlay (not native symbol layers):
-/// The app's markers are rich custom Flutter widgets (price bubble, BHK badge,
-/// cluster ring with price range) and the clustering is *locality-based* (done
-/// in [buildClusteredMarkers]), not zoom-based. To preserve that exact visual
-/// design and the cluster-tap-opens-sheet UX, each marker's geo point is
-/// projected to a screen pixel via [MapLibreMapController.toScreenLocation] and
-/// the widget is positioned in a [Stack] above the map. Positions are recomputed
-/// on every camera move (controller listener) and finalized on `onCameraIdle`.
-/// This is viable because marker counts are bounded (one filtered viewport,
-/// grouped by locality). Native GeoJSON clustering would change the clustering
-/// semantics and hit the Liberty-glyph limitation for custom text labels.
 class DiscoverMap extends StatefulWidget {
   const DiscoverMap({
     required this.listings,
-    required this.searchRadiusKm,
     required this.initialCenter,
     required this.onMapReady,
     required this.onListingTap,
     required this.onClusterTap,
     this.selectedPropertyId,
+    this.userLocation,
     super.key,
   });
 
   final List<PropertyListing> listings;
-  final double searchRadiusKm;
   final LatLng initialCenter;
   final String? selectedPropertyId;
+  final LatLng? userLocation;
 
-  /// Hands the live wrapper back so the parent page can drive camera moves
-  /// (recenter, animate-to-location, fit-bounds).
   final ValueChanged<FlatmatesMapController> onMapReady;
   final void Function(PropertyListing) onListingTap;
   final void Function(List<PropertyListing>) onClusterTap;
@@ -55,40 +35,39 @@ class DiscoverMap extends StatefulWidget {
 
 class _DiscoverMapState extends State<DiscoverMap> {
   final FlatmatesMapController _mapController = FlatmatesMapController();
+  final MapController _mapImpl = MapController();
 
   List<FlatmatesMapMarker> _markers = const [];
-  final Map<String, Offset> _markerScreenPositions = {};
   String _markerSignature = '';
   bool _styleLoaded = false;
-
-  // The center/radius last pushed to the radius GeoJSON source, so we only
-  // rebuild it when it actually changes.
-  LatLng? _radiusCenter;
-  double? _radiusKm;
 
   @override
   void didUpdateWidget(DiscoverMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Re-sync the radius ring when the resolved center or radius changes
-    // (location pick, recenter, or radius-slider update).
-    if (_styleLoaded &&
-        (oldWidget.searchRadiusKm != widget.searchRadiusKm ||
-            oldWidget.initialCenter.latitude != widget.initialCenter.latitude ||
-            oldWidget.initialCenter.longitude !=
-                widget.initialCenter.longitude)) {
-      _syncRadiusCircle(widget.initialCenter);
+    if (oldWidget.listings != widget.listings ||
+        oldWidget.selectedPropertyId != widget.selectedPropertyId ||
+        oldWidget.onListingTap != widget.onListingTap ||
+        oldWidget.onClusterTap != widget.onClusterTap) {
+      _markerSignature = '';
     }
   }
 
   @override
   void dispose() {
-    _mapController.controller?.removeListener(_onCameraChanged);
     _mapController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  void _rebuildMarkersIfNeeded() {
+    final sig = Object.hash(
+      widget.listings.length,
+      widget.listings.isEmpty ? 0 : widget.listings.first.id,
+      widget.listings.isEmpty ? 0 : widget.listings.last.id,
+      widget.selectedPropertyId,
+    ).toString();
+    if (sig == _markerSignature) return;
+    _markerSignature = sig;
+
     final theme = Theme.of(context);
     _markers = buildClusteredMarkers(
       items: widget.listings,
@@ -97,171 +76,106 @@ class _DiscoverMapState extends State<DiscoverMap> {
       onClusterTap: widget.onClusterTap,
       selectedPropertyId: widget.selectedPropertyId,
     );
+  }
 
-    // Only reproject after this frame when the marker SET changed (new data),
-    // not on every build — _updateOverlays calls setState and would otherwise
-    // loop. Camera-driven repositioning is handled by the controller listener
-    // and onCameraIdle.
-    final signature = _markers.map((m) => m.id).join('|');
-    if (signature != _markerSignature) {
-      _markerSignature = signature;
-      if (_mapController.isAttached) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _updateOverlays());
-      }
-    }
+  @override
+  Widget build(BuildContext context) {
+    _rebuildMarkersIfNeeded();
 
     return Stack(
       children: [
-        MapLibreMap(
-          styleString: kLibertyStyle,
-          initialCameraPosition: CameraPosition(
-            target: widget.initialCenter,
-            zoom: kDefaultInitialZoom,
+        FlutterMap(
+          mapController: _mapImpl,
+          options: MapOptions(
+            initialCenter: widget.initialCenter,
+            initialZoom: kDefaultInitialZoom,
+            minZoom: kDefaultMinZoom,
+            maxZoom: kDefaultMaxZoom,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            ),
+            onMapReady: _onMapReady,
+            onPositionChanged: _onPositionChanged,
           ),
-          minMaxZoomPreference: const MinMaxZoomPreference(
-            kDefaultMinZoom,
-            kDefaultMaxZoom,
-          ),
-          // Required so the wrapper can read cameraPosition for zoom-preserving
-          // animations and overlay projection.
-          trackCameraPosition: true,
-          rotateGesturesEnabled: false,
-          tiltGesturesEnabled: false,
-          attributionButtonPosition: AttributionButtonPosition.bottomRight,
-          onMapCreated: _onMapCreated,
-          onStyleLoadedCallback: _onStyleLoaded,
-          onCameraIdle: _onCameraIdle,
+          children: [
+            TileLayerFactory.build(context),
+            MarkerLayer(
+              markers: _buildMarkers(context),
+            ),
+            RichAttributionWidget(
+              attributions: [
+                TextSourceAttribution(
+                  TileLayerFactory.attribution,
+                  textStyle: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppSemanticColors.paper3
+                        : AppSemanticColors.ink2,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        // Marker overlays projected onto the map surface.
-        ..._buildMarkerOverlays(),
       ],
     );
   }
 
-  List<Widget> _buildMarkerOverlays() {
-    final overlays = <Widget>[];
-    for (final marker in _markers) {
-      final pos = _markerScreenPositions[marker.id];
-      if (pos == null) continue;
-      overlays.add(
-        Positioned(
-          left: pos.dx - marker.size.width / 2,
-          // Anchor so the bottom-center (pin tip / cluster) sits on the point.
-          top: pos.dy - marker.size.height,
-          width: marker.size.width,
-          height: marker.size.height,
-          child: marker.child,
+  Marker? _buildUserLocationMarker() {
+    final loc = widget.userLocation;
+    if (loc == null) return null;
+
+    return Marker(
+      point: loc,
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.blue.shade700,
+          border: Border.all(color: Colors.white, width: 3),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-      );
-    }
-    return overlays;
-  }
-
-  void _onMapCreated(MapLibreMapController controller) {
-    _mapController.attach(controller);
-    // Reproject overlays continuously while the user pans/zooms.
-    controller.addListener(_onCameraChanged);
-    widget.onMapReady(_mapController);
-  }
-
-  void _onCameraChanged() {
-    if (!mounted) return;
-    _updateOverlays();
-  }
-
-  void _onStyleLoaded() {
-    // Sources/layers/images must be (re)added here; this can fire again on a
-    // style reload, so the sync routine is idempotent (remove-then-add).
-    _styleLoaded = true;
-    // Force a rebuild of the circle on (re)load.
-    _radiusCenter = null;
-    _radiusKm = null;
-    _syncRadiusCircle(widget.initialCenter);
-    _updateOverlays();
-  }
-
-  void _onCameraIdle() {
-    // Camera settled: finalize overlay positions. This is also the hook where
-    // a viewport-driven re-fetch would live, e.g.:
-    //   final region = await _mapController.controller!.getVisibleRegion();
-    //   ...trigger a re-fetch keyed on the visible bounds...
-    _updateOverlays();
-  }
-
-  Future<void> _updateOverlays() async {
-    if (!mounted || !_mapController.isAttached) return;
-    final positions = <String, Offset>{};
-    for (final marker in _markers) {
-      final p = await _mapController.toScreenLocation(marker.point);
-      if (p == null) continue;
-      positions[marker.id] = Offset(p.x.toDouble(), p.y.toDouble());
-    }
-    if (!mounted) return;
-    if (_positionsEqual(positions, _markerScreenPositions)) return;
-    setState(() {
-      _markerScreenPositions
-        ..clear()
-        ..addAll(positions);
-    });
-  }
-
-  static bool _positionsEqual(Map<String, Offset> a, Map<String, Offset> b) {
-    if (a.length != b.length) return false;
-    for (final entry in a.entries) {
-      final other = b[entry.key];
-      if (other == null || (other - entry.value).distanceSquared > 0.25) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  Future<void> _syncRadiusCircle(LatLng center) async {
-    final controller = _mapController.controller;
-    if (controller == null || !_styleLoaded) return;
-    final radiusKm = widget.searchRadiusKm;
-    if (_radiusCenter?.latitude == center.latitude &&
-        _radiusCenter?.longitude == center.longitude &&
-        _radiusKm == radiusKm) {
-      return;
-    }
-    _radiusCenter = center;
-    _radiusKm = radiusKm;
-
-    final geojson = circlePolygon(center, radiusKm);
-    final circleColor = AppSemanticColors.accent;
-
-    // Idempotent (re)create: remove existing layers/source first, ignoring
-    // errors when they don't yet exist.
-    try {
-      await controller.removeLayer(_radiusFillLayerId);
-    } catch (_) {}
-    try {
-      await controller.removeLayer(_radiusLineLayerId);
-    } catch (_) {}
-    try {
-      await controller.removeSource(_radiusSourceId);
-    } catch (_) {}
-
-    await controller.addGeoJsonSource(_radiusSourceId, geojson);
-    await controller.addFillLayer(
-      _radiusSourceId,
-      _radiusFillLayerId,
-      FillLayerProperties(fillColor: _toHex(circleColor), fillOpacity: 0.15),
-    );
-    await controller.addLineLayer(
-      _radiusSourceId,
-      _radiusLineLayerId,
-      LineLayerProperties(
-        lineColor: _toHex(circleColor),
-        lineOpacity: 0.4,
-        lineWidth: 1.5,
       ),
     );
   }
 
-  static String _toHex(Color c) {
-    final argb = c.toARGB32();
-    return '#${(argb & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+  List<Marker> _buildMarkers(BuildContext context) {
+    if (!_styleLoaded) return [];
+
+    final markers = _markers.map((marker) {
+      return Marker(
+        point: marker.point,
+        width: marker.size.width,
+        height: marker.size.height,
+        alignment: Alignment.bottomCenter,
+        child: marker.child,
+      );
+    }).toList();
+
+    final userMarker = _buildUserLocationMarker();
+    if (userMarker != null) {
+      markers.add(userMarker);
+    }
+
+    return markers;
+  }
+
+  void _onMapReady() {
+    _mapController.attach(_mapImpl);
+    _styleLoaded = true;
+    widget.onMapReady(_mapController);
+  }
+
+  void _onPositionChanged(MapCamera camera, bool hasGesture) {
+    if (!mounted) return;
+    // MarkerLayer auto-reprojects; no manual sync needed.
   }
 }

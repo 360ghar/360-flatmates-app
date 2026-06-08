@@ -153,7 +153,7 @@ class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
 
   String _label(AppLocalizations locale, String key) {
     // Try to find the label from the catalog first
-    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
     final catalogOptions = bootstrap?.catalogOptions(
       'flatmates_non_negotiables',
     );

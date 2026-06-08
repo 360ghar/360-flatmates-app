@@ -101,10 +101,7 @@ class NotificationService {
       final prefs = _ref.read(appPreferencesProvider);
 
       final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
+        
       );
 
       await prefs.setBool(PrefKeys.notifPermissionRequested, true);
@@ -235,5 +232,5 @@ class NotificationService {
 }
 
 final notificationServiceProvider = Provider<NotificationService>(
-  (ref) => NotificationService(ref, messagingEnabled: false),
+  (ref) => NotificationService(ref),
 );

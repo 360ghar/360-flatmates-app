@@ -3,12 +3,16 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_async_view.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'visits_repository.dart';
@@ -31,6 +35,7 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
       appBar: FlatmatesHeader.backTitle(title: locale.scheduleTitle),
       body: FlatmatesAsyncView<List<VisitItem>>(
         value: visits,
+        loading: const FlatmatesSkeleton.visitList(),
         empty: FlatmatesEmptyState(
           title: locale.emptyVisits,
           subtitle: locale.scheduleSubtitle,
@@ -129,14 +134,13 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
       await ref.read(visitsRepositoryProvider).confirmVisit(item.id);
       ref.invalidate(visitsProvider);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.visitConfirmed)));
+      FlatmatesToast.success(context, locale.visitConfirmed);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.visitActionFailed)));
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.visitActionFailed;
+      FlatmatesToast.error(context, msg);
     }
   }
 
@@ -165,14 +169,13 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
       await ref.read(visitsRepositoryProvider).cancelVisit(item.id);
       ref.invalidate(visitsProvider);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.visitCancelled)));
+      FlatmatesToast.success(context, locale.visitCancelled);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.visitActionFailed)));
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.visitActionFailed;
+      FlatmatesToast.error(context, msg);
     }
   }
 
@@ -220,14 +223,13 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
           .rescheduleVisit(item.id, newDate);
       ref.invalidate(visitsProvider);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.visitRescheduleCta)));
+      FlatmatesToast.success(context, locale.visitRescheduleCta);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.visitActionFailed)));
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.visitActionFailed;
+      FlatmatesToast.error(context, msg);
     }
   }
 }
@@ -293,7 +295,7 @@ class _VisitCard extends StatelessWidget {
                   color: AppSemanticColors.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.event_available_outlined,
                   color: AppSemanticColors.accent,
                   size: 16,

@@ -10,10 +10,30 @@
   "cancelCta": "Cancel",
   "enterPhoneTitle": "Enter your phone number",
   "enterPhoneSubtitle": "Sign in or create an account to get started.",
+  "authEntryTitle": "Welcome",
+  "authEntrySubtitle": "Continue with Google, or use your phone or email.",
+  "continueWithGoogleCta": "Continue with Google",
+  "authDividerOr": "or",
+  "identifierLabel": "Phone or email",
+  "continueCta": "Continue",
   "phoneNumberLabel": "Phone number",
   "loginWithPassword": "Login with password",
   "continueWithOtp": "Continue with OTP",
   "createAccountCta": "Create account",
+  "addPhoneTitle": "Add your phone number",
+  "addPhoneSubtitle": "Add a phone number so flatmates can reach you. You can skip this for now.",
+  "addPhoneCta": "Send code",
+  "skipCta": "Skip for now",
+  "setPasswordTitle": "Set a password",
+  "setPasswordSubtitle": "Create a password to secure your account.",
+  "lastUsedMethodHint": "You last signed in with {method}",
+  "@lastUsedMethodHint": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "loginTitle": "Login",
   "signupTitle": "Create your account",
   "fullNameLabel": "Full name",
@@ -328,9 +348,8 @@
   "ageHelperText": "You must be 18 or older",
   "professionLabel": "Profession / Job title",
   "profilePhotoTitle": "Add your photos",
-  "profilePhotoSubtitle": "A great photo helps you get more matches.",
-  "profilePhotoNudge": "Profiles with 3+ photos get 4x more matches!",
-  "profilePhotoMinimumRequired": "Add at least one photo to continue.",
+  "profilePhotoSubtitle": "We'll show your initials until you add a photo. You can skip and add one later.",
+  "profilePhotoNudge": "Profiles with photos get 4x more matches.",
   "addPhotoCta": "Add photo",
   "quizProgress": "{answered} of {total} answered",
   "@quizProgress": {
@@ -355,6 +374,7 @@
   "quizVegetarian": "Vegetarian",
   "quizVegan": "Vegan",
   "quizNonVegetarian": "Non-vegetarian",
+  "quizEggetarian": "Eggetarian",
   "quizNoFoodPref": "No preference",
   "quizSmokingDrinking": "Smoking & drinking preferences?",
   "quizNeither": "Neither",
@@ -400,14 +420,6 @@
   "nonNegMinTidy": "Minimum tidy standard",
   "lifestyleQuizTitle": "Lifestyle preferences",
   "emptySwipeDeck": "No more profiles to show right now. Check back later!",
-  "swipeDeckRemaining": "{count} remaining",
-  "@swipeDeckRemaining": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "tapToSeeMore": "View full profile",
   "whyThisMatchWorks": "WHY THIS MATCH WORKS",
   "tapToCollapse": "Tap to collapse",
@@ -610,32 +622,15 @@
   "visitConfirmed": "Visit confirmed",
   "visitCancelled": "Visit cancelled.",
   "videoTourLabel": "Video tour (optional)",
-  "videoTourHint": "15-30 second vertical video, max 50MB",
+  "videoTourHint": "15-60 second vertical video, max 50MB",
   "addVideoCta": "Add video tour",
   "videoTourAdded": "Video tour added",
   "videoTooLarge": "Video must be under 50MB",
-  "videoTooLong": "Video must be under 30 seconds",
+  "videoTooLong": "Video must be under 60 seconds",
   "videoTooShort": "Video must be at least 15 seconds",
   "tapToUnmute": "Tap to unmute",
   "soundOn": "Sound on",
-  "superLikeCapLabel": "{count} Super Likes left",
-  "@superLikeCapLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "swipeCounterLabel": "{count} swipes left today",
-  "@swipeCounterLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "passActionLabel": "Pass",
-  "superLikeActionLabel": "Star Match",
   "likeActionLabel": "Like",
   "photoPendingLabel": "Photo pending",
   "readReceiptSent": "Sent",
@@ -878,6 +873,7 @@
   "budgetPlusChipLabel": "Budget+",
   "chatInputHint": "Type a message...",
   "phoneNotAvailable": "Phone number not available",
+  "emailNotAvailable": "Email not available",
   "emojiPickerComingSoon": "Emoji picker coming soon",
   "preferencesTitle": "Preferences",
   "preferencesSubtitle": "Tell us what matters to you so we can find the right flatmates and homes.",
@@ -1219,6 +1215,8 @@
   "errorRateLimit": "Too many requests. Please wait a moment and try again.",
   "errorConflict": "A conflict occurred. The data may have changed.",
   "errorUpload": "Upload failed. Please try again.",
+  "errorOtpInvalid": "Invalid or expired code. Please try again.",
+  "errorAuthSessionMissing": "Verification failed. Please try again.",
   "errorUnknown": "Something went wrong. Please try again.",
   "icebreakerTellMeRoom": "Tell me about the room!",
   "icebreakerWhatFlatmates": "What are the flatmates like?",
@@ -1440,5 +1438,60 @@
   "feedbackSeverityHigh": "High",
   "feedbackSeverityCritical": "Critical",
   "feedbackSubmitCta": "Submit",
-  "feedbackSubmitSuccess": "Thanks for your feedback!"
+  "feedbackSubmitSuccess": "Thanks for your feedback!",
+  "profileUpdated": "Profile updated successfully",
+  "listingPublished": "Listing published successfully",
+  "listingResumed": "Listing resumed",
+  "shortlisted": "Added to shortlist",
+  "shortlistRemoved": "Removed from shortlist",
+  "contactRequestSentToast": "Contact request sent",
+  "listingLabel": "LISTING",
+  "liveBadge": "Live",
+  "floorPlanSectionTitle": "Floor Plan",
+  "virtualTourSectionTitle": "360° Virtual Tour",
+  "exploreVirtualTourPrompt": "Explore this property in 360°",
+  "openVirtualTourCta": "Open Virtual Tour",
+  "streetViewCta": "Street View",
+  "societyVibeSectionTitle": "Society Vibe",
+  "safetyBannerTitle": "Stay Safe",
+  "safetyBannerBody": "Always inspect the property in person before paying. Never wire deposits or rent without visiting first.",
+  "viewsLabel": "views",
+  "interestedLabel": "interested",
+  "likesLabel": "likes",
+  "openChatCta": "Open Chat",
+  "visitRequestSent": "Visit request sent!",
+  "visitFromDetailPageNote": "Interested in this property — scheduled from listing page.",
+  "readMoreCta": "Read more",
+  "showLessCta": "Show less",
+  "viewProfileCta": "View Profile",
+  "visitScheduledBanner": "Your visit is on {date}",
+  "@visitScheduledBanner": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "thePlaceSectionTitle": "The Place",
+  "peopleSectionTitle": "People",
+  "estimatedTotalLabel": "Estimated total",
+  "perMonthSuffix": "/month",
+  "viewOnMapLabel": "View on Map",
+  "andNMore": "+{count} more",
+  "@andNMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trendingNeighborhoodsIn": "Trending in {city}",
+  "@trendingNeighborhoodsIn": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "meetPotentialFlatmates": "Meet potential flatmates"
 }

@@ -131,20 +131,17 @@ enum VisitStatus {
 
 enum SwipeAction {
   like,
-  pass,
-  superLike;
+  pass;
 
   static SwipeAction fromApi(String value) => switch (value) {
     'like' => SwipeAction.like,
     'pass' => SwipeAction.pass,
-    'super_like' => SwipeAction.superLike,
     _ => SwipeAction.pass,
   };
 
   String toApi() => switch (this) {
     SwipeAction.like => 'like',
     SwipeAction.pass => 'pass',
-    SwipeAction.superLike => 'super_like',
   };
 }
 

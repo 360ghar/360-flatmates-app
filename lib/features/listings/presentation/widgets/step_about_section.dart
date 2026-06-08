@@ -101,24 +101,7 @@ class StepAboutSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: nonNegCatalog.map((option) {
-              final key = option.id;
-              final selected = nonNegotiables.contains(key);
-              return FlatmatesChip(
-                variant: FlatmatesChipVariant.choice,
-                label: option.label,
-                selected: selected,
-                onSelected: selected
-                    ? (_) => onNonNegotiableToggled(key, false)
-                    : nonNegotiables.length < 3
-                    ? (_) => onNonNegotiableToggled(key, true)
-                    : null,
-              );
-            }).toList(),
-          ),
+          _buildNonNegotiableChips(nonNegCatalog),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -163,6 +146,27 @@ class StepAboutSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNonNegotiableChips(List<CatalogOption> options) {
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: options.map((option) {
+        final key = option.id;
+        final selected = nonNegotiables.contains(key);
+        return FlatmatesChip(
+          variant: FlatmatesChipVariant.choice,
+          label: option.label,
+          selected: selected,
+          onSelected: selected
+              ? (_) => onNonNegotiableToggled(key, false)
+              : nonNegotiables.length < 3
+              ? (_) => onNonNegotiableToggled(key, true)
+              : null,
+        );
+      }).toList(),
     );
   }
 }

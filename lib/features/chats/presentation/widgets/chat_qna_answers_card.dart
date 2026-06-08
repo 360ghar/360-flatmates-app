@@ -41,7 +41,7 @@ class ChatQnAAnswersCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.quiz_outlined, color: AppSemanticColors.accent),
+              const Icon(Icons.quiz_outlined, color: AppSemanticColors.accent),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -115,6 +115,25 @@ class _QnAAnswerSection extends StatelessWidget {
       (question: locale.qnaQuestion3, answer: answers.q3),
     ].where((row) => row.answer?.trim().isNotEmpty ?? false);
 
+    final answerWidgets = rows.map((row) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              row.question,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(row.answer!.trim(), style: theme.textTheme.bodyMedium),
+          ],
+        ),
+      );
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -125,24 +144,7 @@ class _QnAAnswerSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        ...rows.map(
-          (row) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  row.question,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(row.answer!.trim(), style: theme.textTheme.bodyMedium),
-              ],
-            ),
-          ),
-        ),
+        ...answerWidgets,
       ],
     );
   }

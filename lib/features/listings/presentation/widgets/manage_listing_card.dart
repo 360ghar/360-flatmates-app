@@ -60,12 +60,12 @@ class ManageListingCard extends StatelessWidget {
           // Full-width image at top with status chip overlay
           Stack(
             children: [
-              if (listing.mainImageUrl != null)
+              if (listing.effectiveMainImageUrl != null)
                 SizedBox(
                   height: 160,
                   width: double.infinity,
                   child: FlatmatesNetworkImage(
-                    imageUrl: listing.mainImageUrl!,
+                    imageUrl: listing.effectiveMainImageUrl!,
                     fit: BoxFit.cover,
                   ),
                 )

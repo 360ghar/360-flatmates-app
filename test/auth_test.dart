@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,12 +17,12 @@ import 'helpers/test_helpers.dart';
 
 class FailingBootstrapController extends BootstrapController {
   @override
-  FutureOr<BootstrapData?> build() {
+  Future<BootstrapData?> build() async {
     throw const NetworkFailure();
   }
 
   @override
-  Future<void> load() async {
+  Future<void> refresh() async {
     state = AsyncError(const NetworkFailure(), StackTrace.current);
   }
 }
@@ -68,30 +66,23 @@ void main() {
   });
 
   group('EnterPhonePage', () {
-    testWidgets('renders phone input and login CTA', (tester) async {
-      await tester.pumpWidget(testableWidget(child: const EnterPhonePage()));
+    testWidgets('renders identifier input, Google button and continue CTA', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await testableWidgetAsync(child: const EnterPhonePage()),
+      );
       await tester.pump();
       await tester.pump();
 
-      // Should show the phone text field.
+      // Single identifier text field (phone or email).
       expect(find.byKey(const Key('enter_phone_input')), findsOneWidget);
 
-      // Should show the login with password CTA.
-      expect(find.byKey(const Key('enter_phone_login_cta')), findsOneWidget);
+      // Google sign-in button.
+      expect(find.byKey(const Key('auth_google_button')), findsOneWidget);
 
-      // Should show the create account tertiary link.
-      expect(find.text('Create account'), findsOneWidget);
-    });
-
-    testWidgets('starts with +91 prefix in phone field', (tester) async {
-      await tester.pumpWidget(testableWidget(child: const EnterPhonePage()));
-      await tester.pump();
-      await tester.pump();
-
-      final textField = tester.widget<TextField>(
-        find.byKey(const Key('enter_phone_input')),
-      );
-      expect(textField.controller?.text, '+91');
+      // Unified continue CTA (replaces the separate login/signup buttons).
+      expect(find.byKey(const Key('enter_phone_continue_cta')), findsOneWidget);
     });
   });
 

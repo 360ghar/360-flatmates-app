@@ -100,7 +100,7 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
                         Center(
                           child: _error == null
                               ? const CircularProgressIndicator()
-                              : Icon(
+                              : const Icon(
                                   Icons.videocam_off_outlined,
                                   color: AppSemanticColors.ink3,
                                 ),

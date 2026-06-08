@@ -1,80 +1,55 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
-/// OpenFreeMap "Liberty" vector style. No API key required; OSM/OpenFreeMap
-/// attribution is rendered automatically by the style and MUST NOT be hidden.
-const String kLibertyStyle = 'https://tiles.openfreemap.org/styles/liberty';
-
-/// Default initial zoom level for map views.
 const double kDefaultInitialZoom = 12.0;
 
-/// Default minimum zoom level.
 const double kDefaultMinZoom = 3.0;
 
-/// Default maximum zoom level.
 const double kDefaultMaxZoom = 19.0;
 
-/// Reusable wrapper around [MapLibreMapController] that exposes the small,
-/// stable surface the feature pages need (camera moves, zoom, bounds fitting).
-///
-/// Follows the project's core-layer pattern: pure plumbing, no feature logic.
-/// The wrapper holds a *nullable* underlying controller because MapLibre only
-/// hands the controller back asynchronously via `onMapCreated`; call
-/// [attach] from that callback before invoking any camera method.
-///
-/// Coordinate convention: every public method here uses MapLibre's [LatLng]
-/// (latitude first). GeoJSON helpers in this file emit `[lng, lat]` per the
-/// GeoJSON spec — keep that distinction in mind at call sites.
 class FlatmatesMapController {
-  MapLibreMapController? _controller;
+  MapController? _impl;
 
-  /// The underlying MapLibre controller, or null until [attach] runs.
-  MapLibreMapController? get controller => _controller;
+  MapController? get impl => _impl;
 
-  bool get isAttached => _controller != null;
+  bool get isAttached => _impl != null;
 
-  /// The most recent camera target, or null if the camera position is unknown.
-  /// Requires the map to have been created with `trackCameraPosition: true`.
-  LatLng? get center => _controller?.cameraPosition?.target;
+  LatLng get center => _impl?.camera.center ?? const LatLng(28.4595, 77.0266);
 
-  /// The most recent zoom level, or [kDefaultInitialZoom] if unknown.
-  double get zoom => _controller?.cameraPosition?.zoom ?? kDefaultInitialZoom;
+  double get zoom => _impl?.camera.zoom ?? kDefaultInitialZoom;
 
-  /// Bind the live MapLibre controller. Call from `onMapCreated`.
-  void attach(MapLibreMapController controller) {
-    _controller = controller;
+  LatLngBounds get visibleBounds =>
+      _impl?.camera.visibleBounds ??
+      LatLngBounds(const LatLng(0, 0), const LatLng(0, 0));
+
+  void attach(MapController controller) {
+    _impl = controller;
   }
 
-  /// Instantly re-position the camera (no animation).
-  Future<void> move(LatLng center, double zoom) async {
-    await _controller?.moveCamera(CameraUpdate.newLatLngZoom(center, zoom));
+  Future<void> move(LatLng target, double zoom) async {
+    _impl?.move(target, zoom);
   }
 
-  /// Smoothly animate the camera to [center]. When [zoom] is omitted the
-  /// current zoom level is preserved.
   Future<void> animateTo(
     LatLng center, {
     double? zoom,
     Duration duration = const Duration(milliseconds: 400),
   }) async {
-    final controller = _controller;
-    if (controller == null) return;
-    final targetZoom = zoom ?? this.zoom;
-    await controller.animateCamera(
-      CameraUpdate.newLatLngZoom(center, targetZoom),
-      duration: duration,
-    );
+    final ctrl = _impl;
+    if (ctrl == null) return;
+    final targetZoom = zoom ?? ctrl.camera.zoom;
+    ctrl.move(center, targetZoom);
   }
 
-  /// Fit the camera so every point in [points] is visible.
   Future<void> fitBounds(
     List<LatLng> points, {
     EdgeInsets padding = const EdgeInsets.all(48),
   }) async {
-    final controller = _controller;
-    if (controller == null || points.isEmpty) return;
+    final ctrl = _impl;
+    if (ctrl == null || points.isEmpty) return;
 
     if (points.length == 1) {
       await animateTo(points.first, zoom: 15);
@@ -82,41 +57,36 @@ class FlatmatesMapController {
     }
 
     final bounds = boundsFromPoints(points);
-    await controller.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        bounds,
-        left: padding.left,
-        top: padding.top,
-        right: padding.right,
-        bottom: padding.bottom,
-      ),
+    await ctrl.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: padding),
     );
   }
 
   Future<void> zoomIn() async {
-    await _controller?.animateCamera(CameraUpdate.zoomIn());
+    final ctrl = _impl;
+    if (ctrl == null) return;
+    ctrl.move(ctrl.camera.center, ctrl.camera.zoom + 1);
   }
 
   Future<void> zoomOut() async {
-    await _controller?.animateCamera(CameraUpdate.zoomOut());
+    final ctrl = _impl;
+    if (ctrl == null) return;
+    ctrl.move(ctrl.camera.center, ctrl.camera.zoom - 1);
   }
 
-  /// Project a geographic coordinate to a screen pixel, used to position
-  /// Flutter widget overlays on top of the map. Returns null if not attached.
-  Future<math.Point<num>?> toScreenLocation(LatLng latLng) async {
-    final controller = _controller;
-    if (controller == null) return null;
-    return controller.toScreenLocation(latLng);
+  Offset? pointToScreen(LatLng point) {
+    return _impl?.camera.latLngToScreenOffset(point);
+  }
+
+  LatLng? screenToPoint(Offset point) {
+    return _impl?.camera.screenOffsetToLatLng(point);
   }
 
   void dispose() {
-    // MapLibreMapController is owned/disposed by the MapLibreMap widget itself;
-    // we only drop our reference so stale calls become no-ops.
-    _controller = null;
+    _impl = null;
   }
 }
 
-/// Builds a [LatLngBounds] (MapLibre, latitude-first) enclosing [points].
 LatLngBounds boundsFromPoints(List<LatLng> points) {
   assert(points.isNotEmpty);
   var minLat = points.first.latitude;
@@ -130,22 +100,14 @@ LatLngBounds boundsFromPoints(List<LatLng> points) {
     maxLng = math.max(maxLng, p.longitude);
   }
   return LatLngBounds(
-    southwest: LatLng(minLat, minLng),
-    northeast: LatLng(maxLat, maxLng),
+    LatLng(minLat, minLng),
+    LatLng(maxLat, maxLng),
   );
 }
 
 const double _earthRadiusMeters = 6378137.0;
 
-/// Generates a closed GeoJSON Polygon (a `FeatureCollection` with one feature)
-/// approximating a circle of [radiusKm] around [center], using a haversine
-/// destination-point loop with [steps] segments. No external geo deps.
-///
-/// MapLibre's `CircleLayer` radius is in *pixels*, not meters, so a real
-/// km-accurate ring must be drawn as a polygon via fill + line layers.
-///
-/// Output coordinates are `[lng, lat]` (GeoJSON order).
-Map<String, dynamic> circlePolygon(
+List<LatLng> circlePoints(
   LatLng center,
   double radiusKm, {
   int steps = 64,
@@ -155,7 +117,7 @@ Map<String, dynamic> circlePolygon(
   final lngRad = center.longitude * math.pi / 180.0;
   final angularDistance = radiusMeters / _earthRadiusMeters;
 
-  final ring = <List<double>>[];
+  final ring = <LatLng>[];
   for (var i = 0; i <= steps; i++) {
     final bearing = 2 * math.pi * (i / steps);
     final destLatRad = math.asin(
@@ -170,22 +132,9 @@ Map<String, dynamic> circlePolygon(
         );
     final destLat = destLatRad * 180.0 / math.pi;
     var destLng = destLngRad * 180.0 / math.pi;
-    // Normalize longitude into [-180, 180).
     destLng = (destLng + 540.0) % 360.0 - 180.0;
-    ring.add([destLng, destLat]);
+    ring.add(LatLng(destLat, destLng));
   }
 
-  return <String, dynamic>{
-    'type': 'FeatureCollection',
-    'features': <Map<String, dynamic>>[
-      {
-        'type': 'Feature',
-        'properties': <String, dynamic>{},
-        'geometry': <String, dynamic>{
-          'type': 'Polygon',
-          'coordinates': <List<List<double>>>[ring],
-        },
-      },
-    ],
-  };
+  return ring;
 }

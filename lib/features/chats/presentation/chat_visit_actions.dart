@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/l10n_bridge.dart';
 import '../../../l10n/gen/app_localizations.dart';
+import '../../shared/presentation/flatmates_toast.dart';
 import '../../visits/visits_repository.dart';
 
 Future<void> confirmVisitFromChat({
@@ -14,15 +17,14 @@ Future<void> confirmVisitFromChat({
     await ref.read(visitsRepositoryProvider).confirmVisit(visit.id);
     ref.invalidate(visitsProvider);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(locale.visitConfirmed)));
+    FlatmatesToast.success(context, locale.visitConfirmed);
   } catch (e) {
     debugPrint('confirmVisitFromChat failed for visit ${visit.id}: $e');
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(locale.visitActionFailed)));
+    final msg = e is AppFailure
+        ? e.userMessage(locale.toUserMessageL10n())
+        : locale.visitActionFailed;
+    FlatmatesToast.error(context, msg);
   }
 }
 
@@ -64,14 +66,13 @@ Future<void> rescheduleVisitFromChat({
     await ref.read(visitsRepositoryProvider).rescheduleVisit(visit.id, newDate);
     ref.invalidate(visitsProvider);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(locale.visitRescheduleCta)));
+    FlatmatesToast.success(context, locale.visitRescheduleCta);
   } catch (e) {
     debugPrint('rescheduleVisitFromChat failed for visit ${visit.id}: $e');
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(locale.visitActionFailed)));
+    final msg = e is AppFailure
+        ? e.userMessage(locale.toUserMessageL10n())
+        : locale.visitActionFailed;
+    FlatmatesToast.error(context, msg);
   }
 }

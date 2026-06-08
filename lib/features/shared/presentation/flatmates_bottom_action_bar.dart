@@ -7,9 +7,6 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'flatmates_ui.dart';
 
-/// Sticky CTA bar with frosted-glass effect for details, listing steps, visits, etc.
-///
-/// Pins a primary action button to the bottom of the screen above safe area.
 class FlatmatesBottomActionBar extends StatelessWidget {
   const FlatmatesBottomActionBar({
     required this.label,
@@ -21,6 +18,11 @@ class FlatmatesBottomActionBar extends StatelessWidget {
     this.secondaryOnPressed,
     this.secondaryIcon,
     this.secondaryButtonKey,
+    this.tertiaryIcon,
+    this.tertiaryOnPressed,
+    this.tertiaryButtonKey,
+    this.tertiaryLabel,
+    this.tertiarySelected = false,
   });
 
   final String label;
@@ -28,11 +30,16 @@ class FlatmatesBottomActionBar extends StatelessWidget {
   final IconData? icon;
   final Key? primaryButtonKey;
 
-  /// Optional secondary (outline) button on the left.
   final String? secondaryLabel;
   final VoidCallback? secondaryOnPressed;
   final IconData? secondaryIcon;
   final Key? secondaryButtonKey;
+
+  final IconData? tertiaryIcon;
+  final VoidCallback? tertiaryOnPressed;
+  final Key? tertiaryButtonKey;
+  final String? tertiaryLabel;
+  final bool tertiarySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -64,58 +71,157 @@ class FlatmatesBottomActionBar extends StatelessWidget {
               ),
             ),
           ),
-          child: secondaryLabel != null
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: OutlinedButton(
-                          key: secondaryButtonKey,
-                          onPressed: secondaryOnPressed,
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: AppRadius.mdBorder,
-                            ),
-                            side: const BorderSide(
-                              color: AppSemanticColors.line,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (secondaryIcon != null) ...[
-                                Icon(secondaryIcon, size: 18),
-                                const SizedBox(width: AppSpacing.sm),
-                              ],
-                              Flexible(
-                                child: Text(
-                                  secondaryLabel!,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+          child: _buildRow(isDark),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(bool isDark) {
+    if (tertiaryIcon != null) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 52,
+            height: 52,
+            child: _tertiaryButtonView(isDark),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          if (secondaryLabel != null) ...[
+            Expanded(
+              child: SizedBox(
+                height: 52,
+                child: OutlinedButton(
+                  key: secondaryButtonKey,
+                  onPressed: secondaryOnPressed,
+                  style: OutlinedButton.styleFrom(
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppRadius.mdBorder,
+                    ),
+                    side: const BorderSide(
+                      color: AppSemanticColors.line,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (secondaryIcon != null) ...[
+                        Icon(secondaryIcon, size: 18),
+                        const SizedBox(width: AppSpacing.sm),
+                      ],
+                      Flexible(
+                        child: Text(
+                          secondaryLabel!,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: FlatmatesButton(
-                        key: primaryButtonKey,
-                        label: label,
-                        onPressed: onPressed,
-                        icon: icon,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: FlatmatesButton(
+                key: primaryButtonKey,
+                label: label,
+                onPressed: onPressed,
+                icon: icon,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (secondaryLabel != null) {
+      return Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                key: secondaryButtonKey,
+                onPressed: secondaryOnPressed,
+                style: OutlinedButton.styleFrom(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: AppRadius.mdBorder,
+                  ),
+                  side: const BorderSide(
+                    color: AppSemanticColors.line,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (secondaryIcon != null) ...[
+                      Icon(secondaryIcon, size: 18),
+                      const SizedBox(width: AppSpacing.sm),
+                    ],
+                    Flexible(
+                      child: Text(
+                        secondaryLabel!,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
-                )
-              : FlatmatesButton(
-                  key: primaryButtonKey,
-                  label: label,
-                  onPressed: onPressed,
-                  icon: icon,
                 ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: FlatmatesButton(
+              key: primaryButtonKey,
+              label: label,
+              onPressed: onPressed,
+              icon: icon,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return FlatmatesButton(
+      key: primaryButtonKey,
+      label: label,
+      onPressed: onPressed,
+      icon: icon,
+    );
+  }
+
+  Widget _tertiaryButtonView(bool isDark) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: tertiaryButtonKey,
+        onTap: tertiaryOnPressed,
+        borderRadius: AppRadius.mdBorder,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.mdBorder,
+            border: Border.all(
+              color: tertiarySelected
+                  ? AppSemanticColors.accent
+                  : AppSemanticColors.line,
+            ),
+            color: tertiarySelected
+                ? AppSemanticColors.accent.withValues(alpha: 0.1)
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            tertiaryIcon,
+            size: 22,
+            color: tertiarySelected
+                ? AppSemanticColors.accent
+                : AppSemanticColors.textTertiaryFor(isDark
+                    ? Brightness.dark
+                    : Brightness.light),
+          ),
         ),
       ),
     );

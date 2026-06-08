@@ -6,26 +6,35 @@ appId: com.the360ghar.flatmates
     id: "nav_swipe_tab"
 - extendedWaitUntil:
     visible:
-      id: "swipe_like"
+      id: "swipe_card"
     timeout: 10000
 
-# Tap Like on the first profile
-- tapOn:
-    id: "swipe_like"
+# Swipe right (Like) on the first profile
+- swipe:
+    from:
+      id: "swipe_card"
+    direction: RIGHT
 
-# Wait for next card or empty state
+# If match celebration appeared, dismiss it
+- tapOn:
+    id: "match_keep_swiping"
+    optional: true
+
+# Wait for the next card to settle
 - extendedWaitUntil:
     visible:
-      id: "swipe_pass"
+      id: "swipe_card"
     timeout: 5000
 
-# Tap Pass on the next profile
-- tapOn:
-    id: "swipe_pass"
+# Swipe left (Pass) on the next profile
+- swipe:
+    from:
+      id: "swipe_card"
+    direction: LEFT
 
-# Wait for next card, match, or empty state
+# Wait for next card, match celebration, or empty state
 - assertVisible:
-    id: "swipe_like"
+    id: "swipe_card"
     optional: true
 
 # If match celebration appeared, dismiss it

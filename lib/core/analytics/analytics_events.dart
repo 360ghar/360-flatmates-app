@@ -22,7 +22,6 @@ abstract final class AnalyticsEvents {
   // Swipe
   static const swipeLike = 'swipe_like';
   static const swipePass = 'swipe_pass';
-  static const swipeSuperLike = 'swipe_super_like';
   static const matchCreated = 'match_created';
 
   // Chat

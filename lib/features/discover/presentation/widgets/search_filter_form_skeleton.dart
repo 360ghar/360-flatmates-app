@@ -97,11 +97,7 @@ class _SearchFilterFormSkeletonState extends State<SearchFilterFormSkeleton>
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                for (var i = 0; i < 4; i++) ...[
-                  _SectionCard(boneColor: base),
-                  const SizedBox(height: AppSpacing.md),
-                ],
-                _SectionCard(boneColor: base, extraRow: true),
+                ..._buildSkeletonCards(base),
               ],
             ),
           ),
@@ -116,6 +112,16 @@ class _SearchFilterFormSkeletonState extends State<SearchFilterFormSkeleton>
         ],
       ),
     );
+  }
+
+  List<Widget> _buildSkeletonCards(Color base) {
+    return [
+      for (var i = 0; i < 4; i++) ...[
+        _SectionCard(boneColor: base),
+        const SizedBox(height: AppSpacing.md),
+      ],
+      _SectionCard(boneColor: base, extraRow: true),
+    ];
   }
 }
 
@@ -160,7 +166,7 @@ class _SectionCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               const SizedBox(width: AppSpacing.md),
-              _Bone(width: 140, height: 14, color: boneColor),
+              _Bone(width: 140, color: boneColor),
             ],
           ),
           const SizedBox(height: AppSpacing.md),

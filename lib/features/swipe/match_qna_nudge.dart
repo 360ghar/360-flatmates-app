@@ -7,6 +7,7 @@ import '../../core/providers.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
 
 /// Bottom sheet that nudges the user to answer 3 ice-breaker Q&A questions
@@ -59,9 +60,7 @@ class _MatchQnANudgeSheetState extends ConsumerState<MatchQnANudgeSheet> {
       );
       if (mounted) {
         final locale = AppLocalizations.of(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.commonRetry)));
+        FlatmatesToast.error(context, locale.commonRetry);
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

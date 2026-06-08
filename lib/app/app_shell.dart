@@ -94,26 +94,30 @@ class AppShell extends ConsumerWidget {
 
     return [
       NavigationDestination(
+        key: const ValueKey('nav_home'),
         icon: _navIcon('nav_home_tab', Icons.home_outlined),
         selectedIcon: _navIcon('nav_home_tab_selected', Icons.home_rounded),
         label: locale.navHome,
       ),
-      if (isRoomPoster)
-        NavigationDestination(
-          icon: _navIcon('nav_post_tab', Icons.add_home_outlined),
-          selectedIcon: _navIcon(
-            'nav_post_tab_selected',
-            Icons.add_home_rounded,
-          ),
-          label: locale.navPost,
-        )
-      else
-        NavigationDestination(
-          icon: _navIcon('nav_explore_tab', Icons.map_outlined),
-          selectedIcon: _navIcon('nav_explore_tab_selected', Icons.map_rounded),
-          label: locale.navExplore,
-        ),
+      // Slot is shape-stable across modes: the same `NavigationDestination`
+      // instance (keyed by `nav_mode`) is always present, only the icon
+      // and label change. This stops the destination list from changing
+      // shape when the user switches mode, which previously caused the
+      // inner `Semantics(identifier:…)` widgets to be unmounted+remounted
+      // in the same frame as `/tab2`'s body swap — triggering
+      // `!semantics.parentDataDirty`.
       NavigationDestination(
+        key: const ValueKey('nav_mode'),
+        icon: isRoomPoster
+            ? _navIcon('nav_post_tab', Icons.add_home_outlined)
+            : _navIcon('nav_explore_tab', Icons.map_outlined),
+        selectedIcon: isRoomPoster
+            ? _navIcon('nav_post_tab_selected', Icons.add_home_rounded)
+            : _navIcon('nav_explore_tab_selected', Icons.map_rounded),
+        label: isRoomPoster ? locale.navPost : locale.navExplore,
+      ),
+      NavigationDestination(
+        key: const ValueKey('nav_swipe'),
         icon: _navIcon('nav_swipe_tab', Icons.swap_horiz_rounded),
         selectedIcon: _navIcon(
           'nav_swipe_tab_selected',
@@ -122,6 +126,7 @@ class AppShell extends ConsumerWidget {
         label: locale.navSwipe,
       ),
       NavigationDestination(
+        key: const ValueKey('nav_inbox'),
         icon: _navIcon('nav_inbox_tab', Icons.markunread_outlined),
         selectedIcon: _navIcon(
           'nav_inbox_tab_selected',
@@ -130,6 +135,7 @@ class AppShell extends ConsumerWidget {
         label: locale.navLikesChat,
       ),
       NavigationDestination(
+        key: const ValueKey('nav_me'),
         icon: _navIcon('nav_me_tab', Icons.person_outline),
         selectedIcon: _navIcon('nav_me_tab_selected', Icons.person_rounded),
         label: locale.navProfile,

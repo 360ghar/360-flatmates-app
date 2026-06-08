@@ -1,5 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
@@ -19,7 +21,7 @@ String _formatCompactPrice(int amount) {
 
 /// A map marker described as data: a geographic [point] plus the Flutter widget
 /// that should be drawn at that point. The map page projects [point] to screen
-/// pixels via the MapLibre controller and positions [child] as an overlay.
+/// pixels via the MapController and positions [child] as an overlay.
 ///
 /// We deliberately keep the rich Flutter chip widgets (price bubble, BHK badge,
 /// cluster ring) rather than rendering native symbol layers, so the existing
@@ -37,7 +39,7 @@ class FlatmatesMapMarker {
   /// Stable key for diffing/positioning (listing id or cluster key).
   final String id;
 
-  /// MapLibre coordinate (latitude first).
+  /// flutter_map coordinate (latitude first).
   final LatLng point;
 
   /// The pixel footprint of [child]; used to center the overlay on [point].
@@ -100,7 +102,7 @@ List<FlatmatesMapMarker> buildClusteredMarkers({
         FlatmatesMapMarker(
           id: 'cluster-${entry.key}',
           point: LatLng(avgLat, avgLng),
-          size: const Size(56, 70),
+          size: const Size(64, 76),
           child: _ClusterMarkerWidget(
             clusterItems: groupItems,
             label: groupItems.first.locality ?? 'listings',
@@ -162,7 +164,7 @@ class _ListingMarkerWidget extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: color,
-                    borderRadius: BorderRadius.all(
+                    borderRadius: const BorderRadius.all(
                       Radius.circular(AppRadius.md),
                     ),
                     border: isSelected
@@ -203,7 +205,7 @@ class _ListingMarkerWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: AppRadius.smBorder,
-                    border: Border.all(color: color, width: 1),
+                    border: Border.all(color: color),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.15),
@@ -240,7 +242,7 @@ class _TrianglePainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    final path = Path()
+    final path = ui.Path()
       ..moveTo(0, 0)
       ..lineTo(size.width / 2, size.height)
       ..lineTo(size.width, 0)
@@ -280,8 +282,8 @@ class _ClusterMarkerWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 56,
-        height: 70,
+        width: 64,
+        height: 76,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -303,7 +305,7 @@ class _ClusterMarkerWidget extends StatelessWidget {
               child: Center(
                 child: Text(
                   '$count',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: clusterColor,
@@ -312,12 +314,16 @@ class _ClusterMarkerWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              rangeText,
-              style: TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.w600,
-                color: clusterColor,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                rangeText,
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w600,
+                  color: clusterColor,
+                ),
+                maxLines: 1,
               ),
             ),
           ],

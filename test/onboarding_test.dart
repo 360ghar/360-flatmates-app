@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/onboarding/mode_selection_page.dart';
 import 'package:flatmates_app/features/onboarding/basic_info_page.dart';
 import 'package:flatmates_app/features/onboarding/onboarding_controller.dart';
@@ -14,7 +15,12 @@ void main() {
   group('OnboardingController', () {
     test('completing splash moves a new user to mode selection', () async {
       SharedPreferences.setMockInitialValues({});
-      final container = ProviderContainer();
+      final prefs = await testAppPreferences;
+      final container = ProviderContainer(
+        overrides: [
+          appPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final controller = container.read(onboardingControllerProvider.notifier);

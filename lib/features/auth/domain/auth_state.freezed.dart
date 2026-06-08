@@ -21,6 +21,22 @@ mixin _$AuthState {
   String? get phone => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
 
+  /// The raw identifier (phone or email) the user is currently working with.
+  String? get identifier => throw _privateConstructorUsedError;
+
+  /// Whether the resolved identifier is already verified (drives the
+  /// password-vs-OTP branch in the login state-machine).
+  bool? get identifierVerified => throw _privateConstructorUsedError;
+
+  /// Whether the resolved identifier maps to a phone or email channel.
+  AuthChannel? get channel => throw _privateConstructorUsedError;
+
+  /// Set after a successful email/phone OTP verify when the account has no
+  /// password yet. While true, the router forces the mandatory
+  /// (non-skippable) `/set-password` step before entering the app. Cleared
+  /// once a password is set. Never set for Google/Apple (passwordless).
+  bool get needsPassword => throw _privateConstructorUsedError;
+
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,7 +49,15 @@ abstract class $AuthStateCopyWith<$Res> {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) then) =
       _$AuthStateCopyWithImpl<$Res, AuthState>;
   @useResult
-  $Res call({AuthStatus status, String? phone, String? errorMessage});
+  $Res call({
+    AuthStatus status,
+    String? phone,
+    String? errorMessage,
+    String? identifier,
+    bool? identifierVerified,
+    AuthChannel? channel,
+    bool needsPassword,
+  });
 }
 
 /// @nodoc
@@ -54,6 +78,10 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
     Object? status = null,
     Object? phone = freezed,
     Object? errorMessage = freezed,
+    Object? identifier = freezed,
+    Object? identifierVerified = freezed,
+    Object? channel = freezed,
+    Object? needsPassword = null,
   }) {
     return _then(
       _value.copyWith(
@@ -69,6 +97,22 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
                 ? _value.errorMessage
                 : errorMessage // ignore: cast_nullable_to_non_nullable
                       as String?,
+            identifier: freezed == identifier
+                ? _value.identifier
+                : identifier // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            identifierVerified: freezed == identifierVerified
+                ? _value.identifierVerified
+                : identifierVerified // ignore: cast_nullable_to_non_nullable
+                      as bool?,
+            channel: freezed == channel
+                ? _value.channel
+                : channel // ignore: cast_nullable_to_non_nullable
+                      as AuthChannel?,
+            needsPassword: null == needsPassword
+                ? _value.needsPassword
+                : needsPassword // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -84,7 +128,15 @@ abstract class _$$AuthStateImplCopyWith<$Res>
   ) = __$$AuthStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({AuthStatus status, String? phone, String? errorMessage});
+  $Res call({
+    AuthStatus status,
+    String? phone,
+    String? errorMessage,
+    String? identifier,
+    bool? identifierVerified,
+    AuthChannel? channel,
+    bool needsPassword,
+  });
 }
 
 /// @nodoc
@@ -104,6 +156,10 @@ class __$$AuthStateImplCopyWithImpl<$Res>
     Object? status = null,
     Object? phone = freezed,
     Object? errorMessage = freezed,
+    Object? identifier = freezed,
+    Object? identifierVerified = freezed,
+    Object? channel = freezed,
+    Object? needsPassword = null,
   }) {
     return _then(
       _$AuthStateImpl(
@@ -119,6 +175,22 @@ class __$$AuthStateImplCopyWithImpl<$Res>
             ? _value.errorMessage
             : errorMessage // ignore: cast_nullable_to_non_nullable
                   as String?,
+        identifier: freezed == identifier
+            ? _value.identifier
+            : identifier // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        identifierVerified: freezed == identifierVerified
+            ? _value.identifierVerified
+            : identifierVerified // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        channel: freezed == channel
+            ? _value.channel
+            : channel // ignore: cast_nullable_to_non_nullable
+                  as AuthChannel?,
+        needsPassword: null == needsPassword
+            ? _value.needsPassword
+            : needsPassword // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -127,8 +199,15 @@ class __$$AuthStateImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$AuthStateImpl extends _AuthState {
-  const _$AuthStateImpl({required this.status, this.phone, this.errorMessage})
-    : super._();
+  const _$AuthStateImpl({
+    required this.status,
+    this.phone,
+    this.errorMessage,
+    this.identifier,
+    this.identifierVerified,
+    this.channel,
+    this.needsPassword = false,
+  }) : super._();
 
   @override
   final AuthStatus status;
@@ -137,9 +216,30 @@ class _$AuthStateImpl extends _AuthState {
   @override
   final String? errorMessage;
 
+  /// The raw identifier (phone or email) the user is currently working with.
+  @override
+  final String? identifier;
+
+  /// Whether the resolved identifier is already verified (drives the
+  /// password-vs-OTP branch in the login state-machine).
+  @override
+  final bool? identifierVerified;
+
+  /// Whether the resolved identifier maps to a phone or email channel.
+  @override
+  final AuthChannel? channel;
+
+  /// Set after a successful email/phone OTP verify when the account has no
+  /// password yet. While true, the router forces the mandatory
+  /// (non-skippable) `/set-password` step before entering the app. Cleared
+  /// once a password is set. Never set for Google/Apple (passwordless).
+  @override
+  @JsonKey()
+  final bool needsPassword;
+
   @override
   String toString() {
-    return 'AuthState(status: $status, phone: $phone, errorMessage: $errorMessage)';
+    return 'AuthState(status: $status, phone: $phone, errorMessage: $errorMessage, identifier: $identifier, identifierVerified: $identifierVerified, channel: $channel, needsPassword: $needsPassword)';
   }
 
   @override
@@ -150,11 +250,27 @@ class _$AuthStateImpl extends _AuthState {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.errorMessage, errorMessage) ||
-                other.errorMessage == errorMessage));
+                other.errorMessage == errorMessage) &&
+            (identical(other.identifier, identifier) ||
+                other.identifier == identifier) &&
+            (identical(other.identifierVerified, identifierVerified) ||
+                other.identifierVerified == identifierVerified) &&
+            (identical(other.channel, channel) || other.channel == channel) &&
+            (identical(other.needsPassword, needsPassword) ||
+                other.needsPassword == needsPassword));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, status, phone, errorMessage);
+  int get hashCode => Object.hash(
+    runtimeType,
+    status,
+    phone,
+    errorMessage,
+    identifier,
+    identifierVerified,
+    channel,
+    needsPassword,
+  );
 
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.
@@ -170,6 +286,10 @@ abstract class _AuthState extends AuthState {
     required final AuthStatus status,
     final String? phone,
     final String? errorMessage,
+    final String? identifier,
+    final bool? identifierVerified,
+    final AuthChannel? channel,
+    final bool needsPassword,
   }) = _$AuthStateImpl;
   const _AuthState._() : super._();
 
@@ -179,6 +299,26 @@ abstract class _AuthState extends AuthState {
   String? get phone;
   @override
   String? get errorMessage;
+
+  /// The raw identifier (phone or email) the user is currently working with.
+  @override
+  String? get identifier;
+
+  /// Whether the resolved identifier is already verified (drives the
+  /// password-vs-OTP branch in the login state-machine).
+  @override
+  bool? get identifierVerified;
+
+  /// Whether the resolved identifier maps to a phone or email channel.
+  @override
+  AuthChannel? get channel;
+
+  /// Set after a successful email/phone OTP verify when the account has no
+  /// password yet. While true, the router forces the mandatory
+  /// (non-skippable) `/set-password` step before entering the app. Cleared
+  /// once a password is set. Never set for Google/Apple (passwordless).
+  @override
+  bool get needsPassword;
 
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.

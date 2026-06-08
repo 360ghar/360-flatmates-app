@@ -19,6 +19,7 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Do not add another state-management library.
 - Keep GoRouter as the routing layer.
 - `scripts/banned_patterns.sh` enforces architecture guardrails: no `apiClientProvider` in page files (use a repository), no `Supabase.instance` in page files, no page files over 500 lines.
+- **Business logic goes in controllers, not widgets.** Widgets call `ref.read(controllerProvider.notifier).method()` instead of calling repositories directly. Repository calls in widget files are banned — use `application/` layer controllers.
 
 ## Code Generation
 
@@ -32,12 +33,20 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Use `PagedState<T>` for paginated data and `OptimisticUpdate.perform<T>()` for optimistic writes with rollback.
 - Invalidate feature providers after write operations instead of manually syncing widget trees.
 - Avoid global mutable state outside provider-controlled objects.
+- **Use `ref.watch()` in `build()` to read state; `ref.read()` in callbacks to write.** Never use `ref.read()` to read state inside `build()` — it creates non-reactive snapshots. Never mutate state (`ref.read().state = ...`) inside `build()` — move mutations to event handlers.
+- **Do not use `setState()` in `ConsumerStatefulWidget`.** Use `StateProvider<bool>` / `StateProvider<String>` etc. for local UI state (loading flags, visibility toggles, form values). The `setState()` pattern creates a hybrid architecture that undermines Riverpod's reactive model.
+- Local UI state providers (booleans, strings, ints) are defined at the file level as `final _myFlagProvider = StateProvider<bool>((ref) => false);`.
+- Use `ref.watch(provider)` to read and `ref.read(provider.notifier).state = value` to write.
 
 ## Error Handling
 
 - Use `AppFailure` (sealed class hierarchy in `core/errors/`) and `FlatmatesAsyncView` for error display in pages.
 - Never use `error.toString()` in presentation code — enforced by `scripts/banned_patterns.sh`.
 - `ErrorPresenter.fromDio()` maps `DioException` → typed `AppFailure`.
+- **Never use empty catch blocks.** Every `catch` must at minimum log via `debugPrint('ClassName.methodName: $e')`. Empty `catch (_) {}` silently swallows errors and makes debugging impossible. Exceptions:
+  - `catch (_) { return null; }` is acceptable for fire-and-forget lookups with no side effects.
+  - `catch (_) { /* comment */ }` must include `debugPrint` alongside the comment.
+- In analytics/crashlytics fire-and-forget contexts, wrap with `unawaited()` instead of empty catches.
 
 ## Networking Guidance
 
@@ -58,6 +67,10 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Use `FlatmatesNetworkImage` instead of raw `Image.network` — enforced by `scripts/banned_patterns.sh`.
 - Use `AppMotion` for all animation durations and curves. Do not hard-code durations or `Curves`. Use `Listener` (not `GestureDetector`) for press-detection when wrapping interactive children (InkWell, FilledButton, OutlinedButton) to avoid gesture arena conflicts.
 - Frosted-glass overlays (bottom nav, bottom sheets, bottom action bars) use `BackdropFilter` with `AppSemanticColors.frostBlur` and semi-transparent surfaces. Apply `ClipRRect` before `BackdropFilter` to constrain blur bounds.
+- **Always use `const` constructors** for widgets that don't change (SizedBox, Padding, Icon, Text, etc.). This enables widget reuse and reduces GC pressure.
+- **Add `tooltip` to every `IconButton`** for accessibility (screen readers). Common tooltips: `'Toggle password visibility'`, `'Back'`, `'Call'`, `'More options'`, `'Search'`, `'Like'`.
+- **Avoid heavy computations in `build()`.** Extract `List.generate()`, `.map().toList()`, and `for` loops to private methods or pre-compute in providers. `build()` runs 60fps during animations — every allocation matters.
+- **Use `AppLocalizations.of(context)` for all user-facing strings.** Hardcoded English strings block localization to Hindi and other target languages. Add new keys to `lib/l10n/arb/app_en.arb` and `app_hi.arb` when introducing new strings.
 
 ## DTO Pattern
 
@@ -70,6 +83,7 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Keep at least one fast local Flutter test in the repo.
 - Maintain a single end-to-end Maestro flow that exercises the real product loop.
 - Update Maestro when route names, button labels, or login flow behavior changes.
+- After making changes, run `dart fix --dry-run lib/` to catch auto-fixable lint issues, then `dart fix --apply lib/` to apply them.
 
 ## Documentation Triggers
 
@@ -80,6 +94,18 @@ Update the docs in `docs/` when any of the following change:
 - Theme and localization strategy
 - Auth bootstrap flow
 - Maestro prerequisites or seeded-data assumptions
+- Linting rules in `analysis_options.yaml`
+
+## Analysis Options
+
+The project uses `package:flutter_lints/flutter.yaml` with 23 additional strict rules in `analysis_options.yaml`. Key enabled rules:
+- `use_build_context_synchronously` — catches `context` usage after `await` without `mounted` check
+- `prefer_const_constructors` / `prefer_const_literals_to_create_immutables` — enforces widget reuse
+- `unawaited_futures` — catches fire-and-forget async calls
+- `avoid_print` — use `debugPrint()` instead of `print()`
+- `avoid_dynamic`, `prefer_final_locals`, `prefer_single_quotes` — code quality
+
+Run `dart fix --apply lib/` periodically to auto-fix `prefer_const_constructors` and `avoid_redundant_argument_values` issues.
 
 ## iOS Simulator Browser Preview
 

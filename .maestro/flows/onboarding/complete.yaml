@@ -55,7 +55,7 @@ appId: com.the360ghar.flatmates
 - tapOn:
     id: "onboarding_basic_info_next"
 
-# --- Profile photo: skip ---
+# --- Profile photo: skip (no photo uploaded, Next advances with empty list) ---
 - extendedWaitUntil:
     visible:
       id: "onboarding_photo_next"

@@ -35,7 +35,6 @@ class MoreFiltersCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppSemanticColors.line.withValues(alpha: 0.5),
-          width: 1,
         ),
         boxShadow: const [
           BoxShadow(
@@ -64,7 +63,7 @@ class MoreFiltersCard extends StatelessWidget {
                     color: AppSemanticColors.tealSoft,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.tune_rounded,
                     size: 16,
                     color: AppSemanticColors.tealMid,
@@ -80,7 +79,7 @@ class MoreFiltersCard extends StatelessWidget {
               ],
             ),
           ),
-          Divider(
+          const Divider(
             height: 1,
             indent: AppSpacing.lg,
             endIndent: AppSpacing.lg,
@@ -98,7 +97,7 @@ class MoreFiltersCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.pets_outlined,
                       size: 16,
                       color: AppSemanticColors.orangeMid,
@@ -127,7 +126,7 @@ class MoreFiltersCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.lg),
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.smoke_free_outlined,
                       size: 16,
                       color: AppSemanticColors.purpleMid,

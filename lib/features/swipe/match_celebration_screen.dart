@@ -82,7 +82,6 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
               AppSemanticColors.success,
               AppSemanticColors.warning,
             ],
-            createParticlePath: null,
           ),
           Container(
             width: double.infinity,
@@ -102,9 +101,9 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
                 children: [
                   ScaleTransition(
                     scale: _scaleAnimation,
-                    child: Text(
+                    child: const Text(
                       '🎉',
-                      style: const TextStyle(fontSize: 64),
+                      style: TextStyle(fontSize: 64),
                       textAlign: TextAlign.center,
                     ),
                   ),

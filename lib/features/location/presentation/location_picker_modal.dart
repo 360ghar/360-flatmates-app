@@ -16,6 +16,7 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/bootstrap_controller.dart';
 import '../../bootstrap/catalog_helpers.dart';
 import '../../shared/presentation/flatmates_search_bar.dart';
+import '../../shared/presentation/flatmates_toast.dart';
 import '../application/location_search_provider.dart';
 
 class LocationPickerModal extends ConsumerStatefulWidget {
@@ -42,7 +43,6 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
   double _radius = 10.0;
   bool _isDetectingLocation = false;
   bool _isResolvingPlace = false;
-  bool _isSearchActive = false;
 
   @override
   void initState() {
@@ -224,9 +224,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
     } catch (e) {
       debugPrint('LocationPickerModal._onSuggestionTap failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.errorUnknown)));
+        FlatmatesToast.error(context, locale.errorUnknown);
       }
     } finally {
       if (mounted) setState(() => _isResolvingPlace = false);
@@ -252,7 +250,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
     final isLoading = searchState.isLoading || _isResolvingPlace;
 
     return ClipRRect(
-      borderRadius: BorderRadius.zero,
+      borderRadius: AppRadius.sheetTopBorder,
       child: BackdropFilter(
         filter: ImageFilter.blur(
           sigmaX: AppSemanticColors.frostBlur,
@@ -265,7 +263,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
                         ? AppSemanticColors.darkSurface
                         : AppSemanticColors.card)
                     .withValues(alpha: 0.92),
-            borderRadius: BorderRadius.zero,
+            borderRadius: AppRadius.sheetTopBorder,
           ),
           child: AnimatedContainer(
             duration: AppMotion.bottomSheet,
@@ -283,67 +281,35 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
                   style: theme.textTheme.headlineSmall,
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                if (_isSearchActive)
-                  FlatmatesSearchBar(
-                    controller: _searchController,
-                    hint: locale.locationPickerSearchHint,
-                    leadingIcon: Icons.search_rounded,
-                    trailingIcon: _searchController.text.isNotEmpty
-                        ? Icons.clear_rounded
-                        : null,
-                    onTrailingTap: () {
-                      _searchController.clear();
-                      ref.read(locationSearchProvider.notifier).clear();
-                      setState(() {});
-                    },
-                    onChanged: (query) {
-                      ref
-                          .read(locationSearchProvider.notifier)
-                          .onSearchChanged(query);
-                      setState(() {});
-                    },
-                    autofocus: true,
-                  )
-                else
-                  GestureDetector(
-                    onTap: () => setState(() => _isSearchActive = true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.md,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.brightness == Brightness.dark
-                            ? AppSemanticColors.darkSurface
-                            : AppSemanticColors.paper,
-                        borderRadius: AppRadius.mdBorder,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search_rounded,
-                            size: 20,
-                            color: AppSemanticColors.textSecondaryFor(
-                              theme.brightness,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Text(
-                            locale.locationPickerSearchHint,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppSemanticColors.textSecondaryFor(
-                                theme.brightness,
-                              ),
-                            ),
-                          ),
-                        ],
+                Row(
+                  children: [
+                    Expanded(
+                      child: FlatmatesSearchBar(
+                        controller: _searchController,
+                        hint: locale.locationPickerSearchHint,
+                        leadingIcon: Icons.search_rounded,
+                        trailingIcon: _searchController.text.isNotEmpty
+                            ? Icons.clear_rounded
+                            : null,
+                        onTrailingTap: () {
+                          _searchController.clear();
+                          ref.read(locationSearchProvider.notifier).clear();
+                          setState(() {});
+                        },
+                        onChanged: (query) {
+                          ref
+                              .read(locationSearchProvider.notifier)
+                              .onSearchChanged(query);
+                          setState(() {});
+                        },
                       ),
                     ),
-                  ),
-                const SizedBox(height: AppSpacing.md),
-                _UseCurrentLocationButton(
-                  isLoading: _isDetectingLocation,
-                  onTap: _useCurrentLocation,
+                    const SizedBox(width: AppSpacing.sm),
+                    _CurrentLocationIconButton(
+                      isLoading: _isDetectingLocation,
+                      onTap: _useCurrentLocation,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _RadiusSlider(
@@ -392,7 +358,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
                             ),
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          Divider(color: AppSemanticColors.line),
+                          const Divider(color: AppSemanticColors.line),
                           const SizedBox(height: AppSpacing.sm),
                         ],
                         Text(
@@ -584,11 +550,11 @@ class _CityTile extends StatelessWidget {
   }
 }
 
-class _UseCurrentLocationButton extends StatelessWidget {
+class _CurrentLocationIconButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onTap;
 
-  const _UseCurrentLocationButton({
+  const _CurrentLocationIconButton({
     required this.isLoading,
     required this.onTap,
   });
@@ -596,44 +562,31 @@ class _UseCurrentLocationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
     return InkWell(
       onTap: isLoading ? null : onTap,
       borderRadius: AppRadius.smBorder,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
-        ),
+        height: 48,
+        width: 48,
         decoration: BoxDecoration(
           color: theme.brightness == Brightness.dark
-              ? AppSemanticColors.darkSurface
-              : AppSemanticColors.paper2,
+              ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
+              : AppSemanticColors.card,
           borderRadius: AppRadius.smBorder,
+          border: Border.all(color: AppSemanticColors.line),
         ),
-        child: Row(
-          children: [
-            if (isLoading)
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            else
-              Icon(
-                Icons.gps_fixed_rounded,
-                size: 20,
-                color: AppSemanticColors.textPrimaryFor(theme.brightness),
-              ),
-            const SizedBox(width: AppSpacing.md),
-            Text(
-              isLoading ? locale.detectingLocation : locale.useCurrentLocation,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        child: Center(
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(
+                  Icons.gps_fixed_rounded,
+                  size: 20,
+                  color: AppSemanticColors.accent,
+                ),
         ),
       ),
     );
@@ -696,7 +649,7 @@ Future<void> showLocationPickerModal(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) => SizedBox(
-      height: MediaQuery.of(context).size.height,
+      height: MediaQuery.of(context).size.height * 0.8,
       child: LocationPickerModal(
         currentLocationName: currentLocationName,
         currentRadius: currentRadius,

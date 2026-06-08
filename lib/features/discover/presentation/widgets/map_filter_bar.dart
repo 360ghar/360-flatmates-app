@@ -53,14 +53,12 @@ class MapFilterBar extends StatelessWidget {
               icon: Icons.currency_rupee_rounded,
               label:
                   '₹${budgetMin.toStringAsFixed(0)}-₹${budgetMax.toStringAsFixed(0)}',
-              variant: FlatmatesChipVariant.filter,
               selected: budgetMin != 5000 || budgetMax != 100000,
               onSelected: (_) => _showBudgetDialog(context),
             ),
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.sharingPrivateRoom,
-              variant: FlatmatesChipVariant.filter,
               selected: roomType == 'private_room',
               onSelected: (_) => onRoomTypeChanged(
                 roomType == 'private_room' ? 'all' : 'private_room',
@@ -69,7 +67,6 @@ class MapFilterBar extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.sharingSharedRoom,
-              variant: FlatmatesChipVariant.filter,
               selected: roomType == 'shared_room',
               onSelected: (_) => onRoomTypeChanged(
                 roomType == 'shared_room' ? 'all' : 'shared_room',
@@ -78,14 +75,12 @@ class MapFilterBar extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.genderAny,
-              variant: FlatmatesChipVariant.filter,
               selected: genderPref == 'any',
               onSelected: (_) => onGenderChanged('any'),
             ),
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.timelineImmediate,
-              variant: FlatmatesChipVariant.filter,
               selected: moveInFilter == 'immediate',
               onSelected: (_) => onMoveInChanged(
                 moveInFilter == 'immediate' ? 'all' : 'immediate',
@@ -94,7 +89,6 @@ class MapFilterBar extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.moveInThisMonth,
-              variant: FlatmatesChipVariant.filter,
               selected: moveInFilter == 'this_month',
               onSelected: (_) => onMoveInChanged(
                 moveInFilter == 'this_month' ? 'all' : 'this_month',
@@ -103,7 +97,6 @@ class MapFilterBar extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.moveInNextMonth,
-              variant: FlatmatesChipVariant.filter,
               selected: moveInFilter == 'next_month',
               onSelected: (_) => onMoveInChanged(
                 moveInFilter == 'next_month' ? 'all' : 'next_month',
@@ -112,7 +105,6 @@ class MapFilterBar extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             FlatmatesChip(
               label: locale.timelineFlexible,
-              variant: FlatmatesChipVariant.filter,
               selected: moveInFilter == 'all',
               onSelected: (_) => onMoveInChanged('all'),
             ),
@@ -120,7 +112,6 @@ class MapFilterBar extends StatelessWidget {
             FlatmatesChip(
               icon: Icons.verified_outlined,
               label: locale.verifiedFilterLabel,
-              variant: FlatmatesChipVariant.filter,
               selected: verifiedOnly,
               onSelected: (_) => onVerifiedChanged(!verifiedOnly),
             ),
@@ -210,8 +201,7 @@ class MapLocationChip extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             const SizedBox(width: 4),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 100),
+            Flexible(
               child: Text(
                 locationName ?? locale.selectLocationLabel,
                 style: theme.textTheme.labelMedium?.copyWith(

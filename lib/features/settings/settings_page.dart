@@ -344,7 +344,7 @@ class _PreferencesSheet extends StatelessWidget {
                         color: Colors.transparent,
                         child: SwitchListTile(
                           key: const Key('setting_hide_last_name'),
-                          secondary: Icon(
+                          secondary: const Icon(
                             Icons.person_off_outlined,
                             color: AppSemanticColors.accent,
                           ),
@@ -362,7 +362,7 @@ class _PreferencesSheet extends StatelessWidget {
                         color: Colors.transparent,
                         child: SwitchListTile(
                           key: const Key('setting_hide_location'),
-                          secondary: Icon(
+                          secondary: const Icon(
                             Icons.location_off_outlined,
                             color: AppSemanticColors.accent,
                           ),

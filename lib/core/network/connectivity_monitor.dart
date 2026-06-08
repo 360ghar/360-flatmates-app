@@ -36,7 +36,7 @@ class OfflineBanner extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.cloud_off_outlined,
                   size: 18,
                   color: AppSemanticColors.paper,
@@ -45,7 +45,7 @@ class OfflineBanner extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     locale.youAreOffline,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppSemanticColors.paper,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

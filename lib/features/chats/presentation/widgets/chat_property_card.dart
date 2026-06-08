@@ -53,7 +53,6 @@ class ChatPropertyCard extends StatelessWidget {
                         title: property.title,
                         rent: property.monthlyRent?.toInt() ?? 0,
                         imageUrl: property.mainImageUrl,
-                        locality: null,
                         subtitle: property.ownerName != null
                             ? locale.byOwnerLabel(property.ownerName!)
                             : null,

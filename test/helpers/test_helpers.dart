@@ -5,6 +5,7 @@ import 'package:flatmates_app/core/network/auth_token_provider.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/core/storage/app_preferences.dart';
 import 'package:flatmates_app/features/auth/auth_controller.dart';
+import 'package:flatmates_app/features/auth/data/auth_repository.dart';
 import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import 'package:flatmates_app/features/settings/settings_controller.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
@@ -48,7 +49,7 @@ class FakeAuthController extends AuthController {
   }
 
   @override
-  Future<void> requestOtp(String phone) async {
+  Future<void> requestOtp(String phone, {bool shouldCreateUser = false}) async {
     state = AuthState(status: AuthStatus.unauthenticated, phone: phone);
   }
 
@@ -75,6 +76,29 @@ class FakeAuthController extends AuthController {
     String? email,
   }) async {
     state = AuthState(status: AuthStatus.authenticated, phone: phone);
+    return true;
+  }
+
+  @override
+  Future<IdentifierStatus?> checkIdentifierStatus(String identifier) async {
+    return IdentifierStatus(
+      exists: false,
+      verified: false,
+      hasPassword: false,
+      channel: identifier.contains('@') ? AuthChannel.email : AuthChannel.phone,
+      nextStep: IdentifierNextStep.otp,
+    );
+  }
+
+  @override
+  Future<bool> signInWithGoogle() async {
+    state = const AuthState(status: AuthStatus.authenticated);
+    return true;
+  }
+
+  @override
+  Future<bool> signInWithApple() async {
+    state = const AuthState(status: AuthStatus.authenticated);
     return true;
   }
 
@@ -194,13 +218,13 @@ class FakeBootstrapController extends BootstrapController {
   }
 
   @override
-  Future<BootstrapData?> build() {
+  Future<BootstrapData?> build() async {
     state = AsyncValue.data(fakeBootstrapData());
-    return Future.value(fakeBootstrapData());
+    return fakeBootstrapData();
   }
 
   @override
-  Future<void> load() async {
+  Future<void> refresh() async {
     state = AsyncValue.data(fakeBootstrapData());
   }
 }

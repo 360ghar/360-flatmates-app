@@ -101,7 +101,7 @@ class _CollapsibleFilterSectionState extends State<CollapsibleFilterSection> {
                   turns: _expanded ? 0.5 : 0,
                   duration: AppMotion.fast,
                   curve: AppMotion.easeOutCubic,
-                  child: Icon(
+                  child: const Icon(
                     Icons.keyboard_arrow_down_rounded,
                     size: 20,
                     color: AppSemanticColors.ink3,
@@ -165,7 +165,6 @@ class FilterSectionCard extends StatelessWidget {
         borderRadius: AppRadius.cardBorder,
         border: Border.all(
           color: AppSemanticColors.line.withValues(alpha: 0.5),
-          width: 1,
         ),
         boxShadow: const [
           BoxShadow(
@@ -214,7 +213,6 @@ class FilterChipWrap extends StatelessWidget {
       children: values.map((value) {
         return FlatmatesChip(
           label: humanizeFlatmatesToken(value),
-          variant: FlatmatesChipVariant.filter,
           selected: selected == value,
           onSelected: (_) => onSelected(value),
         );

@@ -35,7 +35,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       }
     }
   } catch (e) {
-    debugPrint('[BackgroundHandler] Error: $e');
+    debugPrint('_firebaseMessagingBackgroundHandler: $e');
   }
 }
 

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/bootstrap_controller.dart';
 import '../discover_repository.dart';
 import 'move_in_filter.dart';
@@ -106,7 +105,6 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         currentUser: profile,
         filters: state.filters,
         offset: offset,
-        limit: _pageSize,
       );
 
       if (myVersion != _filterVersion) {
@@ -159,8 +157,6 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       final listings = await repo.fetchListings(
         currentUser: profile,
         filters: state.filters,
-        offset: 0,
-        limit: _pageSize,
       );
       state = state.copyWith(
         listings: listings,
@@ -301,10 +297,7 @@ final bedroomOptionsProvider = Provider<List<int>>((ref) {
     ..sort();
 });
 
-final featureOptionsProvider = Provider.family<List<String>, AppLocalizations>((
-  ref,
-  locale,
-) {
+final featureOptionsProvider = Provider<List<String>>((ref) {
   final listings = ref.watch(
     discoverFeedControllerProvider.select((s) => s.listings),
   );
@@ -316,8 +309,7 @@ final featureOptionsProvider = Provider.family<List<String>, AppLocalizations>((
     ..sort();
 });
 
-final filteredListingsProvider =
-    Provider.family<List<PropertyListing>, AppLocalizations>((ref, locale) {
+final filteredListingsProvider = Provider<List<PropertyListing>>((ref) {
       final feedState = ref.watch(
         discoverFeedControllerProvider.select((s) => (s.listings, s.filters)),
       );

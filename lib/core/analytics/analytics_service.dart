@@ -50,7 +50,9 @@ class AnalyticsService {
       await crashlytics.setCustomKey('app_version', packageInfo.version);
       await crashlytics.setCustomKey('build_number', packageInfo.buildNumber);
       await crashlytics.setCustomKey('platform', Platform.operatingSystem);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AnalyticsService: $e');
+    }
 
     return AnalyticsService._(
       analytics: analytics,
@@ -68,7 +70,9 @@ class AnalyticsService {
     if (!isEnabled) return;
     try {
       await _analytics!.logEvent(name: name, parameters: parameters);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AnalyticsService: $e');
+    }
   }
 
   Future<void> setUserId(String? id) async {
@@ -76,14 +80,18 @@ class AnalyticsService {
     try {
       await _analytics!.setUserId(id: id);
       await _crashlytics!.setUserIdentifier(id ?? '');
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AnalyticsService: $e');
+    }
   }
 
   Future<void> logScreenView({required String screenName}) async {
     if (!isEnabled) return;
     try {
       await _analytics!.logScreenView(screenName: screenName);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AnalyticsService: $e');
+    }
   }
 
   // Convenience methods for required events
@@ -107,9 +115,6 @@ class AnalyticsService {
   Future<void> logOptionalUpdateShown() =>
       logEvent(name: 'optional_update_shown');
 
-  Future<void> logMaintenanceScreenShown() =>
-      logEvent(name: 'maintenance_screen_shown');
-
   // -- Crashlytics --
 
   Future<void> recordError(
@@ -120,14 +125,18 @@ class AnalyticsService {
     if (!isEnabled) return;
     try {
       await _crashlytics!.recordError(error, stack, fatal: fatal);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AnalyticsService: $e');
+    }
   }
 
   Future<void> setCustomKey(String key, Object value) async {
     if (!isEnabled) return;
     try {
       await _crashlytics!.setCustomKey(key, value);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AnalyticsService: $e');
+    }
   }
 }
 

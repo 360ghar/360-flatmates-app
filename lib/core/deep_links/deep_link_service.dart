@@ -76,16 +76,33 @@ class DeepLinkService {
 
   /// Converts an external URI path to an internal GoRouter path.
   ///
-  /// Returns `null` if the path does not match any known pattern.
+  /// Returns `null` if the path does not match any known pattern
+  /// or contains an invalid resource ID.
   static String? _mapPath(Uri uri) {
     final path = uri.path;
     final listingMatch = RegExp(r'^/flatmates/listing/(\d+)').firstMatch(path);
-    if (listingMatch != null) return '/flat-details/${listingMatch.group(1)}';
+    if (listingMatch != null) {
+      final raw = listingMatch.group(1)!;
+      if (_isValidId(raw)) return '/flat-details/$raw';
+    }
 
     final chatMatch = RegExp(r'^/flatmates/chat/(\d+)').firstMatch(path);
-    if (chatMatch != null) return '/chats/${chatMatch.group(1)}';
+    if (chatMatch != null) {
+      final raw = chatMatch.group(1)!;
+      if (_isValidId(raw)) return '/chats/$raw';
+    }
 
     return null;
+  }
+
+  /// Ensure the ID is a valid positive integer (not zero, not negative, no
+  /// leading zeros beyond a single zero, no overflow).
+  static bool _isValidId(String raw) {
+    if (raw.isEmpty) return false;
+    if (raw == '0') return false;
+    if (raw.length > 1 && raw.startsWith('0')) return false;
+    final id = int.tryParse(raw);
+    return id != null && id > 0;
   }
 
   @visibleForTesting

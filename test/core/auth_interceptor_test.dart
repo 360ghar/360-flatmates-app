@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flatmates_app/core/network/interceptors/auth_interceptor.dart';
 import 'package:flatmates_app/core/network/auth_token_provider.dart';
@@ -147,7 +148,9 @@ void main() {
 
       try {
         await dio.get('/protected');
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('auth_interceptor_test: $e');
+      }
 
       expect(tokenProvider.sessionCleared, isTrue);
     });

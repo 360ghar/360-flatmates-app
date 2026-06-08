@@ -156,7 +156,7 @@ class OnboardingPage extends ConsumerWidget {
                         backgroundColor: AppSemanticColors.disabledSurfaceFor(
                           theme.brightness,
                         ),
-                        valueColor: AlwaysStoppedAnimation<Color>(
+                        valueColor: const AlwaysStoppedAnimation<Color>(
                           AppSemanticColors.accent,
                         ),
                       );

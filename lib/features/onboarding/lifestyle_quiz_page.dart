@@ -58,6 +58,7 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
         _QuizOption(key: 'vegetarian', label: (l) => l.quizVegetarian),
         _QuizOption(key: 'vegan', label: (l) => l.quizVegan),
         _QuizOption(key: 'non_vegetarian', label: (l) => l.quizNonVegetarian),
+        _QuizOption(key: 'eggetarian', label: (l) => l.quizEggetarian),
         _QuizOption(key: 'no_preference', label: (l) => l.quizNoFoodPref),
       ],
     ),

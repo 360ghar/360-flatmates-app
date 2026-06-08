@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_async_view.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'notifications_repository.dart';
 
@@ -32,9 +36,10 @@ class NotificationsPage extends ConsumerWidget {
                 ref.invalidate(notificationsProvider);
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(locale.errorUnknown)));
+                  final msg = e is AppFailure
+                      ? e.userMessage(locale.toUserMessageL10n())
+                      : locale.errorUnknown;
+                  FlatmatesToast.error(context, msg);
                 }
               }
             },
@@ -50,6 +55,7 @@ class NotificationsPage extends ConsumerWidget {
             Expanded(
               child: FlatmatesAsyncView<List<NotificationModel>>(
                 value: notifications,
+                loading: const FlatmatesSkeleton.notificationList(),
                 empty: FlatmatesEmptyState(
                   title: locale.notificationEmpty,
                   subtitle: locale.notificationsEmptySubtitle,
@@ -107,9 +113,10 @@ class NotificationsPage extends ConsumerWidget {
         ref.invalidate(notificationsProvider);
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(locale.errorUnknown)));
+          final msg = e is AppFailure
+              ? e.userMessage(locale.toUserMessageL10n())
+              : locale.errorUnknown;
+          FlatmatesToast.error(context, msg);
         }
       }
     }
@@ -156,9 +163,7 @@ class NotificationsPage extends ConsumerWidget {
         context.go(resolvedRoute);
       }
     } else if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.notificationNoAction)));
+      FlatmatesToast.info(context, locale.notificationNoAction);
     }
   }
 

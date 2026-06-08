@@ -10,10 +10,30 @@
   "cancelCta": "रद्द करें",
   "enterPhoneTitle": "अपना फोन नंबर दर्ज करें",
   "enterPhoneSubtitle": "शुरू करने के लिए साइन इन करें या खाता बनाएं।",
+  "authEntryTitle": "स्वागत है",
+  "authEntrySubtitle": "Google से जारी रखें, या अपना फोन या ईमेल उपयोग करें।",
+  "continueWithGoogleCta": "Google से जारी रखें",
+  "authDividerOr": "या",
+  "identifierLabel": "फोन या ईमेल",
+  "continueCta": "जारी रखें",
   "phoneNumberLabel": "फोन नंबर",
   "loginWithPassword": "पासवर्ड से लॉगिन करें",
   "continueWithOtp": "OTP के साथ जारी रखें",
   "createAccountCta": "खाता बनाएं",
+  "addPhoneTitle": "अपना फोन नंबर जोड़ें",
+  "addPhoneSubtitle": "ताकि फ्लैटमेट आप तक पहुंच सकें, फोन नंबर जोड़ें। आप इसे अभी छोड़ सकते हैं।",
+  "addPhoneCta": "कोड भेजें",
+  "skipCta": "अभी के लिए छोड़ें",
+  "setPasswordTitle": "पासवर्ड सेट करें",
+  "setPasswordSubtitle": "अपने खाते को सुरक्षित करने के लिए पासवर्ड बनाएं।",
+  "lastUsedMethodHint": "आपने पिछली बार {method} से साइन इन किया था",
+  "@lastUsedMethodHint": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "loginTitle": "लॉगिन",
   "signupTitle": "अपना खाता बनाएं",
   "fullNameLabel": "पूरा नाम",
@@ -328,9 +348,8 @@
   "ageHelperText": "आपकी उम्र 18 या उससे अधिक होनी चाहिए",
   "professionLabel": "पेशा / जॉब टाइटल",
   "profilePhotoTitle": "अपनी फ़ोटो जोड़ें",
-  "profilePhotoSubtitle": "अच्छी फ़ोटो से ज़्यादा मैच मिलते हैं।",
-  "profilePhotoNudge": "3+ फ़ोटो वाली प्रोफ़ाइल्स को 4 गुना ज़्यादा मैच मिलते हैं!",
-  "profilePhotoMinimumRequired": "आगे बढ़ने के लिए कम से कम एक फ़ोटो जोड़ें।",
+  "profilePhotoSubtitle": "जब तक आप फ़ोटो नहीं जोड़ते, हम आपके नाम के शुरुआती अक्षर दिखाएँगे। आप इसे बाद में भी जोड़ सकते हैं।",
+  "profilePhotoNudge": "फ़ोटो वाली प्रोफ़ाइल्स को ज़्यादा मैच मिलते हैं।",
   "addPhotoCta": "फ़ोटो जोड़ें",
   "quizProgress": "{total} में से {answered} जवाब दिए",
   "@quizProgress": {
@@ -355,6 +374,7 @@
   "quizVegetarian": "शाकाहारी",
   "quizVegan": "वीगन",
   "quizNonVegetarian": "मांसाहारी",
+  "quizEggetarian": "एगेटेरियन",
   "quizNoFoodPref": "कोई प्राथमिकता नहीं",
   "quizSmokingDrinking": "धूम्रपान और शराब की प्राथमिकता?",
   "quizNeither": "न धूम्रपान, न शराब",
@@ -400,14 +420,6 @@
   "nonNegMinTidy": "न्यूनतम सफाई स्तर",
   "lifestyleQuizTitle": "जीवनशैली प्राथमिकताएँ",
   "emptySwipeDeck": "अभी दिखाने के लिए कोई प्रोफ़ाइल नहीं है। बाद में दोबारा देखें!",
-  "swipeDeckRemaining": "{count} बचे हुए",
-  "@swipeDeckRemaining": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "tapToSeeMore": "पूरी प्रोफ़ाइल देखें",
   "whyThisMatchWorks": "यह मैच क्यों काम करता है",
   "tapToCollapse": "छोटा करने के लिए टैप करें",
@@ -610,32 +622,15 @@
   "visitConfirmed": "विज़िट पुष्ट",
   "visitCancelled": "विज़िट रद्द की गई।",
   "videoTourLabel": "वीडियो टूर (वैकल्पिक)",
-  "videoTourHint": "15-30 सेकंड का वर्टिकल वीडियो, अधिकतम 50MB",
+  "videoTourHint": "15-60 सेकंड का वर्टिकल वीडियो, अधिकतम 50MB",
   "addVideoCta": "वीडियो टूर जोड़ें",
   "videoTourAdded": "वीडियो टूर जोड़ दिया गया",
   "videoTooLarge": "वीडियो 50MB से कम होना चाहिए",
-  "videoTooLong": "वीडियो 30 सेकंड से कम होना चाहिए",
+  "videoTooLong": "वीडियो 60 सेकंड से कम होना चाहिए",
   "videoTooShort": "वीडियो कम से कम 15 सेकंड का होना चाहिए",
   "tapToUnmute": "अनम्यूट करने के लिए टैप करें",
   "soundOn": "आवाज़ चालू",
-  "superLikeCapLabel": "{count} स्टार मैच बचे हैं",
-  "@superLikeCapLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "swipeCounterLabel": "{count} स्वाइप आज बचे हैं",
-  "@swipeCounterLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "passActionLabel": "पास",
-  "superLikeActionLabel": "स्टार मैच",
   "likeActionLabel": "लाइक",
   "photoPendingLabel": "फ़ोटो बाकी है",
   "readReceiptSent": "भेजा गया",
@@ -878,6 +873,7 @@
   "budgetPlusChipLabel": "बजट+",
   "chatInputHint": "संदेश टाइप करें...",
   "phoneNotAvailable": "फोन नंबर उपलब्ध नहीं है",
+  "emailNotAvailable": "ईमेल उपलब्ध नहीं है",
   "emojiPickerComingSoon": "इमोजी पिकर जल्द आ रहा है",
   "preferencesTitle": "पसंद",
   "preferencesSubtitle": "हमें बताएं कि आपके लिए क्या मायने रखता है ताकि हम सही फ्लैटमेट्स और होम्स ढूंढ सकें।",
@@ -1219,6 +1215,8 @@
   "errorRateLimit": "बहुत अधिक अनुरोध। कृपया थोड़ी देर प्रतीक्षा करें और पुनः प्रयास करें।",
   "errorConflict": "एक विरोधाभास हुआ। डेटा बदल गया होगा।",
   "errorUpload": "अपलोड विफल। कृपया पुनः प्रयास करें।",
+  "errorOtpInvalid": "अमान्य या समाप्त कोड। कृपया पुनः प्रयास करें।",
+  "errorAuthSessionMissing": "सत्यापन विफल। कृपया पुनः प्रयास करें।",
   "errorUnknown": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
   "icebreakerTellMeRoom": "मुझे कमरे के बारे में बताएं!",
   "icebreakerWhatFlatmates": "फ्लैटमेट्स कैसे हैं?",
@@ -1440,5 +1438,60 @@
   "feedbackSeverityHigh": "उच्च",
   "feedbackSeverityCritical": "गंभीर",
   "feedbackSubmitCta": "सबमिट करें",
-  "feedbackSubmitSuccess": "आपकी प्रतिक्रिया के लिए धन्यवाद!"
+  "feedbackSubmitSuccess": "आपकी प्रतिक्रिया के लिए धन्यवाद!",
+  "profileUpdated": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई",
+  "listingPublished": "लिस्टिंग सफलतापूर्वक प्रकाशित हुई",
+  "listingResumed": "लिस्टिंग फिर से शुरू की गई",
+  "shortlisted": "शॉर्टलिस्ट में जोड़ा गया",
+  "shortlistRemoved": "शॉर्टलिस्ट से हटाया गया",
+  "contactRequestSentToast": "संपर्क अनुरोध भेजा गया",
+  "listingLabel": "लिस्टिंग",
+  "liveBadge": "लाइव",
+  "floorPlanSectionTitle": "फ़्लोर प्लान",
+  "virtualTourSectionTitle": "360° वर्चुअल टूर",
+  "exploreVirtualTourPrompt": "इस प्रॉपर्टी को 360° में देखें",
+  "openVirtualTourCta": "वर्चुअल टूर खोलें",
+  "streetViewCta": "स्ट्रीट व्यू",
+  "societyVibeSectionTitle": "सोसाइटी वाइब",
+  "safetyBannerTitle": "सुरक्षित रहें",
+  "safetyBannerBody": "भुगतान करने से पहले प्रॉपर्टी को व्यक्तिगत रूप से देखें। बिना देखे डिपॉज़िट या किराया न भेजें।",
+  "viewsLabel": "दृश्य",
+  "interestedLabel": "इच्छुक",
+  "likesLabel": "पसंद",
+  "openChatCta": "चैट खोलें",
+  "visitRequestSent": "विज़िट अनुरोध भेजा गया!",
+  "visitFromDetailPageNote": "इस प्रॉपर्टी में रुचि — लिस्टिंग पेज से शेड्यूल किया गया।",
+  "readMoreCta": "और पढ़ें",
+  "showLessCta": "कम दिखाएं",
+  "viewProfileCta": "प्रोफ़ाइल देखें",
+  "visitScheduledBanner": "आपकी विज़िट {date} को है",
+  "@visitScheduledBanner": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "thePlaceSectionTitle": "जगह",
+  "peopleSectionTitle": "लोग",
+  "estimatedTotalLabel": "अनुमानित कुल",
+  "perMonthSuffix": "/महीना",
+  "viewOnMapLabel": "नक्शे पर देखें",
+  "andNMore": "+{count} और",
+  "@andNMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trendingNeighborhoodsIn": "{city} में ट्रेंडिंग",
+  "@trendingNeighborhoodsIn": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें"
 }

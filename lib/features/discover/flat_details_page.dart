@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../location/presentation/map_widgets.dart';
+import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
 import 'discover_repository.dart';
-import 'presentation/widgets/flat_details_carousel.dart';
-import 'presentation/widgets/flat_details_sections.dart';
-import 'presentation/widgets/report_listing_dialog.dart';
+import 'presentation/widgets/full_screen_gallery.dart';
+import 'presentation/widgets/flat_details_about.dart';
+import 'presentation/widgets/flat_details_header.dart';
+import 'presentation/widgets/flat_details_location.dart';
+import 'presentation/widgets/flat_details_media.dart';
+import 'presentation/widgets/owner_profile_sheet.dart';
+import 'presentation/widgets/staggered_card_appear.dart';
 import 'share_listing_card.dart';
 
 class FlatDetailsPage extends ConsumerStatefulWidget {
@@ -26,348 +29,124 @@ class FlatDetailsPage extends ConsumerStatefulWidget {
 
 class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   int _currentImageIndex = 0;
-  bool _isShortlisting = false;
-  bool _isContacting = false;
-  bool _hasShortlisted = false;
+  bool _contacting = false;
+  Map<String, dynamic>? _ownerPeer;
+  bool _peerFetched = false;
+  int? _conversationId;
+
+  @override
+  void didUpdateWidget(covariant FlatDetailsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.listingId != widget.listingId) {
+      _peerFetched = false;
+      _ownerPeer = null;
+      _currentImageIndex = 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final listingState = ref.watch(propertyListingProvider(widget.listingId));
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
+    final currentUserId =
+        ref.watch(bootstrapControllerProvider).valueOrNull?.profile.id;
 
     return listingState.when(
       data: (listing) {
-        final images = listing.imageUrls;
+        final hasLiked = listing.liked ?? false;
+        final hasOwnerId = (listing.owner?.id ?? listing.ownerId) != null;
+        final matchPercentage =
+            (_ownerPeer?['match_percentage'] as num?)?.toDouble();
+
+        _maybeFetchOwnerPeer(listing);
 
         return FlatmatesScreen(
           useSafeArea: false,
           body: Column(
             children: [
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    FlatDetailsCarousel(
-                      images: images,
-                      currentIndex: _currentImageIndex,
-                      onPageChanged: (index) =>
-                          setState(() => _currentImageIndex = index),
-                      title: listing.title,
-                      onBack: () => context.pop(),
-                      onShare: () => _showShareSheet(listing),
-                      onFavorite: () => _handleShortlist(),
-                      onReport: () => _handleReportListing(),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.xl,
-                        AppSpacing.xl,
-                        AppSpacing.xl,
-                        AppSpacing.screen,
+                child: RefreshIndicator(
+                  onRefresh: () {
+                    ref.invalidate(
+                      propertyListingProvider(widget.listingId),
+                    );
+                    return ref.read(
+                      propertyListingProvider(widget.listingId).future,
+                    );
+                  },
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      StaggeredCardAppear(
+                        index: 0,
+                        child: FlatDetailsHeader(
+                          listing: listing,
+                          currentIndex: _currentImageIndex,
+                          onPageChanged: (index) =>
+                              setState(() => _currentImageIndex = index),
+                          onBack: () => context.pop(),
+                          onShare: () => _showShareSheet(listing),
+                          onFavorite: () => _handleShortlist(listing),
+                          isFavorite: hasLiked,
+                          onOwnerTap: hasOwnerId
+                              ? () => _handleOwnerTap(listing)
+                              : null,
+                          onImageTap: listing.imageUrls.isNotEmpty
+                              ? () => _openGallery(listing.imageUrls)
+                              : null,
+                          matchPercentage: matchPercentage,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  listing.title,
-                                  style: TextStyle(
-                                    fontFamily: AppTypography.fontFamilyDisplay,
-                                    fontSize: AppTypography.h2Size,
-                                    fontWeight: AppTypography.h2Weight,
-                                    height: AppTypography.h2Height,
-                                    letterSpacing:
-                                        AppTypography.h2LetterSpacing,
-                                    color: AppSemanticColors.textPrimaryFor(
-                                      theme.brightness,
-                                    ),
-                                    fontVariations: const [
-                                      FontVariation('opsz', 96),
-                                      FontVariation('SOFT', 30),
-                                      FontVariation('WONK', 0),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              FlatmatesPriceText.hero(
-                                amount: listing.monthlyRent.round(),
-                                period: 'month',
-                                color: AppSemanticColors.ink,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 18,
-                                color: AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Flexible(
-                                child: Text(
-                                  [
-                                    listing.locality,
-                                    listing.city,
-                                  ].whereType<String>().join(', '),
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppSemanticColors.textSecondaryFor(
-                                      theme.brightness,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
-                          Wrap(
-                            spacing: AppSpacing.sm,
-                            runSpacing: AppSpacing.sm,
-                            children: [
-                              if (listing.bedrooms != null)
-                                FlatmatesChip(
-                                  variant: FlatmatesChipVariant.info,
-                                  label: '${listing.bedrooms} Beds',
-                                  icon: Icons.bed_outlined,
-                                ),
-                              if (listing.features.any(
-                                (f) => f.toLowerCase().contains('furnished'),
-                              ))
-                                FlatmatesChip(
-                                  variant: FlatmatesChipVariant.info,
-                                  label: locale.featureFurnished,
-                                  icon: Icons.chair_outlined,
-                                ),
-                              if (listing.features.any(
-                                (f) =>
-                                    f.toLowerCase().contains('wifi') ||
-                                    f.toLowerCase().contains('wi_fi'),
-                              ))
-                                FlatmatesChip(
-                                  variant: FlatmatesChipVariant.info,
-                                  label: locale.wifiChipLabel,
-                                  icon: Icons.wifi_outlined,
-                                ),
-                              if (listing.features.any(
-                                (f) => f.toLowerCase().contains('parking'),
-                              ))
-                                FlatmatesChip(
-                                  variant: FlatmatesChipVariant.info,
-                                  label: locale.parkingChipLabel,
-                                  icon: Icons.local_parking_outlined,
-                                ),
-                              if (listing.features.any(
-                                (f) =>
-                                    f.toLowerCase().contains('lift') ||
-                                    f.toLowerCase().contains('elevator'),
-                              ))
-                                FlatmatesChip(
-                                  variant: FlatmatesChipVariant.info,
-                                  label: locale.liftChipLabel,
-                                  icon: Icons.elevator_outlined,
-                                ),
-                              if (listing.features.any(
-                                (f) => f.toLowerCase().contains('security'),
-                              ))
-                                FlatmatesChip(
-                                  variant: FlatmatesChipVariant.info,
-                                  label: locale.securityChipLabel,
-                                  icon: Icons.security_outlined,
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.screen),
-
-                          FlatmatesSectionHeader(
-                            title: locale.aboutThisFlatSection,
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          if (listing.description != null &&
-                              listing.description!.trim().isNotEmpty)
-                            Text(
-                              listing.description!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                height: 1.6,
-                                color: AppSemanticColors.textPrimaryFor(
-                                  theme.brightness,
-                                ).withValues(alpha: 0.85),
-                              ),
-                            )
-                          else
-                            Text(
-                              locale.noDescriptionAvailable,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: AppSpacing.screen),
-
-                          if (listing.videoTourUrl != null &&
-                              listing.videoTourUrl!.isNotEmpty) ...[
-                            FlatmatesVideoTourPlayer(
-                              videoUrl: listing.videoTourUrl!,
-                            ),
-                            const SizedBox(height: AppSpacing.screen),
-                          ],
-
-                          // Cost breakdown section
-                          if (listing.securityDeposit != null ||
-                              listing.maintenanceCharges != null) ...[
-                            FlatmatesSectionHeader(
-                              title: locale.costsBreakdownSectionTitle,
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            FlatmatesCard(
-                              padding: const EdgeInsets.all(AppSpacing.md),
-                              child: Column(
-                                children: [
-                                  CostRow(
-                                    label: locale.monthlyRentRow,
-                                    child: FlatmatesPriceText.card(
-                                      amount: listing.monthlyRent.round(),
-                                      period: 'month',
-                                    ),
-                                  ),
-                                  if (listing.securityDeposit != null) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    CostRow(
-                                      label: locale.securityDepositRow,
-                                      child: FlatmatesPriceText.inline(
-                                        amount: listing.securityDeposit!
-                                            .round(),
-                                      ),
-                                    ),
-                                  ],
-                                  if (listing.maintenanceCharges != null) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    CostRow(
-                                      label: locale.maintenanceRow,
-                                      child: FlatmatesPriceText.inline(
-                                        amount: listing.maintenanceCharges!
-                                            .round(),
-                                        period: 'month',
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.screen),
-                          ],
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AvailabilityTile(
-                                  label: locale.availableFromLabel,
-                                  value: listing.availableFrom != null
-                                      ? DateFormat.yMMMd(
-                                          locale.localeName,
-                                        ).format(listing.availableFrom!)
-                                      : locale.flexibleLabel,
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.md),
-                              Expanded(
-                                child: AvailabilityTile(
-                                  label: locale.postedOnLabel,
-                                  value: listing.createdAt != null
-                                      ? DateFormat.yMMMd(
-                                          locale.localeName,
-                                        ).format(listing.createdAt!)
-                                      : locale.recentlyLabel,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.screen),
-
-                          if (listing.latitude != null &&
-                              listing.longitude != null) ...[
-                            FlatmatesSectionHeader(
-                              title: locale.locationSectionTitle,
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            MiniMapView(
-                              latitude: listing.latitude!,
-                              longitude: listing.longitude!,
-                              height: 220,
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            GetDirectionsButton(
-                              latitude: listing.latitude!,
-                              longitude: listing.longitude!,
-                              label:
-                                  listing.locality ??
-                                  listing.city ??
-                                  'Property',
-                            ),
-                            const SizedBox(height: AppSpacing.screen),
-                          ],
-
-                          if (listing.isLive)
-                            Wrap(
-                              spacing: AppSpacing.sm,
-                              runSpacing: AppSpacing.sm,
-                              children: [
-                                FlatmatesTrustBadge(
-                                  variant: FlatmatesTrustBadgeVariant.verified,
-                                  label: locale.verifiedListingLabel,
-                                ),
-                                FlatmatesTrustBadge(
-                                  variant: FlatmatesTrustBadgeVariant.safe,
-                                  label: locale.safetyCheckedLabel,
-                                ),
-                              ],
-                            ),
-                          const SizedBox(height: 100),
-                        ],
+                      StaggeredCardAppear(
+                        index: 1,
+                        child: FlatDetailsAbout(listing: listing),
                       ),
-                    ),
-                  ],
+                      StaggeredCardAppear(
+                        index: 2,
+                        child: FlatDetailsMedia(listing: listing),
+                      ),
+                      StaggeredCardAppear(
+                        index: 3,
+                        child: FlatDetailsLocation(
+                          listing: listing,
+                          currentUserId: currentUserId,
+                          onVoteSocietyTag: (tag, vote) =>
+                              _handleSocietyTagVote(listing, tag, vote),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
               FlatmatesBottomActionBar(
                 primaryButtonKey: const Key('flat_contact_button'),
-                secondaryButtonKey: const Key('flat_shortlist_button'),
-                label: locale.contactCta,
-                onPressed: _handleContact,
+                label: hasLiked ? locale.openChatCta : locale.contactCta,
+                onPressed: () => _handleContact(listing),
                 icon: Icons.send_rounded,
-                secondaryLabel: locale.shortlistCta,
-                secondaryOnPressed: _handleShortlist,
-                secondaryIcon: Icons.favorite_border,
+                secondaryLabel: hasLiked ? locale.scheduleVisitCta : null,
+                secondaryOnPressed:
+                    hasLiked ? () => _handleScheduleVisit(listing) : null,
+                secondaryIcon: Icons.calendar_month_outlined,
+                tertiaryIcon:
+                    hasLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                tertiaryOnPressed: () => _handleShortlist(listing),
+                tertiarySelected: hasLiked,
+                tertiaryButtonKey: const Key('flat_shortlist_button'),
               ),
             ],
           ),
         );
       },
       loading: () => const FlatmatesScreen(
-        useSafeArea: true,
-        body: Padding(
-          padding: AppSpacing.horizontalScreen,
-          child: FlatmatesSkeleton.card(),
-        ),
+        body: FlatmatesSkeleton.flatDetails(),
       ),
       error: (e, _) {
         final message = e is AppFailure
             ? e.userMessage(locale.toUserMessageL10n())
             : locale.couldNotLoadListing;
         return FlatmatesScreen(
-          useSafeArea: true,
           body: FlatmatesErrorState(
             message: message,
             onRetry: () =>
@@ -375,6 +154,38 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
           ),
         );
       },
+    );
+  }
+
+  void _maybeFetchOwnerPeer(PropertyListing listing) {
+    if (_peerFetched) return;
+    final ownerId = listing.owner?.id ?? listing.ownerId;
+    if (ownerId == null) return;
+
+    final currentUserId =
+        ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+    // Only skip if bootstrap has loaded AND the user is the owner.
+    if (currentUserId != null && currentUserId == ownerId) {
+      _peerFetched = true;
+      return;
+    }
+
+    _peerFetched = true;
+    ref
+        .read(discoverRepositoryProvider)
+        .fetchOwnerPeer(ownerId)
+        .then((data) {
+      if (mounted) {
+        setState(() => _ownerPeer = data);
+      }
+    });
+  }
+
+  Future<void> _openGallery(List<String> images) {
+    return FullScreenGallery.open(
+      context: context,
+      images: images,
+      initialIndex: _currentImageIndex,
     );
   }
 
@@ -389,98 +200,213 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     );
   }
 
-  Future<void> _handleShortlist() async {
-    if (_isShortlisting) return;
-    setState(() => _isShortlisting = true);
-
+  Future<void> _handleShortlist(PropertyListing listing) async {
     try {
-      await ref.read(discoverRepositoryProvider).likeListing(widget.listingId);
-      _hasShortlisted = true;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).profileMenuShortlisted),
-          ),
-        );
-      }
+      final hasLiked = listing.liked ?? false;
+      final cid = await ref.read(discoverRepositoryProvider).setLiked(
+            listing.id,
+            !hasLiked,
+          );
+      if (cid != null) _conversationId = cid;
+      ref.invalidate(propertyListingProvider(widget.listingId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).actionFailedRetry),
-          ),
-        );
+        final locale = AppLocalizations.of(context);
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.actionFailedRetry;
+        FlatmatesToast.error(context, msg);
       }
-    }
-
-    if (mounted) {
-      setState(() => _isShortlisting = false);
     }
   }
 
-  Future<void> _handleContact() async {
-    if (_isContacting) return;
-    setState(() => _isContacting = true);
+  Future<void> _handleContact(PropertyListing listing) async {
+    if (_contacting) return;
+    setState(() => _contacting = true);
 
     try {
-      int? conversationId;
-      if (!_hasShortlisted) {
-        conversationId = await ref
-            .read(discoverRepositoryProvider)
-            .likeListing(widget.listingId);
-        _hasShortlisted = true;
-      } else {
-        conversationId = await ref
-            .read(discoverRepositoryProvider)
-            .likeListing(widget.listingId);
+      final hasLiked = listing.liked ?? false;
+      final repo = ref.read(discoverRepositoryProvider);
+      final cid = await repo.setLiked(listing.id, true);
+      if (cid != null) _conversationId = cid;
+      if (!hasLiked) {
+        ref.invalidate(propertyListingProvider(widget.listingId));
       }
-      if (mounted && conversationId != null) {
-        context.push('/chats/$conversationId');
+
+      if (mounted && cid != null) {
+        context.push('/chats/$cid');
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).contactRequestSent),
-          ),
+        FlatmatesToast.info(
+          context,
+          AppLocalizations.of(context).contactRequestSent,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).actionFailedRetry),
-          ),
-        );
+        final locale = AppLocalizations.of(context);
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.actionFailedRetry;
+        FlatmatesToast.error(context, msg);
       }
     }
 
     if (mounted) {
-      setState(() => _isContacting = false);
+      setState(() => _contacting = false);
     }
   }
 
-  Future<void> _handleReportListing() async {
-    final selected = await showReportListingDialog(context);
-    if (selected == null || !mounted) return;
+  Future<void> _handleScheduleVisit(PropertyListing listing) async {
+    final currentUserId =
+        ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+    if (currentUserId == null) return;
+
+    final locale = AppLocalizations.of(context);
+    final now = DateTime.now();
+
+    final date = await showDatePicker(
+      context: context,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 90)),
+      initialDate: now.add(const Duration(days: 1)),
+    );
+    if (date == null || !mounted) return;
+
+    final timeSlot = await _showTimeSlotPicker();
+    if (timeSlot == null || !mounted) return;
+
+    final scheduledDate = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      timeSlot.hour,
+      timeSlot.minute,
+    );
+
+    final ownerId = listing.owner?.id ?? listing.ownerId;
+    if (ownerId == null) return;
+
+    // Ensure we have a conversation ID for the visit
+    int cid;
+    if (_conversationId != null) {
+      cid = _conversationId!;
+    } else {
+      final repo = ref.read(discoverRepositoryProvider);
+      final result = await repo.setLiked(listing.id, true);
+      if (result == null) {
+        if (mounted) FlatmatesToast.error(context, locale.actionFailedRetry);
+        return;
+      }
+      _conversationId = result;
+      cid = result;
+      ref.invalidate(propertyListingProvider(widget.listingId));
+    }
 
     try {
-      await ref
-          .read(discoverRepositoryProvider)
-          .reportListing(widget.listingId, selected);
+      await ref.read(discoverRepositoryProvider).scheduleVisit(
+            propertyId: listing.id,
+            counterpartyUserId: ownerId,
+            conversationId: cid,
+            scheduledDate: scheduledDate,
+            note: locale.visitFromDetailPageNote,
+          );
+      ref.invalidate(propertyListingProvider(widget.listingId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).reportListingSubmitted),
-          ),
-        );
+        FlatmatesToast.success(context, locale.visitRequestSent);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).actionFailedRetry),
-          ),
-        );
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.actionFailedRetry;
+        FlatmatesToast.error(context, msg);
       }
     }
+  }
+
+  Future<TimeOfDay?> _showTimeSlotPicker() async {
+    final locale = AppLocalizations.of(context);
+    return showDialog<TimeOfDay>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(locale.selectTimeSlot),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(locale.timeSlotMorning),
+              subtitle: const Text('10:00 AM'),
+              leading: const Icon(Icons.wb_sunny_outlined),
+              onTap: () => Navigator.of(ctx).pop(
+                const TimeOfDay(hour: 10, minute: 0),
+              ),
+            ),
+            ListTile(
+              title: Text(locale.timeSlotAfternoon),
+              subtitle: const Text('3:00 PM'),
+              leading: const Icon(Icons.wb_cloudy_outlined),
+              onTap: () => Navigator.of(ctx).pop(
+                const TimeOfDay(hour: 15, minute: 0),
+              ),
+            ),
+            ListTile(
+              title: Text(locale.timeSlotEvening),
+              subtitle: const Text('6:00 PM'),
+              leading: const Icon(Icons.nights_stay_outlined),
+              onTap: () => Navigator.of(ctx).pop(
+                const TimeOfDay(hour: 18, minute: 0),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleSocietyTagVote(
+    PropertyListing listing,
+    String tag,
+    String vote,
+  ) async {
+    try {
+      await ref.read(discoverRepositoryProvider).voteSocietyTag(
+            listingId: listing.id,
+            tag: tag,
+            vote: vote,
+          );
+      ref.invalidate(propertyListingProvider(widget.listingId));
+    } catch (e) {
+      if (mounted) {
+        final locale = AppLocalizations.of(context);
+        final msg = e is AppFailure
+            ? e.userMessage(locale.toUserMessageL10n())
+            : locale.actionFailedRetry;
+        FlatmatesToast.error(context, msg);
+      }
+    }
+  }
+
+  void _handleOwnerTap(PropertyListing listing) {
+    final ownerId = listing.owner?.id ?? listing.ownerId;
+    if (ownerId == null) return;
+
+    final currentUserId =
+        ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+    if (currentUserId != null && currentUserId == ownerId) return;
+
+    // Trigger a fetch if we haven't fetched yet, so the sheet has data.
+    if (!_peerFetched) {
+      _maybeFetchOwnerPeer(listing);
+    }
+
+    OwnerProfileSheet.show(
+      context: context,
+      peerData: _ownerPeer,
+      listingOwnerName: listing.ownerName ?? 'Owner',
+      onSendMessage: () {
+        Navigator.of(context).pop();
+        _handleContact(listing);
+      },
+    );
   }
 }

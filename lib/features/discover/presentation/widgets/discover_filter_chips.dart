@@ -56,7 +56,6 @@ class DiscoverFilterChips extends StatelessWidget {
                     option.key == 'flexible' || selected ? null : option.key,
                   );
                 },
-                variant: FlatmatesChipVariant.filter,
               ),
             );
           }),
@@ -70,7 +69,6 @@ class DiscoverFilterChips extends StatelessWidget {
                 onSelected: (_) {
                   onBedroomsChanged(selected ? null : value);
                 },
-                variant: FlatmatesChipVariant.filter,
               ),
             );
           }),
@@ -84,7 +82,6 @@ class DiscoverFilterChips extends StatelessWidget {
                 onSelected: (_) {
                   onFeatureChanged(selected ? null : feature);
                 },
-                variant: FlatmatesChipVariant.filter,
               ),
             );
           }),

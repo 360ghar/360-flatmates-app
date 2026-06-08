@@ -26,7 +26,7 @@ The Indian flatmate market is large, fragmented, and deeply broken. Current solu
 
 - **Drive organic growth** — via WhatsApp-shareable listing cards that create a viral referral loop without ad spend.
 
-- **Build monetization headroom** — by establishing freemium UI patterns (boost slots, swipe caps) even before charging begins.
+- **Build monetization headroom** — by establishing freemium UI patterns (boost slots) even before charging begins.
 
 ## **2.2 V1 Success Metrics**
 
@@ -148,9 +148,13 @@ One screen. Fields:
 
 ## **5.5 Profile Photo**
 
-- Minimum 1 photo required (enforced before proceeding)
+- Photo is **optional** in onboarding. The step is skippable via a tertiary "Skip for now" CTA; the primary "Next" CTA also advances without a photo.
 
-- Nudge: "Add 3 photos — profiles with 3+ photos get 4x more matches"
+- When no photo is uploaded, the user is represented by a name-initials `FlatmatesAvatar` (same gradient + ring style used across the app). The avatar swaps to the uploaded image as soon as one is added.
+
+- Nudge: "Profiles with photos get 4x more matches." (opt-in framing, not a gate)
+
+- Users can add or replace a photo later from the profile screen — the post-onboarding profile header always shows the same `FlatmatesAvatar` fallback.
 
 - Camera or gallery upload. No crop enforcement in V1 (just center-crop for card thumbnails).
 
@@ -304,13 +308,7 @@ The card expands into a scrollable bottom sheet with a sticky action bar. Hero a
 
 **Sticky Action Bar (visible in both states)**
 
-- Pass (red X, left)
-
-- Super Like (yellow star, center)
-
-- Like (green heart, right)
-
-Swipe gestures also work — left to pass, right to like, up to super like. Haptic feedback on each action.
+The swipe deck is driven entirely by swipe gestures — no on-screen action buttons. Swipe left to Pass, swipe right to Like. Haptic feedback on each action.
 
 ## **7.2 Listing Builder (Room Poster)**
 
@@ -674,10 +672,6 @@ No monetization in V1, but the following UI patterns are built in to train user 
 
 - **Boost slot** — The Room Poster's 'Manage Listing' screen already shows a 'Boost listing' button — free in V1, paid in V2. This slot in the UI trains Room Posters to see boosting as a normal action.
 
-- **Swipe cap UI** — The swipe deck shows a faint 'X swipes remaining today' counter (but the cap is set to a high number like 100 in V1 so it's never actually hit). Trains users to see swipes as a resource.
-
-- **Super Like scarcity** — Super Likes are capped at 3 per day in V1 (genuinely enforced). This establishes Super Like as a premium signal even before a paywall.
-
 - **Profile boost on listing approval** — Notify Room Posters that 'Your listing has been boosted for 24 hours' on first approval — models paid boost value.
 
 # **11. Technical Architecture**
@@ -694,7 +688,7 @@ No monetization in V1, but the following UI patterns are built in to train user 
 | **Networking**            | Dio with auth interceptor (Bearer token + 401 refresh retry)                                               |
 | **Backend**               | FastAPI monolith (existing 360 Ghar backend) — extended with flatmate-specific endpoints                   |
 | **Authentication**        | Supabase Auth (Phone OTP + password) — Supabase Flutter SDK                                                |
-| **Media Storage**         | Supabase Storage for photos and video tours (buckets: profile-photos, listing-photos, chat-photos, listing-videos) |
+| **Media Storage**         | Cloudinary (via backend API) for photos and video tours                                                    |
 | **Realtime Chat**         | Supabase Realtime for message streaming in chat threads                                                    |
 | **Geocoding**             | Google Maps Geocoding API — called on listing save (lat-lng stored, not displayed in V1)                   |
 | **Push Notifications**    | Firebase Cloud Messaging (FCM) + flutter_local_notifications                                               |
@@ -743,7 +737,7 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 
 - **Deal-breaker filtering** — Applied client-side before swipe deck population and as query parameters on discover/map endpoints. Non-negotiables stored as user profile fields.
 
-- **Video tour** — Uploaded to Supabase Storage (listing-videos bucket). Size cap: 50MB, duration cap: 30 seconds (enforced client-side before upload).
+- **Video tour** — Uploaded via backend API to Cloudinary. Size cap: 50MB, duration cap: 30 seconds (enforced client-side before upload).
 
 - **WhatsApp share card** — Generated on-device using RepaintBoundary with three templates: original card, WhatsApp square (1080x1080), Instagram story (1080x1920). Includes QR code with deep link.
 
@@ -787,7 +781,7 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 | Push notifications (new match, message, visit)                |  **✅** |        |               |
 | Manual listing review queue (Flutter Web admin)               |  **✅** |        |               |
 | AI pre-screening before review queue                          |  **✅** |        |               |
-| Freemium hook UI (boost slot, swipe counter, super like cap)  |  **✅** |        |               |
+| Freemium hook UI (boost slot)                                 |  **✅** |        |               |
 | Cold start: waitlist mode + city counter                      |  **✅** |        |               |
 | Lat-lng storage on all listings                               |        |        |     **✅**     |
 | Society tag vote counts (for community corrections)           |        |        |     **✅**     |
@@ -811,7 +805,7 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 
 * Tab 2 (Post/Manage): New Listing button → Listing Builder | Active listing card → View Stats, Edit, Pause, Share
 
-* Tab 3 (Swipe): Swipe deck of Co-Hunters and Seekers. Like/Pass/Super Like. Tap to expand profile.
+* Tab 3 (Swipe): Swipe deck of Co-Hunters and Seekers. Swipe right to Like, swipe left to Pass. Tap to expand profile.
 
 * Tab 4 (Likes & Chat): Likes sub-tab (blurred cards with Match button) → Match → Q\&A nudge → Chat thread
 
@@ -854,7 +848,7 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 | **Brand Light**  | **#EDE9FF** | Card backgrounds, callout boxes, tag backgrounds            |
 | **Accent Coral** | **#FF6B6B** | Pass button, error states, urgency badges                   |
 | **Match Green**  | **#10B981** | Like button, compatibility match indicators, success states |
-| **Super Yellow** | **#F59E0B** | Super Like, V2 feature badges, countdown urgency            |
+| **Super Yellow** | **#F59E0B** | V2 feature badges, countdown urgency                         |
 | **Dark Navy**    | **#1A1A2E** | Primary text, headings                                      |
 | **Body Gray**    | **#374151** | Body copy, secondary text                                   |
 | **Light Gray**   | **#F3F4F6** | Screen backgrounds, alternate table rows                    |
@@ -892,7 +886,6 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 | **App name: '360 Flatmates' confirmed or placeholder?**                      | Name used throughout this doc. Confirm before domain / App Store registration.         |
 | **Should Co-Hunters be able to form groups (2+ people searching together)?** | Described in personas but not scoped in V1 flows. Defer to V1.5.                       |
 | **Should broker/agent accounts be allowed to post listings?**                | V1 assumes individual users only. Broker accounts are a monetization lever for V2.     |
-| **What is the maximum swipe cap for V1?**                                    | Recommended: 100/day (effectively unlimited). Set lower cap in V2 paywall.             |
 | **Video tour: Firebase Storage or third-party CDN?**                         | Firebase Storage sufficient for V1. Evaluate Cloudflare Stream or Mux at V2 scale.     |
 | **Should users be able to change mode freely or once per 30 days?**          | Recommend: freely changeable in V1 to reduce friction. Add rate-limit in V2 if abused. |
 

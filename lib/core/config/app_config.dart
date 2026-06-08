@@ -19,6 +19,8 @@ final class AppConfig {
     required this.supabaseUrl,
     required this.supabaseAnonKey,
     required this.enableDebugLogs,
+    this.googleWebClientId = '',
+    this.googleIosClientId = '',
   });
 
   final AppEnvironment environment;
@@ -26,6 +28,18 @@ final class AppConfig {
   final String supabaseUrl;
   final String supabaseAnonKey;
   final bool enableDebugLogs;
+
+  /// Google **Web** OAuth client id, used as the Android `serverClientId` and
+  /// as the audience Supabase validates native ID tokens against. Empty until
+  /// the Phase 0 Google Cloud Console setup is complete.
+  final String googleWebClientId;
+
+  /// Google **iOS** OAuth client id, used as the iOS `clientId`. Empty until
+  /// the Phase 0 setup is complete.
+  final String googleIosClientId;
+
+  /// Whether native Google sign-in can be attempted (web client id present).
+  bool get isGoogleSignInConfigured => googleWebClientId.trim().isNotEmpty;
 
   static AppEnvironment _parseEnvironment(String raw) {
     switch (raw.trim().toLowerCase()) {
@@ -49,19 +63,19 @@ final class AppConfig {
     );
 
     const apiDefine = String.fromEnvironment('API_BASE_URL');
-    var apiBaseUrl = apiDefine.trim().isNotEmpty
+    final apiBaseUrl = apiDefine.trim().isNotEmpty
         ? apiDefine
         : (dotenv.env['API_BASE_URL'] ?? '');
 
     const supabaseUrlDefine = String.fromEnvironment('SUPABASE_URL');
-    var supabaseUrl = supabaseUrlDefine.trim().isNotEmpty
+    final supabaseUrl = supabaseUrlDefine.trim().isNotEmpty
         ? supabaseUrlDefine
         : (dotenv.env['SUPABASE_URL'] ?? '');
 
     const supabaseKeyDefine = String.fromEnvironment(
       'SUPABASE_PUBLISHABLE_KEY',
     );
-    var supabaseAnonKey = supabaseKeyDefine.trim().isNotEmpty
+    final supabaseAnonKey = supabaseKeyDefine.trim().isNotEmpty
         ? supabaseKeyDefine
         : (dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '');
 
@@ -73,6 +87,20 @@ final class AppConfig {
               : dotenv.env['ENABLE_DEBUG_LOGS'],
         ) ??
         !kReleaseMode;
+
+    const googleWebClientIdDefine = String.fromEnvironment(
+      'GOOGLE_WEB_CLIENT_ID',
+    );
+    final googleWebClientId = googleWebClientIdDefine.trim().isNotEmpty
+        ? googleWebClientIdDefine
+        : (dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '');
+
+    const googleIosClientIdDefine = String.fromEnvironment(
+      'GOOGLE_IOS_CLIENT_ID',
+    );
+    final googleIosClientId = googleIosClientIdDefine.trim().isNotEmpty
+        ? googleIosClientIdDefine
+        : (dotenv.env['GOOGLE_IOS_CLIENT_ID'] ?? '');
 
     if (apiBaseUrl.trim().isEmpty) {
       throw StateError(
@@ -91,6 +119,8 @@ final class AppConfig {
       supabaseUrl: supabaseUrl,
       supabaseAnonKey: supabaseAnonKey,
       enableDebugLogs: enableDebugLogs,
+      googleWebClientId: googleWebClientId,
+      googleIosClientId: googleIosClientId,
     );
   }
 }

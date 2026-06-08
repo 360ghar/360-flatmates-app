@@ -5,9 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/config/endpoints.dart';
-import '../../core/network/sse_providers.dart';
-import '../../core/network/sse_service.dart';
 import '../../core/providers.dart';
+import '../bootstrap/bootstrap_controller.dart';
 import 'domain/chat_models.dart';
 
 export 'domain/chat_models.dart';
@@ -130,8 +129,8 @@ class ChatsRepository {
   Stream<List<ChatMessage>> watchMessages(int conversationId) {
     late final StreamController<List<ChatMessage>> controller;
     StreamSubscription<List<ChatMessage>>? realtimeSubscription;
-    StreamSubscription<SseEvent>? sseFallbackSubscription;
     var hasEmittedMessages = false;
+    var _isRefetching = false;
 
     void emitMessages(List<ChatMessage> messages) {
       if (controller.isClosed) return;
@@ -140,6 +139,8 @@ class ChatsRepository {
     }
 
     Future<void> refetch() async {
+      if (_isRefetching) return;
+      _isRefetching = true;
       try {
         final response = await fetchMessages(conversationId);
         emitMessages(response.messages);
@@ -147,31 +148,13 @@ class ChatsRepository {
         if (!controller.isClosed && !hasEmittedMessages) {
           controller.addError(error, stackTrace);
         }
+      } finally {
+        _isRefetching = false;
       }
     }
 
     controller = StreamController<List<ChatMessage>>(
       onListen: () {
-        var realtimeHealthy = false;
-
-        // Fallback path: listen for `new_message` SSE events and refetch.
-        // Activated only when Supabase realtime fails or drops. Cancelled
-        // automatically as soon as realtime recovers.
-        void startSseFallbackIfNeeded() {
-          if (realtimeHealthy || sseFallbackSubscription != null) return;
-          sseFallbackSubscription = _ref.read(sseServiceProvider).events.listen(
-            (event) {
-              if (event.type != 'new_message') return;
-              final convId = (event.data['conversation_id'] as num?)?.toInt();
-              // Refetch when the event is for this conversation, or when
-              // the payload omits a conversation id (defensive).
-              if (convId == null || convId == conversationId) {
-                unawaited(refetch());
-              }
-            },
-          );
-        }
-
         unawaited(refetch());
 
         try {
@@ -181,29 +164,19 @@ class ChatsRepository {
               .eq('conversation_id', conversationId)
               .order('created_at', ascending: true)
               .map(_parseMessageRows)
-              .listen(
-                (messages) {
-                  if (!realtimeHealthy) {
-                    realtimeHealthy = true;
-                    sseFallbackSubscription?.cancel();
-                    sseFallbackSubscription = null;
-                  }
-                  emitMessages(messages);
-                },
-                onError: (_) {
-                  realtimeHealthy = false;
-                  startSseFallbackIfNeeded();
-                },
-              );
+              .listen(emitMessages, onError: (e) {
+                debugPrint(
+                  'ChatsRepository.watchMessages: realtime stream error: $e',
+                );
+                unawaited(refetch());
+              });
         } catch (e) {
           debugPrint(
-            'ChatsRepository.watchMessages: realtime subscription failed, falling back to SSE event refetch: $e',
+            'ChatsRepository.watchMessages: realtime subscription failed: $e',
           );
-          startSseFallbackIfNeeded();
         }
       },
       onCancel: () async {
-        await sseFallbackSubscription?.cancel();
         await realtimeSubscription?.cancel();
       },
     );
@@ -296,6 +269,48 @@ class ChatsRepository {
 final chatsRepositoryProvider = Provider<ChatsRepository>(
   (ref) => ChatsRepository(ref),
 );
+
+/// Subscribes to Supabase realtime changes on `user_conversations` and
+/// invalidates [conversationsProvider] whenever a row changes (new message,
+/// new conversation, read-status update, etc.).
+///
+/// Must be activated from the UI/provider tree (e.g. `app.dart` or
+/// `sseEventRouterProvider`) by watching or listening to this provider.
+final conversationsRealtimeProvider = StreamProvider<void>((ref) {
+  final userId = ref.watch(
+    bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
+  );
+  if (userId == null) return const Stream<void>.empty();
+
+  final controller = StreamController<void>.broadcast();
+  final client = Supabase.instance.client;
+
+  void onChanged(_) {
+    if (!controller.isClosed) {
+      Future.microtask(() => ref.invalidate(conversationsProvider));
+    }
+  }
+
+  final sub1 = client
+      .from('user_conversations')
+      .stream(primaryKey: ['id'])
+      .eq('user_one_id', userId)
+      .listen(onChanged);
+
+  final sub2 = client
+      .from('user_conversations')
+      .stream(primaryKey: ['id'])
+      .eq('user_two_id', userId)
+      .listen(onChanged);
+
+  ref.onDispose(() {
+    sub1.cancel();
+    sub2.cancel();
+    controller.close();
+  });
+
+  return controller.stream;
+});
 
 final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
   (ref) => ref.watch(chatsRepositoryProvider).fetchConversations(),

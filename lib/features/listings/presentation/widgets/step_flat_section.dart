@@ -94,7 +94,6 @@ class StepFlatSection extends StatelessWidget {
             children: amenities.map((opt) {
               final selected = flatAmenities.contains(opt.id);
               return FlatmatesChip(
-                variant: FlatmatesChipVariant.filter,
                 icon: iconForOption(opt.id),
                 label: opt.label,
                 selected: selected,

@@ -304,7 +304,6 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
     final activeFilters = _activeFilters;
 
     return FlatmatesScreen(
-      useSafeArea: true,
       appBar: FlatmatesHeader.backTitle(
         title: locale.searchFiltersTitle,
         actions: [
@@ -322,7 +321,7 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
           ? FlatmatesErrorState(
               message: locale.couldNotLoadListing,
               onRetry: () =>
-                  ref.read(bootstrapControllerProvider.notifier).load(),
+                  ref.read(bootstrapControllerProvider.notifier).refresh(),
             )
           : Column(
               children: [

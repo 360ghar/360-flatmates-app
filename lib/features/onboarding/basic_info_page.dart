@@ -67,7 +67,7 @@ class _BasicInfoPageState extends ConsumerState<BasicInfoPage> {
           children: [
             const SizedBox(height: AppSpacing.sm),
             // Step progress
-            FlatmatesStepProgress.dots(currentStep: 2, totalSteps: 4),
+            const FlatmatesStepProgress.dots(currentStep: 2, totalSteps: 4),
             const SizedBox(height: AppSpacing.section),
             Text(locale.basicInfoTitle, style: theme.textTheme.headlineLarge),
             const SizedBox(height: AppSpacing.sm),

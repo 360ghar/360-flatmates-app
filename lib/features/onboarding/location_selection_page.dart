@@ -230,7 +230,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               tooltip: locale.backCta,
             ),
             const SizedBox(height: 28),
-            FlatmatesStepProgress.dots(currentStep: 1, totalSteps: 4),
+            const FlatmatesStepProgress.dots(currentStep: 1, totalSteps: 4),
             const SizedBox(height: AppSpacing.section),
             Text(
               locale.locationSelectionTitle,
@@ -252,7 +252,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               vertical: 10,
             ),
             const SizedBox(height: 18),
-            Divider(color: AppSemanticColors.line),
+            const Divider(color: AppSemanticColors.line),
             if (isPlacesLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: AppSpacing.md),

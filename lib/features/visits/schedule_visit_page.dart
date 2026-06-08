@@ -10,6 +10,13 @@ import '../chats/chats_repository.dart';
 import '../shared/presentation/components.dart';
 import 'visits_repository.dart';
 
+final _selectedDateProvider = StateProvider<DateTime>(
+  (ref) => DateTime.now().add(const Duration(days: 1)),
+);
+final _selectedSlotProvider = StateProvider<String>((ref) => 'afternoon');
+final _submittingVisitProvider = StateProvider<bool>((ref) => false);
+final _conversationProvider = StateProvider<ConversationSummaryModel?>((ref) => null);
+
 class ScheduleVisitPage extends ConsumerStatefulWidget {
   const ScheduleVisitPage({
     required this.conversation,
@@ -26,10 +33,7 @@ class ScheduleVisitPage extends ConsumerStatefulWidget {
 
 class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   final _noteController = TextEditingController();
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  String _selectedSlot = 'afternoon';
-  bool _submitting = false;
-  ConversationSummaryModel? _conversation;
+
 
   @override
   void dispose() {
@@ -40,29 +44,30 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   /// Returns a local DateTime for the selected date and slot.
   /// The repository converts to UTC before sending to the backend.
   DateTime get _scheduledDate {
-    final hour = switch (_selectedSlot) {
+    final hour = switch (ref.read(_selectedSlotProvider)) {
       'morning' => 10,
       'evening' => 18,
       _ => 15,
     };
+    final selectedDate = ref.read(_selectedDateProvider);
     return DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
       hour,
     );
   }
 
   Future<void> _submit() async {
-    final conversation = widget.conversation ?? _conversation;
+    final conversation = widget.conversation ?? ref.read(_conversationProvider);
     final property = conversation?.contextProperty;
     if (conversation == null || property == null) return;
     final locale = AppLocalizations.of(context);
 
-    setState(() => _submitting = true);
+    ref.read(_submittingVisitProvider.notifier).state = true;
     bool visitCreated = false;
     try {
-      final timeSlotLabel = switch (_selectedSlot) {
+      final timeSlotLabel = switch (ref.read(_selectedSlotProvider)) {
         'morning' => locale.timeSlotMorning,
         'evening' => locale.timeSlotEvening,
         _ => locale.timeSlotAfternoon,
@@ -81,20 +86,16 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       ref.invalidate(visitsProvider);
       ref.invalidate(messagesProvider(conversation.id));
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.contactRequestSent)));
+      FlatmatesToast.success(context, locale.contactRequestSent);
       context.pop();
     } catch (error) {
       if (!mounted) return;
       final message = visitCreated
           ? locale.visitScheduledNotificationFailed
           : locale.visitRequestFailed;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      FlatmatesToast.error(context, message);
     } finally {
-      if (mounted) setState(() => _submitting = false);
+      if (mounted) ref.read(_submittingVisitProvider.notifier).state = false;
     }
   }
 
@@ -109,12 +110,12 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
     final conversation =
         widget.conversation ?? fetchedConversation?.valueOrNull;
     final property = conversation?.contextProperty;
-    if (_conversation == null &&
+    if (ref.read(_conversationProvider) == null &&
         widget.conversation == null &&
         conversation != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _conversation == null) {
-          setState(() => _conversation = conversation);
+        if (mounted && ref.read(_conversationProvider) == null) {
+          ref.read(_conversationProvider.notifier).state = conversation;
         }
       });
     }
@@ -172,7 +173,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                               ),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.apartment_rounded,
                               color: AppSemanticColors.accent,
                             ),
@@ -222,11 +223,11 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                   const SizedBox(height: AppSpacing.lg),
                   FlatmatesCard(
                     child: CalendarDatePicker(
-                      initialDate: _selectedDate,
+                      initialDate: ref.read(_selectedDateProvider),
                       firstDate: DateTime.now(),
                       lastDate: DateTime.now().add(const Duration(days: 90)),
                       onDateChanged: (date) =>
-                          setState(() => _selectedDate = date),
+                          ref.read(_selectedDateProvider.notifier).state = date,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -242,25 +243,25 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                         key: const Key('visit_morning_slot'),
                         variant: FlatmatesChipVariant.choice,
                         label: locale.timeSlotMorning,
-                        selected: _selectedSlot == 'morning',
+                        selected: ref.watch(_selectedSlotProvider) == 'morning',
                         onSelected: (_) =>
-                            setState(() => _selectedSlot = 'morning'),
+                            ref.read(_selectedSlotProvider.notifier).state = 'morning',
                       ),
                       FlatmatesChip(
                         key: const Key('visit_afternoon_slot'),
                         variant: FlatmatesChipVariant.choice,
                         label: locale.timeSlotAfternoon,
-                        selected: _selectedSlot == 'afternoon',
+                        selected: ref.watch(_selectedSlotProvider) == 'afternoon',
                         onSelected: (_) =>
-                            setState(() => _selectedSlot = 'afternoon'),
+                            ref.read(_selectedSlotProvider.notifier).state = 'afternoon',
                       ),
                       FlatmatesChip(
                         key: const Key('visit_evening_slot'),
                         variant: FlatmatesChipVariant.choice,
                         label: locale.timeSlotEvening,
-                        selected: _selectedSlot == 'evening',
+                        selected: ref.watch(_selectedSlotProvider) == 'evening',
                         onSelected: (_) =>
-                            setState(() => _selectedSlot = 'evening'),
+                            ref.read(_selectedSlotProvider.notifier).state = 'evening',
                       ),
                     ],
                   ),
@@ -286,9 +287,9 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       ),
       bottomNavigationBar: FlatmatesBottomActionBar(
         primaryButtonKey: const Key('visit_send_request_button'),
-        label: _submitting ? locale.sendingLabel : locale.sendRequestCta,
+        label: ref.watch(_submittingVisitProvider) ? locale.sendingLabel : locale.sendRequestCta,
         icon: Icons.send_rounded,
-        onPressed: _submitting ? null : _submit,
+        onPressed: ref.watch(_submittingVisitProvider) ? null : _submit,
       ),
     );
   }

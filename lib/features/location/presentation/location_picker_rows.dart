@@ -44,7 +44,7 @@ class LocationActionRow extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: AppSemanticColors.line),
+            const Icon(Icons.chevron_right, color: AppSemanticColors.line),
           ],
         ),
       ),
@@ -71,7 +71,7 @@ class LocationSuggestionRow extends StatelessWidget {
       borderColor: AppSemanticColors.line.withValues(alpha: 0.35),
       child: Row(
         children: [
-          Icon(Icons.location_on_outlined, color: AppSemanticColors.accent),
+          const Icon(Icons.location_on_outlined, color: AppSemanticColors.accent),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -90,7 +90,7 @@ class LocationSuggestionRow extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: AppSemanticColors.line),
+          const Icon(Icons.chevron_right, color: AppSemanticColors.line),
         ],
       ),
     );
@@ -119,7 +119,6 @@ class LocationCityRow extends StatelessWidget {
       return Opacity(
         opacity: 0.6,
         child: FlatmatesCard(
-          onTap: null,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md + AppSpacing.xs,
@@ -176,13 +175,13 @@ class LocationCityRow extends StatelessWidget {
           : AppSemanticColors.line.withValues(alpha: 0.35),
       child: Row(
         children: [
-          Icon(Icons.location_on_outlined, color: AppSemanticColors.accent),
+          const Icon(Icons.location_on_outlined, color: AppSemanticColors.accent),
           const SizedBox(width: AppSpacing.md),
           Expanded(child: Text(city.label, style: theme.textTheme.bodyLarge)),
           if (selected)
-            Icon(Icons.check_circle_rounded, color: AppSemanticColors.accent)
+            const Icon(Icons.check_circle_rounded, color: AppSemanticColors.accent)
           else
-            Icon(Icons.chevron_right, color: AppSemanticColors.line),
+            const Icon(Icons.chevron_right, color: AppSemanticColors.line),
         ],
       ),
     );

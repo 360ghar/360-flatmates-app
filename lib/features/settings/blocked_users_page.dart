@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
@@ -9,6 +11,7 @@ import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'data/blocked_users_repository.dart';
 
@@ -95,17 +98,19 @@ class BlockedUsersPage extends ConsumerWidget {
                                     .unblockUser(user.blockedUserId);
                                 ref.invalidate(blockedUsersProvider);
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(locale.userUnblocked)),
+                                FlatmatesToast.success(
+                                  context,
+                                  locale.userUnblocked,
                                 );
                               } catch (e) {
                                 debugPrint(
                                   'BlockedUsersPage: unblock failed for user ${user.blockedUserId}: $e',
                                 );
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(locale.unblockFailed)),
-                                );
+                                final msg = e is AppFailure
+                                    ? e.userMessage(locale.toUserMessageL10n())
+                                    : locale.unblockFailed;
+                                FlatmatesToast.error(context, msg);
                               } finally {
                                 ref
                                     .read(_unblockingIdsProvider.notifier)
