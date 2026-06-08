@@ -38,9 +38,6 @@ class DiscoverPage extends ConsumerStatefulWidget {
 class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   static const double _loadMoreThreshold = 500;
   static const double _kBottomNavOffset = 120.0;
-  static const double _kCardWidthCoefficient = 2.15;
-  static const double _kCardImageAspectRatio = 10 / 16;
-  static const double _kCardExtraHeight = 68.0;
 
   final _scrollController = ScrollController();
   final _likeDebouncer = ActionDebouncer(
@@ -187,7 +184,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.xl,
-                  AppSpacing.lg,
+                  AppSpacing.sm,
                   AppSpacing.xl,
                   _kBottomNavOffset,
                 ),
@@ -204,33 +201,17 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       currentRadiusKm: currentRadiusKm,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sm),
                   HomeSearchBar(
                     onTap: () => context.push('/search-filters'),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  QuickFiltersRow(
-                    filters: const ['Quiet', 'Social', 'Professional', 'Pet Friendly'],
-                    onFilterTap: (filter) {
-                      final vibeMap = {
-                        'Quiet': 'quiet',
-                        'Social': 'social',
-                        'Professional': 'professional',
-                        'Pet Friendly': 'pet',
-                      };
-                      final vibe = vibeMap[filter];
-                      if (vibe != null) {
-                        ref.read(discoverFeedControllerProvider.notifier).updateVibe(vibe);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sm),
                   if (filtered.length < 5 && city != null) ...[
                     WaitlistNudgeCard(
                       city: city,
                       listingCount: filtered.length,
                     ),
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.sm),
                   ],
                   /*
                   if (isSeeker && city != null) ...[
@@ -243,16 +224,16 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                     const SizedBox(height: AppSpacing.lg),
                   ] else */ if (!isSeeker) ...[
                     PostYourSpaceCard(onTap: () => context.push('/post/new')),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.sm),
                   ],
                   if (city != null) ...[
                     TrendingNeighborhoodsSection(city: city),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.sm),
                   ],
                   const MeetFlatmatesSection(),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sm),
                   MovingSoonSection(items: filtered),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sm),
                   HomeSectionHeader(
                     title: locale.homePickedForYou,
                     actionLabel: filtered.length > 2 ? locale.seeAllCta : null,

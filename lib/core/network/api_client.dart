@@ -28,7 +28,6 @@ final class ApiClient {
           requestBody: true,
           responseHeader: false,
           responseBody: true,
-          error: true,
           logPrint: (obj) => debugPrint('🌐 $obj'),
         ),
       );

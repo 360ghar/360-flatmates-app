@@ -149,12 +149,8 @@ class _DiscoverMapState extends State<DiscoverMap> {
 
   List<Marker> _buildMarkers(BuildContext context) {
     if (!_styleLoaded) return [];
-    final bounds = _mapImpl.camera.visibleBounds;
-    final visibleMarkers = _markers.where((m) {
-      return bounds.contains(m.point);
-    }).toList();
 
-    final markers = visibleMarkers.map((marker) {
+    final markers = _markers.map((marker) {
       return Marker(
         point: marker.point,
         width: marker.size.width,

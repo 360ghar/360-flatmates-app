@@ -40,6 +40,8 @@ class FlatmatesAvatar extends StatefulWidget {
     this.size = 52,
     this.showRing = false,
     this.onTap,
+    this.shape = BoxShape.circle,
+    this.borderRadius,
   });
 
   final String? name;
@@ -47,6 +49,8 @@ class FlatmatesAvatar extends StatefulWidget {
   final double size;
   final bool showRing;
   final VoidCallback? onTap;
+  final BoxShape shape;
+  final BorderRadius? borderRadius;
 
   @override
   State<FlatmatesAvatar> createState() => _FlatmatesAvatarState();
@@ -87,12 +91,15 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
     final initials = initialsFromName(widget.name);
     final hasImage =
         widget.imageUrl != null && widget.imageUrl!.trim().isNotEmpty;
+    final isCircle = widget.shape == BoxShape.circle;
+    final resolvedRadius = isCircle ? null : (widget.borderRadius ?? BorderRadius.circular(12));
 
     final avatar = Container(
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        shape: widget.shape,
+        borderRadius: resolvedRadius,
         gradient: LinearGradient(
           colors: [
             AppSemanticColors.accent.withValues(alpha: 0.95),
@@ -110,12 +117,20 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
         ],
       ),
       child: hasImage
-          ? ClipOval(
-              child: FlatmatesNetworkImage(
-                imageUrl: widget.imageUrl!,
-                fit: BoxFit.cover,
-              ),
-            )
+          ? (isCircle
+              ? ClipOval(
+                  child: FlatmatesNetworkImage(
+                    imageUrl: widget.imageUrl!,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : ClipRRect(
+                  borderRadius: resolvedRadius!,
+                  child: FlatmatesNetworkImage(
+                    imageUrl: widget.imageUrl!,
+                    fit: BoxFit.cover,
+                  ),
+                ))
           : _AvatarFallback(initials: initials, size: widget.size),
     );
 
@@ -130,6 +145,8 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
               progress: _ringController.value,
               color: AppSemanticColors.accent,
               strokeWidth: 2.5,
+              isCircle: isCircle,
+              borderRadiusValue: resolvedRadius != null ? resolvedRadius.topLeft.x : 12.0,
             ),
             child: child,
           );
@@ -159,36 +176,54 @@ class _RingPainter extends CustomPainter {
     required this.progress,
     required this.color,
     required this.strokeWidth,
+    this.isCircle = true,
+    this.borderRadiusValue = 12.0,
   });
 
   final double progress;
   final Color color;
   final double strokeWidth;
+  final bool isCircle;
+  final double borderRadiusValue;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress <= 0) return;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.shortestSide / 2) - (strokeWidth / 2);
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    final sweepAngle = 2 * pi * progress;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      sweepAngle,
-      false,
-      paint,
-    );
+    if (isCircle) {
+      final center = Offset(size.width / 2, size.height / 2);
+      final radius = (size.shortestSide / 2) - (strokeWidth / 2);
+      final sweepAngle = 2 * pi * progress;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -pi / 2,
+        sweepAngle,
+        false,
+        paint,
+      );
+    } else {
+      final rect = Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth, size.height - strokeWidth);
+      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadiusValue));
+      final path = Path()..addRRect(rrect);
+      final pathMetrics = path.computeMetrics().toList();
+      if (pathMetrics.isNotEmpty) {
+        final metric = pathMetrics.first;
+        final extractPath = metric.extractPath(0.0, metric.length * progress);
+        canvas.drawPath(extractPath, paint);
+      }
+    }
   }
 
   @override
   bool shouldRepaint(_RingPainter oldDelegate) =>
-      progress != oldDelegate.progress;
+      progress != oldDelegate.progress ||
+      isCircle != oldDelegate.isCircle ||
+      borderRadiusValue != oldDelegate.borderRadiusValue;
 }
 
 class _AvatarFallback extends StatelessWidget {

@@ -211,14 +211,13 @@ class HomeSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: 12,
+          vertical: 8,
         ),
         decoration: BoxDecoration(
           color: AppSemanticColors.surfaceFor(theme.brightness),
@@ -252,7 +251,7 @@ class HomeSearchBar extends StatelessWidget {
             ),
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppSemanticColors.accentSoft,
                 shape: BoxShape.circle,
               ),

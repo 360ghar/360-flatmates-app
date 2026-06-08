@@ -58,17 +58,23 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final mapState = ref.read(mapListingsProvider);
     if (mapState.filters.hasGeoLocation) return;
 
-    final selectedLocation = ref.read(locationControllerProvider).selectedLocation;
+    final selectedLocation = ref
+        .read(locationControllerProvider)
+        .selectedLocation;
     if (selectedLocation != null) {
-      ref.read(mapListingsProvider.notifier).updateLocationFilter(
-        latitude: selectedLocation.latitude,
-        longitude: selectedLocation.longitude,
-        radiusKm: MapListingsController.defaultLocationRadiusKm,
-      );
+      ref
+          .read(mapListingsProvider.notifier)
+          .updateLocationFilter(
+            latitude: selectedLocation.latitude,
+            longitude: selectedLocation.longitude,
+            radiusKm: MapListingsController.defaultLocationRadiusKm,
+          );
       return;
     }
 
-    ref.read(locationControllerProvider.notifier).getCurrentLocation().then((_) {
+    ref.read(locationControllerProvider.notifier).getCurrentLocation().then((
+      _,
+    ) {
       if (!mounted) return;
       final locState = ref.read(locationControllerProvider);
       final pos = locState.currentPosition;
@@ -81,11 +87,13 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         );
         ref.read(locationControllerProvider.notifier).selectLocation(location);
         if (!ref.read(mapListingsProvider).filters.hasGeoLocation) {
-          ref.read(mapListingsProvider.notifier).updateLocationFilter(
-            latitude: location.latitude,
-            longitude: location.longitude,
-            radiusKm: MapListingsController.defaultLocationRadiusKm,
-          );
+          ref
+              .read(mapListingsProvider.notifier)
+              .updateLocationFilter(
+                latitude: location.latitude,
+                longitude: location.longitude,
+                radiusKm: MapListingsController.defaultLocationRadiusKm,
+              );
         }
       }
     });
@@ -93,6 +101,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   @override
   void dispose() {
+    ref.read(mapProgrammaticScrollProvider.notifier).state = false;
     _cardScrollController.dispose();
     _locationRadiusDebouncer.dispose();
     super.dispose();
@@ -203,8 +212,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         body: SafeArea(
           child: FlatmatesErrorState(
             message: locale.couldNotLoadListing,
-            onRetry: () =>
-                ref.read(mapListingsProvider.notifier).load(),
+            onRetry: () => ref.read(mapListingsProvider.notifier).load(),
             retryLabel: locale.commonRetry,
           ),
         ),
@@ -213,16 +221,16 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
     final safeAreaTop = MediaQuery.of(context).padding.top;
     // Top bar internal height: md (top) + 48 (icon button) + xs (bottom) ≈ 64
-    const topBarContentHeight =
-        AppSpacing.md + 48.0 + AppSpacing.xs;
-    final controlsTopOffset =
-        safeAreaTop + topBarContentHeight + AppSpacing.lg;
+    const topBarContentHeight = AppSpacing.md + 48.0 + AppSpacing.xs;
+    final controlsTopOffset = safeAreaTop + topBarContentHeight + AppSpacing.lg;
 
     return Scaffold(
       body: Stack(
         children: [
           // Full-screen map
-          Positioned.fill(child: _buildMap(filtered, userLocation, locale, isDark)),
+          Positioned.fill(
+            child: _buildMap(filtered, userLocation, locale, isDark),
+          ),
 
           // Top bar overlay with frosted glass background
           Positioned(
@@ -428,12 +436,32 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
     final index = _currentFiltered.indexWhere((e) => e.id == item.id);
     if (index >= 0 && _cardScrollController.hasClients) {
-      const itemWidth = 130.0 + AppSpacing.sm;
-      _cardScrollController.animateTo(
-        index * itemWidth,
-        duration: AppMotion.standard,
-        curve: AppMotion.easeOutCubic,
-      );
+      final viewportWidth = MediaQuery.sizeOf(context).width;
+      const itemWidth = 130.0;
+      const padding = AppSpacing.md;
+      const spacing = AppSpacing.sm;
+      const totalItemWidth = itemWidth + spacing;
+
+      final targetCenterOffset =
+          padding + index * totalItemWidth + itemWidth / 2;
+      var targetOffset = targetCenterOffset - viewportWidth / 2;
+
+      final maxScroll = _cardScrollController.position.maxScrollExtent;
+      final minScroll = _cardScrollController.position.minScrollExtent;
+      targetOffset = targetOffset.clamp(minScroll, maxScroll);
+
+      ref.read(mapProgrammaticScrollProvider.notifier).state = true;
+      _cardScrollController
+          .animateTo(
+            targetOffset,
+            duration: AppMotion.standard,
+            curve: AppMotion.easeOutCubic,
+          )
+          .whenComplete(() {
+            if (mounted) {
+              ref.read(mapProgrammaticScrollProvider.notifier).state = false;
+            }
+          });
     }
   }
 
@@ -449,7 +477,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final locState = ref.read(locationControllerProvider);
     if (locState.currentPosition != null) {
       final pos = locState.currentPosition!;
-      _mapController?.move(
+      await _mapController?.move(
         LatLng(pos.latitude, pos.longitude),
         kDefaultInitialZoom,
       );
@@ -466,7 +494,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       await ref.read(locationControllerProvider.notifier).getCurrentLocation();
       final newPos = ref.read(locationControllerProvider).currentPosition;
       if (newPos != null) {
-        _mapController?.move(
+        await _mapController?.move(
           LatLng(newPos.latitude, newPos.longitude),
           kDefaultInitialZoom,
         );

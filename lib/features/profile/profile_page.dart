@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_motion.dart';
-import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
@@ -108,49 +107,28 @@ class ProfilePage extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
-                        if (profile.mode != null) ...[
-                          const SizedBox(height: _kVerticalSpacingCompact),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                              vertical: _kVerticalSpacingCompact,
+                        if (profile.email != null && profile.email!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            profile.email!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppSemanticColors.textSecondaryFor(theme.brightness),
                             ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.pill,
-                              ),
-                              border: Border.all(
-                                color: AppSemanticColors.accent.withValues(
-                                  alpha: 0.5,
-                                ),
-                              ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ] else if (profile.phone != null && profile.phone!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            profile.phone!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppSemanticColors.textSecondaryFor(theme.brightness),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.check_circle_outline,
-                                  size: 16,
-                                  color: AppSemanticColors.accent,
-                                ),
-                                const SizedBox(width: _kVerticalSpacingCompact),
-                                Flexible(
-                                  child: Text(
-                                    localizedFlatmatesModeLabel(
-                                      locale,
-                                      profile.mode!,
-                                    ),
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppSemanticColors.accent,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ],
+
                         if (location.isNotEmpty) ...[
                           const SizedBox(height: _kVerticalSpacingCompact),
                           Row(

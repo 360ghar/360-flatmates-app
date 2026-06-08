@@ -183,9 +183,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (status != AnimationStatus.completed) return;
     _flyOffController.removeListener(_onFlyOffTick);
     _flyOffController.removeStatusListener(_onFlyOffStatus);
-    setState(() {
-      _dragOffset = Offset.zero;
-    });
+    // Keep the card offscreen until the backend accepts the swipe.
     _processSwipeAction(_actionFromDirection());
   }
 
@@ -229,8 +227,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     // Reset tracked profile since we're moving to the next card.
     _trackedProfileId = null;
 
+    setState(() {
+      _dragOffset = Offset.zero;
+    });
+
     // Remove swiped profile so the next rebuild shows the next card.
-    // The entrance animation (scale 0→1) hides the card swap.
+    // The entrance animation hides the card swap.
     ref.read(swipeDeckControllerProvider.notifier).markSwiped(item.id);
 
     // Show undo button for 3 seconds
@@ -262,14 +264,15 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       );
     }
 
-    // Scale new card from 0 → 1 so the swap is invisible.
-    unawaited(_cardEntranceController.forward(from: 0).then((_) {
-      if (mounted) {
-        setState(() {
-          _isAnimating = false;
-        });
-      }
-    }));
+    unawaited(
+      _cardEntranceController.forward(from: 0).then((_) {
+        if (mounted) {
+          setState(() {
+            _isAnimating = false;
+          });
+        }
+      }),
+    );
 
     _flyOffController.addListener(_onFlyOffTick);
     _flyOffController.addStatusListener(_onFlyOffStatus);

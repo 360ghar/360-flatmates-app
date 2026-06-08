@@ -134,6 +134,9 @@ class MapListingsBottomSheet extends ConsumerWidget {
   }
 }
 
+/// Tracks whether the list is scrolling due to a programmatic tap on the map.
+final mapProgrammaticScrollProvider = StateProvider<bool>((ref) => false);
+
 class _HorizontalCardList extends ConsumerWidget {
   const _HorizontalCardList({
     required this.listings,
@@ -151,14 +154,23 @@ class _HorizontalCardList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
+        if (ref.read(mapProgrammaticScrollProvider)) return false;
+
         if (notification is ScrollUpdateNotification ||
             notification is ScrollEndNotification) {
+          if (!scrollController.hasClients) return false;
+
           final offset = scrollController.offset;
-          const itemWidth = 130.0 + AppSpacing.sm;
-          final index = (offset / itemWidth).round().clamp(
-            0,
-            listings.length - 1,
-          );
+          final viewportWidth = MediaQuery.sizeOf(context).width;
+          const itemWidth = 130.0;
+          const padding = AppSpacing.md;
+          const spacing = AppSpacing.sm;
+          const totalItemWidth = itemWidth + spacing;
+
+          final centerOffset = offset + viewportWidth / 2;
+          final rawIndex = (centerOffset - padding - itemWidth / 2) / totalItemWidth;
+          final index = rawIndex.round().clamp(0, listings.length - 1);
+
           final visibleItem = listings[index];
           final currentSelected = ref.read(selectedPropertyProvider);
           if (currentSelected?.id != visibleItem.id) {

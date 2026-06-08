@@ -10,7 +10,7 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../discover_repository.dart';
-import '../../swipe/application/swipe_deck_controller.dart';
+import '../../../swipe/application/swipe_deck_controller.dart';
 
 class NewInCitySection extends StatelessWidget {
   const NewInCitySection({
@@ -114,7 +114,6 @@ class MovingSoonSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSpacing.lg),
         Text(
           locale.homeMovingSoon,
           style: theme.textTheme.titleMedium?.copyWith(
@@ -404,7 +403,6 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSpacing.lg),
         Text(
           'Trending in $city', // We can localize this later
           style: theme.textTheme.titleMedium?.copyWith(
@@ -414,28 +412,39 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 100,
+          height: 38,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: locations.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
             itemBuilder: (context, index) {
               return Container(
-                width: 140,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 decoration: BoxDecoration(
-                  borderRadius: AppRadius.cardBorder,
-                  color: AppSemanticColors.accent.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.pillBorder,
+                  color: AppSemanticColors.accent.withValues(alpha: 0.08),
                   border: Border.all(
-                    color: AppSemanticColors.accent.withValues(alpha: 0.2),
+                    color: AppSemanticColors.accent.withValues(alpha: 0.15),
                   ),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  locations[index],
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.near_me_rounded,
+                      size: 14,
+                      color: AppSemanticColors.accent,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      locations[index],
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -464,7 +473,6 @@ class MeetFlatmatesSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: AppSpacing.lg),
             Text(
               'Meet potential flatmates', // We can localize this later
               style: theme.textTheme.titleMedium?.copyWith(
@@ -474,7 +482,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
-              height: 120,
+              height: 96,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: displayProfiles.length,
@@ -485,31 +493,31 @@ class MeetFlatmatesSection extends ConsumerWidget {
                   final imageUrl = profile.profileImageUrl ??
                       (profile.imageUrls.isNotEmpty ? profile.imageUrls.first : null);
 
-                  return GestureDetector(
-                    onTap: () => context.go('/swipe'),
-                    child: Container(
-                      width: 100,
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        borderRadius: AppRadius.cardBorder,
-                        color: AppSemanticColors.surfaceFor(theme.brightness),
-                        border: Border.all(
-                          color: AppSemanticColors.line.withValues(alpha: 0.2),
-                        ),
-                      ),
+                  return SizedBox(
+                    width: 84,
+                    child: FlatmatesCard(
+                      onTap: () => context.go('/swipe'),
+                      padding: const EdgeInsets.all(4.0),
+                      borderRadius: BorderRadius.circular(12),
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           FlatmatesAvatar(
                             name: profile.fullName ?? name,
                             imageUrl: imageUrl,
-                            size: 48,
+                            size: 54,
+                            shape: BoxShape.rectangle,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          const SizedBox(height: AppSpacing.sm),
+                          const SizedBox(height: 4),
                           Text(
                             name,
-                            style: theme.textTheme.labelMedium?.copyWith(
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 10.0,
                               fontWeight: FontWeight.w700,
+                              color: AppSemanticColors.textPrimaryFor(theme.brightness),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
