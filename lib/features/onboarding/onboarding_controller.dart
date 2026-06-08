@@ -153,10 +153,8 @@ class OnboardingController extends Notifier<OnboardingState> {
     await _saveState();
 
     try {
-      final lifestyleAnswers = _normalizeLifestyleAnswers(
-        state.lifestyleAnswers,
-      );
-      final preferences = _normalizePreferences(state.preferences);
+      final lifestyleAnswers = state.lifestyleAnswers;
+      final preferences = state.preferences;
       final payload = <String, dynamic>{
         'mode': state.mode,
         'full_name': state.fullName,
@@ -198,37 +196,7 @@ class OnboardingController extends Notifier<OnboardingState> {
   }
 }
 
-Map<String, String> _normalizeLifestyleAnswers(Map<String, String> answers) {
-  return answers.map((key, value) {
-    return MapEntry(key, _normalizeFlatmateValue(key, value));
-  });
-}
 
-Map<String, dynamic> _normalizePreferences(Map<String, dynamic> preferences) {
-  return preferences.map((key, value) {
-    if (value is! String) return MapEntry(key, value);
-    final normalizedKey = key == 'preferred_gender' ? 'gender_preference' : key;
-    return MapEntry(
-      normalizedKey,
-      _normalizeFlatmateValue(normalizedKey, value),
-    );
-  });
-}
-
-String _normalizeFlatmateValue(String key, String value) {
-  return switch ((key, value)) {
-    ('food_habits', 'veg') => 'vegetarian',
-    ('food_habits', 'non_veg') => 'non_vegetarian',
-    ('gender_preference', 'no_preference') => 'any',
-    ('gender_preference', 'male_only') => 'male',
-    ('gender_preference', 'female_only') => 'female',
-    ('pets', 'yes') => 'have_pets',
-    ('pets', 'no') => 'no_pets',
-    ('smoking', 'no') => 'neither',
-    ('smoking', 'yes') => 'smoke_outside',
-    _ => value,
-  };
-}
 
 final onboardingControllerProvider =
     NotifierProvider<OnboardingController, OnboardingState>(

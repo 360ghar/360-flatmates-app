@@ -52,32 +52,32 @@ class CompatibilityEngine {
 
     dimensions.add(
       _sleepSchedule(
-        _normalize('sleep_schedule', user['sleep_schedule'] ?? 'flexible'),
-        _normalize('sleep_schedule', peer['sleep_schedule'] ?? 'flexible'),
+        user['sleep_schedule'] ?? 'flexible',
+        peer['sleep_schedule'] ?? 'flexible',
       ),
     );
     dimensions.add(
       _cleanliness(
-        _normalize('cleanliness', user['cleanliness'] ?? 'tidy'),
-        _normalize('cleanliness', peer['cleanliness'] ?? 'tidy'),
+        user['cleanliness'] ?? 'tidy',
+        peer['cleanliness'] ?? 'tidy',
       ),
     );
     dimensions.add(
       _foodHabits(
-        _normalize('food_habits', user['food_habits'] ?? 'no_preference'),
-        _normalize('food_habits', peer['food_habits'] ?? 'no_preference'),
+        user['food_habits'] ?? 'no_preference',
+        peer['food_habits'] ?? 'no_preference',
       ),
     );
     dimensions.add(
       _smokingDrinking(
-        _normalize('smoking_drinking', user['smoking_drinking'] ?? 'neither'),
-        _normalize('smoking_drinking', peer['smoking_drinking'] ?? 'neither'),
+        user['smoking_drinking'] ?? 'neither',
+        peer['smoking_drinking'] ?? 'neither',
       ),
     );
     dimensions.add(
       _guestsPolicy(
-        _normalize('guests_policy', user['guests_policy'] ?? 'occasional_ok'),
-        _normalize('guests_policy', peer['guests_policy'] ?? 'occasional_ok'),
+        user['guests_policy'] ?? 'occasional_ok',
+        peer['guests_policy'] ?? 'occasional_ok',
       ),
     );
     dimensions.add(
@@ -116,25 +116,7 @@ class CompatibilityEngine {
     );
   }
 
-  static String _normalize(String key, String value) {
-    return switch ((key, value)) {
-      ('sleep_schedule', 'before_7') => 'early_bird',
-      ('sleep_schedule', '7_to_9') => 'flexible',
-      ('sleep_schedule', 'after_9') => 'night_owl',
-      ('cleanliness', 'laid_back') => 'minimal',
-      ('cleanliness', 'balanced') => 'tidy',
-      ('cleanliness', 'meticulous') => 'spotless',
-      ('food_habits', 'veg') => 'vegetarian',
-      ('food_habits', 'non_veg') => 'non_vegetarian',
-      ('smoking_drinking', 'never') => 'neither',
-      ('smoking_drinking', 'occasionally') => 'drink_occasionally',
-      ('smoking_drinking', 'regularly') => 'both_fine',
-      ('guests_policy', 'rarely') => 'no_overnight_guests',
-      ('guests_policy', 'occasionally') => 'occasional_ok',
-      ('guests_policy', 'comfortable') => 'open_house',
-      _ => value,
-    };
-  }
+
 
   static CompatibilityDimension _sleepSchedule(String a, String b) {
     const values = ['early_bird', 'flexible', 'night_owl'];

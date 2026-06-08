@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../core/analytics/analytics_service.dart';
 import '../core/app_config/app_config_service.dart';
 import '../core/app_config/force_update_page.dart';
-import '../core/app_config/maintenance_page.dart';
 import '../core/app_config/optional_update_dialog.dart';
 import '../core/deep_links/deep_link_service.dart';
 import '../core/errors/app_failure.dart';
@@ -61,38 +60,15 @@ class _AppState extends ConsumerState<App> {
 
     final configService = ref.read(appConfigServiceProvider);
     final analytics = ref.read(analyticsServiceProvider);
-    final remoteConfig = await configService.fetchConfig();
+    final result = await configService.checkForUpdates();
 
-    if (!mounted || remoteConfig == null) {
-      // Config fetch failed or endpoint not deployed — let the app continue.
-      // A 404 (endpoint not deployed) is expected, not an error worth logging.
+    if (!mounted || result == null) {
+      // Version check failed — let the app continue normally.
       _appConfigChecked = true;
       return;
     }
 
-    // Check maintenance mode first.
-    if (remoteConfig.maintenanceEnabled) {
-      analytics.logMaintenanceScreenShown();
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => MaintenancePage(
-            message: remoteConfig.maintenanceMessage,
-            onRetry: () {
-              Navigator.of(context).pop();
-              _appConfigChecked = false;
-              _checkAppConfig();
-            },
-          ),
-        ),
-        (_) => false,
-      );
-      _appConfigChecked = true;
-      return;
-    }
-
-    // Check update status.
-    final status = await configService.checkUpdateStatus(remoteConfig);
+    final status = await configService.resolveUpdateStatus(result);
 
     if (!mounted) {
       _appConfigChecked = true;
@@ -104,7 +80,9 @@ class _AppState extends ConsumerState<App> {
         analytics.logForceUpdateShown();
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (_) => ForceUpdatePage(updateUrl: remoteConfig.updateUrl),
+            builder: (_) => ForceUpdatePage(
+              updateUrl: result.downloadUrl ?? '',
+            ),
           ),
           (_) => false,
         );
@@ -112,10 +90,13 @@ class _AppState extends ConsumerState<App> {
         analytics.logOptionalUpdateShown();
         OptionalUpdateDialog.show(
           context,
-          updateUrl: remoteConfig.updateUrl,
-          message: remoteConfig.optionalUpdateMessage,
+          updateUrl: result.downloadUrl ?? '',
+          message: result.releaseNotes ?? '',
           onDismiss: () {
-            configService.dismissOptionalUpdate(remoteConfig.latestVersion);
+            final version = result.latestVersion;
+            if (version != null) {
+              configService.dismissOptionalUpdate(version);
+            }
           },
         );
       case AppUpdateStatus.upToDate:

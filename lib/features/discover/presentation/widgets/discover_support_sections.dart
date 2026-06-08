@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_radius.dart';
@@ -8,6 +10,7 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../discover_repository.dart';
+import '../../swipe/application/swipe_deck_controller.dart';
 
 class NewInCitySection extends StatelessWidget {
   const NewInCitySection({
@@ -372,6 +375,157 @@ class _WaitlistNudgeCardState extends State<WaitlistNudgeCard> {
             ),
         ],
       ),
+    );
+  }
+}
+
+class TrendingNeighborhoodsSection extends StatelessWidget {
+  const TrendingNeighborhoodsSection({required this.city, super.key});
+  final String city;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    List<String> locations;
+    final cityLower = city.toLowerCase();
+    if (cityLower.contains('gurgaon') || cityLower.contains('gurugram')) {
+      locations = ['DLF Phase 3', 'Sector 43', 'Sector 55', 'Sector 14'];
+    } else if (cityLower.contains('bangalore') || cityLower.contains('bengaluru')) {
+      locations = ['Koramangala', 'Indiranagar', 'HSR Layout', 'Whitefield'];
+    } else if (cityLower.contains('delhi')) {
+      locations = ['Vasant Kunj', 'Lajpat Nagar', 'South Ex', 'Hauz Khas'];
+    } else if (cityLower.contains('mumbai')) {
+      locations = ['Bandra', 'Andheri', 'Powai', 'Juhu'];
+    } else {
+      locations = ['City Center', 'North District', 'South District', 'East Side'];
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Trending in $city', // We can localize this later
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppSemanticColors.textPrimaryFor(theme.brightness),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: locations.length,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+            itemBuilder: (context, index) {
+              return Container(
+                width: 140,
+                decoration: BoxDecoration(
+                  borderRadius: AppRadius.cardBorder,
+                  color: AppSemanticColors.accent.withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: AppSemanticColors.accent.withValues(alpha: 0.2),
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  locations[index],
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class MeetFlatmatesSection extends ConsumerWidget {
+  const MeetFlatmatesSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final asyncProfiles = ref.watch(swipeDeckControllerProvider);
+
+    return asyncProfiles.when(
+      data: (profiles) {
+        if (profiles.isEmpty) return const SizedBox.shrink();
+
+        // Show up to 10 profiles on the home feed
+        final displayProfiles = profiles.take(10).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Meet potential flatmates', // We can localize this later
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppSemanticColors.textPrimaryFor(theme.brightness),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              height: 120,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: displayProfiles.length,
+                separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (context, index) {
+                  final profile = displayProfiles[index];
+                  final name = profile.fullName?.split(' ').first ?? 'Flatmate';
+                  final imageUrl = profile.profileImageUrl ??
+                      (profile.imageUrls.isNotEmpty ? profile.imageUrls.first : null);
+
+                  return GestureDetector(
+                    onTap: () => context.go('/swipe'),
+                    child: Container(
+                      width: 100,
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        borderRadius: AppRadius.cardBorder,
+                        color: AppSemanticColors.surfaceFor(theme.brightness),
+                        border: Border.all(
+                          color: AppSemanticColors.line.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FlatmatesAvatar(
+                            name: profile.fullName ?? name,
+                            imageUrl: imageUrl,
+                            size: 48,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            name,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

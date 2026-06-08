@@ -115,9 +115,6 @@ class AnalyticsService {
   Future<void> logOptionalUpdateShown() =>
       logEvent(name: 'optional_update_shown');
 
-  Future<void> logMaintenanceScreenShown() =>
-      logEvent(name: 'maintenance_screen_shown');
-
   // -- Crashlytics --
 
   Future<void> recordError(

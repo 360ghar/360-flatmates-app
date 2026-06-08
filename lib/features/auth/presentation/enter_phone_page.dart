@@ -26,7 +26,8 @@ class EnterPhonePage extends ConsumerStatefulWidget {
 class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   final _controller = TextEditingController();
   final _smartAuth = SmartAuth.instance;
-  bool _termsAccepted = false;
+  bool _termsAccepted = true;
+  bool _isSubmitting = false;
 
   bool get _looksLikeEmail => _controller.text.contains('@');
 
@@ -52,46 +53,68 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   }
 
   Future<void> _onContinue() async {
-    final identifier = _controller.text.trim();
+    if (_isSubmitting) return;
+    String identifier = _controller.text.trim();
     if (identifier.isEmpty) return;
-    final notifier = ref.read(authControllerProvider.notifier);
-    final status = await notifier.checkIdentifierStatus(identifier);
-    if (status == null || !mounted) return;
+    
+    // Normalize phone numbers to include the country code
+    if (!identifier.contains('@')) {
+      final digits = identifier.replaceAll(RegExp(r'\D'), '');
+      if (digits.length == 10) {
+        identifier = '+91$digits';
+      }
+    }
+    
+    setState(() => _isSubmitting = true);
+    try {
+      final notifier = ref.read(authControllerProvider.notifier);
+      final status = await notifier.checkIdentifierStatus(identifier);
+      if (status == null || !mounted) return;
 
-    ref.read(pendingPhoneProvider.notifier).state = identifier;
+      ref.read(pendingPhoneProvider.notifier).state = identifier;
 
-    if (status.channel == AuthChannel.email) {
-      // Consume next_step: a verified email that has a password logs in with
-      // the password screen; everything else is OTP-first.
-      if (status.nextStep == IdentifierNextStep.password) {
-        context.push('/login?email=$identifier');
+      final encodedIdentifier = Uri.encodeComponent(identifier);
+      if (status.channel == AuthChannel.email) {
+        // Consume next_step: a verified email that has a password logs in with
+        // the password screen; everything else is OTP-first.
+        if (status.nextStep == IdentifierNextStep.password) {
+          context.push('/login?email=$encodedIdentifier');
+          return;
+        }
+        // OTP-first for verified-passwordless and unknown (signup) emails.
+        final sent = await notifier.sendEmailOtp(
+          identifier,
+          isSignup: !status.exists,
+        );
+        if (sent && mounted) {
+          context.push('/otp?email=$encodedIdentifier');
+        }
         return;
       }
-      // OTP-first for verified-passwordless and unknown (signup) emails.
-      final sent = await notifier.sendEmailOtp(
-        identifier,
-        isSignup: !status.exists,
-      );
-      if (sent && mounted) {
-        context.push('/otp?email=$identifier');
-      }
-      return;
-    }
 
-    // Phone channel.
-    if (status.nextStep == IdentifierNextStep.password) {
-      // Existing verified account with a password → password login.
-      context.push('/login?phone=$identifier');
-    } else if (status.exists) {
-      // Existing but passwordless/unverified account → OTP-first login.
-      await notifier.requestOtp(identifier);
-      if (mounted &&
-          ref.read(authControllerProvider).status != AuthStatus.error) {
-        context.push('/otp?phone=$identifier');
+      // Phone channel.
+      if (status.nextStep == IdentifierNextStep.password) {
+        // Existing verified account with a password → password login.
+        context.push('/login?phone=$encodedIdentifier');
+      } else if (status.exists) {
+        // Existing but passwordless/unverified account → OTP-first login.
+        await notifier.requestOtp(identifier);
+        if (mounted &&
+            ref.read(authControllerProvider).status != AuthStatus.error) {
+          context.push('/otp?phone=$encodedIdentifier');
+        }
+      } else {
+        // Unknown → OTP-first signup.
+        await notifier.requestOtp(identifier, shouldCreateUser: true);
+        if (mounted &&
+            ref.read(authControllerProvider).status != AuthStatus.error) {
+          context.push('/otp?phone=$encodedIdentifier');
+        }
       }
-    } else {
-      // Unknown → signup.
-      context.push('/signup?phone=$identifier');
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -121,13 +144,14 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
     final lastMethod = ref.watch(lastAuthMethodProvider);
-    final isBusy = auth.status == AuthStatus.submitting;
+    final isBusy = auth.status == AuthStatus.submitting || _isSubmitting;
 
     return FlatmatesScreen(
       appBar: AppBar(),
       scrollable: true,
       body: AutofillGroup(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(locale.authEntryTitle, style: theme.textTheme.headlineMedium),
@@ -143,10 +167,9 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
               ),
             ],
             const SizedBox(height: AppSpacing.screen),
-            FlatmatesButton.secondary(
+            FlatmatesButton.google(
               key: const Key('auth_google_button'),
               label: locale.continueWithGoogleCta,
-              icon: Icons.login,
               fullWidth: true,
               onPressed: (isBusy || !_termsAccepted) ? null : _onGoogle,
             ),

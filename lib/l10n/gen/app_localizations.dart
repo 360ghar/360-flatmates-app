@@ -1526,6 +1526,12 @@ abstract class AppLocalizations {
   /// **'Non-vegetarian'**
   String get quizNonVegetarian;
 
+  /// No description provided for @quizEggetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggetarian'**
+  String get quizEggetarian;
+
   /// No description provided for @quizNoFoodPref.
   ///
   /// In en, this message translates to:
@@ -4004,6 +4010,12 @@ abstract class AppLocalizations {
   /// **'Phone number not available'**
   String get phoneNotAvailable;
 
+  /// No description provided for @emailNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Email not available'**
+  String get emailNotAvailable;
+
   /// No description provided for @emojiPickerComingSoon.
   ///
   /// In en, this message translates to:
@@ -5150,6 +5162,18 @@ abstract class AppLocalizations {
   /// **'Upload failed. Please try again.'**
   String get errorUpload;
 
+  /// No description provided for @errorOtpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code. Please try again.'**
+  String get errorOtpInvalid;
+
+  /// No description provided for @errorAuthSessionMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed. Please try again.'**
+  String get errorAuthSessionMissing;
+
   /// No description provided for @errorUnknown.
   ///
   /// In en, this message translates to:
@@ -6007,6 +6031,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your visit is on {date}'**
   String visitScheduledBanner(String date);
+
+  /// No description provided for @thePlaceSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Place'**
+  String get thePlaceSectionTitle;
+
+  /// No description provided for @peopleSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get peopleSectionTitle;
+
+  /// No description provided for @estimatedTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total'**
+  String get estimatedTotalLabel;
+
+  /// No description provided for @perMonthSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'/month'**
+  String get perMonthSuffix;
+
+  /// No description provided for @viewOnMapLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'View on Map'**
+  String get viewOnMapLabel;
+
+  /// No description provided for @andNMore.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String andNMore(int count);
 }
 
 class _AppLocalizationsDelegate

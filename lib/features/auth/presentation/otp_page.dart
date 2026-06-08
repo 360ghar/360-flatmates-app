@@ -27,6 +27,11 @@ class _OtpPageState extends ConsumerState<OtpPage>
   final _otpKey = GlobalKey<FlatmatesOtpInputState>();
   bool _isListening = false;
 
+  /// Local guard to prevent re-entrant submissions from dual autofill sources
+  /// (sms_autofill + AutofillHints.oneTimeCode). The Riverpod `auth.status`
+  /// check alone has an async gap; this flag closes it.
+  bool _isSubmitting = false;
+
   bool get _isEmail => widget.email != null && widget.email!.trim().isNotEmpty;
 
   String get _email => widget.email?.trim() ?? '';
@@ -58,7 +63,11 @@ class _OtpPageState extends ConsumerState<OtpPage>
   @override
   void codeUpdated() {
     if (code != null && code!.length == 6) {
-      _fillOtp(code!);
+      // Fill the OTP boxes but do NOT auto-submit. The sms_autofill package
+      // can fire with a stale/cached code from a previous SMS detection
+      // (BehaviorSubject replay); auto-submitting it would produce a
+      // spurious "Invalid or expired" error.
+      _otpKey.currentState?.silentFillOtp(code!);
     }
   }
 
@@ -75,13 +84,16 @@ class _OtpPageState extends ConsumerState<OtpPage>
     }
   }
 
-  void _fillOtp(String otp) {
-    _otpKey.currentState?.fillOtp(otp);
-  }
+
 
   void _submitOtp() {
+    if (_isSubmitting) return;
     final auth = ref.read(authControllerProvider);
-    if (auth.status == AuthStatus.submitting) return;
+    if (auth.status == AuthStatus.submitting ||
+        auth.status == AuthStatus.authenticated) {
+      return;
+    }
+    _isSubmitting = true;
     final notifier = ref.read(authControllerProvider.notifier);
     if (_isEmail) {
       notifier.verifyEmailOtp(email: _email, otp: _otpKey.currentState?.otp ?? '');
@@ -109,6 +121,14 @@ class _OtpPageState extends ConsumerState<OtpPage>
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
+    // Reset the local submit guard when the auth state leaves the submitting
+    // state (success or error) so the user can retry.
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      if (previous?.status == AuthStatus.submitting &&
+          next.status != AuthStatus.submitting) {
+        _isSubmitting = false;
+      }
+    });
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSuccess = auth.status == AuthStatus.authenticated;
@@ -118,6 +138,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
       scrollable: true,
       body: AutofillGroup(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(locale.otpTitle, style: theme.textTheme.headlineMedium),

@@ -785,6 +785,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizNonVegetarian => 'Non-vegetarian';
 
   @override
+  String get quizEggetarian => 'Eggetarian';
+
+  @override
   String get quizNoFoodPref => 'No preference';
 
   @override
@@ -2087,6 +2090,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNotAvailable => 'Phone number not available';
 
   @override
+  String get emailNotAvailable => 'Email not available';
+
+  @override
   String get emojiPickerComingSoon => 'Emoji picker coming soon';
 
   @override
@@ -2716,6 +2722,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUpload => 'Upload failed. Please try again.';
 
   @override
+  String get errorOtpInvalid => 'Invalid or expired code. Please try again.';
+
+  @override
+  String get errorAuthSessionMissing =>
+      'Verification failed. Please try again.';
+
+  @override
   String get errorUnknown => 'Something went wrong. Please try again.';
 
   @override
@@ -3193,5 +3206,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String visitScheduledBanner(String date) {
     return 'Your visit is on $date';
+  }
+
+  @override
+  String get thePlaceSectionTitle => 'The Place';
+
+  @override
+  String get peopleSectionTitle => 'People';
+
+  @override
+  String get estimatedTotalLabel => 'Estimated total';
+
+  @override
+  String get perMonthSuffix => '/month';
+
+  @override
+  String get viewOnMapLabel => 'View on Map';
+
+  @override
+  String andNMore(int count) {
+    return '+$count more';
   }
 }

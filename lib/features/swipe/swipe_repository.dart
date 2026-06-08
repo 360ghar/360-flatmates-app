@@ -14,6 +14,7 @@ class SwipeProfile {
     required this.id,
     required this.fullName,
     required this.profileImageUrl,
+    required this.imageUrls,
     required this.mode,
     required this.city,
     required this.locality,
@@ -39,6 +40,7 @@ class SwipeProfile {
   final int id;
   final String? fullName;
   final String? profileImageUrl;
+  final List<String> imageUrls;
   final String? mode;
   final String? city;
   final String? locality;
@@ -113,6 +115,11 @@ class SwipeProfile {
       id: (json['id'] as num?)?.toInt() ?? 0,
       fullName: json['full_name'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
+      imageUrls: (json['image_urls'] as List?)
+          ?.map((e) => e.toString())
+          .where((e) => e.isNotEmpty)
+          .toList() ??
+          const [],
       mode: json['mode'] as String?,
       city: json['city'] as String?,
       locality: json['locality'] as String?,

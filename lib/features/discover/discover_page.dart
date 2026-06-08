@@ -205,6 +205,26 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
+                  HomeSearchBar(
+                    onTap: () => context.push('/search-filters'),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  QuickFiltersRow(
+                    filters: const ['Quiet', 'Social', 'Professional', 'Pet Friendly'],
+                    onFilterTap: (filter) {
+                      final vibeMap = {
+                        'Quiet': 'quiet',
+                        'Social': 'social',
+                        'Professional': 'professional',
+                        'Pet Friendly': 'pet',
+                      };
+                      final vibe = vibeMap[filter];
+                      if (vibe != null) {
+                        ref.read(discoverFeedControllerProvider.notifier).updateVibe(vibe);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                   if (filtered.length < 5 && city != null) ...[
                     WaitlistNudgeCard(
                       city: city,
@@ -212,6 +232,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                     ),
                     const SizedBox(height: AppSpacing.xl),
                   ],
+                  /*
                   if (isSeeker && city != null) ...[
                     HomeSectionHeader(title: locale.homeNewInCity(city)),
                     const SizedBox(height: AppSpacing.sm),
@@ -220,10 +241,18 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       onExplore: () => context.go('/tab2'),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                  ] else if (!isSeeker) ...[
+                  ] else */ if (!isSeeker) ...[
                     PostYourSpaceCard(onTap: () => context.push('/post/new')),
                     const SizedBox(height: AppSpacing.lg),
                   ],
+                  if (city != null) ...[
+                    TrendingNeighborhoodsSection(city: city),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  const MeetFlatmatesSection(),
+                  const SizedBox(height: AppSpacing.lg),
+                  MovingSoonSection(items: filtered),
+                  const SizedBox(height: AppSpacing.lg),
                   HomeSectionHeader(
                     title: locale.homePickedForYou,
                     actionLabel: filtered.length > 2 ? locale.seeAllCta : null,
@@ -238,84 +267,54 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       icon: Icons.search_off_rounded,
                     )
                   else
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final cardWidth =
-                            constraints.maxWidth / _kCardWidthCoefficient;
-                        final imageHeight = cardWidth * _kCardImageAspectRatio;
-                        final cardHeight =
-                            imageHeight + AppSpacing.sm * 2 + _kCardExtraHeight;
-                        return SizedBox(
-                          height: cardHeight,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: filtered.take(2).length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: AppSpacing.sm),
-                            itemBuilder: (context, index) {
-                              final item = filtered[index];
-                              final badgeLabel = switch (index) {
-                                0 => locale.badgeNew,
-                                _ => locale.badgePopular,
-                              };
-                              return StaggeredCardAppear(
-                                index: index,
-                                child: SizedBox(
-                                  width: cardWidth,
-                                  child: DiscoverListingCard(
-                                    item: item,
-                                    badgeLabel: badgeLabel,
-                                    onTap: () => context.push(
-                                      '/flat-details/${item.id}',
-                                    ),
-                                    onLike: () {
-                                      _likeDebouncer.run(() {
-                                        ref
-                                            .read(discoverRepositoryProvider)
-                                            .setLiked(item.id, true)
-                                            .then((conversationId) {
-                                              ref
-                                                  .read(
-                                                    discoverFeedControllerProvider
-                                                        .notifier,
-                                                  )
-                                                  .refresh();
-                                              ref.invalidate(
-                                                conversationsProvider,
-                                              );
-                                              if (!context.mounted) return;
-                                              FlatmatesToast.success(
-                                                context,
-                                                conversationId == null
-                                                    ? locale.contactRequestSent
-                                                    : locale.contactRequestWithConversation(
-                                                        conversationId,
-                                                      ),
-                                              );
-                                            })
-                                            .catchError((e) {
-                                              if (!context.mounted) return;
-                                              final msg = e is AppFailure
-                                                  ? e.userMessage(
-                                                      locale.toUserMessageL10n(),
-                                                    )
-                                                  : locale.actionFailedRetry;
-                                              FlatmatesToast.error(
-                                                context,
-                                                msg,
-                                              );
-                                            });
-                                      });
-                                    },
-                                  ),
-                                ),
-                              );
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        final badgeLabel = switch (index) {
+                          0 => locale.badgeNew,
+                          1 => locale.badgePopular,
+                          _ => null,
+                        };
+                        return StaggeredCardAppear(
+                          index: index,
+                          child: DiscoverListingCard(
+                            item: item,
+                            badgeLabel: badgeLabel,
+                            onTap: () => context.push('/flat-details/${item.id}'),
+                            onLike: () {
+                              _likeDebouncer.run(() {
+                                ref
+                                    .read(discoverRepositoryProvider)
+                                    .setLiked(item.id, true)
+                                    .then((conversationId) {
+                                      ref.read(discoverFeedControllerProvider.notifier).refresh();
+                                      ref.invalidate(conversationsProvider);
+                                      if (!context.mounted) return;
+                                      FlatmatesToast.success(
+                                        context,
+                                        conversationId == null
+                                            ? locale.contactRequestSent
+                                            : locale.contactRequestWithConversation(conversationId),
+                                      );
+                                    })
+                                    .catchError((e) {
+                                      if (!context.mounted) return;
+                                      final msg = e is AppFailure
+                                          ? e.userMessage(locale.toUserMessageL10n())
+                                          : locale.actionFailedRetry;
+                                      FlatmatesToast.error(context, msg);
+                                    });
+                              });
                             },
                           ),
                         );
                       },
                     ),
-                  MovingSoonSection(items: filtered),
+                  // The moved sections used to be here
                 ],
               ),
             ),

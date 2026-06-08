@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/compatibility/compatibility_engine.dart';
 import '../../../core/theme/app_motion.dart';
@@ -287,6 +288,9 @@ enum FlatmatesButtonVariant {
 
   /// Circular icon-only.
   iconOnly,
+
+  /// Google theme button.
+  google,
 }
 
 /// Primary CTA button — solid fill with premium press feedback.
@@ -341,6 +345,17 @@ class FlatmatesButton extends StatefulWidget {
        fullWidth = false,
        iconOnly = true;
 
+  const FlatmatesButton.google({
+    required this.label,
+    required this.onPressed,
+    super.key,
+    this.icon,
+    this.height = 52,
+    this.fullWidth = false,
+  }) : variant = FlatmatesButtonVariant.google,
+       destructive = false,
+       iconOnly = false;
+
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
@@ -375,6 +390,8 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
         return _buildTertiary(theme, enabled);
       case FlatmatesButtonVariant.iconOnly:
         return _buildIconButton(theme, enabled);
+      case FlatmatesButtonVariant.google:
+        return _buildGoogle(theme, enabled);
     }
   }
 
@@ -477,6 +494,77 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
           foregroundColor: color,
           backgroundColor: color.withValues(alpha: 0.1),
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogle(ThemeData theme, bool enabled) {
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = isDark ? const Color(0xFF131314) : const Color(0xFFFFFFFF);
+    final foregroundColor = isDark ? const Color(0xFFE3E3E3) : const Color(0xFF3C4043);
+    final borderColor = isDark ? const Color(0xFF8E918F) : const Color(0xFFDADCE0);
+    final hoverColor = isDark ? const Color(0xFF1E1F20) : const Color(0xFFF8F9FA);
+
+    return Listener(
+      onPointerDown: enabled ? (_) => setState(() => _pressed = true) : null,
+      onPointerUp: enabled ? (_) => setState(() => _pressed = false) : null,
+      onPointerCancel: enabled ? (_) => setState(() => _pressed = false) : null,
+      child: AnimatedScale(
+        scale: _pressed ? 0.98 : 1.0,
+        duration: AppMotion.buttonPress,
+        curve: AppMotion.easeOutCubic,
+        child: SizedBox(
+          height: widget.height,
+          width: widget.fullWidth ? double.infinity : null,
+          child: ElevatedButton(
+            onPressed: widget.onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: backgroundColor,
+              foregroundColor: foregroundColor,
+              surfaceTintColor: Colors.transparent,
+              elevation: enabled ? 1 : 0,
+              shadowColor: Colors.black.withValues(alpha: 0.15),
+              shape: RoundedRectangleBorder(
+                borderRadius: AppRadius.mdBorder,
+                side: BorderSide(
+                  color: enabled ? borderColor : theme.disabledColor.withValues(alpha: 0.2),
+                ),
+              ),
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.pressed) || states.contains(WidgetState.hovered)) {
+                  return hoverColor;
+                }
+                return null;
+              }),
+            ),
+            child: Row(
+              mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icons/google_logo.png',
+                  width: 20,
+                  height: 20,
+                  filterQuality: FilterQuality.high,
+                ),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: foregroundColor,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

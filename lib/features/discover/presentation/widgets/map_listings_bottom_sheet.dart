@@ -36,84 +36,98 @@ class MapListingsBottomSheet extends ConsumerWidget {
         ? AppSemanticColors.frostOverlayDark
         : AppSemanticColors.frostOverlayLight;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.35,
-      minChildSize: 0.08,
-      maxChildSize: 0.45,
-      snap: true,
-      snapSizes: const [0.08, 0.35, 0.45],
-      builder: (context, sheetScrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: frostOverlayColor,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.card),
-            ),
-          ),
-          child: SingleChildScrollView(
-            controller: sheetScrollController,
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + 76,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Exact height calculation to tightly wrap the content:
+        // Handle area (8 top + 4 line + 8 bottom) = 20
+        // Title area (0 top + roughly 20 text + 8 bottom) = 28
+        // Cards area = 180
+        // Bottom padding (AppSpacing.lg) = 24
+        // Total = 252
+        const contentHeight = 252.0;
+        const collapsedHeight = 60.0;
+        
+        final maxFraction = (contentHeight / constraints.maxHeight).clamp(0.1, 1.0);
+        final minFraction = (collapsedHeight / constraints.maxHeight).clamp(0.05, maxFraction);
+
+        return DraggableScrollableSheet(
+          initialChildSize: maxFraction,
+          minChildSize: minFraction,
+          maxChildSize: maxFraction,
+          snap: true,
+          snapSizes: [minFraction, maxFraction],
+          builder: (context, sheetScrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: frostOverlayColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.card),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.sm,
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.2,
-                          ),
-                          borderRadius: BorderRadius.circular(2),
+              child: SingleChildScrollView(
+                controller: sheetScrollController,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.sm,
                         ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        locale.clusterListingsCount(listings.length),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppSemanticColors.textPrimaryFor(
-                            theme.brightness,
+                        child: Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.2,
+                              ),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 180,
-                    child: listings.isEmpty
-                        ? FlatmatesEmptyState(
-                            title: locale.noListingsMatchFilters,
-                            icon: Icons.search_off_rounded,
-                          )
-                        : _HorizontalCardList(
-                            listings: listings,
-                            scrollController: scrollController,
-                            onTap: onTap,
-                            onLike: onLike,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          0,
+                          AppSpacing.lg,
+                          AppSpacing.sm,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            locale.clusterListingsCount(listings.length),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppSemanticColors.textPrimaryFor(
+                                theme.brightness,
+                              ),
+                            ),
                           ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 180,
+                        child: listings.isEmpty
+                            ? FlatmatesEmptyState(
+                                title: locale.noListingsMatchFilters,
+                                icon: Icons.search_off_rounded,
+                              )
+                            : _HorizontalCardList(
+                                listings: listings,
+                                scrollController: scrollController,
+                                onTap: onTap,
+                                onLike: onLike,
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

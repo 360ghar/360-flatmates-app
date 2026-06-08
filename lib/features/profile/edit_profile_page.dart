@@ -8,9 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
-import '../shared/presentation/flatmates_header.dart';
-import '../shared/presentation/flatmates_toast.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
 import 'presentation/widgets/edit_profile_sections.dart';
 import 'profile_repository.dart';
 
@@ -30,6 +28,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _budgetMinController = TextEditingController();
   final _budgetMaxController = TextEditingController();
   final _bioController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   String _mode = 'open_to_both';
   String _workStyle = 'hybrid';
@@ -44,6 +44,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   bool _initialized = false;
   bool _saving = false;
   bool _photoUploading = false;
+  bool _hasEmail = false;
+  bool _hasPhone = false;
 
   @override
   void didChangeDependencies() {
@@ -59,6 +61,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       _budgetMinController.text = profile.budgetMin?.toStringAsFixed(0) ?? '';
       _budgetMaxController.text = profile.budgetMax?.toStringAsFixed(0) ?? '';
       _bioController.text = profile.bio ?? '';
+      _emailController.text = profile.email ?? '';
+      _phoneController.text = profile.phone ?? '';
+      _hasEmail = profile.email?.isNotEmpty == true;
+      _hasPhone = profile.phone?.isNotEmpty == true;
       _mode = profile.mode ?? _mode;
       _workStyle = profile.workStyle ?? _workStyle;
       _moveInTimeline = profile.moveInTimeline ?? _moveInTimeline;
@@ -88,6 +94,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _budgetMinController.dispose();
     _budgetMaxController.dispose();
     _bioController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -304,6 +312,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               photoUploading: _photoUploading,
               onPickAndUploadPhoto: _pickAndUploadPhoto,
             ),
+            const SizedBox(height: AppSpacing.lg),
+            EditProfileContactInfoSection(
+              locale: locale,
+              emailController: _emailController,
+              phoneController: _phoneController,
+              hasEmail: _hasEmail,
+              hasPhone: _hasPhone,
+            ),
             const SizedBox(height: AppSpacing.section),
             EditProfileBasicInfoSection(
               locale: locale,
@@ -425,6 +441,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       }
       if (_nonNegotiables.isNotEmpty) {
         payload['non_negotiables'] = _nonNegotiables;
+      }
+
+      // Include email/phone if newly added.
+      final newEmail = _emailController.text.trim();
+      final newPhone = _phoneController.text.trim();
+      if (!_hasEmail && newEmail.isNotEmpty) {
+        payload['email'] = newEmail;
+      }
+      if (!_hasPhone && newPhone.isNotEmpty) {
+        payload['phone'] = newPhone;
       }
 
       await ref.read(profileRepositoryProvider).updateProfile(payload: payload);

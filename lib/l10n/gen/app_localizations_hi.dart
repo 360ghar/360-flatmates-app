@@ -786,6 +786,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizNonVegetarian => 'मांसाहारी';
 
   @override
+  String get quizEggetarian => 'एगेटेरियन';
+
+  @override
   String get quizNoFoodPref => 'कोई प्राथमिकता नहीं';
 
   @override
@@ -2089,6 +2092,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get phoneNotAvailable => 'फोन नंबर उपलब्ध नहीं है';
 
   @override
+  String get emailNotAvailable => 'ईमेल उपलब्ध नहीं है';
+
+  @override
   String get emojiPickerComingSoon => 'इमोजी पिकर जल्द आ रहा है';
 
   @override
@@ -2730,6 +2736,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorUpload => 'अपलोड विफल। कृपया पुनः प्रयास करें।';
 
   @override
+  String get errorOtpInvalid => 'अमान्य या समाप्त कोड। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get errorAuthSessionMissing => 'सत्यापन विफल। कृपया पुनः प्रयास करें।';
+
+  @override
   String get errorUnknown => 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।';
 
   @override
@@ -3207,5 +3219,25 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String visitScheduledBanner(String date) {
     return 'आपकी विज़िट $date को है';
+  }
+
+  @override
+  String get thePlaceSectionTitle => 'जगह';
+
+  @override
+  String get peopleSectionTitle => 'लोग';
+
+  @override
+  String get estimatedTotalLabel => 'अनुमानित कुल';
+
+  @override
+  String get perMonthSuffix => '/महीना';
+
+  @override
+  String get viewOnMapLabel => 'नक्शे पर देखें';
+
+  @override
+  String andNMore(int count) {
+    return '+$count और';
   }
 }

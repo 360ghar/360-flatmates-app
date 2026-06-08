@@ -26,6 +26,10 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
 
+  /// Guard flag to suppress re-entrant [onChanged] callbacks while
+  /// programmatically distributing digits across boxes (autofill / paste).
+  bool _isFilling = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +58,30 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
       _controllers.map((c) => c.text).join();
 
   void _onDigitChanged(int index, String value) {
+    // Suppress re-entrant onChanged while programmatically distributing digits.
+    if (_isFilling) return;
+
+    // Handle multi-character paste/autofill on the first box.
+    if (value.length > 1 && index == 0) {
+      final digits = value.replaceAll(RegExp(r'\D'), '');
+      _isFilling = true;
+      for (var i = 0; i < widget.digitCount; i++) {
+        if (i < digits.length) {
+          _controllers[i].text = digits[i];
+        } else {
+          _controllers[i].clear();
+        }
+      }
+      _isFilling = false;
+      if (digits.length == widget.digitCount) {
+        _focusNodes[widget.digitCount - 1].unfocus();
+        widget.onCompleted(digits);
+      } else if (digits.length < widget.digitCount && digits.isNotEmpty) {
+        _focusNodes[digits.length].requestFocus();
+      }
+      return;
+    }
+
     if (value.length > 1) {
       _controllers[index].text = value.substring(value.length - 1);
       value = _controllers[index].text;
@@ -77,6 +105,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
   }
 
   void fillOtp(String otp) {
+    _isFilling = true;
     for (var i = 0; i < widget.digitCount; i++) {
       if (i < otp.length) {
         _controllers[i].text = otp[i];
@@ -84,12 +113,28 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
         _controllers[i].clear();
       }
     }
+    _isFilling = false;
     if (otp.length == widget.digitCount) {
       _focusNodes[widget.digitCount - 1].unfocus();
       widget.onCompleted(otp);
     } else if (otp.length < widget.digitCount && otp.isNotEmpty) {
       _focusNodes[otp.length].requestFocus();
     }
+  }
+
+  /// Fills all OTP boxes WITHOUT firing [onCompleted] or changing focus.
+  /// Used by [sms_autofill]'s [codeUpdated] to populate the UI without
+  /// auto-submitting — avoids errors from stale/cached codes.
+  void silentFillOtp(String otp) {
+    _isFilling = true;
+    for (var i = 0; i < widget.digitCount; i++) {
+      if (i < otp.length) {
+        _controllers[i].text = otp[i];
+      } else {
+        _controllers[i].clear();
+      }
+    }
+    _isFilling = false;
   }
 
   @override
@@ -133,13 +178,15 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(1),
+                      LengthLimitingTextInputFormatter(
+                        index == 0 ? widget.digitCount : 1,
+                      ),
                     ],
                     autofillHints: index == 0
                         ? const [AutofillHints.oneTimeCode]
                         : null,
                     textAlign: TextAlign.center,
-                    maxLength: 1,
+                    maxLength: index == 0 ? null : 1,
                     style: theme.textTheme.headlineLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                       fontSize: fontSize,

@@ -102,7 +102,7 @@ List<FlatmatesMapMarker> buildClusteredMarkers({
         FlatmatesMapMarker(
           id: 'cluster-${entry.key}',
           point: LatLng(avgLat, avgLng),
-          size: const Size(56, 70),
+          size: const Size(64, 76),
           child: _ClusterMarkerWidget(
             clusterItems: groupItems,
             label: groupItems.first.locality ?? 'listings',
@@ -282,8 +282,8 @@ class _ClusterMarkerWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 56,
-        height: 70,
+        width: 64,
+        height: 76,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -314,12 +314,16 @@ class _ClusterMarkerWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              rangeText,
-              style: const TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.w600,
-                color: clusterColor,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                rangeText,
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w600,
+                  color: clusterColor,
+                ),
+                maxLines: 1,
               ),
             ),
           ],

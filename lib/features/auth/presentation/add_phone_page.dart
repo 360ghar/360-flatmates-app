@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_auth/smart_auth.dart';
 import 'package:sms_autofill/sms_autofill.dart';
@@ -36,6 +37,11 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     (_) => TextEditingController(),
   );
 
+  /// Suppresses auto-submit from [codeUpdated] while programmatically
+  /// filling boxes — the sms_autofill package can fire with a stale code
+  /// (BehaviorSubject replay) and should not auto-verify.
+  bool _isSmsFilling = false;
+
 
   String get _phone => _phoneController.text.trim();
 
@@ -56,10 +62,11 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   void codeUpdated() {
     final value = code;
     if (value != null && value.length == 6) {
+      _isSmsFilling = true;
       for (var i = 0; i < 6; i++) {
         _otpControllers[i].text = value[i];
       }
-      _verify(value);
+      _isSmsFilling = false;
     }
   }
 
@@ -106,6 +113,10 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   String get _currentOtp => _otpControllers.map((c) => c.text).join();
 
   Future<void> _verify([String? code]) async {
+    // Suppress auto-verify while sms_autofill is programmatically filling
+    // boxes — the code may be stale/cached from a previous SMS detection.
+    if (_isSmsFilling) return;
+
     final otp = code ?? _currentOtp;
     if (otp.length != 6) return;
     final ok = await ref
@@ -134,6 +145,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
       scrollable: true,
       body: AutofillGroup(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(locale.addPhoneTitle, style: theme.textTheme.headlineMedium),
@@ -215,7 +227,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   }
 }
 
-class _OtpFieldRow extends StatelessWidget {
+class _OtpFieldRow extends StatefulWidget {
   const _OtpFieldRow({
     required this.controllers,
     required this.onChanged,
@@ -223,6 +235,13 @@ class _OtpFieldRow extends StatelessWidget {
 
   final List<TextEditingController> controllers;
   final void Function() onChanged;
+
+  @override
+  State<_OtpFieldRow> createState() => _OtpFieldRowState();
+}
+
+class _OtpFieldRowState extends State<_OtpFieldRow> {
+  bool _isFilling = false;
 
   @override
   Widget build(BuildContext context) {
@@ -233,10 +252,14 @@ class _OtpFieldRow extends StatelessWidget {
           width: AppSpacing.section,
           child: TextField(
             key: Key('add_phone_otp_$index'),
-            controller: controllers[index],
+            controller: widget.controllers[index],
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
-            maxLength: 1,
+            maxLength: index == 0 ? null : 1,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(index == 0 ? 6 : 1),
+            ],
             autofillHints: index == 0
                 ? const [AutofillHints.oneTimeCode]
                 : null,
@@ -247,11 +270,32 @@ class _OtpFieldRow extends StatelessWidget {
               ),
             ),
             onChanged: (value) {
+              // Suppress re-entrant onChanged while distributing digits.
+              if (_isFilling) return;
+
+              // Handle multi-character paste/autofill on the first box.
+              if (value.length > 1 && index == 0) {
+                final digits = value.replaceAll(RegExp(r'\D'), '');
+                _isFilling = true;
+                for (var i = 0; i < 6; i++) {
+                  if (i < digits.length) {
+                    widget.controllers[i].text = digits[i];
+                  } else {
+                    widget.controllers[i].clear();
+                  }
+                }
+                _isFilling = false;
+                if (widget.controllers.every((c) => c.text.isNotEmpty)) {
+                  widget.onChanged();
+                }
+                return;
+              }
+
               if (value.isNotEmpty && index < 5) {
                 FocusScope.of(context).nextFocus();
               }
-              if (controllers.every((c) => c.text.isNotEmpty)) {
-                onChanged();
+              if (widget.controllers.every((c) => c.text.isNotEmpty)) {
+                widget.onChanged();
               }
             },
           ),

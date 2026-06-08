@@ -56,12 +56,12 @@ class PropertyListingDto {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       monthlyRent: (json['monthly_rent'] as num?)?.toDouble() ?? 0,
-      mainImageUrl: json['main_image_url'] as String?,
+      mainImageUrl: _ensureAbsoluteUrl(json['main_image_url'] as String?),
       imageUrls: parsedImageUrls.isNotEmpty
           ? parsedImageUrls
           : _parseFallbackImageUrls(json),
-      virtualTourUrl: json['virtual_tour_url'] as String?,
-      floorPlanUrl: json['floor_plan_url'] as String?,
+      virtualTourUrl: _ensureAbsoluteUrl(json['virtual_tour_url'] as String?),
+      floorPlanUrl: _ensureAbsoluteUrl(json['floor_plan_url'] as String?),
       areaSqft: (json['area_sqft'] as num?)?.toDouble(),
       bedrooms: (json['bedrooms'] as num?)?.toInt(),
       bathrooms: (json['bathrooms'] as num?)?.toInt(),
@@ -76,8 +76,8 @@ class PropertyListingDto {
       genderPreference: preferences['gender_preference'] as String?,
       sharingType: preferences['sharing_type'] as String?,
       videoTourUrl:
-          preferences['video_tour_url'] as String? ??
-          json['video_tour_url'] as String?,
+          _ensureAbsoluteUrl(preferences['video_tour_url'] as String?) ??
+          _ensureAbsoluteUrl(json['video_tour_url'] as String?),
       interestCount: (json['interest_count'] as num?)?.toInt() ?? 0,
       viewCount: (json['view_count'] as num?)?.toInt() ?? 0,
       likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
@@ -107,7 +107,7 @@ class PropertyListingDto {
       userNextVisitDate: DateTime.tryParse(
         json['user_next_visit_date']?.toString() ?? '',
       ),
-      googleStreetViewUrl: json['google_street_view_url'] as String?,
+      googleStreetViewUrl: _ensureAbsoluteUrl(json['google_street_view_url'] as String?),
       ownerContact: json['owner_contact'] as String?,
       floorNumber: (json['floor_number'] as num?)?.toInt(),
       totalFloors: (json['total_floors'] as num?)?.toInt(),
@@ -191,4 +191,13 @@ class PropertyListingDto {
 
   static bool _isAbsoluteUrl(String url) =>
       url.startsWith('http://') || url.startsWith('https://');
+
+  /// Returns [url] only if it is an absolute http/https URL, otherwise null.
+  /// Prevents relative paths from being joined with the API base URL (which
+  /// would produce broken localhost URLs like
+  /// `http://localhost:3600/api/v1/hc_properties/...`).
+  static String? _ensureAbsoluteUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    return _isAbsoluteUrl(url) ? url : null;
+  }
 }

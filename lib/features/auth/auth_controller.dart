@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart'
     show GoogleSignInException, GoogleSignInExceptionCode;
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 
 import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
@@ -114,9 +115,34 @@ class AuthController extends Notifier<AuthState> {
   /// Returns a resolvable key for [resolveAuthError] in the presentation layer.
   ///
   /// Prefixes AppFailure labels with `failure:` so the UI can map them back
-  /// to localized user messages. Non-AppFailure errors get `failure:unknown`.
+  /// to localized user messages. Maps Supabase [AuthException] (OTP errors)
+  /// and [StateError] (missing session) to specific keys so the user sees a
+  /// meaningful message instead of the generic "Something went wrong".
   String _userSafeMessage(Object error) {
-    if (error is AppFailure) return 'failure:${error.label}';
+    if (error is AppFailure) {
+      if (error is AuthExpiredFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      if (error is ServerFailure && error.serverMessage != null) return 'failure:server|${error.serverMessage}';
+      if (error is PermissionFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      if (error is NotFoundFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      if (error is ConflictFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      if (error is RateLimitFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      if (error is UnknownFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      return 'failure:${error.label}';
+    }
+    if (error is AuthException) {
+      final msg = error.message.toLowerCase();
+      // Supabase OTP errors: expired, invalid, already used, rate limited.
+      if (msg.contains('rate') || msg.contains('limit') || msg.contains('seconds') || msg.contains('security purposes')) {
+        return 'failure:rate_limit';
+      }
+      // Token invalid / expired / already consumed → treat as invalid OTP.
+      return 'failure:otp_invalid';
+    }
+    if (error is StateError) {
+      // Typically "Session missing after OTP verification."
+      return 'failure:auth_session_missing';
+    }
+    debugPrint('AuthController._userSafeMessage: unhandled ${error.runtimeType}: $error');
     return 'failure:unknown';
   }
 

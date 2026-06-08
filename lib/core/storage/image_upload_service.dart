@@ -55,7 +55,7 @@ class ImageUploadService {
   }
 
   Future<File?> pickVideo({
-    Duration maxDuration = const Duration(seconds: 30),
+    Duration maxDuration = const Duration(seconds: 60),
   }) async {
     final picker = ImagePicker();
     final video = await picker.pickVideo(
@@ -79,7 +79,7 @@ class ImageUploadService {
     final hasDuration = duration > Duration.zero;
     return VideoValidationResult(
       tooLarge: false,
-      tooLong: hasDuration && duration > const Duration(seconds: 30),
+      tooLong: hasDuration && duration > const Duration(seconds: 60),
       tooShort: hasDuration && duration < const Duration(seconds: 15),
     );
   }

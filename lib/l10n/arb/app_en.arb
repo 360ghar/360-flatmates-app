@@ -374,6 +374,7 @@
   "quizVegetarian": "Vegetarian",
   "quizVegan": "Vegan",
   "quizNonVegetarian": "Non-vegetarian",
+  "quizEggetarian": "Eggetarian",
   "quizNoFoodPref": "No preference",
   "quizSmokingDrinking": "Smoking & drinking preferences?",
   "quizNeither": "Neither",
@@ -872,6 +873,7 @@
   "budgetPlusChipLabel": "Budget+",
   "chatInputHint": "Type a message...",
   "phoneNotAvailable": "Phone number not available",
+  "emailNotAvailable": "Email not available",
   "emojiPickerComingSoon": "Emoji picker coming soon",
   "preferencesTitle": "Preferences",
   "preferencesSubtitle": "Tell us what matters to you so we can find the right flatmates and homes.",
@@ -1213,6 +1215,8 @@
   "errorRateLimit": "Too many requests. Please wait a moment and try again.",
   "errorConflict": "A conflict occurred. The data may have changed.",
   "errorUpload": "Upload failed. Please try again.",
+  "errorOtpInvalid": "Invalid or expired code. Please try again.",
+  "errorAuthSessionMissing": "Verification failed. Please try again.",
   "errorUnknown": "Something went wrong. Please try again.",
   "icebreakerTellMeRoom": "Tell me about the room!",
   "icebreakerWhatFlatmates": "What are the flatmates like?",
@@ -1465,6 +1469,19 @@
     "placeholders": {
       "date": {
         "type": "String"
+      }
+    }
+  },
+  "thePlaceSectionTitle": "The Place",
+  "peopleSectionTitle": "People",
+  "estimatedTotalLabel": "Estimated total",
+  "perMonthSuffix": "/month",
+  "viewOnMapLabel": "View on Map",
+  "andNMore": "+{count} more",
+  "@andNMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   }

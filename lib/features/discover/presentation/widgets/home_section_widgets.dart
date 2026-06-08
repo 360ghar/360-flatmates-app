@@ -202,3 +202,117 @@ class HomeSectionHeader extends StatelessWidget {
     );
   }
 }
+
+class HomeSearchBar extends StatelessWidget {
+  const HomeSearchBar({required this.onTap, super.key});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 12,
+        ),
+        decoration: BoxDecoration(
+          color: AppSemanticColors.surfaceFor(theme.brightness),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: AppSemanticColors.line.withValues(alpha: 0.2),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.search_rounded,
+              color: AppSemanticColors.accent,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                'Search by locality or area...',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppSemanticColors.accentSoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.tune_rounded,
+                color: AppSemanticColors.accent,
+                size: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class QuickFiltersRow extends StatelessWidget {
+  const QuickFiltersRow({
+    required this.filters,
+    required this.onFilterTap,
+    super.key,
+  });
+
+  final List<String> filters;
+  final void Function(String) onFilterTap;
+
+  @override
+  Widget build(BuildContext context) {
+    if (filters.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final filter = filters[index];
+          return ActionChip(
+            label: Text(
+              filter,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppSemanticColors.textPrimaryFor(theme.brightness),
+              ),
+            ),
+            backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
+            side: BorderSide(
+              color: AppSemanticColors.line.withValues(alpha: 0.2),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            onPressed: () => onFilterTap(filter),
+          );
+        },
+      ),
+    );
+  }
+}

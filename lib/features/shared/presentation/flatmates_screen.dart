@@ -62,10 +62,21 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final effectivePadding = widget.padding ?? AppSpacing.horizontalScreen;
     final content = widget.scrollable
-        ? SingleChildScrollView(
-            padding: widget.padding ?? AppSpacing.horizontalScreen,
-            child: widget.body,
+        ? LayoutBuilder(
+            builder: (context, constraints) {
+              final verticalPadding = effectivePadding.vertical;
+              return SingleChildScrollView(
+                padding: effectivePadding,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - verticalPadding,
+                  ),
+                  child: widget.body,
+                ),
+              );
+            },
           )
         : Padding(
             padding: widget.padding ?? EdgeInsets.zero,

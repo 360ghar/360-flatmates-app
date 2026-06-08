@@ -374,6 +374,7 @@
   "quizVegetarian": "शाकाहारी",
   "quizVegan": "वीगन",
   "quizNonVegetarian": "मांसाहारी",
+  "quizEggetarian": "एगेटेरियन",
   "quizNoFoodPref": "कोई प्राथमिकता नहीं",
   "quizSmokingDrinking": "धूम्रपान और शराब की प्राथमिकता?",
   "quizNeither": "न धूम्रपान, न शराब",
@@ -872,6 +873,7 @@
   "budgetPlusChipLabel": "बजट+",
   "chatInputHint": "संदेश टाइप करें...",
   "phoneNotAvailable": "फोन नंबर उपलब्ध नहीं है",
+  "emailNotAvailable": "ईमेल उपलब्ध नहीं है",
   "emojiPickerComingSoon": "इमोजी पिकर जल्द आ रहा है",
   "preferencesTitle": "पसंद",
   "preferencesSubtitle": "हमें बताएं कि आपके लिए क्या मायने रखता है ताकि हम सही फ्लैटमेट्स और होम्स ढूंढ सकें।",
@@ -1213,6 +1215,8 @@
   "errorRateLimit": "बहुत अधिक अनुरोध। कृपया थोड़ी देर प्रतीक्षा करें और पुनः प्रयास करें।",
   "errorConflict": "एक विरोधाभास हुआ। डेटा बदल गया होगा।",
   "errorUpload": "अपलोड विफल। कृपया पुनः प्रयास करें।",
+  "errorOtpInvalid": "अमान्य या समाप्त कोड। कृपया पुनः प्रयास करें।",
+  "errorAuthSessionMissing": "सत्यापन विफल। कृपया पुनः प्रयास करें।",
   "errorUnknown": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
   "icebreakerTellMeRoom": "मुझे कमरे के बारे में बताएं!",
   "icebreakerWhatFlatmates": "फ्लैटमेट्स कैसे हैं?",
@@ -1465,6 +1469,19 @@
     "placeholders": {
       "date": {
         "type": "String"
+      }
+    }
+  },
+  "thePlaceSectionTitle": "जगह",
+  "peopleSectionTitle": "लोग",
+  "estimatedTotalLabel": "अनुमानित कुल",
+  "perMonthSuffix": "/महीना",
+  "viewOnMapLabel": "नक्शे पर देखें",
+  "andNMore": "+{count} और",
+  "@andNMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   }

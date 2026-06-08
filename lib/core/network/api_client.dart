@@ -12,9 +12,9 @@ final class ApiClient {
   }) : _dio = Dio(
           BaseOptions(
             baseUrl: baseUrl,
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
+            connectTimeout: const Duration(seconds: 60),
+            receiveTimeout: const Duration(seconds: 60),
+            sendTimeout: const Duration(seconds: 60),
             headers: const {'Accept': 'application/json'},
           ),
         ) {
@@ -22,9 +22,18 @@ final class ApiClient {
       AuthInterceptor(tokenProvider: tokenProvider, dio: _dio),
     );
     if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          requestHeader: false,
+          requestBody: true,
+          responseHeader: false,
+          responseBody: true,
+          error: true,
+          logPrint: (obj) => debugPrint('🌐 $obj'),
+        ),
+      );
       // TODO: Add Alice HTTP inspector when compatible version is available
       // Currently alice dev_dependency conflicts with share_plus ^10.1.4
-      // Alice integration would go here for debug builds only
     }
   }
 

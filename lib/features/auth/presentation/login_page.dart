@@ -81,6 +81,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       scrollable: true,
       body: AutofillGroup(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(locale.loginTitle, style: theme.textTheme.headlineMedium),

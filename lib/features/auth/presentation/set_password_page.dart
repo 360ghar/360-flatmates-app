@@ -76,6 +76,7 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
         scrollable: true,
         body: AutofillGroup(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(

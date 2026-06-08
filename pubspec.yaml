@@ -74,6 +74,7 @@ flutter:
   assets:
     - assets/illustrations/
     - assets/legal/
+    - assets/icons/
     - .env
 
 flutter_launcher_icons:

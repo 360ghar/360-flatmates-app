@@ -157,6 +157,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
                                 errorRateLimit: locale.errorRateLimit,
                                 errorConflict: locale.errorConflict,
                                 errorUpload: locale.errorUpload,
+                                errorOtpInvalid: locale.errorOtpInvalid,
+                                errorAuthSessionMissing: locale.errorAuthSessionMissing,
                                 errorUnknown: locale.errorUnknown,
                               ),
                             )

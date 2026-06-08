@@ -30,6 +30,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  /// Local guard to prevent re-entrant submissions from dual autofill sources.
+  bool _isSubmitting = false;
+
 
   /// The identifier (phone or email) the reset OTP was sent to, sourced from
   /// the controller (set by [ForgotPasswordPage]).
@@ -67,7 +70,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
   @override
   void codeUpdated() {
     if (code != null && code!.length == 6) {
-      _fillOtp(code!);
+      // Fill the OTP boxes but do NOT auto-submit. The sms_autofill package
+      // can fire with a stale/cached code from a previous SMS detection.
+      _otpKey.currentState?.silentFillOtp(code!);
     }
   }
 
@@ -84,9 +89,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     }
   }
 
-  void _fillOtp(String otp) {
-    _otpKey.currentState?.fillOtp(otp);
-  }
+
 
   Future<void> _resendOtp() async {
     if (!canResend) return;
@@ -102,11 +105,13 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     final currentOtp = _otpKey.currentState?.otp ?? '';
     if (currentOtp.length != 6) return;
     if (_passwordController.text != _confirmPasswordController.text) return;
     if (!PasswordPolicy.isValid(_passwordController.text)) return;
 
+    _isSubmitting = true;
     final success = await ref
         .read(passwordResetControllerProvider.notifier)
         .verifyOtpAndSetPassword(
@@ -114,6 +119,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
           newPassword: _passwordController.text,
         );
 
+    _isSubmitting = false;
     if (!mounted) return;
     if (success) {
       FlatmatesToast.success(
@@ -138,6 +144,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
       scrollable: true,
       body: AutofillGroup(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(

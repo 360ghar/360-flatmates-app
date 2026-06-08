@@ -8,6 +8,54 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 
+class EditProfileContactInfoSection extends StatelessWidget {
+  const EditProfileContactInfoSection({
+    required this.locale,
+    required this.emailController,
+    required this.phoneController,
+    required this.hasEmail,
+    required this.hasPhone,
+    super.key,
+  });
+
+  final AppLocalizations locale;
+  final TextEditingController emailController;
+  final TextEditingController phoneController;
+  final bool hasEmail;
+  final bool hasPhone;
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatmatesCard(
+      child: Column(
+        children: [
+          TextField(
+            readOnly: hasEmail,
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              labelText: locale.emailLabel,
+              hintText: hasEmail ? null : locale.emailNotAvailable,
+              prefixIcon: const Icon(Icons.email_outlined, size: 20),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextField(
+            readOnly: hasPhone,
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(
+              labelText: locale.phoneNumberLabel,
+              hintText: hasPhone ? null : locale.phoneNotAvailable,
+              prefixIcon: const Icon(Icons.phone_outlined, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class EditProfilePhotoSection extends StatelessWidget {
   const EditProfilePhotoSection({
     required this.locale,

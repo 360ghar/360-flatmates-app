@@ -61,21 +61,44 @@ final class ErrorPresenter {
     DioException e,
     StackTrace? st,
   ) {
+    final serverMessage = _extractServerMessage(e);
     return switch (statusCode) {
       400 => _fromBadRequest(e, st),
-      401 => AuthExpiredFailure(underlyingError: e, stackTrace: st),
-      403 => PermissionFailure(underlyingError: e, stackTrace: st),
-      404 => NotFoundFailure(underlyingError: e, stackTrace: st),
-      409 => ConflictFailure(underlyingError: e, stackTrace: st),
+      401 => AuthExpiredFailure(serverMessage: serverMessage, underlyingError: e, stackTrace: st),
+      403 => PermissionFailure(serverMessage: serverMessage, underlyingError: e, stackTrace: st),
+      404 => NotFoundFailure(serverMessage: serverMessage, underlyingError: e, stackTrace: st),
+      409 => ConflictFailure(serverMessage: serverMessage, underlyingError: e, stackTrace: st),
       422 => _fromValidationResponse(e, st),
-      429 => RateLimitFailure(underlyingError: e, stackTrace: st),
+      429 => RateLimitFailure(serverMessage: serverMessage, underlyingError: e, stackTrace: st),
       _ when (statusCode ?? 500) >= 500 => ServerFailure(
         statusCode: statusCode,
+        serverMessage: serverMessage,
         underlyingError: e,
         stackTrace: st,
       ),
-      _ => UnknownFailure(underlyingError: e, stackTrace: st),
+      _ => UnknownFailure(serverMessage: serverMessage, underlyingError: e, stackTrace: st),
     };
+  }
+
+  static String? _extractServerMessage(DioException e) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final detail = data['detail'];
+      if (detail is String && detail.isNotEmpty) {
+        return detail;
+      }
+      if (detail is Map<String, dynamic>) {
+        final message = detail['message'];
+        if (message is String && message.isNotEmpty) {
+          return message;
+        }
+      }
+      final message = data['message'];
+      if (message is String && message.isNotEmpty) {
+        return message;
+      }
+    }
+    return null;
   }
 
   static AppFailure _fromBadRequest(DioException e, StackTrace? st) {

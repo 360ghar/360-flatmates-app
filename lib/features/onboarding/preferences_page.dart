@@ -286,7 +286,7 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
             label: locale.prefNext,
             fullWidth: true,
             onPressed: () => widget.onComplete({
-              'preferred_gender': _preferredGender,
+              'gender_preference': _preferredGender,
               'allowed_flatmates': _allowedFlatmates,
               'food_habits': _foodHabits,
               'pets': _pets,

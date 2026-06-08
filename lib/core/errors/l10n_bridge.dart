@@ -19,6 +19,8 @@ extension AppLocalizationsX on AppLocalizations {
     errorRateLimit: errorRateLimit,
     errorConflict: errorConflict,
     errorUpload: errorUpload,
+    errorOtpInvalid: errorOtpInvalid,
+    errorAuthSessionMissing: errorAuthSessionMissing,
     errorUnknown: errorUnknown,
   );
 }
@@ -31,7 +33,15 @@ String resolveAuthError(String? errorMessage, AppLocalizations l10n) {
   if (errorMessage == null || !errorMessage.startsWith('failure:')) {
     return l10n.errorUnknown;
   }
-  final key = errorMessage.substring(8);
+  final fullKey = errorMessage.substring(8);
+  
+  // Handle piped server messages: `failure:label|serverMessage`
+  final parts = fullKey.split('|');
+  final key = parts[0];
+  if (parts.length > 1 && parts[1].isNotEmpty) {
+    return parts.sublist(1).join('|');
+  }
+
   // ServerFailure.label is 'server($statusCode)' — match any server(...) key.
   if (key == 'server' || key.startsWith('server(')) {
     return l10n.errorServer;
@@ -45,6 +55,8 @@ String resolveAuthError(String? errorMessage, AppLocalizations l10n) {
     'rate_limit' => l10n.errorRateLimit,
     'conflict' => l10n.errorConflict,
     'upload' => l10n.errorUpload,
+    'otp_invalid' => l10n.errorOtpInvalid,
+    'auth_session_missing' => l10n.errorAuthSessionMissing,
     _ => l10n.errorUnknown,
   };
 }

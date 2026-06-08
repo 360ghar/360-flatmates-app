@@ -29,20 +29,15 @@ final sseEventRouterProvider = Provider<void>((ref) {
   // Watching the stream provider activates it.
   ref.watch(sseEventProvider);
 
+  // Activate Supabase realtime watcher for conversations (auto-refreshes
+  // conversation list on new messages, inserts, read-status changes).
+  ref.watch(conversationsRealtimeProvider);
+
   ref.listen(sseEventProvider, (previous, next) {
     final event = next.valueOrNull;
     if (event == null) return;
 
     switch (event.type) {
-      case 'new_message':
-      case 'conversation_updated':
-      case 'conversation_read':
-        ref.invalidate(conversationsProvider);
-        final convId = (event.data['conversation_id'] as num?)?.toInt();
-        if (convId != null) {
-          ref.invalidate(messagesProvider(convId));
-        }
-        break;
       case 'new_match':
         ref.invalidate(conversationsProvider);
         ref.invalidate(incomingLikesProvider);

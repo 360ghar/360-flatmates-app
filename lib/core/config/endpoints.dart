@@ -57,8 +57,8 @@ abstract final class FlatmatesEndpoints {
   static const notificationRegister = '/notifications/devices/register';
   static const notificationUnregister = '/notifications/devices/unregister';
 
-  // -- App Config --
-  static const appConfig = '/flatmates/app-config';
+  // -- Version Check (backend: POST /versions/check) --
+  static const versionCheck = '/versions/check';
 
   // -- Feedback (GLOBAL path, not under /flatmates) --
   static const bugs = '/bugs';
