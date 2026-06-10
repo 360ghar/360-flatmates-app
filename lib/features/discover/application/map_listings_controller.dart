@@ -68,8 +68,9 @@ class MapListingsController extends Notifier<MapListingsState> {
 
   Future<void> _autoInjectLocationThenLoad() async {
     if (!state.filters.hasGeoLocation) {
-      final selectedLocation =
-          ref.read(locationControllerProvider).selectedLocation;
+      final selectedLocation = ref
+          .read(locationControllerProvider)
+          .selectedLocation;
       if (selectedLocation != null) {
         state = state.copyWith(
           filters: state.filters.copyWith(
@@ -90,8 +91,10 @@ class MapListingsController extends Notifier<MapListingsState> {
 
     final myVersion = _filterVersion;
     try {
-      final profile =
-          ref.read(bootstrapControllerProvider).valueOrNull?.profile;
+      final profile = ref
+          .read(bootstrapControllerProvider)
+          .valueOrNull
+          ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
       final newListings = await repo.fetchListings(
         currentUser: profile,
@@ -102,10 +105,7 @@ class MapListingsController extends Notifier<MapListingsState> {
       if (myVersion != _filterVersion) {
         // Stale result — filters changed during the request.
       } else {
-        state = state.copyWith(
-          listings: newListings,
-          isLoading: false,
-        );
+        state = state.copyWith(listings: newListings, isLoading: false);
       }
     } catch (e) {
       if (myVersion == _filterVersion) {
@@ -126,10 +126,9 @@ class MapListingsController extends Notifier<MapListingsState> {
     required double radiusKm,
   }) {
     if (!latitude.isFinite || !longitude.isFinite) return;
-    final normalizedRadiusKm =
-        radiusKm.isFinite && radiusKm > 0
-            ? radiusKm
-            : defaultLocationRadiusKm;
+    final normalizedRadiusKm = radiusKm.isFinite && radiusKm > 0
+        ? radiusKm
+        : defaultLocationRadiusKm;
     state = state.copyWith(
       filters: state.filters.copyWith(
         latitude: latitude,

@@ -19,7 +19,6 @@
   "phoneNumberLabel": "Phone number",
   "loginWithPassword": "Login with password",
   "continueWithOtp": "Continue with OTP",
-  "createAccountCta": "Create account",
   "addPhoneTitle": "Add your phone number",
   "addPhoneSubtitle": "Add a phone number so flatmates can reach you. You can skip this for now.",
   "addPhoneCta": "Send code",
@@ -35,7 +34,6 @@
     }
   },
   "loginTitle": "Login",
-  "signupTitle": "Create your account",
   "fullNameLabel": "Full name",
   "emailLabel": "Email",
   "passwordLabel": "Password",
@@ -197,6 +195,24 @@
   "likesIncomingLabel": "You matched. Start the conversation.",
   "emptyLikes": "No new likes yet.",
   "chatsTitle": "Chats",
+  "callCta": "Call",
+  "listingDetails": "Listing details",
+  "percentMatch": "{percent}% Match",
+  "@percentMatch": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "yearsOldLabel": "{age} years",
+  "@yearsOldLabel": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
   "emptyChats": "No conversations yet.",
   "chatReady": "Your chat is ready when you are.",
   "messageHint": "Type a message...",
@@ -558,11 +574,34 @@
   },
   "waitlistNotifyCta": "Notify me",
   "shareListingCta": "Share listing",
+  "copyLinkAction": "Copy link",
+  "linkCopiedToast": "Link copied",
   "listingUnderReview": "Listing under review",
   "listingLive": "Live",
   "listingPaused": "Paused",
   "listingExpired": "Expired",
   "manageListingTitle": "Manage listing",
+  "postHubTitle": "Your listings",
+  "postHubPostSubtitle": "Create a new room listing in minutes",
+  "manageListingsTitle": "Manage listings",
+  "postHubManageSubtitle": "Edit, pause or renew your listings",
+  "postHubActiveCount": "{count} active",
+  "@postHubActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "postHubDraftCount": "{count} drafts",
+  "@postHubDraftCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotLoadListings": "Could not load listings",
   "boostListingCta": "Boost listing",
   "pauseListingCta": "Pause",
   "editListingCta": "Edit",
@@ -1448,6 +1487,22 @@
   "listingLabel": "LISTING",
   "liveBadge": "Live",
   "floorPlanSectionTitle": "Floor Plan",
+  "tapToZoomHint": "Tap to zoom",
+  "factBedsLabel": "Beds",
+  "factBathsLabel": "Baths",
+  "factAreaLabel": "Sq.ft",
+  "factFloorLabel": "Floor",
+  "galleryPhotoSemantic": "Photo {current} of {total}",
+  "@galleryPhotoSemantic": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "virtualTourSectionTitle": "360° Virtual Tour",
   "exploreVirtualTourPrompt": "Explore this property in 360°",
   "openVirtualTourCta": "Open Virtual Tour",

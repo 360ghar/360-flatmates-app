@@ -20,10 +20,10 @@ void main() {
           {'id': 88},
           {'id': 501},
         ]);
-      final apiClient = ApiClient(
-        baseUrl: 'https://api.test.example.com',
-        tokenProvider: FakeAuthTokenProvider(),
-      );
+        final apiClient = ApiClient(
+          baseUrl: 'https://api.test.example.com',
+          tokenProvider: FakeAuthTokenProvider(),
+        );
         apiClient.dio.httpClientAdapter = adapter;
         final container = ProviderContainer(
           overrides: [apiClientProvider.overrideWithValue(apiClient)],

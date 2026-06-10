@@ -1,3 +1,4 @@
+import 'package:flatmates_app/features/discover/domain/property_listing.dart';
 import 'package:flatmates_app/features/listings/presentation/widgets/manage_listing_card.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,34 @@ void main() {
   ) async {
     int? toggledListingId;
     bool? toggledPausedState;
-    final listing = _ListingStub(
+    final listing = PropertyListing(
+      id: 7,
+      ownerId: null,
+      propertyType: null,
+      title: 'Test room',
+      description: null,
+      city: null,
+      state: null,
+      locality: null,
+      subLocality: null,
+      latitude: null,
+      longitude: null,
+      monthlyRent: 25000,
+      mainImageUrl: null,
+      imageUrls: const [],
+      areaSqft: 900,
+      bedrooms: 2,
+      bathrooms: 2,
+      features: const [],
+      tags: const [],
+      ownerName: 'Owner',
+      availableFrom: null,
+      genderPreference: null,
+      sharingType: null,
+      interestCount: 4,
+      viewCount: 12,
+      likeCount: 0,
+      isAvailable: true,
       expiresAt: DateTime.now().add(const Duration(days: 3)),
     );
 
@@ -55,31 +83,4 @@ void main() {
     expect(toggledListingId, 7);
     expect(toggledPausedState, isFalse);
   });
-}
-
-class _ListingStub {
-  _ListingStub({this.expiresAt});
-
-  final int id = 7;
-  final String title = 'Test room';
-  final String? mainImageUrl = null;
-  final List<String> imageUrls = const [];
-  final double? monthlyRent = 25000;
-  final int? bedrooms = 2;
-  final int? bathrooms = 2;
-  final double? areaSqft = 900;
-  final String? ownerName = 'Owner';
-  final int? interestCount = 4;
-  final int? viewCount = 12;
-  final DateTime? expiresAt;
-  final DateTime? availableFrom = null;
-
-  String? get effectiveMainImageUrl {
-    if (mainImageUrl != null &&
-        (mainImageUrl!.startsWith('http://') ||
-            mainImageUrl!.startsWith('https://'))) {
-      return mainImageUrl;
-    }
-    return imageUrls.isNotEmpty ? imageUrls.first : null;
-  }
 }

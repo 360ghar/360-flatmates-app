@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,15 +50,18 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   Widget build(BuildContext context) {
     final listingState = ref.watch(propertyListingProvider(widget.listingId));
     final locale = AppLocalizations.of(context);
-    final currentUserId =
-        ref.watch(bootstrapControllerProvider).valueOrNull?.profile.id;
+    final currentUserId = ref
+        .watch(bootstrapControllerProvider)
+        .valueOrNull
+        ?.profile
+        .id;
 
     return listingState.when(
       data: (listing) {
         final hasLiked = listing.liked ?? false;
         final hasOwnerId = (listing.owner?.id ?? listing.ownerId) != null;
-        final matchPercentage =
-            (_ownerPeer?['match_percentage'] as num?)?.toDouble();
+        final matchPercentage = (_ownerPeer?['match_percentage'] as num?)
+            ?.toDouble();
 
         _maybeFetchOwnerPeer(listing);
 
@@ -67,9 +72,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () {
-                    ref.invalidate(
-                      propertyListingProvider(widget.listingId),
-                    );
+                    ref.invalidate(propertyListingProvider(widget.listingId));
                     return ref.read(
                       propertyListingProvider(widget.listingId).future,
                     );
@@ -98,14 +101,17 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                           matchPercentage: matchPercentage,
                         ),
                       ),
+                      const _SectionDivider(),
                       StaggeredCardAppear(
                         index: 1,
                         child: FlatDetailsAbout(listing: listing),
                       ),
+                      const _SectionDivider(),
                       StaggeredCardAppear(
                         index: 2,
                         child: FlatDetailsMedia(listing: listing),
                       ),
+                      const _SectionDivider(),
                       StaggeredCardAppear(
                         index: 3,
                         child: FlatDetailsLocation(
@@ -126,11 +132,13 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                 onPressed: () => _handleContact(listing),
                 icon: Icons.send_rounded,
                 secondaryLabel: hasLiked ? locale.scheduleVisitCta : null,
-                secondaryOnPressed:
-                    hasLiked ? () => _handleScheduleVisit(listing) : null,
+                secondaryOnPressed: hasLiked
+                    ? () => _handleScheduleVisit(listing)
+                    : null,
                 secondaryIcon: Icons.calendar_month_outlined,
-                tertiaryIcon:
-                    hasLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                tertiaryIcon: hasLiked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 tertiaryOnPressed: () => _handleShortlist(listing),
                 tertiarySelected: hasLiked,
                 tertiaryButtonKey: const Key('flat_shortlist_button'),
@@ -139,9 +147,8 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
           ),
         );
       },
-      loading: () => const FlatmatesScreen(
-        body: FlatmatesSkeleton.flatDetails(),
-      ),
+      loading: () =>
+          const FlatmatesScreen(body: FlatmatesSkeleton.flatDetails()),
       error: (e, _) {
         final message = e is AppFailure
             ? e.userMessage(locale.toUserMessageL10n())
@@ -162,8 +169,11 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     final ownerId = listing.owner?.id ?? listing.ownerId;
     if (ownerId == null) return;
 
-    final currentUserId =
-        ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+    final currentUserId = ref
+        .read(bootstrapControllerProvider)
+        .valueOrNull
+        ?.profile
+        .id;
     // Only skip if bootstrap has loaded AND the user is the owner.
     if (currentUserId != null && currentUserId == ownerId) {
       _peerFetched = true;
@@ -171,10 +181,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     }
 
     _peerFetched = true;
-    ref
-        .read(discoverRepositoryProvider)
-        .fetchOwnerPeer(ownerId)
-        .then((data) {
+    ref.read(discoverRepositoryProvider).fetchOwnerPeer(ownerId).then((data) {
       if (mounted) {
         setState(() => _ownerPeer = data);
       }
@@ -186,6 +193,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       context: context,
       images: images,
       initialIndex: _currentImageIndex,
+      heroTagPrefix: 'flat-gallery-${widget.listingId}',
     );
   }
 
@@ -203,10 +211,9 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   Future<void> _handleShortlist(PropertyListing listing) async {
     try {
       final hasLiked = listing.liked ?? false;
-      final cid = await ref.read(discoverRepositoryProvider).setLiked(
-            listing.id,
-            !hasLiked,
-          );
+      final cid = await ref
+          .read(discoverRepositoryProvider)
+          .setLiked(listing.id, !hasLiked);
       if (cid != null) _conversationId = cid;
       ref.invalidate(propertyListingProvider(widget.listingId));
     } catch (e) {
@@ -234,7 +241,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       }
 
       if (mounted && cid != null) {
-        context.push('/chats/$cid');
+        unawaited(context.push('/chats/$cid'));
       } else if (mounted) {
         FlatmatesToast.info(
           context,
@@ -257,8 +264,11 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   }
 
   Future<void> _handleScheduleVisit(PropertyListing listing) async {
-    final currentUserId =
-        ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+    final currentUserId = ref
+        .read(bootstrapControllerProvider)
+        .valueOrNull
+        ?.profile
+        .id;
     if (currentUserId == null) return;
 
     final locale = AppLocalizations.of(context);
@@ -303,7 +313,9 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     }
 
     try {
-      await ref.read(discoverRepositoryProvider).scheduleVisit(
+      await ref
+          .read(discoverRepositoryProvider)
+          .scheduleVisit(
             propertyId: listing.id,
             counterpartyUserId: ownerId,
             conversationId: cid,
@@ -337,25 +349,22 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
               title: Text(locale.timeSlotMorning),
               subtitle: const Text('10:00 AM'),
               leading: const Icon(Icons.wb_sunny_outlined),
-              onTap: () => Navigator.of(ctx).pop(
-                const TimeOfDay(hour: 10, minute: 0),
-              ),
+              onTap: () =>
+                  Navigator.of(ctx).pop(const TimeOfDay(hour: 10, minute: 0)),
             ),
             ListTile(
               title: Text(locale.timeSlotAfternoon),
               subtitle: const Text('3:00 PM'),
               leading: const Icon(Icons.wb_cloudy_outlined),
-              onTap: () => Navigator.of(ctx).pop(
-                const TimeOfDay(hour: 15, minute: 0),
-              ),
+              onTap: () =>
+                  Navigator.of(ctx).pop(const TimeOfDay(hour: 15, minute: 0)),
             ),
             ListTile(
               title: Text(locale.timeSlotEvening),
               subtitle: const Text('6:00 PM'),
               leading: const Icon(Icons.nights_stay_outlined),
-              onTap: () => Navigator.of(ctx).pop(
-                const TimeOfDay(hour: 18, minute: 0),
-              ),
+              onTap: () =>
+                  Navigator.of(ctx).pop(const TimeOfDay(hour: 18, minute: 0)),
             ),
           ],
         ),
@@ -369,11 +378,9 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     String vote,
   ) async {
     try {
-      await ref.read(discoverRepositoryProvider).voteSocietyTag(
-            listingId: listing.id,
-            tag: tag,
-            vote: vote,
-          );
+      await ref
+          .read(discoverRepositoryProvider)
+          .voteSocietyTag(listingId: listing.id, tag: tag, vote: vote);
       ref.invalidate(propertyListingProvider(widget.listingId));
     } catch (e) {
       if (mounted) {
@@ -390,8 +397,11 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     final ownerId = listing.owner?.id ?? listing.ownerId;
     if (ownerId == null) return;
 
-    final currentUserId =
-        ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+    final currentUserId = ref
+        .read(bootstrapControllerProvider)
+        .valueOrNull
+        ?.profile
+        .id;
     if (currentUserId != null && currentUserId == ownerId) return;
 
     // Trigger a fetch if we haven't fetched yet, so the sheet has data.
@@ -407,6 +417,28 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
         Navigator.of(context).pop();
         _handleContact(listing);
       },
+    );
+  }
+}
+
+/// Tinted hairline between top-level detail sections for visual rhythm.
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.lg,
+      ),
+      child: Divider(
+        height: 1,
+        thickness: 0.5,
+        color: Theme.of(context).dividerColor,
+      ),
     );
   }
 }

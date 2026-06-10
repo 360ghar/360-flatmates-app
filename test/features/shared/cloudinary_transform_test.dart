@@ -57,23 +57,25 @@ void main() {
       );
     });
 
-    test('existing transform segment is preserved and ours wins (last-wins)',
-        () {
-      // Cloudinary applies transform segments in order; for shared directives
-      // the last segment wins. By appending ours as a new segment BEFORE the
-      // version marker, our w_/h_/c_ values override whatever the backend
-      // specified.
-      const urlWithTransform =
+    test(
+      'existing transform segment is preserved and ours wins (last-wins)',
+      () {
+        // Cloudinary applies transform segments in order; for shared directives
+        // the last segment wins. By appending ours as a new segment BEFORE the
+        // version marker, our w_/h_/c_ values override whatever the backend
+        // specified.
+        const urlWithTransform =
+            'https://res.cloudinary.com/ddbhzlzy1/image/upload/'
+            'w_1000/v1780672740/360ghar/properties/1500/building_exterior.jpg';
+        final result = applyCloudinaryTransform(urlWithTransform, width: 200);
+        expect(
+          result,
           'https://res.cloudinary.com/ddbhzlzy1/image/upload/'
-          'w_1000/v1780672740/360ghar/properties/1500/building_exterior.jpg';
-      final result = applyCloudinaryTransform(urlWithTransform, width: 200);
-      expect(
-        result,
-        'https://res.cloudinary.com/ddbhzlzy1/image/upload/'
-        'w_1000/f_auto,q_auto,w_400,c_limit/v1780672740/360ghar/properties/'
-        '1500/building_exterior.jpg',
-      );
-    });
+          'w_1000/f_auto,q_auto,w_400,c_limit/v1780672740/360ghar/properties/'
+          '1500/building_exterior.jpg',
+        );
+      },
+    );
 
     test('width clamped to minimum 50', () {
       final result = applyCloudinaryTransform(sampleUrl, width: 5);
@@ -86,8 +88,10 @@ void main() {
     });
 
     test('infinite / negative / zero width treated as null', () {
-      final infinity =
-          applyCloudinaryTransform(sampleUrl, width: double.infinity);
+      final infinity = applyCloudinaryTransform(
+        sampleUrl,
+        width: double.infinity,
+      );
       expect(infinity, contains('f_auto,q_auto/v'));
       expect(infinity, isNot(contains('w_')));
 

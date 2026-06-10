@@ -57,9 +57,7 @@ class FlatmatesMapController {
     }
 
     final bounds = boundsFromPoints(points);
-    await ctrl.fitCamera(
-      CameraFit.bounds(bounds: bounds, padding: padding),
-    );
+    ctrl.fitCamera(CameraFit.bounds(bounds: bounds, padding: padding));
   }
 
   Future<void> zoomIn() async {
@@ -99,19 +97,12 @@ LatLngBounds boundsFromPoints(List<LatLng> points) {
     minLng = math.min(minLng, p.longitude);
     maxLng = math.max(maxLng, p.longitude);
   }
-  return LatLngBounds(
-    LatLng(minLat, minLng),
-    LatLng(maxLat, maxLng),
-  );
+  return LatLngBounds(LatLng(minLat, minLng), LatLng(maxLat, maxLng));
 }
 
 const double _earthRadiusMeters = 6378137.0;
 
-List<LatLng> circlePoints(
-  LatLng center,
-  double radiusKm, {
-  int steps = 64,
-}) {
+List<LatLng> circlePoints(LatLng center, double radiusKm, {int steps = 64}) {
   final radiusMeters = radiusKm * 1000.0;
   final latRad = center.latitude * math.pi / 180.0;
   final lngRad = center.longitude * math.pi / 180.0;

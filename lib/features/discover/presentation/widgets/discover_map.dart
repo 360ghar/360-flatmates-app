@@ -99,9 +99,7 @@ class _DiscoverMapState extends State<DiscoverMap> {
           ),
           children: [
             TileLayerFactory.build(context),
-            MarkerLayer(
-              markers: _buildMarkers(context),
-            ),
+            MarkerLayer(markers: _buildMarkers(context)),
             RichAttributionWidget(
               attributions: [
                 TextSourceAttribution(

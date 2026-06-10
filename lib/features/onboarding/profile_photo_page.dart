@@ -42,10 +42,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     } catch (e, st) {
       debugPrint('[ProfilePhotoPage] _pickFromGallery error: $e\n$st');
       if (mounted) {
-        FlatmatesToast.error(
-          context,
-          AppLocalizations.of(context).errorUpload,
-        );
+        FlatmatesToast.error(context, AppLocalizations.of(context).errorUpload);
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -63,10 +60,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     } catch (e, st) {
       debugPrint('[ProfilePhotoPage] _pickFromCamera error: $e\n$st');
       if (mounted) {
-        FlatmatesToast.error(
-          context,
-          AppLocalizations.of(context).errorUpload,
-        );
+        FlatmatesToast.error(context, AppLocalizations.of(context).errorUpload);
       }
     } finally {
       if (mounted) setState(() => _uploading = false);

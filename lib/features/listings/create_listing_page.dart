@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -217,7 +219,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
       final listingId = await ref
           .read(listingsRepositoryProvider)
           .createListing(request);
-      ref.read(discoverFeedControllerProvider.notifier).refresh();
+      unawaited(ref.read(discoverFeedControllerProvider.notifier).refresh());
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;
       FlatmatesToast.success(context, locale.postListingSuccess);

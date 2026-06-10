@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -65,7 +66,8 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               children: [
                 Row(
                   children: [
-                    if (l.effectiveMainImageUrl != null && l.effectiveMainImageUrl!.isNotEmpty)
+                    if (l.effectiveMainImageUrl != null &&
+                        l.effectiveMainImageUrl!.isNotEmpty)
                       FlatmatesNetworkImage(
                         imageUrl: l.effectiveMainImageUrl!,
                         width: 28,
@@ -249,8 +251,53 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
             ),
           ],
         ),
+        const SizedBox(height: AppSpacing.md),
+
+        // Shareable link with copy action
+        Container(
+          key: const Key('share_link_row'),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.link, size: 18),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  DeepLinkService.listingUrl(l.id),
+                  style: theme.textTheme.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                key: const Key('copy_link_button'),
+                tooltip: locale.copyLinkAction,
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                onPressed: _copyLink,
+              ),
+            ],
+          ),
+        ),
       ],
     );
+  }
+
+  Future<void> _copyLink() async {
+    final locale = AppLocalizations.of(context);
+    await Clipboard.setData(
+      ClipboardData(text: DeepLinkService.listingUrl(widget.listing.id)),
+    );
+    if (!mounted) return;
+    FlatmatesToast.success(context, locale.linkCopiedToast);
   }
 
   // ── WhatsApp square share template (1080×1080 logical px) ──
@@ -279,7 +326,8 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (l.effectiveMainImageUrl != null && l.effectiveMainImageUrl!.isNotEmpty)
+                  if (l.effectiveMainImageUrl != null &&
+                      l.effectiveMainImageUrl!.isNotEmpty)
                     FlatmatesNetworkImage(
                       imageUrl: l.effectiveMainImageUrl!,
                       fit: BoxFit.cover,
@@ -401,7 +449,8 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
           fit: StackFit.expand,
           children: [
             // Full-bleed image
-            if (l.effectiveMainImageUrl != null && l.effectiveMainImageUrl!.isNotEmpty)
+            if (l.effectiveMainImageUrl != null &&
+                l.effectiveMainImageUrl!.isNotEmpty)
               FlatmatesNetworkImage(
                 imageUrl: l.effectiveMainImageUrl!,
                 fit: BoxFit.cover,

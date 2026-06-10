@@ -35,7 +35,11 @@ final class NetworkFailure extends AppFailure {
 
 /// Auth token expired or invalid. User must sign in again.
 final class AuthExpiredFailure extends AppFailure {
-  const AuthExpiredFailure({this.serverMessage, super.underlyingError, super.stackTrace});
+  const AuthExpiredFailure({
+    this.serverMessage,
+    super.underlyingError,
+    super.stackTrace,
+  });
 
   final String? serverMessage;
 
@@ -43,7 +47,8 @@ final class AuthExpiredFailure extends AppFailure {
   String get label => 'auth_expired';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorAuthExpired;
+  String userMessage(UserMessageL10n l10n) =>
+      serverMessage ?? l10n.errorAuthExpired;
 }
 
 /// Server returned 5xx or unexpected error.
@@ -67,7 +72,11 @@ final class ServerFailure extends AppFailure {
 
 /// 403 Forbidden — user lacks permission.
 final class PermissionFailure extends AppFailure {
-  const PermissionFailure({this.serverMessage, super.underlyingError, super.stackTrace});
+  const PermissionFailure({
+    this.serverMessage,
+    super.underlyingError,
+    super.stackTrace,
+  });
 
   final String? serverMessage;
 
@@ -75,12 +84,17 @@ final class PermissionFailure extends AppFailure {
   String get label => 'permission';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorPermission;
+  String userMessage(UserMessageL10n l10n) =>
+      serverMessage ?? l10n.errorPermission;
 }
 
 /// 404 Not Found.
 final class NotFoundFailure extends AppFailure {
-  const NotFoundFailure({this.serverMessage, super.underlyingError, super.stackTrace});
+  const NotFoundFailure({
+    this.serverMessage,
+    super.underlyingError,
+    super.stackTrace,
+  });
 
   final String? serverMessage;
 
@@ -88,7 +102,8 @@ final class NotFoundFailure extends AppFailure {
   String get label => 'not_found';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorNotFound;
+  String userMessage(UserMessageL10n l10n) =>
+      serverMessage ?? l10n.errorNotFound;
 }
 
 /// 422 / field-level validation errors from backend.
@@ -117,7 +132,11 @@ final class ValidationFailure extends AppFailure {
 
 /// Rate limited (429).
 final class RateLimitFailure extends AppFailure {
-  const RateLimitFailure({this.serverMessage, super.underlyingError, super.stackTrace});
+  const RateLimitFailure({
+    this.serverMessage,
+    super.underlyingError,
+    super.stackTrace,
+  });
 
   final String? serverMessage;
 
@@ -125,12 +144,17 @@ final class RateLimitFailure extends AppFailure {
   String get label => 'rate_limit';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorRateLimit;
+  String userMessage(UserMessageL10n l10n) =>
+      serverMessage ?? l10n.errorRateLimit;
 }
 
 /// Conflict (409).
 final class ConflictFailure extends AppFailure {
-  const ConflictFailure({this.serverMessage, super.underlyingError, super.stackTrace});
+  const ConflictFailure({
+    this.serverMessage,
+    super.underlyingError,
+    super.stackTrace,
+  });
 
   final String? serverMessage;
 
@@ -138,7 +162,8 @@ final class ConflictFailure extends AppFailure {
   String get label => 'conflict';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorConflict;
+  String userMessage(UserMessageL10n l10n) =>
+      serverMessage ?? l10n.errorConflict;
 }
 
 /// Upload-specific failures.
@@ -157,7 +182,11 @@ final class UploadFailure extends AppFailure {
 
 /// Catch-all for unexpected errors.
 final class UnknownFailure extends AppFailure {
-  const UnknownFailure({this.serverMessage, super.underlyingError, super.stackTrace});
+  const UnknownFailure({
+    this.serverMessage,
+    super.underlyingError,
+    super.stackTrace,
+  });
 
   final String? serverMessage;
 
@@ -165,9 +194,9 @@ final class UnknownFailure extends AppFailure {
   String get label => 'unknown';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorUnknown;
+  String userMessage(UserMessageL10n l10n) =>
+      serverMessage ?? l10n.errorUnknown;
 }
-
 
 /// Localized strings contract for error messages.
 ///
@@ -202,4 +231,3 @@ class UserMessageL10n {
   final String errorAuthSessionMissing;
   final String errorUnknown;
 }
-

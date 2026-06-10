@@ -38,11 +38,7 @@ void main() {
         isTrue,
       );
       expect(
-        listingMatchesMoveInFilter(
-          DateTime(2026, 7, 1),
-          'next_month',
-          now: now,
-        ),
+        listingMatchesMoveInFilter(DateTime(2026, 7), 'next_month', now: now),
         isFalse,
       );
     });

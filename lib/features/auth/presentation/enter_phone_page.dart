@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -25,30 +27,61 @@ class EnterPhonePage extends ConsumerStatefulWidget {
 
 class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   final _controller = TextEditingController();
+  final _identifierFocusNode = FocusNode();
   final _smartAuth = SmartAuth.instance;
   bool _termsAccepted = false;
   bool _isSubmitting = false;
+  bool _phoneHintShown = false;
 
   bool get _looksLikeEmail => _controller.text.contains('@');
 
   @override
+  void initState() {
+    super.initState();
+    // Prefill the identifier handed over by the login page's "No account?"
+    // link so the user doesn't retype it for the OTP-first signup flow.
+    final pending = ref.read(pendingPhoneProvider);
+    if (pending != null && pending.trim().isNotEmpty) {
+      _controller.text = pending.trim();
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
+    _identifierFocusNode.dispose();
     super.dispose();
   }
 
   /// On Android, offer the SIM-based phone-number hint picker so the user can
-  /// fill the identifier field with one tap (no permission required).
+  /// fill the identifier field with one tap (no permission required). Shown at
+  /// most once per page session — the picker is a system activity that
+  /// dismisses the keyboard, so re-launching it on every tap would make manual
+  /// entry impossible.
   Future<void> _requestPhoneHint() async {
     if (!Platform.isAndroid) return;
+    if (_phoneHintShown || _controller.text.isNotEmpty) return;
+    _phoneHintShown = true;
     try {
       final res = await _smartAuth.requestPhoneNumberHint();
       final phone = res.data;
       if (phone != null && phone.trim().isNotEmpty && mounted) {
         _controller.text = phone.trim();
+        _controller.selection = TextSelection.collapsed(
+          offset: _controller.text.length,
+        );
       }
     } catch (_) {
       debugPrint('EnterPhonePage._requestPhoneHint: hint unavailable');
+    } finally {
+      // The picker activity hides the keyboard but the node keeps Flutter
+      // focus, so requestFocus() alone is a no-op — explicitly re-show the
+      // keyboard so the user can edit the filled number or type a custom
+      // identifier.
+      if (mounted) {
+        _identifierFocusNode.requestFocus();
+        await SystemChannels.textInput.invokeMethod('TextInput.show');
+      }
     }
   }
 
@@ -56,7 +89,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     if (_isSubmitting) return;
     String identifier = _controller.text.trim();
     if (identifier.isEmpty) return;
-    
+
     // Normalize phone numbers to include the country code
     if (!identifier.contains('@')) {
       String digits = identifier.replaceAll(RegExp(r'\D'), '');
@@ -71,7 +104,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
         identifier = '+$digits';
       }
     }
-    
+
     setState(() => _isSubmitting = true);
     try {
       final notifier = ref.read(authControllerProvider.notifier);
@@ -85,16 +118,19 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
         // Consume next_step: a verified email that has a password logs in with
         // the password screen; everything else is OTP-first.
         if (status.nextStep == IdentifierNextStep.password) {
-          context.push('/login?email=$encodedIdentifier');
+          unawaited(context.push('/login?email=$encodedIdentifier'));
           return;
         }
         // OTP-first for verified-passwordless and unknown (signup) emails.
+        // Unverified existing accounts also allow creation: some GoTrue
+        // versions reject a login-only OTP for unconfirmed accounts, and
+        // shouldCreateUser=true never duplicates an existing account.
         final sent = await notifier.sendEmailOtp(
           identifier,
-          isSignup: !status.exists,
+          isSignup: !status.exists || !status.verified,
         );
         if (sent && mounted) {
-          context.push('/otp?email=$encodedIdentifier');
+          unawaited(context.push('/otp?email=$encodedIdentifier'));
         }
         return;
       }
@@ -102,20 +138,26 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
       // Phone channel.
       if (status.nextStep == IdentifierNextStep.password) {
         // Existing verified account with a password → password login.
-        context.push('/login?phone=$encodedIdentifier');
+        unawaited(context.push('/login?phone=$encodedIdentifier'));
       } else if (status.exists) {
         // Existing but passwordless/unverified account → OTP-first login.
-        await notifier.requestOtp(identifier);
+        // Allow creation for unverified accounts: some GoTrue versions reject
+        // a login-only OTP for unconfirmed accounts; an existing account is
+        // never duplicated by shouldCreateUser=true.
+        await notifier.requestOtp(
+          identifier,
+          shouldCreateUser: !status.verified,
+        );
         if (mounted &&
             ref.read(authControllerProvider).status != AuthStatus.error) {
-          context.push('/otp?phone=$encodedIdentifier');
+          unawaited(context.push('/otp?phone=$encodedIdentifier'));
         }
       } else {
         // Unknown → OTP-first signup.
         await notifier.requestOtp(identifier, shouldCreateUser: true);
         if (mounted &&
             ref.read(authControllerProvider).status != AuthStatus.error) {
-          context.push('/otp?phone=$encodedIdentifier');
+          unawaited(context.push('/otp?phone=$encodedIdentifier'));
         }
       }
     } finally {
@@ -229,6 +271,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
                   TextField(
                     key: const Key('enter_phone_input'),
                     controller: _controller,
+                    focusNode: _identifierFocusNode,
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: _looksLikeEmail
                         ? const [AutofillHints.email]

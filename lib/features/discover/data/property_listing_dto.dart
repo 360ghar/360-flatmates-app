@@ -1,3 +1,4 @@
+import '../../../core/utils/safe_json_list.dart';
 import '../domain/property_listing.dart';
 
 class PropertyListingDto {
@@ -36,8 +37,7 @@ class PropertyListingDto {
       }
     });
 
-    final rawUserVotes =
-        preferences['society_tag_user_votes'] as Map? ?? {};
+    final rawUserVotes = preferences['society_tag_user_votes'] as Map? ?? {};
     final societyTagUserVotes = <String, String>{};
     rawUserVotes.forEach((userId, vote) {
       societyTagUserVotes[userId.toString()] = vote.toString();
@@ -107,7 +107,9 @@ class PropertyListingDto {
       userNextVisitDate: DateTime.tryParse(
         json['user_next_visit_date']?.toString() ?? '',
       ),
-      googleStreetViewUrl: _ensureAbsoluteUrl(json['google_street_view_url'] as String?),
+      googleStreetViewUrl: _ensureAbsoluteUrl(
+        json['google_street_view_url'] as String?,
+      ),
       ownerContact: json['owner_contact'] as String?,
       floorNumber: (json['floor_number'] as num?)?.toInt(),
       totalFloors: (json['total_floors'] as num?)?.toInt(),
@@ -121,9 +123,7 @@ class PropertyListingDto {
   }
 
   static List<PropertyListing> fromJsonList(List<dynamic> list) {
-    return list
-        .map((item) => fromJson(Map<String, dynamic>.from(item as Map)))
-        .toList();
+    return safeJsonList(list, fromJson, label: 'propertyListings');
   }
 
   static List<PropertyImageInfo> _parseImages(Map<String, dynamic> json) {
@@ -134,14 +134,16 @@ class PropertyListingDto {
       if (item is! Map) continue;
       final url = item['image_url']?.toString();
       if (url == null || url.isEmpty || !_isAbsoluteUrl(url)) continue;
-      images.add(PropertyImageInfo(
-        id: (item['id'] as num?)?.toInt() ?? 0,
-        imageUrl: url,
-        caption: item['caption']?.toString(),
-        imageCategory: item['image_category']?.toString(),
-        displayOrder: (item['display_order'] as num?)?.toInt(),
-        isMainImage: item['is_main_image'] as bool? ?? false,
-      ));
+      images.add(
+        PropertyImageInfo(
+          id: (item['id'] as num?)?.toInt() ?? 0,
+          imageUrl: url,
+          caption: item['caption']?.toString(),
+          imageCategory: item['image_category']?.toString(),
+          displayOrder: (item['display_order'] as num?)?.toInt(),
+          isMainImage: item['is_main_image'] as bool? ?? false,
+        ),
+      );
     }
     return images;
   }
@@ -149,9 +151,12 @@ class PropertyListingDto {
   static List<String> _parseFallbackImageUrls(Map<String, dynamic> json) {
     final raw = json['image_urls'];
     if (raw is List && raw.isNotEmpty) {
-      final strings = raw.whereType<String>().where(
-        (url) => url.startsWith('http://') || url.startsWith('https://'),
-      ).toList();
+      final strings = raw
+          .whereType<String>()
+          .where(
+            (url) => url.startsWith('http://') || url.startsWith('https://'),
+          )
+          .toList();
       if (strings.isNotEmpty) return strings;
     }
     final imageRows = json['images'];
@@ -178,12 +183,14 @@ class PropertyListingDto {
     final amenities = <PropertyAmenityInfo>[];
     for (final item in raw) {
       if (item is! Map) continue;
-      amenities.add(PropertyAmenityInfo(
-        id: (item['id'] as num?)?.toInt() ?? 0,
-        title: item['title']?.toString() ?? '',
-        icon: item['icon']?.toString(),
-        category: item['category']?.toString(),
-      ));
+      amenities.add(
+        PropertyAmenityInfo(
+          id: (item['id'] as num?)?.toInt() ?? 0,
+          title: item['title']?.toString() ?? '',
+          icon: item['icon']?.toString(),
+          category: item['category']?.toString(),
+        ),
+      );
     }
     return amenities;
   }

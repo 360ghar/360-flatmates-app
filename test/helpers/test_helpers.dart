@@ -69,17 +69,6 @@ class FakeAuthController extends AuthController {
   }
 
   @override
-  Future<bool> signUpWithPassword({
-    required String fullName,
-    required String phone,
-    required String password,
-    String? email,
-  }) async {
-    state = AuthState(status: AuthStatus.authenticated, phone: phone);
-    return true;
-  }
-
-  @override
   Future<IdentifierStatus?> checkIdentifierStatus(String identifier) async {
     return IdentifierStatus(
       exists: false,
@@ -123,36 +112,22 @@ class FakeSettingsController extends SettingsController {
   }
 }
 
-BootstrapData fakeBootstrapData() => BootstrapData(
-  profile: const FlatmatesProfileModel(
+BootstrapData fakeBootstrapData() => const BootstrapData(
+  profile: FlatmatesProfileModel(
     id: 1,
     fullName: 'Test User',
     phone: '+919999999999',
     email: 'test@example.com',
-    profileImageUrl: null,
     mode: 'co_hunter',
     profileStatus: 'active',
     onboardingCompleted: true,
-    bio: null,
     age: 25,
     profession: 'Engineer',
-    budgetMin: null,
-    budgetMax: null,
-    moveInTimeline: null,
     city: 'Bangalore',
     state: 'Karnataka',
     locality: 'Koramangala',
-    sleepSchedule: null,
-    cleanliness: null,
-    foodHabits: null,
-    smokingDrinking: null,
-    guestsPolicy: null,
-    workStyle: null,
-    gender: null,
-    genderPreference: null,
-    preferences: {},
   ),
-  catalogs: const [
+  catalogs: [
     CatalogEntryModel(
       key: 'flatmates_modes',
       version: 1,
@@ -207,9 +182,6 @@ BootstrapData fakeBootstrapData() => BootstrapData(
       },
     ),
   ],
-  activeListingCount: 0,
-  conversationCount: 0,
-  unreadMessageCount: 0,
 );
 
 class FakeBootstrapController extends BootstrapController {

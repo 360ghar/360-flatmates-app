@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -290,7 +292,7 @@ class ListingDraftController extends Notifier<ListingDraftState> {
           .createListing(request);
 
       // Refresh discover feed so the new listing shows up.
-      ref.read(discoverFeedControllerProvider.notifier).refresh();
+      unawaited(ref.read(discoverFeedControllerProvider.notifier).refresh());
 
       await ref.read(bootstrapControllerProvider.notifier).refresh();
 

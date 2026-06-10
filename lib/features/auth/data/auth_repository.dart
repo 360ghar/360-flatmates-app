@@ -376,27 +376,6 @@ final class AuthRepository {
     await _apiClient.get(FlatmatesEndpoints.me);
   }
 
-  Future<void> signUpWithPassword({
-    required String fullName,
-    required String phone,
-    required String password,
-    String? email,
-  }) async {
-    final response = await _supabase.auth.signUp(
-      phone: phone,
-      password: password,
-      data: {
-        'full_name': fullName,
-        if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
-      },
-    );
-    final session = response.session ?? _supabase.auth.currentSession;
-    if (session != null) {
-      await _tokenStorage.save(session.accessToken);
-      await _apiClient.get(FlatmatesEndpoints.me);
-    }
-  }
-
   Future<void> verifyOtp({required String phone, required String otp}) async {
     final response = await _supabase.auth.verifyOTP(
       phone: phone,
@@ -503,6 +482,9 @@ final class AuthRepository {
       );
     }
     await _tokenStorage.save(session.accessToken);
+    // The session is kept after the reset (stay signed in) — sync the backend
+    // user mirror the same way the login OTP verify does.
+    await _apiClient.get(FlatmatesEndpoints.me);
   }
 
   /// Email reset channel (decision 1: OTP for both channels). Sends a 6-digit
@@ -527,6 +509,9 @@ final class AuthRepository {
       );
     }
     await _tokenStorage.save(session.accessToken);
+    // The session is kept after the reset (stay signed in) — sync the backend
+    // user mirror the same way the login OTP verify does.
+    await _apiClient.get(FlatmatesEndpoints.me);
   }
 
   Future<void> signOut() async {

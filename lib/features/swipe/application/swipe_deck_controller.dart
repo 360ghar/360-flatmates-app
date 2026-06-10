@@ -11,6 +11,9 @@ class SwipeDeckController extends Notifier<AsyncValue<List<SwipeProfile>>> {
 
   @override
   AsyncValue<List<SwipeProfile>> build() {
+    // Reload the deck whenever shared discover filters (location, radius,
+    // move-in, ...) change from the swipe header or the explore page.
+    ref.watch(discoverFiltersProvider);
     Future.microtask(() => _load());
     return const AsyncLoading();
   }

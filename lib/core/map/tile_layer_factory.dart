@@ -21,9 +21,7 @@ class TileLayerFactory {
   static Client? _sharedClient;
 
   static Client get _client {
-    if (_sharedClient == null) {
-      _sharedClient = Client();
-    }
+    _sharedClient ??= Client();
     return _sharedClient!;
   }
 

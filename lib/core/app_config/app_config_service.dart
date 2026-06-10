@@ -51,15 +51,17 @@ class AppConfigService {
   Future<VersionCheckResult?> checkForUpdates() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      final response = await ref.read(apiClientProvider).post(
-        FlatmatesEndpoints.versionCheck,
-        data: {
-          'app': 'flatmates',
-          'platform': defaultTargetPlatform.name,
-          'current_version': packageInfo.version,
-          'build_number': packageInfo.buildNumber,
-        },
-      );
+      final response = await ref
+          .read(apiClientProvider)
+          .post(
+            FlatmatesEndpoints.versionCheck,
+            data: {
+              'app': 'flatmates',
+              'platform': defaultTargetPlatform.name,
+              'current_version': packageInfo.version,
+              'build_number': packageInfo.buildNumber,
+            },
+          );
       final data = response.data;
       if (data is Map<String, dynamic>) {
         return VersionCheckResult.fromJson(data);
@@ -77,9 +79,7 @@ class AppConfigService {
 
   /// Maps the backend's version check result to a local update status,
   /// respecting per-version optional-update dismissal.
-  Future<AppUpdateStatus> resolveUpdateStatus(
-    VersionCheckResult result,
-  ) async {
+  Future<AppUpdateStatus> resolveUpdateStatus(VersionCheckResult result) async {
     if (!result.updateAvailable) return AppUpdateStatus.upToDate;
     if (result.isMandatory) return AppUpdateStatus.forceUpdate;
 

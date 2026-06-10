@@ -84,8 +84,6 @@ class _OtpPageState extends ConsumerState<OtpPage>
     }
   }
 
-
-
   void _submitOtp() {
     if (_isSubmitting) return;
     final auth = ref.read(authControllerProvider);
@@ -96,7 +94,10 @@ class _OtpPageState extends ConsumerState<OtpPage>
     _isSubmitting = true;
     final notifier = ref.read(authControllerProvider.notifier);
     if (_isEmail) {
-      notifier.verifyEmailOtp(email: _email, otp: _otpKey.currentState?.otp ?? '');
+      notifier.verifyEmailOtp(
+        email: _email,
+        otp: _otpKey.currentState?.otp ?? '',
+      );
     } else {
       notifier.verifyOtp(phone: _phone, otp: _otpKey.currentState?.otp ?? '');
     }
@@ -163,10 +164,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
               ),
             ],
             const SizedBox(height: AppSpacing.screen),
-            FlatmatesOtpInput(
-              key: _otpKey,
-              onCompleted: (_) => _submitOtp(),
-            ),
+            FlatmatesOtpInput(key: _otpKey, onCompleted: (_) => _submitOtp()),
             if (auth.status == AuthStatus.error &&
                 auth.errorMessage != null) ...[
               const SizedBox(height: AppSpacing.md),

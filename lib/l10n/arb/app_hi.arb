@@ -19,7 +19,6 @@
   "phoneNumberLabel": "फोन नंबर",
   "loginWithPassword": "पासवर्ड से लॉगिन करें",
   "continueWithOtp": "OTP के साथ जारी रखें",
-  "createAccountCta": "खाता बनाएं",
   "addPhoneTitle": "अपना फोन नंबर जोड़ें",
   "addPhoneSubtitle": "ताकि फ्लैटमेट आप तक पहुंच सकें, फोन नंबर जोड़ें। आप इसे अभी छोड़ सकते हैं।",
   "addPhoneCta": "कोड भेजें",
@@ -35,7 +34,6 @@
     }
   },
   "loginTitle": "लॉगिन",
-  "signupTitle": "अपना खाता बनाएं",
   "fullNameLabel": "पूरा नाम",
   "emailLabel": "ईमेल",
   "passwordLabel": "पासवर्ड",
@@ -197,6 +195,24 @@
   "likesIncomingLabel": "आपका मैच हो गया। बातचीत शुरू करें।",
   "emptyLikes": "अभी कोई नया लाइक नहीं है।",
   "chatsTitle": "चैट्स",
+  "callCta": "कॉल करें",
+  "listingDetails": "लिस्टिंग विवरण",
+  "percentMatch": "{percent}% मैच",
+  "@percentMatch": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "yearsOldLabel": "{age} वर्ष",
+  "@yearsOldLabel": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
   "emptyChats": "अभी कोई बातचीत नहीं है।",
   "chatReady": "जब आप तैयार हों, आपकी चैट भी तैयार है।",
   "messageHint": "संदेश टाइप करें...",
@@ -558,7 +574,16 @@
   },
   "waitlistNotifyCta": "मुझे सूचित करें",
   "shareListingCta": "लिस्टिंग शेयर करें",
+  "copyLinkAction": "लिंक कॉपी करें",
+  "linkCopiedToast": "लिंक कॉपी हो गया",
   "listingUnderReview": "लिस्टिंग समीक्षा में है",
+  "postHubTitle": "आपकी लिस्टिंग",
+  "postHubPostSubtitle": "मिनटों में नई रूम लिस्टिंग बनाएं",
+  "manageListingsTitle": "लिस्टिंग प्रबंधित करें",
+  "postHubManageSubtitle": "अपनी लिस्टिंग संपादित करें, रोकें या नवीनीकृत करें",
+  "postHubActiveCount": "{count} सक्रिय",
+  "postHubDraftCount": "{count} ड्राफ्ट",
+  "couldNotLoadListings": "लिस्टिंग लोड नहीं हो सकीं",
   "listingLive": "लाइव",
   "listingPaused": "रोका हुआ",
   "listingExpired": "एक्सपायर",
@@ -1448,6 +1473,12 @@
   "listingLabel": "लिस्टिंग",
   "liveBadge": "लाइव",
   "floorPlanSectionTitle": "फ़्लोर प्लान",
+  "tapToZoomHint": "ज़ूम करने के लिए टैप करें",
+  "factBedsLabel": "बेड",
+  "factBathsLabel": "बाथ",
+  "factAreaLabel": "वर्ग फ़ुट",
+  "factFloorLabel": "मंज़िल",
+  "galleryPhotoSemantic": "फ़ोटो {current} / {total}",
   "virtualTourSectionTitle": "360° वर्चुअल टूर",
   "exploreVirtualTourPrompt": "इस प्रॉपर्टी को 360° में देखें",
   "openVirtualTourCta": "वर्चुअल टूर खोलें",

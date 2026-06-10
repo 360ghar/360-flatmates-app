@@ -212,12 +212,6 @@ abstract class AppLocalizations {
   /// **'Continue with OTP'**
   String get continueWithOtp;
 
-  /// No description provided for @createAccountCta.
-  ///
-  /// In en, this message translates to:
-  /// **'Create account'**
-  String get createAccountCta;
-
   /// No description provided for @addPhoneTitle.
   ///
   /// In en, this message translates to:
@@ -265,12 +259,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login'**
   String get loginTitle;
-
-  /// No description provided for @signupTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your account'**
-  String get signupTitle;
 
   /// No description provided for @fullNameLabel.
   ///
@@ -565,6 +553,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chats'**
   String get chatsTitle;
+
+  /// No description provided for @callCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get callCta;
+
+  /// No description provided for @listingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing details'**
+  String get listingDetails;
+
+  /// No description provided for @percentMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% Match'**
+  String percentMatch(int percent);
+
+  /// No description provided for @yearsOldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{age} years'**
+  String yearsOldLabel(int age);
 
   /// No description provided for @emptyChats.
   ///
@@ -2444,6 +2456,18 @@ abstract class AppLocalizations {
   /// **'Share listing'**
   String get shareListingCta;
 
+  /// No description provided for @copyLinkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get copyLinkAction;
+
+  /// No description provided for @linkCopiedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get linkCopiedToast;
+
   /// No description provided for @listingUnderReview.
   ///
   /// In en, this message translates to:
@@ -2473,6 +2497,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage listing'**
   String get manageListingTitle;
+
+  /// No description provided for @postHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listings'**
+  String get postHubTitle;
+
+  /// No description provided for @postHubPostSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new room listing in minutes'**
+  String get postHubPostSubtitle;
+
+  /// No description provided for @manageListingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage listings'**
+  String get manageListingsTitle;
+
+  /// No description provided for @postHubManageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit, pause or renew your listings'**
+  String get postHubManageSubtitle;
+
+  /// No description provided for @postHubActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String postHubActiveCount(int count);
+
+  /// No description provided for @postHubDraftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} drafts'**
+  String postHubDraftCount(int count);
+
+  /// No description provided for @couldNotLoadListings.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load listings'**
+  String get couldNotLoadListings;
 
   /// No description provided for @boostListingCta.
   ///
@@ -5929,6 +5995,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Floor Plan'**
   String get floorPlanSectionTitle;
+
+  /// No description provided for @tapToZoomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to zoom'**
+  String get tapToZoomHint;
+
+  /// No description provided for @factBedsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Beds'**
+  String get factBedsLabel;
+
+  /// No description provided for @factBathsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Baths'**
+  String get factBathsLabel;
+
+  /// No description provided for @factAreaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sq.ft'**
+  String get factAreaLabel;
+
+  /// No description provided for @factFloorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor'**
+  String get factFloorLabel;
+
+  /// No description provided for @galleryPhotoSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {current} of {total}'**
+  String galleryPhotoSemantic(int current, int total);
 
   /// No description provided for @virtualTourSectionTitle.
   ///

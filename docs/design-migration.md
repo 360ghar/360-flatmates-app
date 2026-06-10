@@ -588,11 +588,9 @@ notification card, profile grid card, and many more inline widgets.
 - `colorScheme.onSurfaceVariant` (subtitle) → `AppSemanticColors.ink2`
 - `colorScheme.error` (error) → `AppSemanticColors.error`
 
-### 5.5 `auth/presentation/signup_page.dart`
-- `colorScheme.primary` → `AppSemanticColors.accent`
-- `colorScheme.onSurface` → `AppSemanticColors.ink`
-- `colorScheme.onSurfaceVariant` → `AppSemanticColors.ink2`
-- `colorScheme.error` → `AppSemanticColors.error`
+### 5.5 `auth/presentation/signup_page.dart` (removed)
+- Page deleted — signup is unified into the OTP-first entry flow
+  (`enter_phone_page.dart` → OTP verify → mandatory `set_password_page.dart`).
 
 ---
 

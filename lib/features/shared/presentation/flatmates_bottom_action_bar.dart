@@ -81,11 +81,7 @@ class FlatmatesBottomActionBar extends StatelessWidget {
     if (tertiaryIcon != null) {
       return Row(
         children: [
-          SizedBox(
-            width: 52,
-            height: 52,
-            child: _tertiaryButtonView(isDark),
-          ),
+          SizedBox(width: 52, height: 52, child: _tertiaryButtonView(isDark)),
           const SizedBox(width: AppSpacing.sm),
           if (secondaryLabel != null) ...[
             Expanded(
@@ -98,9 +94,7 @@ class FlatmatesBottomActionBar extends StatelessWidget {
                     shape: const RoundedRectangleBorder(
                       borderRadius: AppRadius.mdBorder,
                     ),
-                    side: const BorderSide(
-                      color: AppSemanticColors.line,
-                    ),
+                    side: const BorderSide(color: AppSemanticColors.line),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -150,9 +144,7 @@ class FlatmatesBottomActionBar extends StatelessWidget {
                   shape: const RoundedRectangleBorder(
                     borderRadius: AppRadius.mdBorder,
                   ),
-                  side: const BorderSide(
-                    color: AppSemanticColors.line,
-                  ),
+                  side: const BorderSide(color: AppSemanticColors.line),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -218,9 +210,9 @@ class FlatmatesBottomActionBar extends StatelessWidget {
             size: 22,
             color: tertiarySelected
                 ? AppSemanticColors.accent
-                : AppSemanticColors.textTertiaryFor(isDark
-                    ? Brightness.dark
-                    : Brightness.light),
+                : AppSemanticColors.textTertiaryFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
           ),
         ),
       ),

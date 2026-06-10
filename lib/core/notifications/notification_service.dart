@@ -100,9 +100,7 @@ class NotificationService {
     try {
       final prefs = _ref.read(appPreferencesProvider);
 
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        
-      );
+      final settings = await FirebaseMessaging.instance.requestPermission();
 
       await prefs.setBool(PrefKeys.notifPermissionRequested, true);
 
@@ -145,9 +143,9 @@ class NotificationService {
       }
       _initialized = true;
     } catch (e) {
-      _onMessageSub?.cancel();
-      _onMessageOpenedAppSub?.cancel();
-      _onTokenRefreshSub?.cancel();
+      unawaited(_onMessageSub?.cancel());
+      unawaited(_onMessageOpenedAppSub?.cancel());
+      unawaited(_onTokenRefreshSub?.cancel());
       _onMessageSub = null;
       _onMessageOpenedAppSub = null;
       _onTokenRefreshSub = null;
@@ -190,7 +188,7 @@ class NotificationService {
   }
 
   void _handleMessageTap(RemoteMessage message) {
-    final route = message.data['route'];
+    final route = message.data['route'] as String?;
     if (route != null && route.isNotEmpty) {
       _pendingRoute = route;
     }

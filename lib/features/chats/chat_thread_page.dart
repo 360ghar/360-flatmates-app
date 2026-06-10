@@ -18,6 +18,7 @@ import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 import '../visits/visits_repository.dart';
 import 'application/chat_actions_controller.dart';
+import 'application/messages_controller.dart';
 import 'chats_repository.dart';
 import 'domain/chat_report_reason.dart';
 import 'match_qna_nudge.dart';
@@ -27,7 +28,6 @@ import 'presentation/widgets/chat_dialogs.dart';
 import 'presentation/widgets/chat_input_area.dart';
 import 'presentation/widgets/chat_pre_message_area.dart';
 import 'presentation/widgets/message_list.dart';
-import 'presentation/widgets/chat_property_card.dart';
 import 'presentation/widgets/chat_qna_answers_card.dart';
 
 class ChatThreadPage extends ConsumerStatefulWidget {
@@ -46,9 +46,7 @@ class ChatThreadPage extends ConsumerStatefulWidget {
 
 class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   final _messageController = TextEditingController();
-  bool _hasSentFirstMessage = false;
   bool _showQnANudge = false;
-  bool _propertyCardExpanded = true;
   ConversationSummaryModel? _conversation;
   final _sendDebouncer = ActionDebouncer(
     duration: const Duration(milliseconds: 300),
@@ -122,13 +120,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   Future<void> _markMessagesAsRead() async {
-    try {
-      await ref
-          .read(chatsRepositoryProvider)
-          .markMessagesAsRead(widget.conversationId);
-    } catch (e) {
-      debugPrint('ChatThreadPage._markMessagesAsRead failed: $e');
-    }
+    await ref
+        .read(messagesControllerProvider(widget.conversationId).notifier)
+        .markAsRead();
   }
 
   Future<void> _scheduleVisit() async {
@@ -151,10 +145,8 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     _messageController.clear();
     try {
       await ref
-          .read(chatsRepositoryProvider)
-          .sendMessage(conversationId: widget.conversationId, body: body);
-      setState(() => _hasSentFirstMessage = true);
-      ref.invalidate(conversationsProvider);
+          .read(messagesControllerProvider(widget.conversationId).notifier)
+          .sendMessage(body: body);
     } catch (e) {
       debugPrint('ChatThreadPage._sendMessage failed: $e');
       _messageController.text = previousText;
@@ -183,14 +175,8 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
         return;
       }
       await ref
-          .read(chatsRepositoryProvider)
-          .sendMessage(
-            conversationId: widget.conversationId,
-            attachmentUrl: result.url,
-            messageType: 'image',
-          );
-      setState(() => _hasSentFirstMessage = true);
-      ref.invalidate(conversationsProvider);
+          .read(messagesControllerProvider(widget.conversationId).notifier)
+          .sendMessage(attachmentUrl: result.url, messageType: 'image');
     } catch (e) {
       debugPrint('ChatThreadPage._sendPhoto failed: $e');
       if (mounted) {
@@ -293,7 +279,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(messagesStreamProvider(widget.conversationId));
+    final messagesState = ref.watch(
+      messagesControllerProvider(widget.conversationId),
+    );
     final visits = ref.watch(visitsProvider);
     final fetchedConversation = _conversation == null
         ? ref.watch(conversationProvider(widget.conversationId))
@@ -305,22 +293,13 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
           bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
         ) ??
         -1;
-
-    ref.listen(messagesStreamProvider(widget.conversationId), (prev, next) {
-      final msgs = next.valueOrNull;
-      if (msgs != null && msgs.isNotEmpty) {
-        final hasSent = msgs.any((m) => m.senderId == currentUserId);
-        if (hasSent != _hasSentFirstMessage) {
-          setState(() => _hasSentFirstMessage = hasSent);
-        }
-      }
-    });
+    final hasSentFirstMessage = messagesState.displayMessages.any(
+      (m) => m.senderId == currentUserId,
+    );
 
     if (_conversation == null && fetchedConversation != null) {
       if (fetchedConversation.isLoading) {
-        return const FlatmatesScreen(
-          body: FlatmatesSkeleton.chatMessages(),
-        );
+        return const FlatmatesScreen(body: FlatmatesSkeleton.chatMessages());
       }
       if (fetchedConversation.hasError) {
         return FlatmatesScreen(
@@ -352,23 +331,15 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
         onUnmatch: _unmatch,
         onCall: _handleCall,
         onScheduleVisit: _scheduleVisit,
+        onPeerTap: conversation == null
+            ? null
+            : () => context.push(
+                '/user-profile/${conversation.peer.id}',
+                extra: conversation,
+              ),
       ),
       body: Column(
         children: [
-          if (conversation?.contextProperty != null && conversation != null)
-            ChatPropertyCard(
-              conversation: conversation,
-              isExpanded: _propertyCardExpanded,
-              onToggleExpand: () => setState(
-                () => _propertyCardExpanded = !_propertyCardExpanded,
-              ),
-              onViewListing: () => context.push(
-                '/flat-details/${conversation.contextProperty!.id}',
-              ),
-              onMiniCardTap: () => context.push(
-                '/flat-details/${conversation.contextProperty!.id}',
-              ),
-            ),
           if ((conversation?.qna?.hasAnyAnswers ?? false) &&
               conversation != null)
             Padding(
@@ -384,7 +355,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
                 onAnswer: _showQnABottomSheet,
               ),
             ),
-          if (!_hasSentFirstMessage)
+          if (!hasSentFirstMessage)
             ChatPreMessageArea(
               showQnANudge: _showQnANudge,
               onQnATap: _showQnABottomSheet,
@@ -396,7 +367,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
             ),
           Expanded(
             child: MessageList(
-              messagesAsync: messages,
+              messagesState: messagesState,
               currentUserId: currentUserId,
               conversation: conversation,
               visitsAsync: visits,

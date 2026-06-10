@@ -120,13 +120,27 @@ class AuthController extends Notifier<AuthState> {
   /// meaningful message instead of the generic "Something went wrong".
   String _userSafeMessage(Object error) {
     if (error is AppFailure) {
-      if (error is AuthExpiredFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
-      if (error is ServerFailure && error.serverMessage != null) return 'failure:server|${error.serverMessage}';
-      if (error is PermissionFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
-      if (error is NotFoundFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
-      if (error is ConflictFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
-      if (error is RateLimitFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
-      if (error is UnknownFailure && error.serverMessage != null) return 'failure:${error.label}|${error.serverMessage}';
+      if (error is AuthExpiredFailure && error.serverMessage != null) {
+        return 'failure:${error.label}|${error.serverMessage}';
+      }
+      if (error is ServerFailure && error.serverMessage != null) {
+        return 'failure:server|${error.serverMessage}';
+      }
+      if (error is PermissionFailure && error.serverMessage != null) {
+        return 'failure:${error.label}|${error.serverMessage}';
+      }
+      if (error is NotFoundFailure && error.serverMessage != null) {
+        return 'failure:${error.label}|${error.serverMessage}';
+      }
+      if (error is ConflictFailure && error.serverMessage != null) {
+        return 'failure:${error.label}|${error.serverMessage}';
+      }
+      if (error is RateLimitFailure && error.serverMessage != null) {
+        return 'failure:${error.label}|${error.serverMessage}';
+      }
+      if (error is UnknownFailure && error.serverMessage != null) {
+        return 'failure:${error.label}|${error.serverMessage}';
+      }
       return 'failure:${error.label}';
     }
     if (error is AuthException) {
@@ -144,7 +158,9 @@ class AuthController extends Notifier<AuthState> {
       }
       return 'failure:unknown';
     }
-    debugPrint('AuthController._userSafeMessage: unhandled ${error.runtimeType}: $error');
+    debugPrint(
+      'AuthController._userSafeMessage: unhandled ${error.runtimeType}: $error',
+    );
     return 'failure:unknown';
   }
 
@@ -389,34 +405,6 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> signUpWithPassword({
-    required String fullName,
-    required String phone,
-    required String password,
-    String? email,
-  }) async {
-    clearError();
-    state = state.copyWith(status: AuthStatus.submitting, phone: phone);
-    try {
-      await _repository.signUpWithPassword(
-        fullName: fullName,
-        phone: phone,
-        password: password,
-        email: email,
-      );
-      await _rememberMethod(AuthMethod.phonePassword, identifier: phone);
-      state = AuthState(status: AuthStatus.authenticated, phone: phone);
-      return true;
-    } catch (error) {
-      state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: _userSafeMessage(error),
-        phone: phone,
-      );
-      return false;
-    }
-  }
-
   Future<bool> verifyOtp({required String phone, required String otp}) async {
     clearError();
     state = state.copyWith(status: AuthStatus.submitting, phone: phone);
@@ -603,6 +591,26 @@ class AuthController extends Notifier<AuthState> {
       );
       return false;
     }
+  }
+
+  /// Finishes a forgot-password reset while keeping the session created by
+  /// the reset OTP verify: the OTP already proved identity, so the user stays
+  /// signed in instead of re-entering the new password on the login screen.
+  /// Records the password-based last_auth_method per channel and flips the
+  /// router into the authenticated redirect chain.
+  Future<void> completePasswordReset({
+    required String identifier,
+    required AuthChannel channel,
+  }) async {
+    final method = channel == AuthChannel.email
+        ? AuthMethod.emailPassword
+        : AuthMethod.phonePassword;
+    await _rememberMethod(method, identifier: identifier);
+    _resolvedHasPassword = true;
+    state = AuthState(
+      status: AuthStatus.authenticated,
+      phone: _repository.currentPhone,
+    );
   }
 
   Future<void> signOut() async {

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../../core/utils/safe_json_list.dart';
 import '../chats/chats_repository.dart';
 
 class VisitItem {
@@ -50,14 +51,14 @@ class VisitsRepository {
 
   Future<List<VisitItem>> fetchVisits() async {
     final response = await _ref
-        .watch(apiClientProvider)
+        .read(apiClientProvider)
         .get(FlatmatesEndpoints.visits);
     final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
-    final visits = (data['visits'] as List? ?? const []);
-    return visits
-        .whereType<Map>()
-        .map((item) => VisitItem.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+    return safeJsonList(
+      data['visits'] as List?,
+      VisitItem.fromJson,
+      label: 'visits',
+    );
   }
 
   Future<int> scheduleFlatmateVisit({
@@ -69,7 +70,7 @@ class VisitsRepository {
     String? timeSlotLabel,
   }) async {
     final response = await _ref
-        .watch(apiClientProvider)
+        .read(apiClientProvider)
         .post(
           FlatmatesEndpoints.visits,
           data: {
@@ -132,13 +133,13 @@ class VisitsRepository {
 
   Future<void> confirmVisit(int visitId) async {
     await _ref
-        .watch(apiClientProvider)
+        .read(apiClientProvider)
         .put(FlatmatesEndpoints.visit(visitId), data: {'status': 'confirmed'});
   }
 
   Future<void> rescheduleVisit(int visitId, DateTime newDate) async {
     await _ref
-        .watch(apiClientProvider)
+        .read(apiClientProvider)
         .put(
           FlatmatesEndpoints.visit(visitId),
           data: {
@@ -150,7 +151,7 @@ class VisitsRepository {
 
   Future<void> cancelVisit(int visitId) async {
     await _ref
-        .watch(apiClientProvider)
+        .read(apiClientProvider)
         .put(FlatmatesEndpoints.visit(visitId), data: {'status': 'cancelled'});
   }
 }

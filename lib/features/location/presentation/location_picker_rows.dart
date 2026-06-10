@@ -71,7 +71,10 @@ class LocationSuggestionRow extends StatelessWidget {
       borderColor: AppSemanticColors.line.withValues(alpha: 0.35),
       child: Row(
         children: [
-          const Icon(Icons.location_on_outlined, color: AppSemanticColors.accent),
+          const Icon(
+            Icons.location_on_outlined,
+            color: AppSemanticColors.accent,
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -175,11 +178,17 @@ class LocationCityRow extends StatelessWidget {
           : AppSemanticColors.line.withValues(alpha: 0.35),
       child: Row(
         children: [
-          const Icon(Icons.location_on_outlined, color: AppSemanticColors.accent),
+          const Icon(
+            Icons.location_on_outlined,
+            color: AppSemanticColors.accent,
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(child: Text(city.label, style: theme.textTheme.bodyLarge)),
           if (selected)
-            const Icon(Icons.check_circle_rounded, color: AppSemanticColors.accent)
+            const Icon(
+              Icons.check_circle_rounded,
+              color: AppSemanticColors.accent,
+            )
           else
             const Icon(Icons.chevron_right, color: AppSemanticColors.line),
         ],

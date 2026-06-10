@@ -7,77 +7,141 @@ import '../chats_repository.dart';
 class MessagesState {
   const MessagesState({
     this.messages = const [],
+    this.pendingMessages = const [],
     this.isLoading = false,
     this.isSending = false,
     this.error,
-    this.pendingMessage,
   });
 
+  /// Authoritative messages from the realtime stream / HTTP refetch.
   final List<ChatMessage> messages;
+
+  /// Optimistic messages (negative ids) not yet confirmed by the backend.
+  final List<ChatMessage> pendingMessages;
+
   final bool isLoading;
   final bool isSending;
   final Object? error;
-  final ChatMessage? pendingMessage;
 
   bool get hasError => error != null;
 
+  /// What the UI renders: authoritative + still-unconfirmed optimistic.
+  List<ChatMessage> get displayMessages => [...messages, ...pendingMessages];
+
   MessagesState copyWith({
     List<ChatMessage>? messages,
+    List<ChatMessage>? pendingMessages,
     bool? isLoading,
     bool? isSending,
     Object? error,
     bool clearError = false,
-    ChatMessage? pendingMessage,
-    bool clearPending = false,
   }) {
     return MessagesState(
       messages: messages ?? this.messages,
+      pendingMessages: pendingMessages ?? this.pendingMessages,
       isLoading: isLoading ?? this.isLoading,
       isSending: isSending ?? this.isSending,
       error: clearError ? null : (error ?? this.error),
-      pendingMessage: clearPending
-          ? null
-          : (pendingMessage ?? this.pendingMessage),
     );
   }
 }
 
+/// Removes pending messages that the backend has confirmed, greedily
+/// consuming one real row per pending message so a double-send of identical
+/// text keeps the second bubble until its own row arrives.
+@visibleForTesting
+List<ChatMessage> pruneConfirmedPending(
+  List<ChatMessage> real,
+  List<ChatMessage> pending,
+) {
+  if (pending.isEmpty) return pending;
+  final unconsumed = real.where((m) => m.id > 0).toList();
+  final remaining = <ChatMessage>[];
+  for (final candidate in pending) {
+    final index = unconsumed.indexWhere((m) => _confirms(m, candidate));
+    if (index >= 0) {
+      unconsumed.removeAt(index);
+    } else {
+      remaining.add(candidate);
+    }
+  }
+  return remaining;
+}
+
+/// Merges a refetched snapshot into the current list by id, so a refetch
+/// that raced with a newer realtime emission can't drop messages that
+/// arrived in between. Refetched rows win for shared ids (fresher read
+/// receipts); ordering follows createdAt ascending like the backend.
+@visibleForTesting
+List<ChatMessage> mergeMessages(
+  List<ChatMessage> current,
+  List<ChatMessage> refetched,
+) {
+  final byId = {
+    for (final message in current) message.id: message,
+    for (final message in refetched) message.id: message,
+  };
+  return byId.values.toList()
+    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+}
+
+bool _confirms(ChatMessage real, ChatMessage pending) {
+  return real.senderId == pending.senderId &&
+      real.messageType == pending.messageType &&
+      (real.body ?? '') == (pending.body ?? '') &&
+      (real.attachmentUrl ?? '') == (pending.attachmentUrl ?? '') &&
+      // Window guards against an identical older message confirming a new
+      // optimistic bubble.
+      real.createdAt.difference(pending.createdAt).inMinutes.abs() <= 2;
+}
+
 class MessagesController extends FamilyNotifier<MessagesState, int> {
   int _currentUserId = 0;
+  int _nextOptimisticId = -1;
 
   @override
   MessagesState build(int conversationId) {
     _currentUserId = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id ?? 0),
     );
-    load(conversationId);
-    return const MessagesState(isLoading: true);
+    ref.listen(
+      messagesStreamProvider(conversationId),
+      (previous, next) => _onStreamUpdate(next),
+    );
+    final initial = ref.read(messagesStreamProvider(conversationId));
+    return MessagesState(
+      messages: initial.valueOrNull ?? const [],
+      isLoading: initial.isLoading && !initial.hasValue,
+      error: initial.hasError && !initial.hasValue ? initial.error : null,
+    );
   }
 
-  Future<void> load(int conversationId) async {
-    try {
-      final repo = ref.read(chatsRepositoryProvider);
-      final response = await repo.fetchMessages(conversationId);
+  void _onStreamUpdate(AsyncValue<List<ChatMessage>> next) {
+    final messages = next.valueOrNull;
+    if (messages != null) {
       state = state.copyWith(
-        messages: response.messages,
+        messages: messages,
+        pendingMessages: pruneConfirmedPending(messages, state.pendingMessages),
         isLoading: false,
         clearError: true,
       );
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e);
+    } else if (next.hasError && state.messages.isEmpty) {
+      state = state.copyWith(isLoading: false, error: next.error);
     }
   }
 
+  /// Sends a message optimistically: the bubble appears immediately and is
+  /// confirmed by an authoritative refetch so it persists even when the
+  /// Supabase realtime stream is down. Rethrows on send failure after
+  /// removing the optimistic bubble so the UI can restore input and toast.
   Future<void> sendMessage({
-    required int conversationId,
     String? body,
     String? attachmentUrl,
     String messageType = 'text',
   }) async {
-    if (state.isSending) return;
-
-    final optimisticMessage = ChatMessage(
-      id: -1,
+    final conversationId = arg;
+    final optimistic = ChatMessage(
+      id: _nextOptimisticId--,
       conversationId: conversationId,
       senderId: _currentUserId,
       body: body,
@@ -85,31 +149,57 @@ class MessagesController extends FamilyNotifier<MessagesState, int> {
       createdAt: DateTime.now(),
       attachmentUrl: attachmentUrl,
     );
+    state = state.copyWith(
+      isSending: true,
+      pendingMessages: [...state.pendingMessages, optimistic],
+    );
 
-    state = state.copyWith(isSending: true, pendingMessage: optimisticMessage);
-
+    final repo = ref.read(chatsRepositoryProvider);
     try {
-      final repo = ref.read(chatsRepositoryProvider);
       await repo.sendMessage(
         conversationId: conversationId,
         body: body,
         attachmentUrl: attachmentUrl,
         messageType: messageType,
       );
-      state = state.copyWith(isSending: false, clearPending: true);
-      await load(conversationId);
     } catch (e) {
-      state = state.copyWith(isSending: false, clearPending: true, error: e);
+      state = state.copyWith(
+        isSending: false,
+        pendingMessages: state.pendingMessages
+            .where((m) => m.id != optimistic.id)
+            .toList(),
+      );
+      rethrow;
+    }
+
+    state = state.copyWith(isSending: false);
+    ref.invalidate(conversationsProvider);
+
+    // The POST succeeded; keep the optimistic bubble even if this refetch
+    // fails — the realtime stream or a later refetch will confirm it.
+    try {
+      final response = await repo.fetchMessages(conversationId);
+      final merged = mergeMessages(state.messages, response.messages);
+      state = state.copyWith(
+        messages: merged,
+        pendingMessages: pruneConfirmedPending(merged, state.pendingMessages),
+        isLoading: false,
+        clearError: true,
+      );
+    } catch (e) {
+      debugPrint(
+        'MessagesController.sendMessage: refetch failed for conversation '
+        '$conversationId: $e',
+      );
     }
   }
 
-  Future<void> markAsRead(int conversationId) async {
+  Future<void> markAsRead() async {
     try {
-      final repo = ref.read(chatsRepositoryProvider);
-      await repo.markMessagesAsRead(conversationId);
+      await ref.read(chatsRepositoryProvider).markMessagesAsRead(arg);
     } catch (e) {
       debugPrint(
-        'MessagesController.markAsRead failed for conversation $conversationId: $e',
+        'MessagesController.markAsRead failed for conversation $arg: $e',
       );
     }
   }

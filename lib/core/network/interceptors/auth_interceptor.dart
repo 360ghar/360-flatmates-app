@@ -85,7 +85,7 @@ final class AuthInterceptor extends Interceptor {
           _refreshCompleter!.complete(true);
           _refreshCompleter = null;
           handler.resolve(response);
-          _processQueue(newToken);
+          unawaited(_processQueue(newToken));
           return;
         }
         // No new token — session is genuinely gone. Clear and surface a 401.

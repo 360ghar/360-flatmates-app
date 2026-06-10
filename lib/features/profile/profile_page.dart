@@ -107,22 +107,28 @@ class ProfilePage extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
-                        if (profile.email != null && profile.email!.trim().isNotEmpty) ...[
+                        if (profile.email != null &&
+                            profile.email!.trim().isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text(
                             profile.email!,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                              color: AppSemanticColors.textSecondaryFor(
+                                theme.brightness,
+                              ),
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
-                        ] else if (profile.phone != null && profile.phone!.trim().isNotEmpty) ...[
+                        ] else if (profile.phone != null &&
+                            profile.phone!.trim().isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text(
                             profile.phone!,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                              color: AppSemanticColors.textSecondaryFor(
+                                theme.brightness,
+                              ),
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -200,7 +206,7 @@ class ProfilePage extends ConsumerWidget {
                       FlatmatesMenuItem(
                         icon: Icons.favorite_border,
                         label: locale.profileMenuShortlisted,
-                        onTap: () => context.go('/chats'),
+                        onTap: () => context.go('/chats?tab=likes'),
                       ),
                       const Divider(
                         height: 1,

@@ -51,50 +51,48 @@ class SwipeCardStack extends StatelessWidget {
     final progress = dragProgress;
 
     // Card 3: deepest background card (only if a third profile exists)
-    final Widget thirdCard =
-        thirdItem != null && thirdCompatibility != null
-            ? Positioned(
-                top: AppSpacing.md,
-                left: AppSpacing.screen,
-                right: AppSpacing.screen,
-                bottom: 0,
-                child: IgnorePointer(
-                  child: Opacity(
-                    opacity: 0.3 + 0.2 * progress,
-                    child: Transform.scale(
-                      scale: 0.88 + 0.06 * progress,
-                      child: SwipeProfileCard(
-                        item: thirdItem!,
-                        compatibility: thirdCompatibility!,
-                      ),
-                    ),
+    final Widget thirdCard = thirdItem != null && thirdCompatibility != null
+        ? Positioned(
+            top: AppSpacing.md,
+            left: AppSpacing.screen,
+            right: AppSpacing.screen,
+            bottom: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.3 + 0.2 * progress,
+                child: Transform.scale(
+                  scale: 0.88 + 0.06 * progress,
+                  child: SwipeProfileCard(
+                    item: thirdItem!,
+                    compatibility: thirdCompatibility!,
                   ),
                 ),
-              )
-            : const SizedBox.shrink();
+              ),
+            ),
+          )
+        : const SizedBox.shrink();
 
     // Card 2: middle background card (next card)
-    final Widget nextCard =
-        nextItem != null && nextCompatibility != null
-            ? Positioned(
-                top: AppSpacing.xs + AppSpacing.xs / 2,
-                left: AppSpacing.md,
-                right: AppSpacing.md,
-                bottom: 0,
-                child: IgnorePointer(
-                  child: Opacity(
-                    opacity: 0.6 + 0.4 * progress,
-                    child: Transform.scale(
-                      scale: 0.94 + 0.06 * progress,
-                      child: SwipeProfileCard(
-                        item: nextItem!,
-                        compatibility: nextCompatibility!,
-                      ),
-                    ),
+    final Widget nextCard = nextItem != null && nextCompatibility != null
+        ? Positioned(
+            top: AppSpacing.xs + AppSpacing.xs / 2,
+            left: AppSpacing.md,
+            right: AppSpacing.md,
+            bottom: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.6 + 0.4 * progress,
+                child: Transform.scale(
+                  scale: 0.94 + 0.06 * progress,
+                  child: SwipeProfileCard(
+                    item: nextItem!,
+                    compatibility: nextCompatibility!,
                   ),
                 ),
-              )
-            : const SizedBox.shrink();
+              ),
+            ),
+          )
+        : const SizedBox.shrink();
 
     // Card 1: foreground card (active, draggable)
     final Widget currentCard = Positioned(
@@ -162,9 +160,7 @@ class SwipeCardStack extends StatelessWidget {
       ),
     );
 
-    return Stack(
-      children: [thirdCard, nextCard, currentCard],
-    );
+    return Stack(children: [thirdCard, nextCard, currentCard]);
   }
 }
 

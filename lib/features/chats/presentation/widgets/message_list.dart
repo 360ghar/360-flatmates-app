@@ -7,13 +7,14 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_empty_state.dart';
 import '../../../shared/presentation/flatmates_error_state.dart';
 import '../../../shared/presentation/flatmates_skeleton.dart';
+import '../../application/messages_controller.dart';
 import '../../chats_repository.dart';
 import '../../../visits/visits_repository.dart';
 import 'chat_message_bubble.dart';
 
 class MessageList extends StatelessWidget {
   const MessageList({
-    required this.messagesAsync,
+    required this.messagesState,
     required this.currentUserId,
     required this.conversation,
     required this.visitsAsync,
@@ -22,7 +23,7 @@ class MessageList extends StatelessWidget {
     super.key,
   });
 
-  final AsyncValue<List<ChatMessage>> messagesAsync;
+  final MessagesState messagesState;
   final int currentUserId;
   final ConversationSummaryModel? conversation;
   final AsyncValue<List<VisitItem>> visitsAsync;
@@ -41,84 +42,88 @@ class MessageList extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
 
-    return messagesAsync.when(
-      data: (items) {
-        if (items.isEmpty) {
-          return FlatmatesEmptyState(
-            title: locale.startAConversation,
-            subtitle: locale.sayHelloOrIcebreaker,
-            icon: Icons.chat_bubble_outline_rounded,
+    if (messagesState.isLoading && messagesState.displayMessages.isEmpty) {
+      return const FlatmatesSkeleton.chatMessages();
+    }
+    if (messagesState.hasError && messagesState.displayMessages.isEmpty) {
+      return FlatmatesErrorState(message: locale.couldNotLoadMessages);
+    }
+
+    final items = messagesState.displayMessages;
+    if (items.isEmpty) {
+      return FlatmatesEmptyState(
+        title: locale.startAConversation,
+        subtitle: locale.sayHelloOrIcebreaker,
+        icon: Icons.chat_bubble_outline_rounded,
+      );
+    }
+
+    final todayDividerIndex = items.indexWhere(
+      (m) => _isMessageFromToday(m.createdAt),
+    );
+    final showTodayDivider = todayDividerIndex >= 0;
+    final visitsById = {
+      for (final visit in visitsAsync.valueOrNull ?? const <VisitItem>[])
+        visit.id: visit,
+    };
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.lg,
+      ),
+      itemCount: items.length + (showTodayDivider ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (showTodayDivider && index == todayDividerIndex) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Divider(
+                    color: AppSemanticColors.line.withValues(alpha: 0.5),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
+                  child: Text(
+                    locale.todayLabel,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                Expanded(
+                  child: Divider(
+                    color: AppSemanticColors.line.withValues(alpha: 0.5),
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
-        final todayDividerIndex = items.indexWhere(
-          (m) => _isMessageFromToday(m.createdAt),
+        final itemIndex = showTodayDivider
+            ? (index < todayDividerIndex ? index : index - 1)
+            : index;
+        final item = items[itemIndex];
+        final isMine = item.senderId == currentUserId;
+        final visit = item.visitId == null ? null : visitsById[item.visitId];
+        final bubble = ChatMessageBubble(
+          message: item,
+          isMine: isMine,
+          peerName: conversation?.peer.fullName,
+          peerImageUrl: conversation?.peer.profileImageUrl,
+          visit: visit,
+          onConfirmVisit: onConfirmVisit,
+          onRescheduleVisit: onRescheduleVisit,
         );
-        final showTodayDivider = todayDividerIndex >= 0;
-        final visitsById = {
-          for (final visit in visitsAsync.valueOrNull ?? const <VisitItem>[])
-            visit.id: visit,
-        };
-
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.lg,
-          ),
-          itemCount: items.length + (showTodayDivider ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (showTodayDivider && index == todayDividerIndex) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: AppSemanticColors.line.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      child: Text(
-                        locale.todayLabel,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: AppSemanticColors.line.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            final itemIndex = showTodayDivider
-                ? (index < todayDividerIndex ? index : index - 1)
-                : index;
-            final item = items[itemIndex];
-            final isMine = item.senderId == currentUserId;
-            final visit = item.visitId == null
-                ? null
-                : visitsById[item.visitId];
-            return ChatMessageBubble(
-              message: item,
-              isMine: isMine,
-              peerName: conversation?.peer.fullName,
-              peerImageUrl: conversation?.peer.profileImageUrl,
-              visit: visit,
-              onConfirmVisit: onConfirmVisit,
-              onRescheduleVisit: onRescheduleVisit,
-            );
-          },
-        );
+        // Optimistic messages (negative ids) render dimmed until confirmed.
+        if (item.id < 0) {
+          return Opacity(opacity: 0.6, child: bubble);
+        }
+        return bubble;
       },
-      loading: () => const FlatmatesSkeleton.chatMessages(),
-      error: (error, _) =>
-          FlatmatesErrorState(message: locale.couldNotLoadMessages),
     );
   }
 }

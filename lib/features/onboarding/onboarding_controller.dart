@@ -38,8 +38,7 @@ class OnboardingController extends Notifier<OnboardingState> {
       profession: savedData['profession'] as String?,
       city: savedData['city'] as String?,
       locality: savedData['locality'] as String?,
-      photoUrls:
-          (savedData['photo_urls'] as List?)?.cast<String>() ?? const [],
+      photoUrls: (savedData['photo_urls'] as List?)?.cast<String>() ?? const [],
       lifestyleAnswers: Map<String, String>.from(
         savedData['lifestyle_answers'] as Map? ?? const {},
       ),
@@ -50,8 +49,7 @@ class OnboardingController extends Notifier<OnboardingState> {
         savedData['preferences'] as Map? ?? const {},
       ),
       nonNegotiables:
-          (savedData['non_negotiables'] as List?)?.cast<String>() ??
-          const [],
+          (savedData['non_negotiables'] as List?)?.cast<String>() ?? const [],
       isHydrated: true,
     );
   }
@@ -199,7 +197,9 @@ class OnboardingController extends Notifier<OnboardingState> {
   /// Normalizes preference values to API-friendly format.
   /// Maps UI-facing labels like 'male', 'female', 'veg', 'non_veg' to the
   /// canonical strings the backend expects.
-  static Map<String, dynamic> _normalizePreferences(Map<String, dynamic> prefs) {
+  static Map<String, dynamic> _normalizePreferences(
+    Map<String, dynamic> prefs,
+  ) {
     if (prefs.isEmpty) return prefs;
     final normalized = Map<String, dynamic>.from(prefs);
 
@@ -235,8 +235,6 @@ class OnboardingController extends Notifier<OnboardingState> {
     return normalized;
   }
 }
-
-
 
 final onboardingControllerProvider =
     NotifierProvider<OnboardingController, OnboardingState>(

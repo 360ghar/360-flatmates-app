@@ -36,7 +36,6 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
 
-
   @override
   void initState() {
     super.initState();
@@ -200,7 +199,8 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
     final searchState = ref.watch(locationSearchProvider);
     ref.watch(_searchTextVersionProvider);
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
-    final isPlacesLoading = searchState.isLoading || ref.watch(_selectingPlaceProvider);
+    final isPlacesLoading =
+        searchState.isLoading || ref.watch(_selectingPlaceProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -243,7 +243,8 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                 controller: _searchController,
                 hint: locale.searchCityOrAreaHint,
                 autofocus: true,
-                onChanged: (_) => ref.read(_searchTextVersionProvider.notifier).state++,
+                onChanged: (_) =>
+                    ref.read(_searchTextVersionProvider.notifier).state++,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -252,7 +253,9 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                 horizontal: AppSpacing.screen,
               ),
               child: InkWell(
-                onTap: ref.watch(_locatingProvider) ? null : _useCurrentLocation,
+                onTap: ref.watch(_locatingProvider)
+                    ? null
+                    : _useCurrentLocation,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -274,16 +277,17 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                           ),
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: AppSemanticColors.line),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: AppSemanticColors.line,
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
             const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screen),
               child: Divider(color: AppSemanticColors.line),
             ),
             if (isPlacesLoading)

@@ -158,14 +158,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: FlatmatesButton.tertiary(
                 label: locale.noAccountCta,
                 onPressed: () {
+                  // Signup is unified into the OTP-first entry flow: verify
+                  // the identifier first, then the mandatory set-password
+                  // step creates the credential.
                   final identifier = _identifierController.text.trim();
                   ref.read(pendingPhoneProvider.notifier).state = identifier;
-                  // Email signups still go through the OTP-first entry flow.
-                  if (_isEmail) {
-                    context.go('/enter-phone');
-                  } else {
-                    context.push('/signup?phone=$identifier');
-                  }
+                  context.go('/enter-phone');
                 },
               ),
             ),

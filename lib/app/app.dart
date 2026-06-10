@@ -82,12 +82,14 @@ class _AppState extends ConsumerState<App> {
           _appConfigChecked = true;
           return;
         }
-        analytics.logForceUpdateShown();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => ForceUpdatePage(updateUrl: downloadUrl),
+        unawaited(analytics.logForceUpdateShown());
+        unawaited(
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => ForceUpdatePage(updateUrl: downloadUrl),
+            ),
+            (_) => false,
           ),
-          (_) => false,
         );
       case AppUpdateStatus.optionalUpdate:
         final downloadUrl = result.downloadUrl;
@@ -95,17 +97,19 @@ class _AppState extends ConsumerState<App> {
           _appConfigChecked = true;
           return;
         }
-        analytics.logOptionalUpdateShown();
-        OptionalUpdateDialog.show(
-          context,
-          updateUrl: downloadUrl,
-          message: result.releaseNotes ?? '',
-          onDismiss: () {
-            final version = result.latestVersion;
-            if (version != null) {
-              configService.dismissOptionalUpdate(version);
-            }
-          },
+        unawaited(analytics.logOptionalUpdateShown());
+        unawaited(
+          OptionalUpdateDialog.show(
+            context,
+            updateUrl: downloadUrl,
+            message: result.releaseNotes ?? '',
+            onDismiss: () {
+              final version = result.latestVersion;
+              if (version != null) {
+                configService.dismissOptionalUpdate(version);
+              }
+            },
+          ),
         );
       case AppUpdateStatus.upToDate:
         break;

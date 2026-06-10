@@ -10,6 +10,7 @@ import 'package:flatmates_app/features/discover/application/map_listings_control
 import 'package:flatmates_app/features/discover/discover_repository.dart';
 import 'package:flatmates_app/features/discover/map_view_page.dart';
 import 'package:flatmates_app/features/listings/listings_repository.dart';
+import 'package:flatmates_app/features/listings/post_hub_page.dart';
 import 'package:flatmates_app/features/location/application/location_controller.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
@@ -87,11 +88,11 @@ void main() {
                 _NoopListingsRepository(),
               ),
             ],
-            child: MaterialApp(
-              locale: const Locale('en'),
+            child: const MaterialApp(
+              locale: Locale('en'),
               supportedLocales: AppLocalizations.supportedLocales,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
-              home: const _Tab2Harness(),
+              home: _Tab2Harness(),
             ),
           ),
         );
@@ -115,6 +116,13 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 16));
 
+        // ── Behavioral contract #2: room_poster shows PostHubPage ──
+        expect(
+          find.byType(PostHubPage),
+          findsOneWidget,
+          reason: 'room_poster mode should render PostHubPage.',
+        );
+
         // ── Flip back to co_hunter ───────────────────────────────
         container.read(_testModeProvider.notifier).state = 'co_hunter';
         await tester.pump();
@@ -133,8 +141,9 @@ void main() {
         // assertions below ensure the wrapper at least completes
         // every rebuild cleanly.
         for (var i = 0; i < 8; i++) {
-          container.read(_testModeProvider.notifier).state =
-              i.isEven ? 'room_poster' : 'co_hunter';
+          container.read(_testModeProvider.notifier).state = i.isEven
+              ? 'room_poster'
+              : 'co_hunter';
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 8));
         }
@@ -154,7 +163,8 @@ void main() {
         expect(
           renderingErrors,
           isEmpty,
-          reason: 'Mode flip should not throw any rendering assertion. '
+          reason:
+              'Mode flip should not throw any rendering assertion. '
               'Captured FlutterErrors:\n'
               '${flutterErrors.map((e) => e.exception).join("\n")}',
         );
@@ -220,7 +230,7 @@ class _Tab2Harness extends ConsumerWidget {
 class _StubMapListingsController extends MapListingsController {
   @override
   MapListingsState build() {
-    return const MapListingsState(isLoading: false, listings: []);
+    return const MapListingsState();
   }
 }
 
@@ -236,8 +246,7 @@ class _NoopDiscoverRepository implements DiscoverRepository {
     DiscoverFilters? filters,
     int offset = 0,
     int limit = 20,
-  }) async =>
-      const <PropertyListing>[];
+  }) async => const <PropertyListing>[];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

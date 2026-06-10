@@ -101,26 +101,30 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
       final offset = clearAll ? 0 : state.fetchedCount;
-      final newListings = await repo.fetchListings(
+      final page = await repo.fetchListingsPage(
         currentUser: profile,
         filters: state.filters,
         offset: offset,
       );
+      final newListings = page.items;
 
       if (myVersion != _filterVersion) {
         // Stale result — filters changed during the request.
         // Skip applying it; the trailing reload below will re-fetch.
       } else {
+        // Pagination is driven by the raw server count: client-side
+        // filtering can shrink a page, so newListings.length would
+        // under-report progress and prematurely end the feed.
         state = state.copyWith(
           listings: clearAll
               ? newListings
               : [...state.listings, ...newListings],
           fetchedCount: clearAll
-              ? newListings.length
-              : state.fetchedCount + newListings.length,
+              ? page.rawCount
+              : state.fetchedCount + page.rawCount,
           isLoading: false,
           isLoadingMore: false,
-          hasMore: newListings.length >= _pageSize,
+          hasMore: page.rawCount >= _pageSize,
         );
       }
     } catch (e) {
@@ -154,15 +158,15 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           .valueOrNull
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
-      final listings = await repo.fetchListings(
+      final page = await repo.fetchListingsPage(
         currentUser: profile,
         filters: state.filters,
       );
       state = state.copyWith(
-        listings: listings,
-        fetchedCount: listings.length,
+        listings: page.items,
+        fetchedCount: page.rawCount,
         isRefreshing: false,
-        hasMore: listings.length >= _pageSize,
+        hasMore: page.rawCount >= _pageSize,
       );
     } catch (e) {
       state = state.copyWith(isRefreshing: false, error: e);
@@ -310,56 +314,56 @@ final featureOptionsProvider = Provider<List<String>>((ref) {
 });
 
 final filteredListingsProvider = Provider<List<PropertyListing>>((ref) {
-      final feedState = ref.watch(
-        discoverFeedControllerProvider.select((s) => (s.listings, s.filters)),
-      );
-      final items = feedState.$1;
-      final filters = feedState.$2;
-      final profile = ref.watch(
-        bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
-      );
-      final query = filters.query?.trim().toLowerCase() ?? '';
+  final feedState = ref.watch(
+    discoverFeedControllerProvider.select((s) => (s.listings, s.filters)),
+  );
+  final items = feedState.$1;
+  final filters = feedState.$2;
+  final profile = ref.watch(
+    bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
+  );
+  final query = filters.query?.trim().toLowerCase() ?? '';
 
-      if (filters.isEmpty && query.isEmpty) {
-        return items.where((item) => item.ownerId != profile?.id).toList();
-      }
+  if (filters.isEmpty && query.isEmpty) {
+    return items.where((item) => item.ownerId != profile?.id).toList();
+  }
 
-      return items.where((item) {
-        if (item.ownerId == profile?.id) return false;
+  return items.where((item) {
+    if (item.ownerId == profile?.id) return false;
 
-        final matchesBedrooms =
-            filters.bedrooms == null || item.bedrooms == filters.bedrooms;
+    final matchesBedrooms =
+        filters.bedrooms == null || item.bedrooms == filters.bedrooms;
 
-        final matchesFeature =
-            filters.features.isEmpty ||
-            filters.features.every((fKey) => item.features.contains(fKey));
+    final matchesFeature =
+        filters.features.isEmpty ||
+        filters.features.every((fKey) => item.features.contains(fKey));
 
-        final searchable = [
-          item.title,
-          item.locality,
-          item.subLocality,
-          item.city,
-          item.description,
-          item.ownerName,
-          ...item.tags,
-          ...item.features,
-        ].whereType<String>().join(' ').toLowerCase();
+    final searchable = [
+      item.title,
+      item.locality,
+      item.subLocality,
+      item.city,
+      item.description,
+      item.ownerName,
+      ...item.tags,
+      ...item.features,
+    ].whereType<String>().join(' ').toLowerCase();
 
-        final matchesQuery = query.isEmpty || searchable.contains(query);
+    final matchesQuery = query.isEmpty || searchable.contains(query);
 
-        final matchesVibe = _matchesVibe(filters.vibe, item, profile);
-        final matchesMoveIn = listingMatchesMoveInFilter(
-          item.availableFrom,
-          filters.moveInTimeline,
-        );
+    final matchesVibe = _matchesVibe(filters.vibe, item, profile);
+    final matchesMoveIn = listingMatchesMoveInFilter(
+      item.availableFrom,
+      filters.moveInTimeline,
+    );
 
-        return matchesBedrooms &&
-            matchesFeature &&
-            matchesQuery &&
-            matchesVibe &&
-            matchesMoveIn;
-      }).toList();
-    });
+    return matchesBedrooms &&
+        matchesFeature &&
+        matchesQuery &&
+        matchesVibe &&
+        matchesMoveIn;
+  }).toList();
+});
 
 bool _matchesVibe(String? vibe, PropertyListing listing, dynamic profile) {
   if (vibe == null) return true;

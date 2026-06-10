@@ -15,7 +15,9 @@ final _selectedDateProvider = StateProvider<DateTime>(
 );
 final _selectedSlotProvider = StateProvider<String>((ref) => 'afternoon');
 final _submittingVisitProvider = StateProvider<bool>((ref) => false);
-final _conversationProvider = StateProvider<ConversationSummaryModel?>((ref) => null);
+final _conversationProvider = StateProvider<ConversationSummaryModel?>(
+  (ref) => null,
+);
 
 class ScheduleVisitPage extends ConsumerStatefulWidget {
   const ScheduleVisitPage({
@@ -33,7 +35,6 @@ class ScheduleVisitPage extends ConsumerStatefulWidget {
 
 class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   final _noteController = TextEditingController();
-
 
   @override
   void dispose() {
@@ -245,15 +246,18 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                         label: locale.timeSlotMorning,
                         selected: ref.watch(_selectedSlotProvider) == 'morning',
                         onSelected: (_) =>
-                            ref.read(_selectedSlotProvider.notifier).state = 'morning',
+                            ref.read(_selectedSlotProvider.notifier).state =
+                                'morning',
                       ),
                       FlatmatesChip(
                         key: const Key('visit_afternoon_slot'),
                         variant: FlatmatesChipVariant.choice,
                         label: locale.timeSlotAfternoon,
-                        selected: ref.watch(_selectedSlotProvider) == 'afternoon',
+                        selected:
+                            ref.watch(_selectedSlotProvider) == 'afternoon',
                         onSelected: (_) =>
-                            ref.read(_selectedSlotProvider.notifier).state = 'afternoon',
+                            ref.read(_selectedSlotProvider.notifier).state =
+                                'afternoon',
                       ),
                       FlatmatesChip(
                         key: const Key('visit_evening_slot'),
@@ -261,7 +265,8 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                         label: locale.timeSlotEvening,
                         selected: ref.watch(_selectedSlotProvider) == 'evening',
                         onSelected: (_) =>
-                            ref.read(_selectedSlotProvider.notifier).state = 'evening',
+                            ref.read(_selectedSlotProvider.notifier).state =
+                                'evening',
                       ),
                     ],
                   ),
@@ -287,7 +292,9 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       ),
       bottomNavigationBar: FlatmatesBottomActionBar(
         primaryButtonKey: const Key('visit_send_request_button'),
-        label: ref.watch(_submittingVisitProvider) ? locale.sendingLabel : locale.sendRequestCta,
+        label: ref.watch(_submittingVisitProvider)
+            ? locale.sendingLabel
+            : locale.sendRequestCta,
         icon: Icons.send_rounded,
         onPressed: ref.watch(_submittingVisitProvider) ? null : _submit,
       ),

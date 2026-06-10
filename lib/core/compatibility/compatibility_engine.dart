@@ -130,8 +130,6 @@ class CompatibilityEngine {
     );
   }
 
-
-
   static CompatibilityDimension _sleepSchedule(String a, String b) {
     const values = ['early_bird', 'flexible', 'night_owl'];
     final ai = values.indexOf(a);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
@@ -8,26 +9,28 @@ import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../discover/domain/property_listing.dart';
 import '../shared/presentation/components.dart';
+import 'domain/listing_status.dart';
 import 'listings_repository.dart';
 import 'presentation/widgets/manage_listing_card.dart';
 import 'presentation/widgets/manage_stats_widgets.dart';
 
-class ManageListingPage extends ConsumerStatefulWidget {
+final _manageTabProvider = StateProvider<String>(
+  (ref) => 'active',
+); // 'active', 'draft', 'expired'
+final _pausedListingIdsProvider = StateProvider<Set<int>>((ref) => <int>{});
+final _pausingListingIdsProvider = StateProvider<Set<int>>((ref) => <int>{});
+
+class ManageListingPage extends ConsumerWidget {
   const ManageListingPage({super.key});
 
   @override
-  ConsumerState<ManageListingPage> createState() => _ManageListingPageState();
-}
-
-class _ManageListingPageState extends ConsumerState<ManageListingPage> {
-  String _status = 'active'; // 'active', 'draft', 'expired'
-  final _pausedListingIds = <int>{};
-  final _pausingListingIds = <int>{};
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final listings = ref.watch(myListingsProvider);
+    final status = ref.watch(_manageTabProvider);
+    final pausedListingIds = ref.watch(_pausedListingIdsProvider);
+    final pausingListingIds = ref.watch(_pausingListingIdsProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -51,195 +54,184 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              0,
-              AppSpacing.screen,
-              AppSpacing.md,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                locale.manageListingTitle,
-                style: theme.textTheme.headlineLarge,
-              ),
-            ),
-          ),
-
-          // "New Listing" CTA
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-            child: FlatmatesButton(
-              key: const Key('manage_new_listing_button'),
-              label: locale.postListingTitle,
-              onPressed: () => context.push('/post/new'),
-              icon: Icons.add,
-              fullWidth: true,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Segmented tab control
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-            child: FlatmatesSegmentedControl<String>(
-              segments: [
-                (
-                  'active',
-                  '${locale.activeListingsLabel} (${_countForTab(listings.valueOrNull ?? const [], 'active')})',
-                  null,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screen,
+                  0,
+                  AppSpacing.screen,
+                  AppSpacing.md,
                 ),
-                (
-                  'draft',
-                  '${locale.draftsLabel} (${_countForTab(listings.valueOrNull ?? const [], 'draft')})',
-                  null,
-                ),
-                (
-                  'expired',
-                  '${locale.expiredLabel} (${_countForTab(listings.valueOrNull ?? const [], 'expired')})',
-                  null,
-                ),
-              ],
-              selected: _status,
-              onChanged: (v) => setState(() => _status = v),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Listings content
-          Expanded(
-            child: listings.when(
-              data: (items) {
-                if (items.isEmpty) {
-                  return FlatmatesEmptyState(
-                    icon: Icons.add_home_outlined,
-                    title: locale.emptyListings,
-                    ctaLabel: locale.postListingTitle,
-                    onCtaTap: () => context.push('/post/new'),
-                  );
-                }
-
-                final myListings = items.where(_matchesSelectedTab).toList();
-
-                if (myListings.isEmpty) {
-                  return FlatmatesEmptyState(
-                    icon: Icons.add_home_outlined,
-                    title: _status == 'active'
-                        ? locale.activeListingsLabel
-                        : _status == 'draft'
-                        ? locale.draftsLabel
-                        : locale.expiredLabel,
-                  );
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(myListingsProvider);
-                  },
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screen,
-                      AppSpacing.xs,
-                      AppSpacing.screen,
-                      AppSpacing.xl + AppSpacing.md,
-                    ),
-                    children: myListings.map((listing) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: ManageListingCard(
-                          listing: listing,
-                          status: _listingStatus(listing),
-                          isPaused:
-                              _pausedListingIds.contains(listing.id) ||
-                              _listingStatus(listing) == 'paused',
-                          isPausing: _pausingListingIds.contains(listing.id),
-                          onTogglePause: (listingId, currentlyPaused) =>
-                              _togglePause(listingId, currentlyPaused),
-                          onShare: () => Share.share(
-                            'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent.toStringAsFixed(0)}/mo in ${listing.locality ?? listing.city ?? ""}\n${DeepLinkService.listingUrl(listing.id)}',
-                          ),
-                          onEdit: () =>
-                              context.push('/post/new?listingId=${listing.id}'),
-                          onViewStats: () => _showStatsBottomSheet(listing),
-                          onReview: () =>
-                              context.push('/listing-review/${listing.id}'),
-                          onRenew: () =>
-                              context.push('/post/new?listingId=${listing.id}'),
-                          theme: theme,
-                          locale: locale,
-                        ),
-                      );
-                    }).toList(),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    locale.manageListingsTitle,
+                    style: theme.textTheme.headlineLarge,
                   ),
-                );
-              },
-              loading: () => const FlatmatesSkeleton.manageListings(),
-              error: (e, _) =>
-                  const FlatmatesErrorState(message: 'Could not load listings'),
-            ),
+                ),
+              ),
+
+              // "New Listing" CTA
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screen,
+                ),
+                child: FlatmatesButton(
+                  key: const Key('manage_new_listing_button'),
+                  label: locale.postListingTitle,
+                  onPressed: () => context.push('/post/new'),
+                  icon: Icons.add,
+                  fullWidth: true,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Segmented tab control
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screen,
+                ),
+                child: FlatmatesSegmentedControl<String>(
+                  segments: [
+                    (
+                      'active',
+                      '${locale.activeListingsLabel} (${_countForTab(listings.valueOrNull ?? const [], 'active')})',
+                      null,
+                    ),
+                    (
+                      'draft',
+                      '${locale.draftsLabel} (${_countForTab(listings.valueOrNull ?? const [], 'draft')})',
+                      null,
+                    ),
+                    (
+                      'expired',
+                      '${locale.expiredLabel} (${_countForTab(listings.valueOrNull ?? const [], 'expired')})',
+                      null,
+                    ),
+                  ],
+                  selected: status,
+                  onChanged: (v) =>
+                      ref.read(_manageTabProvider.notifier).state = v,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Listings content
+              Expanded(
+                child: listings.when(
+                  data: (items) {
+                    if (items.isEmpty) {
+                      return FlatmatesEmptyState(
+                        icon: Icons.add_home_outlined,
+                        title: locale.emptyListings,
+                        ctaLabel: locale.postListingTitle,
+                        onCtaTap: () => context.push('/post/new'),
+                      );
+                    }
+
+                    final myListings = items
+                        .where((listing) => listingMatchesTab(listing, status))
+                        .toList();
+
+                    if (myListings.isEmpty) {
+                      return FlatmatesEmptyState(
+                        icon: Icons.add_home_outlined,
+                        title: status == 'active'
+                            ? locale.activeListingsLabel
+                            : status == 'draft'
+                            ? locale.draftsLabel
+                            : locale.expiredLabel,
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(myListingsProvider);
+                      },
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.screen,
+                          AppSpacing.xs,
+                          AppSpacing.screen,
+                          AppSpacing.xl + AppSpacing.md,
+                        ),
+                        children: myListings.map((listing) {
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.md,
+                            ),
+                            child: ManageListingCard(
+                              listing: listing,
+                              status: listingStatus(listing),
+                              isPaused:
+                                  pausedListingIds.contains(listing.id) ||
+                                  listingStatus(listing) == 'paused',
+                              isPausing: pausingListingIds.contains(listing.id),
+                              onTogglePause: (listingId, currentlyPaused) =>
+                                  _togglePause(
+                                    context,
+                                    ref,
+                                    listingId,
+                                    currentlyPaused,
+                                  ),
+                              onShare: () => Share.share(
+                                'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent.toStringAsFixed(0)}/mo in ${listing.locality ?? listing.city ?? ""}\n${DeepLinkService.listingUrl(listing.id)}',
+                              ),
+                              onCopyLink: () => _copyLink(context, listing.id),
+                              onEdit: () => context.push(
+                                '/post/new?listingId=${listing.id}',
+                              ),
+                              onViewStats: () =>
+                                  _showStatsBottomSheet(context, listing),
+                              onReview: () =>
+                                  context.push('/listing-review/${listing.id}'),
+                              onRenew: () => context.push(
+                                '/post/new?listingId=${listing.id}',
+                              ),
+                              theme: theme,
+                              locale: locale,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                  loading: () => const FlatmatesSkeleton.manageListings(),
+                  error: (e, _) =>
+                      FlatmatesErrorState(message: locale.couldNotLoadListings),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  int _countForTab(List<dynamic> listings, String tab) {
-    return listings.where((listing) => _matchesTab(listing, tab)).length;
+  int _countForTab(List<PropertyListing> listings, String tab) {
+    return listings.where((listing) => listingMatchesTab(listing, tab)).length;
   }
 
-  bool _matchesSelectedTab(dynamic listing) => _matchesTab(listing, _status);
-
-  bool _matchesTab(dynamic listing, String tab) {
-    final status = _listingStatus(listing);
-    return switch (tab) {
-      'active' =>
-        status == 'active' ||
-            status == 'paused' ||
-            status == 'pending_review' ||
-            status == 'under_review',
-      'draft' => status == 'draft' || status == 'rejected',
-      'expired' => status == 'expired',
-      _ => false,
-    };
+  Future<void> _copyLink(BuildContext context, int listingId) async {
+    final locale = AppLocalizations.of(context);
+    await Clipboard.setData(
+      ClipboardData(text: DeepLinkService.listingUrl(listingId)),
+    );
+    if (!context.mounted) return;
+    FlatmatesToast.success(context, locale.linkCopiedToast);
   }
 
-  String _listingStatus(dynamic listing) {
-    final status = (listing.status ?? listing.propertyStatus ?? '').toString();
-    final preferences = listing.preferences;
-    final expiresAtRaw = listing.expiresAt;
-    final expiresAt = expiresAtRaw is String
-        ? DateTime.tryParse(expiresAtRaw)
-        : expiresAtRaw as DateTime?;
-    final expiredByReview =
-        preferences is Map &&
-        preferences['auto_paused_reason'] == 'expired_move_in_date';
-    if (expiredByReview ||
-        expiresAt != null && expiresAt.isBefore(DateTime.now()) ||
-        status == 'expired') {
-      return 'expired';
-    }
-    if (status == 'paused') return 'paused';
-    if (status == 'pending_review' || status == 'under_review') {
-      return 'pending_review';
-    }
-    if (status == 'draft' || status == 'rejected') return status;
-    if (status == 'live' ||
-        status == 'approved' ||
-        listing.isAvailable == true) {
-      return 'active';
-    }
-    return status.isEmpty ? 'active' : status;
-  }
-
-  void _showStatsBottomSheet(dynamic listing) {
+  void _showStatsBottomSheet(BuildContext context, PropertyListing listing) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     FlatmatesBottomSheet.show(
       context: context,
-      title: listing.title ?? locale.listingStatsTitle,
+      title: listing.title,
       builder: (sheetContext) => Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         child: Column(
@@ -249,21 +241,21 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
             StatDialogRow(
               icon: Icons.visibility_outlined,
               label: locale.viewsStatLabel,
-              value: _formatCount(listing.viewCount ?? 0),
+              value: _formatCount(listing.viewCount),
               theme: theme,
             ),
             const SizedBox(height: AppSpacing.md),
             StatDialogRow(
               icon: Icons.favorite_outline,
               label: locale.likesStatLabel,
-              value: _formatCount(listing.likeCount ?? 0),
+              value: _formatCount(listing.likeCount),
               theme: theme,
             ),
             const SizedBox(height: AppSpacing.md),
             StatDialogRow(
               icon: Icons.handshake_outlined,
               label: locale.matchesStatLabel,
-              value: _formatCount(listing.interestCount ?? 0),
+              value: _formatCount(listing.interestCount),
               theme: theme,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -284,30 +276,35 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
     return count.toString();
   }
 
-  Future<void> _togglePause(int listingId, bool currentlyPaused) async {
-    if (_pausingListingIds.contains(listingId)) return;
-    setState(() => _pausingListingIds.add(listingId));
+  Future<void> _togglePause(
+    BuildContext context,
+    WidgetRef ref,
+    int listingId,
+    bool currentlyPaused,
+  ) async {
+    final pausingIds = ref.read(_pausingListingIdsProvider);
+    if (pausingIds.contains(listingId)) return;
+    ref.read(_pausingListingIdsProvider.notifier).state = {
+      ...pausingIds,
+      listingId,
+    };
     try {
       await ref
           .read(listingsRepositoryProvider)
           .togglePause(listingId, paused: currentlyPaused);
-      if (!mounted) return;
-      setState(() {
-        if (currentlyPaused) {
-          _pausedListingIds.remove(listingId);
-        } else {
-          _pausedListingIds.add(listingId);
-        }
-      });
+      if (!context.mounted) return;
+      final pausedIds = ref.read(_pausedListingIdsProvider);
+      ref.read(_pausedListingIdsProvider.notifier).state = currentlyPaused
+          ? ({...pausedIds}..remove(listingId))
+          : {...pausedIds, listingId};
       ref.invalidate(myListingsProvider);
-      if (!mounted) return;
       final locale = AppLocalizations.of(context);
       FlatmatesToast.success(
         context,
         currentlyPaused ? locale.listingResumed : locale.listingPaused,
       );
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         final locale = AppLocalizations.of(context);
         final msg = e is AppFailure
             ? e.userMessage(locale.toUserMessageL10n())
@@ -315,8 +312,10 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
         FlatmatesToast.error(context, msg);
       }
     } finally {
-      if (mounted) {
-        setState(() => _pausingListingIds.remove(listingId));
+      if (context.mounted) {
+        ref.read(_pausingListingIdsProvider.notifier).state = {
+          ...ref.read(_pausingListingIdsProvider),
+        }..remove(listingId);
       }
     }
   }

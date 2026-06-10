@@ -28,6 +28,7 @@ class TermsCheckbox extends StatelessWidget {
           height: 24,
           width: 24,
           child: Checkbox(
+            key: const Key('terms_checkbox'),
             value: accepted,
             onChanged: (v) => onChanged(v ?? false),
             activeColor: AppSemanticColors.accent,

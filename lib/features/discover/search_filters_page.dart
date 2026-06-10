@@ -266,7 +266,12 @@ class _SearchFiltersPageState extends ConsumerState<SearchFiltersPage> {
     );
     ref.read(discoverFiltersProvider.notifier).state = filters;
     ref.read(discoverFeedControllerProvider.notifier).updateFilters(filters);
-    context.go('/discover');
+    // Return to whichever tab opened the filters page (discover or swipe).
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/discover');
+    }
   }
 
   @override

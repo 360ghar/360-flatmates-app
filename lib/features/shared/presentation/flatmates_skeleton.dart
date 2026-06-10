@@ -17,66 +17,66 @@ class FlatmatesSkeleton extends StatefulWidget {
 
   /// Card skeleton — approximates a listing card shape.
   const FlatmatesSkeleton.card({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.card;
+    : itemCount = 1,
+      variant = SkeletonVariant.card;
 
   /// List item skeleton — single row with avatar circle + text lines.
   const FlatmatesSkeleton.list({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.listItem;
+    : itemCount = 1,
+      variant = SkeletonVariant.listItem;
 
   /// Feed skeleton — multiple cards (legacy, prefer page-specific variants).
   const FlatmatesSkeleton.feed({super.key, this.itemCount = 3})
-      : variant = SkeletonVariant.card;
+    : variant = SkeletonVariant.card;
 
   /// Profile header skeleton — compact horizontal layout matching profile page.
   const FlatmatesSkeleton.profile({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.profile;
+    : itemCount = 1,
+      variant = SkeletonVariant.profile;
 
   /// Discover feed skeleton — header + horizontal card sections.
   const FlatmatesSkeleton.discoverFeed({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.discoverFeed;
+    : itemCount = 1,
+      variant = SkeletonVariant.discoverFeed;
 
   /// Browse listings skeleton — compact horizontal cards (image left, text right).
   const FlatmatesSkeleton.browseListings({super.key, this.itemCount = 4})
-      : variant = SkeletonVariant.browseListings;
+    : variant = SkeletonVariant.browseListings;
 
   /// Flat details skeleton — carousel image + overlay icons + bottom action bar.
   const FlatmatesSkeleton.flatDetails({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.flatDetails;
+    : itemCount = 1,
+      variant = SkeletonVariant.flatDetails;
 
   /// Chat messages skeleton — alternating sent/received message bubbles.
   const FlatmatesSkeleton.chatMessages({super.key, this.itemCount = 5})
-      : variant = SkeletonVariant.chatMessages;
+    : variant = SkeletonVariant.chatMessages;
 
   /// Swipe card skeleton — tall profile card with image hero + info overlay.
   const FlatmatesSkeleton.swipeCard({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.swipeCard;
+    : itemCount = 1,
+      variant = SkeletonVariant.swipeCard;
 
   /// Conversation list skeleton — segmented control + conversation cards.
   const FlatmatesSkeleton.conversationList({super.key, this.itemCount = 4})
-      : variant = SkeletonVariant.conversationList;
+    : variant = SkeletonVariant.conversationList;
 
   /// Notification list skeleton — notification items with icon circle + text.
   const FlatmatesSkeleton.notificationList({super.key, this.itemCount = 4})
-      : variant = SkeletonVariant.notificationList;
+    : variant = SkeletonVariant.notificationList;
 
   /// Visit list skeleton — section headers + visit cards.
   const FlatmatesSkeleton.visitList({super.key, this.itemCount = 3})
-      : variant = SkeletonVariant.visitList;
+    : variant = SkeletonVariant.visitList;
 
   /// Manage listings skeleton — CTA + segmented control + listing cards.
   const FlatmatesSkeleton.manageListings({super.key, this.itemCount = 2})
-      : variant = SkeletonVariant.manageListings;
+    : variant = SkeletonVariant.manageListings;
 
   /// Map explore skeleton — frosted top bar + map + bottom sheet cards.
   const FlatmatesSkeleton.mapExplore({super.key})
-      : itemCount = 1,
-        variant = SkeletonVariant.mapExplore;
+    : itemCount = 1,
+      variant = SkeletonVariant.mapExplore;
 
   final int itemCount;
   final SkeletonVariant variant;
@@ -291,7 +291,10 @@ class _CardSkeleton extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.sm, AppSpacing.sm, AppSpacing.sm, AppSpacing.sm,
+            AppSpacing.sm,
+            AppSpacing.sm,
+            AppSpacing.sm,
+            AppSpacing.sm,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,7 +372,10 @@ class _ProfileSkeleton extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.xl,
       ),
       children: [
         // Compact header: avatar 80px left, text right
@@ -403,11 +409,21 @@ class _ProfileSkeleton extends StatelessWidget {
                 children: [
                   _Bone(width: 160, height: 20, color: boneColor),
                   const SizedBox(height: 6),
-                  _Bone(width: 120, height: 28, color: boneColor, borderRadius: AppRadius.pillBorder),
+                  _Bone(
+                    width: 120,
+                    height: 28,
+                    color: boneColor,
+                    borderRadius: AppRadius.pillBorder,
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      _Bone(width: 16, height: 16, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                      _Bone(
+                        width: 16,
+                        height: 16,
+                        color: boneColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       const SizedBox(width: 4),
                       _Bone(width: 120, color: boneColor),
                     ],
@@ -427,7 +443,12 @@ class _ProfileSkeleton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _Bone(width: 44, height: 44, color: boneColor, borderRadius: BorderRadius.circular(22)),
+              _Bone(
+                width: 44,
+                height: 44,
+                color: boneColor,
+                borderRadius: BorderRadius.circular(22),
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -439,7 +460,12 @@ class _ProfileSkeleton extends StatelessWidget {
                   ],
                 ),
               ),
-              _Bone(width: 20, height: 20, color: boneColor, borderRadius: BorderRadius.circular(10)),
+              _Bone(
+                width: 20,
+                height: 20,
+                color: boneColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ],
           ),
         ),
@@ -460,9 +486,7 @@ class _ProfileSkeleton extends StatelessWidget {
         _buildMenuCard(boneColor, itemCount: 2),
         const SizedBox(height: AppSpacing.section),
         // Logout
-        Center(
-          child: _Bone(width: 80, height: 16, color: boneColor),
-        ),
+        Center(child: _Bone(width: 80, height: 16, color: boneColor)),
       ],
     );
   }
@@ -483,17 +507,31 @@ class _ProfileSkeleton extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(12)),
+                  _Bone(
+                    width: 40,
+                    height: 40,
+                    color: boneColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(child: _Bone(color: boneColor)),
-                  _Bone(width: 16, height: 16, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                  _Bone(
+                    width: 16,
+                    height: 16,
+                    color: boneColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ],
               ),
             ),
             if (i < itemCount - 1)
               Padding(
                 padding: const EdgeInsets.only(left: 72),
-                child: _Bone(width: double.infinity, height: 1, color: boneColor),
+                child: _Bone(
+                  width: double.infinity,
+                  height: 1,
+                  color: boneColor,
+                ),
               ),
           ],
         ],
@@ -517,7 +555,10 @@ class _DiscoverFeedSkeleton extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 120,
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        120,
       ),
       children: [
         // Header: greeting left, 52px avatar right
@@ -536,13 +577,23 @@ class _DiscoverFeedSkeleton extends StatelessWidget {
                       const SizedBox(width: 4),
                       _Bone(width: 100, color: boneColor),
                       const SizedBox(width: 4),
-                      _Bone(width: 16, height: 16, color: boneColor, borderRadius: BorderRadius.circular(4)),
+                      _Bone(
+                        width: 16,
+                        height: 16,
+                        color: boneColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
-            _Bone(width: 52, height: 52, color: boneColor, borderRadius: BorderRadius.circular(12)),
+            _Bone(
+              width: 52,
+              height: 52,
+              color: boneColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -595,7 +646,11 @@ class _DiscoverFeedSkeleton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: _Bone(width: double.infinity, color: boneColor, borderRadius: AppRadius.cardBorder),
+            child: _Bone(
+              width: double.infinity,
+              color: boneColor,
+              borderRadius: AppRadius.cardBorder,
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           _Bone(width: 80, color: boneColor),
@@ -648,7 +703,8 @@ class _BrowseListingsSkeleton extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md, vertical: AppSpacing.sm,
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,7 +716,12 @@ class _BrowseListingsSkeleton extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          _Bone(width: 12, height: 12, color: boneColor, borderRadius: BorderRadius.circular(6)),
+                          _Bone(
+                            width: 12,
+                            height: 12,
+                            color: boneColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
                           const SizedBox(width: 2),
                           _Bone(width: 100, height: 10, color: boneColor),
                         ],
@@ -672,8 +733,16 @@ class _BrowseListingsSkeleton extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.sm, top: AppSpacing.sm),
-                child: _Bone(width: 28, height: 28, color: boneColor, borderRadius: BorderRadius.circular(7)),
+                padding: const EdgeInsets.only(
+                  right: AppSpacing.sm,
+                  top: AppSpacing.sm,
+                ),
+                child: _Bone(
+                  width: 28,
+                  height: 28,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(7),
+                ),
               ),
             ],
           ),
@@ -707,21 +776,44 @@ class _FlatDetailsSkeleton extends StatelessWidget {
                 children: [
                   _Bone(width: double.infinity, height: 220, color: boneColor),
                   Positioned(
-                    top: AppSpacing.lg, left: AppSpacing.lg,
-                    child: _Bone(width: 36, height: 36, color: boneColor, borderRadius: BorderRadius.circular(18)),
+                    top: AppSpacing.lg,
+                    left: AppSpacing.lg,
+                    child: _Bone(
+                      width: 36,
+                      height: 36,
+                      color: boneColor,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                   Positioned(
-                    top: AppSpacing.lg, right: AppSpacing.lg + 44,
-                    child: _Bone(width: 36, height: 36, color: boneColor, borderRadius: BorderRadius.circular(18)),
+                    top: AppSpacing.lg,
+                    right: AppSpacing.lg + 44,
+                    child: _Bone(
+                      width: 36,
+                      height: 36,
+                      color: boneColor,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                   Positioned(
-                    top: AppSpacing.lg, right: AppSpacing.lg,
-                    child: _Bone(width: 36, height: 36, color: boneColor, borderRadius: BorderRadius.circular(18)),
+                    top: AppSpacing.lg,
+                    right: AppSpacing.lg,
+                    child: _Bone(
+                      width: 36,
+                      height: 36,
+                      color: boneColor,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.screen),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  AppSpacing.xl,
+                  AppSpacing.xl,
+                  AppSpacing.screen,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -729,7 +821,13 @@ class _FlatDetailsSkeleton extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Expanded(child: _Bone(width: 200, height: 24, color: boneColor)),
+                        Expanded(
+                          child: _Bone(
+                            width: 200,
+                            height: 24,
+                            color: boneColor,
+                          ),
+                        ),
                         const SizedBox(width: AppSpacing.md),
                         _Bone(width: 100, height: 20, color: boneColor),
                       ],
@@ -737,20 +835,51 @@ class _FlatDetailsSkeleton extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
-                        _Bone(width: 18, height: 18, color: boneColor, borderRadius: BorderRadius.circular(9)),
+                        _Bone(
+                          width: 18,
+                          height: 18,
+                          color: boneColor,
+                          borderRadius: BorderRadius.circular(9),
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         _Bone(width: 160, color: boneColor),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Wrap(
-                      spacing: AppSpacing.sm, runSpacing: AppSpacing.sm,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
                       children: [
-                        _Bone(width: 72, height: 32, color: boneColor, borderRadius: AppRadius.pillBorder),
-                        _Bone(width: 80, height: 32, color: boneColor, borderRadius: AppRadius.pillBorder),
-                        _Bone(width: 56, height: 32, color: boneColor, borderRadius: AppRadius.pillBorder),
-                        _Bone(width: 64, height: 32, color: boneColor, borderRadius: AppRadius.pillBorder),
-                        _Bone(width: 68, height: 32, color: boneColor, borderRadius: AppRadius.pillBorder),
+                        _Bone(
+                          width: 72,
+                          height: 32,
+                          color: boneColor,
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        _Bone(
+                          width: 80,
+                          height: 32,
+                          color: boneColor,
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        _Bone(
+                          width: 56,
+                          height: 32,
+                          color: boneColor,
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        _Bone(
+                          width: 64,
+                          height: 32,
+                          color: boneColor,
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        _Bone(
+                          width: 68,
+                          height: 32,
+                          color: boneColor,
+                          borderRadius: AppRadius.pillBorder,
+                        ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.screen),
@@ -810,20 +939,32 @@ class _FlatDetailsSkeleton extends StatelessWidget {
         // Bottom action bar
         Container(
           padding: EdgeInsets.only(
-            left: AppSpacing.xl, right: AppSpacing.xl, top: AppSpacing.md,
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            top: AppSpacing.md,
             bottom: MediaQuery.of(context).padding.bottom + AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: isDark ? AppSemanticColors.frostOverlayDark : AppSemanticColors.frostOverlayLight,
+            color: isDark
+                ? AppSemanticColors.frostOverlayDark
+                : AppSemanticColors.frostOverlayLight,
           ),
           child: Row(
             children: [
               Expanded(
-                child: _Bone(height: 48, color: boneColor, borderRadius: BorderRadius.circular(10)),
+                child: _Bone(
+                  height: 48,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: _Bone(height: 48, color: AppSemanticColors.accent.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(10)),
+                child: _Bone(
+                  height: 48,
+                  color: AppSemanticColors.accent.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ],
           ),
@@ -849,7 +990,10 @@ class _ChatMessagesSkeleton extends StatelessWidget {
         : AppSemanticColors.paper2;
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.lg,
+      ),
       itemCount: itemCount * 2,
       itemBuilder: (_, index) {
         final isTimestampRow = index.isOdd;
@@ -860,10 +1004,10 @@ class _ChatMessagesSkeleton extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: Row(
-              mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-              children: [
-                _Bone(width: 40, height: 8, color: boneColor),
-              ],
+              mainAxisAlignment: isMine
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
+              children: [_Bone(width: 40, height: 8, color: boneColor)],
             ),
           );
         }
@@ -871,11 +1015,18 @@ class _ChatMessagesSkeleton extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
-            mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment: isMine
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMine) ...[
-                _Bone(width: 32, height: 32, color: boneColor, borderRadius: BorderRadius.circular(16)),
+                _Bone(
+                  width: 32,
+                  height: 32,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 const SizedBox(width: AppSpacing.sm),
               ],
               ConstrainedBox(
@@ -883,21 +1034,29 @@ class _ChatMessagesSkeleton extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
                   decoration: BoxDecoration(
-                    color: isMine ? AppSemanticColors.accent.withValues(alpha: 0.2) : AppSemanticColors.paper2,
+                    color: isMine
+                        ? AppSemanticColors.accent.withValues(alpha: 0.2)
+                        : AppSemanticColors.paper2,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _Bone(
-                        width: msgIndex % 3 == 0 ? double.infinity : 180 + (msgIndex % 3) * 20.0,
-                        color: isMine ? AppSemanticColors.accent.withValues(alpha: 0.15) : boneColor,
+                        width: msgIndex % 3 == 0
+                            ? double.infinity
+                            : 180 + (msgIndex % 3) * 20.0,
+                        color: isMine
+                            ? AppSemanticColors.accent.withValues(alpha: 0.15)
+                            : boneColor,
                       ),
                       if (msgIndex % 2 == 0) ...[
                         const SizedBox(height: 8),
                         _Bone(
                           width: 140,
-                          color: isMine ? AppSemanticColors.accent.withValues(alpha: 0.15) : boneColor,
+                          color: isMine
+                              ? AppSemanticColors.accent.withValues(alpha: 0.15)
+                              : boneColor,
                         ),
                       ],
                     ],
@@ -942,19 +1101,35 @@ class _SwipeCardSkeleton extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       color: boneColor,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.card),
+                      ),
                     ),
                   ),
                   Positioned(
-                    top: AppSpacing.md, left: AppSpacing.md,
-                    child: _Bone(width: 60, height: 24, color: boneColor, borderRadius: AppRadius.pillBorder),
+                    top: AppSpacing.md,
+                    left: AppSpacing.md,
+                    child: _Bone(
+                      width: 60,
+                      height: 24,
+                      color: boneColor,
+                      borderRadius: AppRadius.pillBorder,
+                    ),
                   ),
                   Positioned(
-                    top: AppSpacing.md, right: AppSpacing.md,
-                    child: _Bone(width: 60, height: 28, color: boneColor, borderRadius: AppRadius.pillBorder),
+                    top: AppSpacing.md,
+                    right: AppSpacing.md,
+                    child: _Bone(
+                      width: 60,
+                      height: 28,
+                      color: boneColor,
+                      borderRadius: AppRadius.pillBorder,
+                    ),
                   ),
                   Positioned(
-                    left: AppSpacing.md, right: AppSpacing.md, bottom: AppSpacing.md,
+                    left: AppSpacing.md,
+                    right: AppSpacing.md,
+                    bottom: AppSpacing.md,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -964,7 +1139,12 @@ class _SwipeCardSkeleton extends StatelessWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            _Bone(width: 12, height: 12, color: boneColor, borderRadius: BorderRadius.circular(6)),
+                            _Bone(
+                              width: 12,
+                              height: 12,
+                              color: boneColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                             const SizedBox(width: 4),
                             _Bone(width: 80, height: 10, color: boneColor),
                           ],
@@ -985,15 +1165,35 @@ class _SwipeCardSkeleton extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
-                      _Bone(width: 56, height: 24, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 56,
+                        height: 24,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                       const SizedBox(width: AppSpacing.xs),
-                      _Bone(width: 64, height: 24, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 64,
+                        height: 24,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                       const SizedBox(width: AppSpacing.xs),
-                      _Bone(width: 56, height: 24, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 56,
+                        height: 24,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  _Bone(width: double.infinity, height: 6, color: boneColor, borderRadius: AppRadius.pillBorder),
+                  _Bone(
+                    width: double.infinity,
+                    height: 6,
+                    color: boneColor,
+                    borderRadius: AppRadius.pillBorder,
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   _Bone(width: 100, color: boneColor),
                   const SizedBox(height: AppSpacing.sm),
@@ -1005,11 +1205,26 @@ class _SwipeCardSkeleton extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
-                      _Bone(width: 64, height: 28, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 64,
+                        height: 28,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
-                      _Bone(width: 72, height: 28, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 72,
+                        height: 28,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
-                      _Bone(width: 56, height: 28, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 56,
+                        height: 28,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                     ],
                   ),
                 ],
@@ -1052,9 +1267,15 @@ class _ConversationListSkeleton extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Expanded(child: Center(child: _Bone(width: 48, color: boneColor))),
-                Expanded(child: Center(child: _Bone(width: 40, color: boneColor))),
-                Expanded(child: Center(child: _Bone(width: 40, color: boneColor))),
+                Expanded(
+                  child: Center(child: _Bone(width: 48, color: boneColor)),
+                ),
+                Expanded(
+                  child: Center(child: _Bone(width: 40, color: boneColor)),
+                ),
+                Expanded(
+                  child: Center(child: _Bone(width: 40, color: boneColor)),
+                ),
               ],
             ),
           ),
@@ -1063,7 +1284,12 @@ class _ConversationListSkeleton extends StatelessWidget {
         // Conversation cards
         for (var i = 0; i < itemCount; i++) ...[
           Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              0,
+              AppSpacing.xl,
+              AppSpacing.lg,
+            ),
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
@@ -1073,7 +1299,12 @@ class _ConversationListSkeleton extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Bone(width: 44, height: 44, color: boneColor, borderRadius: BorderRadius.circular(22)),
+                  _Bone(
+                    width: 44,
+                    height: 44,
+                    color: boneColor,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
@@ -1086,10 +1317,17 @@ class _ConversationListSkeleton extends StatelessWidget {
                             Expanded(
                               child: Row(
                                 children: [
-                                  Flexible(child: _Bone(width: 120, color: boneColor)),
+                                  Flexible(
+                                    child: _Bone(width: 120, color: boneColor),
+                                  ),
                                   if (i < 2) ...[
                                     const SizedBox(width: AppSpacing.sm),
-                                    _Bone(width: 24, height: 16, color: boneColor, borderRadius: AppRadius.pillBorder),
+                                    _Bone(
+                                      width: 24,
+                                      height: 16,
+                                      color: boneColor,
+                                      borderRadius: AppRadius.pillBorder,
+                                    ),
                                   ],
                                 ],
                               ),
@@ -1104,14 +1342,23 @@ class _ConversationListSkeleton extends StatelessWidget {
                         // Location row with icon
                         Row(
                           children: [
-                            _Bone(width: 13, height: 13, color: boneColor, borderRadius: BorderRadius.circular(6.5)),
+                            _Bone(
+                              width: 13,
+                              height: 13,
+                              color: boneColor,
+                              borderRadius: BorderRadius.circular(6.5),
+                            ),
                             const SizedBox(width: 2),
                             _Bone(width: 100, height: 10, color: boneColor),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         // Last message preview
-                        _Bone(width: double.infinity, height: 12, color: boneColor),
+                        _Bone(
+                          width: double.infinity,
+                          height: 12,
+                          color: boneColor,
+                        ),
                         const SizedBox(height: AppSpacing.sm),
                         // Property mini-card
                         Container(
@@ -1122,14 +1369,27 @@ class _ConversationListSkeleton extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              _Bone(width: 40, height: 40, color: boneColor, borderRadius: AppRadius.cardBorder),
+                              _Bone(
+                                width: 40,
+                                height: 40,
+                                color: boneColor,
+                                borderRadius: AppRadius.cardBorder,
+                              ),
                               const SizedBox(width: AppSpacing.sm),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _Bone(width: 100, height: 10, color: boneColor),
+                                  _Bone(
+                                    width: 100,
+                                    height: 10,
+                                    color: boneColor,
+                                  ),
                                   const SizedBox(height: 4),
-                                  _Bone(width: 70, height: 10, color: boneColor),
+                                  _Bone(
+                                    width: 70,
+                                    height: 10,
+                                    color: boneColor,
+                                  ),
                                 ],
                               ),
                             ],
@@ -1145,7 +1405,12 @@ class _ConversationListSkeleton extends StatelessWidget {
         ],
         // Safety banner
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            0,
+            AppSpacing.xl,
+            120,
+          ),
           child: Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
@@ -1154,7 +1419,12 @@ class _ConversationListSkeleton extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _Bone(width: 22, height: 22, color: boneColor, borderRadius: BorderRadius.circular(11)),
+                _Bone(
+                  width: 22,
+                  height: 22,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(11),
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -1166,7 +1436,12 @@ class _ConversationListSkeleton extends StatelessWidget {
                     ],
                   ),
                 ),
-                _Bone(width: 16, height: 16, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                _Bone(
+                  width: 16,
+                  height: 16,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ],
             ),
           ),
@@ -1206,7 +1481,9 @@ class _NotificationListSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: isUnread
-            ? const Border(left: BorderSide(color: AppSemanticColors.accent, width: 3))
+            ? const Border(
+                left: BorderSide(color: AppSemanticColors.accent, width: 3),
+              )
             : null,
       ),
       child: Card(
@@ -1218,7 +1495,12 @@ class _NotificationListSkeleton extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Bone(width: 48, height: 48, color: boneColor, borderRadius: BorderRadius.circular(24)),
+              _Bone(
+                width: 48,
+                height: 48,
+                color: boneColor,
+                borderRadius: BorderRadius.circular(24),
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -1280,7 +1562,12 @@ class _VisitListSkeleton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.screen, AppSpacing.xl, 0),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.screen,
+            AppSpacing.xl,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1293,7 +1580,9 @@ class _VisitListSkeleton extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               for (var i = 0; i < itemCount && i < 2; i++) ...[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: _visitCard(boneColor, showActions: i == 0),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -1303,7 +1592,9 @@ class _VisitListSkeleton extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               for (var i = 0; i < itemCount && i < 1; i++) ...[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: _visitCard(boneColor, showActions: true),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -1313,7 +1604,9 @@ class _VisitListSkeleton extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               for (var i = 0; i < itemCount && i < 1; i++) ...[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: _visitCard(boneColor, showActions: false),
                 ),
               ],
@@ -1334,7 +1627,10 @@ class _VisitListSkeleton extends StatelessWidget {
 
   static Widget _visitCard(Color boneColor, {required bool showActions}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm + 2,
+      ),
       decoration: BoxDecoration(
         color: boneColor.withValues(alpha: 0.3),
         borderRadius: AppRadius.cardBorder,
@@ -1344,7 +1640,12 @@ class _VisitListSkeleton extends StatelessWidget {
         children: [
           Row(
             children: [
-              _Bone(width: 32, height: 32, color: boneColor, borderRadius: BorderRadius.circular(8)),
+              _Bone(
+                width: 32,
+                height: 32,
+                color: boneColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
@@ -1356,18 +1657,33 @@ class _VisitListSkeleton extends StatelessWidget {
                   ],
                 ),
               ),
-              _Bone(width: 64, height: 24, color: boneColor, borderRadius: AppRadius.pillBorder),
+              _Bone(
+                width: 64,
+                height: 24,
+                color: boneColor,
+                borderRadius: AppRadius.pillBorder,
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           // Context row with icon bones
           Row(
             children: [
-              _Bone(width: 12, height: 12, color: boneColor, borderRadius: BorderRadius.circular(6)),
+              _Bone(
+                width: 12,
+                height: 12,
+                color: boneColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
               const SizedBox(width: 4),
               _Bone(width: 70, height: 10, color: boneColor),
               const SizedBox(width: AppSpacing.sm),
-              _Bone(width: 12, height: 12, color: boneColor, borderRadius: BorderRadius.circular(6)),
+              _Bone(
+                width: 12,
+                height: 12,
+                color: boneColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
               const SizedBox(width: 4),
               _Bone(width: 60, height: 10, color: boneColor),
             ],
@@ -1376,9 +1692,21 @@ class _VisitListSkeleton extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Expanded(child: _Bone(height: 30, color: boneColor, borderRadius: BorderRadius.circular(8))),
+                Expanded(
+                  child: _Bone(
+                    height: 30,
+                    color: boneColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.xs),
-                Expanded(child: _Bone(height: 30, color: boneColor, borderRadius: BorderRadius.circular(8))),
+                Expanded(
+                  child: _Bone(
+                    height: 30,
+                    color: boneColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ],
             ),
           ],
@@ -1406,7 +1734,12 @@ class _ManageListingsSkeleton extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.screen, 0, AppSpacing.screen, AppSpacing.md),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            0,
+            AppSpacing.screen,
+            AppSpacing.md,
+          ),
           child: Align(
             alignment: Alignment.centerLeft,
             child: _Bone(width: 200, height: 28, color: boneColor),
@@ -1414,7 +1747,12 @@ class _ManageListingsSkeleton extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-          child: _Bone(width: double.infinity, height: 52, color: boneColor, borderRadius: BorderRadius.circular(10)),
+          child: _Bone(
+            width: double.infinity,
+            height: 52,
+            color: boneColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         Padding(
@@ -1427,9 +1765,15 @@ class _ManageListingsSkeleton extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Expanded(child: Center(child: _Bone(width: 80, color: boneColor))),
-                Expanded(child: Center(child: _Bone(width: 60, color: boneColor))),
-                Expanded(child: Center(child: _Bone(width: 60, color: boneColor))),
+                Expanded(
+                  child: Center(child: _Bone(width: 80, color: boneColor)),
+                ),
+                Expanded(
+                  child: Center(child: _Bone(width: 60, color: boneColor)),
+                ),
+                Expanded(
+                  child: Center(child: _Bone(width: 60, color: boneColor)),
+                ),
               ],
             ),
           ),
@@ -1437,7 +1781,12 @@ class _ManageListingsSkeleton extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.screen, AppSpacing.xs, AppSpacing.screen, AppSpacing.xl + AppSpacing.md),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.xs,
+              AppSpacing.screen,
+              AppSpacing.xl + AppSpacing.md,
+            ),
             children: [
               for (var i = 0; i < itemCount; i++) ...[
                 Padding(
@@ -1457,11 +1806,19 @@ class _ManageListingsSkeleton extends StatelessWidget {
                               width: double.infinity,
                               height: 160,
                               color: boneColor,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(AppRadius.card),
+                              ),
                             ),
                             Positioned(
-                              top: AppSpacing.sm, right: AppSpacing.sm,
-                              child: _Bone(width: 64, height: 28, color: boneColor, borderRadius: AppRadius.pillBorder),
+                              top: AppSpacing.sm,
+                              right: AppSpacing.sm,
+                              child: _Bone(
+                                width: 64,
+                                height: 28,
+                                color: boneColor,
+                                borderRadius: AppRadius.pillBorder,
+                              ),
                             ),
                           ],
                         ),
@@ -1477,23 +1834,50 @@ class _ManageListingsSkeleton extends StatelessWidget {
                               const SizedBox(height: AppSpacing.sm),
                               Row(
                                 children: [
-                                  _Bone(width: 40, height: 20, color: boneColor, borderRadius: AppRadius.pillBorder),
+                                  _Bone(
+                                    width: 40,
+                                    height: 20,
+                                    color: boneColor,
+                                    borderRadius: AppRadius.pillBorder,
+                                  ),
                                   const SizedBox(width: AppSpacing.xs),
-                                  _Bone(width: 48, height: 20, color: boneColor, borderRadius: AppRadius.pillBorder),
+                                  _Bone(
+                                    width: 48,
+                                    height: 20,
+                                    color: boneColor,
+                                    borderRadius: AppRadius.pillBorder,
+                                  ),
                                   const SizedBox(width: AppSpacing.xs),
-                                  _Bone(width: 44, height: 20, color: boneColor, borderRadius: AppRadius.pillBorder),
+                                  _Bone(
+                                    width: 44,
+                                    height: 20,
+                                    color: boneColor,
+                                    borderRadius: AppRadius.pillBorder,
+                                  ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                        _Bone(width: double.infinity, height: 1, color: boneColor),
+                        _Bone(
+                          width: double.infinity,
+                          height: 1,
+                          color: boneColor,
+                        ),
                         // Owner row
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
                           child: Row(
                             children: [
-                              _Bone(width: 28, height: 28, color: boneColor, borderRadius: BorderRadius.circular(14)),
+                              _Bone(
+                                width: 28,
+                                height: 28,
+                                color: boneColor,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               const SizedBox(width: AppSpacing.sm),
                               _Bone(width: 100, height: 12, color: boneColor),
                               const Spacer(),
@@ -1501,7 +1885,11 @@ class _ManageListingsSkeleton extends StatelessWidget {
                             ],
                           ),
                         ),
-                        _Bone(width: double.infinity, height: 1, color: boneColor),
+                        _Bone(
+                          width: double.infinity,
+                          height: 1,
+                          color: boneColor,
+                        ),
                         // Stats grid (2 rows x 3 cols)
                         Padding(
                           padding: const EdgeInsets.all(AppSpacing.md),
@@ -1510,8 +1898,16 @@ class _ManageListingsSkeleton extends StatelessWidget {
                               Row(
                                 children: [
                                   for (var j = 0; j < 3; j++) ...[
-                                    Expanded(child: _Bone(width: 56, height: 28, color: boneColor, borderRadius: BorderRadius.circular(8))),
-                                    if (j < 2) const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: _Bone(
+                                        width: 56,
+                                        height: 28,
+                                        color: boneColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    if (j < 2)
+                                      const SizedBox(width: AppSpacing.sm),
                                   ],
                                 ],
                               ),
@@ -1519,8 +1915,16 @@ class _ManageListingsSkeleton extends StatelessWidget {
                               Row(
                                 children: [
                                   for (var j = 0; j < 3; j++) ...[
-                                    Expanded(child: _Bone(width: 56, height: 28, color: boneColor, borderRadius: BorderRadius.circular(8))),
-                                    if (j < 2) const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: _Bone(
+                                        width: 56,
+                                        height: 28,
+                                        color: boneColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    if (j < 2)
+                                      const SizedBox(width: AppSpacing.sm),
                                   ],
                                 ],
                               ),
@@ -1563,20 +1967,44 @@ class _MapExploreSkeleton extends StatelessWidget {
           ),
           // Frosted glass top bar
           Positioned(
-            top: 0, left: 0, right: 0,
+            top: 0,
+            left: 0,
+            right: 0,
             child: Container(
-              color: isDark ? AppSemanticColors.frostOverlayDark : AppSemanticColors.frostOverlayLight,
+              color: isDark
+                  ? AppSemanticColors.frostOverlayDark
+                  : AppSemanticColors.frostOverlayLight,
               child: Padding(
                 padding: EdgeInsets.only(top: safeAreaTop),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.screen, AppSpacing.md, AppSpacing.screen, AppSpacing.xs),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screen,
+                    AppSpacing.md,
+                    AppSpacing.screen,
+                    AppSpacing.xs,
+                  ),
                   child: Row(
                     children: [
-                      _Bone(width: 140, height: 36, color: boneColor, borderRadius: AppRadius.pillBorder),
+                      _Bone(
+                        width: 140,
+                        height: 36,
+                        color: boneColor,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
                       const Spacer(),
-                      _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(20)),
+                      _Bone(
+                        width: 40,
+                        height: 40,
+                        color: boneColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       const SizedBox(width: AppSpacing.sm),
-                      _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(20)),
+                      _Bone(
+                        width: 40,
+                        height: 40,
+                        color: boneColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ],
                   ),
                 ),
@@ -1589,33 +2017,68 @@ class _MapExploreSkeleton extends StatelessWidget {
             top: safeAreaTop + 80,
             child: Column(
               children: [
-                _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                _Bone(
+                  width: 40,
+                  height: 40,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 const SizedBox(height: AppSpacing.sm),
-                _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                _Bone(
+                  width: 40,
+                  height: 40,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 const SizedBox(height: AppSpacing.sm),
-                _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                _Bone(
+                  width: 40,
+                  height: 40,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 const SizedBox(height: AppSpacing.sm),
-                _Bone(width: 40, height: 40, color: boneColor, borderRadius: BorderRadius.circular(8)),
+                _Bone(
+                  width: 40,
+                  height: 40,
+                  color: boneColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ],
             ),
           ),
           // Bottom sheet with mini cards
           Positioned(
-            left: 0, right: 0, bottom: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? AppSemanticColors.frostOverlayDark : AppSemanticColors.frostOverlayLight,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+                color: isDark
+                    ? AppSemanticColors.frostOverlayDark
+                    : AppSemanticColors.frostOverlayLight,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.card),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    child: _Bone(width: 40, height: 4, color: boneColor, borderRadius: BorderRadius.circular(2)),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.sm,
+                    ),
+                    child: _Bone(
+                      width: 40,
+                      height: 4,
+                      color: boneColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: _Bone(width: 80, height: 12, color: boneColor),
@@ -1623,7 +2086,12 @@ class _MapExploreSkeleton extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, 24),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      0,
+                      AppSpacing.md,
+                      24,
+                    ),
                     child: Row(
                       children: [
                         Flexible(child: _miniCard(boneColor)),
@@ -1647,7 +2115,11 @@ class _MapExploreSkeleton extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Bone(height: 100, color: boneColor, borderRadius: AppRadius.cardBorder),
+        _Bone(
+          height: 100,
+          color: boneColor,
+          borderRadius: AppRadius.cardBorder,
+        ),
         const SizedBox(height: AppSpacing.sm),
         _Bone(width: 80, height: 12, color: boneColor),
         const SizedBox(height: 4),

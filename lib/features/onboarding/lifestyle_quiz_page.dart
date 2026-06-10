@@ -158,6 +158,12 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
         );
       }).toList();
     }
+    debugPrint(
+      'LifestyleQuizPage: flatmates_lifestyle_quiz catalog unavailable — '
+      'using hardcoded fallback questions; these can drift from the backend '
+      'and feed stale dimensions into matching. Backend catalog is the '
+      'source of truth.',
+    );
     return _fallbackQuestions;
   }
 

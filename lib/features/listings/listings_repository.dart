@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../../core/utils/safe_json_list.dart';
 import '../discover/data/property_listing_dto.dart';
 import '../discover/discover_repository.dart';
 
@@ -119,13 +120,8 @@ class ListingsRepository {
         .watch(apiClientProvider)
         .get(FlatmatesEndpoints.myProperties);
     final rawData = response.data;
-    final rows = rawData is List ? rawData : const [];
-    return rows
-        .map(
-          (item) => PropertyListingDto.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          ),
-        )
+    final rows = rawData is List ? rawData : const <dynamic>[];
+    return safeJsonList(rows, PropertyListingDto.fromJson, label: 'myListings')
         .where((listing) {
           final type = listing.propertyType;
           return type == null || type == 'flatmate' || type == 'pg';

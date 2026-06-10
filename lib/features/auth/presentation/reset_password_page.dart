@@ -33,7 +33,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
   /// Local guard to prevent re-entrant submissions from dual autofill sources.
   bool _isSubmitting = false;
 
-
   /// The identifier (phone or email) the reset OTP was sent to, sourced from
   /// the controller (set by [ForgotPasswordPage]).
   String get _identifier =>
@@ -89,8 +88,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     }
   }
 
-
-
   Future<void> _resendOtp() async {
     if (!canResend) return;
     await ref
@@ -129,7 +126,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
         context,
         AppLocalizations.of(context).passwordResetSuccess,
       );
-      context.go('/login');
+      // The reset kept the OTP-verified session — go straight into the app;
+      // the router redirect chain corrects to /splash or /onboarding.
+      context.go('/discover');
     }
   }
 
@@ -198,7 +197,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               : Icons.visibility_outlined,
                         ),
                         onPressed: () {
-                          final notifier = ref.read(_obscurePasswordProvider.notifier);
+                          final notifier = ref.read(
+                            _obscurePasswordProvider.notifier,
+                          );
                           notifier.state = !notifier.state;
                         },
                         tooltip: 'Toggle password visibility',
@@ -220,7 +221,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               : Icons.visibility_outlined,
                         ),
                         onPressed: () {
-                          final notifier = ref.read(_obscureConfirmProvider.notifier);
+                          final notifier = ref.read(
+                            _obscureConfirmProvider.notifier,
+                          );
                           notifier.state = !notifier.state;
                         },
                         tooltip: 'Toggle password visibility',

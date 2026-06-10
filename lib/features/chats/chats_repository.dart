@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import 'domain/chat_models.dart';
 
@@ -22,42 +23,33 @@ class ChatsRepository {
     final response = await _ref
         .read(apiClientProvider)
         .get(FlatmatesEndpoints.conversations);
-    final rows = (response.data as List? ?? const []);
-    return rows
-        .map(
-          (item) => ConversationSummaryModel.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          ),
-        )
-        .toList();
+    return safeJsonList(
+      response.data as List?,
+      ConversationSummaryModel.fromJson,
+      label: 'conversations',
+    );
   }
 
   Future<List<IncomingLikeModel>> fetchIncomingLikes() async {
     final response = await _ref
         .read(apiClientProvider)
         .get(FlatmatesEndpoints.incomingLikes);
-    final rows = (response.data as List? ?? const []);
-    return rows
-        .map(
-          (item) => IncomingLikeModel.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          ),
-        )
-        .toList();
+    return safeJsonList(
+      response.data as List?,
+      IncomingLikeModel.fromJson,
+      label: 'incomingLikes',
+    );
   }
 
   Future<List<IncomingLikeModel>> fetchOutgoingLikes() async {
     final response = await _ref
         .read(apiClientProvider)
         .get(FlatmatesEndpoints.outgoingLikes);
-    final rows = (response.data as List? ?? const []);
-    return rows
-        .map(
-          (item) => IncomingLikeModel.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          ),
-        )
-        .toList();
+    return safeJsonList(
+      response.data as List?,
+      IncomingLikeModel.fromJson,
+      label: 'outgoingLikes',
+    );
   }
 
   Future<int?> matchIncomingLike({
@@ -98,13 +90,11 @@ class ChatsRepository {
     final data = response.data;
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
-      final rows = (map['messages'] as List? ?? const []);
-      final messages = rows
-          .map(
-            (item) =>
-                ChatMessage.fromJson(Map<String, dynamic>.from(item as Map)),
-          )
-          .toList();
+      final messages = safeJsonList(
+        map['messages'] as List?,
+        ChatMessage.fromJson,
+        label: 'messages',
+      );
       return MessageListResponse(
         messages: messages,
         total: (map['total'] as num?)?.toInt() ?? messages.length,
@@ -112,13 +102,11 @@ class ChatsRepository {
       );
     }
     // Fallback: handle legacy responses that return a raw list
-    final rows = (data as List? ?? const []);
-    final messages = rows
-        .map(
-          (item) =>
-              ChatMessage.fromJson(Map<String, dynamic>.from(item as Map)),
-        )
-        .toList();
+    final messages = safeJsonList(
+      data as List?,
+      ChatMessage.fromJson,
+      label: 'messages',
+    );
     return MessageListResponse(
       messages: messages,
       total: messages.length,
@@ -130,7 +118,9 @@ class ChatsRepository {
     late final StreamController<List<ChatMessage>> controller;
     StreamSubscription<List<ChatMessage>>? realtimeSubscription;
     var hasEmittedMessages = false;
-    var _isRefetching = false;
+    var isRefetching = false;
+    var consecutiveErrorRefetches = 0;
+    Timer? errorRefetchTimer;
 
     void emitMessages(List<ChatMessage> messages) {
       if (controller.isClosed) return;
@@ -139,8 +129,8 @@ class ChatsRepository {
     }
 
     Future<void> refetch() async {
-      if (_isRefetching) return;
-      _isRefetching = true;
+      if (isRefetching) return;
+      isRefetching = true;
       try {
         final response = await fetchMessages(conversationId);
         emitMessages(response.messages);
@@ -149,7 +139,7 @@ class ChatsRepository {
           controller.addError(error, stackTrace);
         }
       } finally {
-        _isRefetching = false;
+        isRefetching = false;
       }
     }
 
@@ -164,12 +154,28 @@ class ChatsRepository {
               .eq('conversation_id', conversationId)
               .order('created_at', ascending: true)
               .map(_parseMessageRows)
-              .listen(emitMessages, onError: (e) {
-                debugPrint(
-                  'ChatsRepository.watchMessages: realtime stream error: $e',
-                );
-                unawaited(refetch());
-              });
+              .listen(
+                (messages) {
+                  consecutiveErrorRefetches = 0;
+                  emitMessages(messages);
+                },
+                onError: (e) {
+                  debugPrint(
+                    'ChatsRepository.watchMessages: realtime stream error: $e',
+                  );
+                  // A flapping realtime connection can emit errors in rapid
+                  // succession; back off so each error doesn't hit the API.
+                  if (errorRefetchTimer?.isActive ?? false) return;
+                  final delay = Duration(
+                    seconds: 1 << consecutiveErrorRefetches.clamp(0, 5),
+                  );
+                  consecutiveErrorRefetches++;
+                  errorRefetchTimer = Timer(delay, () {
+                    if (controller.isClosed) return;
+                    unawaited(refetch());
+                  });
+                },
+              );
         } catch (e) {
           debugPrint(
             'ChatsRepository.watchMessages: realtime subscription failed: $e',
@@ -177,6 +183,7 @@ class ChatsRepository {
         }
       },
       onCancel: () async {
+        errorRefetchTimer?.cancel();
         await realtimeSubscription?.cancel();
       },
     );
@@ -201,6 +208,25 @@ class ChatsRepository {
             'metadata': ?metadata,
           },
         );
+  }
+
+  /// Fetches the full flatmates profile of another user. Returns null when
+  /// the profile is unavailable (deleted, blocked, or 404) so callers can
+  /// degrade gracefully instead of erroring the whole page.
+  Future<Map<String, dynamic>?> fetchPeerProfile(int userId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .get('${FlatmatesEndpoints.flatmatesProfiles}/$userId');
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('ChatsRepository.fetchPeerProfile: $e');
+      return null;
+    }
   }
 
   Future<void> markMessagesAsRead(int conversationId) async {
@@ -260,9 +286,7 @@ class ChatsRepository {
   }
 
   static List<ChatMessage> _parseMessageRows(List<Map<String, dynamic>> rows) {
-    return rows
-        .map((row) => ChatMessage.fromJson(Map<String, dynamic>.from(row)))
-        .toList();
+    return safeJsonList(rows, ChatMessage.fromJson, label: 'realtimeMessages');
   }
 }
 
@@ -338,4 +362,8 @@ final messagesProvider = FutureProvider.family<MessageListResponse, int>(
 final messagesStreamProvider = StreamProvider.family<List<ChatMessage>, int>(
   (ref, conversationId) =>
       ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
+);
+
+final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
+  (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
 );

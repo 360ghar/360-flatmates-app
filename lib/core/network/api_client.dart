@@ -6,18 +6,16 @@ import 'auth_token_provider.dart';
 import 'interceptors/auth_interceptor.dart';
 
 final class ApiClient {
-  ApiClient({
-    required String baseUrl,
-    required AuthTokenProvider tokenProvider,
-  }) : _dio = Dio(
-          BaseOptions(
-            baseUrl: baseUrl,
-            connectTimeout: const Duration(seconds: 60),
-            receiveTimeout: const Duration(seconds: 60),
-            sendTimeout: const Duration(seconds: 60),
-            headers: const {'Accept': 'application/json'},
-          ),
-        ) {
+  ApiClient({required String baseUrl, required AuthTokenProvider tokenProvider})
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          connectTimeout: const Duration(seconds: 60),
+          receiveTimeout: const Duration(seconds: 60),
+          sendTimeout: const Duration(seconds: 60),
+          headers: const {'Accept': 'application/json'},
+        ),
+      ) {
     _dio.interceptors.add(
       AuthInterceptor(tokenProvider: tokenProvider, dio: _dio),
     );

@@ -115,8 +115,9 @@ class FlatDetailsLocation extends StatelessWidget {
                   Expanded(
                     child: Text(
                       locale.visitScheduledBanner(
-                        DateFormat.yMMMd(locale.localeName)
-                            .format(l.userNextVisitDate!),
+                        DateFormat.yMMMd(
+                          locale.localeName,
+                        ).format(l.userNextVisitDate!),
                       ),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,

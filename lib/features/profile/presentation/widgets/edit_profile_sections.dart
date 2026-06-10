@@ -109,7 +109,11 @@ class EditProfilePhotoSection extends StatelessWidget {
                                 fit: BoxFit.cover,
                               ),
                             )
-                          : const Icon(Icons.person, size: 48, color: Colors.white),
+                          : const Icon(
+                              Icons.person,
+                              size: 48,
+                              color: Colors.white,
+                            ),
                     ),
                   ),
                   if (photoUploading)

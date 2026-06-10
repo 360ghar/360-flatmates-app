@@ -92,7 +92,9 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
     final hasImage =
         widget.imageUrl != null && widget.imageUrl!.trim().isNotEmpty;
     final isCircle = widget.shape == BoxShape.circle;
-    final resolvedRadius = isCircle ? null : (widget.borderRadius ?? BorderRadius.circular(12));
+    final resolvedRadius = isCircle
+        ? null
+        : (widget.borderRadius ?? BorderRadius.circular(12));
 
     final avatar = Container(
       width: widget.size,
@@ -118,19 +120,19 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
       ),
       child: hasImage
           ? (isCircle
-              ? ClipOval(
-                  child: FlatmatesNetworkImage(
-                    imageUrl: widget.imageUrl!,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              : ClipRRect(
-                  borderRadius: resolvedRadius!,
-                  child: FlatmatesNetworkImage(
-                    imageUrl: widget.imageUrl!,
-                    fit: BoxFit.cover,
-                  ),
-                ))
+                ? ClipOval(
+                    child: FlatmatesNetworkImage(
+                      imageUrl: widget.imageUrl!,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : ClipRRect(
+                    borderRadius: resolvedRadius!,
+                    child: FlatmatesNetworkImage(
+                      imageUrl: widget.imageUrl!,
+                      fit: BoxFit.cover,
+                    ),
+                  ))
           : _AvatarFallback(initials: initials, size: widget.size),
     );
 
@@ -146,7 +148,9 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
               color: AppSemanticColors.accent,
               strokeWidth: 2.5,
               isCircle: isCircle,
-              borderRadiusValue: resolvedRadius != null ? resolvedRadius.topLeft.x : 12.0,
+              borderRadiusValue: resolvedRadius != null
+                  ? resolvedRadius.topLeft.x
+                  : 12.0,
             ),
             child: child,
           );
@@ -207,8 +211,16 @@ class _RingPainter extends CustomPainter {
         paint,
       );
     } else {
-      final rect = Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth, size.height - strokeWidth);
-      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadiusValue));
+      final rect = Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      );
+      final rrect = RRect.fromRectAndRadius(
+        rect,
+        Radius.circular(borderRadiusValue),
+      );
       final path = Path()..addRRect(rrect);
       final pathMetrics = path.computeMetrics().toList();
       if (pathMetrics.isNotEmpty) {
@@ -451,7 +463,9 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
                   ? AppSemanticColors.accent
                   : null,
               foregroundColor: Colors.white,
-              shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+              shape: const RoundedRectangleBorder(
+                borderRadius: AppRadius.mdBorder,
+              ),
               elevation: enabled ? 1 : 0,
               shadowColor: enabled && !widget.destructive
                   ? AppSemanticColors.accent.withValues(alpha: 0.18)
@@ -493,7 +507,9 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
                     : borderColor,
                 width: 1.5,
               ),
-              shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+              shape: const RoundedRectangleBorder(
+                borderRadius: AppRadius.mdBorder,
+              ),
             ),
             child: _buildChild(theme, textColor),
           ),
@@ -536,10 +552,18 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
 
   Widget _buildGoogle(ThemeData theme, bool enabled) {
     final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF131314) : const Color(0xFFFFFFFF);
-    final foregroundColor = isDark ? const Color(0xFFE3E3E3) : const Color(0xFF3C4043);
-    final borderColor = isDark ? const Color(0xFF8E918F) : const Color(0xFFDADCE0);
-    final hoverColor = isDark ? const Color(0xFF1E1F20) : const Color(0xFFF8F9FA);
+    final backgroundColor = isDark
+        ? const Color(0xFF131314)
+        : const Color(0xFFFFFFFF);
+    final foregroundColor = isDark
+        ? const Color(0xFFE3E3E3)
+        : const Color(0xFF3C4043);
+    final borderColor = isDark
+        ? const Color(0xFF8E918F)
+        : const Color(0xFFDADCE0);
+    final hoverColor = isDark
+        ? const Color(0xFF1E1F20)
+        : const Color(0xFFF8F9FA);
 
     return Listener(
       onPointerDown: enabled ? (_) => setState(() => _pressed = true) : null,
@@ -554,28 +578,34 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
           width: widget.fullWidth ? double.infinity : null,
           child: ElevatedButton(
             onPressed: widget.onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: backgroundColor,
-              foregroundColor: foregroundColor,
-              surfaceTintColor: Colors.transparent,
-              elevation: enabled ? 1 : 0,
-              shadowColor: Colors.black.withValues(alpha: 0.15),
-              shape: RoundedRectangleBorder(
-                borderRadius: AppRadius.mdBorder,
-                side: BorderSide(
-                  color: enabled ? borderColor : theme.disabledColor.withValues(alpha: 0.2),
+            style:
+                ElevatedButton.styleFrom(
+                  backgroundColor: backgroundColor,
+                  foregroundColor: foregroundColor,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: enabled ? 1 : 0,
+                  shadowColor: Colors.black.withValues(alpha: 0.15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppRadius.mdBorder,
+                    side: BorderSide(
+                      color: enabled
+                          ? borderColor
+                          : theme.disabledColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                ).copyWith(
+                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.pressed) ||
+                        states.contains(WidgetState.hovered)) {
+                      return hoverColor;
+                    }
+                    return null;
+                  }),
                 ),
-              ),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.pressed) || states.contains(WidgetState.hovered)) {
-                  return hoverColor;
-                }
-                return null;
-              }),
-            ),
             child: Row(
-              mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisSize: widget.fullWidth
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(

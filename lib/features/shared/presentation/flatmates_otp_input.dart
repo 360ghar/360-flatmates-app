@@ -37,10 +37,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
       widget.digitCount,
       (_) => TextEditingController(),
     );
-    _focusNodes = List.generate(
-      widget.digitCount,
-      (_) => FocusNode(),
-    );
+    _focusNodes = List.generate(widget.digitCount, (_) => FocusNode());
   }
 
   @override
@@ -54,8 +51,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
     super.dispose();
   }
 
-  String get otp =>
-      _controllers.map((c) => c.text).join();
+  String get otp => _controllers.map((c) => c.text).join();
 
   void _onDigitChanged(int index, String value) {
     // Suppress re-entrant onChanged while programmatically distributing digits.
@@ -146,9 +142,10 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
         final gapCount = widget.digitCount - 1;
         const gap = AppSpacing.sm;
         const maxBoxWidth = AppSpacing.screen + AppSpacing.section;
-        final boxWidth = ((constraints.maxWidth - gap * gapCount) / widget.digitCount)
-            .clamp(0, maxBoxWidth)
-            .toDouble();
+        final boxWidth =
+            ((constraints.maxWidth - gap * gapCount) / widget.digitCount)
+                .clamp(0, maxBoxWidth)
+                .toDouble();
         final fontSize = boxWidth >= AppSpacing.screen + AppSpacing.xl
             ? AppTypography.h2Size
             : AppTypography.h3SizeLarge;
@@ -157,9 +154,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(widget.digitCount, (index) {
             return Padding(
-              padding: EdgeInsets.only(
-                right: index < gapCount ? gap : 0,
-              ),
+              padding: EdgeInsets.only(right: index < gapCount ? gap : 0),
               child: SizedBox(
                 width: boxWidth,
                 height: boxWidth + AppSpacing.sm,
@@ -198,9 +193,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
-                        borderSide: BorderSide(
-                          color: AppSemanticColors.line,
-                        ),
+                        borderSide: BorderSide(color: AppSemanticColors.line),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
@@ -211,9 +204,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
-                        borderSide: BorderSide(
-                          color: AppSemanticColors.error,
-                        ),
+                        borderSide: BorderSide(color: AppSemanticColors.error),
                       ),
                     ),
                     onChanged: (value) => _onDigitChanged(index, value),

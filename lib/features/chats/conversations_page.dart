@@ -12,11 +12,19 @@ import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/components.dart';
 import '../swipe/match_qna_nudge.dart';
+import 'application/chat_actions_controller.dart';
 import 'chats_repository.dart';
 import 'presentation/widgets/conversation_card.dart';
 
+/// Overrides the tab coming from the route's `?tab=` query parameter once the
+/// user switches tabs manually. Reset to null when a new initialTab arrives.
+final _conversationsTabOverrideProvider = StateProvider<String?>((ref) => null);
+final _matchingLikeIdsProvider = StateProvider<Set<int>>((ref) => {});
+
 class ConversationsPage extends ConsumerStatefulWidget {
-  const ConversationsPage({super.key});
+  const ConversationsPage({super.key, this.initialTab = 'chats'});
+
+  final String initialTab;
 
   @override
   ConsumerState<ConversationsPage> createState() => _ConversationsPageState();
@@ -24,8 +32,18 @@ class ConversationsPage extends ConsumerStatefulWidget {
 
 class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   static const double _kBottomNavOffset = 120;
-  final Set<int> _matchingLikeIds = {};
-  String _tab = 'chats';
+
+  @override
+  void didUpdateWidget(ConversationsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab) {
+      // Deferred: provider writes are not allowed while the tree is building.
+      Future.microtask(() {
+        if (!mounted) return;
+        ref.read(_conversationsTabOverrideProvider.notifier).state = null;
+      });
+    }
+  }
 
   Future<void> _refresh() async {
     ref.invalidate(conversationsProvider);
@@ -34,19 +52,21 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   }
 
   Future<void> _matchIncomingLike(IncomingLikeModel like) async {
-    if (_matchingLikeIds.contains(like.id)) return;
-    setState(() => _matchingLikeIds.add(like.id));
+    final matchingIds = ref.read(_matchingLikeIdsProvider);
+    if (matchingIds.contains(like.id)) return;
+    ref.read(_matchingLikeIdsProvider.notifier).state = {
+      ...matchingIds,
+      like.id,
+    };
 
     final locale = AppLocalizations.of(context);
     try {
       final conversationId = await ref
-          .read(chatsRepositoryProvider)
+          .read(chatActionsControllerProvider)
           .matchIncomingLike(
             peerId: like.peer.id,
             contextPropertyId: like.contextProperty?.id,
           );
-      ref.invalidate(incomingLikesProvider);
-      ref.invalidate(conversationsProvider);
       if (!mounted) return;
       if (conversationId == null) {
         _showMatchFailure(locale);
@@ -70,7 +90,11 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
       );
       if (mounted) _showMatchFailure(locale);
     } finally {
-      if (mounted) setState(() => _matchingLikeIds.remove(like.id));
+      if (mounted) {
+        ref.read(_matchingLikeIdsProvider.notifier).state = {
+          ...ref.read(_matchingLikeIdsProvider),
+        }..remove(like.id);
+      }
     }
   }
 
@@ -83,6 +107,9 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     final conversations = ref.watch(conversationsProvider);
     final incomingLikes = ref.watch(incomingLikesProvider);
     final outgoingLikes = ref.watch(outgoingLikesProvider);
+    final tab =
+        ref.watch(_conversationsTabOverrideProvider) ?? widget.initialTab;
+    final matchingLikeIds = ref.watch(_matchingLikeIdsProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -113,18 +140,20 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                 ('likes', locale.likesTabLabel, Icons.favorite_border_rounded),
                 ('liked', locale.likedTabLabel, Icons.favorite_rounded),
               ],
-              selected: _tab,
-              onChanged: (v) => setState(() => _tab = v),
+              selected: tab,
+              onChanged: (v) =>
+                  ref.read(_conversationsTabOverrideProvider.notifier).state =
+                      v,
             ),
             const SizedBox(height: AppSpacing.xl),
-            if (_tab == 'likes')
+            if (tab == 'likes')
               _LikesTab(
                 likes: incomingLikes,
-                matchingLikeIds: _matchingLikeIds,
+                matchingLikeIds: matchingLikeIds,
                 onRetry: () => ref.invalidate(incomingLikesProvider),
                 onMatchTap: _matchIncomingLike,
               )
-            else if (_tab == 'liked')
+            else if (tab == 'liked')
               _LikedTab(
                 likes: outgoingLikes,
                 onRetry: () => ref.invalidate(outgoingLikesProvider),

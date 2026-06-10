@@ -17,9 +17,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await testAppPreferences;
       final container = ProviderContainer(
-        overrides: [
-          appPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [appPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 

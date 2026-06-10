@@ -166,7 +166,9 @@ abstract final class AppTheme {
         backgroundColor: surface,
         elevation: 4,
         shadowColor: AppSemanticColors.ink.withValues(alpha: 0.12),
-        shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetBorder),
+        shape: const RoundedRectangleBorder(
+          borderRadius: AppRadius.sheetBorder,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -183,10 +185,7 @@ abstract final class AppTheme {
         ),
         focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: BorderSide(
-            color: AppSemanticColors.accent,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: AppSemanticColors.accent, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,

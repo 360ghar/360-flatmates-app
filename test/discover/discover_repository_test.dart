@@ -16,7 +16,7 @@ void main() {
       'fetchListings sends move-in query and applies client fallback',
       () async {
         final now = DateTime.now();
-        final thisMonth = DateTime(now.year, now.month, 1).toIso8601String();
+        final thisMonth = DateTime(now.year, now.month).toIso8601String();
         final nextMonth = DateTime(
           now.year,
           now.month + 1,

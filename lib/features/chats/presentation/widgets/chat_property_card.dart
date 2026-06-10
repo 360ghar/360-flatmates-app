@@ -12,16 +12,19 @@ import '../../chats_repository.dart';
 class ChatPropertyCard extends StatelessWidget {
   const ChatPropertyCard({
     required this.conversation,
-    required this.isExpanded,
-    required this.onToggleExpand,
     required this.onViewListing,
     required this.onMiniCardTap,
+    this.isExpanded = true,
+    this.onToggleExpand,
     super.key,
   });
 
   final ConversationSummaryModel conversation;
   final bool isExpanded;
-  final VoidCallback onToggleExpand;
+
+  /// When null the card is not collapsible: the chevron is hidden and taps
+  /// don't toggle.
+  final VoidCallback? onToggleExpand;
   final VoidCallback onViewListing;
   final VoidCallback onMiniCardTap;
 
@@ -60,18 +63,20 @@ class ChatPropertyCard extends StatelessWidget {
                         onTap: onMiniCardTap,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    AnimatedRotation(
-                      duration: const Duration(milliseconds: 250),
-                      turns: isExpanded ? 0.5 : 0,
-                      child: Icon(
-                        Icons.expand_more_rounded,
-                        size: 20,
-                        color: AppSemanticColors.textSecondaryFor(
-                          theme.brightness,
+                    if (onToggleExpand != null) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      AnimatedRotation(
+                        duration: const Duration(milliseconds: 250),
+                        turns: isExpanded ? 0.5 : 0,
+                        child: Icon(
+                          Icons.expand_more_rounded,
+                          size: 20,
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 if (isExpanded) ...[

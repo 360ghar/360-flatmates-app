@@ -40,9 +40,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   static const double _kBottomNavOffset = 120.0;
 
   final _scrollController = ScrollController();
-  final _likeDebouncer = ActionDebouncer(
-    
-  );
+  final _likeDebouncer = ActionDebouncer();
   final _locationRadiusDebouncer = ActionDebouncer();
 
   @override
@@ -202,9 +200,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  HomeSearchBar(
-                    onTap: () => context.push('/search-filters'),
-                  ),
+                  HomeSearchBar(onTap: () => context.push('/search-filters')),
                   const SizedBox(height: AppSpacing.sm),
                   if (filtered.length < 5 && city != null) ...[
                     WaitlistNudgeCard(
@@ -222,7 +218,8 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       onExplore: () => context.go('/tab2'),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                  ] else */ if (!isSeeker) ...[
+                  ] else */
+                  if (!isSeeker) ...[
                     PostYourSpaceCard(onTap: () => context.push('/post/new')),
                     const SizedBox(height: AppSpacing.sm),
                   ],
@@ -252,7 +249,8 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: filtered.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.md),
                       itemBuilder: (context, index) {
                         final item = filtered[index];
                         final badgeLabel = switch (index) {
@@ -265,27 +263,38 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                           child: DiscoverListingCard(
                             item: item,
                             badgeLabel: badgeLabel,
-                            onTap: () => context.push('/flat-details/${item.id}'),
+                            onTap: () =>
+                                context.push('/flat-details/${item.id}'),
                             onLike: () {
                               _likeDebouncer.run(() {
                                 ref
                                     .read(discoverRepositoryProvider)
                                     .setLiked(item.id, true)
                                     .then((conversationId) {
-                                      ref.read(discoverFeedControllerProvider.notifier).refresh();
+                                      ref
+                                          .read(
+                                            discoverFeedControllerProvider
+                                                .notifier,
+                                          )
+                                          .refresh();
                                       ref.invalidate(conversationsProvider);
                                       if (!context.mounted) return;
                                       FlatmatesToast.success(
                                         context,
                                         conversationId == null
                                             ? locale.contactRequestSent
-                                            : locale.contactRequestWithConversation(conversationId),
+                                            : locale
+                                                  .contactRequestWithConversation(
+                                                    conversationId,
+                                                  ),
                                       );
                                     })
                                     .catchError((e) {
                                       if (!context.mounted) return;
                                       final msg = e is AppFailure
-                                          ? e.userMessage(locale.toUserMessageL10n())
+                                          ? e.userMessage(
+                                              locale.toUserMessageL10n(),
+                                            )
                                           : locale.actionFailedRetry;
                                       FlatmatesToast.error(context, msg);
                                     });

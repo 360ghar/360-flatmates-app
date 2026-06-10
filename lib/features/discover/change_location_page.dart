@@ -303,9 +303,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
               ),
             ),
             const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screen),
               child: Divider(color: AppSemanticColors.line),
             ),
             if (isPlacesLoading)

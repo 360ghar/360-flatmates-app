@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -125,7 +127,7 @@ class NotificationsPage extends ConsumerWidget {
 
     final route = notification.route;
     if (route != null && route.startsWith('/')) {
-      context.push(route);
+      unawaited(context.push(route));
       return;
     }
 
@@ -158,7 +160,7 @@ class NotificationsPage extends ConsumerWidget {
     if (resolvedRoute != null) {
       if (resolvedRoute.startsWith('/chats/') ||
           resolvedRoute.startsWith('/flat-details/')) {
-        context.push(resolvedRoute);
+        unawaited(context.push(resolvedRoute));
       } else {
         context.go(resolvedRoute);
       }

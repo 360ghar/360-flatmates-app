@@ -32,7 +32,6 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
-
   @override
   void dispose() {
     _passwordController.dispose();
@@ -112,13 +111,16 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                                 : Icons.visibility_outlined,
                           ),
                           onPressed: () {
-                            final notifier = ref.read(_obscureNewPasswordProvider.notifier);
+                            final notifier = ref.read(
+                              _obscureNewPasswordProvider.notifier,
+                            );
                             notifier.state = !notifier.state;
                           },
                           tooltip: 'Toggle password visibility',
                         ),
                       ),
-                      onChanged: (_) => ref.read(_buildTriggerProvider.notifier).state++,
+                      onChanged: (_) =>
+                          ref.read(_buildTriggerProvider.notifier).state++,
                       validator: (value) =>
                           PasswordPolicy.validate(value ?? '', locale),
                     ),
@@ -141,7 +143,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                                 : Icons.visibility_outlined,
                           ),
                           onPressed: () {
-                            final notifier = ref.read(_obscureConfirmPasswordProvider.notifier);
+                            final notifier = ref.read(
+                              _obscureConfirmPasswordProvider.notifier,
+                            );
                             notifier.state = !notifier.state;
                           },
                           tooltip: 'Toggle password visibility',

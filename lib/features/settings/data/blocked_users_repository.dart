@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/providers.dart';
+import '../../../core/utils/safe_json_list.dart';
 import 'blocked_user_model.dart';
 
 class BlockedUsersRepository {
@@ -14,11 +15,11 @@ class BlockedUsersRepository {
   Future<List<BlockedUser>> getBlockedUsers() async {
     final response = await _apiClient.get(FlatmatesEndpoints.blocks);
     final data = response.data;
-    final rows = data is List ? data : <dynamic>[];
-    return rows
-        .whereType<Map>()
-        .map((item) => BlockedUser.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+    return safeJsonList(
+      data is List ? data : null,
+      BlockedUser.fromJson,
+      label: 'blockedUsers',
+    );
   }
 
   Future<void> unblockUser(int blockedUserId) async {

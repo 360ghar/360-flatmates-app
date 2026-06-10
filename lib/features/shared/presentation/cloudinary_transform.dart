@@ -12,11 +12,7 @@
 ///
 /// Non-Cloudinary URLs are returned unchanged so the helper is safe to run
 /// over every image URL in the app unconditionally.
-String applyCloudinaryTransform(
-  String url, {
-  double? width,
-  double? height,
-}) {
+String applyCloudinaryTransform(String url, {double? width, double? height}) {
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     return url;
   }

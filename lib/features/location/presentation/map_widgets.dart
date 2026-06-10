@@ -55,19 +55,19 @@ class MiniMapView extends StatelessWidget {
               ),
               children: [
                 TileLayerFactory.build(context),
-            RichAttributionWidget(
-              attributions: [
-                TextSourceAttribution(
-                  TileLayerFactory.attribution,
-                  textStyle: TextStyle(
-                    fontSize: 8,
-                    color: isDark
-                        ? AppSemanticColors.paper3
-                        : AppSemanticColors.ink2,
-                  ),
+                RichAttributionWidget(
+                  attributions: [
+                    TextSourceAttribution(
+                      TileLayerFactory.attribution,
+                      textStyle: TextStyle(
+                        fontSize: 8,
+                        color: isDark
+                            ? AppSemanticColors.paper3
+                            : AppSemanticColors.ink2,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
               ],
             ),
             // The pin: map is locked on `center`, so screen-center == `center`.
@@ -123,9 +123,7 @@ class _AttributionWidget extends StatelessWidget {
           TileLayerFactory.attribution,
           style: TextStyle(
             fontSize: 8,
-            color: isDark
-                ? AppSemanticColors.paper3
-                : AppSemanticColors.ink2,
+            color: isDark ? AppSemanticColors.paper3 : AppSemanticColors.ink2,
           ),
         ),
       ),

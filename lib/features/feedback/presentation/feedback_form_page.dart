@@ -199,8 +199,12 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
                 key: const Key('feedback_submit_button'),
                 label: locale.feedbackSubmitCta,
                 fullWidth: true,
-                onPressed: ref.watch(_submittingFeedbackProvider) ? null : _submit,
-                icon: ref.watch(_submittingFeedbackProvider) ? null : Icons.send_outlined,
+                onPressed: ref.watch(_submittingFeedbackProvider)
+                    ? null
+                    : _submit,
+                icon: ref.watch(_submittingFeedbackProvider)
+                    ? null
+                    : Icons.send_outlined,
               ),
             ],
           ),

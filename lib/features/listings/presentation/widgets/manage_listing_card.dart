@@ -4,6 +4,7 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../discover/domain/property_listing.dart';
 import '../../../shared/presentation/flatmates_bottom_sheet.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
@@ -21,6 +22,7 @@ class ManageListingCard extends StatelessWidget {
     this.isPausing = false,
     required this.onTogglePause,
     required this.onShare,
+    this.onCopyLink,
     required this.onEdit,
     required this.onViewStats,
     required this.onReview,
@@ -30,12 +32,13 @@ class ManageListingCard extends StatelessWidget {
     super.key,
   });
 
-  final dynamic listing;
+  final PropertyListing listing;
   final String status;
   final bool isPaused;
   final bool isPausing;
   final void Function(int listingId, bool currentlyPaused) onTogglePause;
   final VoidCallback onShare;
+  final VoidCallback? onCopyLink;
   final VoidCallback onEdit;
   final VoidCallback onViewStats;
   final VoidCallback onReview;
@@ -99,11 +102,10 @@ class ManageListingCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                if (listing.monthlyRent != null)
-                  FlatmatesPriceText.card(
-                    amount: listing.monthlyRent!.toInt(),
-                    period: 'mo',
-                  ),
+                FlatmatesPriceText.card(
+                  amount: listing.monthlyRent.toInt(),
+                  period: 'mo',
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 // Quick info row using FlatmatesChip
                 Wrap(
@@ -198,9 +200,7 @@ class ManageListingCard extends StatelessWidget {
                     Expanded(
                       child: StatActionItem(
                         icon: Icons.favorite_border_rounded,
-                        label: locale.matchCountLabel(
-                          listing.interestCount ?? 0,
-                        ),
+                        label: locale.matchCountLabel(listing.interestCount),
                         onTap: onViewStats,
                         theme: theme,
                       ),
@@ -231,7 +231,7 @@ class ManageListingCard extends StatelessWidget {
                       child: StatActionItem(
                         icon: Icons.bar_chart_outlined,
                         label: locale.viewStatsAction(
-                          _formatCount(listing.viewCount ?? 0),
+                          _formatCount(listing.viewCount),
                         ),
                         onTap: onViewStats,
                         theme: theme,
@@ -255,6 +255,21 @@ class ManageListingCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (onCopyLink != null) ...[
+                  const SizedBox(height: AppSpacing.xs + AppSpacing.xs),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StatActionItem(
+                          icon: Icons.link,
+                          label: locale.copyLinkAction,
+                          onTap: onCopyLink!,
+                          theme: theme,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -315,12 +330,11 @@ class ManageListingCard extends StatelessWidget {
   VoidCallback get _primaryStatusActionTap {
     if (_isExpired) return onRenew;
     if (_isUnderReview) return onReview;
-    return () => onTogglePause(listing.id as int, _isPaused);
+    return () => onTogglePause(listing.id, _isPaused);
   }
 
   String? get _expiryLabel {
-    final expiresAt =
-        _dateFrom(listing.expiresAt) ?? _dateFrom(listing.availableFrom);
+    final expiresAt = listing.expiresAt ?? listing.availableFrom;
     if (expiresAt == null) return null;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -333,12 +347,6 @@ class ManageListingCard extends StatelessWidget {
     if (days < 0) return locale.expiredStatus;
     if (days == 0) return locale.expiresToday;
     return locale.expiresInDays(days);
-  }
-
-  DateTime? _dateFrom(dynamic raw) {
-    if (raw is DateTime) return raw;
-    if (raw is String) return DateTime.tryParse(raw);
-    return null;
   }
 
   void _showBoostSheet(BuildContext context) {

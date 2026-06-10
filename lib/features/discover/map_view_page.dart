@@ -14,10 +14,8 @@ import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../bootstrap/bootstrap_controller.dart';
 import '../chats/chats_repository.dart';
 import '../location/application/location_controller.dart';
-import '../location/presentation/location_picker_modal.dart';
 import '../location/presentation/map_widgets.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
@@ -29,6 +27,7 @@ import 'presentation/widgets/discover_map.dart';
 import 'presentation/widgets/map_filter_bar.dart';
 import 'presentation/widgets/map_listing_sheets.dart';
 import 'presentation/widgets/map_listings_bottom_sheet.dart';
+import 'presentation/widgets/map_location_picker.dart';
 
 class MapViewPage extends ConsumerStatefulWidget {
   const MapViewPage({super.key});
@@ -116,62 +115,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _showLocationPicker(BuildContext context) {
-    final mapState = ref.read(mapListingsProvider);
-    final selectedLocation = ref
-        .read(locationControllerProvider)
-        .selectedLocation;
-    final profile = ref.read(bootstrapControllerProvider).valueOrNull?.profile;
-
-    final locality = profile?.locality?.trim();
-    final city = profile?.city?.trim();
-    final profileLocation = [
-      if (locality != null && locality.isNotEmpty) locality,
-      if (city != null && city.isNotEmpty) city,
-    ].join(', ');
-    final selectedDisplayText = selectedLocation?.displayText ?? '';
-    final currentLocation = selectedDisplayText.isNotEmpty
-        ? selectedDisplayText
-        : profileLocation;
-    final currentRadiusKm =
-        mapState.filters.radiusKm ??
-        MapListingsController.defaultLocationRadiusKm;
-
-    var selectedRadiusKm = currentRadiusKm;
-    var didSelectLocation = false;
-
-    showLocationPickerModal(
-      context,
-      currentLocationName: currentLocation,
-      currentRadius: currentRadiusKm,
-      onRadiusChanged: (radiusKm) {
-        selectedRadiusKm = radiusKm;
-        _locationRadiusDebouncer.run(() {
-          if (!mounted || didSelectLocation) return;
-          final activeLocation = ref
-              .read(locationControllerProvider)
-              .selectedLocation;
-          if (activeLocation == null) return;
-          ref
-              .read(mapListingsProvider.notifier)
-              .updateLocationFilter(
-                latitude: activeLocation.latitude,
-                longitude: activeLocation.longitude,
-                radiusKm: radiusKm,
-              );
-        });
-      },
-      onLocationSelected: (location) {
-        didSelectLocation = true;
-        ref.read(locationControllerProvider.notifier).selectLocation(location);
-        ref
-            .read(mapListingsProvider.notifier)
-            .updateLocationFilter(
-              latitude: location.latitude,
-              longitude: location.longitude,
-              radiusKm: selectedRadiusKm,
-            );
-      },
-    );
+    showMapLocationPicker(context, ref, debouncer: _locationRadiusDebouncer);
   }
 
   @override

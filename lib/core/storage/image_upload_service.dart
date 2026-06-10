@@ -32,8 +32,7 @@ final class UploadFailure extends UploadResult {
 }
 
 class ImageUploadService {
-  ImageUploadService({required ApiClient apiClient})
-    : _apiClient = apiClient;
+  ImageUploadService({required ApiClient apiClient}) : _apiClient = apiClient;
 
   final ApiClient _apiClient;
 
@@ -101,28 +100,48 @@ class ImageUploadService {
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, folder: 'avatars', visibility: 'public', onProgress: onProgress);
+    return _upload(
+      file,
+      folder: 'avatars',
+      visibility: 'public',
+      onProgress: onProgress,
+    );
   }
 
   Future<UploadResult> uploadListingPhoto(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, folder: 'property_image', visibility: 'public', onProgress: onProgress);
+    return _upload(
+      file,
+      folder: 'property_image',
+      visibility: 'public',
+      onProgress: onProgress,
+    );
   }
 
   Future<UploadResult> uploadChatPhoto(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, folder: 'chats', visibility: 'private', onProgress: onProgress);
+    return _upload(
+      file,
+      folder: 'chats',
+      visibility: 'private',
+      onProgress: onProgress,
+    );
   }
 
   Future<UploadResult> uploadVideoTour(
     File file, {
     UploadProgressCallback? onProgress,
   }) async {
-    return _upload(file, folder: 'property_video', visibility: 'public', onProgress: onProgress);
+    return _upload(
+      file,
+      folder: 'property_video',
+      visibility: 'public',
+      onProgress: onProgress,
+    );
   }
 
   /// Upload a file through the backend API which routes to Cloudinary.
@@ -155,15 +174,24 @@ class ImageUploadService {
         },
       );
 
-      final data = response.data;
-      final url = data['public_url'] as String? ?? '';
+      final data = response.data as Map<String, dynamic>?;
+      final url = data?['public_url'] as String? ?? '';
       if (url.isEmpty) {
-        return const UploadFailure(reason: 'Upload succeeded but no URL returned.');
+        return const UploadFailure(
+          reason: 'Upload succeeded but no URL returned.',
+        );
       }
       return UploadSuccess(url);
     } on DioException catch (e) {
-      final message = e.response?.data?['detail'] ?? e.message ?? 'Upload failed';
-      return UploadFailure(reason: 'Upload failed: $message', underlyingError: e);
+      final responseData = e.response?.data;
+      final detail = responseData is Map<String, dynamic>
+          ? responseData['detail']
+          : null;
+      final message = detail ?? e.message ?? 'Upload failed';
+      return UploadFailure(
+        reason: 'Upload failed: $message',
+        underlyingError: e,
+      );
     } on SocketException catch (e) {
       return UploadFailure(
         reason: 'Network error during upload — please check your connection.',

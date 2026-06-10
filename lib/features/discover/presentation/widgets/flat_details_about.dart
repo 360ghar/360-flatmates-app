@@ -55,17 +55,14 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
                 ),
                 if (isLong)
                   TextButton(
-                    onPressed: () =>
-                        setState(() => _expanded = !_expanded),
+                    onPressed: () => setState(() => _expanded = !_expanded),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      _expanded
-                          ? locale.showLessCta
-                          : locale.readMoreCta,
+                      _expanded ? locale.showLessCta : locale.readMoreCta,
                       style: const TextStyle(
                         color: AppSemanticColors.accent,
                         fontWeight: FontWeight.w600,
@@ -88,9 +85,7 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
 
           // Costs breakdown
           if (l.securityDeposit != null || l.maintenanceCharges != null) ...[
-            FlatmatesSectionHeader(
-              title: locale.costsBreakdownSectionTitle,
-            ),
+            FlatmatesSectionHeader(title: locale.costsBreakdownSectionTitle),
             const SizedBox(height: AppSpacing.sm),
             FlatmatesCard(
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -138,9 +133,7 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
                 child: _AvailabilityTile(
                   label: locale.postedOnLabel,
                   value: l.createdAt != null
-                      ? DateFormat.yMMMd(
-                          locale.localeName,
-                        ).format(l.createdAt!)
+                      ? DateFormat.yMMMd(locale.localeName).format(l.createdAt!)
                       : locale.recentlyLabel,
                 ),
               ),

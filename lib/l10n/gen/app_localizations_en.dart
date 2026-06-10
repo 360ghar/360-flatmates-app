@@ -69,9 +69,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithOtp => 'Continue with OTP';
 
   @override
-  String get createAccountCta => 'Create account';
-
-  @override
   String get addPhoneTitle => 'Add your phone number';
 
   @override
@@ -97,9 +94,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginTitle => 'Login';
-
-  @override
-  String get signupTitle => 'Create your account';
 
   @override
   String get fullNameLabel => 'Full name';
@@ -285,6 +279,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatsTitle => 'Chats';
+
+  @override
+  String get callCta => 'Call';
+
+  @override
+  String get listingDetails => 'Listing details';
+
+  @override
+  String percentMatch(int percent) {
+    return '$percent% Match';
+  }
+
+  @override
+  String yearsOldLabel(int age) {
+    return '$age years';
+  }
 
   @override
   String get emptyChats => 'No conversations yet.';
@@ -1258,6 +1268,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareListingCta => 'Share listing';
 
   @override
+  String get copyLinkAction => 'Copy link';
+
+  @override
+  String get linkCopiedToast => 'Link copied';
+
+  @override
   String get listingUnderReview => 'Listing under review';
 
   @override
@@ -1271,6 +1287,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageListingTitle => 'Manage listing';
+
+  @override
+  String get postHubTitle => 'Your listings';
+
+  @override
+  String get postHubPostSubtitle => 'Create a new room listing in minutes';
+
+  @override
+  String get manageListingsTitle => 'Manage listings';
+
+  @override
+  String get postHubManageSubtitle => 'Edit, pause or renew your listings';
+
+  @override
+  String postHubActiveCount(int count) {
+    return '$count active';
+  }
+
+  @override
+  String postHubDraftCount(int count) {
+    return '$count drafts';
+  }
+
+  @override
+  String get couldNotLoadListings => 'Could not load listings';
 
   @override
   String get boostListingCta => 'Boost listing';
@@ -3152,6 +3193,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get floorPlanSectionTitle => 'Floor Plan';
+
+  @override
+  String get tapToZoomHint => 'Tap to zoom';
+
+  @override
+  String get factBedsLabel => 'Beds';
+
+  @override
+  String get factBathsLabel => 'Baths';
+
+  @override
+  String get factAreaLabel => 'Sq.ft';
+
+  @override
+  String get factFloorLabel => 'Floor';
+
+  @override
+  String galleryPhotoSemantic(int current, int total) {
+    return 'Photo $current of $total';
+  }
 
   @override
   String get virtualTourSectionTitle => '360° Virtual Tour';

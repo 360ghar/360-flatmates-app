@@ -31,7 +31,9 @@ class AddPhonePage extends ConsumerStatefulWidget {
 class _AddPhonePageState extends ConsumerState<AddPhonePage>
     with CodeAutoFill, ResendCountdownMixin {
   final _phoneController = TextEditingController(text: '+91');
+  final _phoneFocusNode = FocusNode();
   final _smartAuth = SmartAuth.instance;
+  bool _phoneHintShown = false;
   final List<TextEditingController> _otpControllers = List.generate(
     6,
     (_) => TextEditingController(),
@@ -42,7 +44,6 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   /// (BehaviorSubject replay) and should not auto-verify.
   bool _isSmsFilling = false;
 
-
   String get _phone => _phoneController.text.trim();
 
   @override
@@ -52,6 +53,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
       SmsAutoFill().unregisterListener();
     }
     _phoneController.dispose();
+    _phoneFocusNode.dispose();
     for (final c in _otpControllers) {
       c.dispose();
     }
@@ -70,15 +72,31 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     }
   }
 
+  /// Shown at most once per page session — the picker is a system activity
+  /// that dismisses the keyboard, so re-launching it on every tap would make
+  /// manual entry impossible. The '+91' prefill counts as an empty field.
   Future<void> _requestPhoneHint() async {
     if (!Platform.isAndroid) return;
+    if (_phoneHintShown || _phone.length > '+91'.length) return;
+    _phoneHintShown = true;
     try {
       final res = await _smartAuth.requestPhoneNumberHint();
       if (res.data != null && res.data!.trim().isNotEmpty && mounted) {
         _phoneController.text = res.data!.trim();
+        _phoneController.selection = TextSelection.collapsed(
+          offset: _phoneController.text.length,
+        );
       }
     } catch (_) {
       debugPrint('AddPhonePage._requestPhoneHint: SIM hint unavailable');
+    } finally {
+      // The picker activity hides the keyboard but the node keeps Flutter
+      // focus, so requestFocus() alone is a no-op — explicitly re-show the
+      // keyboard so the user can edit the filled number or type one manually.
+      if (mounted) {
+        _phoneFocusNode.requestFocus();
+        await SystemChannels.textInput.invokeMethod('TextInput.show');
+      }
     }
   }
 
@@ -159,6 +177,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
                   TextField(
                     key: const Key('add_phone_input'),
                     controller: _phoneController,
+                    focusNode: _phoneFocusNode,
                     keyboardType: TextInputType.phone,
                     enabled: !codeSent,
                     autofillHints: const [AutofillHints.telephoneNumber],
@@ -228,10 +247,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
 }
 
 class _OtpFieldRow extends StatefulWidget {
-  const _OtpFieldRow({
-    required this.controllers,
-    required this.onChanged,
-  });
+  const _OtpFieldRow({required this.controllers, required this.onChanged});
 
   final List<TextEditingController> controllers;
   final void Function() onChanged;
@@ -265,9 +281,7 @@ class _OtpFieldRowState extends State<_OtpFieldRow> {
                 : null,
             decoration: const InputDecoration(
               counterText: '',
-              border: OutlineInputBorder(
-                borderRadius: AppRadius.mdBorder,
-              ),
+              border: OutlineInputBorder(borderRadius: AppRadius.mdBorder),
             ),
             onChanged: (value) {
               // Suppress re-entrant onChanged while distributing digits.

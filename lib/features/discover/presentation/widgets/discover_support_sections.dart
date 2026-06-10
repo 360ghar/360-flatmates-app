@@ -393,16 +393,22 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
     List<String> locations;
     if (cityLower.contains('gurgaon') || cityLower.contains('gurugram')) {
       locations = ['DLF Phase 3', 'Sector 43', 'Sector 55', 'Sector 14'];
-    } else if (cityLower.contains('bangalore') || cityLower.contains('bengaluru')) {
+    } else if (cityLower.contains('bangalore') ||
+        cityLower.contains('bengaluru')) {
       locations = ['Koramangala', 'Indiranagar', 'HSR Layout', 'Whitefield'];
     } else if (cityLower.contains('delhi')) {
       locations = ['Vasant Kunj', 'Lajpat Nagar', 'South Ex', 'Hauz Khas'];
     } else if (cityLower.contains('mumbai')) {
       locations = ['Bandra', 'Andheri', 'Powai', 'Juhu'];
     } else {
-      locations = ['City Center', 'North District', 'South District', 'East Side'];
+      locations = [
+        'City Center',
+        'North District',
+        'South District',
+        'East Side',
+      ];
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -444,7 +450,9 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
                       locations[index],
                       style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                        color: AppSemanticColors.textPrimaryFor(
+                          theme.brightness,
+                        ),
                       ),
                     ),
                   ],
@@ -489,12 +497,16 @@ class MeetFlatmatesSection extends ConsumerWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: displayProfiles.length,
-                separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.sm),
                 itemBuilder: (context, index) {
                   final profile = displayProfiles[index];
                   final name = profile.fullName?.split(' ').first ?? 'Flatmate';
-                  final imageUrl = profile.profileImageUrl ??
-                      (profile.imageUrls.isNotEmpty ? profile.imageUrls.first : null);
+                  final imageUrl =
+                      profile.profileImageUrl ??
+                      (profile.imageUrls.isNotEmpty
+                          ? profile.imageUrls.first
+                          : null);
 
                   return SizedBox(
                     width: 84,
@@ -520,7 +532,9 @@ class MeetFlatmatesSection extends ConsumerWidget {
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontSize: 10.0,
                               fontWeight: FontWeight.w700,
-                              color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                              color: AppSemanticColors.textPrimaryFor(
+                                theme.brightness,
+                              ),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -536,7 +550,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

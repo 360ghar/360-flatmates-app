@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../location/application/location_controller.dart';
 import 'application/discover_feed_controller.dart';
@@ -131,6 +133,24 @@ class DiscoverRepository {
     FlatmatesProfileModel? currentUser,
     DiscoverFilters? filters,
   }) async {
+    final page = await fetchListingsPage(
+      offset: offset,
+      limit: limit,
+      currentUser: currentUser,
+      filters: filters,
+    );
+    return page.items;
+  }
+
+  /// Fetches one page of listings. [rawCount] is the number of items the
+  /// server returned BEFORE client-side filtering — pagination (offset,
+  /// hasMore) must be driven by it, not by [items].length.
+  Future<({List<PropertyListing> items, int rawCount})> fetchListingsPage({
+    int offset = 0,
+    int limit = 20,
+    FlatmatesProfileModel? currentUser,
+    DiscoverFilters? filters,
+  }) async {
     final queryParameters = <String, dynamic>{
       'property_type': 'flatmate',
       'purpose': 'rent',
@@ -189,14 +209,11 @@ class DiscoverRepository {
     final data = Map<String, dynamic>.from(
       responseData is Map ? responseData : const {},
     );
-    final properties = (data['properties'] as List? ?? const []);
-    final listings = properties
-        .whereType<Map>()
-        .map(
-          (item) =>
-              PropertyListingDto.fromJson(Map<String, dynamic>.from(item)),
-        )
-        .toList();
+    final listings = safeJsonList(
+      data['properties'] as List?,
+      PropertyListingDto.fromJson,
+      label: 'discoverFeed',
+    );
 
     final moveInFiltered = filters == null
         ? listings
@@ -213,14 +230,17 @@ class DiscoverRepository {
       final userNonNegotiables = _extractUserNonNegotiables(
         currentUser.preferences,
       );
-      return _applyDealBreakerFilter(
-        moveInFiltered,
-        userNonNegotiables,
-        currentUser,
+      return (
+        items: _applyDealBreakerFilter(
+          moveInFiltered,
+          userNonNegotiables,
+          currentUser,
+        ),
+        rawCount: listings.length,
       );
     }
 
-    return moveInFiltered;
+    return (items: moveInFiltered, rawCount: listings.length);
   }
 
   Future<PropertyListing> fetchListing(int propertyId) async {
@@ -243,7 +263,8 @@ class DiscoverRepository {
         return Map<String, dynamic>.from(data);
       }
       return null;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('DiscoverRepository.fetchOwnerPeer: $e');
       return null;
     }
   }

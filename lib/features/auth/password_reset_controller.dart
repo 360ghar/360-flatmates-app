@@ -110,8 +110,14 @@ class PasswordResetController extends Notifier<PasswordResetState> {
         await _repository.verifyPasswordResetOtp(phone: identifier, otp: otp);
       }
       await _repository.changePassword(newPassword);
-      // Sign out the temporary session created by OTP verification
-      await _repository.signOut();
+      // The reset OTP already proved identity and created a session — keep
+      // the user signed in and hand over to the authenticated redirect chain.
+      await ref
+          .read(authControllerProvider.notifier)
+          .completePasswordReset(
+            identifier: identifier,
+            channel: state.channel,
+          );
       state = state.copyWith(step: PasswordResetStep.success);
       return true;
     } catch (e, st) {

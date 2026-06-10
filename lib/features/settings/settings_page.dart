@@ -61,7 +61,7 @@ class SettingsPage extends ConsumerWidget {
                       FlatmatesMenuItem(
                         icon: Icons.shield_outlined,
                         label: locale.privacySecurityLabel,
-                        onTap: () => context.push('/help-safety'),
+                        onTap: () => context.push('/privacy-security'),
                       ),
                       const Divider(
                         height: 1,

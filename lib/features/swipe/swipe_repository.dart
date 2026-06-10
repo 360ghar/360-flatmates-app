@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
+import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../discover/application/move_in_filter.dart';
 import '../discover/discover_repository.dart';
@@ -145,8 +146,11 @@ class SwipeProfile {
 
   static List<String> _parseImageUrls(dynamic raw) {
     if (raw is List && raw.isNotEmpty) {
-      return raw.whereType<String>()
-          .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+      return raw
+          .whereType<String>()
+          .where(
+            (url) => url.startsWith('http://') || url.startsWith('https://'),
+          )
           .toList(growable: false);
     }
     return const [];
@@ -216,7 +220,10 @@ class SwipeRepository {
         );
         final candidates = [data['data'], data['profiles'], data['results']];
         rows =
-            candidates.firstWhere((e) => e is List, orElse: () => const <dynamic>[])
+            candidates.firstWhere(
+                  (e) => e is List,
+                  orElse: () => const <dynamic>[],
+                )
                 as List<dynamic>;
       } else {
         rows = const [];
@@ -225,13 +232,11 @@ class SwipeRepository {
         '[SwipeRepo] Response status: ${response.statusCode}, '
         'rows: ${rows.length}',
       );
-      final profiles = rows
-          .whereType<Map>()
-          .map(
-            (item) =>
-                SwipeProfile.fromJson(Map<String, dynamic>.from(item)),
-          )
-          .toList();
+      final profiles = safeJsonList(
+        rows,
+        SwipeProfile.fromJson,
+        label: 'swipeProfiles',
+      );
 
       final moveInFiltered = profiles
           .where(

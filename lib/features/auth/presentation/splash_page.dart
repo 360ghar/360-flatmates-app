@@ -158,7 +158,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
                                 errorConflict: locale.errorConflict,
                                 errorUpload: locale.errorUpload,
                                 errorOtpInvalid: locale.errorOtpInvalid,
-                                errorAuthSessionMissing: locale.errorAuthSessionMissing,
+                                errorAuthSessionMissing:
+                                    locale.errorAuthSessionMissing,
                                 errorUnknown: locale.errorUnknown,
                               ),
                             )
@@ -238,7 +239,9 @@ class _SplashProgress extends StatelessWidget {
           backgroundColor: AppSemanticColors.disabledSurfaceFor(
             Theme.of(context).brightness,
           ),
-          valueColor: const AlwaysStoppedAnimation<Color>(AppSemanticColors.accent),
+          valueColor: const AlwaysStoppedAnimation<Color>(
+            AppSemanticColors.accent,
+          ),
         ),
       ),
     );

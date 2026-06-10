@@ -49,7 +49,8 @@ class SectionHeader extends StatelessWidget {
 // ── Hero photo carousel ─────────────────────────────────────────────────
 
 class HeroCarousel extends StatefulWidget {
-  const HeroCarousel({super.key, 
+  const HeroCarousel({
+    super.key,
     required this.images,
     required this.name,
     required this.mode,
@@ -106,16 +107,17 @@ class _HeroCarouselState extends State<HeroCarousel> {
                       children: [
                         // Blurred background filling the space
                         ImageFiltered(
-                          imageFilter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                          imageFilter: ui.ImageFilter.blur(
+                            sigmaX: 15,
+                            sigmaY: 15,
+                          ),
                           child: FlatmatesNetworkImage(
                             imageUrl: widget.images[i],
                             fit: BoxFit.cover,
                             fallbackName: widget.name,
                           ),
                         ),
-                        Container(
-                          color: Colors.black.withValues(alpha: 0.2),
-                        ),
+                        Container(color: Colors.black.withValues(alpha: 0.2)),
                         // Sharp uncropped image on top
                         FlatmatesNetworkImage(
                           imageUrl: widget.images[i],
@@ -280,10 +282,7 @@ class ModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = localizedFlatmatesModeLabel(locale, mode);
-    return _FrostedPill(
-      icon: _modeIcon(mode),
-      label: label,
-    );
+    return _FrostedPill(icon: _modeIcon(mode), label: label);
   }
 
   IconData _modeIcon(String mode) {
@@ -354,7 +353,11 @@ class MatchPill extends StatelessWidget {
 // ── Photo counter pill (frosted glass) ──────────────────────────────────
 
 class PhotoCounterPill extends StatelessWidget {
-  const PhotoCounterPill({super.key, required this.current, required this.total});
+  const PhotoCounterPill({
+    super.key,
+    required this.current,
+    required this.total,
+  });
 
   final int current;
   final int total;
@@ -444,10 +447,10 @@ class HeroInfoOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = item.fullName ?? '';
     final nameWithAge = item.age != null ? '$name, ${item.age}' : name;
-    final location = [item.locality, item.city]
-        .whereType<String>()
-        .where((e) => e.isNotEmpty)
-        .join(', ');
+    final location = [
+      item.locality,
+      item.city,
+    ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -526,7 +529,8 @@ class HeroInfoOverlay extends StatelessWidget {
 // ── Quick stats pill row (horizontal scroll) ────────────────────────────
 
 class QuickStatsRow extends StatelessWidget {
-  const QuickStatsRow({super.key, 
+  const QuickStatsRow({
+    super.key,
     required this.item,
     required this.roomType,
     required this.flatConfig,
@@ -654,7 +658,8 @@ class CompactPill extends StatelessWidget {
 // ── About section: bio + video tour + match chips ───────────────────────
 
 class AboutSection extends StatelessWidget {
-  const AboutSection({super.key, 
+  const AboutSection({
+    super.key,
     required this.bio,
     required this.videoTourUrl,
     required this.compatibility,
@@ -770,7 +775,8 @@ class CompactCompatibilityBreakdown extends StatelessWidget {
 // ── "The Place" section (consolidated society/room/flat) ────────────────
 
 class ThePlaceSection extends StatelessWidget {
-  const ThePlaceSection({super.key, 
+  const ThePlaceSection({
+    super.key,
     required this.locality,
     required this.city,
     required this.societyName,
@@ -799,14 +805,14 @@ class ThePlaceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final locationText = [locality, city]
-        .whereType<String>()
-        .where((e) => e.isNotEmpty)
-        .join(', ');
-    final combinedConfig = [flatConfig, floor]
-        .whereType<String>()
-        .where((e) => e.isNotEmpty)
-        .join(' · ');
+    final locationText = [
+      locality,
+      city,
+    ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
+    final combinedConfig = [
+      flatConfig,
+      floor,
+    ].whereType<String>().where((e) => e.isNotEmpty).join(' · ');
     final allAmenities = <String>[...societyAmenities, ...flatAmenities];
 
     return Column(
@@ -1008,7 +1014,8 @@ class ExistingFlatmatesRow extends StatelessWidget {
 // ── Costs section ───────────────────────────────────────────────────────
 
 class CostsSection extends StatelessWidget {
-  const CostsSection({super.key, 
+  const CostsSection({
+    super.key,
     required this.monthlyRent,
     required this.securityDeposit,
     required this.maintenance,

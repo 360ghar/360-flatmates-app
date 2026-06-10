@@ -50,7 +50,8 @@ class DiscoverListingCard extends StatelessWidget {
     metaParts.add(genderSuffix);
 
     final hasImage =
-        item.effectiveMainImageUrl != null && item.effectiveMainImageUrl!.trim().isNotEmpty;
+        item.effectiveMainImageUrl != null &&
+        item.effectiveMainImageUrl!.trim().isNotEmpty;
 
     return FlatmatesCard(
       key: Key('discover_listing_card_${item.id}'),
@@ -61,7 +62,9 @@ class DiscoverListingCard extends StatelessWidget {
         decoration: isSelected
             ? BoxDecoration(
                 border: Border.all(color: AppSemanticColors.accent, width: 2),
-                borderRadius: const BorderRadius.all(Radius.circular(AppRadius.card)),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(AppRadius.card),
+                ),
               )
             : null,
         child: Column(
@@ -292,7 +295,12 @@ class _CardImageFallback extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,

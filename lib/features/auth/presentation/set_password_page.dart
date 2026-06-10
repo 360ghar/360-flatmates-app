@@ -29,7 +29,6 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
-
   @override
   void dispose() {
     _passwordController.dispose();
@@ -105,7 +104,8 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                       controller: _passwordController,
                       obscureText: ref.watch(_obscurePasswordProvider),
                       autofillHints: const [AutofillHints.newPassword],
-                      onChanged: (_) => ref.read(_buildTriggerProvider.notifier).state++,
+                      onChanged: (_) =>
+                          ref.read(_buildTriggerProvider.notifier).state++,
                       decoration: InputDecoration(
                         labelText: locale.passwordLabel,
                         suffixIcon: IconButton(
@@ -115,7 +115,9 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                                 : Icons.visibility_outlined,
                           ),
                           onPressed: () {
-                            final notifier = ref.read(_obscurePasswordProvider.notifier);
+                            final notifier = ref.read(
+                              _obscurePasswordProvider.notifier,
+                            );
                             notifier.state = !notifier.state;
                           },
                           tooltip: 'Toggle password visibility',

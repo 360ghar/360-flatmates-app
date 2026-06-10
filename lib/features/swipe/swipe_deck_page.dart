@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
-import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../chats/chats_repository.dart';
+import '../discover/discover_repository.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import 'application/profile_compatibility.dart';
@@ -19,6 +18,8 @@ import 'application/profile_view_tracker.dart';
 import 'application/swipe_deck_controller.dart';
 import 'presentation/match_celebration_route.dart';
 import 'presentation/widgets/swipe_card_stack.dart';
+import 'presentation/widgets/swipe_deck_header.dart';
+import 'presentation/widgets/swipe_undo_button.dart';
 import 'presentation/widgets/swipe_empty_state.dart';
 import 'swipe_repository.dart';
 
@@ -40,6 +41,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   bool _isDragging = false;
   final _profileViewTracker = ProfileViewTracker();
   int? _trackedProfileId;
+  final _compatibilityCache = ProfileCompatibilityCache();
 
   late final AnimationController _flyOffController;
   late final AnimationController _snapBackController;
@@ -322,12 +324,48 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   }
 
   void _refreshProfiles() {
+    _compatibilityCache.clear();
     setState(() => _currentIndex = 0);
     ref.read(swipeDeckControllerProvider.notifier).refresh();
   }
 
+  Widget _scaffoldWithHeader(Widget body) {
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.sm,
+                AppSpacing.xl,
+                0,
+              ),
+              child: SwipeDeckHeader(),
+            ),
+            Expanded(child: body),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Reset deck position when shared filters change; the deck controller
+    // reloads itself via its own watch on the filters provider.
+    ref.listen(discoverFiltersProvider, (previous, next) {
+      if (previous == next) return;
+      _compatibilityCache.clear();
+      _undoTimer?.cancel();
+      _lastSwipedProfile = null;
+      _lastSwipedAction = null;
+      setState(() {
+        _currentIndex = 0;
+        _showUndo = false;
+      });
+    });
+
     final profiles = ref.watch(swipeDeckControllerProvider);
     final userProfile = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
@@ -337,8 +375,8 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     return profiles.when(
       data: (items) {
         if (items.isEmpty) {
-          return Scaffold(
-            body: SwipeEmptyState(
+          return _scaffoldWithHeader(
+            SwipeEmptyState(
               reason: SwipeEmptyReason.noProfiles,
               onRefresh: _refreshProfiles,
             ),
@@ -348,8 +386,8 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         final visible = items.where((i) => i.id != userProfile?.id).toList();
 
         if (visible.isEmpty) {
-          return Scaffold(
-            body: SwipeEmptyState(
+          return _scaffoldWithHeader(
+            SwipeEmptyState(
               reason: SwipeEmptyReason.allFiltered,
               onRefresh: _refreshProfiles,
             ),
@@ -357,8 +395,8 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         }
 
         if (_currentIndex >= visible.length) {
-          return Scaffold(
-            body: SwipeEmptyState(
+          return _scaffoldWithHeader(
+            SwipeEmptyState(
               reason: SwipeEmptyReason.endOfDeck,
               onRefresh: _refreshProfiles,
             ),
@@ -374,59 +412,57 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           _profileViewTracker.start(item.id);
         }
 
-        final compatibility = calculateProfileCompatibility(userProfile, item);
+        final compatibility = _compatibilityCache.resultFor(userProfile, item);
 
         final hasNextCard = _currentIndex + 1 < visible.length;
         final nextItem = hasNextCard ? visible[_currentIndex + 1] : null;
         final nextCompatibility = hasNextCard && nextItem != null
-            ? calculateProfileCompatibility(userProfile, nextItem)
+            ? _compatibilityCache.resultFor(userProfile, nextItem)
             : null;
 
         final hasThirdCard = _currentIndex + 2 < visible.length;
         final thirdItem = hasThirdCard ? visible[_currentIndex + 2] : null;
         final thirdCompatibility = hasThirdCard && thirdItem != null
-            ? calculateProfileCompatibility(userProfile, thirdItem)
+            ? _compatibilityCache.resultFor(userProfile, thirdItem)
             : null;
 
         final screenWidth = MediaQuery.of(context).size.width;
         final rotation = calculateRotation(_dragOffset, screenWidth);
         final progress = calculateDragProgress(_dragOffset, screenWidth);
 
-        return Scaffold(
-          body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      SwipeCardStack(
-                        item: item,
-                        compatibility: compatibility,
-                        nextItem: nextItem,
-                        nextCompatibility: nextCompatibility,
-                        thirdItem: thirdItem,
-                        thirdCompatibility: thirdCompatibility,
-                        dragOffset: _dragOffset,
-                        dragProgress: progress,
-                        currentRotation: rotation,
-                        cardScaleAnimation: _cardScaleAnimation,
-                        isDragging: _isDragging,
-                        onHorizontalDragStart: _onHorizontalDragStart,
-                        onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                        onHorizontalDragEnd: _onHorizontalDragEnd,
+        return _scaffoldWithHeader(
+          Column(
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    SwipeCardStack(
+                      item: item,
+                      compatibility: compatibility,
+                      nextItem: nextItem,
+                      nextCompatibility: nextCompatibility,
+                      thirdItem: thirdItem,
+                      thirdCompatibility: thirdCompatibility,
+                      dragOffset: _dragOffset,
+                      dragProgress: progress,
+                      currentRotation: rotation,
+                      cardScaleAnimation: _cardScaleAnimation,
+                      isDragging: _isDragging,
+                      onHorizontalDragStart: _onHorizontalDragStart,
+                      onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                      onHorizontalDragEnd: _onHorizontalDragEnd,
+                    ),
+                    if (_showUndo)
+                      Positioned(
+                        top: AppSpacing.md,
+                        right: AppSpacing.xl,
+                        child: SwipeUndoButton(onPressed: _undoLastSwipe),
                       ),
-                      if (_showUndo)
-                        Positioned(
-                          top: AppSpacing.md,
-                          right: AppSpacing.xl,
-                          child: _UndoButton(onPressed: _undoLastSwipe),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.lg),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
           ),
         );
       },
@@ -437,44 +473,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           message: locale.failedToLoadProfiles,
           onRetry: () =>
               ref.read(swipeDeckControllerProvider.notifier).refresh(),
-        ),
-      ),
-    );
-  }
-}
-
-class _UndoButton extends StatelessWidget {
-  const _UndoButton({required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Undo',
-      child: Listener(
-        onPointerDown: (_) => onPressed(),
-        child: ClipRRect(
-          borderRadius: AppRadius.mdBorder,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.35),
-                borderRadius: AppRadius.mdBorder,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 0.5,
-                ),
-              ),
-              child: const Icon(
-                Icons.undo_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
         ),
       ),
     );

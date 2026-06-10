@@ -67,7 +67,10 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
             ),
             const SizedBox(height: AppSpacing.md),
             // --- Progress indicator using shared component ---
-            const FlatmatesStepProgress.dots(currentStep: 0, totalSteps: _totalSteps),
+            const FlatmatesStepProgress.dots(
+              currentStep: 0,
+              totalSteps: _totalSteps,
+            ),
             const SizedBox(height: AppSpacing.section),
             // --- Heading & subtitle ---
             Text(

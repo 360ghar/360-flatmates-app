@@ -67,12 +67,14 @@ final class GooglePlacesService {
 
       final predictions = body['predictions'] as List? ?? [];
       return predictions.map((p) {
+        final prediction = p as Map<String, dynamic>;
+        final formatting =
+            prediction['structured_formatting'] as Map<String, dynamic>?;
         return PlaceSuggestion(
-          placeId: p['place_id'] as String? ?? '',
-          description: p['description'] as String? ?? '',
-          mainText: p['structured_formatting']?['main_text'] as String? ?? '',
-          secondaryText:
-              p['structured_formatting']?['secondary_text'] as String? ?? '',
+          placeId: prediction['place_id'] as String? ?? '',
+          description: prediction['description'] as String? ?? '',
+          mainText: formatting?['main_text'] as String? ?? '',
+          secondaryText: formatting?['secondary_text'] as String? ?? '',
         );
       }).toList();
     } on TimeoutException {
@@ -120,7 +122,8 @@ final class GooglePlacesService {
       final result = body['result'] as Map<String, dynamic>?;
       if (result == null) return null;
 
-      final location = result['geometry']?['location'] as Map<String, dynamic>?;
+      final geometry = result['geometry'] as Map<String, dynamic>?;
+      final location = geometry?['location'] as Map<String, dynamic>?;
       if (location == null) return null;
 
       final lat = (location['lat'] as num?)?.toDouble() ?? 0.0;
@@ -134,12 +137,13 @@ final class GooglePlacesService {
         String? city;
         final components = result['address_components'] as List? ?? [];
         for (final c in components) {
-          final types = c['types'] as List? ?? [];
+          final component = c as Map<String, dynamic>;
+          final types = component['types'] as List? ?? [];
           if (types.contains('locality')) {
-            locality = c['long_name'] as String?;
+            locality = component['long_name'] as String?;
           }
           if (types.contains('administrative_area_level_2')) {
-            city = c['long_name'] as String?;
+            city = component['long_name'] as String?;
           }
         }
         displayName = result['name'] as String? ?? '';

@@ -34,7 +34,7 @@ String resolveAuthError(String? errorMessage, AppLocalizations l10n) {
     return l10n.errorUnknown;
   }
   final fullKey = errorMessage.substring(8);
-  
+
   // Handle piped server messages: `failure:label|serverMessage`
   final parts = fullKey.split('|');
   final key = parts[0];

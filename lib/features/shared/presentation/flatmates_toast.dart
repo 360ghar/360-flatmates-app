@@ -25,7 +25,8 @@ abstract final class FlatmatesToast {
     _show(context, message: message, type: _ToastType.info);
   }
 
-  static void _show(BuildContext context, {
+  static void _show(
+    BuildContext context, {
     required String message,
     required _ToastType type,
   }) {

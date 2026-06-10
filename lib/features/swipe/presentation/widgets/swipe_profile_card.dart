@@ -135,7 +135,8 @@ class SwipeProfileCard extends StatelessWidget {
                       flatAmenities: flatAmenities,
                       lat: lat,
                       lng: lng,
-                      fallbackLabel: item.locality ??
+                      fallbackLabel:
+                          item.locality ??
                           item.city ??
                           locale.propertyFallbackLabel,
                     ),

@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../core/utils/safe_json_list.dart';
+
 part 'bootstrap_models.freezed.dart';
 
 @Freezed()
@@ -107,13 +109,11 @@ class BootstrapData with _$BootstrapData {
       profile: FlatmatesProfileModel.fromJson(
         Map<String, dynamic>.from(json['profile'] as Map? ?? const {}),
       ),
-      catalogs: ((json['catalogs'] as List?) ?? const [])
-          .whereType<Map>()
-          .map(
-            (item) =>
-                CatalogEntryModel.fromJson(Map<String, dynamic>.from(item)),
-          )
-          .toList(),
+      catalogs: safeJsonList(
+        json['catalogs'] as List?,
+        CatalogEntryModel.fromJson,
+        label: 'catalogs',
+      ),
       activeListingCount: (json['active_listing_count'] as num?)?.toInt() ?? 0,
       conversationCount: (json['conversation_count'] as num?)?.toInt() ?? 0,
       unreadMessageCount: (json['unread_message_count'] as num?)?.toInt() ?? 0,

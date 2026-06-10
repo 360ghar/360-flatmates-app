@@ -250,7 +250,7 @@ class HomeSearchBar extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: AppSpacing.edgeXs,
               decoration: const BoxDecoration(
                 color: AppSemanticColors.accentSoft,
                 shape: BoxShape.circle,

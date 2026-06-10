@@ -22,8 +22,9 @@ import '../discover_repository.dart';
 import '../application/discover_feed_controller.dart';
 
 final _isSearchActiveProvider = StateProvider<bool>((ref) => false);
-final _searchRebuildTriggerProvider = StateProvider<int>((ref) => 0);
-final _cardPressedProvider = StateProvider.family<bool, int>((ref, index) => false);
+final _cardPressedProvider = StateProvider.family<bool, int>(
+  (ref, index) => false,
+);
 
 class BrowseListingsPage extends ConsumerStatefulWidget {
   const BrowseListingsPage({super.key});
@@ -57,7 +58,6 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
     final feedState = ref.watch(discoverFeedControllerProvider);
     final filtered = ref.watch(filteredListingsProvider);
     final isSearchActive = ref.watch(_isSearchActiveProvider);
-    ref.watch(_searchRebuildTriggerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -88,7 +88,6 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                         ref
                             .read(discoverFeedControllerProvider.notifier)
                             .updateSearchQuery(query.isEmpty ? null : query);
-                        ref.read(_searchRebuildTriggerProvider.notifier).state++;
                       },
                       trailingIcon: _searchController.text.isNotEmpty
                           ? Icons.close_rounded
@@ -98,7 +97,6 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                         ref
                             .read(discoverFeedControllerProvider.notifier)
                             .updateSearchQuery(null);
-                        ref.read(_searchRebuildTriggerProvider.notifier).state++;
                       },
                       autofocus: _searchController.text.isEmpty,
                     ),
@@ -106,7 +104,8 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                   const SizedBox(width: AppSpacing.sm),
                 ] else ...[
                   IconButton.outlined(
-                    onPressed: () => ref.read(_isSearchActiveProvider.notifier).state = true,
+                    onPressed: () =>
+                        ref.read(_isSearchActiveProvider.notifier).state = true,
                     icon: const Icon(Icons.search_rounded),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -199,13 +198,17 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
     metaParts.add(genderSuffix);
 
     final hasImage =
-        item.effectiveMainImageUrl != null && item.effectiveMainImageUrl!.trim().isNotEmpty;
+        item.effectiveMainImageUrl != null &&
+        item.effectiveMainImageUrl!.trim().isNotEmpty;
     final pressed = ref.watch(_cardPressedProvider(widget.index));
 
     return Listener(
-      onPointerDown: (_) => ref.read(_cardPressedProvider(widget.index).notifier).state = true,
-      onPointerUp: (_) => ref.read(_cardPressedProvider(widget.index).notifier).state = false,
-      onPointerCancel: (_) => ref.read(_cardPressedProvider(widget.index).notifier).state = false,
+      onPointerDown: (_) =>
+          ref.read(_cardPressedProvider(widget.index).notifier).state = true,
+      onPointerUp: (_) =>
+          ref.read(_cardPressedProvider(widget.index).notifier).state = false,
+      onPointerCancel: (_) =>
+          ref.read(_cardPressedProvider(widget.index).notifier).state = false,
       child: AnimatedContainer(
         duration: AppMotion.fast,
         curve: AppMotion.easeOutCubic,

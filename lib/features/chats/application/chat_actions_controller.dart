@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../chats_repository.dart';
 
 class ChatActionsController {
-  ChatActionsController(this._repository);
-  final ChatsRepository _repository;
+  ChatActionsController(this._ref);
+  final Ref _ref;
+
+  ChatsRepository get _repository => _ref.read(chatsRepositoryProvider);
 
   Future<void> blockUser(int peerId) async {
     await _repository.blockUser(peerId);
@@ -17,8 +19,23 @@ class ChatActionsController {
   Future<void> unmatchConversation(int conversationId, int peerId) async {
     await _repository.unmatchConversation(conversationId, peerId);
   }
+
+  /// Matches an incoming like and refreshes likes + conversations.
+  /// Returns the new conversation id, or null if the backend created none.
+  Future<int?> matchIncomingLike({
+    required int peerId,
+    int? contextPropertyId,
+  }) async {
+    final conversationId = await _repository.matchIncomingLike(
+      peerId: peerId,
+      contextPropertyId: contextPropertyId,
+    );
+    _ref.invalidate(incomingLikesProvider);
+    _ref.invalidate(conversationsProvider);
+    return conversationId;
+  }
 }
 
-final chatActionsControllerProvider = Provider<ChatActionsController>((ref) {
-  return ChatActionsController(ref.read(chatsRepositoryProvider));
-});
+final chatActionsControllerProvider = Provider<ChatActionsController>(
+  ChatActionsController.new,
+);

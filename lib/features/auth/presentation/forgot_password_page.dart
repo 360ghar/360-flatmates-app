@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -114,7 +116,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       final state = ref.read(passwordResetControllerProvider);
                       if (state.step == PasswordResetStep.otpSent) {
                         ref.read(pendingPhoneProvider.notifier).state = phone;
-                        context.push('/reset-password');
+                        unawaited(context.push('/reset-password'));
                       }
                     },
             ),

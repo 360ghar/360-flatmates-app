@@ -50,10 +50,7 @@ class OwnerProfileSheet extends StatelessWidget {
     final matchPercentage =
         (peerData?['match_percentage'] as num?)?.toDouble() ?? 0;
 
-    final locationParts = [
-      ?peerData?['locality']?.toString(),
-      ?city,
-    ];
+    final locationParts = [?peerData?['locality']?.toString(), ?city];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -75,10 +72,7 @@ class OwnerProfileSheet extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
         if (age != null || profession != null)
           Text(
-              [
-              if (age != null) '$age years',
-              ?profession,
-            ].join(' · '),
+            [if (age != null) '$age years', ?profession].join(' · '),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppSemanticColors.textSecondaryFor(
                 isDark ? Brightness.dark : Brightness.light,

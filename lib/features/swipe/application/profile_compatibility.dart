@@ -2,6 +2,29 @@ import '../../../core/compatibility/compatibility_engine.dart';
 import '../../bootstrap/domain/bootstrap_models.dart';
 import '../swipe_repository.dart';
 
+/// Memoizes [calculateProfileCompatibility] per peer profile id. Swipe drag
+/// gestures rebuild every frame, so scoring must not rerun per rebuild.
+class ProfileCompatibilityCache {
+  final _results = <int, CompatibilityResult>{};
+  FlatmatesProfileModel? _user;
+
+  CompatibilityResult resultFor(
+    FlatmatesProfileModel? user,
+    SwipeProfile peer,
+  ) {
+    if (!identical(user, _user)) {
+      _results.clear();
+      _user = user;
+    }
+    return _results.putIfAbsent(
+      peer.id,
+      () => calculateProfileCompatibility(user, peer),
+    );
+  }
+
+  void clear() => _results.clear();
+}
+
 CompatibilityResult calculateProfileCompatibility(
   FlatmatesProfileModel? user,
   SwipeProfile peer,

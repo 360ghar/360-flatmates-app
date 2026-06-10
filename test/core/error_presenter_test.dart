@@ -103,7 +103,7 @@ void main() {
       final result = ErrorPresenter.fromDio(
         _makeDioError(
           DioExceptionType.unknown,
-          error: HandshakeException('TLS failed'),
+          error: const HandshakeException('TLS failed'),
         ),
       );
       expect(result, isA<NetworkFailure>());
@@ -112,7 +112,6 @@ void main() {
       final result = ErrorPresenter.fromDio(
         DioException(
           requestOptions: RequestOptions(),
-          type: DioExceptionType.unknown,
           message: 'Cleartext HTTP traffic to 192.168.1.14 not permitted',
         ),
       );

@@ -14,11 +14,11 @@ import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/otp_page.dart';
 import '../../features/auth/presentation/reset_password_page.dart';
 import '../../features/auth/presentation/set_password_page.dart';
-import '../../features/auth/presentation/signup_page.dart';
 import '../../features/auth/presentation/splash_page.dart';
 import '../../features/bootstrap/bootstrap_controller.dart';
 import '../../features/chats/chat_thread_page.dart';
 import '../../features/chats/chats_repository.dart';
+import '../../features/chats/presentation/chat_peer_profile_page.dart';
 import '../../features/chats/conversations_page.dart';
 import '../../features/discover/discover_page.dart';
 import '../../features/discover/presentation/browse_listings_page.dart';
@@ -32,6 +32,7 @@ import '../../features/feedback/presentation/feedback_form_page.dart';
 import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
 import '../../features/listings/manage_listing_page.dart' as listings;
+import '../../features/listings/post_hub_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_page.dart';
 import '../../features/onboarding/waitlist_page.dart';
@@ -43,6 +44,7 @@ import '../../features/settings/blocked_users_page.dart';
 import '../../features/settings/change_password_page.dart';
 import '../../features/settings/delete_account_page.dart';
 import '../../features/settings/notification_settings_page.dart';
+import '../../features/settings/privacy_security_page.dart';
 import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
 import '../../features/swipe/match_celebration_screen.dart';
@@ -91,7 +93,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthRoute =
           location == '/enter-phone' ||
           location == '/login' ||
-          location == '/signup' ||
           location == '/otp' ||
           location == '/forgot-password' ||
           location == '/reset-password';
@@ -101,6 +102,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isDeepLink =
           location.startsWith('/chats/') ||
           location.startsWith('/flat-details/') ||
+          location.startsWith('/user-profile/') ||
           location.startsWith('/flatmates/listing/') ||
           location.startsWith('/flatmates/chat/') ||
           location.startsWith('/listing-review/') ||
@@ -201,11 +203,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: '/signup',
-        builder: (context, state) =>
-            SignupPage(phone: state.uri.queryParameters['phone']),
-      ),
-      GoRoute(
         path: '/otp',
         builder: (context, state) => OtpPage(
           phone: state.uri.queryParameters['phone'] ?? '',
@@ -260,6 +257,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         redirect: (context, state) =>
             '/flat-details/${state.pathParameters['id']}',
+      ),
+      GoRoute(
+        path: '/user-profile/:userId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final userId = int.tryParse(state.pathParameters['userId'] ?? '');
+          if (userId == null) {
+            final locale = AppLocalizations.of(context);
+            return Scaffold(body: Center(child: Text(locale.errorUnknown)));
+          }
+          return ChatPeerProfilePage(
+            userId: userId,
+            conversation: state.extra is ConversationSummaryModel
+                ? state.extra as ConversationSummaryModel
+                : null,
+          );
+        },
       ),
       GoRoute(
         path: '/flatmates/chat/:id',
@@ -367,6 +381,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           title: 'Terms of Service',
           assetPath: 'assets/legal/terms_of_service.md',
         ),
+      ),
+      GoRoute(
+        path: '/privacy-security',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PrivacySecurityPage(),
       ),
       GoRoute(
         path: '/change-password',
@@ -486,7 +505,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/chats',
-                builder: (context, state) => const ConversationsPage(),
+                builder: (context, state) {
+                  final tab = state.uri.queryParameters['tab'];
+                  return ConversationsPage(
+                    initialTab: const {'chats', 'likes', 'liked'}.contains(tab)
+                        ? tab!
+                        : 'chats',
+                  );
+                },
                 routes: [
                   GoRoute(
                     path: ':id',
@@ -582,7 +608,7 @@ class _ModeTab2SwitcherState extends ConsumerState<ModeTab2Switcher> {
   Widget build(BuildContext context) {
     final mode = ref.watch(tab2ModeProvider);
     if (mode == 'room_poster') {
-      return const listings.ManageListingPage();
+      return const PostHubPage();
     }
     return const MapViewPage();
   }

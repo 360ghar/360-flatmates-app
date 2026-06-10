@@ -47,9 +47,15 @@ class MapListingsBottomSheet extends ConsumerWidget {
         final bottomPadding = AppSpacing.lg + safeAreaBottom;
         final contentHeight = 20.0 + 28.0 + 180.0 + bottomPadding;
         const collapsedHeight = 60.0;
-        
-        final maxFraction = (contentHeight / constraints.maxHeight).clamp(0.1, 1.0);
-        final minFraction = (collapsedHeight / constraints.maxHeight).clamp(0.05, maxFraction);
+
+        final maxFraction = (contentHeight / constraints.maxHeight).clamp(
+          0.1,
+          1.0,
+        );
+        final minFraction = (collapsedHeight / constraints.maxHeight).clamp(
+          0.05,
+          maxFraction,
+        );
 
         return DraggableScrollableSheet(
           initialChildSize: maxFraction,
@@ -169,7 +175,8 @@ class _HorizontalCardList extends ConsumerWidget {
           const totalItemWidth = itemWidth + spacing;
 
           final centerOffset = offset + viewportWidth / 2;
-          final rawIndex = (centerOffset - padding - itemWidth / 2) / totalItemWidth;
+          final rawIndex =
+              (centerOffset - padding - itemWidth / 2) / totalItemWidth;
           final index = rawIndex.round().clamp(0, listings.length - 1);
 
           final visibleItem = listings[index];

@@ -69,9 +69,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get continueWithOtp => 'OTP के साथ जारी रखें';
 
   @override
-  String get createAccountCta => 'खाता बनाएं';
-
-  @override
   String get addPhoneTitle => 'अपना फोन नंबर जोड़ें';
 
   @override
@@ -98,9 +95,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get loginTitle => 'लॉगिन';
-
-  @override
-  String get signupTitle => 'अपना खाता बनाएं';
 
   @override
   String get fullNameLabel => 'पूरा नाम';
@@ -285,6 +279,22 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get chatsTitle => 'चैट्स';
+
+  @override
+  String get callCta => 'कॉल करें';
+
+  @override
+  String get listingDetails => 'लिस्टिंग विवरण';
+
+  @override
+  String percentMatch(int percent) {
+    return '$percent% मैच';
+  }
+
+  @override
+  String yearsOldLabel(int age) {
+    return '$age वर्ष';
+  }
 
   @override
   String get emptyChats => 'अभी कोई बातचीत नहीं है।';
@@ -1260,6 +1270,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shareListingCta => 'लिस्टिंग शेयर करें';
 
   @override
+  String get copyLinkAction => 'लिंक कॉपी करें';
+
+  @override
+  String get linkCopiedToast => 'लिंक कॉपी हो गया';
+
+  @override
   String get listingUnderReview => 'लिस्टिंग समीक्षा में है';
 
   @override
@@ -1273,6 +1289,32 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get manageListingTitle => 'लिस्टिंग मैनेज करें';
+
+  @override
+  String get postHubTitle => 'आपकी लिस्टिंग';
+
+  @override
+  String get postHubPostSubtitle => 'मिनटों में नई रूम लिस्टिंग बनाएं';
+
+  @override
+  String get manageListingsTitle => 'लिस्टिंग प्रबंधित करें';
+
+  @override
+  String get postHubManageSubtitle =>
+      'अपनी लिस्टिंग संपादित करें, रोकें या नवीनीकृत करें';
+
+  @override
+  String postHubActiveCount(int count) {
+    return '$count सक्रिय';
+  }
+
+  @override
+  String postHubDraftCount(int count) {
+    return '$count ड्राफ्ट';
+  }
+
+  @override
+  String get couldNotLoadListings => 'लिस्टिंग लोड नहीं हो सकीं';
 
   @override
   String get boostListingCta => 'लिस्टिंग बूस्ट करें';
@@ -3165,6 +3207,26 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get floorPlanSectionTitle => 'फ़्लोर प्लान';
+
+  @override
+  String get tapToZoomHint => 'ज़ूम करने के लिए टैप करें';
+
+  @override
+  String get factBedsLabel => 'बेड';
+
+  @override
+  String get factBathsLabel => 'बाथ';
+
+  @override
+  String get factAreaLabel => 'वर्ग फ़ुट';
+
+  @override
+  String get factFloorLabel => 'मंज़िल';
+
+  @override
+  String galleryPhotoSemantic(int current, int total) {
+    return 'फ़ोटो $current / $total';
+  }
 
   @override
   String get virtualTourSectionTitle => '360° वर्चुअल टूर';

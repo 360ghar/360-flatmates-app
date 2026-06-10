@@ -47,9 +47,7 @@ class BudgetFilterCard extends StatelessWidget {
                 ),
                 thumbColor: AppSemanticColors.accent,
                 overlayColor: AppSemanticColors.accent.withValues(alpha: 0.08),
-                rangeThumbShape: const RoundRangeSliderThumbShape(
-                  elevation: 2,
-                ),
+                rangeThumbShape: const RoundRangeSliderThumbShape(elevation: 2),
                 trackHeight: 4,
               ),
             ),

@@ -22,6 +22,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onUnmatch,
     required this.onCall,
     required this.onScheduleVisit,
+    this.onPeerTap,
     super.key,
   });
 
@@ -33,6 +34,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onUnmatch;
   final VoidCallback onCall;
   final VoidCallback onScheduleVisit;
+  final VoidCallback? onPeerTap;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -101,71 +103,78 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         onPressed: () => context.pop(),
         tooltip: 'Back',
       ),
-      title: Row(
-        children: [
-          FlatmatesAvatar(
-            name: conversation?.peer.fullName,
-            imageUrl: conversation?.peer.profileImageUrl,
-            size: 40,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        conversation?.peer.fullName ?? locale.chatsTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: AppTypography.h3Weight,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    if (score != null)
-                      Container(
-                        width: AppSpacing.sm,
-                        height: AppSpacing.sm,
-                        decoration: BoxDecoration(
-                          color: compatibilityScoreColor(score),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                  ],
-                ),
-                if (conversation?.peer.mode != null) ...[
-                  const SizedBox(height: 2),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppSemanticColors.accent.withValues(alpha: 0.4),
-                      ),
-                      borderRadius: AppRadius.smBorder,
-                    ),
-                    child: Text(
-                      localizedFlatmatesModeLabel(
-                        locale,
-                        conversation?.peer.mode ?? '',
-                      ),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: AppTypography.captionSize,
-                        fontWeight: AppTypography.labelMediumWeight,
-                        color: AppSemanticColors.accent,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+      title: GestureDetector(
+        key: const Key('chat_peer_header'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onPeerTap,
+        child: Row(
+          children: [
+            FlatmatesAvatar(
+              name: conversation?.peer.fullName,
+              imageUrl: conversation?.peer.profileImageUrl,
+              size: 40,
             ),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          conversation?.peer.fullName ?? locale.chatsTitle,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: AppTypography.h3Weight,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      if (score != null)
+                        Container(
+                          width: AppSpacing.sm,
+                          height: AppSpacing.sm,
+                          decoration: BoxDecoration(
+                            color: compatibilityScoreColor(score),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (conversation?.peer.mode != null) ...[
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppSemanticColors.accent.withValues(
+                            alpha: 0.4,
+                          ),
+                        ),
+                        borderRadius: AppRadius.smBorder,
+                      ),
+                      child: Text(
+                        localizedFlatmatesModeLabel(
+                          locale,
+                          conversation?.peer.mode ?? '',
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: AppTypography.captionSize,
+                          fontWeight: AppTypography.labelMediumWeight,
+                          color: AppSemanticColors.accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         IconButton(

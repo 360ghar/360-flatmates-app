@@ -23,9 +23,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
     // Show notification for data-only messages (no notification payload).
     if (message.notification == null && message.data.isNotEmpty) {
-      final title = message.data['title'] ?? '360 FlatMates';
-      final body = message.data['body'] ?? message.data['message'] ?? '';
-      final route = message.data['route'];
+      final title = (message.data['title'] as String?) ?? '360 FlatMates';
+      final body =
+          (message.data['body'] ?? message.data['message'] ?? '') as String;
+      final route = message.data['route'] as String?;
       if (body.isNotEmpty) {
         await NotificationService.showLocalNotification(
           title: title,
@@ -78,7 +79,7 @@ Future<void> bootstrap() async {
 
   await Supabase.initialize(
     url: config.supabaseUrl,
-    anonKey: config.supabaseAnonKey,
+    publishableKey: config.supabaseAnonKey,
   );
 
   final preferences = await AppPreferences.create();

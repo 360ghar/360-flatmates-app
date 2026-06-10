@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../../core/utils/safe_json_list.dart';
 
 class NotificationModel {
   const NotificationModel({
@@ -50,13 +51,11 @@ class NotificationsRepository {
     final response = await _ref
         .read(apiClientProvider)
         .get(FlatmatesEndpoints.notifications);
-    final rows = (response.data as List? ?? const []);
-    return rows
-        .whereType<Map>()
-        .map(
-          (item) => NotificationModel.fromJson(Map<String, dynamic>.from(item)),
-        )
-        .toList();
+    return safeJsonList(
+      response.data as List?,
+      NotificationModel.fromJson,
+      label: 'notifications',
+    );
   }
 
   Future<void> markAsRead(String notificationId) async {
