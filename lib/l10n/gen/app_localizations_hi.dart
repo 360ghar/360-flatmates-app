@@ -2781,6 +2781,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorOtpInvalid => 'अमान्य या समाप्त कोड। कृपया पुनः प्रयास करें।';
 
   @override
+  String get errorInvalidCredentials => 'गलत पासवर्ड। कृपया पुनः प्रयास करें।';
+
+  @override
   String get errorAuthSessionMissing => 'सत्यापन विफल। कृपया पुनः प्रयास करें।';
 
   @override

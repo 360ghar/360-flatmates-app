@@ -1255,6 +1255,7 @@
   "errorConflict": "A conflict occurred. The data may have changed.",
   "errorUpload": "Upload failed. Please try again.",
   "errorOtpInvalid": "Invalid or expired code. Please try again.",
+  "errorInvalidCredentials": "Incorrect password. Please try again.",
   "errorAuthSessionMissing": "Verification failed. Please try again.",
   "errorUnknown": "Something went wrong. Please try again.",
   "icebreakerTellMeRoom": "Tell me about the room!",

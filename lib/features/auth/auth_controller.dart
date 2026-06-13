@@ -118,7 +118,11 @@ class AuthController extends Notifier<AuthState> {
   /// to localized user messages. Maps Supabase [AuthException] (OTP errors)
   /// and [StateError] (missing session) to specific keys so the user sees a
   /// meaningful message instead of the generic "Something went wrong".
-  String _userSafeMessage(Object error) {
+  ///
+  /// Pass [authOp] to disambiguate Supabase [AuthException]s by operation:
+  /// `'password'` (wrong password on sign-in) → `invalid_credentials`;
+  /// otherwise (OTP verify) → `otp_invalid`.
+  String _userSafeMessage(Object error, {String? authOp}) {
     if (error is AppFailure) {
       if (error is AuthExpiredFailure && error.serverMessage != null) {
         return 'failure:${error.label}|${error.serverMessage}';
@@ -147,7 +151,13 @@ class AuthController extends Notifier<AuthState> {
       if (error.statusCode == '429' || error.code == 'too_many_requests') {
         return 'failure:rate_limit';
       }
-      // Token invalid / expired / already consumed → treat as invalid OTP.
+      // Password sign-in with bad credentials (Supabase "Invalid login
+      // credentials") → tell the user the password is wrong, not that the
+      // OTP/token is invalid.
+      if (authOp == 'password') {
+        return 'failure:invalid_credentials';
+      }
+      // OTP verify: token invalid / expired / already consumed.
       return 'failure:otp_invalid';
     }
 
@@ -365,7 +375,7 @@ class AuthController extends Notifier<AuthState> {
     } catch (error) {
       state = state.copyWith(
         status: AuthStatus.error,
-        errorMessage: _userSafeMessage(error),
+        errorMessage: _userSafeMessage(error, authOp: 'password'),
         phone: phone,
       );
       return false;
@@ -398,7 +408,7 @@ class AuthController extends Notifier<AuthState> {
     } catch (error) {
       state = state.copyWith(
         status: AuthStatus.error,
-        errorMessage: _userSafeMessage(error),
+        errorMessage: _userSafeMessage(error, authOp: 'password'),
         identifier: email,
       );
       return false;

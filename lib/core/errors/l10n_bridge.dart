@@ -55,6 +55,7 @@ String resolveAuthError(String? errorMessage, AppLocalizations l10n) {
     'rate_limit' => l10n.errorRateLimit,
     'conflict' => l10n.errorConflict,
     'upload' => l10n.errorUpload,
+    'invalid_credentials' => l10n.errorInvalidCredentials,
     'otp_invalid' => l10n.errorOtpInvalid,
     'auth_session_missing' => l10n.errorAuthSessionMissing,
     _ => l10n.errorUnknown,

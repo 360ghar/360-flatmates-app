@@ -5234,6 +5234,12 @@ abstract class AppLocalizations {
   /// **'Invalid or expired code. Please try again.'**
   String get errorOtpInvalid;
 
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password. Please try again.'**
+  String get errorInvalidCredentials;
+
   /// No description provided for @errorAuthSessionMissing.
   ///
   /// In en, this message translates to:

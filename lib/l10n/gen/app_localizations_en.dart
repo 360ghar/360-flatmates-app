@@ -2766,6 +2766,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorOtpInvalid => 'Invalid or expired code. Please try again.';
 
   @override
+  String get errorInvalidCredentials => 'Incorrect password. Please try again.';
+
+  @override
   String get errorAuthSessionMissing =>
       'Verification failed. Please try again.';
 
