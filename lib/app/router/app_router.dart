@@ -165,6 +165,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return profile.onboardingCompleted ? '/discover' : '/onboarding';
       }
 
+      // ── PROFILE_COMPLETION gate ──────────────────────────────────────────
+      // Enforced from the backend-computed auth stage. If mandatory profile
+      // fields are missing, route to the edit-profile page to collect them.
+      // Skip this gate while the user is already on the edit-profile page.
+      final isProfileEdit = location == '/profile/edit';
+      if (auth.authStage == AuthStage.profileCompletion && !isProfileEdit) {
+        return '/profile/edit';
+      }
+
       if (!profile.onboardingCompleted && !isOnboarding) {
         return '/onboarding';
       }

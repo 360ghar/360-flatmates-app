@@ -112,6 +112,17 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Updates the auth gate stage from the backend's `/users/me/auth-state`.
+  /// Called by [BootstrapController] after bootstrap data is fetched. The
+  /// router reads [AuthState.authStage] to route profile-completion and
+  /// onboarding screens.
+  void updateGateStage(AuthStage stage, {List<String> missingFields = const []}) {
+    state = state.copyWith(
+      authStage: stage,
+      missingProfileFields: missingFields,
+    );
+  }
+
   /// Returns a resolvable key for [resolveAuthError] in the presentation layer.
   ///
   /// Prefixes AppFailure labels with `failure:` so the UI can map them back

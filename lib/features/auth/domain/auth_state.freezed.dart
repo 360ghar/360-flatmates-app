@@ -37,6 +37,16 @@ mixin _$AuthState {
   /// once a password is set. Never set for Google/Apple (passwordless).
   bool get needsPassword => throw _privateConstructorUsedError;
 
+  /// The current auth gate stage returned by the backend
+  /// `/users/me/auth-state`.  Drives the redirect chain for profile
+  /// completion and onboarding. Defaults to [AuthStage.active] so the
+  /// gate is not triggered before the first fetch completes.
+  AuthStage get authStage => throw _privateConstructorUsedError;
+
+  /// Profile fields still missing (reported by the backend when
+  /// `authStage == AuthStage.profileCompletion`).
+  List<String> get missingProfileFields => throw _privateConstructorUsedError;
+
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -57,6 +67,8 @@ abstract class $AuthStateCopyWith<$Res> {
     bool? identifierVerified,
     AuthChannel? channel,
     bool needsPassword,
+    AuthStage authStage,
+    List<String> missingProfileFields,
   });
 }
 
@@ -82,6 +94,8 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
     Object? identifierVerified = freezed,
     Object? channel = freezed,
     Object? needsPassword = null,
+    Object? authStage = null,
+    Object? missingProfileFields = null,
   }) {
     return _then(
       _value.copyWith(
@@ -113,6 +127,14 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
                 ? _value.needsPassword
                 : needsPassword // ignore: cast_nullable_to_non_nullable
                       as bool,
+            authStage: null == authStage
+                ? _value.authStage
+                : authStage // ignore: cast_nullable_to_non_nullable
+                      as AuthStage,
+            missingProfileFields: null == missingProfileFields
+                ? _value.missingProfileFields
+                : missingProfileFields // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -136,6 +158,8 @@ abstract class _$$AuthStateImplCopyWith<$Res>
     bool? identifierVerified,
     AuthChannel? channel,
     bool needsPassword,
+    AuthStage authStage,
+    List<String> missingProfileFields,
   });
 }
 
@@ -160,6 +184,8 @@ class __$$AuthStateImplCopyWithImpl<$Res>
     Object? identifierVerified = freezed,
     Object? channel = freezed,
     Object? needsPassword = null,
+    Object? authStage = null,
+    Object? missingProfileFields = null,
   }) {
     return _then(
       _$AuthStateImpl(
@@ -191,6 +217,14 @@ class __$$AuthStateImplCopyWithImpl<$Res>
             ? _value.needsPassword
             : needsPassword // ignore: cast_nullable_to_non_nullable
                   as bool,
+        authStage: null == authStage
+            ? _value.authStage
+            : authStage // ignore: cast_nullable_to_non_nullable
+                  as AuthStage,
+        missingProfileFields: null == missingProfileFields
+            ? _value._missingProfileFields
+            : missingProfileFields // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -207,7 +241,10 @@ class _$AuthStateImpl extends _AuthState {
     this.identifierVerified,
     this.channel,
     this.needsPassword = false,
-  }) : super._();
+    this.authStage = AuthStage.active,
+    final List<String> missingProfileFields = const [],
+  }) : _missingProfileFields = missingProfileFields,
+       super._();
 
   @override
   final AuthStatus status;
@@ -237,9 +274,32 @@ class _$AuthStateImpl extends _AuthState {
   @JsonKey()
   final bool needsPassword;
 
+  /// The current auth gate stage returned by the backend
+  /// `/users/me/auth-state`.  Drives the redirect chain for profile
+  /// completion and onboarding. Defaults to [AuthStage.active] so the
+  /// gate is not triggered before the first fetch completes.
+  @override
+  @JsonKey()
+  final AuthStage authStage;
+
+  /// Profile fields still missing (reported by the backend when
+  /// `authStage == AuthStage.profileCompletion`).
+  final List<String> _missingProfileFields;
+
+  /// Profile fields still missing (reported by the backend when
+  /// `authStage == AuthStage.profileCompletion`).
+  @override
+  @JsonKey()
+  List<String> get missingProfileFields {
+    if (_missingProfileFields is EqualUnmodifiableListView)
+      return _missingProfileFields;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_missingProfileFields);
+  }
+
   @override
   String toString() {
-    return 'AuthState(status: $status, phone: $phone, errorMessage: $errorMessage, identifier: $identifier, identifierVerified: $identifierVerified, channel: $channel, needsPassword: $needsPassword)';
+    return 'AuthState(status: $status, phone: $phone, errorMessage: $errorMessage, identifier: $identifier, identifierVerified: $identifierVerified, channel: $channel, needsPassword: $needsPassword, authStage: $authStage, missingProfileFields: $missingProfileFields)';
   }
 
   @override
@@ -257,7 +317,13 @@ class _$AuthStateImpl extends _AuthState {
                 other.identifierVerified == identifierVerified) &&
             (identical(other.channel, channel) || other.channel == channel) &&
             (identical(other.needsPassword, needsPassword) ||
-                other.needsPassword == needsPassword));
+                other.needsPassword == needsPassword) &&
+            (identical(other.authStage, authStage) ||
+                other.authStage == authStage) &&
+            const DeepCollectionEquality().equals(
+              other._missingProfileFields,
+              _missingProfileFields,
+            ));
   }
 
   @override
@@ -270,6 +336,8 @@ class _$AuthStateImpl extends _AuthState {
     identifierVerified,
     channel,
     needsPassword,
+    authStage,
+    const DeepCollectionEquality().hash(_missingProfileFields),
   );
 
   /// Create a copy of AuthState
@@ -290,6 +358,8 @@ abstract class _AuthState extends AuthState {
     final bool? identifierVerified,
     final AuthChannel? channel,
     final bool needsPassword,
+    final AuthStage authStage,
+    final List<String> missingProfileFields,
   }) = _$AuthStateImpl;
   const _AuthState._() : super._();
 
@@ -319,6 +389,18 @@ abstract class _AuthState extends AuthState {
   /// once a password is set. Never set for Google/Apple (passwordless).
   @override
   bool get needsPassword;
+
+  /// The current auth gate stage returned by the backend
+  /// `/users/me/auth-state`.  Drives the redirect chain for profile
+  /// completion and onboarding. Defaults to [AuthStage.active] so the
+  /// gate is not triggered before the first fetch completes.
+  @override
+  AuthStage get authStage;
+
+  /// Profile fields still missing (reported by the backend when
+  /// `authStage == AuthStage.profileCompletion`).
+  @override
+  List<String> get missingProfileFields;
 
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.

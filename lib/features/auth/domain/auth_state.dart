@@ -14,6 +14,35 @@ enum AuthStatus {
 /// The channel an identifier resolves to in the auth state-machine.
 enum AuthChannel { phone, email }
 
+/// The centralized auth gate stage returned by the backend
+/// `GET /users/me/auth-state`.  Clients route the user to the screen
+/// corresponding to the first incomplete gate.
+enum AuthStage {
+  identifierVerification,
+  passwordSetup,
+  profileCompletion,
+  appOnboarding,
+  active;
+
+  /// Parse from the backend wire value.
+  static AuthStage fromWire(String? value) {
+    switch (value) {
+      case 'identifier_verification':
+        return AuthStage.identifierVerification;
+      case 'password_setup':
+        return AuthStage.passwordSetup;
+      case 'profile_completion':
+        return AuthStage.profileCompletion;
+      case 'app_onboarding':
+        return AuthStage.appOnboarding;
+      case 'active':
+        return AuthStage.active;
+      default:
+        return AuthStage.active;
+    }
+  }
+}
+
 /// The auth method last used by the user, mirrored to the backend via
 /// `POST /api/v1/auth/last-method` and remembered locally to pre-select it.
 enum AuthMethod {
@@ -88,6 +117,16 @@ class AuthState with _$AuthState {
     /// (non-skippable) `/set-password` step before entering the app. Cleared
     /// once a password is set. Never set for Google/Apple (passwordless).
     @Default(false) bool needsPassword,
+
+    /// The current auth gate stage returned by the backend
+    /// `/users/me/auth-state`.  Drives the redirect chain for profile
+    /// completion and onboarding. Defaults to [AuthStage.active] so the
+    /// gate is not triggered before the first fetch completes.
+    @Default(AuthStage.active) AuthStage authStage,
+
+    /// Profile fields still missing (reported by the backend when
+    /// `authStage == AuthStage.profileCompletion`).
+    @Default([]) List<String> missingProfileFields,
   }) = _AuthState;
 
   bool get isLoggedIn => status == AuthStatus.authenticated;
