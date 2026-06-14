@@ -93,7 +93,6 @@ enum GenderPreference {
     'male' => GenderPreference.male,
     'female' => GenderPreference.female,
     'any' => GenderPreference.any,
-    'no_preference' => GenderPreference.any,
     _ => GenderPreference.any,
   };
 
@@ -177,8 +176,8 @@ enum FoodHabits {
   noPreference;
 
   static FoodHabits fromApi(String value) => switch (value) {
-    'vegetarian' || 'veg' => FoodHabits.vegetarian,
-    'non_vegetarian' || 'non_veg' => FoodHabits.nonVegetarian,
+    'vegetarian' => FoodHabits.vegetarian,
+    'non_vegetarian' => FoodHabits.nonVegetarian,
     'eggetarian' => FoodHabits.eggetarian,
     _ => FoodHabits.noPreference,
   };
@@ -197,8 +196,8 @@ enum SmokingPreference {
   noPreference;
 
   static SmokingPreference fromApi(String value) => switch (value) {
-    'neither' || 'no' => SmokingPreference.neither,
-    'smoke_outside' || 'yes' => SmokingPreference.smokeOutside,
+    'neither' => SmokingPreference.neither,
+    'smoke_outside' => SmokingPreference.smokeOutside,
     _ => SmokingPreference.noPreference,
   };
 
@@ -215,8 +214,8 @@ enum PetPreference {
   noPreference;
 
   static PetPreference fromApi(String value) => switch (value) {
-    'have_pets' || 'yes' => PetPreference.havePets,
-    'no_pets' || 'no' => PetPreference.noPets,
+    'have_pets' => PetPreference.havePets,
+    'no_pets' => PetPreference.noPets,
     _ => PetPreference.noPreference,
   };
 
