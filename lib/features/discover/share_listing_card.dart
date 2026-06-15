@@ -89,11 +89,12 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // Original share card (kept intact)
+        // Original share card (kept intact).
+        // Clamped to 480 so the captured image isn't excessively wide on tablets.
         RepaintBoundary(
           key: _cardKey,
           child: Container(
-            width: double.infinity,
+            width: MediaQuery.sizeOf(context).width.clamp(0.0, 480.0),
             padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
               gradient: LinearGradient(

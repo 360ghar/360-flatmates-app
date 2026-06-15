@@ -111,7 +111,6 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
-		<string>googlechromes</string>
 		<string>geo</string>
 		<string>whatsapp</string>
 		<string>tel</string>

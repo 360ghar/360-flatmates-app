@@ -40,8 +40,8 @@ Future<void> _openInMaps(
   try {
     final launched = await launchUrl(geoUri, mode: LaunchMode.externalApplication);
     if (launched) return;
-  } catch (_) {
-    // geo: may not be available; fall through to HTTPS.
+  } catch (e) {
+    debugPrint('FlatDetailsLocation._openInMaps: geo: launch failed, falling back to HTTPS: $e');
   }
 
   // Fallback: universal Google Maps HTTPS URL in the external browser/app.
