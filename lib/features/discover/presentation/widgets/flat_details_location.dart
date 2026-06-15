@@ -38,15 +38,18 @@ Future<void> _openInMaps(
   // URLs without a matching <queries> entry, making the map tap a no-op.
   // Try the native geo: scheme first.
   try {
-    await launchUrl(geoUri, mode: LaunchMode.externalApplication);
-    return;
+    final launched = await launchUrl(geoUri, mode: LaunchMode.externalApplication);
+    if (launched) return;
   } catch (_) {
     // geo: may not be available; fall through to HTTPS.
   }
 
   // Fallback: universal Google Maps HTTPS URL in the external browser/app.
   try {
-    await launchUrl(httpsUri, mode: LaunchMode.externalApplication);
+    final launched = await launchUrl(httpsUri, mode: LaunchMode.externalApplication);
+    if (!launched) {
+      debugPrint('FlatDetailsLocation._openInMaps: launchUrl returned false for https');
+    }
   } catch (e) {
     debugPrint('FlatDetailsLocation._openInMaps https failed: $e');
   }

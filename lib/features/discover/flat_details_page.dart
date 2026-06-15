@@ -398,10 +398,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   void _handleOwnerTap(PropertyListing listing) {
     final ownerId = listing.owner?.id ?? listing.ownerId;
     if (ownerId == null) {
-      debugPrint(
-        'FlatDetailsPage._handleOwnerTap: no ownerId on listing '
-        '${listing.id} (owner=${listing.owner}, ownerId=${listing.ownerId})',
-      );
+      debugPrint('FlatDetailsPage._handleOwnerTap: no ownerId on listing ${listing.id}');
       return;
     }
 
@@ -415,21 +412,19 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     // also prevents the owner sheet from ever showing the viewer's own
     // profile when tapping through their own listing.
     if (currentUserId == null || currentUserId == ownerId) {
-      debugPrint(
-        'FlatDetailsPage._handleOwnerTap: suppressed self/null owner view '
-        '(viewer=$currentUserId, ownerId=$ownerId)',
-      );
+      debugPrint('FlatDetailsPage._handleOwnerTap: suppressed self/null owner view');
       return;
     }
 
     // Prefer the nested owner name (now populated by the backend) and fall
     // back to the flat owner_name field, then a generic label.
+    final locale = AppLocalizations.of(context);
     final ownerName =
         listing.owner?.fullName.trim().isNotEmpty == true
         ? listing.owner!.fullName
         : (listing.ownerName?.trim().isNotEmpty == true
               ? listing.ownerName!
-              : 'Owner');
+              : locale.ownerFallbackLabel);
 
     OwnerProfileSheet.show(
       context: context,
