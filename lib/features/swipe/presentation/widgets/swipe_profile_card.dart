@@ -164,7 +164,9 @@ class SwipeProfileDetailBody extends StatelessWidget {
                 lat: lat,
                 lng: lng,
                 fallbackLabel:
-                    item.locality ?? item.city ?? locale.propertyFallbackLabel,
+                    item.locality ??
+                    item.city ??
+                    locale.propertyFallbackLabel,
               ),
               if (existingFlatmates.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xl),

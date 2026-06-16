@@ -53,9 +53,7 @@ class ChatQnANudgeCard extends StatelessWidget {
                   Text(
                     locale.qnaNudgeSubtitle,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
+                      color: AppSemanticColors.textSecondaryFor(theme.brightness),
                     ),
                   ),
                 ],
