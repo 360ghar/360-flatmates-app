@@ -101,7 +101,8 @@ class _OwnerProfileBody extends StatelessWidget {
     final budgetMin = (peerData?['budget_min'] as num?)?.toDouble();
     final budgetMax = (peerData?['budget_max'] as num?)?.toDouble();
     final moveIn = peerData?['move_in_timeline'] as String?;
-    final nonNegotiables = (peerData?['non_negotiables'] as List?)
+    final nonNegotiables =
+        (peerData?['non_negotiables'] as List?)
             ?.map((e) => e.toString())
             .where((e) => e.trim().isNotEmpty)
             .toList() ??
@@ -126,10 +127,7 @@ class _OwnerProfileBody extends StatelessWidget {
         (peerData?['food_habits'] as String?, Icons.restaurant_outlined),
         (peerData?['smoking_drinking'] as String?, Icons.local_bar_outlined),
         (peerData?['guests_policy'] as String?, Icons.groups_outlined),
-        (
-          peerData?['cleanliness'] as String?,
-          Icons.cleaning_services_outlined,
-        ),
+        (peerData?['cleanliness'] as String?, Icons.cleaning_services_outlined),
         (peerData?['sleep_schedule'] as String?, Icons.bedtime_outlined),
         (peerData?['work_style'] as String?, Icons.work_outline_rounded),
       ])
@@ -144,171 +142,171 @@ class _OwnerProfileBody extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: AppSpacing.md),
-        FlatmatesAvatar(name: name, imageUrl: imageUrl, size: 80),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          name,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        if (showError) ...[
-          const SizedBox(height: AppSpacing.xs),
+          FlatmatesAvatar(name: name, imageUrl: imageUrl, size: 80),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            locale.couldNotLoadContent,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppSemanticColors.textTertiaryFor(
-                isDark ? Brightness.dark : Brightness.light,
-              ),
+            name,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
-        ],
-        if (mode != null) ...[
-          const SizedBox(height: AppSpacing.xs),
-          _ModeBadge(mode: mode, isDark: isDark),
-        ],
-        if (age != null || profession != null || locationParts.isNotEmpty)
-          const SizedBox(height: AppSpacing.sm),
-        if (age != null || profession != null)
-          Text(
-            [if (age != null) '$age years', ?profession].join(' · '),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppSemanticColors.textSecondaryFor(
-                isDark ? Brightness.dark : Brightness.light,
-              ),
-            ),
-          ),
-        if (locationParts.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.location_on_outlined,
-                size: 14,
+          if (showError) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              locale.couldNotLoadContent,
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: AppSemanticColors.textTertiaryFor(
                   isDark ? Brightness.dark : Brightness.light,
                 ),
               ),
-              const SizedBox(width: 4),
-              Text(
-                locationParts.join(', '),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppSemanticColors.textSecondaryFor(
+            ),
+          ],
+          if (mode != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            _ModeBadge(mode: mode, isDark: isDark),
+          ],
+          if (age != null || profession != null || locationParts.isNotEmpty)
+            const SizedBox(height: AppSpacing.sm),
+          if (age != null || profession != null)
+            Text(
+              [if (age != null) '$age years', ?profession].join(' · '),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(
+                  isDark ? Brightness.dark : Brightness.light,
+                ),
+              ),
+            ),
+          if (locationParts.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 14,
+                  color: AppSemanticColors.textTertiaryFor(
                     isDark ? Brightness.dark : Brightness.light,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
-
-        // Compatibility ring — only meaningful when we have peer data.
-        if (!showError) ...[
-          const SizedBox(height: AppSpacing.lg),
-          CompatibilityRing(
-            percentage: matchPercentage,
-            size: 88,
-            strokeWidth: 6,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '${matchPercentage.round()}% Match',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: _matchColor(matchPercentage),
-            ),
-          ),
-        ],
-
-        // Quick stats (budget, move-in).
-        if (quickStats.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              for (final s in quickStats)
-                FlatmatesChip(
-                  icon: s.icon,
-                  label: s.label,
-                  variant: FlatmatesChipVariant.info,
+                const SizedBox(width: 4),
+                Text(
+                  locationParts.join(', '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppSemanticColors.textSecondaryFor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
                 ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
 
-        // About / bio.
-        if (hasBio) ...[
-          const SizedBox(height: AppSpacing.lg),
-          _SectionLabel(label: locale.aboutLabel),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            bio.trim(),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppSemanticColors.textSecondaryFor(
-                isDark ? Brightness.dark : Brightness.light,
+          // Compatibility ring — only meaningful when we have peer data.
+          if (!showError) ...[
+            const SizedBox(height: AppSpacing.lg),
+            CompatibilityRing(
+              percentage: matchPercentage,
+              size: 88,
+              strokeWidth: 6,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '${matchPercentage.round()}% Match',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: _matchColor(matchPercentage),
               ),
             ),
-          ),
-        ],
+          ],
 
-        // Lifestyle chips.
-        if (lifestyle.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          _SectionLabel(label: locale.lifestyleSectionTitle),
-          const SizedBox(height: AppSpacing.xs),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
+          // Quick stats (budget, move-in).
+          if (quickStats.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Wrap(
+              alignment: WrapAlignment.center,
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
-                for (final l in lifestyle)
+                for (final s in quickStats)
                   FlatmatesChip(
-                    icon: l.icon,
-                    label: l.label,
+                    icon: s.icon,
+                    label: s.label,
                     variant: FlatmatesChipVariant.info,
                   ),
               ],
             ),
-          ),
-        ],
+          ],
 
-        // Non-negotiables / deal-breakers.
-        if (nonNegotiables.isNotEmpty) ...[
+          // About / bio.
+          if (hasBio) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _SectionLabel(label: locale.aboutLabel),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              bio.trim(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(
+                  isDark ? Brightness.dark : Brightness.light,
+                ),
+              ),
+            ),
+          ],
+
+          // Lifestyle chips.
+          if (lifestyle.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _SectionLabel(label: locale.lifestyleSectionTitle),
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final l in lifestyle)
+                    FlatmatesChip(
+                      icon: l.icon,
+                      label: l.label,
+                      variant: FlatmatesChipVariant.info,
+                    ),
+                ],
+              ),
+            ),
+          ],
+
+          // Non-negotiables / deal-breakers.
+          if (nonNegotiables.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _SectionLabel(label: locale.dealBreakersSectionTitle),
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final n in nonNegotiables)
+                    FlatmatesChip(
+                      label: humanizeFlatmatesToken(n),
+                      variant: FlatmatesChipVariant.info,
+                    ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: AppSpacing.lg),
-          _SectionLabel(label: locale.dealBreakersSectionTitle),
-          const SizedBox(height: AppSpacing.xs),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final n in nonNegotiables)
-                  FlatmatesChip(
-                    label: humanizeFlatmatesToken(n),
-                    variant: FlatmatesChipVariant.info,
-                  ),
-              ],
+
+          // Send message CTA
+          SizedBox(
+            width: double.infinity,
+            child: FlatmatesButton(
+              label: locale.contactCta,
+              onPressed: onSendMessage,
+              icon: Icons.send_rounded,
             ),
           ),
-        ],
-
-        const SizedBox(height: AppSpacing.lg),
-
-        // Send message CTA
-        SizedBox(
-          width: double.infinity,
-          child: FlatmatesButton(
-            label: locale.contactCta,
-            onPressed: onSendMessage,
-            icon: Icons.send_rounded,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );

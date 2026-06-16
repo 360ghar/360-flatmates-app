@@ -63,10 +63,7 @@ class FlatmateProfileSheet extends ConsumerWidget {
           bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
         );
         final compatibility = calculateProfileCompatibility(currentUser, peer);
-        return SwipeProfileDetailBody(
-          item: peer,
-          compatibility: compatibility,
-        );
+        return SwipeProfileDetailBody(item: peer, compatibility: compatibility);
       },
     );
   }
