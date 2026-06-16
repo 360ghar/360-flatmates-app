@@ -84,6 +84,8 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Maintain a single end-to-end Maestro flow that exercises the real product loop.
 - Update Maestro when route names, button labels, or login flow behavior changes.
 - **Before committing, run `dart format .`** to ensure all files are properly formatted. The CI Quality Gates workflow will fail if any file is unformatted.
+- **VS Code + forks:** `.vscode/settings.json` enables format-on-save for Dart files automatically.
+- **Android Studio / IntelliJ:** Enable format-on-save manually at _Settings → Tools → Actions on Save → Reformat code_. A shared Dart code style (matching `dart format`) is provided at `.idea/codeStyles/`.
 - After making changes, run `dart fix --dry-run lib/` to catch auto-fixable lint issues, then `dart fix --apply lib/` to apply them.
 
 ## Documentation Triggers

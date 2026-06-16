@@ -19,6 +19,8 @@ flutter pub get
 
 # VS Code format-on-save (auto-applies dart format on every save)
 # Config lives in .vscode/settings.json — works for VS Code, Cursor, Windsurf, etc.
+# IntelliJ/Android Studio: Settings → Tools → Actions on Save → Reformat code.
+#   Shared code style at .idea/codeStyles/ — IntelliJ will auto-detect it.
 
 # Run
 flutter run
