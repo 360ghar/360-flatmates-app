@@ -3308,4 +3308,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'Deal-breakers';
+
+  @override
+  String get togglePasswordVisibility => 'Toggle password visibility';
+
+  @override
+  String get authMethodGoogle => 'Google';
+
+  @override
+  String get authMethodApple => 'Apple';
+
+  @override
+  String get authMethodEmail => 'email';
+
+  @override
+  String get authMethodPhone => 'phone';
 }

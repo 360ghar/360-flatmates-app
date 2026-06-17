@@ -1528,5 +1528,10 @@
   },
   "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें",
   "lifestyleSectionTitle": "जीवनशैली",
-  "dealBreakersSectionTitle": "डील-ब्रेकर्स"
+  "dealBreakersSectionTitle": "डील-ब्रेकर्स",
+  "togglePasswordVisibility": "पासवर्ड दिखाएं या छिपाएं",
+  "authMethodGoogle": "Google",
+  "authMethodApple": "Apple",
+  "authMethodEmail": "ईमेल",
+  "authMethodPhone": "फ़ोन"
 }

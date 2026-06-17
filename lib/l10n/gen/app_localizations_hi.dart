@@ -3322,4 +3322,19 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'डील-ब्रेकर्स';
+
+  @override
+  String get togglePasswordVisibility => 'पासवर्ड दिखाएं या छिपाएं';
+
+  @override
+  String get authMethodGoogle => 'Google';
+
+  @override
+  String get authMethodApple => 'Apple';
+
+  @override
+  String get authMethodEmail => 'ईमेल';
+
+  @override
+  String get authMethodPhone => 'फ़ोन';
 }

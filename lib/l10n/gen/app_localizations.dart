@@ -6205,6 +6205,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
+
+  /// No description provided for @togglePasswordVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle password visibility'**
+  String get togglePasswordVisibility;
+
+  /// No description provided for @authMethodGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get authMethodGoogle;
+
+  /// No description provided for @authMethodApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple'**
+  String get authMethodApple;
+
+  /// No description provided for @authMethodEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'email'**
+  String get authMethodEmail;
+
+  /// No description provided for @authMethodPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'phone'**
+  String get authMethodPhone;
 }
 
 class _AppLocalizationsDelegate

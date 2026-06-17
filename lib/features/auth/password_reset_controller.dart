@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/error_presenter.dart';
@@ -141,6 +142,15 @@ class PasswordResetController extends Notifier<PasswordResetState> {
   AppFailure _toFailure(Object e, StackTrace st) {
     if (e is AppFailure) return e;
     if (e is DioException) return ErrorPresenter.fromDio(e, st);
+    // Reset OTP send/verify goes through Supabase, which throws AuthException
+    // (not DioException). Map the common cases to typed failures so the user
+    // sees a meaningful message instead of the generic "Something went wrong".
+    if (e is AuthException) {
+      if (e.statusCode == '429' || e.code == 'too_many_requests') {
+        return RateLimitFailure(underlyingError: e, stackTrace: st);
+      }
+      return ValidationFailure(underlyingError: e, stackTrace: st);
+    }
     return UnknownFailure(underlyingError: e, stackTrace: st);
   }
 }

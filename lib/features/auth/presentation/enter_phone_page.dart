@@ -18,6 +18,19 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/terms_checkbox.dart';
 
+/// Whether the user has accepted the terms checkbox.
+final _termsAcceptedProvider = StateProvider.autoDispose<bool>((ref) => false);
+
+/// Local "submitting" guard while the identifier-status round trip runs. The
+/// shared [authControllerProvider] also goes to `submitting`, but this closes
+/// the async gap between `checkIdentifierStatus` returning and the follow-up
+/// OTP request resolving so the CTA stays disabled across both steps.
+final _isSubmittingProvider = StateProvider.autoDispose<bool>((ref) => false);
+
+/// Bumped on every identifier keystroke so autofill-hint selection (email vs
+/// phone) re-evaluates without a `setState` in a ConsumerStatefulWidget.
+final _identifierRevProvider = StateProvider.autoDispose<int>((ref) => 0);
+
 class EnterPhonePage extends ConsumerStatefulWidget {
   const EnterPhonePage({super.key});
 
@@ -29,8 +42,6 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   final _controller = TextEditingController();
   final _identifierFocusNode = FocusNode();
   final _smartAuth = SmartAuth.instance;
-  bool _termsAccepted = false;
-  bool _isSubmitting = false;
   bool _phoneHintShown = false;
 
   bool get _looksLikeEmail => _controller.text.contains('@');
@@ -86,7 +97,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   }
 
   Future<void> _onContinue() async {
-    if (_isSubmitting) return;
+    if (ref.read(_isSubmittingProvider)) return;
     String identifier = _controller.text.trim();
     if (identifier.isEmpty) return;
 
@@ -105,7 +116,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
       }
     }
 
-    setState(() => _isSubmitting = true);
+    ref.read(_isSubmittingProvider.notifier).state = true;
     try {
       final notifier = ref.read(authControllerProvider.notifier);
       final status = await notifier.checkIdentifierStatus(identifier);
@@ -162,7 +173,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isSubmitting = false);
+        ref.read(_isSubmittingProvider.notifier).state = false;
       }
     }
   }
@@ -193,7 +204,12 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
     final lastMethod = ref.watch(lastAuthMethodProvider);
-    final isBusy = auth.status == AuthStatus.submitting || _isSubmitting;
+    final termsAccepted = ref.watch(_termsAcceptedProvider);
+    // Re-read on each keystroke so autofill hints track email-vs-phone input.
+    ref.watch(_identifierRevProvider);
+    final isBusy =
+        auth.status == AuthStatus.submitting ||
+        ref.watch(_isSubmittingProvider);
 
     return FlatmatesScreen(
       appBar: AppBar(),
@@ -209,7 +225,9 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
             if (lastMethod != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
-                locale.lastUsedMethodHint(_methodLabel(lastMethod.method)),
+                locale.lastUsedMethodHint(
+                  _methodLabel(lastMethod.method, locale),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),
@@ -220,7 +238,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
               key: const Key('auth_google_button'),
               label: locale.continueWithGoogleCta,
               fullWidth: true,
-              onPressed: (isBusy || !_termsAccepted) ? null : _onGoogle,
+              onPressed: (isBusy || !termsAccepted) ? null : _onGoogle,
             ),
             // Sign in with Apple — iOS only, as prominent as Google. Apple
             // requires it on iOS apps that offer Google sign-in.
@@ -229,9 +247,9 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
               SizedBox(
                 height: 52,
                 child: AbsorbPointer(
-                  absorbing: isBusy || !_termsAccepted,
+                  absorbing: isBusy || !termsAccepted,
                   child: Opacity(
-                    opacity: (isBusy || !_termsAccepted) ? 0.5 : 1,
+                    opacity: (isBusy || !termsAccepted) ? 0.5 : 1,
                     child: SignInWithAppleButton(
                       key: const Key('auth_apple_button'),
                       onPressed: _onApple,
@@ -279,10 +297,11 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
                             AutofillHints.telephoneNumber,
                             AutofillHints.email,
                           ],
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) =>
+                        ref.read(_identifierRevProvider.notifier).state++,
                     onTap: _requestPhoneHint,
                     onSubmitted: (_) =>
-                        (isBusy || !_termsAccepted) ? null : _onContinue(),
+                        (isBusy || !termsAccepted) ? null : _onContinue(),
                     decoration: InputDecoration(
                       labelText: locale.identifierLabel,
                     ),
@@ -299,8 +318,9 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TermsCheckbox(
-                    accepted: _termsAccepted,
-                    onChanged: (v) => setState(() => _termsAccepted = v),
+                    accepted: termsAccepted,
+                    onChanged: (v) =>
+                        ref.read(_termsAcceptedProvider.notifier).state = v,
                     locale: locale,
                     theme: theme,
                   ),
@@ -320,7 +340,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
               key: const Key('enter_phone_continue_cta'),
               label: locale.continueCta,
               fullWidth: true,
-              onPressed: (isBusy || !_termsAccepted) ? null : _onContinue,
+              onPressed: (isBusy || !termsAccepted) ? null : _onContinue,
             ),
           ],
         ),
@@ -328,18 +348,18 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     );
   }
 
-  String _methodLabel(AuthMethod method) {
+  String _methodLabel(AuthMethod method, AppLocalizations locale) {
     switch (method) {
       case AuthMethod.google:
-        return 'Google';
+        return locale.authMethodGoogle;
       case AuthMethod.apple:
-        return 'Apple';
+        return locale.authMethodApple;
       case AuthMethod.emailPassword:
       case AuthMethod.emailOtp:
-        return 'email';
+        return locale.authMethodEmail;
       case AuthMethod.phonePassword:
       case AuthMethod.phoneOtp:
-        return 'phone';
+        return locale.authMethodPhone;
     }
   }
 }

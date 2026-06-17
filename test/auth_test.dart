@@ -7,7 +7,9 @@ import 'package:flatmates_app/core/errors/app_failure.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/auth/auth_controller.dart';
 import 'package:flatmates_app/features/auth/presentation/enter_phone_page.dart';
+import 'package:flatmates_app/features/auth/presentation/login_page.dart';
 import 'package:flatmates_app/features/auth/presentation/otp_page.dart';
+import 'package:flatmates_app/features/auth/presentation/reset_password_page.dart';
 import 'package:flatmates_app/features/auth/presentation/splash_page.dart';
 import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
@@ -83,6 +85,99 @@ void main() {
 
       // Unified continue CTA (replaces the separate login/signup buttons).
       expect(find.byKey(const Key('enter_phone_continue_cta')), findsOneWidget);
+    });
+  });
+
+  group('EnterPhonePage terms gate', () {
+    testWidgets('continue CTA is disabled until terms accepted, then enabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await testableWidgetAsync(child: const EnterPhonePage()),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      FlatmatesButton cta() => tester.widget<FlatmatesButton>(
+        find.byKey(const Key('enter_phone_continue_cta')),
+      );
+
+      // Terms unchecked by default → CTA disabled.
+      expect(cta().onPressed, isNull);
+
+      // Accepting the terms enables the CTA (StateProvider rebuild, no
+      // setState in the ConsumerStatefulWidget).
+      await tester.tap(find.byKey(const Key('terms_checkbox')));
+      await tester.pump();
+      expect(cta().onPressed, isNotNull);
+    });
+  });
+
+  group('LoginPage', () {
+    testWidgets('password visibility toggle flips obscureText', (tester) async {
+      await tester.pumpWidget(
+        await testableWidgetAsync(child: const LoginPage(phone: '+91999')),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      TextField passwordField() => tester.widget<TextField>(
+        find.byKey(const Key('login_password_input')),
+      );
+
+      // Obscured by default.
+      expect(passwordField().obscureText, isTrue);
+
+      // Tap the visibility toggle inside the password field's suffix.
+      await tester.tap(find.byTooltip('Toggle password visibility'));
+      await tester.pump();
+      expect(passwordField().obscureText, isFalse);
+    });
+  });
+
+  group('ResetPasswordPage', () {
+    testWidgets('submit stays disabled until OTP + valid matching password', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await testableWidgetAsync(child: const ResetPasswordPage()),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      FlatmatesButton submit() => tester.widget<FlatmatesButton>(
+        find.byKey(const Key('reset_password_submit')),
+      );
+
+      // Nothing entered → disabled (previously the button was always enabled
+      // and a tap silently no-opped, a dead-end).
+      expect(submit().onPressed, isNull);
+
+      // Fill the 6 OTP digits.
+      for (var i = 0; i < 6; i++) {
+        await tester.enterText(find.byKey(Key('reset_otp_digit_$i')), '1');
+      }
+      await tester.pump();
+
+      // Valid, matching password → enabled.
+      await tester.enterText(
+        find.byKey(const Key('reset_new_password_input')),
+        'Password1',
+      );
+      await tester.enterText(
+        find.byKey(const Key('reset_confirm_password_input')),
+        'Password1',
+      );
+      await tester.pump();
+      expect(submit().onPressed, isNotNull);
+
+      // Mismatched confirm → disabled again and a warning is shown.
+      await tester.enterText(
+        find.byKey(const Key('reset_confirm_password_input')),
+        'Password2',
+      );
+      await tester.pump();
+      expect(submit().onPressed, isNull);
     });
   });
 

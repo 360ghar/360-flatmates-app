@@ -10,9 +10,13 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/password_policy.dart';
 
-final _obscurePasswordProvider = StateProvider<bool>((ref) => true);
-final _localErrorProvider = StateProvider<String?>((ref) => null);
-final _buildTriggerProvider = StateProvider<int>((ref) => 0);
+final _obscurePasswordProvider = StateProvider.autoDispose<bool>((ref) => true);
+final _localErrorProvider = StateProvider.autoDispose<String?>((ref) => null);
+
+/// Mirrors the password field text so the live rules checklist and the
+/// submit-button enabled state rebuild on each keystroke without a `setState`
+/// in this ConsumerStatefulWidget.
+final _passwordTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Mandatory (non-skippable) set-password step shown after an email/phone OTP
 /// verify when the account has no password yet (requirement 6). The router
@@ -60,7 +64,7 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
-    ref.watch(_buildTriggerProvider);
+    final passwordText = ref.watch(_passwordTextProvider);
     final isBusy = auth.status == AuthStatus.submitting;
     // The phone/email this password is being set for (masked for display).
     final identifier = auth.identifier ?? auth.phone;
@@ -104,8 +108,9 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                       controller: _passwordController,
                       obscureText: ref.watch(_obscurePasswordProvider),
                       autofillHints: const [AutofillHints.newPassword],
-                      onChanged: (_) =>
-                          ref.read(_buildTriggerProvider.notifier).state++,
+                      onChanged: (value) =>
+                          ref.read(_passwordTextProvider.notifier).state =
+                              value,
                       decoration: InputDecoration(
                         labelText: locale.passwordLabel,
                         suffixIcon: IconButton(
@@ -120,12 +125,12 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                             );
                             notifier.state = !notifier.state;
                           },
-                          tooltip: 'Toggle password visibility',
+                          tooltip: locale.togglePasswordVisibility,
                         ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    PasswordRulesChecklist(password: _passwordController.text),
+                    PasswordRulesChecklist(password: passwordText),
                     const SizedBox(height: AppSpacing.lg),
                     TextField(
                       key: const Key('set_password_confirm_input'),
@@ -160,8 +165,7 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                 key: const Key('set_password_submit_button'),
                 label: locale.commonSave,
                 fullWidth: true,
-                onPressed:
-                    isBusy || !PasswordPolicy.isValid(_passwordController.text)
+                onPressed: isBusy || !PasswordPolicy.isValid(passwordText)
                     ? null
                     : _submit,
               ),

@@ -9,6 +9,8 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
+final _obscurePasswordProvider = StateProvider.autoDispose<bool>((ref) => true);
+
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({this.phone, this.email, super.key});
 
@@ -25,7 +27,6 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   late final TextEditingController _identifierController;
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
 
   bool get _isEmail => widget.email != null && widget.email!.trim().isNotEmpty;
 
@@ -108,7 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   TextField(
                     key: const Key('login_password_input'),
                     controller: _passwordController,
-                    obscureText: _obscurePassword,
+                    obscureText: ref.watch(_obscurePasswordProvider),
                     autofillHints: const [AutofillHints.password],
                     onSubmitted: (_) =>
                         auth.status == AuthStatus.submitting ? null : _submit(),
@@ -116,14 +117,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       labelText: locale.passwordLabel,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword
+                          ref.watch(_obscurePasswordProvider)
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
                         ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                        tooltip: 'Toggle password visibility',
+                        onPressed: () {
+                          final notifier = ref.read(
+                            _obscurePasswordProvider.notifier,
+                          );
+                          notifier.state = !notifier.state;
+                        },
+                        tooltip: locale.togglePasswordVisibility,
                       ),
                     ),
                   ),

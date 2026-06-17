@@ -13,9 +13,20 @@ import '../../shared/presentation/components.dart';
 import 'widgets/password_policy.dart';
 import 'widgets/resend_countdown.dart';
 
-final _obscurePasswordProvider = StateProvider<bool>((ref) => true);
-final _obscureConfirmProvider = StateProvider<bool>((ref) => true);
-final _isListeningProvider = StateProvider<bool>((ref) => false);
+final _obscurePasswordProvider = StateProvider.autoDispose<bool>((ref) => true);
+final _obscureConfirmProvider = StateProvider.autoDispose<bool>((ref) => true);
+final _isListeningProvider = StateProvider.autoDispose<bool>((ref) => false);
+
+/// Mirror the password / confirm field text so the rules checklist, the
+/// "passwords don't match" warning, and the submit-button enabled state all
+/// rebuild on each keystroke without a `setState` in this
+/// ConsumerStatefulWidget.
+final _passwordTextProvider = StateProvider.autoDispose<String>((ref) => '');
+final _confirmTextProvider = StateProvider.autoDispose<String>((ref) => '');
+
+/// True once all 6 OTP digits are entered (driven by the OTP input's
+/// onCompleted), so the submit button reflects OTP readiness too.
+final _otpCompleteProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
   const ResetPasswordPage({super.key});
@@ -72,6 +83,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
       // Fill the OTP boxes but do NOT auto-submit. The sms_autofill package
       // can fire with a stale/cached code from a previous SMS detection.
       _otpKey.currentState?.silentFillOtp(code!);
+      // silentFillOtp deliberately skips onCompleted; mark complete here so
+      // the (manually triggered) submit button enables after autofill.
+      if (mounted) ref.read(_otpCompleteProvider.notifier).state = true;
     }
   }
 
@@ -140,6 +154,15 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     final isVerifying = resetState.step == PasswordResetStep.verifying;
     final identifier = _watchedIdentifier(ref);
     final isListening = ref.watch(_isListeningProvider);
+    final passwordText = ref.watch(_passwordTextProvider);
+    final confirmText = ref.watch(_confirmTextProvider);
+    final passwordsMatch = passwordText == confirmText;
+    final otpComplete = ref.watch(_otpCompleteProvider);
+    final canSubmit =
+        otpComplete &&
+        PasswordPolicy.isValid(passwordText) &&
+        passwordsMatch &&
+        !isVerifying;
 
     return FlatmatesScreen(
       appBar: AppBar(),
@@ -175,7 +198,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
             FlatmatesOtpInput(
               key: _otpKey,
               keyPrefix: 'reset_otp',
-              onCompleted: (_) {},
+              onCompleted: (_) =>
+                  ref.read(_otpCompleteProvider.notifier).state = true,
             ),
             const SizedBox(height: AppSpacing.screen),
 
@@ -188,6 +212,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                     controller: _passwordController,
                     obscureText: ref.watch(_obscurePasswordProvider),
                     autofillHints: const [AutofillHints.newPassword],
+                    onChanged: (value) =>
+                        ref.read(_passwordTextProvider.notifier).state = value,
                     decoration: InputDecoration(
                       labelText: locale.newPasswordLabel,
                       suffixIcon: IconButton(
@@ -202,16 +228,22 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                           );
                           notifier.state = !notifier.state;
                         },
-                        tooltip: 'Toggle password visibility',
+                        tooltip: locale.togglePasswordVisibility,
                       ),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  // Live policy checklist so the user understands why the
+                  // submit button stays disabled (parity with set-password).
+                  PasswordRulesChecklist(password: passwordText),
                   const SizedBox(height: AppSpacing.lg),
                   TextField(
                     key: const Key('reset_confirm_password_input'),
                     controller: _confirmPasswordController,
                     obscureText: ref.watch(_obscureConfirmProvider),
                     autofillHints: const [AutofillHints.newPassword],
+                    onChanged: (value) =>
+                        ref.read(_confirmTextProvider.notifier).state = value,
                     decoration: InputDecoration(
                       labelText: locale.confirmPasswordLabel,
                       suffixIcon: IconButton(
@@ -226,14 +258,13 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                           );
                           notifier.state = !notifier.state;
                         },
-                        tooltip: 'Toggle password visibility',
+                        tooltip: locale.togglePasswordVisibility,
                       ),
                     ),
                   ),
-                  if (_passwordController.text.isNotEmpty &&
-                      _confirmPasswordController.text.isNotEmpty &&
-                      _passwordController.text !=
-                          _confirmPasswordController.text) ...[
+                  if (passwordText.isNotEmpty &&
+                      confirmText.isNotEmpty &&
+                      !passwordsMatch) ...[
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       locale.passwordsDoNotMatch,
@@ -278,7 +309,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
               key: const Key('reset_password_submit'),
               label: locale.updatePasswordCta,
               fullWidth: true,
-              onPressed: isVerifying ? null : _submit,
+              // Gate on a valid + matching password so the button reflects
+              // why a tap would no-op, instead of silently doing nothing.
+              onPressed: canSubmit ? _submit : null,
             ),
           ],
         ),
