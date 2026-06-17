@@ -6205,6 +6205,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
+
+  /// No description provided for @visitRescheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'New time suggested'**
+  String get visitRescheduled;
+
+  /// No description provided for @visitTimeInPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pick a time in the future.'**
+  String get visitTimeInPast;
+
+  /// No description provided for @visitStatusPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Past'**
+  String get visitStatusPast;
+
+  /// No description provided for @visitScheduleNoConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load this conversation. Please try again from chat.'**
+  String get visitScheduleNoConversation;
 }
 
 class _AppLocalizationsDelegate

@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_async_view.dart';
-import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import 'application/visits_actions_controller.dart';
 import 'visits_repository.dart';
+import 'widgets/visit_card.dart';
+
+/// Visit ids that currently have an action (confirm/cancel/reschedule)
+/// in flight. Used to disable the card's action chips and prevent
+/// double-submission of the same mutation.
+final _pendingVisitActionsProvider = StateProvider<Set<int>>((ref) => const {});
 
 class VisitsPage extends ConsumerStatefulWidget {
   const VisitsPage({super.key});
@@ -28,6 +33,7 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
   @override
   Widget build(BuildContext context) {
     final visits = ref.watch(visitsProvider);
+    final pending = ref.watch(_pendingVisitActionsProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -43,15 +49,18 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
         ),
         onRetry: () => ref.invalidate(visitsProvider),
         data: (items) {
-          // Organize into timeline sections
+          // Organize into timeline sections. Every status must land in
+          // exactly one bucket so no visit silently disappears from the list.
           final upcoming = items
               .where((v) => v.status == 'scheduled' || v.status == 'confirmed')
               .toList();
           final requested = items
               .where((v) => v.status == 'requested')
               .toList();
-          final completed = items
-              .where((v) => v.status == 'completed')
+          const upcomingOrRequested = {'scheduled', 'confirmed', 'requested'};
+          // Cancelled / completed / unknown statuses -> a single "Past" bucket.
+          final past = items
+              .where((v) => !upcomingOrRequested.contains(v.status))
               .toList();
 
           return RefreshIndicator(
@@ -75,10 +84,11 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                   ...upcoming.map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: _VisitCard(
+                      child: VisitCard(
                         item: item,
                         locale: locale,
                         theme: theme,
+                        busy: pending.contains(item.id),
                         badgeVariant: FlatmatesTrustBadgeVariant.verified,
                         onConfirm: () => _confirmVisit(item),
                         onCancel: () => _cancelVisit(item),
@@ -93,10 +103,11 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                   ...requested.map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: _VisitCard(
+                      child: VisitCard(
                         item: item,
                         locale: locale,
                         theme: theme,
+                        busy: pending.contains(item.id),
                         badgeVariant: FlatmatesTrustBadgeVariant.reviewed,
                         onConfirm: () => _confirmVisit(item),
                         onCancel: () => _cancelVisit(item),
@@ -105,13 +116,13 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                     ),
                   ),
                 ],
-                if (completed.isNotEmpty) ...[
-                  _SectionHeader(title: locale.visitStatusCompleted),
+                if (past.isNotEmpty) ...[
+                  _SectionHeader(title: locale.visitStatusPast),
                   const SizedBox(height: AppSpacing.sm),
-                  ...completed.map(
+                  ...past.map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: _VisitCard(
+                      child: VisitCard(
                         item: item,
                         locale: locale,
                         theme: theme,
@@ -128,19 +139,38 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
     );
   }
 
+  /// Marks [id] as in-flight. Returns false if an action is already running
+  /// for this visit (double-submit guard).
+  bool _beginAction(int id) {
+    final pending = ref.read(_pendingVisitActionsProvider);
+    if (pending.contains(id)) return false;
+    ref.read(_pendingVisitActionsProvider.notifier).state = {...pending, id};
+    return true;
+  }
+
+  void _endAction(int id) {
+    if (!mounted) return;
+    final pending = ref.read(_pendingVisitActionsProvider);
+    ref.read(_pendingVisitActionsProvider.notifier).state = {...pending}
+      ..remove(id);
+  }
+
   Future<void> _confirmVisit(VisitItem item) async {
     final locale = AppLocalizations.of(context);
+    if (!_beginAction(item.id)) return;
     try {
-      await ref.read(visitsRepositoryProvider).confirmVisit(item.id);
-      ref.invalidate(visitsProvider);
+      await ref.read(visitsActionsControllerProvider).confirm(item);
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitConfirmed);
     } catch (e) {
+      debugPrint('VisitsPage._confirmVisit: $e');
       if (!mounted) return;
       final msg = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.visitActionFailed;
       FlatmatesToast.error(context, msg);
+    } finally {
+      _endAction(item.id);
     }
   }
 
@@ -164,48 +194,42 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    if (!_beginAction(item.id)) return;
 
     try {
-      await ref.read(visitsRepositoryProvider).cancelVisit(item.id);
-      ref.invalidate(visitsProvider);
+      await ref.read(visitsActionsControllerProvider).cancel(item);
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitCancelled);
     } catch (e) {
+      debugPrint('VisitsPage._cancelVisit: $e');
       if (!mounted) return;
       final msg = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.visitActionFailed;
       FlatmatesToast.error(context, msg);
+    } finally {
+      _endAction(item.id);
     }
   }
 
   Future<void> _rescheduleVisit(VisitItem item) async {
     final locale = AppLocalizations.of(context);
 
+    final now = DateTime.now();
+    final scheduledLocal = item.scheduledDate.toLocal();
     final date = await showDatePicker(
       context: context,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
-      initialDate: item.scheduledDate.isAfter(DateTime.now())
-          ? item.scheduledDate
-          : DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateUtils.dateOnly(now),
+      lastDate: now.add(const Duration(days: 90)),
+      initialDate: scheduledLocal.isAfter(now)
+          ? scheduledLocal
+          : now.add(const Duration(days: 1)),
     );
     if (date == null || !mounted) return;
 
-    final now = DateTime.now();
-    final scheduledTime = item.scheduledDate.toLocal();
-    final initialTime = TimeOfDay(
-      hour: scheduledTime.hour >= 0 && scheduledTime.hour < 24
-          ? scheduledTime.hour
-          : now.hour,
-      minute: scheduledTime.minute >= 0 && scheduledTime.minute < 60
-          ? scheduledTime.minute
-          : 0,
-    );
-
     final time = await showTimePicker(
       context: context,
-      initialTime: initialTime,
+      initialTime: TimeOfDay.fromDateTime(scheduledLocal),
     );
     if (time == null || !mounted) return;
 
@@ -217,19 +241,27 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
       time.minute,
     );
 
+    // Reject a time in the past (date picker allows "today", time picker
+    // allows any clock value, so the combination can land before now).
+    if (!newDate.isAfter(DateTime.now())) {
+      FlatmatesToast.error(context, locale.visitTimeInPast);
+      return;
+    }
+
+    if (!_beginAction(item.id)) return;
     try {
-      await ref
-          .read(visitsRepositoryProvider)
-          .rescheduleVisit(item.id, newDate);
-      ref.invalidate(visitsProvider);
+      await ref.read(visitsActionsControllerProvider).reschedule(item, newDate);
       if (!mounted) return;
-      FlatmatesToast.success(context, locale.visitRescheduleCta);
+      FlatmatesToast.success(context, locale.visitRescheduled);
     } catch (e) {
+      debugPrint('VisitsPage._rescheduleVisit: $e');
       if (!mounted) return;
       final msg = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.visitActionFailed;
       FlatmatesToast.error(context, msg);
+    } finally {
+      _endAction(item.id);
     }
   }
 }
@@ -247,219 +279,6 @@ class _SectionHeader extends StatelessWidget {
       style: theme.textTheme.titleSmall?.copyWith(
         fontWeight: FontWeight.w700,
         color: AppSemanticColors.textSecondaryFor(theme.brightness),
-      ),
-    );
-  }
-}
-
-class _VisitCard extends StatelessWidget {
-  const _VisitCard({
-    required this.item,
-    required this.locale,
-    required this.theme,
-    required this.badgeVariant,
-    this.onConfirm,
-    this.onCancel,
-    this.onReschedule,
-  });
-
-  final VisitItem item;
-  final AppLocalizations locale;
-  final ThemeData theme;
-  final FlatmatesTrustBadgeVariant badgeVariant;
-  final VoidCallback? onConfirm;
-  final VoidCallback? onCancel;
-  final VoidCallback? onReschedule;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasActions =
-        item.status == 'requested' ||
-        item.status == 'scheduled' ||
-        item.status == 'confirmed';
-
-    return FlatmatesCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm + 2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.event_available_outlined,
-                  color: AppSemanticColors.accent,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.propertyTitle,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      DateFormat(
-                        'd MMM, h:mm a',
-                        locale.localeName,
-                      ).format(item.scheduledDate.toLocal()),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: AppSemanticColors.textTertiaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              FlatmatesTrustBadge(
-                variant: badgeVariant,
-                label: localizedFlatmatesVisitStatusLabel(locale, item.status),
-                compact: true,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Icon(
-                item.visitContext == 'flatmate_meet'
-                    ? Icons.people_outline
-                    : Icons.meeting_room_outlined,
-                size: 12,
-                color: AppSemanticColors.textTertiaryFor(theme.brightness),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                item.visitContext == 'flatmate_meet'
-                    ? locale.flatmateMeetLabel
-                    : locale.propertyTourLabel,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Icon(
-                Icons.calendar_month_outlined,
-                size: 12,
-                color: AppSemanticColors.textTertiaryFor(theme.brightness),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                DateFormat(
-                  'EEEE',
-                  locale.localeName,
-                ).format(item.scheduledDate.toLocal()),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
-                ),
-              ),
-            ],
-          ),
-          if (hasActions) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Row(children: _buildActions(context)),
-          ],
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildActions(BuildContext context) {
-    if (item.status == 'requested') {
-      return [
-        _CompactActionChip(
-          label: locale.visitConfirmTitle,
-          onTap: onConfirm,
-          filled: true,
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        _CompactActionChip(
-          label: locale.visitCancelCta,
-          onTap: onCancel,
-          destructive: true,
-        ),
-      ];
-    }
-    // scheduled / confirmed
-    return [
-      _CompactActionChip(label: locale.visitRescheduleCta, onTap: onReschedule),
-      const SizedBox(width: AppSpacing.xs),
-      _CompactActionChip(
-        label: locale.visitCancelCta,
-        onTap: onCancel,
-        destructive: true,
-      ),
-    ];
-  }
-}
-
-/// Tiny action chip for visit cards — avoids FlatmatesButton's 40dp minimum.
-class _CompactActionChip extends StatelessWidget {
-  const _CompactActionChip({
-    required this.label,
-    this.onTap,
-    this.filled = false,
-    this.destructive = false,
-  });
-
-  final String label;
-  final VoidCallback? onTap;
-  final bool filled;
-  final bool destructive;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = destructive
-        ? AppSemanticColors.error
-        : AppSemanticColors.accent;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: 30,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: filled ? accent : null,
-            border: filled
-                ? null
-                : Border.all(color: accent.withValues(alpha: 0.5)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: filled ? Colors.white : accent,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
       ),
     );
   }

@@ -1528,5 +1528,9 @@
   },
   "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें",
   "lifestyleSectionTitle": "जीवनशैली",
-  "dealBreakersSectionTitle": "डील-ब्रेकर्स"
+  "dealBreakersSectionTitle": "डील-ब्रेकर्स",
+  "visitRescheduled": "नया समय सुझाया गया",
+  "visitTimeInPast": "कृपया भविष्य का कोई समय चुनें।",
+  "visitStatusPast": "बीते हुए",
+  "visitScheduleNoConversation": "हम यह बातचीत लोड नहीं कर सके। कृपया चैट से दोबारा प्रयास करें।"
 }

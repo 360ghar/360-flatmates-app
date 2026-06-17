@@ -1552,5 +1552,9 @@
   },
   "meetPotentialFlatmates": "Meet potential flatmates",
   "lifestyleSectionTitle": "Lifestyle",
-  "dealBreakersSectionTitle": "Deal-breakers"
+  "dealBreakersSectionTitle": "Deal-breakers",
+  "visitRescheduled": "New time suggested",
+  "visitTimeInPast": "Please pick a time in the future.",
+  "visitStatusPast": "Past",
+  "visitScheduleNoConversation": "We couldn't load this conversation. Please try again from chat."
 }

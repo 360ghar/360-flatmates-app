@@ -3308,4 +3308,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'Deal-breakers';
+
+  @override
+  String get visitRescheduled => 'New time suggested';
+
+  @override
+  String get visitTimeInPast => 'Please pick a time in the future.';
+
+  @override
+  String get visitStatusPast => 'Past';
+
+  @override
+  String get visitScheduleNoConversation =>
+      'We couldn\'t load this conversation. Please try again from chat.';
 }

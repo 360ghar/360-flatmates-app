@@ -37,6 +37,23 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   final _noteController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // The slot/date/conversation/submitting providers are file-level globals,
+    // so they retain values from a previous scheduling session. Reset them on
+    // entry so a fresh visit doesn't inherit a stale date, slot, or peer.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(_selectedDateProvider.notifier).state = DateTime.now().add(
+        const Duration(days: 1),
+      );
+      ref.read(_selectedSlotProvider.notifier).state = 'afternoon';
+      ref.read(_submittingVisitProvider.notifier).state = false;
+      ref.read(_conversationProvider.notifier).state = widget.conversation;
+    });
+  }
+
+  @override
   void dispose() {
     _noteController.dispose();
     super.dispose();
@@ -60,10 +77,13 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   }
 
   Future<void> _submit() async {
+    final locale = AppLocalizations.of(context);
     final conversation = widget.conversation ?? ref.read(_conversationProvider);
     final property = conversation?.contextProperty;
-    if (conversation == null || property == null) return;
-    final locale = AppLocalizations.of(context);
+    if (conversation == null || property == null) {
+      FlatmatesToast.error(context, locale.visitScheduleNoConversation);
+      return;
+    }
 
     ref.read(_submittingVisitProvider.notifier).state = true;
     bool visitCreated = false;
@@ -144,7 +164,15 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                 ),
               )
             : property == null || conversation == null
-            ? Center(child: Text(locale.homeNoResults))
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Text(
+                    locale.visitScheduleNoConversation,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
             : ListView(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.xl,
@@ -223,12 +251,26 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   FlatmatesCard(
-                    child: CalendarDatePicker(
-                      initialDate: ref.read(_selectedDateProvider),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 90)),
-                      onDateChanged: (date) =>
-                          ref.read(_selectedDateProvider.notifier).state = date,
+                    child: Builder(
+                      builder: (context) {
+                        final firstDate = DateUtils.dateOnly(DateTime.now());
+                        final lastDate = firstDate.add(
+                          const Duration(days: 90),
+                        );
+                        // Clamp the stored date into [firstDate, lastDate];
+                        // CalendarDatePicker asserts initialDate is in range.
+                        var initial = ref.read(_selectedDateProvider);
+                        if (initial.isBefore(firstDate)) initial = firstDate;
+                        if (initial.isAfter(lastDate)) initial = lastDate;
+                        return CalendarDatePicker(
+                          initialDate: initial,
+                          firstDate: firstDate,
+                          lastDate: lastDate,
+                          onDateChanged: (date) =>
+                              ref.read(_selectedDateProvider.notifier).state =
+                                  date,
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
