@@ -1528,5 +1528,50 @@
   },
   "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें",
   "lifestyleSectionTitle": "जीवनशैली",
-  "dealBreakersSectionTitle": "डील-ब्रेकर्स"
+  "dealBreakersSectionTitle": "डील-ब्रेकर्स",
+  "listingUpdatedToast": "लिस्टिंग सफलतापूर्वक अपडेट हो गई।",
+  "discardListingTitle": "बदलाव छोड़ें?",
+  "discardListingMessage": "आपके पास असहेजे गए बदलाव हैं। यदि आप अभी बाहर निकलते हैं, तो वे खो जाएंगे।",
+  "keepEditingCta": "संपादन जारी रखें",
+  "discardCta": "छोड़ें",
+  "couldNotLoadReviewStatus": "समीक्षा स्थिति लोड नहीं हो सकी",
+  "removeVideoTourTooltip": "वीडियो टूर हटाएं",
+  "bedsCount": "{count} बेड",
+  "@bedsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bathsCount": "{count} बाथ",
+  "@bathsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sqftLabel": "{count} वर्ग फुट",
+  "@sqftLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareListingText": "360 फ्लैटमेट्स पर इस फ्लैट को देखें: {title} ₹{rent}/माह {location} में",
+  "@shareListingText": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "rent": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }

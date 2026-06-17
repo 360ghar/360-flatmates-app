@@ -97,10 +97,104 @@ void main() {
         'listing_preferences': {'moderation_status': 'live'},
       });
     });
+
+    test('createListing POSTs to /properties and parses returned id', () async {
+      final adapter = _CapturingAdapter(responseBody: '{"id": 99}');
+      final apiClient = ApiClient(
+        baseUrl: 'https://api.test.example.com',
+        tokenProvider: FakeAuthTokenProvider(),
+      );
+      apiClient.dio.httpClientAdapter = adapter;
+      final container = ProviderContainer(
+        overrides: [apiClientProvider.overrideWithValue(apiClient)],
+      );
+      addTearDown(container.dispose);
+
+      final id = await container
+          .read(listingsRepositoryProvider)
+          .createListing(_sampleRequest());
+
+      expect(adapter.lastRequest?.path, FlatmatesEndpoints.properties);
+      expect(adapter.lastRequest?.method, 'POST');
+      expect(id, 99);
+    });
+
+    test(
+      'updateListing PUTs to /properties/{id} so edits never duplicate',
+      () async {
+        final adapter = _CapturingAdapter(responseBody: '{"id": 42}');
+        final apiClient = ApiClient(
+          baseUrl: 'https://api.test.example.com',
+          tokenProvider: FakeAuthTokenProvider(),
+        );
+        apiClient.dio.httpClientAdapter = adapter;
+        final container = ProviderContainer(
+          overrides: [apiClientProvider.overrideWithValue(apiClient)],
+        );
+        addTearDown(container.dispose);
+
+        final id = await container
+            .read(listingsRepositoryProvider)
+            .updateListing(42, _sampleRequest());
+
+        expect(adapter.lastRequest?.path, FlatmatesEndpoints.property(42));
+        expect(adapter.lastRequest?.method, 'PUT');
+        expect(id, 42);
+      },
+    );
+
+    test(
+      'updateListing falls back to the given id when body omits it',
+      () async {
+        final adapter = _CapturingAdapter();
+        final apiClient = ApiClient(
+          baseUrl: 'https://api.test.example.com',
+          tokenProvider: FakeAuthTokenProvider(),
+        );
+        apiClient.dio.httpClientAdapter = adapter;
+        final container = ProviderContainer(
+          overrides: [apiClientProvider.overrideWithValue(apiClient)],
+        );
+        addTearDown(container.dispose);
+
+        final id = await container
+            .read(listingsRepositoryProvider)
+            .updateListing(7, _sampleRequest());
+
+        expect(id, 7);
+      },
+    );
   });
 }
 
+ListingCreateRequest _sampleRequest() => ListingCreateRequest(
+  title: '2BHK in Lakeside',
+  description: 'Quiet home',
+  city: 'Bangalore',
+  locality: 'Koramangala',
+  subLocality: 'Lakeside',
+  monthlyRent: 24000,
+  securityDeposit: 48000,
+  maintenanceCharges: 2500,
+  areaSqft: null,
+  bedrooms: 2,
+  bathrooms: 1,
+  features: const ['wifi'],
+  tags: const ['quiet'],
+  mainImageUrl: 'https://example.com/room.jpg',
+  imageUrls: const ['https://example.com/room.jpg'],
+  availableFrom: DateTime.utc(2026, 5, 12),
+  genderPreference: 'any',
+  sharingType: 'private_room',
+  societyType: 'gated',
+  societyAmenities: const ['parking'],
+  societyVibeTags: const ['quiet'],
+);
+
 class _CapturingAdapter implements HttpClientAdapter {
+  _CapturingAdapter({this.responseBody = '{}'});
+
+  final String responseBody;
   RequestOptions? lastRequest;
 
   @override
@@ -114,7 +208,7 @@ class _CapturingAdapter implements HttpClientAdapter {
   ) async {
     lastRequest = options;
     return ResponseBody.fromString(
-      '{}',
+      responseBody,
       200,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],

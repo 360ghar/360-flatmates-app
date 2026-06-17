@@ -115,19 +115,19 @@ class ManageListingCard extends StatelessWidget {
                     if (listing.bedrooms != null)
                       FlatmatesChip(
                         icon: Icons.bed_outlined,
-                        label: '${listing.bedrooms} Beds',
+                        label: locale.bedsCount(listing.bedrooms!),
                         variant: FlatmatesChipVariant.info,
                       ),
                     if (listing.bathrooms != null)
                       FlatmatesChip(
                         icon: Icons.bathtub_outlined,
-                        label: '${listing.bathrooms} Baths',
+                        label: locale.bathsCount(listing.bathrooms!),
                         variant: FlatmatesChipVariant.info,
                       ),
                     if (listing.areaSqft != null)
                       FlatmatesChip(
                         icon: Icons.square_foot_outlined,
-                        label: '${listing.areaSqft} sqft',
+                        label: locale.sqftLabel(listing.areaSqft!.round()),
                         variant: FlatmatesChipVariant.info,
                       ),
                   ],

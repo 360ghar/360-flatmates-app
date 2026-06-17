@@ -6205,6 +6205,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
+
+  /// No description provided for @listingUpdatedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing updated successfully.'**
+  String get listingUpdatedToast;
+
+  /// No description provided for @discardListingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get discardListingTitle;
+
+  /// No description provided for @discardListingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. If you leave now, they will be lost.'**
+  String get discardListingMessage;
+
+  /// No description provided for @keepEditingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get keepEditingCta;
+
+  /// No description provided for @discardCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discardCta;
+
+  /// No description provided for @couldNotLoadReviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load review status'**
+  String get couldNotLoadReviewStatus;
+
+  /// No description provided for @removeVideoTourTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove video tour'**
+  String get removeVideoTourTooltip;
+
+  /// No description provided for @bedsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Beds'**
+  String bedsCount(int count);
+
+  /// No description provided for @bathsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Baths'**
+  String bathsCount(int count);
+
+  /// No description provided for @sqftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sqft'**
+  String sqftLabel(int count);
+
+  /// No description provided for @shareListingText.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out this flat on 360 FlatMates: {title} at ₹{rent}/mo in {location}'**
+  String shareListingText(String title, String rent, String location);
 }
 
 class _AppLocalizationsDelegate

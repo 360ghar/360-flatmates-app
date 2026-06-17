@@ -1552,5 +1552,50 @@
   },
   "meetPotentialFlatmates": "Meet potential flatmates",
   "lifestyleSectionTitle": "Lifestyle",
-  "dealBreakersSectionTitle": "Deal-breakers"
+  "dealBreakersSectionTitle": "Deal-breakers",
+  "listingUpdatedToast": "Listing updated successfully.",
+  "discardListingTitle": "Discard changes?",
+  "discardListingMessage": "You have unsaved changes. If you leave now, they will be lost.",
+  "keepEditingCta": "Keep editing",
+  "discardCta": "Discard",
+  "couldNotLoadReviewStatus": "Could not load review status",
+  "removeVideoTourTooltip": "Remove video tour",
+  "bedsCount": "{count} Beds",
+  "@bedsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bathsCount": "{count} Baths",
+  "@bathsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sqftLabel": "{count} sqft",
+  "@sqftLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareListingText": "Check out this flat on 360 FlatMates: {title} at ₹{rent}/mo in {location}",
+  "@shareListingText": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "rent": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -3308,4 +3308,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'Deal-breakers';
+
+  @override
+  String get listingUpdatedToast => 'Listing updated successfully.';
+
+  @override
+  String get discardListingTitle => 'Discard changes?';
+
+  @override
+  String get discardListingMessage =>
+      'You have unsaved changes. If you leave now, they will be lost.';
+
+  @override
+  String get keepEditingCta => 'Keep editing';
+
+  @override
+  String get discardCta => 'Discard';
+
+  @override
+  String get couldNotLoadReviewStatus => 'Could not load review status';
+
+  @override
+  String get removeVideoTourTooltip => 'Remove video tour';
+
+  @override
+  String bedsCount(int count) {
+    return '$count Beds';
+  }
+
+  @override
+  String bathsCount(int count) {
+    return '$count Baths';
+  }
+
+  @override
+  String sqftLabel(int count) {
+    return '$count sqft';
+  }
+
+  @override
+  String shareListingText(String title, String rent, String location) {
+    return 'Check out this flat on 360 FlatMates: $title at ₹$rent/mo in $location';
+  }
 }
