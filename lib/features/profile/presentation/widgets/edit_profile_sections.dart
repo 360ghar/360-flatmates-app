@@ -81,74 +81,80 @@ class EditProfilePhotoSection extends StatelessWidget {
           Text(locale.profilePhotoTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.lg),
           Center(
-            child: GestureDetector(
-              onTap: photoUploading ? null : onPickAndUploadPhoto,
-              child: Stack(
-                children: [
-                  AnimatedScale(
-                    scale: photoUploading ? 0.95 : 1.0,
-                    duration: AppMotion.fast,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            AppSemanticColors.accent,
-                            AppSemanticColors.orangeMid,
-                          ],
-                        ),
-                      ),
-                      child: photoUrls.isNotEmpty
-                          ? ClipOval(
-                              child: FlatmatesNetworkImage(
-                                imageUrl: photoUrls.first,
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.person,
-                              size: 48,
-                              color: Colors.white,
-                            ),
-                    ),
-                  ),
-                  if (photoUploading)
-                    Positioned.fill(
+            child: Semantics(
+              button: true,
+              label: photoUploading
+                  ? locale.profilePhotoUploading
+                  : locale.profileChangePhotoSemantic,
+              child: GestureDetector(
+                onTap: photoUploading ? null : onPickAndUploadPhoto,
+                child: Stack(
+                  children: [
+                    AnimatedScale(
+                      scale: photoUploading ? 0.95 : 1.0,
+                      duration: AppMotion.fast,
                       child: Container(
+                        width: 120,
+                        height: 120,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.black26,
+                          gradient: LinearGradient(
+                            colors: [
+                              AppSemanticColors.accent,
+                              AppSemanticColors.orangeMid,
+                            ],
+                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        child: photoUrls.isNotEmpty
+                            ? ClipOval(
+                                child: FlatmatesNetworkImage(
+                                  imageUrl: photoUrls.first,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.person,
+                                size: 48,
+                                color: Colors.white,
+                              ),
+                      ),
+                    ),
+                    if (photoUploading)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black26,
+                          ),
+                          alignment: Alignment.center,
+                          child: const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: AppSemanticColors.accent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          size: 18,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: AppSemanticColors.accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

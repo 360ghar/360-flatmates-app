@@ -50,11 +50,17 @@ class ProfilePage extends ConsumerWidget {
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      FlatmatesAvatar(
-                        name: profile.fullName,
-                        imageUrl: profile.profileImageUrl,
-                        size: 80,
-                        showRing: true,
+                      Semantics(
+                        image: true,
+                        label: locale.profilePhotoSemantic(
+                          profile.fullName ?? locale.profileFallbackName,
+                        ),
+                        child: FlatmatesAvatar(
+                          name: profile.fullName,
+                          imageUrl: profile.profileImageUrl,
+                          size: 80,
+                          showRing: true,
+                        ),
                       ),
                       Positioned(
                         right: -_kAvatarOffset,
@@ -73,18 +79,25 @@ class ProfilePage extends ConsumerWidget {
                             color: AppSemanticColors.accent,
                             shape: const CircleBorder(),
                             elevation: 3,
-                            child: InkWell(
-                              key: const Key('profile_edit_button'),
-                              onTap: () => context.push('/profile/edit'),
-                              customBorder: const CircleBorder(),
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.edit,
-                                  size: 14,
-                                  color: Colors.white,
+                            child: Tooltip(
+                              message: locale.editProfileCta,
+                              child: Semantics(
+                                button: true,
+                                label: locale.editProfileCta,
+                                child: InkWell(
+                                  key: const Key('profile_edit_button'),
+                                  onTap: () => context.push('/profile/edit'),
+                                  customBorder: const CircleBorder(),
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.edit,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -257,7 +270,7 @@ class ProfilePage extends ConsumerWidget {
         },
         loading: () => const FlatmatesSkeleton.profile(),
         error: (error, _) =>
-            const FlatmatesErrorState(message: 'Could not load profile'),
+            FlatmatesErrorState(message: locale.couldNotLoadProfile),
       ),
     );
   }
@@ -334,32 +347,38 @@ class _ProfileStrengthCard extends StatelessWidget {
       backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.06),
       child: Row(
         children: [
-          SizedBox(
-            width: 44,
-            height: 44,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CircularProgressIndicator(
-                  value: percent / 100,
-                  strokeWidth: 3.5,
-                  backgroundColor: AppSemanticColors.line.withValues(
-                    alpha: 0.25,
-                  ),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppSemanticColors.accent,
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    '$percent',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppSemanticColors.accent,
+          Semantics(
+            label: locale.profileStrengthTitle(percent),
+            value: '$percent%',
+            child: ExcludeSemantics(
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: percent / 100,
+                      strokeWidth: 3.5,
+                      backgroundColor: AppSemanticColors.line.withValues(
+                        alpha: 0.25,
+                      ),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppSemanticColors.accent,
+                      ),
                     ),
-                  ),
+                    Center(
+                      child: Text(
+                        '$percent',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppSemanticColors.accent,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.md),

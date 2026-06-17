@@ -3308,4 +3308,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'Deal-breakers';
+
+  @override
+  String get couldNotLoadProfile => 'Could not load profile';
+
+  @override
+  String get profilePhotoUploadFailed =>
+      'Could not upload photo. Please try again.';
+
+  @override
+  String get profileSaving => 'Saving...';
+
+  @override
+  String profilePhotoSemantic(String name) {
+    return 'Profile photo of $name';
+  }
+
+  @override
+  String get profileChangePhotoSemantic => 'Change profile photo';
+
+  @override
+  String get profilePhotoUploading => 'Uploading profile photo';
+
+  @override
+  String get unsavedChangesTitle => 'Discard changes?';
+
+  @override
+  String get unsavedChangesMessage =>
+      'You have unsaved changes. If you leave now, they will be lost.';
+
+  @override
+  String get keepEditing => 'Keep editing';
+
+  @override
+  String get discardChanges => 'Discard';
 }

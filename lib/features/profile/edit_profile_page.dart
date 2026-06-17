@@ -1,16 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../core/errors/app_failure.dart';
+import '../../core/errors/app_failure.dart' hide UploadFailure;
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/storage/image_upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
-import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
+import 'presentation/widgets/edit_profile_options.dart';
 import 'presentation/widgets/edit_profile_sections.dart';
 import 'profile_repository.dart';
+
+// Local UI state via StateProviders (convention: no setState in ConsumerState).
+final _modeProvider = StateProvider<String>((ref) => 'open_to_both');
+final _workStyleProvider = StateProvider<String>((ref) => 'hybrid');
+final _moveInTimelineProvider = StateProvider<String>((ref) => 'flexible');
+final _sleepScheduleProvider = StateProvider<String?>((ref) => null);
+final _cleanlinessProvider = StateProvider<String?>((ref) => null);
+final _foodHabitsProvider = StateProvider<String?>((ref) => null);
+final _smokingDrinkingProvider = StateProvider<String?>((ref) => null);
+final _guestsPolicyProvider = StateProvider<String?>((ref) => null);
+final _nonNegotiablesProvider = StateProvider<List<String>>((ref) => const []);
+final _photoUrlsProvider = StateProvider<List<String>>((ref) => const []);
+final _savingProvider = StateProvider<bool>((ref) => false);
+final _photoUploadingProvider = StateProvider<bool>((ref) => false);
+final _dirtyProvider = StateProvider<bool>((ref) => false);
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -31,21 +47,42 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  String _mode = 'open_to_both';
-  String _workStyle = 'hybrid';
-  String _moveInTimeline = 'flexible';
-  String? _sleepSchedule;
-  String? _cleanliness;
-  String? _foodHabits;
-  String? _smokingDrinking;
-  String? _guestsPolicy;
-  List<String> _nonNegotiables = [];
-  List<String> _photoUrls = [];
   bool _initialized = false;
-  bool _saving = false;
-  bool _photoUploading = false;
   bool _hasEmail = false;
   bool _hasPhone = false;
+
+  void _markDirty() {
+    if (!ref.read(_dirtyProvider)) {
+      ref.read(_dirtyProvider.notifier).state = true;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Reset transient local state for a fresh edit session. Done post-frame so
+    // we never mutate providers during the initial build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(_savingProvider.notifier).state = false;
+      ref.read(_photoUploadingProvider.notifier).state = false;
+      ref.read(_dirtyProvider.notifier).state = false;
+    });
+    for (final controller in [
+      _nameController,
+      _ageController,
+      _professionController,
+      _cityController,
+      _localityController,
+      _budgetMinController,
+      _budgetMaxController,
+      _bioController,
+      _emailController,
+      _phoneController,
+    ]) {
+      controller.addListener(_markDirty);
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -65,382 +102,328 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       _phoneController.text = profile.phone ?? '';
       _hasEmail = profile.email?.isNotEmpty == true;
       _hasPhone = profile.phone?.isNotEmpty == true;
-      _mode = profile.mode ?? _mode;
-      _workStyle = profile.workStyle ?? _workStyle;
-      _moveInTimeline = profile.moveInTimeline ?? _moveInTimeline;
-      _sleepSchedule = profile.sleepSchedule;
-      _cleanliness = profile.cleanliness;
-      _foodHabits = profile.foodHabits;
-      _smokingDrinking = profile.smokingDrinking;
-      _guestsPolicy = profile.guestsPolicy;
-      if (profile.profileImageUrl != null) {
-        _photoUrls = [profile.profileImageUrl!];
-      }
+      // Seed providers post-frame to avoid mutating during build.
+      final mode = profile.mode;
+      final workStyle = profile.workStyle;
+      final timeline = profile.moveInTimeline;
       final prefs = profile.preferences;
-      if (prefs['non_negotiables'] is List) {
-        _nonNegotiables = List<String>.from(prefs['non_negotiables']);
-      }
+      final nonNeg = prefs['non_negotiables'] is List
+          ? List<String>.from(prefs['non_negotiables'] as List)
+          : const <String>[];
+      final photos = profile.profileImageUrl != null
+          ? [profile.profileImageUrl!]
+          : const <String>[];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (mode != null) ref.read(_modeProvider.notifier).state = mode;
+        if (workStyle != null) {
+          ref.read(_workStyleProvider.notifier).state = workStyle;
+        }
+        if (timeline != null) {
+          ref.read(_moveInTimelineProvider.notifier).state = timeline;
+        }
+        ref.read(_sleepScheduleProvider.notifier).state = profile.sleepSchedule;
+        ref.read(_cleanlinessProvider.notifier).state = profile.cleanliness;
+        ref.read(_foodHabitsProvider.notifier).state = profile.foodHabits;
+        ref.read(_smokingDrinkingProvider.notifier).state =
+            profile.smokingDrinking;
+        ref.read(_guestsPolicyProvider.notifier).state = profile.guestsPolicy;
+        ref.read(_nonNegotiablesProvider.notifier).state = nonNeg;
+        ref.read(_photoUrlsProvider.notifier).state = photos;
+        // Seeding initial values should not mark the form dirty.
+        ref.read(_dirtyProvider.notifier).state = false;
+      });
       _initialized = true;
     }
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _ageController.dispose();
-    _professionController.dispose();
-    _cityController.dispose();
-    _localityController.dispose();
-    _budgetMinController.dispose();
-    _budgetMaxController.dispose();
-    _bioController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
+    for (final controller in [
+      _nameController,
+      _ageController,
+      _professionController,
+      _cityController,
+      _localityController,
+      _budgetMinController,
+      _budgetMaxController,
+      _bioController,
+      _emailController,
+      _phoneController,
+    ]) {
+      controller.removeListener(_markDirty);
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  List<DropdownMenuItem<String>> _buildDropdownItems(
-    String catalogKey,
-    List<DropdownMenuItem<String>> fallback,
-  ) {
-    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
-    final catalogOpts = bootstrap?.catalogOptions(catalogKey);
-    if (catalogOpts != null && catalogOpts.isNotEmpty) {
-      return catalogOpts
-          .map((opt) => DropdownMenuItem(value: opt.id, child: Text(opt.label)))
-          .toList();
-    }
-    return fallback;
-  }
-
-  List<DropdownMenuItem<String>> _buildModeItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_modes', [
-      DropdownMenuItem(
-        value: 'room_poster',
-        child: Text(locale.modeRoomPoster),
-      ),
-      DropdownMenuItem(value: 'seeker', child: Text(locale.modeSeeker)),
-      DropdownMenuItem(value: 'co_hunter', child: Text(locale.modeCoHunter)),
-      DropdownMenuItem(
-        value: 'open_to_both',
-        child: Text(locale.modeOpenToBoth),
-      ),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildWorkStyleItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_work_styles', [
-      DropdownMenuItem(value: 'office', child: Text(locale.workStyleOffice)),
-      DropdownMenuItem(value: 'hybrid', child: Text(locale.workStyleHybrid)),
-      DropdownMenuItem(value: 'wfh', child: Text(locale.workStyleWfh)),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildTimelineItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_move_in_timelines', [
-      DropdownMenuItem(value: 'immediate', child: Text(locale.moveInImmediate)),
-      DropdownMenuItem(
-        value: 'this_month',
-        child: Text(locale.moveInThisMonth),
-      ),
-      DropdownMenuItem(
-        value: 'next_month',
-        child: Text(locale.moveInNextMonth),
-      ),
-      DropdownMenuItem(value: 'flexible', child: Text(locale.moveInAnytime)),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildSleepItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_lifestyle_sleep', [
-      DropdownMenuItem(value: 'early_bird', child: Text(locale.quizEarlyBird)),
-      DropdownMenuItem(value: 'flexible', child: Text(locale.quizFlexible)),
-      DropdownMenuItem(value: 'night_owl', child: Text(locale.quizNightOwl)),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildCleanlinessItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_lifestyle_cleanliness', [
-      DropdownMenuItem(value: 'minimal', child: Text(locale.quizCleanMinimal)),
-      DropdownMenuItem(value: 'tidy', child: Text(locale.quizCleanTidy)),
-      DropdownMenuItem(
-        value: 'spotless',
-        child: Text(locale.quizCleanSpotless),
-      ),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildFoodItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_lifestyle_food', [
-      DropdownMenuItem(value: 'vegetarian', child: Text(locale.quizVegetarian)),
-      DropdownMenuItem(value: 'vegan', child: Text(locale.quizVegan)),
-      DropdownMenuItem(
-        value: 'non_vegetarian',
-        child: Text(locale.quizNonVegetarian),
-      ),
-      DropdownMenuItem(
-        value: 'no_preference',
-        child: Text(locale.quizNoFoodPref),
-      ),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildSmokingItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_lifestyle_smoking', [
-      DropdownMenuItem(value: 'neither', child: Text(locale.quizNeither)),
-      DropdownMenuItem(
-        value: 'smoke_outside',
-        child: Text(locale.quizSmokeOutside),
-      ),
-      DropdownMenuItem(
-        value: 'drink_occasionally',
-        child: Text(locale.quizDrinkOccasionally),
-      ),
-      DropdownMenuItem(value: 'both_fine', child: Text(locale.quizBothFine)),
-    ]);
-  }
-
-  List<DropdownMenuItem<String>> _buildGuestsItems() {
-    final locale = AppLocalizations.of(context);
-    return _buildDropdownItems('flatmates_lifestyle_guests', [
-      DropdownMenuItem(
-        value: 'no_overnight_guests',
-        child: Text(locale.quizNoGuests),
-      ),
-      DropdownMenuItem(
-        value: 'occasional_ok',
-        child: Text(locale.quizOccasionalGuests),
-      ),
-      DropdownMenuItem(value: 'open_house', child: Text(locale.quizOpenHouse)),
-    ]);
-  }
-
-  List<NonNegotiableOption> _buildNonNegotiableOptions() {
-    final locale = AppLocalizations.of(context);
-    return [
-      NonNegotiableOption(
-        'food_veg_only',
-        locale.nonNegVegOnly,
-        Icons.restaurant,
-      ),
-      NonNegotiableOption('food_vegan_only', locale.nonNegVeganOnly, Icons.eco),
-      NonNegotiableOption(
-        'no_smoking',
-        locale.nonNegNoSmoking,
-        Icons.smoke_free,
-      ),
-      NonNegotiableOption(
-        'no_drinking',
-        locale.nonNegNoDrinking,
-        Icons.no_drinks,
-      ),
-      NonNegotiableOption(
-        'no_overnight_guests',
-        locale.nonNegNoGuests,
-        Icons.nightlight,
-      ),
-      NonNegotiableOption('no_pets', locale.nonNegNoPets, Icons.pets),
-      NonNegotiableOption(
-        'gender_female_only',
-        locale.nonNegFemaleOnly,
-        Icons.female,
-      ),
-      NonNegotiableOption(
-        'gender_male_only',
-        locale.nonNegMaleOnly,
-        Icons.male,
-      ),
-      NonNegotiableOption(
-        'no_parties',
-        locale.nonNegNoParties,
-        Icons.do_not_disturb,
-      ),
-      NonNegotiableOption(
-        'min_tidy',
-        locale.nonNegMinTidy,
-        Icons.cleaning_services,
-      ),
-    ];
-  }
-
   Future<void> _pickAndUploadPhoto() async {
-    if (_photoUploading) return;
-    setState(() => _photoUploading = true);
+    if (ref.read(_photoUploadingProvider)) return;
+    final locale = AppLocalizations.of(context);
+    ref.read(_photoUploadingProvider.notifier).state = true;
     try {
       final uploadService = ref.read(imageUploadServiceProvider);
       final files = await uploadService.pickImages(limit: 1);
       if (files.isEmpty) return;
       final result = await uploadService.uploadProfilePhoto(files.first);
-      if (result is UploadSuccess) {
-        setState(() {
-          if (_photoUrls.isEmpty) {
-            _photoUrls = [result.url];
+      if (!mounted) return;
+      switch (result) {
+        case UploadSuccess(:final url):
+          final current = List<String>.of(ref.read(_photoUrlsProvider));
+          if (current.isEmpty) {
+            ref.read(_photoUrlsProvider.notifier).state = [url];
           } else {
-            _photoUrls[0] = result.url;
+            current[0] = url;
+            ref.read(_photoUrlsProvider.notifier).state = current;
           }
-        });
+          ref.read(_dirtyProvider.notifier).state = true;
+        case UploadFailure(:final reason, :final underlyingError):
+          debugPrint(
+            'EditProfilePage._pickAndUploadPhoto failed: $reason '
+            '($underlyingError)',
+          );
+          FlatmatesToast.error(context, locale.profilePhotoUploadFailed);
       }
+    } catch (e) {
+      debugPrint('EditProfilePage._pickAndUploadPhoto error: $e');
+      if (!mounted) return;
+      FlatmatesToast.error(context, locale.profilePhotoUploadFailed);
     } finally {
-      if (mounted) setState(() => _photoUploading = false);
+      if (mounted) ref.read(_photoUploadingProvider.notifier).state = false;
     }
+  }
+
+  Future<bool> _confirmDiscard() async {
+    if (!ref.read(_dirtyProvider)) return true;
+    final locale = AppLocalizations.of(context);
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(locale.unsavedChangesTitle),
+        content: Text(locale.unsavedChangesMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(locale.keepEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(locale.discardChanges),
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
+
+  /// Navigate away from the edit page. The route may have been reached via the
+  /// profileCompletion redirect (no page to pop), so fall back to /profile.
+  void _leaveEditPage() {
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/profile');
+    }
+  }
+
+  Future<void> _handlePop() async {
+    final shouldPop = await _confirmDiscard();
+    if (!mounted || !shouldPop) return;
+    ref.read(_dirtyProvider.notifier).state = false;
+    _leaveEditPage();
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
+    final saving = ref.watch(_savingProvider);
+    final photoUploading = ref.watch(_photoUploadingProvider);
+    final dirty = ref.watch(_dirtyProvider);
+    final options = EditProfileOptions(
+      locale: locale,
+      bootstrap: ref.watch(bootstrapControllerProvider).valueOrNull,
+    );
     String? nullableText(TextEditingController controller) {
       final value = controller.text.trim();
       return value.isEmpty ? null : value;
     }
 
-    return Scaffold(
-      appBar: FlatmatesHeader.backTitle(title: locale.editProfileCta),
-      body: SafeArea(
-        minimum: const EdgeInsets.all(AppSpacing.lg),
-        child: ListView(
-          children: [
-            EditProfilePhotoSection(
-              locale: locale,
-              photoUrls: _photoUrls,
-              photoUploading: _photoUploading,
-              onPickAndUploadPhoto: _pickAndUploadPhoto,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            EditProfileContactInfoSection(
-              locale: locale,
-              emailController: _emailController,
-              phoneController: _phoneController,
-              hasEmail: _hasEmail,
-              hasPhone: _hasPhone,
-            ),
-            const SizedBox(height: AppSpacing.section),
-            EditProfileBasicInfoSection(
-              locale: locale,
-              nameController: _nameController,
-              ageController: _ageController,
-              professionController: _professionController,
-              cityController: _cityController,
-              localityController: _localityController,
-            ),
-            const SizedBox(height: AppSpacing.section),
-            EditProfileModeSection(
-              locale: locale,
-              mode: _mode,
-              items: _buildModeItems(),
-              onChanged: (value) => setState(() => _mode = value),
-            ),
-            const SizedBox(height: AppSpacing.section),
-            EditProfileBudgetTimelineSection(
-              locale: locale,
-              budgetMinController: _budgetMinController,
-              budgetMaxController: _budgetMaxController,
-              moveInTimeline: _moveInTimeline,
-              workStyle: _workStyle,
-              timelineItems: _buildTimelineItems(),
-              workStyleItems: _buildWorkStyleItems(),
-              onMoveInTimelineChanged: (value) =>
-                  setState(() => _moveInTimeline = value),
-              onWorkStyleChanged: (value) => setState(() => _workStyle = value),
-            ),
-            const SizedBox(height: AppSpacing.section),
-            EditProfileLifestyleSection(
-              locale: locale,
-              sleepSchedule: _sleepSchedule,
-              cleanliness: _cleanliness,
-              foodHabits: _foodHabits,
-              smokingDrinking: _smokingDrinking,
-              guestsPolicy: _guestsPolicy,
-              sleepItems: _buildSleepItems(),
-              cleanlinessItems: _buildCleanlinessItems(),
-              foodItems: _buildFoodItems(),
-              smokingItems: _buildSmokingItems(),
-              guestsItems: _buildGuestsItems(),
-              onSleepScheduleChanged: (value) =>
-                  setState(() => _sleepSchedule = value),
-              onCleanlinessChanged: (value) =>
-                  setState(() => _cleanliness = value),
-              onFoodHabitsChanged: (value) =>
-                  setState(() => _foodHabits = value),
-              onSmokingDrinkingChanged: (value) =>
-                  setState(() => _smokingDrinking = value),
-              onGuestsPolicyChanged: (value) =>
-                  setState(() => _guestsPolicy = value),
-            ),
-            const SizedBox(height: AppSpacing.section),
-            EditProfileNonNegotiablesSection(
-              locale: locale,
-              options: _buildNonNegotiableOptions(),
-              selectedIds: _nonNegotiables,
-              onSelectionChanged: (value) =>
-                  setState(() => _nonNegotiables = value),
-            ),
-            const SizedBox(height: AppSpacing.section),
-            EditProfileBioSection(
-              locale: locale,
-              bioController: _bioController,
-            ),
-            const SizedBox(height: AppSpacing.section),
-            FlatmatesButton(
-              key: const Key('profile_save_button'),
-              label: locale.commonSave,
-              fullWidth: true,
-              onPressed: _saving ? null : () => _save(context, nullableText),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-          ],
+    return PopScope(
+      canPop: !dirty,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handlePop();
+      },
+      child: Scaffold(
+        // Route the in-app back button through the unsaved-changes guard. The
+        // shared header uses Navigator.pop(), which bypasses PopScope, so we
+        // handle the confirmation explicitly here.
+        appBar: FlatmatesHeader.backTitle(
+          title: locale.editProfileCta,
+          onBack: _handlePop,
+        ),
+        body: SafeArea(
+          minimum: const EdgeInsets.all(AppSpacing.lg),
+          child: ListView(
+            children: [
+              EditProfilePhotoSection(
+                locale: locale,
+                photoUrls: ref.watch(_photoUrlsProvider),
+                photoUploading: photoUploading,
+                onPickAndUploadPhoto: _pickAndUploadPhoto,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              EditProfileContactInfoSection(
+                locale: locale,
+                emailController: _emailController,
+                phoneController: _phoneController,
+                hasEmail: _hasEmail,
+                hasPhone: _hasPhone,
+              ),
+              const SizedBox(height: AppSpacing.section),
+              EditProfileBasicInfoSection(
+                locale: locale,
+                nameController: _nameController,
+                ageController: _ageController,
+                professionController: _professionController,
+                cityController: _cityController,
+                localityController: _localityController,
+              ),
+              const SizedBox(height: AppSpacing.section),
+              EditProfileModeSection(
+                locale: locale,
+                mode: ref.watch(_modeProvider),
+                items: options.modeItems(),
+                onChanged: (value) {
+                  ref.read(_modeProvider.notifier).state = value;
+                  _markDirty();
+                },
+              ),
+              const SizedBox(height: AppSpacing.section),
+              EditProfileBudgetTimelineSection(
+                locale: locale,
+                budgetMinController: _budgetMinController,
+                budgetMaxController: _budgetMaxController,
+                moveInTimeline: ref.watch(_moveInTimelineProvider),
+                workStyle: ref.watch(_workStyleProvider),
+                timelineItems: options.timelineItems(),
+                workStyleItems: options.workStyleItems(),
+                onMoveInTimelineChanged: (value) {
+                  ref.read(_moveInTimelineProvider.notifier).state = value;
+                  _markDirty();
+                },
+                onWorkStyleChanged: (value) {
+                  ref.read(_workStyleProvider.notifier).state = value;
+                  _markDirty();
+                },
+              ),
+              const SizedBox(height: AppSpacing.section),
+              EditProfileLifestyleSection(
+                locale: locale,
+                sleepSchedule: ref.watch(_sleepScheduleProvider),
+                cleanliness: ref.watch(_cleanlinessProvider),
+                foodHabits: ref.watch(_foodHabitsProvider),
+                smokingDrinking: ref.watch(_smokingDrinkingProvider),
+                guestsPolicy: ref.watch(_guestsPolicyProvider),
+                sleepItems: options.sleepItems(),
+                cleanlinessItems: options.cleanlinessItems(),
+                foodItems: options.foodItems(),
+                smokingItems: options.smokingItems(),
+                guestsItems: options.guestsItems(),
+                onSleepScheduleChanged: (value) {
+                  ref.read(_sleepScheduleProvider.notifier).state = value;
+                  _markDirty();
+                },
+                onCleanlinessChanged: (value) {
+                  ref.read(_cleanlinessProvider.notifier).state = value;
+                  _markDirty();
+                },
+                onFoodHabitsChanged: (value) {
+                  ref.read(_foodHabitsProvider.notifier).state = value;
+                  _markDirty();
+                },
+                onSmokingDrinkingChanged: (value) {
+                  ref.read(_smokingDrinkingProvider.notifier).state = value;
+                  _markDirty();
+                },
+                onGuestsPolicyChanged: (value) {
+                  ref.read(_guestsPolicyProvider.notifier).state = value;
+                  _markDirty();
+                },
+              ),
+              const SizedBox(height: AppSpacing.section),
+              EditProfileNonNegotiablesSection(
+                locale: locale,
+                options: options.nonNegotiableOptions(),
+                selectedIds: ref.watch(_nonNegotiablesProvider),
+                onSelectionChanged: (value) {
+                  ref.read(_nonNegotiablesProvider.notifier).state = value;
+                  _markDirty();
+                },
+              ),
+              const SizedBox(height: AppSpacing.section),
+              EditProfileBioSection(
+                locale: locale,
+                bioController: _bioController,
+              ),
+              const SizedBox(height: AppSpacing.section),
+              FlatmatesButton(
+                key: const Key('profile_save_button'),
+                label: saving ? locale.profileSaving : locale.commonSave,
+                icon: saving ? null : Icons.check,
+                fullWidth: true,
+                onPressed: (saving || photoUploading || !dirty)
+                    ? null
+                    : () => _save(nullableText),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Future<void> _save(
-    BuildContext context,
     String? Function(TextEditingController) nullableText,
   ) async {
     final locale = AppLocalizations.of(context);
     final budgetMin = double.tryParse(_budgetMinController.text.trim());
     final budgetMax = double.tryParse(_budgetMaxController.text.trim());
     if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(locale.budgetMinMaxError)));
+      FlatmatesToast.error(context, locale.budgetMinMaxError);
       return;
     }
 
-    setState(() => _saving = true);
+    ref.read(_savingProvider.notifier).state = true;
     try {
       final payload = <String, dynamic>{
         'full_name': nullableText(_nameController),
         'age': int.tryParse(_ageController.text.trim()),
         'profession': nullableText(_professionController),
-        'mode': _mode,
+        'mode': ref.read(_modeProvider),
         'city': nullableText(_cityController),
         'locality': nullableText(_localityController),
         'budget_min': budgetMin,
         'budget_max': budgetMax,
-        'move_in_timeline': _moveInTimeline,
-        'work_style': _workStyle,
+        'move_in_timeline': ref.read(_moveInTimelineProvider),
+        'work_style': ref.read(_workStyleProvider),
         'bio': nullableText(_bioController),
-        'sleep_schedule': _sleepSchedule,
-        'cleanliness': _cleanliness,
-        'food_habits': _foodHabits,
-        'smoking_drinking': _smokingDrinking,
-        'guests_policy': _guestsPolicy,
+        'sleep_schedule': ref.read(_sleepScheduleProvider),
+        'cleanliness': ref.read(_cleanlinessProvider),
+        'food_habits': ref.read(_foodHabitsProvider),
+        'smoking_drinking': ref.read(_smokingDrinkingProvider),
+        'guests_policy': ref.read(_guestsPolicyProvider),
         'onboarding_completed': true,
       };
-      if (_photoUrls.isNotEmpty) {
-        payload['profile_image_url'] = _photoUrls.first;
+      final photoUrls = ref.read(_photoUrlsProvider);
+      if (photoUrls.isNotEmpty) {
+        payload['profile_image_url'] = photoUrls.first;
       }
-      if (_nonNegotiables.isNotEmpty) {
-        payload['non_negotiables'] = _nonNegotiables;
+      final nonNegotiables = ref.read(_nonNegotiablesProvider);
+      if (nonNegotiables.isNotEmpty) {
+        payload['non_negotiables'] = nonNegotiables;
       }
 
       // Include email/phone if newly added.
@@ -455,17 +438,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
       await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
-      if (!context.mounted) return;
+      if (!mounted) return;
+      ref.read(_dirtyProvider.notifier).state = false;
       FlatmatesToast.success(context, locale.profileUpdated);
-      Navigator.of(context).pop();
+      _leaveEditPage();
     } catch (e) {
-      if (!context.mounted) return;
+      debugPrint('EditProfilePage._save error: $e');
+      if (!mounted) return;
       final message = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.errorUnknown;
       FlatmatesToast.error(context, message);
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) ref.read(_savingProvider.notifier).state = false;
     }
   }
 }

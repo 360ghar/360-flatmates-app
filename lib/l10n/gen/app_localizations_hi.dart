@@ -3322,4 +3322,38 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'डील-ब्रेकर्स';
+
+  @override
+  String get couldNotLoadProfile => 'प्रोफ़ाइल लोड नहीं हो सकी';
+
+  @override
+  String get profilePhotoUploadFailed =>
+      'फ़ोटो अपलोड नहीं हो सकी। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get profileSaving => 'सहेजा जा रहा है...';
+
+  @override
+  String profilePhotoSemantic(String name) {
+    return '$name की प्रोफ़ाइल फ़ोटो';
+  }
+
+  @override
+  String get profileChangePhotoSemantic => 'प्रोफ़ाइल फ़ोटो बदलें';
+
+  @override
+  String get profilePhotoUploading => 'प्रोफ़ाइल फ़ोटो अपलोड हो रही है';
+
+  @override
+  String get unsavedChangesTitle => 'बदलाव रद्द करें?';
+
+  @override
+  String get unsavedChangesMessage =>
+      'आपके पास सहेजे न गए बदलाव हैं। यदि आप अभी छोड़ते हैं, तो वे खो जाएँगे।';
+
+  @override
+  String get keepEditing => 'संपादन जारी रखें';
+
+  @override
+  String get discardChanges => 'रद्द करें';
 }

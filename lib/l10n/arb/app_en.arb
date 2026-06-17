@@ -1552,5 +1552,22 @@
   },
   "meetPotentialFlatmates": "Meet potential flatmates",
   "lifestyleSectionTitle": "Lifestyle",
-  "dealBreakersSectionTitle": "Deal-breakers"
+  "dealBreakersSectionTitle": "Deal-breakers",
+  "couldNotLoadProfile": "Could not load profile",
+  "profilePhotoUploadFailed": "Could not upload photo. Please try again.",
+  "profileSaving": "Saving...",
+  "profilePhotoSemantic": "Profile photo of {name}",
+  "@profilePhotoSemantic": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileChangePhotoSemantic": "Change profile photo",
+  "profilePhotoUploading": "Uploading profile photo",
+  "unsavedChangesTitle": "Discard changes?",
+  "unsavedChangesMessage": "You have unsaved changes. If you leave now, they will be lost.",
+  "keepEditing": "Keep editing",
+  "discardChanges": "Discard"
 }
