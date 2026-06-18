@@ -33,6 +33,20 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   final _confirmController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // These are top-level (shared) StateProviders. Reset them on every fresh
+    // visit so an interrupted save can't leave the submit button permanently
+    // disabled, and obscure toggles start in the secure default state.
+    Future.microtask(() {
+      if (!mounted) return;
+      ref.read(_savingProvider.notifier).state = false;
+      ref.read(_obscureNewPasswordProvider.notifier).state = true;
+      ref.read(_obscureConfirmPasswordProvider.notifier).state = true;
+    });
+  }
+
+  @override
   void dispose() {
     _passwordController.dispose();
     _confirmController.dispose();

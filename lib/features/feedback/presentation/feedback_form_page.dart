@@ -39,6 +39,19 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
   bool get _isBug => widget.type == FeedbackType.bug;
 
   @override
+  void initState() {
+    super.initState();
+    // `_submittingFeedbackProvider` is a top-level (shared) StateProvider. If a
+    // prior submission was interrupted it could remain `true` and permanently
+    // disable the submit button, so clear it on every fresh visit. The submit
+    // button watches this provider, so the reset is reflected immediately.
+    Future.microtask(() {
+      if (!mounted) return;
+      ref.read(_submittingFeedbackProvider.notifier).state = false;
+    });
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();

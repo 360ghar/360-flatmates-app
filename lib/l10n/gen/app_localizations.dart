@@ -6210,6 +6210,7 @@ abstract class AppLocalizations {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   /// No description provided for @likeListingTooltip.
   ///
   /// In en, this message translates to:
@@ -6327,6 +6328,31 @@ abstract class AppLocalizations {
   /// **'Couldn\'t complete onboarding. Please try again.'**
   String get onboardingSubmitError;
 >>>>>>> audit/onboarding
+=======
+  /// No description provided for @deleteAccountInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting…'**
+  String get deleteAccountInProgress;
+
+  /// No description provided for @deleteAccountDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete your account and all associated data. This action cannot be undone.'**
+  String get deleteAccountDialogBody;
+
+  /// No description provided for @notifAllEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications enabled'**
+  String get notifAllEnabled;
+
+  /// No description provided for @notifAllDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications disabled'**
+  String get notifAllDisabled;
+>>>>>>> audit/settings
 }
 
 class _AppLocalizationsDelegate

@@ -3328,6 +3328,7 @@ class AppLocalizationsHi extends AppLocalizations {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   String get likeListingTooltip => 'अपनी पसंद में जोड़ें';
 
   @override
@@ -3386,4 +3387,17 @@ class AppLocalizationsHi extends AppLocalizations {
   String get onboardingSubmitError =>
       'ऑनबोर्डिंग पूरी नहीं हो सकी। कृपया पुनः प्रयास करें।';
 >>>>>>> audit/onboarding
+=======
+  String get deleteAccountInProgress => 'हटाया जा रहा है…';
+
+  @override
+  String get deleteAccountDialogBody =>
+      'इससे आपका खाता और उससे जुड़ा सारा डेटा स्थायी रूप से हट जाएगा। इस क्रिया को पूर्ववत नहीं किया जा सकता।';
+
+  @override
+  String get notifAllEnabled => 'सभी सूचनाएं सक्षम कर दी गईं';
+
+  @override
+  String get notifAllDisabled => 'सभी सूचनाएं अक्षम कर दी गईं';
+>>>>>>> audit/settings
 }

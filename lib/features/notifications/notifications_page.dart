@@ -87,7 +87,8 @@ class NotificationsPage extends ConsumerWidget {
                           ),
                           iconColor: _iconColorForType(notification.type),
                           isRead: notification.isRead,
-                          onTap: () => _handleTap(context, ref, notification),
+                          onTap: () =>
+                              unawaited(_handleTap(context, ref, notification)),
                         );
                       },
                     ),
@@ -101,7 +102,7 @@ class NotificationsPage extends ConsumerWidget {
     );
   }
 
-  void _handleTap(
+  Future<void> _handleTap(
     BuildContext context,
     WidgetRef ref,
     NotificationModel notification,

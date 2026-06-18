@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_radius.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flatmates_app/core/theme/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'settings_controller.dart';
 
@@ -120,33 +122,17 @@ class NotificationSettingsPage extends ConsumerWidget {
               children: [
                 Expanded(
                   child: FlatmatesButton.tertiary(
+                    key: const Key('notif_enable_all'),
                     label: locale.notifEnableAll,
-                    onPressed: () {
-                      final notifier = ref.read(
-                        settingsControllerProvider.notifier,
-                      );
-                      notifier.updateNotifNewMessages(true);
-                      notifier.updateNotifVisitReminders(true);
-                      notifier.updateNotifNewMatches(true);
-                      notifier.updateNotifListingUpdates(true);
-                      notifier.updateNotifPromotions(true);
-                    },
+                    onPressed: () => _setAll(context, ref, true),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: FlatmatesButton.tertiary(
+                    key: const Key('notif_disable_all'),
                     label: locale.notifDisableAll,
-                    onPressed: () {
-                      final notifier = ref.read(
-                        settingsControllerProvider.notifier,
-                      );
-                      notifier.updateNotifNewMessages(false);
-                      notifier.updateNotifVisitReminders(false);
-                      notifier.updateNotifNewMatches(false);
-                      notifier.updateNotifListingUpdates(false);
-                      notifier.updateNotifPromotions(false);
-                    },
+                    onPressed: () => _setAll(context, ref, false),
                   ),
                 ),
               ],
@@ -156,6 +142,23 @@ class NotificationSettingsPage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// Bulk-applies [value] to every notification preference and surfaces a
+  /// confirmation toast so the user gets feedback for the action.
+  Future<void> _setAll(BuildContext context, WidgetRef ref, bool value) async {
+    final locale = AppLocalizations.of(context);
+    final notifier = ref.read(settingsControllerProvider.notifier);
+    await notifier.updateNotifNewMessages(value);
+    await notifier.updateNotifVisitReminders(value);
+    await notifier.updateNotifNewMatches(value);
+    await notifier.updateNotifListingUpdates(value);
+    await notifier.updateNotifPromotions(value);
+    if (!context.mounted) return;
+    FlatmatesToast.success(
+      context,
+      value ? locale.notifAllEnabled : locale.notifAllDisabled,
     );
   }
 }
@@ -185,7 +188,7 @@ class _NotifToggle extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.mdBorder,
           color: iconColor.withValues(alpha: 0.12),
         ),
         child: Icon(icon, size: 20, color: iconColor),

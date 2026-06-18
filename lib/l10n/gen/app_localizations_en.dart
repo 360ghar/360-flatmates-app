@@ -3314,6 +3314,7 @@ class AppLocalizationsEn extends AppLocalizations {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   String get likeListingTooltip => 'Add to your likes';
 
   @override
@@ -3372,4 +3373,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSubmitError =>
       'Couldn\'t complete onboarding. Please try again.';
 >>>>>>> audit/onboarding
+=======
+  String get deleteAccountInProgress => 'Deleting…';
+
+  @override
+  String get deleteAccountDialogBody =>
+      'This will permanently delete your account and all associated data. This action cannot be undone.';
+
+  @override
+  String get notifAllEnabled => 'All notifications enabled';
+
+  @override
+  String get notifAllDisabled => 'All notifications disabled';
+>>>>>>> audit/settings
 }
