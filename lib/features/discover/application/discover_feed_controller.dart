@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bootstrap/bootstrap_controller.dart';
@@ -129,6 +130,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         );
       }
     } catch (e) {
+      debugPrint('DiscoverFeedController.load failed: $e');
       if (myVersion == _filterVersion) {
         state = state.copyWith(
           isLoading: false,
@@ -176,6 +178,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       }
       return conversationId;
     } catch (e) {
+      debugPrint('DiscoverFeedController.toggleLike failed: $e');
       // Roll back the optimistic change on failure.
       state = state.copyWith(listings: original);
       rethrow;
@@ -183,6 +186,10 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
   }
 
   Future<void> refresh() async {
+    // Bump the version so any in-flight load() observes the mismatch and
+    // discards its (now stale) result instead of racing this refresh and
+    // appending duplicate / out-of-order pages.
+    _filterVersion++;
     state = state.copyWith(isRefreshing: true, clearError: true);
     try {
       final profile = ref
@@ -190,10 +197,14 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           .valueOrNull
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
+      final myVersion = _filterVersion;
       final page = await repo.fetchListingsPage(
         currentUser: profile,
         filters: state.filters,
       );
+      // A filter change during the refresh wins: discard this result and let
+      // the filter-driven load() repopulate the feed.
+      if (myVersion != _filterVersion) return;
       state = state.copyWith(
         listings: page.items,
         fetchedCount: page.rawCount,
@@ -201,6 +212,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         hasMore: page.rawCount >= _pageSize,
       );
     } catch (e) {
+      debugPrint('DiscoverFeedController.refresh failed: $e');
       state = state.copyWith(isRefreshing: false, error: e);
     }
   }

@@ -3308,4 +3308,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'Deal-breakers';
+
+  @override
+  String get likeListingTooltip => 'Add to your likes';
+
+  @override
+  String get unlikeListingTooltip => 'Remove from your likes';
 }

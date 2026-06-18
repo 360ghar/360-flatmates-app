@@ -52,6 +52,7 @@ class DiscoverListingCard extends StatelessWidget {
     final hasImage =
         item.effectiveMainImageUrl != null &&
         item.effectiveMainImageUrl!.trim().isNotEmpty;
+    final isLiked = item.liked ?? false;
 
     return FlatmatesCard(
       key: Key('discover_listing_card_${item.id}'),
@@ -163,10 +164,14 @@ class DiscoverListingCard extends StatelessWidget {
                       child: IconButton(
                         key: Key('discover_like_${item.id}'),
                         onPressed: onLike,
-                        icon: const Icon(
-                          Icons.favorite_border_rounded,
+                        icon: Icon(
+                          isLiked
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
                           size: 14,
-                          color: Colors.white,
+                          color: isLiked
+                              ? AppSemanticColors.accent
+                              : Colors.white,
                         ),
                         padding: EdgeInsets.zero,
                         style: IconButton.styleFrom(
@@ -175,7 +180,9 @@ class DiscoverListingCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(7),
                           ),
                         ),
-                        tooltip: 'Like',
+                        tooltip: isLiked
+                            ? locale.unlikeListingTooltip
+                            : locale.likeListingTooltip,
                       ),
                     ),
                   ),

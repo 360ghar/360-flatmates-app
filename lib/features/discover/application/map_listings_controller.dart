@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bootstrap/bootstrap_controller.dart';
@@ -108,6 +109,7 @@ class MapListingsController extends Notifier<MapListingsState> {
         state = state.copyWith(listings: newListings, isLoading: false);
       }
     } catch (e) {
+      debugPrint('MapListingsController.load failed: $e');
       if (myVersion == _filterVersion) {
         state = state.copyWith(isLoading: false, error: e);
       }

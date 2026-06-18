@@ -11,7 +11,6 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
-import '../chats/chats_repository.dart';
 import '../location/application/location_controller.dart';
 import '../location/presentation/location_picker_modal.dart';
 import '../shared/presentation/components.dart';
@@ -87,6 +86,39 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - _loadMoreThreshold) {
       ref.read(discoverFeedControllerProvider.notifier).loadMore();
+    }
+  }
+
+  /// Toggles the like for [item] via the controller's optimistic path (the
+  /// heart flips instantly and rolls back on failure) instead of issuing a
+  /// raw like + full feed refetch. `conversationsProvider` invalidation and
+  /// the success toast are handled inside the controller / here only for the
+  /// newly-liked case.
+  Future<void> _handleLike(PropertyListing item) async {
+    final locale = AppLocalizations.of(context);
+    final wasLiked = item.liked ?? false;
+    try {
+      final conversationId = await ref
+          .read(discoverFeedControllerProvider.notifier)
+          .toggleLike(item.id);
+      if (!mounted) return;
+      if (wasLiked) {
+        FlatmatesToast.success(context, locale.likeRemovedToast);
+      } else {
+        FlatmatesToast.success(
+          context,
+          conversationId == null
+              ? locale.contactRequestSent
+              : locale.contactRequestWithConversation(conversationId),
+        );
+      }
+    } catch (e) {
+      debugPrint('DiscoverPage._handleLike failed: $e');
+      if (!mounted) return;
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.actionFailedRetry;
+      FlatmatesToast.error(context, msg);
     }
   }
 
@@ -272,41 +304,8 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                             badgeLabel: badgeLabel,
                             onTap: () =>
                                 context.push('/flat-details/${item.id}'),
-                            onLike: () {
-                              _likeDebouncer.run(() {
-                                ref
-                                    .read(discoverRepositoryProvider)
-                                    .setLiked(item.id, true)
-                                    .then((conversationId) {
-                                      ref
-                                          .read(
-                                            discoverFeedControllerProvider
-                                                .notifier,
-                                          )
-                                          .refresh();
-                                      ref.invalidate(conversationsProvider);
-                                      if (!context.mounted) return;
-                                      FlatmatesToast.success(
-                                        context,
-                                        conversationId == null
-                                            ? locale.contactRequestSent
-                                            : locale
-                                                  .contactRequestWithConversation(
-                                                    conversationId,
-                                                  ),
-                                      );
-                                    })
-                                    .catchError((e) {
-                                      if (!context.mounted) return;
-                                      final msg = e is AppFailure
-                                          ? e.userMessage(
-                                              locale.toUserMessageL10n(),
-                                            )
-                                          : locale.actionFailedRetry;
-                                      FlatmatesToast.error(context, msg);
-                                    });
-                              });
-                            },
+                            onLike: () =>
+                                _likeDebouncer.run(() => _handleLike(item)),
                           ),
                         );
                       },

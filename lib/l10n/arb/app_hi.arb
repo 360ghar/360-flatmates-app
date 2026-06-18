@@ -1528,5 +1528,7 @@
   },
   "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें",
   "lifestyleSectionTitle": "जीवनशैली",
-  "dealBreakersSectionTitle": "डील-ब्रेकर्स"
+  "dealBreakersSectionTitle": "डील-ब्रेकर्स",
+  "likeListingTooltip": "अपनी पसंद में जोड़ें",
+  "unlikeListingTooltip": "अपनी पसंद से हटाएँ"
 }

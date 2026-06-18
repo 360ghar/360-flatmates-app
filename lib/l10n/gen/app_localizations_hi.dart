@@ -3322,4 +3322,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'डील-ब्रेकर्स';
+
+  @override
+  String get likeListingTooltip => 'अपनी पसंद में जोड़ें';
+
+  @override
+  String get unlikeListingTooltip => 'अपनी पसंद से हटाएँ';
 }

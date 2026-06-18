@@ -6205,6 +6205,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
+
+  /// No description provided for @likeListingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to your likes'**
+  String get likeListingTooltip;
+
+  /// No description provided for @unlikeListingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from your likes'**
+  String get unlikeListingTooltip;
 }
 
 class _AppLocalizationsDelegate
