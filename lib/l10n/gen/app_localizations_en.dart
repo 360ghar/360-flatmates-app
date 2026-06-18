@@ -3310,18 +3310,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dealBreakersSectionTitle => 'Deal-breakers';
 
   @override
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   String get likeListingTooltip => 'Add to your likes';
 
   @override
   String get unlikeListingTooltip => 'Remove from your likes';
-=======
+
+  @override
   String get togglePasswordVisibility => 'Toggle password visibility';
 
   @override
@@ -3335,8 +3329,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authMethodPhone => 'phone';
->>>>>>> audit/auth
-=======
+
+  @override
   String get visitRescheduled => 'New time suggested';
 
   @override
@@ -3348,8 +3342,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get visitScheduleNoConversation =>
       'We couldn\'t load this conversation. Please try again from chat.';
->>>>>>> audit/visits
-=======
+
+  @override
   String get swipeLikeAction => 'Like';
 
   @override
@@ -3363,8 +3357,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchSelfFallbackName => 'You';
->>>>>>> audit/swipe
-=======
+
+  @override
   String get onboardingProgressTitle => 'Profile setup';
 
   @override
@@ -3374,8 +3368,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingSubmitError =>
       'Couldn\'t complete onboarding. Please try again.';
->>>>>>> audit/onboarding
-=======
+
+  @override
   String get deleteAccountInProgress => 'Deleting…';
 
   @override
@@ -3387,8 +3381,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifAllDisabled => 'All notifications disabled';
->>>>>>> audit/settings
-=======
+
+  @override
   String get listingUpdatedToast => 'Listing updated successfully.';
 
   @override
@@ -3429,8 +3423,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String shareListingText(String title, String rent, String location) {
     return 'Check out this flat on 360 FlatMates: $title at ₹$rent/mo in $location';
   }
->>>>>>> audit/listings
-=======
+
+  @override
   String get couldNotLoadProfile => 'Could not load profile';
 
   @override
@@ -3463,5 +3457,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discardChanges => 'Discard';
->>>>>>> audit/profile
 }

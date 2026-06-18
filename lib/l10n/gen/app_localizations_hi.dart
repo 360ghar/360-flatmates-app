@@ -3324,18 +3324,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dealBreakersSectionTitle => 'डील-ब्रेकर्स';
 
   @override
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   String get likeListingTooltip => 'अपनी पसंद में जोड़ें';
 
   @override
   String get unlikeListingTooltip => 'अपनी पसंद से हटाएँ';
-=======
+
+  @override
   String get togglePasswordVisibility => 'पासवर्ड दिखाएं या छिपाएं';
 
   @override
@@ -3349,8 +3343,8 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get authMethodPhone => 'फ़ोन';
->>>>>>> audit/auth
-=======
+
+  @override
   String get visitRescheduled => 'नया समय सुझाया गया';
 
   @override
@@ -3362,8 +3356,8 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get visitScheduleNoConversation =>
       'हम यह बातचीत लोड नहीं कर सके। कृपया चैट से दोबारा प्रयास करें।';
->>>>>>> audit/visits
-=======
+
+  @override
   String get swipeLikeAction => 'पसंद';
 
   @override
@@ -3377,8 +3371,8 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get matchSelfFallbackName => 'आप';
->>>>>>> audit/swipe
-=======
+
+  @override
   String get onboardingProgressTitle => 'प्रोफ़ाइल सेटअप';
 
   @override
@@ -3388,8 +3382,8 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get onboardingSubmitError =>
       'ऑनबोर्डिंग पूरी नहीं हो सकी। कृपया पुनः प्रयास करें।';
->>>>>>> audit/onboarding
-=======
+
+  @override
   String get deleteAccountInProgress => 'हटाया जा रहा है…';
 
   @override
@@ -3401,8 +3395,8 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get notifAllDisabled => 'सभी सूचनाएं अक्षम कर दी गईं';
->>>>>>> audit/settings
-=======
+
+  @override
   String get listingUpdatedToast => 'लिस्टिंग सफलतापूर्वक अपडेट हो गई।';
 
   @override
@@ -3443,8 +3437,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String shareListingText(String title, String rent, String location) {
     return '360 फ्लैटमेट्स पर इस फ्लैट को देखें: $title ₹$rent/माह $location में';
   }
->>>>>>> audit/listings
-=======
+
+  @override
   String get couldNotLoadProfile => 'प्रोफ़ाइल लोड नहीं हो सकी';
 
   @override
@@ -3477,5 +3471,4 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get discardChanges => 'रद्द करें';
->>>>>>> audit/profile
 }

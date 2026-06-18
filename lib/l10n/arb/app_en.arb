@@ -1554,5 +1554,88 @@
   "lifestyleSectionTitle": "Lifestyle",
   "dealBreakersSectionTitle": "Deal-breakers",
   "likeListingTooltip": "Add to your likes",
-  "unlikeListingTooltip": "Remove from your likes"
+  "unlikeListingTooltip": "Remove from your likes",
+  "togglePasswordVisibility": "Toggle password visibility",
+  "authMethodGoogle": "Google",
+  "authMethodApple": "Apple",
+  "authMethodEmail": "email",
+  "authMethodPhone": "phone",
+  "visitRescheduled": "New time suggested",
+  "visitTimeInPast": "Please pick a time in the future.",
+  "visitStatusPast": "Past",
+  "visitScheduleNoConversation": "We couldn't load this conversation. Please try again from chat.",
+  "swipeLikeAction": "Like",
+  "swipeSkipAction": "Skip",
+  "swipeUndoAction": "Undo",
+  "matchPeerFallbackName": "Flatmate",
+  "matchSelfFallbackName": "You",
+  "onboardingProgressTitle": "Profile setup",
+  "onboardingBudgetRangeError": "Minimum budget must be less than maximum",
+  "onboardingSubmitError": "Couldn't complete onboarding. Please try again.",
+  "deleteAccountInProgress": "Deleting…",
+  "deleteAccountDialogBody": "This will permanently delete your account and all associated data. This action cannot be undone.",
+  "notifAllEnabled": "All notifications enabled",
+  "notifAllDisabled": "All notifications disabled",
+  "listingUpdatedToast": "Listing updated successfully.",
+  "discardListingTitle": "Discard changes?",
+  "discardListingMessage": "You have unsaved changes. If you leave now, they will be lost.",
+  "keepEditingCta": "Keep editing",
+  "discardCta": "Discard",
+  "couldNotLoadReviewStatus": "Could not load review status",
+  "removeVideoTourTooltip": "Remove video tour",
+  "bedsCount": "{count} Beds",
+  "@bedsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bathsCount": "{count} Baths",
+  "@bathsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sqftLabel": "{count} sqft",
+  "@sqftLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareListingText": "Check out this flat on 360 FlatMates: {title} at ₹{rent}/mo in {location}",
+  "@shareListingText": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "rent": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadProfile": "Could not load profile",
+  "profilePhotoUploadFailed": "Could not upload photo. Please try again.",
+  "profileSaving": "Saving...",
+  "profilePhotoSemantic": "Profile photo of {name}",
+  "@profilePhotoSemantic": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileChangePhotoSemantic": "Change profile photo",
+  "profilePhotoUploading": "Uploading profile photo",
+  "unsavedChangesTitle": "Discard changes?",
+  "unsavedChangesMessage": "You have unsaved changes. If you leave now, they will be lost.",
+  "keepEditing": "Keep editing",
+  "discardChanges": "Discard"
 }

@@ -1530,5 +1530,88 @@
   "lifestyleSectionTitle": "जीवनशैली",
   "dealBreakersSectionTitle": "डील-ब्रेकर्स",
   "likeListingTooltip": "अपनी पसंद में जोड़ें",
-  "unlikeListingTooltip": "अपनी पसंद से हटाएँ"
+  "unlikeListingTooltip": "अपनी पसंद से हटाएँ",
+  "togglePasswordVisibility": "पासवर्ड दिखाएं या छिपाएं",
+  "authMethodGoogle": "Google",
+  "authMethodApple": "Apple",
+  "authMethodEmail": "ईमेल",
+  "authMethodPhone": "फ़ोन",
+  "visitRescheduled": "नया समय सुझाया गया",
+  "visitTimeInPast": "कृपया भविष्य का कोई समय चुनें।",
+  "visitStatusPast": "बीते हुए",
+  "visitScheduleNoConversation": "हम यह बातचीत लोड नहीं कर सके। कृपया चैट से दोबारा प्रयास करें।",
+  "swipeLikeAction": "पसंद",
+  "swipeSkipAction": "छोड़ें",
+  "swipeUndoAction": "पूर्ववत करें",
+  "matchPeerFallbackName": "फ्लैटमेट",
+  "matchSelfFallbackName": "आप",
+  "onboardingProgressTitle": "प्रोफ़ाइल सेटअप",
+  "onboardingBudgetRangeError": "न्यूनतम बजट अधिकतम से कम होना चाहिए",
+  "onboardingSubmitError": "ऑनबोर्डिंग पूरी नहीं हो सकी। कृपया पुनः प्रयास करें।",
+  "deleteAccountInProgress": "हटाया जा रहा है…",
+  "deleteAccountDialogBody": "इससे आपका खाता और उससे जुड़ा सारा डेटा स्थायी रूप से हट जाएगा। इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+  "notifAllEnabled": "सभी सूचनाएं सक्षम कर दी गईं",
+  "notifAllDisabled": "सभी सूचनाएं अक्षम कर दी गईं",
+  "listingUpdatedToast": "लिस्टिंग सफलतापूर्वक अपडेट हो गई।",
+  "discardListingTitle": "बदलाव छोड़ें?",
+  "discardListingMessage": "आपके पास असहेजे गए बदलाव हैं। यदि आप अभी बाहर निकलते हैं, तो वे खो जाएंगे।",
+  "keepEditingCta": "संपादन जारी रखें",
+  "discardCta": "छोड़ें",
+  "couldNotLoadReviewStatus": "समीक्षा स्थिति लोड नहीं हो सकी",
+  "removeVideoTourTooltip": "वीडियो टूर हटाएं",
+  "bedsCount": "{count} बेड",
+  "@bedsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bathsCount": "{count} बाथ",
+  "@bathsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sqftLabel": "{count} वर्ग फुट",
+  "@sqftLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareListingText": "360 फ्लैटमेट्स पर इस फ्लैट को देखें: {title} ₹{rent}/माह {location} में",
+  "@shareListingText": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "rent": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadProfile": "प्रोफ़ाइल लोड नहीं हो सकी",
+  "profilePhotoUploadFailed": "फ़ोटो अपलोड नहीं हो सकी। कृपया पुनः प्रयास करें।",
+  "profileSaving": "सहेजा जा रहा है...",
+  "profilePhotoSemantic": "{name} की प्रोफ़ाइल फ़ोटो",
+  "@profilePhotoSemantic": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileChangePhotoSemantic": "प्रोफ़ाइल फ़ोटो बदलें",
+  "profilePhotoUploading": "प्रोफ़ाइल फ़ोटो अपलोड हो रही है",
+  "unsavedChangesTitle": "बदलाव रद्द करें?",
+  "unsavedChangesMessage": "आपके पास सहेजे न गए बदलाव हैं। यदि आप अभी छोड़ते हैं, तो वे खो जाएँगे।",
+  "keepEditing": "संपादन जारी रखें",
+  "discardChanges": "रद्द करें"
 }

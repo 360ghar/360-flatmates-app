@@ -6206,13 +6206,6 @@ abstract class AppLocalizations {
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   /// No description provided for @likeListingTooltip.
   ///
   /// In en, this message translates to:
@@ -6224,7 +6217,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from your likes'**
   String get unlikeListingTooltip;
-=======
+
   /// No description provided for @togglePasswordVisibility.
   ///
   /// In en, this message translates to:
@@ -6254,8 +6247,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'phone'**
   String get authMethodPhone;
->>>>>>> audit/auth
-=======
+
   /// No description provided for @visitRescheduled.
   ///
   /// In en, this message translates to:
@@ -6279,8 +6271,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn\'t load this conversation. Please try again from chat.'**
   String get visitScheduleNoConversation;
->>>>>>> audit/visits
-=======
+
   /// No description provided for @swipeLikeAction.
   ///
   /// In en, this message translates to:
@@ -6310,8 +6301,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get matchSelfFallbackName;
->>>>>>> audit/swipe
-=======
+
   /// No description provided for @onboardingProgressTitle.
   ///
   /// In en, this message translates to:
@@ -6329,8 +6319,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t complete onboarding. Please try again.'**
   String get onboardingSubmitError;
->>>>>>> audit/onboarding
-=======
+
   /// No description provided for @deleteAccountInProgress.
   ///
   /// In en, this message translates to:
@@ -6354,8 +6343,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All notifications disabled'**
   String get notifAllDisabled;
->>>>>>> audit/settings
-=======
+
   /// No description provided for @listingUpdatedToast.
   ///
   /// In en, this message translates to:
@@ -6421,8 +6409,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check out this flat on 360 FlatMates: {title} at ₹{rent}/mo in {location}'**
   String shareListingText(String title, String rent, String location);
->>>>>>> audit/listings
-=======
+
   /// No description provided for @couldNotLoadProfile.
   ///
   /// In en, this message translates to:
@@ -6482,7 +6469,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard'**
   String get discardChanges;
->>>>>>> audit/profile
 }
 
 class _AppLocalizationsDelegate
