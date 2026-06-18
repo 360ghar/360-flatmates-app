@@ -71,4 +71,33 @@ void main() {
     expect(find.text('Sent'), findsNothing);
     expect(find.text('Read'), findsNothing);
   });
+
+  testWidgets('optimistic (negative id) messages show Sending, not Sent', (
+    tester,
+  ) async {
+    final optimistic = ChatMessage(
+      id: -1,
+      conversationId: 3,
+      senderId: 1,
+      body: 'In flight',
+      createdAt: DateTime(2026, 1, 1, 10),
+    );
+
+    await tester.pumpWidget(
+      testableWidget(
+        child: Scaffold(
+          body: ChatMessageBubble(
+            message: optimistic,
+            isMine: true,
+            peerName: 'Aarav',
+            peerImageUrl: null,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Sending...'), findsOneWidget);
+    expect(find.text('Sent'), findsNothing);
+    expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+  });
 }

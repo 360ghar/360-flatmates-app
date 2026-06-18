@@ -378,11 +378,23 @@ class _MessageMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    // Optimistic bubbles (negative ids) are not yet confirmed by the backend,
+    // so they must show "Sending…" rather than a false "Sent" receipt.
+    final isPending = message.id < 0;
     final isRead = message.readAt != null;
-    final receipt = isRead ? locale.readReceiptRead : locale.readReceiptSent;
+    final receipt = isPending
+        ? locale.sendingLabel
+        : isRead
+        ? locale.readReceiptRead
+        : locale.readReceiptSent;
     final receiptColor = isRead
         ? AppSemanticColors.accent
         : AppSemanticColors.textSecondaryFor(theme.brightness);
+    final receiptIcon = isPending
+        ? Icons.schedule_rounded
+        : isRead
+        ? Icons.done_all_rounded
+        : Icons.done_rounded;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -396,11 +408,7 @@ class _MessageMeta extends StatelessWidget {
         ),
         if (isMine) ...[
           const SizedBox(width: 6),
-          Icon(
-            isRead ? Icons.done_all_rounded : Icons.done_rounded,
-            size: 14,
-            color: receiptColor,
-          ),
+          Icon(receiptIcon, size: 14, color: receiptColor),
           const SizedBox(width: 3),
           Text(
             receipt,

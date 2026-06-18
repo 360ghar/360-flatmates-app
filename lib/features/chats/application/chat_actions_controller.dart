@@ -10,6 +10,11 @@ class ChatActionsController {
 
   Future<void> blockUser(int peerId) async {
     await _repository.blockUser(peerId);
+    // Blocking removes the conversation and any pending likes from the peer,
+    // so refresh the lists the user returns to after blocking.
+    _ref.invalidate(conversationsProvider);
+    _ref.invalidate(incomingLikesProvider);
+    _ref.invalidate(outgoingLikesProvider);
   }
 
   Future<void> reportUser(int peerId, String reason) async {
@@ -18,6 +23,10 @@ class ChatActionsController {
 
   Future<void> unmatchConversation(int conversationId, int peerId) async {
     await _repository.unmatchConversation(conversationId, peerId);
+    // Unmatching drops the conversation; refresh so the stale row disappears.
+    _ref.invalidate(conversationsProvider);
+    _ref.invalidate(incomingLikesProvider);
+    _ref.invalidate(outgoingLikesProvider);
   }
 
   /// Matches an incoming like and refreshes likes + conversations.
