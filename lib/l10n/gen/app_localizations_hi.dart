@@ -3329,6 +3329,7 @@ class AppLocalizationsHi extends AppLocalizations {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   String get likeListingTooltip => 'अपनी पसंद में जोड़ें';
 
   @override
@@ -3400,4 +3401,46 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get notifAllDisabled => 'सभी सूचनाएं अक्षम कर दी गईं';
 >>>>>>> audit/settings
+=======
+  String get listingUpdatedToast => 'लिस्टिंग सफलतापूर्वक अपडेट हो गई।';
+
+  @override
+  String get discardListingTitle => 'बदलाव छोड़ें?';
+
+  @override
+  String get discardListingMessage =>
+      'आपके पास असहेजे गए बदलाव हैं। यदि आप अभी बाहर निकलते हैं, तो वे खो जाएंगे।';
+
+  @override
+  String get keepEditingCta => 'संपादन जारी रखें';
+
+  @override
+  String get discardCta => 'छोड़ें';
+
+  @override
+  String get couldNotLoadReviewStatus => 'समीक्षा स्थिति लोड नहीं हो सकी';
+
+  @override
+  String get removeVideoTourTooltip => 'वीडियो टूर हटाएं';
+
+  @override
+  String bedsCount(int count) {
+    return '$count बेड';
+  }
+
+  @override
+  String bathsCount(int count) {
+    return '$count बाथ';
+  }
+
+  @override
+  String sqftLabel(int count) {
+    return '$count वर्ग फुट';
+  }
+
+  @override
+  String shareListingText(String title, String rent, String location) {
+    return '360 फ्लैटमेट्स पर इस फ्लैट को देखें: $title ₹$rent/माह $location में';
+  }
+>>>>>>> audit/listings
 }

@@ -115,6 +115,20 @@ class ListingsRepository {
     return (data['id'] as num?)?.toInt();
   }
 
+  /// Updates an existing listing in place (PUT) so editing never creates a
+  /// duplicate. Returns the listing id on success.
+  Future<int?> updateListing(
+    int listingId,
+    ListingCreateRequest request,
+  ) async {
+    final response = await _ref
+        .watch(apiClientProvider)
+        .put(FlatmatesEndpoints.property(listingId), data: request.toJson());
+    final rawData = response.data;
+    final data = Map<String, dynamic>.from(rawData is Map ? rawData : const {});
+    return (data['id'] as num?)?.toInt() ?? listingId;
+  }
+
   Future<List<PropertyListing>> fetchMyListings() async {
     final response = await _ref
         .watch(apiClientProvider)

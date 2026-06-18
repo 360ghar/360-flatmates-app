@@ -17,14 +17,7 @@ import '../shared/presentation/components.dart';
 import 'listings_repository.dart';
 import 'presentation/widgets/listing_form_data.dart';
 import 'presentation/widgets/listing_step_header.dart';
-import 'presentation/widgets/listing_step_metadata.dart';
-import 'presentation/widgets/step_about_section.dart';
-import 'presentation/widgets/step_review_section.dart';
-import 'presentation/widgets/step_costs_section.dart';
-import 'presentation/widgets/step_flat_section.dart';
-import 'presentation/widgets/step_location_section.dart';
-import 'presentation/widgets/step_room_section.dart';
-import 'presentation/widgets/step_society_section.dart';
+import 'presentation/widgets/listing_step_view.dart';
 
 class CreateListingPage extends ConsumerStatefulWidget {
   const CreateListingPage({this.listingId, super.key});
@@ -38,12 +31,10 @@ class CreateListingPage extends ConsumerStatefulWidget {
 class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   int _step = 0;
   bool _submitting = false;
-  bool _showRentValidation = false;
-  bool _showPhotosValidation = false;
-  bool _showDepositValidation = false;
-  bool _showMaintenanceValidation = false;
-  bool _showCostValidation = false;
-  bool _showElectricityValidation = false;
+  bool _photosUploading = false;
+  bool _dirty = false;
+  bool _loadingExisting = false;
+  ListingStepValidation _validation = kNoListingValidation;
   final _societyController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
@@ -81,6 +72,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   void initState() {
     super.initState();
     if (widget.listingId != null) {
+      _loadingExisting = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadListingForEdit(widget.listingId!);
       });
@@ -88,22 +80,48 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   }
 
   Future<void> _loadListingForEdit(int listingId) async {
+    final locale = AppLocalizations.of(context);
     try {
       final listing = await ref
           .read(discoverRepositoryProvider)
           .fetchListing(listingId);
       if (!mounted) return;
+      final scalars = populateListingControllers(
+        listing: listing,
+        society: _societyController,
+        address: _addressController,
+        city: _cityController,
+        locality: _localityController,
+        rent: _rentController,
+        deposit: _depositController,
+        maintenance: _maintenanceController,
+        typicalDay: _typicalDayController,
+        floor: _floorController,
+        totalFloors: _totalFloorsController,
+        roomFeatures: _roomFeatures,
+        societyAmenities: _societyAmenities,
+        societyVibeTags: _societyVibeTags,
+        roomPhotoUrls: _roomPhotoUrls,
+        fallbackRoomType: _roomType,
+        fallbackSocietyType: _societyType,
+        fallbackGenderPreference: _genderPreference,
+      );
       setState(() {
-        _societyController.text = listing.title;
-        _cityController.text = listing.city ?? '';
-        _localityController.text = listing.locality ?? '';
-        _rentController.text = listing.monthlyRent.toStringAsFixed(0);
-        _availableFrom = listing.availableFrom;
+        _roomType = scalars.roomType;
+        _societyType = scalars.societyType;
+        _genderPreference = scalars.genderPreference;
+        _flatConfig = scalars.flatConfig;
+        _videoTourUrl = scalars.videoTourUrl;
+        _availableFrom = scalars.availableFrom;
+        _loadingExisting = false;
       });
     } catch (e) {
       debugPrint(
         'CreateListingPage._loadListingForEdit failed for listing $listingId: $e',
       );
+      if (!mounted) return;
+      setState(() => _loadingExisting = false);
+      FlatmatesToast.error(context, locale.couldNotLoadListings);
     }
   }
 
@@ -148,87 +166,69 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     super.dispose();
   }
 
-  bool _canProceed() {
-    return switch (_step) {
-      0 =>
-        _societyController.text.trim().isNotEmpty &&
-            _cityController.text.trim().isNotEmpty &&
-            _localityController.text.trim().isNotEmpty,
-      1 => true,
-      2 => true,
-      3 => _roomPhotoUrls.length >= 2,
-      4 => true,
-      5 =>
-        _rentController.text.trim().isNotEmpty &&
-            double.tryParse(_rentController.text.trim()) != null &&
-            (_electricityIncluded != 'separate' ||
-                (_electricityEstController.text.trim().isNotEmpty &&
-                    double.tryParse(_electricityEstController.text.trim()) !=
-                        null)),
-      6 => true,
-      7 => true,
-      _ => false,
-    };
-  }
-
-  double get _totalMonthlyOutflow {
-    final rent = double.tryParse(_rentController.text.trim()) ?? 0;
-    final maintenance =
-        double.tryParse(_maintenanceController.text.trim()) ?? 0;
-    final electricity = _electricityIncluded == 'separate'
-        ? (double.tryParse(_electricityEstController.text.trim()) ?? 0)
-        : 0;
-    final cook = double.tryParse(_cookCostController.text.trim()) ?? 0;
-    final maid = double.tryParse(_maidCostController.text.trim()) ?? 0;
-    return rent + maintenance + electricity + cook + maid;
-  }
-
   Future<void> _pickRoomPhotos() async {
+    if (_photosUploading) return; // prevent concurrent upload sessions
     final locale = AppLocalizations.of(context);
     try {
       final service = ref.read(imageUploadServiceProvider);
       final files = await service.pickImages(limit: 10 - _roomPhotoUrls.length);
       if (files.isEmpty) return;
+      setState(() => _photosUploading = true);
       for (final file in files) {
         final result = await service.uploadListingPhoto(file);
+        if (!mounted) return;
         if (result is UploadSuccess) {
           setState(() {
             _roomPhotoUrls.add(result.url);
-            _showPhotosValidation = false;
+            _validation = kNoListingValidation;
+            _dirty = true;
           });
         } else if (result is UploadFailure) {
-          if (!mounted) return;
           FlatmatesToast.error(context, result.reason);
           break;
         }
       }
     } catch (e) {
+      debugPrint('CreateListingPage._pickRoomPhotos failed: $e');
       if (!mounted) return;
       final msg = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.listingSubmitFailed;
       FlatmatesToast.error(context, msg);
+    } finally {
+      if (mounted) setState(() => _photosUploading = false);
     }
   }
 
   Future<void> _submit() async {
+    if (_submitting) return; // guard against double-submit
     final locale = AppLocalizations.of(context);
     setState(() => _submitting = true);
+    final editingId = widget.listingId;
     try {
       final request = _formData.toRequest();
-      final listingId = await ref
-          .read(listingsRepositoryProvider)
-          .createListing(request);
+      final repo = ref.read(listingsRepositoryProvider);
+      final listingId = editingId != null
+          ? await repo.updateListing(editingId, request)
+          : await repo.createListing(request);
       unawaited(ref.read(discoverFeedControllerProvider.notifier).refresh());
+      ref.invalidate(myListingsProvider);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;
-      FlatmatesToast.success(context, locale.postListingSuccess);
+      _dirty = false;
+      FlatmatesToast.success(
+        context,
+        editingId != null
+            ? locale.listingUpdatedToast
+            : locale.postListingSuccess,
+      );
       if (listingId != null) {
         context.go('/listing-review/$listingId');
       } else {
         context.go('/discover');
       }
     } catch (error) {
+      debugPrint('CreateListingPage._submit failed: $error');
       if (!mounted) return;
       final msg = error is AppFailure
           ? error.userMessage(locale.toUserMessageL10n())
@@ -239,206 +239,202 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     }
   }
 
+  /// Confirms discarding unsaved entries when the user backs out mid-flow.
+  Future<bool> _confirmDiscard() async {
+    if (!_dirty || _submitting) return true;
+    final locale = AppLocalizations.of(context);
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(locale.discardListingTitle),
+        content: Text(locale.discardListingMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(locale.keepEditingCta),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(locale.discardCta),
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
+
   void _clearValidationFlags() {
-    _showRentValidation = false;
-    _showPhotosValidation = false;
-    _showDepositValidation = false;
-    _showMaintenanceValidation = false;
-    _showCostValidation = false;
-    _showElectricityValidation = false;
+    _validation = kNoListingValidation;
+  }
+
+  Future<void> _handleBack() async {
+    if (await _confirmDiscard()) {
+      if (!mounted) return;
+      context.pop();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final summary = _formData.stepSummary(locale, _step, _catalogLabel);
+    final canAdvance = _formData.canProceed(_step) && !_photosUploading;
 
-    return Scaffold(
-      appBar: FlatmatesHeader.logo(onBack: () => Navigator.pop(context)),
-      body: SafeArea(
-        child: Column(
-          children: [
-            ListingStepHeader(
-              locale: locale,
-              step: _step,
-              totalSteps: totalSteps,
-              summary: summary,
-            ),
-            const SizedBox(height: AppSpacing.lg),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        appBar: FlatmatesHeader.logo(onBack: _handleBack),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  ListingStepHeader(
+                    locale: locale,
+                    step: _step,
+                    totalSteps: totalSteps,
+                    summary: summary,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
 
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                children: [_buildStep(_step)],
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screen,
+                        0,
+                        AppSpacing.screen,
+                        AppSpacing.section * 4 + AppSpacing.sm,
+                      ),
+                      children: [
+                        ListingStepView(
+                          step: _step,
+                          data: _formData,
+                          catalog: _catalog,
+                          catalogLabel: _catalogLabel,
+                          showRentValidation: _validation.rent,
+                          showDepositValidation: _validation.deposit,
+                          showMaintenanceValidation: _validation.maintenance,
+                          showCostValidation: _validation.cost,
+                          showElectricityValidation: _validation.electricity,
+                          showPhotosValidation: _validation.photos,
+                          callbacks: _stepCallbacks,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              if (_loadingExisting)
+                const Positioned.fill(
+                  child: ColoredBox(
+                    color: Colors.black12,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: FlatmatesBottomActionBar(
-        primaryButtonKey: _step < totalSteps - 1
-            ? const Key('listing_next_button')
-            : const Key('listing_publish_button'),
-        secondaryButtonKey: _step > 0 ? const Key('listing_back_button') : null,
-        label: _submitting
-            ? locale.postingInProgress
-            : (_step < totalSteps - 1
-                  ? locale.onboardingNext
-                  : locale.publishListingCta),
-        onPressed: _submitting
-            ? null
-            : (_step < totalSteps - 1
-                  ? (_canProceed()
-                        ? () {
-                            _showInlineValidation();
-                            setState(() {
-                              _step++;
-                              _clearValidationFlags();
-                            });
-                          }
-                        : () {
-                            _showInlineValidation();
-                            setState(() {});
-                          })
-                  : _submit),
-        icon: _step < totalSteps - 1
-            ? Icons.arrow_forward_rounded
-            : Icons.upload_rounded,
-        secondaryLabel: _step > 0 ? locale.backCta : null,
-        secondaryOnPressed: _step > 0
-            ? () => setState(() {
-                _step--;
-                _clearValidationFlags();
-              })
-            : null,
-        secondaryIcon: _step > 0 ? Icons.arrow_back_rounded : null,
+        bottomNavigationBar: FlatmatesBottomActionBar(
+          primaryButtonKey: _step < totalSteps - 1
+              ? const Key('listing_next_button')
+              : const Key('listing_publish_button'),
+          secondaryButtonKey: _step > 0
+              ? const Key('listing_back_button')
+              : null,
+          label: _submitting
+              ? locale.postingInProgress
+              : (_step < totalSteps - 1
+                    ? locale.onboardingNext
+                    : locale.publishListingCta),
+          onPressed: _submitting
+              ? null
+              : (_step < totalSteps - 1
+                    ? (canAdvance
+                          ? () {
+                              _showInlineValidation();
+                              setState(() {
+                                _step++;
+                                _clearValidationFlags();
+                              });
+                            }
+                          : () {
+                              _showInlineValidation();
+                              setState(() {});
+                            })
+                    : _submit),
+          icon: _step < totalSteps - 1
+              ? Icons.arrow_forward_rounded
+              : Icons.upload_rounded,
+          secondaryLabel: _step > 0 ? locale.backCta : null,
+          secondaryOnPressed: _step > 0
+              ? () => setState(() {
+                  _step--;
+                  _clearValidationFlags();
+                })
+              : null,
+          secondaryIcon: _step > 0 ? Icons.arrow_back_rounded : null,
+        ),
       ),
     );
   }
 
   void _showInlineValidation() {
-    _clearValidationFlags();
-    if (_step == 3 && _roomPhotoUrls.isEmpty) {
-      _showPhotosValidation = true;
-    }
-    if (_step == 5) {
-      if (_rentController.text.trim().isEmpty) _showRentValidation = true;
-      if (_electricityIncluded == 'separate') {
-        final estText = _electricityEstController.text.trim();
-        if (estText.isEmpty || double.tryParse(estText) == null) {
-          _showElectricityValidation = true;
-        }
-      }
-      final depositText = _depositController.text.trim();
-      if (depositText.isNotEmpty && double.tryParse(depositText) == null) {
-        _showDepositValidation = true;
-      }
-      final maintenanceText = _maintenanceController.text.trim();
-      if (maintenanceText.isNotEmpty &&
-          double.tryParse(maintenanceText) == null) {
-        _showMaintenanceValidation = true;
-      }
-      final cookText = _cookCostController.text.trim();
-      if (cookText.isNotEmpty && double.tryParse(cookText) == null) {
-        _showCostValidation = true;
-      }
-      final maidText = _maidCostController.text.trim();
-      if (maidText.isNotEmpty && double.tryParse(maidText) == null) {
-        _showCostValidation = true;
-      }
-    }
+    _validation = computeStepValidation(_formData, _step);
   }
 
-  Widget _buildStep(int step) => switch (step) {
-    0 => StepLocationSection(
-      societyController: _societyController,
-      addressController: _addressController,
-      cityController: _cityController,
-      localityController: _localityController,
-      onChanged: () => setState(() {}),
-    ),
-    1 => StepSocietySection(
-      societyType: _societyType,
-      societyAmenities: _societyAmenities,
-      societyVibeTags: _societyVibeTags,
-      catalog: _catalog,
-      iconForOption: listingIconForOption,
-      onSocietyTypeChanged: (v) => setState(() => _societyType = v),
-      onAmenityToggled: _toggleSet(_societyAmenities),
-      onVibeToggled: _toggleSet(_societyVibeTags),
-    ),
-    2 || 3 => StepRoomSection(
-      step: step,
-      roomType: _roomType,
-      roomFurnishing: _roomFurnishing,
-      roomFeatures: _roomFeatures,
-      roomPhotoUrls: _roomPhotoUrls,
-      videoTourUrl: _videoTourUrl,
-      videoUploading: _videoUploading,
-      showPhotosValidation: _showPhotosValidation,
-      catalog: _catalog,
-      iconForOption: listingIconForOption,
-      onRoomTypeChanged: (v) => setState(() => _roomType = v),
-      onFurnishingToggled: _toggleSet(_roomFurnishing),
-      onFeatureToggled: _toggleSet(_roomFeatures),
-      onPickPhotos: _pickRoomPhotos,
-      onRemovePhoto: (i) => setState(() => _roomPhotoUrls.removeAt(i)),
-      onVideoTourUrlChanged: (u) => setState(() => _videoTourUrl = u),
-      onVideoUploadingChanged: (v) => setState(() => _videoUploading = v),
-    ),
-    4 => StepFlatSection(
-      flatConfig: _flatConfig,
-      floorController: _floorController,
-      totalFloorsController: _totalFloorsController,
-      flatAmenities: _flatAmenities,
-      catalog: _catalog,
-      iconForOption: listingIconForOption,
-      onFlatConfigChanged: (v) => setState(() => _flatConfig = v),
-      onAmenityToggled: _toggleSet(_flatAmenities),
-    ),
-    5 => StepCostsSection(
-      rentController: _rentController,
-      depositController: _depositController,
-      maintenanceController: _maintenanceController,
-      electricityIncluded: _electricityIncluded,
-      electricityEstController: _electricityEstController,
-      cookCostController: _cookCostController,
-      maidCostController: _maidCostController,
-      setupCostController: _setupCostController,
-      showRentValidation: _showRentValidation,
-      showDepositValidation: _showDepositValidation,
-      showMaintenanceValidation: _showMaintenanceValidation,
-      showCostValidation: _showCostValidation,
-      showElectricityValidation: _showElectricityValidation,
-      totalMonthlyOutflow: _totalMonthlyOutflow,
-      flatConfig: _flatConfig,
-      onElectricityChanged: (v) => setState(() => _electricityIncluded = v),
-      onChanged: () => setState(() {}),
-    ),
-    6 => StepAboutSection(
-      typicalDayController: _typicalDayController,
-      genderPreference: _genderPreference,
-      ageMin: _ageMin,
-      ageMax: _ageMax,
-      nonNegotiables: _nonNegotiables,
-      availableFrom: _availableFrom,
-      catalog: _catalog,
-      onGenderChanged: (v) => setState(() => _genderPreference = v),
-      onAgeRangeChanged: (min, max) => setState(() {
-        _ageMin = min;
-        _ageMax = max;
-      }),
-      onNonNegotiableToggled: _toggleSet(_nonNegotiables),
-      onAvailableFromChanged: (d) => setState(() => _availableFrom = d),
-    ),
-    7 => StepReviewSection(
-      data: _formData,
-      catalogLabel: _catalogLabel,
-      totalMonthlyOutflow: _totalMonthlyOutflow,
-      onGoToStep: (s) => setState(() => _step = s),
-    ),
-    _ => const SizedBox.shrink(),
-  };
+  ListingStepCallbacks get _stepCallbacks => ListingStepCallbacks(
+    onFieldChanged: _onFieldChanged,
+    onSocietyTypeChanged: (v) => setState(() {
+      _societyType = v;
+      _dirty = true;
+    }),
+    onSocietyAmenityToggled: _toggleSet(_societyAmenities),
+    onVibeToggled: _toggleSet(_societyVibeTags),
+    onRoomTypeChanged: (v) => setState(() {
+      _roomType = v;
+      _dirty = true;
+    }),
+    onFurnishingToggled: _toggleSet(_roomFurnishing),
+    onFeatureToggled: _toggleSet(_roomFeatures),
+    onPickPhotos: _pickRoomPhotos,
+    onRemovePhoto: (i) => setState(() {
+      _roomPhotoUrls.removeAt(i);
+      _dirty = true;
+    }),
+    onVideoTourUrlChanged: (u) => setState(() {
+      _videoTourUrl = u;
+      _dirty = true;
+    }),
+    onVideoUploadingChanged: (v) => setState(() => _videoUploading = v),
+    onFlatConfigChanged: (v) => setState(() {
+      _flatConfig = v;
+      _dirty = true;
+    }),
+    onFlatAmenityToggled: _toggleSet(_flatAmenities),
+    onElectricityChanged: (v) => setState(() {
+      _electricityIncluded = v;
+      _dirty = true;
+    }),
+    onGenderChanged: (v) => setState(() {
+      _genderPreference = v;
+      _dirty = true;
+    }),
+    onAgeRangeChanged: (min, max) => setState(() {
+      _ageMin = min;
+      _ageMax = max;
+      _dirty = true;
+    }),
+    onNonNegotiableToggled: _toggleSet(_nonNegotiables),
+    onAvailableFromChanged: (d) => setState(() {
+      _availableFrom = d;
+      _dirty = true;
+    }),
+    onGoToStep: (s) => setState(() => _step = s),
+  );
 
   ListingFormData get _formData => ListingFormData(
     societyController: _societyController,
@@ -474,9 +470,13 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     availableFrom: _availableFrom,
   );
 
+  /// Marks the form dirty when a text field changes (drives the back guard).
+  void _onFieldChanged() => setState(() => _dirty = true);
+
   /// Helper to create a toggle callback for a `Set`.
   void Function(String, bool) _toggleSet(Set<String> set) =>
       (key, selected) => setState(() {
         selected ? set.add(key) : set.remove(key);
+        _dirty = true;
       });
 }

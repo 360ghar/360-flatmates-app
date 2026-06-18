@@ -444,7 +444,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
                   Icons.delete_outline_rounded,
                   color: AppSemanticColors.error,
                 ),
-                tooltip: 'Remove video tour',
+                tooltip: locale.removeVideoTourTooltip,
               ),
             ],
           )
@@ -511,14 +511,20 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
     }
 
     widget.onVideoUploadingChanged(true);
-    final result = await service.uploadVideoTour(file);
+    final UploadResult result;
+    try {
+      result = await service.uploadVideoTour(file);
+    } catch (e) {
+      debugPrint('StepRoomSection._pickVideoTour failed: $e');
+      if (mounted) widget.onVideoUploadingChanged(false);
+      return;
+    }
+    if (!mounted) return;
     if (result is UploadSuccess) {
       widget.onVideoTourUrlChanged(result.url);
     } else if (result is UploadFailure) {
       widget.onVideoTourUrlChanged(null);
-      if (mounted) {
-        FlatmatesToast.error(context, result.reason);
-      }
+      FlatmatesToast.error(context, result.reason);
     }
     widget.onVideoUploadingChanged(false);
   }

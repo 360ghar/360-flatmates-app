@@ -180,7 +180,7 @@ class ManageListingPage extends ConsumerWidget {
                                     currentlyPaused,
                                   ),
                               onShare: () => Share.share(
-                                'Check out this flat on 360 FlatMates: ${listing.title} at ₹${listing.monthlyRent.toStringAsFixed(0)}/mo in ${listing.locality ?? listing.city ?? ""}\n${DeepLinkService.listingUrl(listing.id)}',
+                                '${locale.shareListingText(listing.title, listing.monthlyRent.toStringAsFixed(0), listing.locality ?? listing.city ?? '')}\n${DeepLinkService.listingUrl(listing.id)}',
                               ),
                               onCopyLink: () => _copyLink(context, listing.id),
                               onEdit: () => context.push(
@@ -202,8 +202,10 @@ class ManageListingPage extends ConsumerWidget {
                     );
                   },
                   loading: () => const FlatmatesSkeleton.manageListings(),
-                  error: (e, _) =>
-                      FlatmatesErrorState(message: locale.couldNotLoadListings),
+                  error: (e, _) => FlatmatesErrorState(
+                    message: locale.couldNotLoadListings,
+                    onRetry: () => ref.invalidate(myListingsProvider),
+                  ),
                 ),
               ),
             ],

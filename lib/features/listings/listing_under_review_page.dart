@@ -425,8 +425,11 @@ class _ListingUnderReviewPageState
           );
         },
         loading: () => const FlatmatesSkeleton.feed(itemCount: 2),
-        error: (e, _) =>
-            const FlatmatesErrorState(message: 'Could not load review status'),
+        error: (e, _) => FlatmatesErrorState(
+          message: AppLocalizations.of(context).couldNotLoadReviewStatus,
+          onRetry: () =>
+              ref.invalidate(listingReviewProvider(widget.listingId)),
+        ),
       ),
     );
   }
