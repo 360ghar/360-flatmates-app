@@ -63,7 +63,15 @@ class _MessageListState extends State<MessageList> with WidgetsBindingObserver {
   void didUpdateWidget(MessageList oldWidget) {
     super.didUpdateWidget(oldWidget);
     final count = widget.messagesState.displayMessages.length;
-    if (count != _lastMessageCount) {
+    // Detect a conversation switch: even if the message count is unchanged,
+    // a different thread must be re-pinned to the bottom so the user lands on
+    // the newest message instead of inheriting the previous thread's offset.
+    final conversationChanged =
+        widget.conversation?.id != oldWidget.conversation?.id;
+    if (conversationChanged) {
+      _lastMessageCount = count;
+      _scrollToBottom(animated: false);
+    } else if (count != _lastMessageCount) {
       // A message arrived (live, optimistic, or refetch) or the thread loaded:
       // pin the view to the newest message at the bottom.
       _scrollToBottom(animated: _lastMessageCount > 0);

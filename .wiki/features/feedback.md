@@ -12,7 +12,7 @@ The feedback feature provides an in-app form for users to submit bug reports and
 |------------|------|-------------|
 | `FeedbackType` | `lib/features/feedback/domain/feedback_model.dart` | Enum: `bug` or `feature` |
 | `BugReportRequest` | `lib/features/feedback/domain/feedback_model.dart` | Freezed request body model with source, bugType, severity, title, description, optional appVersion/deviceInfo/tags |
-| `FeedbackController` | `lib/features/feedback/application/feedback_controller.dart` | Notifier wrapping the API call |
+| `FeedbackController` | `lib/features/feedback/application/feedback_controller.dart` | Plain class wrapping the API call |
 | `FeedbackFormPage` | `lib/features/feedback/presentation/feedback_form_page.dart` | UI page with title/description/severity fields |
 
 ## How it works

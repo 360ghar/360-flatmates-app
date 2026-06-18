@@ -38,8 +38,8 @@ sequenceDiagram
     participant API as Backend API
     participant AC as AuthController
 
-    BC->>API: GET /bootstrap
-    BC->>API: GET /users/me/auth-state
+    BC->>API: GET /flatmates/bootstrap
+    BC->>API: GET /users/me/auth-state?app=flatmates
     API-->>BC: BootstrapData JSON
     API-->>BC: AuthState JSON (stage + missing_fields)
     BC->>AC: updateGateStage(stage, missingFields)

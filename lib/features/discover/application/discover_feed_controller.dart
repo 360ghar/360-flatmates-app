@@ -203,8 +203,12 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         filters: state.filters,
       );
       // A filter change during the refresh wins: discard this result and let
-      // the filter-driven load() repopulate the feed.
-      if (myVersion != _filterVersion) return;
+      // the filter-driven load() repopulate the feed. Clear the refreshing
+      // flag so the UI doesn't stay stuck in the loading state.
+      if (myVersion != _filterVersion) {
+        state = state.copyWith(isRefreshing: false);
+        return;
+      }
       state = state.copyWith(
         listings: page.items,
         fetchedCount: page.rawCount,

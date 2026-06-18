@@ -6,8 +6,8 @@ This guide covers setting up the 360 FlatMates Flutter project for local develop
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| Flutter | 3.35.2 | Pinned via FVM (see `.fvmrc`) |
-| Dart SDK | ^3.11.0 | Bundled with Flutter |
+| Flutter | 3.41.9 | Pinned via FVM (see `.fvmrc`) |
+| Dart SDK | ^3.9.0 | Bundled with Flutter |
 | Xcode | Latest stable | Required for iOS builds and Simulator |
 | Android Studio | Latest stable | Required for Android builds and emulator |
 | Node.js | 18+ | For `serve-sim` and `npx` commands |
@@ -30,7 +30,7 @@ Edit `.env` with the required values:
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_PUBLISHABLE_KEY` | Supabase anon/publishable key |
 | `API_BASE_URL` | Backend API base URL (e.g. `http://localhost:8000/api/v1`) |
-| `GOOGLE_MAPS_API_KEY` | Google Maps SDK key |
+| `GOOGLE_PLACES_API_KEY` | Google Places API key for location search autocomplete |
 
 ### 2. Install dependencies
 
@@ -123,7 +123,7 @@ dart fix --apply lib/
 
 The GitHub Actions workflow (`.github/workflows/quality.yml`) runs on every push and PR:
 
-1. `dart format --set-exit-if-changed` -- formatting gate
+1. `dart format --set-exit-if-changed .` -- formatting gate
 2. `flutter analyze --fatal-infos` -- static analysis
 3. `flutter gen-l10n` -- ensure generated l10n is up to date
 4. `flutter test` -- unit tests

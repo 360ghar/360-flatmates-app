@@ -44,12 +44,29 @@ jobs:
                       content = fh.read()
                   def rewrite_link(m):
                       text = m.group(1)
-                      path = m.group(2)
-                      if path.endswith('.md') and not path.startswith('http') and '/' not in path:
-                          return '[' + text + '](' + prefix + path + ')'
-                      elif path.endswith('.md') and not path.startswith('http'):
-                          return '[' + text + '](' + path.replace('/', '--') + ')'
-                      return m.group(0)
+                      raw = m.group(2)
+                      # Leave external links and pure anchors untouched.
+                      if raw.startswith(('http', '#', 'mailto:')):
+                          return m.group(0)
+                      # Split off any trailing #anchor so it doesn't break
+                      # the .md check, then reattach after rewriting.
+                      link, sep, anchor = raw.partition('#')
+                      anchor = sep + anchor
+                      if not link.endswith('.md'):
+                          return m.group(0)
+                      base_dir = rel.rsplit('/', 1)[0] + '/' if '/' in rel else ''
+                      if link.startswith(('../', './')):
+                          # Resolve parent/self refs against this file's dir,
+                          # then flatten. Avoids broken names like '..--lore.md'.
+                          resolved = os.path.normpath(base_dir + link)
+                          flat = resolved.replace('/', '--')
+                      elif '/' in link:
+                          # Root-relative path inside .wiki/
+                          flat = link.replace('/', '--')
+                      else:
+                          # Same-directory filename.
+                          flat = (prefix + link) if prefix else link
+                      return '[' + text + '](' + flat + anchor + ')'
                   content = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', rewrite_link, content)
                   with open(dst, 'w') as fh:
                       fh.write(content)

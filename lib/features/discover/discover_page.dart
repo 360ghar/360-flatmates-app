@@ -91,9 +91,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   /// Toggles the like for [item] via the controller's optimistic path (the
   /// heart flips instantly and rolls back on failure) instead of issuing a
-  /// raw like + full feed refetch. `conversationsProvider` invalidation and
-  /// the success toast are handled inside the controller / here only for the
-  /// newly-liked case.
+  /// raw like + full feed refetch. `conversationsProvider` invalidation is
+  /// handled inside the controller; the success toast is shown here for both
+  /// the newly-liked and newly-unliked cases.
   Future<void> _handleLike(PropertyListing item) async {
     final locale = AppLocalizations.of(context);
     final wasLiked = item.liked ?? false;

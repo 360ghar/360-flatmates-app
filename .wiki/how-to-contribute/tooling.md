@@ -4,7 +4,7 @@ CLI tools and utilities used in the 360 FlatMates development workflow.
 
 ## FVM (Flutter Version Management)
 
-The project pins Flutter 3.35.2 via FVM (see `.fvmrc`). FVM ensures all developers use the same Flutter version.
+The project pins Flutter 3.41.9 via FVM (see `.fvmrc`). FVM ensures all developers use the same Flutter version.
 
 ```bash
 # Install FVM
@@ -118,8 +118,7 @@ This runs as part of the local quality check workflow and catches architecture v
 [Maestro](https://maestro.mobile.dev/) drives end-to-end flows on real devices or simulators:
 
 ```bash
-maestro test .maestro/flatmates_e2e.yaml
-maestro test maestro/e2e.yaml
+maestro test .maestro/full_e2e.yaml
 ```
 
 Requires environment variables `MAESTRO_PHONE` and `MAESTRO_PASSWORD` for authentication.

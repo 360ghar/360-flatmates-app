@@ -1,10 +1,10 @@
 # 360 FlatMates overview
 
-360 FlatMates is a Flutter mobile client for flatmate-finding in India. It helps users find flats and flatmates through listing discovery, compatibility-based swiping, real-time chat, and visit scheduling. The app uses Flutter 3.35+, Supabase for authentication, and a FastAPI backend monolith for all business logic and storage.
+360 FlatMates is a Flutter mobile client for flatmate-finding in India. It helps users find flats and flatmates through listing discovery, compatibility-based swiping, real-time chat, and visit scheduling. The app uses Flutter 3.41+, Supabase for authentication, and a FastAPI backend monolith for all business logic and storage.
 
 ## Tech stack
 
-- **Language**: Dart 3.11+, Flutter 3.35+
+- **Language**: Dart 3.9+, Flutter 3.41+
 - **State management**: Riverpod (NotifierProvider, AsyncNotifierProvider, FamilyNotifier, FutureProvider)
 - **Routing**: GoRouter with StatefulShellRoute.indexedStack (7 branches, 5 visible tabs)
 - **Backend**: FastAPI monolith at `../backend`

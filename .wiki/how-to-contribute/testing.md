@@ -27,7 +27,7 @@ The project uses `package:flutter_lints/flutter.yaml` with 23 additional strict 
 | `prefer_const_literals_to_create_immutables` | Missing `const` on list/map/set literals |
 | `unawaited_futures` | Fire-and-forget async calls without `unawaited()` |
 | `avoid_print` | Use `debugPrint()` instead of `print()` |
-| `avoid_dynamic` | Use typed parameters instead of `dynamic` |
+| `avoid_dynamic_calls` | Avoid calling methods on `dynamic` values |
 | `prefer_final_locals` | Use `final` for local variables |
 | `prefer_single_quotes` | Use single quotes for strings |
 
@@ -79,8 +79,7 @@ export MAESTRO_PASSWORD="<test-password>"
 ### Running E2E tests
 
 ```bash
-maestro test .maestro/flatmates_e2e.yaml
-maestro test maestro/e2e.yaml
+maestro test .maestro/full_e2e.yaml
 ```
 
 ### When to update Maestro flows
