@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../chats/application/cursor_list_controller.dart';
 import '../data/payments_api.dart';
 import '../data/payment_method_dto.dart';
-import '../data/razorpay_order_dto.dart';
 import '../domain/payment_method.dart';
 import '../domain/razorpay_order.dart';
 

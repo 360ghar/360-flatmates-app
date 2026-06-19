@@ -13,8 +13,8 @@ import '../../shared/presentation/flatmates_empty_state.dart';
 import '../../shared/presentation/flatmates_header.dart';
 import '../../shared/presentation/flatmates_network_image.dart';
 import '../../shared/presentation/flatmates_skeleton.dart';
-import 'application/blog_controller.dart';
-import 'domain/blog_post.dart';
+import '../application/blog_controller.dart';
+import '../domain/blog_post.dart';
 
 /// Public blog index. Cursor-paginated via the cursor controller; tap a
 /// card to navigate to `/blog/post/:id`.
@@ -224,13 +224,15 @@ class _StatusBadge extends StatelessWidget {
       _ => AppSemanticColors.yellowMid,
     };
     final bg = switch (status) {
-      BlogPostStatus.published => AppSemanticColors.greenSoftFor(
-          theme.brightness,
-        ),
-      BlogPostStatus.scheduled => AppSemanticColors.blueSoftFor(
-          theme.brightness,
-        ),
-      _ => AppSemanticColors.yellowSoftFor(theme.brightness),
+      BlogPostStatus.published => theme.brightness == Brightness.dark
+          ? AppSemanticColors.greenSoftDark
+          : AppSemanticColors.greenSoft,
+      BlogPostStatus.scheduled => theme.brightness == Brightness.dark
+          ? AppSemanticColors.blueSoftDark
+          : AppSemanticColors.blueSoft,
+      _ => theme.brightness == Brightness.dark
+          ? AppSemanticColors.yellowSoftDark
+          : AppSemanticColors.yellowSoft,
     };
     return Container(
       padding: const EdgeInsets.symmetric(

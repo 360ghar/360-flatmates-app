@@ -12,8 +12,8 @@ import '../../shared/presentation/flatmates_error_state.dart';
 import '../../shared/presentation/flatmates_header.dart';
 import '../../shared/presentation/flatmates_network_image.dart';
 import '../../shared/presentation/flatmates_skeleton.dart';
-import 'application/blog_controller.dart';
-import 'domain/blog_post.dart';
+import '../application/blog_controller.dart';
+import '../domain/blog_post.dart';
 
 /// Renders a single blog post.
 ///
@@ -196,7 +196,9 @@ class _PreviewBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppSemanticColors.yellowSoftFor(theme.brightness),
+        color: theme.brightness == Brightness.dark
+            ? AppSemanticColors.yellowSoftDark
+            : AppSemanticColors.yellowSoft,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

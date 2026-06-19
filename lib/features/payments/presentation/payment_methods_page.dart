@@ -10,8 +10,8 @@ import '../../shared/presentation/flatmates_empty_state.dart';
 import '../../shared/presentation/flatmates_header.dart';
 import '../../shared/presentation/flatmates_skeleton.dart';
 import '../../shared/presentation/flatmates_toast.dart';
-import 'application/payments_controller.dart';
-import 'domain/payment_method.dart';
+import '../application/payments_controller.dart';
+import '../domain/payment_method.dart';
 import 'payment_method_tile.dart';
 
 /// Lists the user's saved payment methods. Backed by

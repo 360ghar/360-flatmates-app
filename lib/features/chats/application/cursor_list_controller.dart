@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../chats_repository.dart';
-import 'chat_actions_controller.dart';
 
 /// Generic controller base for cursor-paginated list endpoints.
 ///
@@ -212,14 +211,11 @@ final outgoingLikesListControllerProvider = NotifierProvider<
 /// affected entries without a full reload. This helper invalidates the
 /// shared cursor controllers so the next tab activation triggers a fresh
 /// first-page fetch while preserving optimistic removal.
-void invalidateChatListControllers(WidgetRef ref) {
+///
+/// Accepts a Riverpod [Ref] so it can be called from controllers (where
+/// only `ref` is available, not `WidgetRef`).
+void invalidateChatListControllers(Ref ref) {
   ref.invalidate(conversationsListControllerProvider);
   ref.invalidate(incomingLikesListControllerProvider);
   ref.invalidate(outgoingLikesListControllerProvider);
-}
-
-// Re-export to keep the public surface in one place for ChatActionsController.
-class ChatActionsControllerRefHolder {
-  ChatActionsControllerRefHolder(this.ref);
-  final WidgetRef ref;
 }

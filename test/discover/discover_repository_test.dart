@@ -26,10 +26,13 @@ void main() {
           ..responseBody =
               '''
 {
-  "properties": [
+  "items": [
     {"id": 1, "title": "This month", "available_from": "$thisMonth", "is_available": true},
     {"id": 2, "title": "Next month", "available_from": "$nextMonth", "is_available": true}
-  ]
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "limit": 20
 }
 ''';
         final apiClient = ApiClient(

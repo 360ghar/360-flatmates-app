@@ -31,6 +31,7 @@ void main() {
               return MessageList(
                 messagesState: MessagesState(messages: messages),
                 currentUserId: 1,
+                conversationId: 3,
                 conversation: null,
                 visitsAsync: const AsyncValue.data(<VisitItem>[]),
                 onConfirmVisit: (_) {},

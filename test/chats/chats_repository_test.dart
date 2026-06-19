@@ -15,25 +15,30 @@ void main() {
   group('ChatsRepository', () {
     test('fetchIncomingLikes reads backend likes payload', () async {
       final adapter = _CapturingAdapter(
-        responseBody: [
-          {
-            'id': 7,
-            'peer': {
-              'id': 44,
-              'full_name': 'Incoming User',
-              'profile_image_url': 'https://example.com/p.jpg',
-              'mode': 'seeker',
-              'city': 'Gurugram',
-              'match_percentage': 91,
+        responseBody: {
+          'items': [
+            {
+              'id': 7,
+              'peer': {
+                'id': 44,
+                'full_name': 'Incoming User',
+                'profile_image_url': 'https://example.com/p.jpg',
+                'mode': 'seeker',
+                'city': 'Gurugram',
+                'match_percentage': 91,
+              },
+              'context_property': {
+                'id': 99,
+                'title': 'Sunny room',
+                'monthly_rent': 18000,
+              },
+              'created_at': '2026-05-07T08:30:00Z',
             },
-            'context_property': {
-              'id': 99,
-              'title': 'Sunny room',
-              'monthly_rent': 18000,
-            },
-            'created_at': '2026-05-07T08:30:00Z',
-          },
-        ],
+          ],
+          'next_cursor': null,
+          'has_more': false,
+          'limit': 20,
+        },
       );
       final apiClient = ApiClient(
         baseUrl: 'https://api.test.example.com',

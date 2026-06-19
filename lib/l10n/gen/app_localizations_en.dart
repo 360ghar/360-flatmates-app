@@ -3457,4 +3457,135 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discardChanges => 'Discard';
+
+  @override
+  String get loadMoreCta => 'Load more';
+
+  @override
+  String get loadOlderCta => 'Load older';
+
+  @override
+  String get startOfConversation =>
+      'You\'ve reached the start of this conversation';
+
+  @override
+  String get noMoreListingsLabel => 'You\'ve seen all the matches.';
+
+  @override
+  String get noMoreVisitsLabel => 'No more visits to show.';
+
+  @override
+  String get noMoreNotificationsLabel => 'You\'re all caught up.';
+
+  @override
+  String get noMoreBlogPostsLabel => 'No more posts.';
+
+  @override
+  String get noMoreBlockedUsersLabel => 'No more blocked users.';
+
+  @override
+  String get paymentMethodsTitle => 'Payment Methods';
+
+  @override
+  String get paymentMethodsEmpty => 'No saved payment methods yet.';
+
+  @override
+  String get addPaymentMethodCta => 'Add payment method';
+
+  @override
+  String paymentMethodCardEnding(String last4) {
+    return 'Ending in $last4';
+  }
+
+  @override
+  String get paymentMethodDefaultBadge => 'Default';
+
+  @override
+  String get paymentMethodDeleteCta => 'Delete';
+
+  @override
+  String get paymentMethodSetDefaultCta => 'Set as default';
+
+  @override
+  String get paymentMethodNicknameLabel => 'Nickname';
+
+  @override
+  String get paymentMethodNicknameHint => 'Personal card';
+
+  @override
+  String get paymentMethodBrandCard => 'Card';
+
+  @override
+  String get paymentMethodBrandUpi => 'UPI';
+
+  @override
+  String get paymentMethodBrandNetbanking => 'Net banking';
+
+  @override
+  String get paymentMethodBrandWallet => 'Wallet';
+
+  @override
+  String get paymentMethodBrandOther => 'Other';
+
+  @override
+  String get paymentMethodDeleteConfirmTitle => 'Remove payment method?';
+
+  @override
+  String get paymentMethodDeleteConfirmMessage =>
+      'This card will no longer be available for checkout.';
+
+  @override
+  String get paymentMethodDeleteConfirmCta => 'Remove';
+
+  @override
+  String get paymentMethodsDeleteFailed => 'Could not delete payment method.';
+
+  @override
+  String get paymentMethodsUpdateFailed => 'Could not update payment method.';
+
+  @override
+  String get paymentMethodsAddFailed => 'Could not add payment method.';
+
+  @override
+  String get paymentMethodsLoadFailed => 'Could not load payment methods.';
+
+  @override
+  String get paymentCheckoutFailed => 'Could not start checkout.';
+
+  @override
+  String get paymentRazorpayOpening => 'Opening Razorpay checkout...';
+
+  @override
+  String get blogListTitle => 'Blog';
+
+  @override
+  String get blogEmpty => 'No posts yet.';
+
+  @override
+  String get blogLoadFailed => 'Could not load posts.';
+
+  @override
+  String get blogPostAuthorFallback => '360 Ghar';
+
+  @override
+  String get blogPostStatusDraft => 'Draft';
+
+  @override
+  String get blogPostStatusPublished => 'Published';
+
+  @override
+  String get blogPostStatusScheduled => 'Scheduled';
+
+  @override
+  String get blogPostStatusArchived => 'Archived';
+
+  @override
+  String get blogPostMetaTitleFallback => 'Blog post';
+
+  @override
+  String get blogPreviewBanner => 'Preview mode';
+
+  @override
+  String get blogPreviewBannerSubtitle =>
+      'This post is not yet published. Share this link to gather feedback before going live.';
 }

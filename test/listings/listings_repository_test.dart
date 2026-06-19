@@ -164,6 +164,70 @@ void main() {
         expect(id, 7);
       },
     );
+
+    test(
+      'fetchMyListings returns flatmate/pg listings from cursor envelope',
+      () async {
+        final adapter = _CapturingAdapter(
+          responseBody: '''
+{
+  "items": [
+    {"id": 1, "title": "A", "property_type": "flatmate", "monthly_rent": 20000, "is_available": true},
+    {"id": 2, "title": "B", "property_type": "pg", "monthly_rent": 15000, "is_available": true},
+    {"id": 3, "title": "C", "property_type": "apartment", "monthly_rent": 50000, "is_available": true}
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "limit": 20
+}''',
+        );
+        final apiClient = ApiClient(
+          baseUrl: 'https://api.test.example.com',
+          tokenProvider: FakeAuthTokenProvider(),
+        );
+        apiClient.dio.httpClientAdapter = adapter;
+        final container = ProviderContainer(
+          overrides: [apiClientProvider.overrideWithValue(apiClient)],
+        );
+        addTearDown(container.dispose);
+
+        final listings = await container
+            .read(listingsRepositoryProvider)
+            .fetchMyListings();
+
+        expect(listings, hasLength(2));
+        expect(listings.map((l) => l.id), [1, 2]);
+        expect(adapter.lastRequest?.path, FlatmatesEndpoints.myProperties);
+      },
+    );
+
+    test('fetchMyListingsPage returns cursor metadata', () async {
+      final adapter = _CapturingAdapter(
+        responseBody: '''
+{
+  "items": [],
+  "next_cursor": "next-page",
+  "has_more": true,
+  "limit": 20
+}''',
+      );
+      final apiClient = ApiClient(
+        baseUrl: 'https://api.test.example.com',
+        tokenProvider: FakeAuthTokenProvider(),
+      );
+      apiClient.dio.httpClientAdapter = adapter;
+      final container = ProviderContainer(
+        overrides: [apiClientProvider.overrideWithValue(apiClient)],
+      );
+      addTearDown(container.dispose);
+
+      final page = await container
+          .read(listingsRepositoryProvider)
+          .fetchMyListingsPage();
+      expect(page.nextCursor, 'next-page');
+      expect(page.hasMore, isTrue);
+      expect(page.items, isEmpty);
+    });
   });
 }
 

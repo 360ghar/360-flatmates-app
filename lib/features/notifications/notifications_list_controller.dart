@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../chats/application/cursor_list_controller.dart';
-import '../notifications_repository.dart';
+import '../chats/application/cursor_list_controller.dart';
+import 'notifications_repository.dart';
 
 /// Cursor-paginated controller for the user's notifications feed.
 class NotificationsListController

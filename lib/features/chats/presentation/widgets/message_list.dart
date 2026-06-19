@@ -20,6 +20,7 @@ class MessageList extends ConsumerStatefulWidget {
     required this.visitsAsync,
     required this.onConfirmVisit,
     required this.onRescheduleVisit,
+    required this.conversationId,
     super.key,
   });
 
@@ -30,6 +31,10 @@ class MessageList extends ConsumerStatefulWidget {
   final ValueChanged<VisitItem> onConfirmVisit;
   final ValueChanged<VisitItem> onRescheduleVisit;
 
+  /// Conversation id used to drive the cursor-paginated `loadOlder()`
+  /// trigger when the user scrolls toward the top of the thread.
+  final int conversationId;
+
   @override
   ConsumerState<MessageList> createState() => _MessageListState();
 }
@@ -38,11 +43,6 @@ class _MessageListState extends ConsumerState<MessageList>
     with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   int _lastMessageCount = 0;
-
-  /// Records the last viewport offset so we can restore it after prepending
-  /// older messages (the user's reading position must not jump on load).
-  double _restoreOffset = 0;
-  double _restoreMaxOffset = 0;
 
   @override
   void initState() {
@@ -69,7 +69,6 @@ class _MessageListState extends ConsumerState<MessageList>
       // mutation triggered from within itself.
       Future.microtask(() {
         if (!mounted) return;
-        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
         ref
             .read(messagesControllerProvider(widget.conversationId).notifier)
             .loadOlder();

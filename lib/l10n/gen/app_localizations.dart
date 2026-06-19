@@ -6469,6 +6469,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard'**
   String get discardChanges;
+
+  /// No description provided for @loadMoreCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMoreCta;
+
+  /// No description provided for @loadOlderCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Load older'**
+  String get loadOlderCta;
+
+  /// No description provided for @startOfConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached the start of this conversation'**
+  String get startOfConversation;
+
+  /// No description provided for @noMoreListingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve seen all the matches.'**
+  String get noMoreListingsLabel;
+
+  /// No description provided for @noMoreVisitsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No more visits to show.'**
+  String get noMoreVisitsLabel;
+
+  /// No description provided for @noMoreNotificationsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up.'**
+  String get noMoreNotificationsLabel;
+
+  /// No description provided for @noMoreBlogPostsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No more posts.'**
+  String get noMoreBlogPostsLabel;
+
+  /// No description provided for @noMoreBlockedUsersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No more blocked users.'**
+  String get noMoreBlockedUsersLabel;
+
+  /// No description provided for @paymentMethodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get paymentMethodsTitle;
+
+  /// No description provided for @paymentMethodsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved payment methods yet.'**
+  String get paymentMethodsEmpty;
+
+  /// No description provided for @addPaymentMethodCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add payment method'**
+  String get addPaymentMethodCta;
+
+  /// No description provided for @paymentMethodCardEnding.
+  ///
+  /// In en, this message translates to:
+  /// **'Ending in {last4}'**
+  String paymentMethodCardEnding(String last4);
+
+  /// No description provided for @paymentMethodDefaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get paymentMethodDefaultBadge;
+
+  /// No description provided for @paymentMethodDeleteCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get paymentMethodDeleteCta;
+
+  /// No description provided for @paymentMethodSetDefaultCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get paymentMethodSetDefaultCta;
+
+  /// No description provided for @paymentMethodNicknameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname'**
+  String get paymentMethodNicknameLabel;
+
+  /// No description provided for @paymentMethodNicknameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal card'**
+  String get paymentMethodNicknameHint;
+
+  /// No description provided for @paymentMethodBrandCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get paymentMethodBrandCard;
+
+  /// No description provided for @paymentMethodBrandUpi.
+  ///
+  /// In en, this message translates to:
+  /// **'UPI'**
+  String get paymentMethodBrandUpi;
+
+  /// No description provided for @paymentMethodBrandNetbanking.
+  ///
+  /// In en, this message translates to:
+  /// **'Net banking'**
+  String get paymentMethodBrandNetbanking;
+
+  /// No description provided for @paymentMethodBrandWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get paymentMethodBrandWallet;
+
+  /// No description provided for @paymentMethodBrandOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get paymentMethodBrandOther;
+
+  /// No description provided for @paymentMethodDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove payment method?'**
+  String get paymentMethodDeleteConfirmTitle;
+
+  /// No description provided for @paymentMethodDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This card will no longer be available for checkout.'**
+  String get paymentMethodDeleteConfirmMessage;
+
+  /// No description provided for @paymentMethodDeleteConfirmCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get paymentMethodDeleteConfirmCta;
+
+  /// No description provided for @paymentMethodsDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete payment method.'**
+  String get paymentMethodsDeleteFailed;
+
+  /// No description provided for @paymentMethodsUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update payment method.'**
+  String get paymentMethodsUpdateFailed;
+
+  /// No description provided for @paymentMethodsAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add payment method.'**
+  String get paymentMethodsAddFailed;
+
+  /// No description provided for @paymentMethodsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load payment methods.'**
+  String get paymentMethodsLoadFailed;
+
+  /// No description provided for @paymentCheckoutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start checkout.'**
+  String get paymentCheckoutFailed;
+
+  /// No description provided for @paymentRazorpayOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Razorpay checkout...'**
+  String get paymentRazorpayOpening;
+
+  /// No description provided for @blogListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blog'**
+  String get blogListTitle;
+
+  /// No description provided for @blogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts yet.'**
+  String get blogEmpty;
+
+  /// No description provided for @blogLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load posts.'**
+  String get blogLoadFailed;
+
+  /// No description provided for @blogPostAuthorFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'360 Ghar'**
+  String get blogPostAuthorFallback;
+
+  /// No description provided for @blogPostStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get blogPostStatusDraft;
+
+  /// No description provided for @blogPostStatusPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get blogPostStatusPublished;
+
+  /// No description provided for @blogPostStatusScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get blogPostStatusScheduled;
+
+  /// No description provided for @blogPostStatusArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get blogPostStatusArchived;
+
+  /// No description provided for @blogPostMetaTitleFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Blog post'**
+  String get blogPostMetaTitleFallback;
+
+  /// No description provided for @blogPreviewBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview mode'**
+  String get blogPreviewBanner;
+
+  /// No description provided for @blogPreviewBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This post is not yet published. Share this link to gather feedback before going live.'**
+  String get blogPreviewBannerSubtitle;
 }
 
 class _AppLocalizationsDelegate

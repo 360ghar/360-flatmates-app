@@ -148,7 +148,7 @@ void main() {
     test('fetchVisits parses the visits envelope into VisitItems', () async {
       final adapter = _StatusQueueAdapter([
         const _FakeResponse(200, {
-          'visits': [
+          'items': [
             {
               'id': 5,
               'status': 'confirmed',
@@ -159,6 +159,9 @@ void main() {
               'property': {'title': 'Modern 2BHK in Koramangala'},
             },
           ],
+          'next_cursor': null,
+          'has_more': false,
+          'limit': 20,
         }),
       ]);
       final container = _containerWith(adapter);
@@ -179,7 +182,37 @@ void main() {
       expect(visit.scheduledDate, DateTime.utc(2026, 5, 20, 15));
     });
 
-    test('fetchVisits tolerates a missing visits key and bad rows', () async {
+    test('fetchVisits propagates next_cursor for load-more', () async {
+      final adapter = _StatusQueueAdapter([
+        const _FakeResponse(200, {
+          'items': [
+            {
+              'id': 5,
+              'status': 'confirmed',
+              'scheduled_date': '2026-05-20T15:00:00Z',
+              'visit_context': 'flatmate_meet',
+              'conversation_id': 10,
+              'counterparty_user_id': 2,
+              'property': {'title': 'Modern 2BHK in Koramangala'},
+            },
+          ],
+          'next_cursor': 'next-page-token',
+          'has_more': true,
+          'limit': 20,
+        }),
+      ]);
+      final container = _containerWith(adapter);
+      addTearDown(container.dispose);
+
+      final page = await container
+          .read(visitsRepositoryProvider)
+          .fetchVisitsPage();
+      expect(page.items, hasLength(1));
+      expect(page.nextCursor, 'next-page-token');
+      expect(page.hasMore, isTrue);
+    });
+
+    test('fetchVisits tolerates a missing items key and bad rows', () async {
       final adapter = _StatusQueueAdapter([const _FakeResponse(200, {})]);
       final container = _containerWith(adapter);
       addTearDown(container.dispose);

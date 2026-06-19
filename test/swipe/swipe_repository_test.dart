@@ -49,11 +49,13 @@ void main() {
         final adapter = _CapturingAdapter()
           ..responseBody = '''
 {
-  "profiles": [
+  "items": [
     {"id": 1, "full_name": "A", "move_in_timeline": "within_1_month"},
     {"id": 2, "full_name": "B", "move_in_timeline": "next_month"}
   ],
-  "total": 2
+  "next_cursor": null,
+  "has_more": false,
+  "limit": 20
 }
 ''';
         final apiClient = ApiClient(

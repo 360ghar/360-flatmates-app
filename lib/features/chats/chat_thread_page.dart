@@ -363,6 +363,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
               currentUserId: currentUserId,
               conversation: conversation,
               visitsAsync: visits,
+              conversationId: widget.conversationId,
               onConfirmVisit: (visit) => confirmVisitFromChat(
                 context: context,
                 ref: ref,

@@ -76,9 +76,15 @@ class _CountingAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     _requests.add('${options.method} ${options.path}');
-    // Conversations endpoint returns a list; everything else a map.
+    // Conversations endpoint now returns the cursor envelope `{ items, ... }`;
+    // everything else a map.
     final body = options.path == FlatmatesEndpoints.conversations
-        ? <Object>[]
+        ? <String, dynamic>{
+            'items': <Object>[],
+            'next_cursor': null,
+            'has_more': false,
+            'limit': 20,
+          }
         : <String, dynamic>{};
     return ResponseBody.fromString(
       jsonEncode(body),

@@ -244,7 +244,7 @@ class _NoopDiscoverRepository implements DiscoverRepository {
   Future<List<PropertyListing>> fetchListings({
     FlatmatesProfileModel? currentUser,
     DiscoverFilters? filters,
-    int offset = 0,
+    String? cursor,
     int limit = 20,
   }) async => const <PropertyListing>[];
 

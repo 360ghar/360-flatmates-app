@@ -20,7 +20,7 @@ void main() {
   /// Builds a JSON page of `count` listings with sequential ids starting at
   /// `startId`. All listings are available so no client-side move-in/deal
   /// breaker filtering trims them.
-  String pageBody(int count, {int startId = 1}) {
+  String pageBody(int count, {int startId = 1, String? nextCursor = null}) {
     final items = List.generate(count, (i) {
       final id = startId + i;
       return {
@@ -30,7 +30,12 @@ void main() {
         'monthly_rent': 20000,
       };
     });
-    return jsonEncode({'properties': items});
+    return jsonEncode({
+      'items': items,
+      'next_cursor': nextCursor,
+      'has_more': nextCursor != null,
+      'limit': 20,
+    });
   }
 
   ProviderContainer makeContainer(_ScriptedAdapter adapter) {
@@ -66,9 +71,11 @@ void main() {
     test('full first page sets hasMore=true; short page clears it', () async {
       final adapter = _ScriptedAdapter(
         onProperties: (options) {
-          final offset = options.queryParameters['offset'] as int? ?? 0;
+          final cursor = options.queryParameters['cursor'] as String?;
           // First page: full 20 items. Second page: 5 items (< _pageSize).
-          return offset == 0 ? pageBody(20) : pageBody(5, startId: 21);
+          return cursor == null
+              ? pageBody(20, nextCursor: 'page-2')
+              : pageBody(5, startId: 21);
         },
       );
       final container = makeContainer(adapter);
@@ -93,11 +100,11 @@ void main() {
     });
 
     test('loadMore does not append once hasMore is false', () async {
-      final propertyOffsets = <int>[];
+      final propertyCursors = <String?>[];
       final adapter = _ScriptedAdapter(
         onProperties: (options) {
-          propertyOffsets.add(options.queryParameters['offset'] as int? ?? 0);
-          return pageBody(3); // short page on first load → hasMore=false
+          propertyCursors.add(options.queryParameters['cursor'] as String?);
+          return pageBody(3, nextCursor: null); // first page ends the stream
         },
       );
       final container = makeContainer(adapter);
@@ -105,15 +112,15 @@ void main() {
 
       expect(container.read(discoverFeedControllerProvider).hasMore, isFalse);
       expect(container.read(discoverFeedControllerProvider).listings.length, 3);
-      propertyOffsets.clear();
+      propertyCursors.clear();
 
       await notifier.loadMore();
       await settle();
 
       // hasMore=false short-circuits loadMore before it ever issues a paged
-      // (offset>0) request, so the list stays at 3 with no duplicate append.
+      // request, so the list stays at 3 with no duplicate append.
       expect(
-        propertyOffsets.where((o) => o > 0),
+        propertyCursors.where((c) => c != null),
         isEmpty,
         reason: 'loadMore must not fetch a next page when at the end',
       );

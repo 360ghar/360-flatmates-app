@@ -7,6 +7,7 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../application/payments_controller.dart';
+import '../data/payment_method_dto.dart';
 import '../domain/payment_method.dart';
 
 /// Single-row tile for a saved payment method. Exposes edit (default /
@@ -52,7 +53,9 @@ class PaymentMethodTile extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppSemanticColors.blueSoftFor(theme.brightness),
+                color: theme.brightness == Brightness.dark
+                    ? AppSemanticColors.blueSoftDark
+                    : AppSemanticColors.blueSoft,
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
@@ -291,7 +294,9 @@ class _DefaultBadge extends StatelessWidget {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: AppSemanticColors.greenSoftFor(theme.brightness),
+        color: theme.brightness == Brightness.dark
+            ? AppSemanticColors.greenSoftDark
+            : AppSemanticColors.greenSoft,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

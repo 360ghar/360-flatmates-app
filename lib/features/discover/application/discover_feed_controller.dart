@@ -9,7 +9,7 @@ import 'move_in_filter.dart';
 class DiscoverFeedState {
   const DiscoverFeedState({
     this.listings = const [],
-    this.fetchedCount = 0,
+    this.nextCursor,
     this.isLoading = false,
     this.isRefreshing = false,
     this.isLoadingMore = false,
@@ -19,7 +19,7 @@ class DiscoverFeedState {
   });
 
   final List<PropertyListing> listings;
-  final int fetchedCount;
+  final String? nextCursor;
   final bool isLoading;
   final bool isRefreshing;
   final bool isLoadingMore;
@@ -32,7 +32,8 @@ class DiscoverFeedState {
 
   DiscoverFeedState copyWith({
     List<PropertyListing>? listings,
-    int? fetchedCount,
+    String? nextCursor,
+    bool setNextCursorNull = false,
     bool? isLoading,
     bool? isRefreshing,
     bool? isLoadingMore,
@@ -43,7 +44,7 @@ class DiscoverFeedState {
   }) {
     return DiscoverFeedState(
       listings: listings ?? this.listings,
-      fetchedCount: fetchedCount ?? this.fetchedCount,
+      nextCursor: setNextCursorNull ? null : (nextCursor ?? this.nextCursor),
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
@@ -56,7 +57,6 @@ class DiscoverFeedState {
 
 class DiscoverFeedController extends Notifier<DiscoverFeedState> {
   static const double defaultLocationRadiusKm = 10.0;
-  static const int _pageSize = 20;
 
   // Monotonic version bumped each time filters change. A load that
   // observes a different version after its `await` is stale and
@@ -102,11 +102,11 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           .valueOrNull
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
-      final offset = clearAll ? 0 : state.fetchedCount;
+      final cursor = clearAll ? null : state.nextCursor;
       final page = await repo.fetchListingsPage(
         currentUser: profile,
         filters: state.filters,
-        offset: offset,
+        cursor: cursor,
       );
       final newListings = page.items;
 
@@ -114,19 +114,14 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         // Stale result — filters changed during the request.
         // Skip applying it; the trailing reload below will re-fetch.
       } else {
-        // Pagination is driven by the raw server count: client-side
-        // filtering can shrink a page, so newListings.length would
-        // under-report progress and prematurely end the feed.
         state = state.copyWith(
           listings: clearAll
               ? newListings
               : [...state.listings, ...newListings],
-          fetchedCount: clearAll
-              ? page.rawCount
-              : state.fetchedCount + page.rawCount,
+          nextCursor: page.nextCursor,
           isLoading: false,
           isLoadingMore: false,
-          hasMore: page.rawCount >= _pageSize,
+          hasMore: page.nextCursor != null,
         );
       }
     } catch (e) {
@@ -211,9 +206,10 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       }
       state = state.copyWith(
         listings: page.items,
-        fetchedCount: page.rawCount,
+        setNextCursorNull: true,
+        nextCursor: page.nextCursor,
         isRefreshing: false,
-        hasMore: page.rawCount >= _pageSize,
+        hasMore: page.nextCursor != null,
       );
     } catch (e) {
       debugPrint('DiscoverFeedController.refresh failed: $e');

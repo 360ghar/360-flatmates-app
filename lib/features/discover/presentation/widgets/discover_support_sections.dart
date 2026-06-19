@@ -474,25 +474,24 @@ class MeetFlatmatesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final asyncProfiles = ref.watch(swipeDeckControllerProvider);
+    final deckState = ref.watch(swipeDeckControllerProvider);
+    final profiles = deckState.profiles;
 
-    return asyncProfiles.when(
-      data: (profiles) {
-        if (profiles.isEmpty) return const SizedBox.shrink();
+    if (profiles.isEmpty) return const SizedBox.shrink();
 
-        // Show up to 10 profiles on the home feed
-        final displayProfiles = profiles.take(10).toList();
+    // Show up to 10 profiles on the home feed
+    final displayProfiles = profiles.take(10).toList();
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context).meetPotentialFlatmates,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppSemanticColors.textPrimaryFor(theme.brightness),
-              ),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context).meetPotentialFlatmates,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppSemanticColors.textPrimaryFor(theme.brightness),
+          ),
+        ),
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               height: 96,
@@ -557,9 +556,5 @@ class MeetFlatmatesSection extends ConsumerWidget {
             ),
           ],
         );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
-    );
   }
 }

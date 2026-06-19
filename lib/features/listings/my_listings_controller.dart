@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../chats/application/cursor_list_controller.dart';
+import '../chats/application/cursor_list_controller.dart';
 import '../discover/domain/property_listing.dart';
-import '../listings_repository.dart';
+import 'listings_repository.dart';
 
 /// Cursor-paginated controller for the user's listings.
 class MyListingsController extends CursorListController<PropertyListing> {

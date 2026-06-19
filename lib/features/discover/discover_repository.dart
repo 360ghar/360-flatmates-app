@@ -129,13 +129,13 @@ class DiscoverRepository {
   final Ref _ref;
 
   Future<List<PropertyListing>> fetchListings({
-    int offset = 0,
+    String? cursor,
     int limit = 20,
     FlatmatesProfileModel? currentUser,
     DiscoverFilters? filters,
   }) async {
     final page = await fetchListingsPage(
-      offset: offset,
+      cursor: cursor,
       limit: limit,
       currentUser: currentUser,
       filters: filters,
@@ -144,10 +144,10 @@ class DiscoverRepository {
   }
 
   /// Fetches one page of listings. [rawCount] is the number of items the
-  /// server returned BEFORE client-side filtering — pagination (offset,
-  /// hasMore) must be driven by it, not by [items].length.
-  Future<({List<PropertyListing> items, int rawCount})> fetchListingsPage({
-    int offset = 0,
+  /// server returned BEFORE client-side filtering — pagination (cursor,
+  /// hasMore) must be driven by the backend cursor, not by [items].length.
+  Future<({List<PropertyListing> items, int rawCount, String? nextCursor})> fetchListingsPage({
+    String? cursor,
     int limit = 20,
     FlatmatesProfileModel? currentUser,
     DiscoverFilters? filters,
@@ -155,9 +155,11 @@ class DiscoverRepository {
     final queryParameters = <String, dynamic>{
       'property_type': 'flatmate',
       'purpose': 'rent',
-      'offset': offset,
       'limit': limit,
     };
+    if (cursor != null && cursor.isNotEmpty) {
+      queryParameters['cursor'] = cursor;
+    }
     if (filters?.hasGeoLocation ?? false) {
       final f = filters!;
       queryParameters['lat'] = f.latitude!.toStringAsFixed(6);
@@ -211,10 +213,11 @@ class DiscoverRepository {
       responseData is Map ? responseData : const {},
     );
     final listings = safeJsonList(
-      data['properties'] as List?,
+      data['items'] as List?,
       PropertyListingDto.fromJson,
       label: 'discoverFeed',
     );
+    final nextCursor = data['next_cursor'] as String?;
 
     final moveInFiltered = filters == null
         ? listings
@@ -238,10 +241,11 @@ class DiscoverRepository {
           currentUser,
         ),
         rawCount: listings.length,
+        nextCursor: nextCursor,
       );
     }
 
-    return (items: moveInFiltered, rawCount: listings.length);
+    return (items: moveInFiltered, rawCount: listings.length, nextCursor: nextCursor);
   }
 
   Future<PropertyListing> fetchListing(int propertyId) async {
