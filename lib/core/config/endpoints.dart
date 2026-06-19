@@ -70,4 +70,21 @@ abstract final class FlatmatesEndpoints {
   static const flatmatesProfiles = '/flatmates/profiles';
   static String societyTagVotes(int id) =>
       '/flatmates/listings/$id/society-tags/votes';
+
+  // -- Payments --
+  static const paymentRazorpayOrder = '/payments/razorpay/order';
+  static const paymentRazorpayVerify = '/payments/razorpay/verify';
+  static const paymentMethods = '/payments/methods';
+  static String paymentMethod(int id) => '/payments/methods/$id';
+
+  // -- Batch operations --
+  static const swipesBatchRemove = '/swipes/batch-remove';
+  static const uploadBatchDelete = '/upload/media/batch-delete';
+
+  // -- Blog --
+  static const blogPosts = '/blog/posts';
+  static String blogPost(int id) => '/blog/posts/$id';
+  static String blogPostPreview(String token) => '/blog/posts/preview/$token';
+  static String blogPostPreviewToken(int postId) =>
+      '/blog/posts/$postId/preview-token';
 }
