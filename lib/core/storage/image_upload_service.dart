@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
+import '../config/endpoints.dart';
 import '../network/api_client.dart';
 import '../providers.dart';
 
@@ -120,6 +121,40 @@ class ImageUploadService {
     );
   }
 
+  /// `POST /upload/media/batch-delete` — removes multiple uploaded media
+/// assets in one round-trip. The backend returns
+/// `{ deleted: string[], failed: string[] }` so callers can surface a
+/// granular failure (e.g. "media X is still attached to a listing") to
+/// the user instead of an all-or-nothing error.
+///
+/// Throws via the shared [ApiClient] -> [ErrorPresenter] pipeline on
+/// network errors.
+Future<MediaBatchDeleteResult> deleteMediaBatch(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) {
+      return const MediaBatchDeleteResult(deleted: [], failed: []);
+    }
+    final response = await _apiClient.post(
+      FlatmatesEndpoints.uploadBatchDelete,
+      data: {'media_ids': mediaIds},
+    );
+    final data = response.data;
+    if (data is! Map) {
+      throw const FormatException(
+        'deleteMediaBatch: expected a JSON object envelope',
+      );
+    }
+    final map = Map<String, dynamic>.from(data);
+    final deleted = (map['deleted'] as List?)
+            ?.map((item) => item.toString())
+            .toList() ??
+        const <String>[];
+    final failed = (map['failed'] as List?)
+            ?.map((item) => item.toString())
+            .toList() ??
+        const <String>[];
+    return MediaBatchDeleteResult(deleted: deleted, failed: failed);
+  }
+
   Future<UploadResult> uploadChatPhoto(
     File file, {
     UploadProgressCallback? onProgress,
@@ -144,7 +179,19 @@ class ImageUploadService {
     );
   }
 
-  /// Upload a file through the backend API which routes to Cloudinary.
+  /// Result envelope for a batch-delete operation. `deleted` contains the
+/// ids the backend removed successfully; `failed` contains the ids the
+/// backend refused (e.g. media still in use by a published listing).
+class MediaBatchDeleteResult {
+  const MediaBatchDeleteResult({required this.deleted, required this.failed});
+
+  final List<String> deleted;
+  final List<String> failed;
+
+  bool get hasFailures => failed.isNotEmpty;
+}
+
+/// Upload a file through the backend API which routes to Cloudinary.
   Future<UploadResult> _upload(
     File file, {
     required String folder,
