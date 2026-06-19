@@ -6,6 +6,7 @@ import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../chats/application/cursor_list_controller.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
@@ -13,6 +14,7 @@ import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import 'data/blocked_users_list_controller.dart';
 import 'data/blocked_users_repository.dart';
 
 class BlockedUsersPage extends ConsumerWidget {
@@ -21,14 +23,14 @@ class BlockedUsersPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
-    final blockedUsers = ref.watch(blockedUsersProvider);
+    final blockedUsers = ref.watch(blockedUsersListControllerProvider);
     final unblockingIds = ref.watch(_unblockingIdsProvider);
 
     return Scaffold(
       appBar: FlatmatesHeader.backTitle(title: locale.blockedUsersLabel),
       body: blockedUsers.when(
-        data: (users) {
-          if (users.isEmpty) {
+        data: (state) {
+          if (state.items.isEmpty) {
             return FlatmatesEmptyState(
               title: locale.noBlockedUsers,
               subtitle: locale.blockedUsersAppearHere,
@@ -37,10 +39,32 @@ class BlockedUsersPage extends ConsumerWidget {
           }
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            itemCount: users.length,
+            itemCount: state.items.length + (state.hasMore ? 1 : 0),
             separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
             itemBuilder: (context, index) {
-              final user = users[index];
+              if (index >= state.items.length) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                  child: Center(
+                    child: state.isLoadingMore
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : TextButton.icon(
+                            onPressed: () => ref
+                                .read(
+                                  blockedUsersListControllerProvider.notifier,
+                                )
+                                .loadMore(),
+                            icon: const Icon(Icons.expand_more_rounded),
+                            label: Text(locale.loadMoreCta),
+                          ),
+                  ),
+                );
+              }
+              final user = state.items[index];
               final isUnblocking = unblockingIds.contains(user.blockedUserId);
               return FlatmatesCard(
                 padding: const EdgeInsets.symmetric(
@@ -96,7 +120,9 @@ class BlockedUsersPage extends ConsumerWidget {
                                 await ref
                                     .read(blockedUsersRepositoryProvider)
                                     .unblockUser(user.blockedUserId);
-                                ref.invalidate(blockedUsersProvider);
+                                ref.invalidate(
+                                  blockedUsersListControllerProvider,
+                                );
                                 if (!context.mounted) return;
                                 FlatmatesToast.success(
                                   context,
@@ -129,7 +155,9 @@ class BlockedUsersPage extends ConsumerWidget {
         loading: () => const FlatmatesSkeleton.list(),
         error: (error, _) => FlatmatesErrorState(
           message: locale.couldNotLoadBlockedUsers,
-          onRetry: () => ref.invalidate(blockedUsersProvider),
+          onRetry: () => ref
+              .read(blockedUsersListControllerProvider.notifier)
+              .refresh(),
         ),
       ),
     );
