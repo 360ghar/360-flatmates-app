@@ -1637,5 +1637,57 @@
   "unsavedChangesTitle": "Discard changes?",
   "unsavedChangesMessage": "You have unsaved changes. If you leave now, they will be lost.",
   "keepEditing": "Keep editing",
-  "discardChanges": "Discard"
+  "discardChanges": "Discard",
+
+  "loadMoreCta": "Load more",
+  "loadOlderCta": "Load older",
+  "startOfConversation": "You've reached the start of this conversation",
+  "noMoreListingsLabel": "You've seen all the matches.",
+  "noMoreVisitsLabel": "No more visits to show.",
+  "noMoreNotificationsLabel": "You're all caught up.",
+  "noMoreBlogPostsLabel": "No more posts.",
+  "noMoreBlockedUsersLabel": "No more blocked users.",
+
+  "paymentMethodsTitle": "Payment Methods",
+  "paymentMethodsEmpty": "No saved payment methods yet.",
+  "addPaymentMethodCta": "Add payment method",
+  "paymentMethodCardEnding": "Ending in {last4}",
+  "@paymentMethodCardEnding": {
+    "placeholders": {
+      "last4": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentMethodDefaultBadge": "Default",
+  "paymentMethodDeleteCta": "Delete",
+  "paymentMethodSetDefaultCta": "Set as default",
+  "paymentMethodNicknameLabel": "Nickname",
+  "paymentMethodNicknameHint": "Personal card",
+  "paymentMethodBrandCard": "Card",
+  "paymentMethodBrandUpi": "UPI",
+  "paymentMethodBrandNetbanking": "Net banking",
+  "paymentMethodBrandWallet": "Wallet",
+  "paymentMethodBrandOther": "Other",
+  "paymentMethodDeleteConfirmTitle": "Remove payment method?",
+  "paymentMethodDeleteConfirmMessage": "This card will no longer be available for checkout.",
+  "paymentMethodDeleteConfirmCta": "Remove",
+  "paymentMethodsDeleteFailed": "Could not delete payment method.",
+  "paymentMethodsUpdateFailed": "Could not update payment method.",
+  "paymentMethodsAddFailed": "Could not add payment method.",
+  "paymentMethodsLoadFailed": "Could not load payment methods.",
+  "paymentCheckoutFailed": "Could not start checkout.",
+  "paymentRazorpayOpening": "Opening Razorpay checkout...",
+
+  "blogListTitle": "Blog",
+  "blogEmpty": "No posts yet.",
+  "blogLoadFailed": "Could not load posts.",
+  "blogPostAuthorFallback": "360 Ghar",
+  "blogPostStatusDraft": "Draft",
+  "blogPostStatusPublished": "Published",
+  "blogPostStatusScheduled": "Scheduled",
+  "blogPostStatusArchived": "Archived",
+  "blogPostMetaTitleFallback": "Blog post",
+  "blogPreviewBanner": "Preview mode",
+  "blogPreviewBannerSubtitle": "This post is not yet published. Share this link to gather feedback before going live."
 }

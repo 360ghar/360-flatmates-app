@@ -12,7 +12,7 @@ import '../../chats_repository.dart';
 import '../../../visits/visits_repository.dart';
 import 'chat_message_bubble.dart';
 
-class MessageList extends StatefulWidget {
+class MessageList extends ConsumerStatefulWidget {
   const MessageList({
     required this.messagesState,
     required this.currentUserId,
@@ -31,24 +31,50 @@ class MessageList extends StatefulWidget {
   final ValueChanged<VisitItem> onRescheduleVisit;
 
   @override
-  State<MessageList> createState() => _MessageListState();
+  ConsumerState<MessageList> createState() => _MessageListState();
 }
 
-class _MessageListState extends State<MessageList> with WidgetsBindingObserver {
+class _MessageListState extends ConsumerState<MessageList>
+    with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   int _lastMessageCount = 0;
+
+  /// Records the last viewport offset so we can restore it after prepending
+  /// older messages (the user's reading position must not jump on load).
+  double _restoreOffset = 0;
+  double _restoreMaxOffset = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Triggers an older-page load when the user scrolls near the top of the
+  /// thread. Backed by cursor pagination in [MessagesController.loadOlder].
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels <=
+        _scrollController.position.minScrollExtent + 80) {
+      // Defer to a microtask so a build cycle doesn't observe a state
+      // mutation triggered from within itself.
+      Future.microtask(() {
+        if (!mounted) return;
+        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+        ref
+            .read(messagesControllerProvider(widget.conversationId).notifier)
+            .loadOlder();
+      });
+    }
   }
 
   @override
@@ -71,10 +97,47 @@ class _MessageListState extends State<MessageList> with WidgetsBindingObserver {
     if (conversationChanged) {
       _lastMessageCount = count;
       _scrollToBottom(animated: false);
-    } else if (count != _lastMessageCount) {
-      // A message arrived (live, optimistic, or refetch) or the thread loaded:
-      // pin the view to the newest message at the bottom.
-      _scrollToBottom(animated: _lastMessageCount > 0);
+    } else if (count > _lastMessageCount) {
+      // Older messages prepended (loadOlder): restore the user's previous
+      // reading position so the viewport does not jump. Newest arrivals
+      // (live, optimistic, refetch) still pin to the bottom — detected by
+      // checking if a NEW message arrived (last item id changed).
+      final oldWidgetLastId =
+          oldWidget.messagesState.messages.isEmpty
+              ? null
+              : oldWidget.messagesState.messages.last.id;
+      final currentLastId = widget.messagesState.messages.isEmpty
+          ? null
+          : widget.messagesState.messages.last.id;
+      if (oldWidgetLastId != null &&
+          currentLastId != null &&
+          currentLastId != oldWidgetLastId) {
+        _scrollToBottom(animated: _lastMessageCount > 0);
+      } else if (_scrollController.hasClients) {
+        // Older messages were inserted at index 0; preserve the reading
+        // position by anchoring on the previously first item.
+        final previousFirstId = oldWidget.messagesState.messages.isEmpty
+            ? null
+            : oldWidget.messagesState.messages.first.id;
+        if (previousFirstId != null) {
+          final newIndex =
+              widget.messagesState.messages.indexWhere(
+                (m) => m.id == previousFirstId,
+              );
+          // The inserted messages must come strictly before the previously
+          // first item; if not, the merge re-ordered things and a bottom
+          // anchor is safer.
+          if (newIndex > 0) {
+            final delta = newIndex * _estimatedBubbleHeight;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_scrollController.hasClients) return;
+              _scrollController.jumpTo(
+                _scrollController.offset + delta,
+              );
+            });
+          }
+        }
+      }
       _lastMessageCount = count;
     }
   }
@@ -101,6 +164,12 @@ class _MessageListState extends State<MessageList> with WidgetsBindingObserver {
         createdAt.month == now.month &&
         createdAt.day == now.day;
   }
+
+  /// Approximate height of a chat bubble; used to nudge the scroll offset
+  /// when older messages are prepended so the user's reading position is
+  /// approximately preserved. Exact pixels aren't required — the goal is to
+  /// keep the same bubble anchored rather than snapping to the new top.
+  static const double _estimatedBubbleHeight = 64;
 
   @override
   Widget build(BuildContext context) {
@@ -143,15 +212,52 @@ class _MessageListState extends State<MessageList> with WidgetsBindingObserver {
         visit.id: visit,
     };
 
+    // The leading 1-cell "load older" header doubles as the cursor-driven
+    // scroll trigger and as the visible spinner when an older page is in
+    // flight. When the server has confirmed there is no more history, we
+    // render a muted "no more messages" cell instead.
+    final leadingCells = <Widget>[
+      if (messagesState.isLoadingOlder)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        )
+      else if (!messagesState.hasMoreOlder)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          child: Center(
+            child: Text(
+              locale.startOfConversation,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
+            ),
+          ),
+        )
+      else
+        const SizedBox.shrink(),
+    ];
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl,
         vertical: AppSpacing.lg,
       ),
-      itemCount: items.length + (showTodayDivider ? 1 : 0),
+      itemCount:
+          leadingCells.length + items.length + (showTodayDivider ? 1 : 0),
       itemBuilder: (context, index) {
-        if (showTodayDivider && index == todayDividerIndex) {
+        if (index < leadingCells.length) {
+          return leadingCells[index];
+        }
+        final shiftedIndex = index - leadingCells.length;
+        if (showTodayDivider && shiftedIndex == todayDividerIndex) {
           return Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.xl),
             child: Row(
@@ -181,8 +287,10 @@ class _MessageListState extends State<MessageList> with WidgetsBindingObserver {
         }
 
         final itemIndex = showTodayDivider
-            ? (index < todayDividerIndex ? index : index - 1)
-            : index;
+            ? (shiftedIndex < todayDividerIndex
+                  ? shiftedIndex
+                  : shiftedIndex - 1)
+            : shiftedIndex;
         final item = items[itemIndex];
         final isMine = item.senderId == currentUserId;
         final visit = item.visitId == null ? null : visitsById[item.visitId];

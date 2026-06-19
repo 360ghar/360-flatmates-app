@@ -9,7 +9,10 @@ class MessagesState {
     this.messages = const [],
     this.pendingMessages = const [],
     this.isLoading = false,
+    this.isLoadingOlder = false,
     this.isSending = false,
+    this.hasMoreOlder = true,
+    this.oldestCursor,
     this.error,
   });
 
@@ -20,7 +23,10 @@ class MessagesState {
   final List<ChatMessage> pendingMessages;
 
   final bool isLoading;
+  final bool isLoadingOlder;
   final bool isSending;
+  final bool hasMoreOlder;
+  final String? oldestCursor;
   final Object? error;
 
   bool get hasError => error != null;
@@ -32,7 +38,11 @@ class MessagesState {
     List<ChatMessage>? messages,
     List<ChatMessage>? pendingMessages,
     bool? isLoading,
+    bool? isLoadingOlder,
     bool? isSending,
+    bool? hasMoreOlder,
+    String? oldestCursor,
+    bool clearOldestCursor = false,
     Object? error,
     bool clearError = false,
   }) {
@@ -40,7 +50,12 @@ class MessagesState {
       messages: messages ?? this.messages,
       pendingMessages: pendingMessages ?? this.pendingMessages,
       isLoading: isLoading ?? this.isLoading,
+      isLoadingOlder: isLoadingOlder ?? this.isLoadingOlder,
       isSending: isSending ?? this.isSending,
+      hasMoreOlder: hasMoreOlder ?? this.hasMoreOlder,
+      oldestCursor: clearOldestCursor
+          ? null
+          : (oldestCursor ?? this.oldestCursor),
       error: clearError ? null : (error ?? this.error),
     );
   }
@@ -130,6 +145,37 @@ class MessagesController extends FamilyNotifier<MessagesState, int> {
     }
   }
 
+  /// Loads older messages using cursor pagination. Concatenates the older
+  /// page in front of the current messages so the user can scroll back
+  /// through history. A no-op when a load is already in flight or the
+  /// server already returned the end of the thread.
+  Future<void> loadOlder() async {
+    final conversationId = arg;
+    if (state.isLoadingOlder || !state.hasMoreOlder) return;
+    state = state.copyWith(isLoadingOlder: true, clearError: true);
+    try {
+      final response = await ref.read(chatsRepositoryProvider).fetchMessages(
+            conversationId,
+            cursor: state.oldestCursor,
+          );
+      // Newer realtime arrivals may have appeared during the request; merge
+      // by id so we never drop or duplicate a message.
+      final merged = mergeMessages(response.messages, state.messages);
+      state = state.copyWith(
+        messages: merged,
+        hasMoreOlder: response.hasMore,
+        oldestCursor: response.nextCursor,
+        isLoadingOlder: false,
+      );
+    } catch (e) {
+      debugPrint(
+        'MessagesController.loadOlder failed for conversation '
+        '$conversationId: $e',
+      );
+      state = state.copyWith(isLoadingOlder: false, error: e);
+    }
+  }
+
   /// Sends a message optimistically: the bubble appears immediately and is
   /// confirmed by an authoritative refetch so it persists even when the
   /// Supabase realtime stream is down. Rethrows on send failure after
@@ -183,6 +229,8 @@ class MessagesController extends FamilyNotifier<MessagesState, int> {
       state = state.copyWith(
         messages: merged,
         pendingMessages: pruneConfirmedPending(merged, state.pendingMessages),
+        hasMoreOlder: response.hasMore,
+        oldestCursor: response.nextCursor ?? state.oldestCursor,
         isLoading: false,
         clearError: true,
       );
