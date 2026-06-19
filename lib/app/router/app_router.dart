@@ -15,6 +15,9 @@ import '../../features/auth/presentation/otp_page.dart';
 import '../../features/auth/presentation/reset_password_page.dart';
 import '../../features/auth/presentation/set_password_page.dart';
 import '../../features/auth/presentation/splash_page.dart';
+import '../../features/blog/application/blog_controller.dart';
+import '../../features/blog/presentation/blog_list_page.dart';
+import '../../features/blog/presentation/blog_post_page.dart';
 import '../../features/bootstrap/bootstrap_controller.dart';
 import '../../features/chats/chat_thread_page.dart';
 import '../../features/chats/chats_repository.dart';
@@ -35,6 +38,8 @@ import '../../features/listings/post_hub_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_page.dart';
 import '../../features/onboarding/waitlist_page.dart';
+import '../../features/payments/presentation/add_payment_method_page.dart';
+import '../../features/payments/presentation/payment_methods_page.dart';
 import '../../features/profile/edit_profile_page.dart';
 import '../../features/profile/help_safety_page.dart';
 import '../../features/profile/profile_page.dart';
@@ -467,6 +472,49 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/manage-listings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const listings.ManageListingPage(),
+      ),
+      GoRoute(
+        path: '/payments/methods',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PaymentMethodsPage(),
+      ),
+      GoRoute(
+        path: '/payments/methods/add',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AddPaymentMethodPage(),
+      ),
+      GoRoute(
+        path: '/blog',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BlogListPage(),
+      ),
+      GoRoute(
+        path: '/blog/post/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            final locale = AppLocalizations.of(context);
+            return Scaffold(
+              body: Center(child: Text(locale.errorUnknown)),
+            );
+          }
+          return BlogPostPage.byId(postId: id);
+        },
+      ),
+      GoRoute(
+        path: '/blog/preview/:token',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final token = state.pathParameters['token'];
+          if (token == null || token.isEmpty) {
+            final locale = AppLocalizations.of(context);
+            return Scaffold(
+              body: Center(child: Text(locale.errorUnknown)),
+            );
+          }
+          return BlogPostPage.byToken(token: token);
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
