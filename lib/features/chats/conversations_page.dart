@@ -14,6 +14,7 @@ import '../discover/presentation/widgets/flatmate_profile_sheet.dart';
 import '../shared/presentation/components.dart';
 import '../swipe/match_qna_nudge.dart';
 import 'application/chat_actions_controller.dart';
+import 'application/cursor_list_controller.dart';
 import 'chats_repository.dart';
 import 'presentation/widgets/conversation_card.dart';
 
@@ -35,6 +36,19 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   static const double _kBottomNavOffset = 120;
 
   @override
+  void initState() {
+    super.initState();
+    // Prime each tab's controller so the first paint already has data and
+    // switching tabs is instant.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(conversationsListControllerProvider.notifier).load();
+      ref.read(incomingLikesListControllerProvider.notifier).load();
+      ref.read(outgoingLikesListControllerProvider.notifier).load();
+    });
+  }
+
+  @override
   void didUpdateWidget(ConversationsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialTab != oldWidget.initialTab) {
@@ -47,6 +61,13 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   }
 
   Future<void> _refresh() async {
+    await Future.wait([
+      ref.read(conversationsListControllerProvider.notifier).refresh(),
+      ref.read(incomingLikesListControllerProvider.notifier).refresh(),
+      ref.read(outgoingLikesListControllerProvider.notifier).refresh(),
+    ]);
+    // Keep the legacy providers in sync for any listener still on the old
+    // FutureProvider surface (e.g. third-party widgets).
     ref.invalidate(conversationsProvider);
     ref.invalidate(incomingLikesProvider);
     ref.invalidate(outgoingLikesProvider);
@@ -105,9 +126,10 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final conversations = ref.watch(conversationsProvider);
-    final incomingLikes = ref.watch(incomingLikesProvider);
-    final outgoingLikes = ref.watch(outgoingLikesProvider);
+    final conversations =
+        ref.watch(conversationsListControllerProvider);
+    final incomingLikes = ref.watch(incomingLikesListControllerProvider);
+    final outgoingLikes = ref.watch(outgoingLikesListControllerProvider);
     final tab =
         ref.watch(_conversationsTabOverrideProvider) ?? widget.initialTab;
     final matchingLikeIds = ref.watch(_matchingLikeIdsProvider);
@@ -151,18 +173,33 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
               _LikesTab(
                 likes: incomingLikes,
                 matchingLikeIds: matchingLikeIds,
-                onRetry: () => ref.invalidate(incomingLikesProvider),
+                onRetry: () => ref
+                    .read(incomingLikesListControllerProvider.notifier)
+                    .refresh(),
+                onLoadMore: () => ref
+                    .read(incomingLikesListControllerProvider.notifier)
+                    .loadMore(),
                 onMatchTap: _matchIncomingLike,
               )
             else if (tab == 'liked')
               _LikedTab(
                 likes: outgoingLikes,
-                onRetry: () => ref.invalidate(outgoingLikesProvider),
+                onRetry: () => ref
+                    .read(outgoingLikesListControllerProvider.notifier)
+                    .refresh(),
+                onLoadMore: () => ref
+                    .read(outgoingLikesListControllerProvider.notifier)
+                    .loadMore(),
               )
             else
               _ChatsTab(
                 conversations: conversations,
-                onRetry: () => ref.invalidate(conversationsProvider),
+                onRetry: () => ref
+                    .read(conversationsListControllerProvider.notifier)
+                    .refresh(),
+                onLoadMore: () => ref
+                    .read(conversationsListControllerProvider.notifier)
+                    .loadMore(),
                 loading: const FlatmatesSkeleton.conversationList(),
               ),
             const SizedBox(height: AppSpacing.md),
@@ -264,12 +301,14 @@ class _LikesTab extends StatelessWidget {
     required this.matchingLikeIds,
     required this.onRetry,
     required this.onMatchTap,
+    required this.onLoadMore,
   });
 
-  final AsyncValue<List<IncomingLikeModel>> likes;
+  final AsyncValue<CursorListState<IncomingLikeModel>> likes;
   final Set<int> matchingLikeIds;
   final VoidCallback onRetry;
   final ValueChanged<IncomingLikeModel> onMatchTap;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -282,56 +321,71 @@ class _LikesTab extends StatelessWidget {
     final totalHeight = itemWidth + 116;
     final childAspectRatio = itemWidth / totalHeight;
 
-    return FlatmatesAsyncView<List<IncomingLikeModel>>(
+    return FlatmatesAsyncView<CursorListState<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
+      isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikesYet,
         subtitle: locale.keepSwipingToFindMatches,
         icon: Icons.favorite_border_rounded,
       ),
-      data: (items) => GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: AppSpacing.md,
-          mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: childAspectRatio,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return FlatmatesProfileGridCard(
-            key: ValueKey('incoming_like_${item.id}'),
-            name: item.peer.fullName,
-            age: item.peer.age,
-            location: _locationForPeer(item.peer),
-            profession: _professionForPeer(locale, item.peer),
-            matchPercentage: item.peer.matchPercentage,
-            imageUrl: item.peer.profileImageUrl,
-            blurImage: true,
-            matchButtonLabel: locale.matchAction,
-            onTap: () => FlatmateProfileSheet.show(
-              context: context,
-              userId: item.peer.id,
-              nameFallback: item.peer.fullName,
+      data: (state) => Column(
+        children: [
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppSpacing.md,
+              mainAxisSpacing: AppSpacing.md,
+              childAspectRatio: childAspectRatio,
             ),
-            onMatchTap: matchingLikeIds.contains(item.id)
-                ? null
-                : () => onMatchTap(item),
-          );
-        },
+            itemCount: state.items.length,
+            itemBuilder: (context, index) {
+              final item = state.items[index];
+              return FlatmatesProfileGridCard(
+                key: ValueKey('incoming_like_${item.id}'),
+                name: item.peer.fullName,
+                age: item.peer.age,
+                location: _locationForPeer(item.peer),
+                profession: _professionForPeer(locale, item.peer),
+                matchPercentage: item.peer.matchPercentage,
+                imageUrl: item.peer.profileImageUrl,
+                blurImage: true,
+                matchButtonLabel: locale.matchAction,
+                onTap: () => FlatmateProfileSheet.show(
+                  context: context,
+                  userId: item.peer.id,
+                  nameFallback: item.peer.fullName,
+                ),
+                onMatchTap: matchingLikeIds.contains(item.id)
+                    ? null
+                    : () => onMatchTap(item),
+              );
+            },
+          ),
+          if (state.hasMore)
+            _LoadMoreFooter(
+              isLoadingMore: state.isLoadingMore,
+              onLoadMore: onLoadMore,
+            ),
+        ],
       ),
     );
   }
 }
 
 class _LikedTab extends StatelessWidget {
-  const _LikedTab({required this.likes, required this.onRetry});
+  const _LikedTab({
+    required this.likes,
+    required this.onRetry,
+    required this.onLoadMore,
+  });
 
-  final AsyncValue<List<IncomingLikeModel>> likes;
+  final AsyncValue<CursorListState<IncomingLikeModel>> likes;
   final VoidCallback onRetry;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -344,43 +398,53 @@ class _LikedTab extends StatelessWidget {
     final totalHeight = itemWidth + 72;
     final childAspectRatio = itemWidth / totalHeight;
 
-    return FlatmatesAsyncView<List<IncomingLikeModel>>(
+    return FlatmatesAsyncView<CursorListState<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
+      isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikedYet,
         subtitle: locale.keepSwipingToFindMatches,
         icon: Icons.favorite_rounded,
       ),
-      data: (items) => GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: AppSpacing.md,
-          mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: childAspectRatio,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return FlatmatesProfileGridCard(
-            key: ValueKey('outgoing_like_${item.id}'),
-            name: item.peer.fullName,
-            age: item.peer.age,
-            location: _locationForPeer(item.peer),
-            profession: _professionForPeer(locale, item.peer),
-            matchPercentage: item.peer.matchPercentage,
-            imageUrl: item.peer.profileImageUrl,
-            matchButtonLabel: '',
-            onTap: () => FlatmateProfileSheet.show(
-              context: context,
-              userId: item.peer.id,
-              nameFallback: item.peer.fullName,
+      data: (state) => Column(
+        children: [
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppSpacing.md,
+              mainAxisSpacing: AppSpacing.md,
+              childAspectRatio: childAspectRatio,
             ),
-            onMatchTap: null,
-          );
-        },
+            itemCount: state.items.length,
+            itemBuilder: (context, index) {
+              final item = state.items[index];
+              return FlatmatesProfileGridCard(
+                key: ValueKey('outgoing_like_${item.id}'),
+                name: item.peer.fullName,
+                age: item.peer.age,
+                location: _locationForPeer(item.peer),
+                profession: _professionForPeer(locale, item.peer),
+                matchPercentage: item.peer.matchPercentage,
+                imageUrl: item.peer.profileImageUrl,
+                matchButtonLabel: '',
+                onTap: () => FlatmateProfileSheet.show(
+                  context: context,
+                  userId: item.peer.id,
+                  nameFallback: item.peer.fullName,
+                ),
+                onMatchTap: null,
+              );
+            },
+          ),
+          if (state.hasMore)
+            _LoadMoreFooter(
+              isLoadingMore: state.isLoadingMore,
+              onLoadMore: onLoadMore,
+            ),
+        ],
       ),
     );
   }
@@ -390,29 +454,32 @@ class _ChatsTab extends StatelessWidget {
   const _ChatsTab({
     required this.conversations,
     required this.onRetry,
+    required this.onLoadMore,
     this.loading,
   });
 
-  final AsyncValue<List<ConversationSummaryModel>> conversations;
+  final AsyncValue<CursorListState<ConversationSummaryModel>> conversations;
   final VoidCallback onRetry;
+  final VoidCallback onLoadMore;
   final Widget? loading;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    return FlatmatesAsyncView<List<ConversationSummaryModel>>(
+    return FlatmatesAsyncView<CursorListState<ConversationSummaryModel>>(
       value: conversations,
       onRetry: onRetry,
       loading: loading,
+      isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noConversations,
         subtitle: locale.startChatWithMatch,
         icon: Icons.chat_bubble_outline_rounded,
       ),
-      data: (items) => Column(
+      data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final item in items)
+          for (final item in state.items)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
               child: ConversationCard(
@@ -420,7 +487,52 @@ class _ChatsTab extends StatelessWidget {
                 onTap: () => context.push('/chats/${item.id}', extra: item),
               ),
             ),
+          if (state.hasMore)
+            _LoadMoreFooter(
+              isLoadingMore: state.isLoadingMore,
+              onLoadMore: onLoadMore,
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Load more" button used by every chat tab. Renders a spinner while a
+/// page is in flight and a muted text when the stream has been fully
+/// drained. Driven by cursor pagination in [CursorListController].
+class _LoadMoreFooter extends StatelessWidget {
+  const _LoadMoreFooter({
+    required this.isLoadingMore,
+    required this.onLoadMore,
+  });
+
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    if (isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      child: Center(
+        child: TextButton.icon(
+          onPressed: onLoadMore,
+          icon: const Icon(Icons.expand_more_rounded),
+          label: Text(locale.loadMoreCta),
+        ),
       ),
     );
   }

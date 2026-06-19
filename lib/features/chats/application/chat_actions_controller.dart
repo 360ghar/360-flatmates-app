@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../chats_repository.dart';
+import 'cursor_list_controller.dart';
 
 class ChatActionsController {
   ChatActionsController(this._ref);
@@ -12,6 +13,7 @@ class ChatActionsController {
     await _repository.blockUser(peerId);
     // Blocking removes the conversation and any pending likes from the peer,
     // so refresh the lists the user returns to after blocking.
+    invalidateChatListControllers(_ref);
     _ref.invalidate(conversationsProvider);
     _ref.invalidate(incomingLikesProvider);
     _ref.invalidate(outgoingLikesProvider);
@@ -24,6 +26,7 @@ class ChatActionsController {
   Future<void> unmatchConversation(int conversationId, int peerId) async {
     await _repository.unmatchConversation(conversationId, peerId);
     // Unmatching drops the conversation; refresh so the stale row disappears.
+    invalidateChatListControllers(_ref);
     _ref.invalidate(conversationsProvider);
     _ref.invalidate(incomingLikesProvider);
     _ref.invalidate(outgoingLikesProvider);
@@ -39,6 +42,7 @@ class ChatActionsController {
       peerId: peerId,
       contextPropertyId: contextPropertyId,
     );
+    invalidateChatListControllers(_ref);
     _ref.invalidate(incomingLikesProvider);
     _ref.invalidate(conversationsProvider);
     return conversationId;
