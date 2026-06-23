@@ -779,7 +779,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileMenuShortlisted.
   ///
   /// In en, this message translates to:
-  /// **'Shortlisted'**
+  /// **'Likes'**
   String get profileMenuShortlisted;
 
   /// No description provided for @profileMenuChats.
@@ -4253,7 +4253,7 @@ abstract class AppLocalizations {
   /// No description provided for @shortlistCta.
   ///
   /// In en, this message translates to:
-  /// **'Shortlist'**
+  /// **'Like'**
   String get shortlistCta;
 
   /// No description provided for @contactCta.
@@ -5975,13 +5975,13 @@ abstract class AppLocalizations {
   /// No description provided for @shortlisted.
   ///
   /// In en, this message translates to:
-  /// **'Added to shortlist'**
+  /// **'Liked'**
   String get shortlisted;
 
   /// No description provided for @shortlistRemoved.
   ///
   /// In en, this message translates to:
-  /// **'Removed from shortlist'**
+  /// **'Removed'**
   String get shortlistRemoved;
 
   /// No description provided for @contactRequestSentToast.

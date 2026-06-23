@@ -17,7 +17,7 @@ final class AppConfig {
     required this.environment,
     required this.apiBaseUrl,
     required this.supabaseUrl,
-    required this.supabaseAnonKey,
+    required this.supabasePublishableKey,
     required this.enableDebugLogs,
     this.googleWebClientId = '',
     this.googleIosClientId = '',
@@ -26,7 +26,7 @@ final class AppConfig {
   final AppEnvironment environment;
   final String apiBaseUrl;
   final String supabaseUrl;
-  final String supabaseAnonKey;
+  final String supabasePublishableKey;
   final bool enableDebugLogs;
 
   /// Google **Web** OAuth client id, used as the Android `serverClientId` and
@@ -75,7 +75,7 @@ final class AppConfig {
     const supabaseKeyDefine = String.fromEnvironment(
       'SUPABASE_PUBLISHABLE_KEY',
     );
-    final supabaseAnonKey = supabaseKeyDefine.trim().isNotEmpty
+    final supabasePublishableKey = supabaseKeyDefine.trim().isNotEmpty
         ? supabaseKeyDefine
         : (dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '');
 
@@ -107,7 +107,7 @@ final class AppConfig {
         'API_BASE_URL is required. Set it via .env, --dart-define, or environment variable.',
       );
     }
-    if (supabaseUrl.trim().isEmpty || supabaseAnonKey.trim().isEmpty) {
+    if (supabaseUrl.trim().isEmpty || supabasePublishableKey.trim().isEmpty) {
       throw StateError(
         'Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY configuration.',
       );
@@ -117,7 +117,7 @@ final class AppConfig {
       environment: environment,
       apiBaseUrl: apiBaseUrl,
       supabaseUrl: supabaseUrl,
-      supabaseAnonKey: supabaseAnonKey,
+      supabasePublishableKey: supabasePublishableKey,
       enableDebugLogs: enableDebugLogs,
       googleWebClientId: googleWebClientId,
       googleIosClientId: googleIosClientId,

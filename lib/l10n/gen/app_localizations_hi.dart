@@ -400,7 +400,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get profileMenuPostListing => 'लिस्टिंग पोस्ट करें';
 
   @override
-  String get profileMenuShortlisted => 'शॉर्टलिस्टेड';
+  String get profileMenuShortlisted => 'लाइक्स';
 
   @override
   String get profileMenuChats => 'मेरी चैट';
@@ -2222,7 +2222,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get aboutThisFlatSection => 'इस फ्लैट के बारे में';
 
   @override
-  String get shortlistCta => 'शॉर्टलिस्ट';
+  String get shortlistCta => 'लाइक';
 
   @override
   String get contactCta => 'संपर्क करें';
@@ -3197,10 +3197,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get listingResumed => 'लिस्टिंग फिर से शुरू की गई';
 
   @override
-  String get shortlisted => 'शॉर्टलिस्ट में जोड़ा गया';
+  String get shortlisted => 'लाइक किया गया';
 
   @override
-  String get shortlistRemoved => 'शॉर्टलिस्ट से हटाया गया';
+  String get shortlistRemoved => 'लाइक हटाया गया';
 
   @override
   String get contactRequestSentToast => 'संपर्क अनुरोध भेजा गया';

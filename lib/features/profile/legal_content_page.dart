@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flatmates_app/core/theme/app_spacing.dart';
 
 import '../../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_header.dart';
 
-class LegalContentPage extends StatefulWidget {
+final _legalContentProvider =
+    StateProvider.family<String, String>((ref, assetPath) => '');
+final _legalLoadingProvider =
+    StateProvider.family<bool, String>((ref, assetPath) => true);
+final _legalHasErrorProvider =
+    StateProvider.family<bool, String>((ref, assetPath) => false);
+
+class LegalContentPage extends ConsumerStatefulWidget {
   const LegalContentPage({
     required this.title,
     required this.assetPath,
@@ -18,14 +26,10 @@ class LegalContentPage extends StatefulWidget {
   final String assetPath;
 
   @override
-  State<LegalContentPage> createState() => _LegalContentPageState();
+  ConsumerState<LegalContentPage> createState() => _LegalContentPageState();
 }
 
-class _LegalContentPageState extends State<LegalContentPage> {
-  String _content = '';
-  bool _loading = true;
-  bool _hasError = false;
-
+class _LegalContentPageState extends ConsumerState<LegalContentPage> {
   @override
   void initState() {
     super.initState();
@@ -36,19 +40,16 @@ class _LegalContentPageState extends State<LegalContentPage> {
     try {
       final content = await rootBundle.loadString(widget.assetPath);
       if (!mounted) return;
-      setState(() {
-        _content = content;
-        _loading = false;
-      });
+      ref.read(_legalContentProvider(widget.assetPath).notifier).state =
+          content;
+      ref.read(_legalLoadingProvider(widget.assetPath).notifier).state = false;
     } catch (e) {
       debugPrint(
         'LegalContentPage._loadContent failed for ${widget.assetPath}: $e',
       );
       if (!mounted) return;
-      setState(() {
-        _hasError = true;
-        _loading = false;
-      });
+      ref.read(_legalHasErrorProvider(widget.assetPath).notifier).state = true;
+      ref.read(_legalLoadingProvider(widget.assetPath).notifier).state = false;
     }
   }
 
@@ -56,13 +57,16 @@ class _LegalContentPageState extends State<LegalContentPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    final content = ref.watch(_legalContentProvider(widget.assetPath));
+    final loading = ref.watch(_legalLoadingProvider(widget.assetPath));
+    final hasError = ref.watch(_legalHasErrorProvider(widget.assetPath));
 
     return Scaffold(
       appBar: FlatmatesHeader.backTitle(title: widget.title),
       body: SafeArea(
-        child: _loading
+        child: loading
             ? const Center(child: CircularProgressIndicator())
-            : _hasError
+            : hasError
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.xl),
@@ -78,7 +82,7 @@ class _LegalContentPageState extends State<LegalContentPage> {
                 ),
               )
             : Markdown(
-                data: _content,
+                data: content,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.xl,
                   vertical: AppSpacing.lg,
