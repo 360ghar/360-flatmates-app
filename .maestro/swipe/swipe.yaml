@@ -1,0 +1,58 @@
+appId: com.the360ghar.flatmates360
+name: Swipe Deck
+tags:
+  - smoke
+  - swipe
+---
+# Test swipe deck: swipe right (like), left (pass), handle matches.
+# Prerequisites: User is logged in.
+
+- tapOn:
+    id: "nav_swipe_tab"
+- extendedWaitUntil:
+    visible:
+      id: "swipe_card"
+    timeout: 10000
+
+# ── Swipe right (Like) ─────────────────────────────────────
+- swipe:
+    from:
+      id: "swipe_card"
+    direction: RIGHT
+
+# If match celebration appeared, dismiss it
+- tapOn:
+    id: "match_keep_swiping"
+    optional: true
+
+# Wait for next card to settle
+- extendedWaitUntil:
+    visible:
+      id: "swipe_card"
+    timeout: 5000
+
+# ── Swipe left (Pass) ──────────────────────────────────────
+- swipe:
+    from:
+      id: "swipe_card"
+    direction: LEFT
+
+# Wait for next card
+- assertVisible:
+    id: "swipe_card"
+    optional: true
+
+# If match celebration appeared, dismiss it
+- tapOn:
+    id: "match_keep_swiping"
+    optional: true
+
+# ── Swipe up (Super Like) ──────────────────────────────────
+- swipe:
+    from:
+      id: "swipe_card"
+    direction: UP
+
+- tapOn:
+    id: "match_keep_swiping"
+    optional: true

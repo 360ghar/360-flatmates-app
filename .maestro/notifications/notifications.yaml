@@ -1,0 +1,49 @@
+appId: com.the360ghar.flatmates360
+name: Notifications
+tags:
+  - notifications
+---
+# Navigate to notifications, verify list, mark all read.
+# Prerequisites: User is logged in. For room_poster mode,
+# notifications bell is on the Post hub header.
+
+- tapOn:
+    id: "nav_home_tab"
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 3000
+
+# ── Navigate to notifications ──────────────────────────────
+# For room_poster mode: post tab has notification bell
+- tapOn:
+    id: "nav_post_tab"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "post_hub_post_card"
+    timeout: 3000
+    optional: true
+
+- tapOn:
+    tooltip: "Notifications"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Notifications"
+    timeout: 5000
+
+# ── Mark all as read ───────────────────────────────────────
+- tapOn:
+    id: "notification_mark_all_read"
+    optional: true
+
+# ── Scroll through list ────────────────────────────────────
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: UP
+
+# ── Go back ────────────────────────────────────────────────
+- back

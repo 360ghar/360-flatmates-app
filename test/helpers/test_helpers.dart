@@ -15,7 +15,7 @@ AppConfig fakeAppConfig() => const AppConfig(
   environment: AppEnvironment.dev,
   apiBaseUrl: 'https://api.test.example.com',
   supabaseUrl: 'https://test.supabase.co',
-  supabaseAnonKey: 'test-anon-key',
+  supabasePublishableKey: 'test-anon-key',
   enableDebugLogs: false,
 );
 

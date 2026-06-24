@@ -79,7 +79,7 @@ Future<void> bootstrap() async {
 
   await Supabase.initialize(
     url: config.supabaseUrl,
-    publishableKey: config.supabaseAnonKey,
+    publishableKey: config.supabasePublishableKey,
   );
 
   final preferences = await AppPreferences.create();

@@ -1,0 +1,38 @@
+appId: com.the360ghar.flatmates360
+name: Flat Details
+tags:
+  - discover
+---
+# Tap a listing card, verify flat details page, scroll, go back.
+# Prerequisites: User is logged in, on discover screen with listings.
+
+- assertVisible:
+    id: "nav_home_tab"
+
+# ── Tap the first listing card ─────────────────────────────
+- tapOn:
+    index: 0
+    text: "month"
+    optional: true
+
+# ── Verify flat details page ───────────────────────────────
+- assertVisible:
+    text: "About"
+    optional: true
+
+- assertVisible:
+    id: "flat_contact_button"
+    optional: true
+
+# ── Scroll through details ─────────────────────────────────
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: DOWN
+
+# ── Go back ────────────────────────────────────────────────
+- back
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 5000

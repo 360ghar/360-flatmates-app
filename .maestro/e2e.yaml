@@ -1,0 +1,53 @@
+# 360 FlatMates — Full E2E Suite
+# Auth → onboarding → all features → logout
+# Run: maestro test .maestro/e2e.yaml
+#
+# Prerequisites:
+#   - Seeded backend with MAESTRO_PHONE + MAESTRO_PASSWORD
+#   - At least 3 listings in the backend
+#   - At least 1 existing conversation for chat testing
+
+appId: com.the360ghar.flatmates360
+name: Full E2E
+tags:
+  - smoke
+---
+- launchApp:
+    clearState: true
+
+# Auth
+- runFlow: auth/login.yaml
+
+# Onboarding (first login)
+- runFlow: onboarding/onboarding.yaml
+
+# Navigation
+- runFlow: navigation/tabs.yaml
+
+# Discover
+- runFlow: discover/feed.yaml
+- runFlow: discover/search_filters.yaml
+- runFlow: discover/flat_details.yaml
+- runFlow: discover/explore_map.yaml
+
+# Swipe
+- runFlow: swipe/swipe.yaml
+
+# Chats
+- runFlow: chats/chats.yaml
+- runFlow: chats/schedule_visit.yaml
+
+# Profile & Settings
+- runFlow: profile/profile.yaml
+- runFlow: profile/edit_profile.yaml
+- runFlow: profile/settings.yaml
+- runFlow: profile/help_safety.yaml
+
+# Notifications
+- runFlow: notifications/notifications.yaml
+
+# Listings (room_poster mode only — skipped if co_hunter)
+- runFlow: listings/create_listing.yaml
+
+# Logout
+- runFlow: navigation/logout.yaml

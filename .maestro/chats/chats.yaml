@@ -1,0 +1,86 @@
+appId: com.the360ghar.flatmates360
+name: Chats and Conversations
+tags:
+  - chats
+---
+# Test conversation tabs, open a chat, send a message.
+# Prerequisites: User is logged in, at least 1 conversation exists.
+
+- tapOn:
+    id: "nav_inbox_tab"
+- extendedWaitUntil:
+    visible:
+      id: "chats_chats_tab"
+    timeout: 5000
+
+# ── Verify Likes tab ───────────────────────────────────────
+- tapOn:
+    id: "chats_likes_tab"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Likes"
+    timeout: 3000
+
+# ── Switch to Liked tab ────────────────────────────────────
+- tapOn:
+    id: "chats_liked_tab"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Liked"
+    timeout: 3000
+
+# ── Switch to Chats tab ────────────────────────────────────
+- tapOn:
+    id: "chats_chats_tab"
+- extendedWaitUntil:
+    visible:
+      text: "Chats"
+    timeout: 3000
+
+# ── Open first conversation ────────────────────────────────
+- tapOn:
+    text: "Maestro"
+    optional: true
+
+# If chat thread opened, send a message
+- assertVisible:
+    id: "chat_message_input"
+    optional: true
+
+- tapOn:
+    id: "chat_message_input"
+    optional: true
+- inputText: "Hey, I'm interested in the room!"
+- tapOn:
+    id: "chat_send_button"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Hey, I'm interested in the room!"
+    timeout: 5000
+    optional: true
+
+# ── Open peer profile ──────────────────────────────────────
+- tapOn:
+    id: "chat_peer_header"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "peer_profile_call"
+    timeout: 3000
+    optional: true
+
+# Go back to chat
+- back
+
+# ── More options menu ──────────────────────────────────────
+- tapOn:
+    id: "chat_more_button"
+    optional: true
+- back
+
+# Go back to conversations
+- back

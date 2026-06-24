@@ -1,0 +1,43 @@
+appId: com.the360ghar.flatmates360
+name: Search and Filters
+tags:
+  - discover
+---
+# Open search filters, apply filters, verify results.
+# Prerequisites: User is logged in, on discover screen.
+
+- assertVisible:
+    id: "nav_home_tab"
+
+# ── Open filter sheet ──────────────────────────────────────
+- scroll:
+    direction: DOWN
+
+# Tap the filter/search bar area to open filter sheet
+- tapOn:
+    text: "Search"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Filters"
+    timeout: 5000
+
+# ── Apply room type filter ─────────────────────────────────
+- tapOn:
+    text: "Private"
+    optional: true
+
+# ── Apply furnishing filter ────────────────────────────────
+- tapOn:
+    text: "Furnished"
+    optional: true
+
+# ── Show results ───────────────────────────────────────────
+- tapOn:
+    id: "search_show_results_button"
+
+- extendedWaitUntil:
+    visible:
+      text: "Picked for You"
+    timeout: 10000

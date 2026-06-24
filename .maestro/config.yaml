@@ -1,1 +1,18 @@
-appId: com.the360ghar.flatmates
+# Maestro test configuration for 360 FlatMates
+# Env vars: MAESTRO_PHONE, MAESTRO_PASSWORD (injected via CI or local shell)
+
+appId: com.the360ghar.flatmates360
+
+tags:
+  - smoke
+  - auth
+  - onboarding
+  - navigation
+  - discover
+  - swipe
+  - chats
+  - profile
+  - listings
+  - notifications
+
+testOutputDir: build/maestro-results

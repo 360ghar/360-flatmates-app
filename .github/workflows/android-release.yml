@@ -1,0 +1,65 @@
+name: Android Release Build & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build_and_publish_android:
+    name: Build & Publish to Play Store
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: '.fvmrc'
+          channel: 'stable'
+          cache: true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Decode keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
+
+      - name: Create key.properties
+        run: |
+          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=%s\n' \
+            '${{ secrets.ANDROID_STORE_PASSWORD }}' \
+            '${{ secrets.ANDROID_KEY_PASSWORD }}' \
+            '${{ secrets.ANDROID_KEY_ALIAS }}' \
+            '${{ github.workspace }}/android/app/keystore.jks' \
+            > android/app/key.properties
+
+      - run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Build AAB
+        run: flutter build appbundle --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: Publish to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.the360ghar.flatmates360
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          tracks: production
+          status: completed

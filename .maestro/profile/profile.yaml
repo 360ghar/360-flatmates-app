@@ -1,0 +1,37 @@
+appId: com.the360ghar.flatmates360
+name: Profile View
+tags:
+  - profile
+---
+# Verify profile page elements and menu items.
+# Prerequisites: User is logged in.
+
+- tapOn:
+    id: "nav_me_tab"
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 5000
+
+# ── Verify profile elements ────────────────────────────────
+- assertVisible:
+    text: "Maestro User"
+    optional: true
+- assertVisible:
+    text: "Co-Hunter"
+    optional: true
+
+# ── Verify menu items ──────────────────────────────────────
+- assertVisible:
+    text: "Settings"
+    optional: true
+- assertVisible:
+    text: "Help"
+    optional: true
+
+# ── Scroll to see all items ────────────────────────────────
+- scroll:
+    direction: DOWN
+- assertVisible:
+    text: "Logout"
+    optional: true

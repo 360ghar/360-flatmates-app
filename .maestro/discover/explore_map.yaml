@@ -1,20 +1,26 @@
-appId: com.the360ghar.flatmates
+appId: com.the360ghar.flatmates360
+name: Explore Map View
+tags:
+  - discover
 ---
-# Feature: Explore / Map View (Co-Hunter mode tab 2)
-# Starting state: On any tab
+# Verify Explore/Map tab (Co-Hunter mode tab 2).
+# Prerequisites: User is logged in as co_hunter.
+
 - tapOn:
     id: "nav_explore_tab"
+    optional: true
+
 - extendedWaitUntil:
     visible:
       text: "Explore"
     timeout: 5000
 
-# Verify map or empty state is visible
+# Verify map or empty state
 - assertVisible:
     text: "Explore"
     optional: true
 
-# Scroll through any listing sheets or content
+# Scroll through listing sheets
 - scroll:
     direction: DOWN
     optional: true

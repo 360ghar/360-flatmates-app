@@ -400,7 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuPostListing => 'Post Listing';
 
   @override
-  String get profileMenuShortlisted => 'Shortlisted';
+  String get profileMenuShortlisted => 'Likes';
 
   @override
   String get profileMenuChats => 'My Chats';
@@ -2219,7 +2219,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutThisFlatSection => 'About this Flat';
 
   @override
-  String get shortlistCta => 'Shortlist';
+  String get shortlistCta => 'Like';
 
   @override
   String get contactCta => 'Contact';
@@ -3186,10 +3186,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listingResumed => 'Listing resumed';
 
   @override
-  String get shortlisted => 'Added to shortlist';
+  String get shortlisted => 'Liked';
 
   @override
-  String get shortlistRemoved => 'Removed from shortlist';
+  String get shortlistRemoved => 'Removed';
 
   @override
   String get contactRequestSentToast => 'Contact request sent';

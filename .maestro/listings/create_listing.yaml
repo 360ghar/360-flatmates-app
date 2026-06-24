@@ -1,0 +1,114 @@
+appId: com.the360ghar.flatmates360
+name: Create Listing
+tags:
+  - listings
+---
+# Multi-step listing creation (Room Poster mode).
+# The test account must have mode=room_poster.
+# Requires a real backend with catalog data.
+
+- tapOn:
+    id: "nav_post_tab"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "post_hub_post_card"
+    timeout: 5000
+    optional: true
+
+# ── Tap Post card ──────────────────────────────────────────
+- tapOn:
+    id: "post_hub_post_card"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "List Your Flat"
+    timeout: 5000
+    optional: true
+
+# ── Step 1: Flat Details → Next ────────────────────────────
+- tapOn:
+    id: "listing_next_button"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "listing_city_input"
+    timeout: 5000
+    optional: true
+
+# ── Step 2: Location ──────────────────────────────────────
+- tapOn:
+    id: "listing_city_input"
+    optional: true
+- inputText: "Bangalore"
+
+- tapOn:
+    id: "listing_locality_input"
+    optional: true
+- inputText: "Koramangala"
+
+- tapOn:
+    id: "listing_society_input"
+    optional: true
+- inputText: "Test Society"
+
+- tapOn:
+    id: "listing_next_button"
+    optional: true
+
+# ── Step 3: Costs ──────────────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "listing_rent_input"
+    timeout: 5000
+    optional: true
+
+- tapOn:
+    id: "listing_rent_input"
+    optional: true
+- inputText: "25000"
+
+- tapOn:
+    id: "listing_next_button"
+    optional: true
+
+# ── Steps 4-6: Next through remaining ──────────────────────
+- tapOn:
+    id: "listing_next_button"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "listing_next_button"
+    timeout: 3000
+    optional: true
+
+- tapOn:
+    id: "listing_next_button"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "listing_next_button"
+    timeout: 3000
+    optional: true
+
+- tapOn:
+    id: "listing_next_button"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "listing_publish_button"
+    timeout: 3000
+    optional: true
+
+# ── Publish ────────────────────────────────────────────────
+- tapOn:
+    id: "listing_publish_button"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Under Review"
+    timeout: 5000
+    optional: true

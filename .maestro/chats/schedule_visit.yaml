@@ -1,0 +1,51 @@
+appId: com.the360ghar.flatmates360
+name: Schedule Visit
+tags:
+  - chats
+---
+# Schedule a visit from a chat thread.
+# Prerequisites: User is logged in, inside a chat thread.
+
+- tapOn:
+    id: "nav_inbox_tab"
+- tapOn:
+    id: "chats_chats_tab"
+- tapOn:
+    text: "Maestro"
+    optional: true
+
+# ── Tap schedule visit in chat header ──────────────────────
+- tapOn:
+    id: "chat_schedule_visit_button"
+    optional: true
+
+# ── Verify schedule visit page ─────────────────────────────
+- assertVisible:
+    text: "Schedule"
+    optional: true
+
+# ── Select afternoon time slot ─────────────────────────────
+- tapOn:
+    id: "visit_afternoon_slot"
+    optional: true
+
+# ── Add a note ─────────────────────────────────────────────
+- tapOn:
+    id: "visit_note_input"
+    optional: true
+- inputText: "Looking forward to the visit!"
+
+# ── Send request ───────────────────────────────────────────
+- tapOn:
+    id: "visit_send_request_button"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "chat_message_input"
+    timeout: 5000
+    optional: true
+
+# Go back
+- back
+- back

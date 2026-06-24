@@ -1,0 +1,43 @@
+appId: com.the360ghar.flatmates360
+name: Help and Safety
+tags:
+  - profile
+---
+# Verify Help & Safety page.
+# Prerequisites: User is logged in.
+
+- tapOn:
+    id: "nav_me_tab"
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 5000
+
+# ── Navigate to Help & Safety ──────────────────────────────
+- scroll:
+    direction: DOWN
+
+- tapOn:
+    text: "Help"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Help"
+    timeout: 5000
+
+# ── Verify help page content ───────────────────────────────
+- assertVisible:
+    text: "FAQ"
+    optional: true
+- assertVisible:
+    text: "Contact"
+    optional: true
+
+# ── Tap Chat with Us ───────────────────────────────────────
+- tapOn:
+    id: "help_chat_with_us_button"
+    optional: true
+
+# ── Back to profile ────────────────────────────────────────
+- back

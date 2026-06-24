@@ -1,0 +1,68 @@
+appId: com.the360ghar.flatmates360
+name: Home Feed
+tags:
+  - smoke
+  - discover
+---
+# Verify home feed loads, scroll, open a listing.
+# Prerequisites: User is logged in, on discover screen.
+
+# ── Verify feed sections ───────────────────────────────────
+- assertVisible:
+    id: "nav_home_tab"
+
+- assertVisible:
+    text: "Hi"
+    optional: true
+- assertVisible:
+    text: "Picked for You"
+    optional: true
+
+# ── Scroll the feed ────────────────────────────────────────
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: UP
+
+# ── Open a listing card ────────────────────────────────────
+- tapOn:
+    text: "month"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "flat_contact_button"
+    timeout: 5000
+
+# ── Verify flat details content ────────────────────────────
+- assertVisible:
+    text: "About"
+    optional: true
+
+# Scroll through details
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: DOWN
+
+# ── Go back to feed ────────────────────────────────────────
+- back
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 5000
+
+# ── Open browse listings via "See all" ─────────────────────
+- tapOn:
+    text: "See all"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "browse_search_open"
+    timeout: 5000
+
+# Go back to discover
+- back

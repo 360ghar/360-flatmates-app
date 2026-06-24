@@ -1,0 +1,44 @@
+appId: com.the360ghar.flatmates360
+name: Bottom Navigation Tabs
+tags:
+  - smoke
+  - navigation
+---
+# Verify all bottom nav tabs switch correctly.
+# Prerequisites: User is logged in, on discover screen.
+
+# ── Home tab (already selected) ────────────────────────────
+- assertVisible:
+    id: "nav_home_tab"
+
+# ── Swipe tab ──────────────────────────────────────────────
+- tapOn:
+    id: "nav_swipe_tab"
+- extendedWaitUntil:
+    visible:
+      id: "nav_swipe_tab"
+    timeout: 3000
+
+# ── Likes & Chat tab ──────────────────────────────────────
+- tapOn:
+    id: "nav_inbox_tab"
+- extendedWaitUntil:
+    visible:
+      id: "nav_inbox_tab"
+    timeout: 3000
+
+# ── Profile tab ────────────────────────────────────────────
+- tapOn:
+    id: "nav_me_tab"
+- extendedWaitUntil:
+    visible:
+      id: "nav_me_tab"
+    timeout: 3000
+
+# ── Back to Home ───────────────────────────────────────────
+- tapOn:
+    id: "nav_home_tab"
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 3000

@@ -1,18 +1,22 @@
-appId: com.the360ghar.flatmates
+appId: com.the360ghar.flatmates360
+name: Full Onboarding
+tags:
+  - onboarding
 ---
-# Complete full onboarding flow
-# Prerequisites: User just signed up or logged in for first time
-# Selects Co-Hunter mode (gives access to Explore/Map tab)
+# Complete full onboarding flow after first login.
+# Selects Co-Hunter mode (gives access to Explore/Map tab).
+# Prerequisites: User just signed up; onboarding splash is visible.
+
 - extendedWaitUntil:
     visible:
-      text: "Get Started"
+      id: "onboarding_get_started"
     timeout: 10000
 
-# --- Onboarding splash ---
+# ── Onboarding splash ──────────────────────────────────────
 - tapOn:
     id: "onboarding_get_started"
 
-# --- Mode selection: Co-Hunter ---
+# ── Mode selection: Co-Hunter ──────────────────────────────
 - extendedWaitUntil:
     visible:
       id: "mode_co_hunter"
@@ -22,7 +26,7 @@ appId: com.the360ghar.flatmates
 - tapOn:
     id: "mode_continue"
 
-# --- Location selection: Bangalore ---
+# ── Location selection: Bangalore ──────────────────────────
 - extendedWaitUntil:
     visible:
       text: "Bangalore"
@@ -32,7 +36,7 @@ appId: com.the360ghar.flatmates
 - tapOn:
     text: "Continue"
 
-# --- Basic info ---
+# ── Basic info ─────────────────────────────────────────────
 - extendedWaitUntil:
     visible:
       id: "onboarding_name"
@@ -55,15 +59,15 @@ appId: com.the360ghar.flatmates
 - tapOn:
     id: "onboarding_basic_info_next"
 
-# --- Profile photo: skip (no photo uploaded, Next advances with empty list) ---
+# ── Profile photo: skip ────────────────────────────────────
 - extendedWaitUntil:
     visible:
-      id: "onboarding_photo_next"
+      id: "onboarding_photo_skip"
     timeout: 5000
 - tapOn:
-    id: "onboarding_photo_next"
+    id: "onboarding_photo_skip"
 
-# --- Lifestyle quiz ---
+# ── Lifestyle quiz ─────────────────────────────────────────
 - extendedWaitUntil:
     visible:
       id: "quiz_sleep_schedule_early_bird"
@@ -87,7 +91,7 @@ appId: com.the360ghar.flatmates
 - tapOn:
     id: "onboarding_quiz_next"
 
-# --- Budget & timeline ---
+# ── Budget & timeline ──────────────────────────────────────
 - extendedWaitUntil:
     visible:
       id: "timeline_flexible"
@@ -97,7 +101,7 @@ appId: com.the360ghar.flatmates
 - tapOn:
     id: "onboarding_budget_next"
 
-# --- Preferences ---
+# ── Preferences ────────────────────────────────────────────
 - extendedWaitUntil:
     visible:
       id: "pref_no_preference"
@@ -115,7 +119,7 @@ appId: com.the360ghar.flatmates
 - tapOn:
     id: "onboarding_preferences_next"
 
-# --- Non-negotiables ---
+# ── Non-negotiables ────────────────────────────────────────
 - extendedWaitUntil:
     visible:
       id: "non_neg_no_smoking"
@@ -126,3 +130,9 @@ appId: com.the360ghar.flatmates
     id: "non_neg_min_tidy"
 - tapOn:
     id: "onboarding_non_neg_done"
+
+# ── Verify landing on discover ─────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 15000

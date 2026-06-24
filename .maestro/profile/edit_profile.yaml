@@ -1,0 +1,41 @@
+appId: com.the360ghar.flatmates360
+name: Edit Profile
+tags:
+  - profile
+---
+# Edit profile bio and save.
+# Prerequisites: User is logged in, on profile page.
+
+- tapOn:
+    id: "nav_me_tab"
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 5000
+
+# ── Open edit profile ──────────────────────────────────────
+- scroll:
+    direction: UP
+
+- tapOn:
+    id: "profile_edit_button"
+- extendedWaitUntil:
+    visible:
+      id: "profile_save_button"
+    timeout: 5000
+
+# ── Edit bio ───────────────────────────────────────────────
+- tapOn:
+    id: "profile_bio_input"
+- eraseText
+- inputText: "Updated bio from Maestro E2E test."
+
+# ── Save ───────────────────────────────────────────────────
+- tapOn:
+    id: "profile_save_button"
+
+# ── Verify return to profile ───────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 5000
