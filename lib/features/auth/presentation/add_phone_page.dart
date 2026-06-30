@@ -17,6 +17,7 @@ import 'widgets/resend_countdown.dart';
 
 final _codeSentProvider = StateProvider<bool>((ref) => false);
 final _listeningProvider = StateProvider<bool>((ref) => false);
+final _addPhoneOtpTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Skippable post-Google step that lets a phone-less account add and verify a
 /// phone number. Skipping keeps `last_auth_method = google` and continues the
@@ -46,12 +47,28 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
 
   String get _phone => _phoneController.text.trim();
 
+  bool get _phoneLooksValid {
+    final digits = _phone.replaceAll(RegExp(r'\D'), '');
+    return digits.length >= 10 && digits.length <= 15 && _phone != '+91';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_onPhoneChanged);
+  }
+
+  void _onPhoneChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
     cancelResendCountdown();
     if (ref.read(_listeningProvider)) {
       SmsAutoFill().unregisterListener();
     }
+    _phoneController.removeListener(_onPhoneChanged);
     _phoneController.dispose();
     _phoneFocusNode.dispose();
     for (final c in _otpControllers) {
@@ -69,6 +86,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
         _otpControllers[i].text = value[i];
       }
       _isSmsFilling = false;
+      if (mounted) ref.read(_addPhoneOtpTextProvider.notifier).state = value;
     }
   }
 
@@ -101,6 +119,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   }
 
   Future<void> _sendCode() async {
+    if (!_phoneLooksValid) return;
     final ok = await ref
         .read(authControllerProvider.notifier)
         .requestAddPhoneOtp(_phone);
@@ -120,6 +139,11 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   /// Resends the SMS OTP and restarts the 30s cooldown (enabled only at 0).
   Future<void> _resendCode() async {
     if (!canResend) return;
+    if (!_phoneLooksValid) return;
+    for (final controller in _otpControllers) {
+      controller.clear();
+    }
+    ref.read(_addPhoneOtpTextProvider.notifier).state = '';
     final ok = await ref
         .read(authControllerProvider.notifier)
         .requestAddPhoneOtp(_phone);
@@ -137,6 +161,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
 
     final otp = code ?? _currentOtp;
     if (otp.length != 6) return;
+    if (!_phoneLooksValid) return;
     final ok = await ref
         .read(authControllerProvider.notifier)
         .addAndVerifyPhone(phone: _phone, otp: otp);
@@ -157,6 +182,8 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     final auth = ref.watch(authControllerProvider);
     final isBusy = auth.status == AuthStatus.submitting;
     final codeSent = ref.watch(_codeSentProvider);
+    final otpComplete = ref.watch(_addPhoneOtpTextProvider).length == 6;
+    final canSubmit = !isBusy && (codeSent ? otpComplete : _phoneLooksValid);
 
     return FlatmatesScreen(
       appBar: AppBar(),
@@ -190,7 +217,10 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
                     const SizedBox(height: AppSpacing.lg),
                     _OtpFieldRow(
                       controllers: _otpControllers,
-                      onChanged: _verify,
+                      onChanged: (otp) {
+                        ref.read(_addPhoneOtpTextProvider.notifier).state = otp;
+                        if (otp.length == 6) _verify(otp);
+                      },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     // Resend OTP with shared 30s countdown.
@@ -227,9 +257,9 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
               key: const Key('add_phone_primary_cta'),
               label: codeSent ? locale.verifyOtpCta : locale.addPhoneCta,
               fullWidth: true,
-              onPressed: isBusy
-                  ? null
-                  : (codeSent ? () => _verify() : _sendCode),
+              onPressed: canSubmit
+                  ? (codeSent ? () => _verify() : _sendCode)
+                  : null,
             ),
             const SizedBox(height: AppSpacing.md),
             Center(
@@ -250,7 +280,7 @@ class _OtpFieldRow extends StatefulWidget {
   const _OtpFieldRow({required this.controllers, required this.onChanged});
 
   final List<TextEditingController> controllers;
-  final void Function() onChanged;
+  final ValueChanged<String> onChanged;
 
   @override
   State<_OtpFieldRow> createState() => _OtpFieldRowState();
@@ -299,22 +329,20 @@ class _OtpFieldRowState extends State<_OtpFieldRow> {
                   }
                 }
                 _isFilling = false;
-                if (widget.controllers.every((c) => c.text.isNotEmpty)) {
-                  widget.onChanged();
-                }
+                widget.onChanged(_currentOtp);
                 return;
               }
 
               if (value.isNotEmpty && index < 5) {
                 FocusScope.of(context).nextFocus();
               }
-              if (widget.controllers.every((c) => c.text.isNotEmpty)) {
-                widget.onChanged();
-              }
+              widget.onChanged(_currentOtp);
             },
           ),
         );
       }),
     );
   }
+
+  String get _currentOtp => widget.controllers.map((c) => c.text).join();
 }

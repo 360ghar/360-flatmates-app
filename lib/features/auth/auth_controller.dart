@@ -106,6 +106,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
+        sessionAuthenticated: true,
       );
     } catch (e) {
       debugPrint('AuthController.checkSession failed: $e');
@@ -116,7 +117,9 @@ class AuthController extends Notifier<AuthState> {
   void clearError() {
     if (state.status == AuthStatus.error) {
       state = state.copyWith(
-        status: AuthStatus.unauthenticated,
+        status: state.sessionAuthenticated
+            ? AuthStatus.authenticated
+            : AuthStatus.unauthenticated,
         errorMessage: null,
       );
     }
@@ -308,6 +311,7 @@ class AuthController extends Notifier<AuthState> {
     state = AuthState(
       status: AuthStatus.authenticated,
       phone: _repository.currentPhone,
+      sessionAuthenticated: true,
     );
   }
 
@@ -348,6 +352,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
+        sessionAuthenticated: true,
       );
       return true;
     } on AppleSignInCancelled {
@@ -401,7 +406,11 @@ class AuthController extends Notifier<AuthState> {
     try {
       await _repository.signInWithPassword(phone: phone, password: password);
       await _rememberMethod(AuthMethod.phonePassword, identifier: phone);
-      state = AuthState(status: AuthStatus.authenticated, phone: phone);
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        phone: phone,
+        sessionAuthenticated: true,
+      );
       return true;
     } catch (error) {
       state = state.copyWith(
@@ -434,6 +443,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
+        sessionAuthenticated: true,
       );
       return true;
     } catch (error) {
@@ -460,11 +470,16 @@ class AuthController extends Notifier<AuthState> {
           channel: AuthChannel.phone,
           identifier: phone,
           needsPassword: true,
+          sessionAuthenticated: true,
         );
         return true;
       }
       await _rememberMethod(AuthMethod.phoneOtp, identifier: phone);
-      state = AuthState(status: AuthStatus.authenticated, phone: phone);
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        phone: phone,
+        sessionAuthenticated: true,
+      );
       return true;
     } catch (error) {
       state = state.copyWith(
@@ -528,6 +543,7 @@ class AuthController extends Notifier<AuthState> {
           channel: AuthChannel.email,
           identifier: email,
           needsPassword: true,
+          sessionAuthenticated: true,
         );
         return true;
       }
@@ -535,6 +551,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
+        sessionAuthenticated: true,
       );
       return true;
     } catch (error) {
@@ -554,7 +571,11 @@ class AuthController extends Notifier<AuthState> {
   /// Requests an SMS OTP for a phone being added to the current account.
   Future<bool> requestAddPhoneOtp(String phone) async {
     clearError();
-    state = state.copyWith(status: AuthStatus.submitting, phone: phone);
+    state = state.copyWith(
+      status: AuthStatus.submitting,
+      phone: phone,
+      sessionAuthenticated: true,
+    );
     try {
       await _repository.sendAddPhoneOtp(phone);
       state = state.copyWith(
@@ -580,11 +601,19 @@ class AuthController extends Notifier<AuthState> {
     required String otp,
   }) async {
     clearError();
-    state = state.copyWith(status: AuthStatus.submitting, phone: phone);
+    state = state.copyWith(
+      status: AuthStatus.submitting,
+      phone: phone,
+      sessionAuthenticated: true,
+    );
     try {
       await _repository.verifyAddPhoneOtp(phone: phone, otp: otp);
       ref.read(addPhonePromptProvider.notifier).state = false;
-      state = AuthState(status: AuthStatus.authenticated, phone: phone);
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        phone: phone,
+        sessionAuthenticated: true,
+      );
       return true;
     } catch (error) {
       state = state.copyWith(
@@ -613,7 +642,11 @@ class AuthController extends Notifier<AuthState> {
     final channel = state.channel;
     final identifier = state.identifier;
     final phone = state.phone;
-    state = state.copyWith(status: AuthStatus.submitting, errorMessage: null);
+    state = state.copyWith(
+      status: AuthStatus.submitting,
+      errorMessage: null,
+      sessionAuthenticated: true,
+    );
     try {
       await _repository.setPasswordAfterSignup(password);
       final method = channel == AuthChannel.email
@@ -621,7 +654,11 @@ class AuthController extends Notifier<AuthState> {
           : AuthMethod.phonePassword;
       await _rememberMethod(method, identifier: identifier ?? phone);
       _resolvedHasPassword = true;
-      state = AuthState(status: AuthStatus.authenticated, phone: phone);
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        phone: phone,
+        sessionAuthenticated: true,
+      );
       return true;
     } catch (error) {
       state = state.copyWith(
@@ -651,6 +688,7 @@ class AuthController extends Notifier<AuthState> {
     state = AuthState(
       status: AuthStatus.authenticated,
       phone: _repository.currentPhone,
+      sessionAuthenticated: true,
     );
   }
 

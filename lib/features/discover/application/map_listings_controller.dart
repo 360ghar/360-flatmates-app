@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bootstrap/bootstrap_controller.dart';
+import '../../chats/chats_repository.dart';
 import '../../location/application/location_controller.dart';
 import '../discover_repository.dart';
+import 'discover_feed_controller.dart';
 
 class MapListingsState {
   const MapListingsState({
@@ -122,6 +124,28 @@ class MapListingsController extends Notifier<MapListingsState> {
     }
   }
 
+  Future<int?> setLiked(int propertyId, bool liked) async {
+    final original = state.listings;
+    final index = original.indexWhere((listing) => listing.id == propertyId);
+    if (index >= 0) {
+      final optimistic = [...original];
+      optimistic[index] = optimistic[index].copyWith(liked: liked);
+      state = state.copyWith(listings: optimistic);
+    }
+
+    try {
+      final conversationId = await ref
+          .read(discoverRepositoryProvider)
+          .setLiked(propertyId, liked);
+      ref.invalidate(conversationsProvider);
+      return conversationId;
+    } catch (e) {
+      debugPrint('MapListingsController.setLiked failed: $e');
+      state = state.copyWith(listings: original);
+      rethrow;
+    }
+  }
+
   void updateLocationFilter({
     required double latitude,
     required double longitude,
@@ -153,3 +177,16 @@ final mapListingsProvider =
     NotifierProvider<MapListingsController, MapListingsState>(
       MapListingsController.new,
     );
+
+final filteredMapListingsProvider = Provider<List<PropertyListing>>((ref) {
+  final mapState = ref.watch(mapListingsProvider);
+  final profile = ref.watch(
+    bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
+  );
+  return applyDiscoverListingFilters(
+    items: mapState.listings,
+    filters: mapState.filters,
+    currentUserId: profile?.id,
+    profile: profile,
+  );
+});

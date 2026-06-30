@@ -9,6 +9,7 @@ import '../chats/chats_repository.dart'
     show
         conversationsProvider,
         incomingLikesProvider,
+        messagesProvider,
         outgoingLikesProvider,
         peerProfileProvider;
 import '../../core/errors/l10n_bridge.dart';
@@ -16,6 +17,8 @@ import '../../core/theme/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
+import '../visits/application/visits_list_controller.dart';
+import '../visits/visits_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/full_screen_gallery.dart';
@@ -146,17 +149,21 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
               FlatmatesBottomActionBar(
                 primaryButtonKey: const Key('flat_contact_button'),
                 label: hasLiked ? locale.openChatCta : locale.contactCta,
-                onPressed: () => _handleContact(listing),
+                onPressed: isSelfOwned ? null : () => _handleContact(listing),
                 icon: Icons.send_rounded,
-                secondaryLabel: hasLiked ? locale.scheduleVisitCta : null,
-                secondaryOnPressed: hasLiked
+                secondaryLabel: hasLiked && !isSelfOwned
+                    ? locale.scheduleVisitCta
+                    : null,
+                secondaryOnPressed: hasLiked && !isSelfOwned
                     ? () => _handleScheduleVisit(listing)
                     : null,
                 secondaryIcon: Icons.calendar_month_outlined,
                 tertiaryIcon: hasLiked
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                tertiaryOnPressed: () => _handleShortlist(listing),
+                tertiaryOnPressed: isSelfOwned
+                    ? null
+                    : () => _handleShortlist(listing),
                 tertiarySelected: hasLiked,
                 tertiaryButtonKey: const Key('flat_shortlist_button'),
               ),
@@ -295,6 +302,10 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       timeSlot.hour,
       timeSlot.minute,
     );
+    if (!scheduledDate.isAfter(DateTime.now())) {
+      if (mounted) FlatmatesToast.error(context, locale.visitTimeInPast);
+      return;
+    }
 
     final ownerId = listing.owner?.id ?? listing.ownerId;
     if (ownerId == null) return;
@@ -319,15 +330,19 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
 
     try {
       await ref
-          .read(discoverRepositoryProvider)
-          .scheduleVisit(
+          .read(visitsRepositoryProvider)
+          .scheduleVisitAndNotify(
             propertyId: listing.id,
             counterpartyUserId: ownerId,
             conversationId: cid,
             scheduledDate: scheduledDate,
             note: locale.visitFromDetailPageNote,
+            timeSlotLabel: _timeSlotLabel(locale, timeSlot),
           );
       ref.invalidate(propertyListingProvider(widget.listingId));
+      ref.invalidate(visitsListControllerProvider);
+      ref.invalidate(visitsProvider);
+      ref.invalidate(messagesProvider(cid));
       if (mounted) {
         FlatmatesToast.success(context, locale.visitRequestSent);
       }
@@ -375,6 +390,14 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
         ),
       ),
     );
+  }
+
+  String _timeSlotLabel(AppLocalizations locale, TimeOfDay timeSlot) {
+    return switch (timeSlot.hour) {
+      10 => locale.timeSlotMorning,
+      18 => locale.timeSlotEvening,
+      _ => locale.timeSlotAfternoon,
+    };
   }
 
   void _handleSocietyTagVote(

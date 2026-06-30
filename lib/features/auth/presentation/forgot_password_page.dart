@@ -108,15 +108,25 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               onPressed: isSubmitting
                   ? null
                   : () async {
-                      final phone = _controller.text.trim();
+                      final identifier = _controller.text.trim();
                       await ref
                           .read(passwordResetControllerProvider.notifier)
-                          .sendOtp(phone);
+                          .sendOtp(identifier);
                       if (!context.mounted) return;
                       final state = ref.read(passwordResetControllerProvider);
                       if (state.step == PasswordResetStep.otpSent) {
-                        ref.read(pendingPhoneProvider.notifier).state = phone;
-                        unawaited(context.push('/reset-password'));
+                        final isEmail = state.channel == AuthChannel.email;
+                        if (!isEmail) {
+                          ref.read(pendingPhoneProvider.notifier).state =
+                              identifier;
+                        }
+                        final query = Uri(
+                          path: '/reset-password',
+                          queryParameters: {
+                            isEmail ? 'email' : 'phone': identifier,
+                          },
+                        ).toString();
+                        unawaited(context.push(query));
                       }
                     },
             ),

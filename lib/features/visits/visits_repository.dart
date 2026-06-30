@@ -143,7 +143,8 @@ class VisitsRepository {
           'visit_id': visitId,
           'status': 'scheduled',
           'scheduled_date': scheduledDate.toUtc().toIso8601String(),
-          'time_slot_label': ?timeSlotLabel,
+          if (timeSlotLabel != null && timeSlotLabel.trim().isNotEmpty)
+            'time_slot_label': timeSlotLabel.trim(),
         },
       );
     } catch (e) {

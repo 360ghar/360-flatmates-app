@@ -438,9 +438,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         payload['profile_image_url'] = photoUrls.first;
       }
       final nonNegotiables = ref.read(_nonNegotiablesProvider);
-      if (nonNegotiables.isNotEmpty) {
-        payload['non_negotiables'] = nonNegotiables;
-      }
+      final existingPreferences = ref
+          .read(bootstrapControllerProvider)
+          .valueOrNull
+          ?.profile
+          .preferences;
+      payload['preferences'] = {
+        if (existingPreferences != null) ...existingPreferences,
+        'non_negotiables': nonNegotiables,
+      };
 
       // Include email/phone if newly added.
       final newEmail = _emailController.text.trim();

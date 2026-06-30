@@ -18,6 +18,7 @@ enum AuthChannel { phone, email }
 /// `GET /users/me/auth-state`.  Clients route the user to the screen
 /// corresponding to the first incomplete gate.
 enum AuthStage {
+  unknown,
   identifierVerification,
   passwordSetup,
   profileCompletion,
@@ -38,7 +39,7 @@ enum AuthStage {
       case 'active':
         return AuthStage.active;
       default:
-        return AuthStage.active;
+        return AuthStage.unknown;
     }
   }
 }
@@ -120,14 +121,19 @@ class AuthState with _$AuthState {
 
     /// The current auth gate stage returned by the backend
     /// `/users/me/auth-state`.  Drives the redirect chain for profile
-    /// completion and onboarding. Defaults to [AuthStage.active] so the
-    /// gate is not triggered before the first fetch completes.
-    @Default(AuthStage.active) AuthStage authStage,
+    /// completion and onboarding. Defaults to [AuthStage.unknown] so protected
+    /// routes fail closed until the first successful fetch completes.
+    @Default(AuthStage.unknown) AuthStage authStage,
+
+    /// True when the Supabase/API session is authenticated even if the UI is
+    /// currently performing a submit step such as add-phone or set-password.
+    @Default(false) bool sessionAuthenticated,
 
     /// Profile fields still missing (reported by the backend when
     /// `authStage == AuthStage.profileCompletion`).
     @Default([]) List<String> missingProfileFields,
   }) = _AuthState;
 
-  bool get isLoggedIn => status == AuthStatus.authenticated;
+  bool get isLoggedIn =>
+      sessionAuthenticated || status == AuthStatus.authenticated;
 }

@@ -17,6 +17,7 @@ final _localErrorProvider = StateProvider.autoDispose<String?>((ref) => null);
 /// submit-button enabled state rebuild on each keystroke without a `setState`
 /// in this ConsumerStatefulWidget.
 final _passwordTextProvider = StateProvider.autoDispose<String>((ref) => '');
+final _confirmTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Mandatory (non-skippable) set-password step shown after an email/phone OTP
 /// verify when the account has no password yet (requirement 6). The router
@@ -65,6 +66,8 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
     final passwordText = ref.watch(_passwordTextProvider);
+    final confirmText = ref.watch(_confirmTextProvider);
+    final passwordsMatch = passwordText == confirmText;
     final isBusy = auth.status == AuthStatus.submitting;
     // The phone/email this password is being set for (masked for display).
     final identifier = auth.identifier ?? auth.phone;
@@ -137,11 +140,22 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                       controller: _confirmController,
                       obscureText: ref.watch(_obscurePasswordProvider),
                       autofillHints: const [AutofillHints.newPassword],
+                      onChanged: (value) =>
+                          ref.read(_confirmTextProvider.notifier).state = value,
                       onSubmitted: (_) => isBusy ? null : _submit(),
                       decoration: InputDecoration(
                         labelText: locale.confirmPasswordLabel,
                       ),
                     ),
+                    if (passwordText.isNotEmpty &&
+                        confirmText.isNotEmpty &&
+                        !passwordsMatch) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        locale.passwordsDoNotMatch,
+                        style: const TextStyle(color: AppSemanticColors.error),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -165,7 +179,11 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                 key: const Key('set_password_submit_button'),
                 label: locale.commonSave,
                 fullWidth: true,
-                onPressed: isBusy || !PasswordPolicy.isValid(passwordText)
+                onPressed:
+                    isBusy ||
+                        !PasswordPolicy.isValid(passwordText) ||
+                        !passwordsMatch ||
+                        confirmText.isEmpty
                     ? null
                     : _submit,
               ),

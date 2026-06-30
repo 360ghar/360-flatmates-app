@@ -10,6 +10,8 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/resend_countdown.dart';
 
+final _otpTextProvider = StateProvider.autoDispose<String>((ref) => '');
+
 class OtpPage extends ConsumerStatefulWidget {
   const OtpPage({this.phone = '', this.email, super.key});
 
@@ -68,6 +70,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
       // (BehaviorSubject replay); auto-submitting it would produce a
       // spurious "Invalid or expired" error.
       _otpKey.currentState?.silentFillOtp(code!);
+      if (mounted) ref.read(_otpTextProvider.notifier).state = code!;
     }
   }
 
@@ -87,6 +90,8 @@ class _OtpPageState extends ConsumerState<OtpPage>
   void _submitOtp() {
     if (_isSubmitting) return;
     final auth = ref.read(authControllerProvider);
+    final otp = _otpKey.currentState?.otp ?? '';
+    if (otp.length != 6) return;
     if (auth.status == AuthStatus.submitting ||
         auth.status == AuthStatus.authenticated) {
       return;
@@ -94,17 +99,16 @@ class _OtpPageState extends ConsumerState<OtpPage>
     _isSubmitting = true;
     final notifier = ref.read(authControllerProvider.notifier);
     if (_isEmail) {
-      notifier.verifyEmailOtp(
-        email: _email,
-        otp: _otpKey.currentState?.otp ?? '',
-      );
+      notifier.verifyEmailOtp(email: _email, otp: otp);
     } else {
-      notifier.verifyOtp(phone: _phone, otp: _otpKey.currentState?.otp ?? '');
+      notifier.verifyOtp(phone: _phone, otp: otp);
     }
   }
 
   Future<void> _resendOtp() async {
     if (!canResend) return;
+    _otpKey.currentState?.silentFillOtp('');
+    ref.read(_otpTextProvider.notifier).state = '';
     final notifier = ref.read(authControllerProvider.notifier);
     // Default resend to login mode unless the identifier is explicitly
     // unverified. A null/unknown verified state should not opt into signup,
@@ -139,6 +143,9 @@ class _OtpPageState extends ConsumerState<OtpPage>
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSuccess = auth.status == AuthStatus.authenticated;
+    final otpComplete = ref.watch(_otpTextProvider).length == 6;
+    final canSubmit =
+        otpComplete && auth.status != AuthStatus.submitting && !isSuccess;
 
     return FlatmatesScreen(
       appBar: AppBar(),
@@ -170,7 +177,12 @@ class _OtpPageState extends ConsumerState<OtpPage>
               ),
             ],
             const SizedBox(height: AppSpacing.screen),
-            FlatmatesOtpInput(key: _otpKey, onCompleted: (_) => _submitOtp()),
+            FlatmatesOtpInput(
+              key: _otpKey,
+              onChanged: (otp) =>
+                  ref.read(_otpTextProvider.notifier).state = otp,
+              onCompleted: (_) => _submitOtp(),
+            ),
             if (auth.status == AuthStatus.error &&
                 auth.errorMessage != null) ...[
               const SizedBox(height: AppSpacing.md),
@@ -202,9 +214,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
               key: const Key('otp_submit_button'),
               label: locale.verifyOtpCta,
               fullWidth: true,
-              onPressed: auth.status == AuthStatus.submitting
-                  ? null
-                  : _submitOtp,
+              onPressed: canSubmit ? _submitOtp : null,
             ),
           ],
         ),

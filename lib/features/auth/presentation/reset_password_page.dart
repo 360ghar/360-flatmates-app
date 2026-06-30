@@ -34,7 +34,10 @@ final _otpCompleteProvider = Provider.autoDispose<bool>(
 );
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
-  const ResetPasswordPage({super.key});
+  const ResetPasswordPage({this.phone, this.email, super.key});
+
+  final String? phone;
+  final String? email;
 
   @override
   ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -49,24 +52,60 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
   /// Local guard to prevent re-entrant submissions from dual autofill sources.
   bool _isSubmitting = false;
 
+  String? get _routeIdentifier {
+    final email = widget.email?.trim();
+    if (email != null && email.isNotEmpty) return email;
+    final phone = widget.phone?.trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+    return null;
+  }
+
+  AuthChannel get _routeChannel =>
+      widget.email != null && widget.email!.trim().isNotEmpty
+      ? AuthChannel.email
+      : AuthChannel.phone;
+
   /// The identifier (phone or email) the reset OTP was sent to, sourced from
-  /// the controller (set by [ForgotPasswordPage]).
+  /// route query params first and then controller state.
   String get _identifier =>
+      _routeIdentifier ??
       ref.read(passwordResetControllerProvider).identifier ??
       ref.read(pendingPhoneProvider) ??
       '';
 
   String _watchedIdentifier(WidgetRef ref) =>
+      _routeIdentifier ??
       ref.watch(passwordResetControllerProvider).identifier ??
       ref.watch(pendingPhoneProvider) ??
       '';
 
   bool get _isEmail =>
+      (widget.email != null && widget.email!.trim().isNotEmpty) ||
       ref.read(passwordResetControllerProvider).channel == AuthChannel.email;
 
   @override
   void initState() {
     super.initState();
+    final routeIdentifier = _routeIdentifier;
+    if (routeIdentifier == null || routeIdentifier.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        GoRouter.maybeOf(context)?.go('/forgot-password');
+      });
+    } else {
+      Future<void>.microtask(() {
+        if (!mounted) return;
+        ref
+            .read(passwordResetControllerProvider.notifier)
+            .restoreOtpSent(
+              identifier: routeIdentifier,
+              channel: _routeChannel,
+            );
+        if (_routeChannel == AuthChannel.phone) {
+          ref.read(pendingPhoneProvider.notifier).state = routeIdentifier;
+        }
+      });
+    }
     if (!_isEmail) {
       _startListeningForSms();
     }
@@ -117,6 +156,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     if (mounted) {
       final state = ref.read(passwordResetControllerProvider);
       if (state.step == PasswordResetStep.otpSent) {
+        if (state.channel == AuthChannel.phone) {
+          ref.read(pendingPhoneProvider.notifier).state = _identifier;
+        }
         startResendCountdown();
       }
     }

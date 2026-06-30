@@ -25,13 +25,6 @@ import 'swipe_repository.dart';
 
 part 'swipe_deck_actions.dart';
 
-/// Whether the user has swiped at least one profile in the current deck.
-///
-/// Exposes [SwipeDeckController.hasSwiped] as a reactive provider so the page
-/// can `ref.watch` it instead of reading the notifier inside `build`.
-///
-/// The watch on [swipeDeckControllerProvider] (the state) ensures this provider
-/// rebuilds whenever the deck mutates, keeping the derived boolean in sync.
 final swipeDeckHasSwipedProvider = Provider<bool>((ref) {
   ref.watch(swipeDeckControllerProvider);
   return ref.read(swipeDeckControllerProvider.notifier).hasSwiped;
@@ -69,8 +62,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
   int _flyOffDirectionX = 0;
 
-  // Undo state — retains the most recently swiped profile so it can be
-  // restored to the front of the deck via the action bar.
   SwipeProfile? _lastSwipedProfile;
 
   static const Duration _snapBackDuration = Duration(milliseconds: 300);
@@ -175,15 +166,10 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     _flyOffController.forward(from: 0);
   }
 
-  /// Programmatically swipes the top card in [directionX] (+1 like, -1 pass).
-  /// Drives the same fly-off pipeline as a gesture so button taps animate and
-  /// hit the backend identically. Ignored while another swipe is in flight.
   void _triggerButtonSwipe(int directionX) {
     if (_isAnimating || _isDragging) return;
     _snapBackController.stop();
     _flyOffDirectionX = directionX;
-    // Seed a small offset so rotation/overlay/haptics read the intended
-    // direction even though the gesture never moved the card.
     final screenWidth = MediaQuery.of(context).size.width;
     _flyOffStartOffset = Offset(directionX * screenWidth * 0.25, 0);
     _isAnimating = true;
@@ -209,7 +195,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (status != AnimationStatus.completed) return;
     _flyOffController.removeListener(_onFlyOffTick);
     _flyOffController.removeStatusListener(_onFlyOffStatus);
-    // Keep the card offscreen until the backend accepts the swipe.
     _processSwipeAction(_actionFromDirection());
   }
 
@@ -228,7 +213,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     }
 
     final item = visible[_currentIndex];
-    // Save for potential undo
     _lastSwipedProfile = item;
     unawaited(HapticFeedback.mediumImpact());
     SwipeResult? swipeResult;
@@ -249,15 +233,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
     if (!mounted) return;
 
-    // Reset tracked profile since we're moving to the next card.
     _trackedProfileId = null;
 
     setState(() {
       _dragOffset = Offset.zero;
     });
 
-    // Remove swiped profile so the next rebuild shows the next card.
-    // The entrance animation hides the card swap.
     ref.read(swipeDeckControllerProvider.notifier).markSwiped(item.id);
 
     final isLikeAction = action == 'like';
@@ -331,7 +312,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (last == null) return;
     unawaited(HapticFeedback.selectionClick());
     ref.read(swipeDeckControllerProvider.notifier).undoSwipe(last);
-    // Reset tracking so the restored card re-registers a view sample.
     _trackedProfileId = null;
     setState(() => _lastSwipedProfile = null);
   }
@@ -368,8 +348,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
   @override
   Widget build(BuildContext context) {
-    // Reset deck position when shared filters change; the deck controller
-    // reloads itself via its own watch on the filters provider.
     ref.listen(discoverFiltersProvider, (previous, next) {
       if (previous == next) return;
       _compatibilityCache.clear();
@@ -386,9 +364,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     );
     final locale = AppLocalizations.of(context);
 
-    // The deck removes swiped profiles from the list rather than advancing an
-    // index, so an empty list after the user has swiped means "end of deck"
-    // rather than "no profiles ever loaded".
     final hasSwiped = ref.watch(swipeDeckHasSwipedProvider);
 
     if (deckState.isLoading && profiles.isEmpty) {
@@ -439,7 +414,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
     final item = visible[_currentIndex];
 
-    // Start view tracking for current card
     if (_trackedProfileId != item.id) {
       _recordProfileView();
       _trackedProfileId = item.id;
@@ -460,9 +434,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         ? _compatibilityCache.resultFor(userProfile, thirdItem)
         : null;
 
-    // Auto-load more profiles when the user gets close to the end of the
-    // current deck. Cursor pagination in [SwipeDeckController] keeps the
-    // user in flow without an explicit "load more" button.
     final nearEnd = _currentIndex >= visible.length - 3;
     if (nearEnd && deckState.hasMore && !deckState.isLoadingMore) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

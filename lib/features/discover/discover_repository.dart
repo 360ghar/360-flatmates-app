@@ -190,16 +190,11 @@ class DiscoverRepository {
         queryParameters['gender_preference'] = filters.genderPreference;
       }
       if (filters.bedrooms != null) {
-        queryParameters['bedrooms'] = filters.bedrooms;
+        queryParameters['bedrooms_min'] = filters.bedrooms;
+        queryParameters['bedrooms_max'] = filters.bedrooms;
       }
       if (filters.features.isNotEmpty) {
         queryParameters['features'] = filters.features;
-      }
-      if (filters.pets != null) {
-        queryParameters['pets'] = filters.pets;
-      }
-      if (filters.smoking != null) {
-        queryParameters['smoking'] = filters.smoking;
       }
       final moveIn = moveInFilterQueryValue(filters.moveInTimeline);
       if (moveIn != null) {

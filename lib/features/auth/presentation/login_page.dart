@@ -63,12 +63,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   void _onForgotPassword() {
     final identifier = _identifierController.text.trim();
-    ref.read(pendingPhoneProvider.notifier).state = identifier;
-    if (_isEmail) {
-      context.push('/forgot-password?email=$identifier');
-    } else {
-      context.push('/forgot-password?phone=$identifier');
-    }
+    if (!_isEmail) ref.read(pendingPhoneProvider.notifier).state = identifier;
+    final route = Uri(
+      path: '/forgot-password',
+      queryParameters: {_isEmail ? 'email' : 'phone': identifier},
+    ).toString();
+    context.push(route);
   }
 
   @override

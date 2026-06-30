@@ -211,9 +211,8 @@ class _ListingUnderReviewPageState
                       const SizedBox(height: AppSpacing.xl),
                       FlatmatesButton.secondary(
                         label: locale.reviewListingCta,
-                        onPressed: () => context.push(
-                          '/post/new?listingId=${widget.listingId}',
-                        ),
+                        onPressed: () =>
+                            context.push('/flat-details/${widget.listingId}'),
                         icon: Icons.visibility_outlined,
                         fullWidth: true,
                       ),

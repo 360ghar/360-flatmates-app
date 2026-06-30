@@ -58,7 +58,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier();
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
-    if (previous?.status != next.status) {
+    if (previous?.status != next.status ||
+        previous?.authStage != next.authStage ||
+        previous?.needsPassword != next.needsPassword ||
+        previous?.sessionAuthenticated != next.sessionAuthenticated) {
       refreshNotifier.refresh();
     }
   });
@@ -66,9 +69,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     previous,
     next,
   ) {
-    final prevData = previous?.valueOrNull;
     final nextData = next.valueOrNull;
-    if (prevData == null && nextData != null) {
+    if (nextData != null && next.hasValue && !next.isLoading) {
       refreshNotifier.refresh();
     }
   });
@@ -129,10 +131,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isAuthRoute ? null : '/enter-phone';
       }
 
-      // Requirement 6: mandatory set-password after an OTP verify for a
-      // passwordless account. Gate everything until it's completed (cleared
-      // when the password is set). Never set for Google/Apple.
-      if (auth.needsPassword) {
+      // Requirement 6: mandatory set-password after an OTP verify or backend
+      // password_setup gate. Gate everything until it's completed.
+      if (auth.needsPassword || auth.authStage == AuthStage.passwordSetup) {
         return isSetPassword ? null : '/set-password';
       }
       if (isSetPassword) {
@@ -150,6 +151,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final bootstrapData = bootstrap.valueOrNull!;
       final profile = bootstrapData.profile;
+
+      if (auth.authStage == AuthStage.unknown) {
+        return isSplash ? null : '/splash';
+      }
 
       // Post-Google add-phone (skippable): a phone-less Google account is sent
       // through /add-phone before onboarding. Cleared on add or skip.
@@ -172,7 +177,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/profile/edit';
       }
 
-      if (!profile.onboardingCompleted && !isOnboarding) {
+      if (auth.authStage != AuthStage.profileCompletion &&
+          !profile.onboardingCompleted &&
+          !isOnboarding) {
         return '/onboarding';
       }
 
@@ -225,7 +232,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/reset-password',
-        builder: (context, state) => const ResetPasswordPage(),
+        builder: (context, state) => ResetPasswordPage(
+          phone: state.uri.queryParameters['phone'],
+          email: state.uri.queryParameters['email'],
+        ),
       ),
       GoRoute(
         path: '/set-password',

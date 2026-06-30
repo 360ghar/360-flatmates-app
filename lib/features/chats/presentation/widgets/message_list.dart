@@ -102,12 +102,12 @@ class _MessageListState extends ConsumerState<MessageList>
       // reading position so the viewport does not jump. Newest arrivals
       // (live, optimistic, refetch) still pin to the bottom — detected by
       // checking if a NEW message arrived (last item id changed).
-      final oldWidgetLastId = oldWidget.messagesState.messages.isEmpty
+      final oldMessages = oldWidget.messagesState.displayMessages;
+      final currentMessages = widget.messagesState.displayMessages;
+      final oldWidgetLastId = oldMessages.isEmpty ? null : oldMessages.last.id;
+      final currentLastId = currentMessages.isEmpty
           ? null
-          : oldWidget.messagesState.messages.last.id;
-      final currentLastId = widget.messagesState.messages.isEmpty
-          ? null
-          : widget.messagesState.messages.last.id;
+          : currentMessages.last.id;
       if (oldWidgetLastId != null &&
           currentLastId != null &&
           currentLastId != oldWidgetLastId) {
@@ -115,11 +115,11 @@ class _MessageListState extends ConsumerState<MessageList>
       } else if (_scrollController.hasClients) {
         // Older messages were inserted at index 0; preserve the reading
         // position by anchoring on the previously first item.
-        final previousFirstId = oldWidget.messagesState.messages.isEmpty
+        final previousFirstId = oldMessages.isEmpty
             ? null
-            : oldWidget.messagesState.messages.first.id;
+            : oldMessages.first.id;
         if (previousFirstId != null) {
-          final newIndex = widget.messagesState.messages.indexWhere(
+          final newIndex = currentMessages.indexWhere(
             (m) => m.id == previousFirstId,
           );
           // The inserted messages must come strictly before the previously

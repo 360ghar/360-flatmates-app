@@ -15,7 +15,6 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../shared/presentation/components.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../chats/chats_repository.dart';
 import '../location/application/location_controller.dart';
 import '../location/presentation/map_widgets.dart';
 import 'application/map_listings_controller.dart';
@@ -146,7 +145,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         : null;
     final selectedDisplayText = selectedLocation?.displayText ?? '';
 
-    final filtered = mapState.listings;
+    final filtered = ref.watch(filteredMapListingsProvider);
     _currentFiltered = filtered;
 
     final frostOverlayColor = isDark
@@ -279,9 +278,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final locale = AppLocalizations.of(context);
     try {
       final conversationId = await ref
-          .read(discoverRepositoryProvider)
+          .read(mapListingsProvider.notifier)
           .setLiked(item.id, true);
-      ref.invalidate(conversationsProvider);
       if (!mounted) return;
       FlatmatesToast.success(
         context,

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bootstrap/bootstrap_controller.dart';
 import '../chats_repository.dart';
+import 'cursor_list_controller.dart';
 
 class MessagesState {
   const MessagesState({
@@ -112,7 +113,7 @@ bool _confirms(ChatMessage real, ChatMessage pending) {
       real.createdAt.difference(pending.createdAt).inMinutes.abs() <= 2;
 }
 
-class MessagesController extends FamilyNotifier<MessagesState, int> {
+class MessagesController extends AutoDisposeFamilyNotifier<MessagesState, int> {
   int _currentUserId = 0;
   int _nextOptimisticId = -1;
 
@@ -261,6 +262,7 @@ class MessagesController extends FamilyNotifier<MessagesState, int> {
 
     state = state.copyWith(isSending: false);
     ref.invalidate(conversationsProvider);
+    ref.invalidate(conversationsListControllerProvider);
 
     // The POST succeeded; keep the optimistic bubble even if this refetch
     // fails — the realtime stream or a later refetch will confirm it.
@@ -294,7 +296,7 @@ class MessagesController extends FamilyNotifier<MessagesState, int> {
   }
 }
 
-final messagesControllerProvider =
-    NotifierProvider.family<MessagesController, MessagesState, int>(
+final messagesControllerProvider = NotifierProvider.family
+    .autoDispose<MessagesController, MessagesState, int>(
       MessagesController.new,
     );

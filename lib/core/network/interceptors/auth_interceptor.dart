@@ -66,7 +66,7 @@ final class AuthInterceptor extends Interceptor {
           // any queued requests with the same transient error.
           _refreshCompleter?.complete(false);
           _refreshCompleter = null;
-          _failQueue(err.stackTrace);
+          _failQueueTransient(e, err.stackTrace);
           handler.next(
             DioException(
               requestOptions: err.requestOptions,
@@ -93,7 +93,7 @@ final class AuthInterceptor extends Interceptor {
         capturedCompleter.complete(false);
         _refreshCompleter = null;
         await _tokenProvider.clearSession();
-        _failQueue(err.stackTrace);
+        _failQueueSessionExpired(err.stackTrace);
         handler.next(
           DioException(
             requestOptions: err.requestOptions,
@@ -112,7 +112,7 @@ final class AuthInterceptor extends Interceptor {
         // caller can render the actual error.
         _refreshCompleter?.complete(false);
         _refreshCompleter = null;
-        _failQueue(e is DioException ? e.stackTrace : st);
+        _failQueueSessionExpired(e is DioException ? e.stackTrace : st);
         if (e is DioException) {
           handler.next(e);
         } else {
@@ -164,7 +164,7 @@ final class AuthInterceptor extends Interceptor {
     }
   }
 
-  void _failQueue(StackTrace? stackTrace) {
+  void _failQueueSessionExpired(StackTrace? stackTrace) {
     final queued = List<_QueuedRequest>.from(_queuedRequests);
     _queuedRequests.clear();
     for (final item in queued) {
@@ -177,6 +177,25 @@ final class AuthInterceptor extends Interceptor {
             requestOptions: item.requestOptions,
             statusCode: 401,
           ),
+          stackTrace: stackTrace,
+        ),
+      );
+      item.completer.complete();
+    }
+  }
+
+  void _failQueueTransient(
+    TransientAuthRefreshException exception,
+    StackTrace? stackTrace,
+  ) {
+    final queued = List<_QueuedRequest>.from(_queuedRequests);
+    _queuedRequests.clear();
+    for (final item in queued) {
+      item.handler.next(
+        DioException(
+          requestOptions: item.requestOptions,
+          error: exception,
+          type: DioExceptionType.connectionError,
           stackTrace: stackTrace,
         ),
       );

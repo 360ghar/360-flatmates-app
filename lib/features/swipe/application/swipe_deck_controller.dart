@@ -55,6 +55,7 @@ class SwipeDeckState {
 class SwipeDeckController extends Notifier<SwipeDeckState> {
   final Set<int> _swipedUserIds = {};
   bool _loadInFlight = false;
+  int _filterVersion = 0;
 
   /// Whether the user has swiped at least one profile in the current deck.
   /// Lets the UI distinguish "end of deck" from "no profiles ever loaded".
@@ -65,6 +66,7 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     // Reload the deck whenever shared discover filters (location, radius,
     // move-in, ...) change from the swipe header or the explore page.
     ref.watch(discoverFiltersProvider);
+    _filterVersion++;
     Future.microtask(() => _load());
     return const SwipeDeckState(isLoading: true);
   }
@@ -73,6 +75,7 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     if (_loadInFlight) return;
     _loadInFlight = true;
     state = const SwipeDeckState(isLoading: true);
+    final myVersion = _filterVersion;
     try {
       final filters = ref.read(discoverFiltersProvider);
       if (kDebugMode) {
@@ -91,23 +94,30 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
       final filtered = page.items
           .where((p) => !_swipedUserIds.contains(p.id))
           .toList();
-      state = state.copyWith(
-        profiles: filtered,
-        nextCursor: page.nextCursor,
-        setNextCursorNull: page.nextCursor == null,
-        hasMore: page.hasMore,
-        isLoading: false,
-        clearError: true,
-      );
+      if (myVersion == _filterVersion) {
+        state = state.copyWith(
+          profiles: filtered,
+          nextCursor: page.nextCursor,
+          setNextCursorNull: page.nextCursor == null,
+          hasMore: page.hasMore,
+          isLoading: false,
+          clearError: true,
+        );
+      }
     } catch (e, st) {
       if (kDebugMode) {
         log('[SwipeDeck] ERROR loading profiles: $e', error: e, stackTrace: st);
       } else {
         log('[SwipeDeck] ERROR loading profiles');
       }
-      state = state.copyWith(isLoading: false, error: e);
+      if (myVersion == _filterVersion) {
+        state = state.copyWith(isLoading: false, error: e);
+      }
     } finally {
       _loadInFlight = false;
+    }
+    if (myVersion != _filterVersion) {
+      await _load();
     }
   }
 
@@ -120,6 +130,7 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     if (cursor == null) return;
     _loadInFlight = true;
     state = state.copyWith(isLoadingMore: true, clearError: true);
+    final myVersion = _filterVersion;
     try {
       final filters = ref.read(discoverFiltersProvider);
       final page = await ref
@@ -132,20 +143,24 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
                 !_swipedUserIds.contains(p.id) && !existingIds.contains(p.id),
           )
           .toList();
-      state = state.copyWith(
-        profiles: [...state.profiles, ...newProfiles],
-        nextCursor: page.nextCursor,
-        setNextCursorNull: page.nextCursor == null,
-        hasMore: page.hasMore,
-        isLoadingMore: false,
-      );
+      if (myVersion == _filterVersion) {
+        state = state.copyWith(
+          profiles: [...state.profiles, ...newProfiles],
+          nextCursor: page.nextCursor,
+          setNextCursorNull: page.nextCursor == null,
+          hasMore: page.hasMore,
+          isLoadingMore: false,
+        );
+      }
     } catch (e, st) {
       log(
         '[SwipeDeck] ERROR loading more profiles: $e',
         error: e,
         stackTrace: st,
       );
-      state = state.copyWith(isLoadingMore: false, error: e);
+      if (myVersion == _filterVersion) {
+        state = state.copyWith(isLoadingMore: false, error: e);
+      }
     } finally {
       _loadInFlight = false;
     }

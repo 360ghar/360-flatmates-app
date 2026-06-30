@@ -200,37 +200,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
     if (!context.mounted) return;
 
-    final route = notification.route;
-    if (route != null && route.startsWith('/')) {
-      unawaited(context.push(route));
-      return;
-    }
-
-    String? resolvedRoute;
-    switch (notification.type) {
-      case 'new_match':
-      case 'flatmate_new_match':
-      case 'new_message':
-      case 'flatmate_new_message':
-        if (notification.referenceId != null) {
-          resolvedRoute = '/chats/${notification.referenceId}';
-        }
-        break;
-      case 'listing_approved':
-      case 'flatmate_listing_approved':
-        if (notification.referenceId != null) {
-          resolvedRoute = '/flat-details/${notification.referenceId}';
-        } else {
-          resolvedRoute = '/post';
-        }
-        break;
-      case 'visit_scheduled':
-      case 'flatmate_visit_scheduled':
-      case 'visit_confirmed':
-      case 'flatmate_visit_confirmed':
-        resolvedRoute = '/visits';
-        break;
-    }
+    final resolvedRoute = _resolveNotificationRoute(notification);
 
     if (resolvedRoute != null) {
       if (resolvedRoute.startsWith('/chats/') ||
@@ -241,6 +211,45 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       }
     } else if (context.mounted) {
       FlatmatesToast.info(context, locale.notificationNoAction);
+    }
+  }
+
+  String? _resolveNotificationRoute(NotificationModel notification) {
+    final explicitRoute = notification.route;
+    if (explicitRoute != null && explicitRoute.startsWith('/')) {
+      final uri = Uri.tryParse(explicitRoute);
+      if (uri == null) return null;
+      final path = uri.path;
+      final query = uri.hasQuery ? '?${uri.query}' : '';
+      if (path == '/post') return '/post/new$query';
+      if (path == '/visits' || path.startsWith('/visits/')) {
+        return '/profile/visits$query';
+      }
+      return explicitRoute;
+    }
+
+    switch (notification.type) {
+      case 'new_match':
+      case 'flatmate_new_match':
+      case 'new_message':
+      case 'flatmate_new_message':
+        if (notification.referenceId != null) {
+          return '/chats/${notification.referenceId}';
+        }
+        return null;
+      case 'listing_approved':
+      case 'flatmate_listing_approved':
+        if (notification.referenceId != null) {
+          return '/flat-details/${notification.referenceId}';
+        }
+        return '/post/new';
+      case 'visit_scheduled':
+      case 'flatmate_visit_scheduled':
+      case 'visit_confirmed':
+      case 'flatmate_visit_confirmed':
+        return '/profile/visits';
+      default:
+        return null;
     }
   }
 

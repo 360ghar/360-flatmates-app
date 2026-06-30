@@ -39,9 +39,13 @@ mixin _$AuthState {
 
   /// The current auth gate stage returned by the backend
   /// `/users/me/auth-state`.  Drives the redirect chain for profile
-  /// completion and onboarding. Defaults to [AuthStage.active] so the
-  /// gate is not triggered before the first fetch completes.
+  /// completion and onboarding. Defaults to [AuthStage.unknown] so protected
+  /// routes fail closed until the first successful fetch completes.
   AuthStage get authStage => throw _privateConstructorUsedError;
+
+  /// True when the Supabase/API session is authenticated even if the UI is
+  /// currently performing a submit step such as add-phone or set-password.
+  bool get sessionAuthenticated => throw _privateConstructorUsedError;
 
   /// Profile fields still missing (reported by the backend when
   /// `authStage == AuthStage.profileCompletion`).
@@ -68,6 +72,7 @@ abstract class $AuthStateCopyWith<$Res> {
     AuthChannel? channel,
     bool needsPassword,
     AuthStage authStage,
+    bool sessionAuthenticated,
     List<String> missingProfileFields,
   });
 }
@@ -95,6 +100,7 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
     Object? channel = freezed,
     Object? needsPassword = null,
     Object? authStage = null,
+    Object? sessionAuthenticated = null,
     Object? missingProfileFields = null,
   }) {
     return _then(
@@ -131,6 +137,10 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
                 ? _value.authStage
                 : authStage // ignore: cast_nullable_to_non_nullable
                       as AuthStage,
+            sessionAuthenticated: null == sessionAuthenticated
+                ? _value.sessionAuthenticated
+                : sessionAuthenticated // ignore: cast_nullable_to_non_nullable
+                      as bool,
             missingProfileFields: null == missingProfileFields
                 ? _value.missingProfileFields
                 : missingProfileFields // ignore: cast_nullable_to_non_nullable
@@ -159,6 +169,7 @@ abstract class _$$AuthStateImplCopyWith<$Res>
     AuthChannel? channel,
     bool needsPassword,
     AuthStage authStage,
+    bool sessionAuthenticated,
     List<String> missingProfileFields,
   });
 }
@@ -185,6 +196,7 @@ class __$$AuthStateImplCopyWithImpl<$Res>
     Object? channel = freezed,
     Object? needsPassword = null,
     Object? authStage = null,
+    Object? sessionAuthenticated = null,
     Object? missingProfileFields = null,
   }) {
     return _then(
@@ -221,6 +233,10 @@ class __$$AuthStateImplCopyWithImpl<$Res>
             ? _value.authStage
             : authStage // ignore: cast_nullable_to_non_nullable
                   as AuthStage,
+        sessionAuthenticated: null == sessionAuthenticated
+            ? _value.sessionAuthenticated
+            : sessionAuthenticated // ignore: cast_nullable_to_non_nullable
+                  as bool,
         missingProfileFields: null == missingProfileFields
             ? _value._missingProfileFields
             : missingProfileFields // ignore: cast_nullable_to_non_nullable
@@ -241,7 +257,8 @@ class _$AuthStateImpl extends _AuthState {
     this.identifierVerified,
     this.channel,
     this.needsPassword = false,
-    this.authStage = AuthStage.active,
+    this.authStage = AuthStage.unknown,
+    this.sessionAuthenticated = false,
     final List<String> missingProfileFields = const [],
   }) : _missingProfileFields = missingProfileFields,
        super._();
@@ -276,11 +293,17 @@ class _$AuthStateImpl extends _AuthState {
 
   /// The current auth gate stage returned by the backend
   /// `/users/me/auth-state`.  Drives the redirect chain for profile
-  /// completion and onboarding. Defaults to [AuthStage.active] so the
-  /// gate is not triggered before the first fetch completes.
+  /// completion and onboarding. Defaults to [AuthStage.unknown] so protected
+  /// routes fail closed until the first successful fetch completes.
   @override
   @JsonKey()
   final AuthStage authStage;
+
+  /// True when the Supabase/API session is authenticated even if the UI is
+  /// currently performing a submit step such as add-phone or set-password.
+  @override
+  @JsonKey()
+  final bool sessionAuthenticated;
 
   /// Profile fields still missing (reported by the backend when
   /// `authStage == AuthStage.profileCompletion`).
@@ -299,7 +322,7 @@ class _$AuthStateImpl extends _AuthState {
 
   @override
   String toString() {
-    return 'AuthState(status: $status, phone: $phone, errorMessage: $errorMessage, identifier: $identifier, identifierVerified: $identifierVerified, channel: $channel, needsPassword: $needsPassword, authStage: $authStage, missingProfileFields: $missingProfileFields)';
+    return 'AuthState(status: $status, phone: $phone, errorMessage: $errorMessage, identifier: $identifier, identifierVerified: $identifierVerified, channel: $channel, needsPassword: $needsPassword, authStage: $authStage, sessionAuthenticated: $sessionAuthenticated, missingProfileFields: $missingProfileFields)';
   }
 
   @override
@@ -320,6 +343,8 @@ class _$AuthStateImpl extends _AuthState {
                 other.needsPassword == needsPassword) &&
             (identical(other.authStage, authStage) ||
                 other.authStage == authStage) &&
+            (identical(other.sessionAuthenticated, sessionAuthenticated) ||
+                other.sessionAuthenticated == sessionAuthenticated) &&
             const DeepCollectionEquality().equals(
               other._missingProfileFields,
               _missingProfileFields,
@@ -337,6 +362,7 @@ class _$AuthStateImpl extends _AuthState {
     channel,
     needsPassword,
     authStage,
+    sessionAuthenticated,
     const DeepCollectionEquality().hash(_missingProfileFields),
   );
 
@@ -359,6 +385,7 @@ abstract class _AuthState extends AuthState {
     final AuthChannel? channel,
     final bool needsPassword,
     final AuthStage authStage,
+    final bool sessionAuthenticated,
     final List<String> missingProfileFields,
   }) = _$AuthStateImpl;
   const _AuthState._() : super._();
@@ -392,10 +419,15 @@ abstract class _AuthState extends AuthState {
 
   /// The current auth gate stage returned by the backend
   /// `/users/me/auth-state`.  Drives the redirect chain for profile
-  /// completion and onboarding. Defaults to [AuthStage.active] so the
-  /// gate is not triggered before the first fetch completes.
+  /// completion and onboarding. Defaults to [AuthStage.unknown] so protected
+  /// routes fail closed until the first successful fetch completes.
   @override
   AuthStage get authStage;
+
+  /// True when the Supabase/API session is authenticated even if the UI is
+  /// currently performing a submit step such as add-phone or set-password.
+  @override
+  bool get sessionAuthenticated;
 
   /// Profile fields still missing (reported by the backend when
   /// `authStage == AuthStage.profileCompletion`).

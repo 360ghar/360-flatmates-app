@@ -118,14 +118,13 @@ class ListingsRepository {
   /// Updates an existing listing in place (PUT) so editing never creates a
   /// duplicate. Returns the listing id on success.
   ///
-  /// The PUT body omits server-managed `listing_preferences` and strips null
-  /// fields so the edit only touches editable values.
+  /// The PUT body keeps editable `listing_preferences` and strips null fields
+  /// so the edit only touches values the form owns.
   Future<int?> updateListing(
     int listingId,
     ListingCreateRequest request,
   ) async {
     final body = Map<String, dynamic>.from(request.toJson())
-      ..remove('listing_preferences')
       ..removeWhere((_, value) => value == null);
     final response = await _ref
         .watch(apiClientProvider)

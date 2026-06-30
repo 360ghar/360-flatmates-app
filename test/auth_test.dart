@@ -198,7 +198,9 @@ void main() {
       expect(find.byKey(const Key('otp_submit_button')), findsOneWidget);
     });
 
-    testWidgets('submit button is enabled when not submitting', (tester) async {
+    testWidgets('submit button is disabled until OTP is complete', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         testableWidget(child: const OtpPage(phone: '+919876543210')),
       );
@@ -208,7 +210,7 @@ void main() {
       final button = tester.widget<FlatmatesButton>(
         find.byKey(const Key('otp_submit_button')),
       );
-      expect(button.onPressed, isNotNull);
+      expect(button.onPressed, isNull);
     });
   });
 }

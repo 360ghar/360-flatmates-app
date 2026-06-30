@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 /// Supported paths:
 ///   /flatmates/listing/{id}  → /flat-details/{id}
 ///   /flatmates/chat/{id}     → /chats/{id}
+///   /flatmates?city={city}   → /waitlist?city={city}
 class DeepLinkService {
   DeepLinkService({required GoRouter router}) : _router = router;
 
@@ -80,6 +81,17 @@ class DeepLinkService {
   /// or contains an invalid resource ID.
   static String? _mapPath(Uri uri) {
     final path = uri.path;
+    if (path == '/flatmates') {
+      final city = uri.queryParameters['city']?.trim();
+      if (city != null && city.isNotEmpty) {
+        return Uri(
+          path: '/waitlist',
+          queryParameters: {'city': city},
+        ).toString();
+      }
+      return '/discover';
+    }
+
     final listingMatch = RegExp(r'^/flatmates/listing/(\d+)').firstMatch(path);
     if (listingMatch != null) {
       final raw = listingMatch.group(1)!;

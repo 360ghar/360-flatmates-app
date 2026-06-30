@@ -9,6 +9,7 @@ import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
 import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import 'application/cursor_list_controller.dart';
 import 'domain/chat_models.dart';
 
 export 'domain/chat_models.dart';
@@ -366,7 +367,10 @@ final conversationsRealtimeProvider = StreamProvider<void>((ref) {
 
   void onChanged(_) {
     if (!controller.isClosed) {
-      Future.microtask(() => ref.invalidate(conversationsProvider));
+      Future.microtask(() {
+        ref.invalidate(conversationsProvider);
+        ref.invalidate(conversationsListControllerProvider);
+      });
     }
   }
 
@@ -414,10 +418,11 @@ final messagesProvider = FutureProvider.family<MessageListResponse, int>(
       ref.watch(chatsRepositoryProvider).fetchMessages(conversationId),
 );
 
-final messagesStreamProvider = StreamProvider.family<List<ChatMessage>, int>(
-  (ref, conversationId) =>
-      ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
-);
+final messagesStreamProvider = StreamProvider.family
+    .autoDispose<List<ChatMessage>, int>(
+      (ref, conversationId) =>
+          ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
+    );
 
 final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
   (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),

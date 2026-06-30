@@ -29,6 +29,11 @@ abstract class CursorListController<T>
 
   @override
   AsyncValue<CursorListState<T>> build() {
+    Future<void>.microtask(() {
+      if (!_loadInFlight && state.isLoading) {
+        unawaited(load());
+      }
+    });
     return const AsyncValue.loading();
   }
 

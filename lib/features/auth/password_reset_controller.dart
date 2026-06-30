@@ -59,6 +59,20 @@ class PasswordResetController extends Notifier<PasswordResetState> {
     }
   }
 
+  void restoreOtpSent({
+    required String identifier,
+    required AuthChannel channel,
+  }) {
+    final trimmed = identifier.trim();
+    if (trimmed.isEmpty) return;
+    if (state.identifier == trimmed && state.channel == channel) return;
+    state = PasswordResetState(
+      step: PasswordResetStep.otpSent,
+      identifier: trimmed,
+      channel: channel,
+    );
+  }
+
   /// Sends a reset OTP. Auto-detects the channel from the identifier (an `@`
   /// means email; otherwise phone) — decision 1: OTP for both channels.
   Future<void> sendOtp(String identifier) async {

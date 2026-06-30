@@ -366,17 +366,57 @@ final filteredListingsProvider = Provider<List<PropertyListing>>((ref) {
   final profile = ref.watch(
     bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
   );
+  return applyDiscoverListingFilters(
+    items: items,
+    filters: filters,
+    currentUserId: profile?.id,
+    profile: profile,
+  );
+});
+
+List<PropertyListing> applyDiscoverListingFilters({
+  required List<PropertyListing> items,
+  required DiscoverFilters filters,
+  required int? currentUserId,
+  dynamic profile,
+}) {
   final query = filters.query?.trim().toLowerCase() ?? '';
 
   if (filters.isEmpty && query.isEmpty) {
-    return items.where((item) => item.ownerId != profile?.id).toList();
+    return items.where((item) => item.ownerId != currentUserId).toList();
   }
 
   return items.where((item) {
-    if (item.ownerId == profile?.id) return false;
+    if (item.ownerId == currentUserId) return false;
 
     final matchesBedrooms =
         filters.bedrooms == null || item.bedrooms == filters.bedrooms;
+
+    final smokingValue =
+        (item.preferences?['smoking_drinking'] as String? ?? '').trim();
+    final petsValue = (item.preferences?['pets'] as String? ?? '').trim();
+    final hasPets =
+        item.preferences?['has_pets'] == true ||
+        item.preferences?['pets'] == true ||
+        petsValue == 'have_pets' ||
+        petsValue == 'pet_friendly';
+
+    final matchesPets = switch (filters.pets) {
+      null || 'no_preference' => true,
+      'yes' => hasPets,
+      'no' => !hasPets,
+      _ => true,
+    };
+
+    final matchesSmoking = switch (filters.smoking) {
+      null || 'no_preference' => true,
+      'yes' => smokingValue == 'smoke_outside' || smokingValue == 'both_fine',
+      'no' =>
+        smokingValue.isEmpty ||
+            smokingValue == 'neither' ||
+            smokingValue == 'drink_occasionally',
+      _ => true,
+    };
 
     final matchesFeature =
         filters.features.isEmpty ||
@@ -402,12 +442,14 @@ final filteredListingsProvider = Provider<List<PropertyListing>>((ref) {
     );
 
     return matchesBedrooms &&
+        matchesPets &&
+        matchesSmoking &&
         matchesFeature &&
         matchesQuery &&
         matchesVibe &&
         matchesMoveIn;
   }).toList();
-});
+}
 
 bool _matchesVibe(String? vibe, PropertyListing listing, dynamic profile) {
   if (vibe == null) return true;
