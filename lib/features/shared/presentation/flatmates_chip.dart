@@ -33,6 +33,7 @@ class FlatmatesChip extends StatelessWidget {
     this.onRemoved,
     this.variant = FlatmatesChipVariant.filter,
     this.enabled = true,
+    this.tint,
   });
 
   final String label;
@@ -42,6 +43,12 @@ class FlatmatesChip extends StatelessWidget {
   final VoidCallback? onRemoved;
   final FlatmatesChipVariant variant;
   final bool enabled;
+
+  /// When non-null, overrides the variant's color logic with a tinted
+  /// background, border, and foreground derived from this color. Used
+  /// for status badges (e.g. active/expired/paused on a manage-listing
+  /// card) where the semantic color drives the chrome.
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +120,15 @@ class FlatmatesChip extends StatelessWidget {
             : AppSemanticColors.paper4,
         foreground: AppSemanticColors.ink3,
         border: AppSemanticColors.line,
+      );
+    }
+
+    final tintColor = tint;
+    if (tintColor != null) {
+      return _ChipColors(
+        background: tintColor.withValues(alpha: 0.15),
+        foreground: tintColor,
+        border: tintColor.withValues(alpha: 0.25),
       );
     }
 

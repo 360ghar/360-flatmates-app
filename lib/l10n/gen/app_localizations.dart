@@ -6512,6 +6512,60 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get discardChanges;
 
+  /// No description provided for @availableFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From {date}'**
+  String availableFromDate(String date);
+
+  /// No description provided for @moveInCostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move-in {amount}'**
+  String moveInCostLabel(String amount);
+
+  /// No description provided for @distanceAway.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km away'**
+  String distanceAway(String km);
+
+  /// No description provided for @listedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed by {name}'**
+  String listedByLabel(String name);
+
+  /// No description provided for @ownerModeCoHunter.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Hunter'**
+  String get ownerModeCoHunter;
+
+  /// No description provided for @ownerModeRoomPoster.
+  ///
+  /// In en, this message translates to:
+  /// **'Room Poster'**
+  String get ownerModeRoomPoster;
+
+  /// No description provided for @ownerModeOpenToBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Open to Both'**
+  String get ownerModeOpenToBoth;
+
+  /// No description provided for @perfViewsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} views'**
+  String perfViewsLabel(String count);
+
+  /// No description provided for @perfInterestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} interest'**
+  String perfInterestLabel(String count);
+
   /// No description provided for @loadMoreCta.
   ///
   /// In en, this message translates to:

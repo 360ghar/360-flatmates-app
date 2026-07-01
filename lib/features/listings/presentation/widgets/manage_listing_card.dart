@@ -74,14 +74,14 @@ class ManageListingCard extends StatelessWidget {
                 )
               else
                 _buildPlaceholderImage(fullWidth: true),
-              // Status chip overlay at top-right
+              // Status chip overlay at top-right — color-coded by severity
               Positioned(
                 top: AppSpacing.sm,
                 right: AppSpacing.sm,
                 child: FlatmatesChip(
                   label: _statusLabel,
-                  variant: FlatmatesChipVariant.info,
                   icon: _statusIcon,
+                  tint: _statusColor,
                 ),
               ),
             ],
@@ -138,54 +138,45 @@ class ManageListingCard extends StatelessWidget {
 
           const Divider(height: 1),
 
-          // Owner info row
+          // Performance summary strip — replaces the redundant "owner = you"
+          // row with actionable engagement + expiry signals.
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md - AppSpacing.xs,
-              vertical: AppSpacing.sm + AppSpacing.xs,
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.sm,
             ),
             child: Row(
               children: [
-                FlatmatesAvatar(name: listing.ownerName, size: 28),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  listing.ownerName ?? '',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                Expanded(
+                  child: _PerfStat(
+                    icon: Icons.visibility_outlined,
+                    value: locale.perfViewsLabel(
+                      _formatCount(listing.viewCount),
+                    ),
+                    theme: theme,
                   ),
                 ),
+                Expanded(
+                  child: _PerfStat(
+                    icon: Icons.favorite_outline_rounded,
+                    value: locale.perfInterestLabel(
+                      _formatCount(listing.interestCount),
+                    ),
+                    theme: theme,
+                  ),
+                ),
+                if (expiryLabel != null)
+                  Expanded(
+                    child: _PerfStat(
+                      icon: Icons.schedule_outlined,
+                      value: expiryLabel,
+                      theme: theme,
+                      emphasis: _isExpired,
+                    ),
+                  ),
               ],
             ),
           ),
-          if (expiryLabel != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md - AppSpacing.xs,
-                0,
-                AppSpacing.md - AppSpacing.xs,
-                AppSpacing.sm + AppSpacing.xs,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.schedule_outlined,
-                    size: 16,
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    expiryLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           const Divider(height: 1),
 
@@ -306,6 +297,19 @@ class ManageListingCard extends StatelessWidget {
     };
   }
 
+  /// Semantic colour for the status — surfaces urgency at a glance.
+  Color get _statusColor {
+    if (_isPaused) return AppSemanticColors.textSecondary;
+    return switch (status) {
+      'active' || 'live' || 'approved' => AppSemanticColors.success,
+      'draft' => AppSemanticColors.textTertiary,
+      'expired' => AppSemanticColors.error,
+      'pending_review' || 'under_review' => AppSemanticColors.warning,
+      'paused' => AppSemanticColors.textSecondary,
+      _ => AppSemanticColors.info,
+    };
+  }
+
   bool get _isPaused => isPaused || status == 'paused';
 
   bool get _isExpired => status == 'expired';
@@ -385,6 +389,48 @@ class ManageListingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(fullWidth ? 0 : AppRadius.md),
       ),
       child: const Icon(Icons.apartment_rounded),
+    );
+  }
+}
+
+// ── Performance stat — compact icon + value for the summary strip ────────
+
+class _PerfStat extends StatelessWidget {
+  const _PerfStat({
+    required this.icon,
+    required this.value,
+    required this.theme,
+    this.emphasis = false,
+  });
+
+  final IconData icon;
+  final String value;
+  final ThemeData theme;
+  final bool emphasis;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = emphasis
+        ? AppSemanticColors.error
+        : AppSemanticColors.textSecondaryFor(theme.brightness);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15, color: color),
+        const SizedBox(width: AppSpacing.xs),
+        Flexible(
+          child: Text(
+            value,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -234,6 +234,7 @@ class _OwnerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
     final name = ownerName ?? 'Owner';
 
     return FlatmatesCard(
@@ -250,7 +251,7 @@ class _OwnerCard extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             CompatibilityRing(
               percentage: matchPercentage!,
-              size: 40,
+              size: 52,
               strokeWidth: 4,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -261,14 +262,14 @@ class _OwnerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Listed by $name',
+                  locale.listedByLabel(name),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (ownerMode != null)
                   Text(
-                    _localizedMode(ownerMode!),
+                    _localizedMode(ownerMode!, locale),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(
                         theme.brightness,
@@ -288,14 +289,14 @@ class _OwnerCard extends StatelessWidget {
     );
   }
 
-  String _localizedMode(String mode) {
+  String _localizedMode(String mode, AppLocalizations locale) {
     switch (mode) {
       case 'co_hunter':
-        return 'Co-Hunter';
+        return locale.ownerModeCoHunter;
       case 'room_poster':
-        return 'Room Poster';
+        return locale.ownerModeRoomPoster;
       case 'open_to_both':
-        return 'Open to Both';
+        return locale.ownerModeOpenToBoth;
       default:
         return mode;
     }

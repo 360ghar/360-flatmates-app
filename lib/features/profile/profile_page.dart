@@ -9,6 +9,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
+import 'presentation/widgets/identity_pills.dart';
 
 const double _kAvatarOffset = 2.0;
 const double _kVerticalSpacingCompact = 6.0;
@@ -36,6 +37,7 @@ class ProfilePage extends ConsumerWidget {
             return const FlatmatesSkeleton.card();
           }
           final profileStrength = _profileStrengthPercent(profile);
+          final identityPills = buildIdentityPills(profile, locale);
           return ListView(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.xl,
@@ -175,6 +177,26 @@ class ProfilePage extends ConsumerWidget {
                             ],
                           ),
                         ],
+
+                        // Scannable identity pills — mirrors what the swipe
+                        // card shows others about this user (mode, budget,
+                        // move-in). Keeps the profile a scannable identity
+                        // card rather than just a menu hub.
+                        if (identityPills.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Wrap(
+                            spacing: AppSpacing.xs,
+                            runSpacing: AppSpacing.xs,
+                            children: identityPills
+                                .map(
+                                  (p) => IdentityPill(
+                                    item: p,
+                                    brightness: theme.brightness,
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -187,9 +209,9 @@ class ProfilePage extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.section),
               // --- Menu items with staggered appear ---
-              _MenuGroupLabel(label: locale.discoverySectionLabel),
+              MenuGroupLabel(label: locale.discoverySectionLabel),
               const SizedBox(height: AppSpacing.sm),
-              _StaggeredMenuGroup(
+              StaggeredMenuGroup(
                 delayIndex: 0,
                 child: FlatmatesCard(
                   padding: EdgeInsets.zero,
@@ -236,9 +258,9 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.section),
-              _MenuGroupLabel(label: locale.trustSectionLabel),
+              MenuGroupLabel(label: locale.trustSectionLabel),
               const SizedBox(height: AppSpacing.sm),
-              _StaggeredMenuGroup(
+              StaggeredMenuGroup(
                 delayIndex: 1,
                 child: FlatmatesCard(
                   padding: EdgeInsets.zero,
@@ -280,9 +302,9 @@ class ProfilePage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _MenuGroupLabel(label: locale.accountSectionLabel),
+        MenuGroupLabel(label: locale.accountSectionLabel),
         const SizedBox(height: AppSpacing.sm),
-        _StaggeredMenuGroup(
+        StaggeredMenuGroup(
           delayIndex: 2,
           child: FlatmatesCard(
             padding: EdgeInsets.zero,
@@ -412,78 +434,6 @@ class _ProfileStrengthCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _MenuGroupLabel extends StatelessWidget {
-  const _MenuGroupLabel({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text(
-      label.toUpperCase(),
-      style: theme.textTheme.labelSmall?.copyWith(
-        color: AppSemanticColors.textTertiaryFor(theme.brightness),
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1,
-      ),
-    );
-  }
-}
-
-/// Staggered fade-in for profile menu groups.
-class _StaggeredMenuGroup extends StatefulWidget {
-  const _StaggeredMenuGroup({required this.delayIndex, required this.child});
-
-  final int delayIndex;
-  final Widget child;
-
-  @override
-  State<_StaggeredMenuGroup> createState() => _StaggeredMenuGroupState();
-}
-
-class _StaggeredMenuGroupState extends State<_StaggeredMenuGroup>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeIn;
-  late final Animation<Offset> _slideUp;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: AppMotion.slow);
-    _fadeIn = CurvedAnimation(
-      parent: _controller,
-      curve: AppMotion.easeOutCubic,
-    );
-    _slideUp = Tween(begin: const Offset(0, 0.04), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: AppMotion.easeOutCubic),
-    );
-
-    final delay = Duration(
-      milliseconds:
-          300 + widget.delayIndex * AppMotion.staggerItem.inMilliseconds,
-    );
-    Future.delayed(delay, () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeIn,
-      child: SlideTransition(position: _slideUp, child: widget.child),
     );
   }
 }

@@ -8,8 +8,6 @@ import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
 import '../../core/utils/safe_json_list.dart';
-import '../bootstrap/bootstrap_controller.dart';
-import 'application/cursor_list_controller.dart';
 import 'domain/chat_models.dart';
 
 export 'domain/chat_models.dart';
@@ -17,7 +15,7 @@ export 'domain/chat_models.dart';
 class ChatsRepository {
   const ChatsRepository(this._ref);
 
-  static const _messagesRealtimeTable = 'user_messages';
+  static const _messagesRealtimeTable = 'messages';
 
   final Ref _ref;
 
@@ -349,51 +347,6 @@ class ChatsRepository {
 final chatsRepositoryProvider = Provider<ChatsRepository>(
   (ref) => ChatsRepository(ref),
 );
-
-/// Subscribes to Supabase realtime changes on `user_conversations` and
-/// invalidates [conversationsProvider] whenever a row changes (new message,
-/// new conversation, read-status update, etc.).
-///
-/// Must be activated from the UI/provider tree (e.g. `app.dart` or
-/// `sseEventRouterProvider`) by watching or listening to this provider.
-final conversationsRealtimeProvider = StreamProvider<void>((ref) {
-  final userId = ref.watch(
-    bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
-  );
-  if (userId == null) return const Stream<void>.empty();
-
-  final controller = StreamController<void>.broadcast();
-  final client = Supabase.instance.client;
-
-  void onChanged(_) {
-    if (!controller.isClosed) {
-      Future.microtask(() {
-        ref.invalidate(conversationsProvider);
-        ref.invalidate(conversationsListControllerProvider);
-      });
-    }
-  }
-
-  final sub1 = client
-      .from('user_conversations')
-      .stream(primaryKey: ['id'])
-      .eq('user_one_id', userId)
-      .listen(onChanged);
-
-  final sub2 = client
-      .from('user_conversations')
-      .stream(primaryKey: ['id'])
-      .eq('user_two_id', userId)
-      .listen(onChanged);
-
-  ref.onDispose(() {
-    sub1.cancel();
-    sub2.cancel();
-    controller.close();
-  });
-
-  return controller.stream;
-});
 
 final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
   (ref) => ref.watch(chatsRepositoryProvider).fetchConversations(),

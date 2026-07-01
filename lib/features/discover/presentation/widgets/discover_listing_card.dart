@@ -4,7 +4,9 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_availability_pill.dart';
 import '../../../shared/presentation/flatmates_card.dart';
+import '../../../shared/presentation/flatmates_listing_meta_chips.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../discover_repository.dart';
@@ -37,17 +39,41 @@ class DiscoverListingCard extends StatelessWidget {
         item.subLocality!.trim(),
     ].join(', ');
 
-    final metaParts = <String>[
-      if (item.bedrooms != null) locale.homeBedsValue(item.bedrooms!),
-      if (item.bathrooms != null) locale.homeBathsValue(item.bathrooms!),
-    ];
-
     final genderSuffix = switch (item.genderPreference) {
       'male' => locale.genderSuffixMaleOnly,
       'female' => locale.genderSuffixFemaleOnly,
       _ => locale.genderSuffixAny,
     };
-    metaParts.add(genderSuffix);
+
+    // Reusable, a11y-safe (11sp minimum) meta facts row.
+    final metaItems = <ListingMetaItem>[
+      if (item.bedrooms != null)
+        ListingMetaItem(
+          icon: Icons.bed_outlined,
+          label: locale.homeBedsValue(item.bedrooms!),
+        ),
+      if (item.bathrooms != null)
+        ListingMetaItem(
+          icon: Icons.bathtub_outlined,
+          label: locale.homeBathsValue(item.bathrooms!),
+        ),
+      if (item.areaSqft != null)
+        ListingMetaItem(
+          icon: Icons.square_foot_outlined,
+          label: locale.sqftLabel(item.areaSqft!.round()),
+        ),
+      ListingMetaItem(icon: Icons.people_outline_rounded, label: genderSuffix),
+      if (item.isFurnished)
+        ListingMetaItem(
+          icon: Icons.chair_outlined,
+          label: locale.featureFurnished,
+          emphasis: true,
+        ),
+    ];
+
+    // Move-in cost (first month + deposit) — surfaces hidden costs up front.
+    final moveInTotal =
+        item.monthlyRent.round() + (item.securityDeposit?.round() ?? 0);
 
     final hasImage =
         item.effectiveMainImageUrl != null &&
@@ -102,6 +128,24 @@ class DiscoverListingCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ),
+                  // Availability pill — surfaces move-in readiness at a glance.
+                  Builder(
+                    builder: (context) {
+                      final pill = AvailabilityPill.resolve(
+                        context: context,
+                        status: item.status,
+                        availableFrom: item.availableFrom,
+                        isAvailable: item.isAvailable,
+                        style: AvailabilityPillStyle.onImage,
+                      );
+                      if (pill == null) return const SizedBox.shrink();
+                      return Positioned(
+                        bottom: AppSpacing.sm,
+                        left: AppSpacing.sm,
+                        child: pill,
+                      );
+                    },
                   ),
                   if (badgeLabel != null)
                     Positioned(
@@ -190,25 +234,48 @@ class DiscoverListingCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.sm,
-                AppSpacing.sm,
-                AppSpacing.sm,
-                AppSpacing.sm,
-              ),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    _formatRent(item.monthlyRent.round()),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // Rent + move-in cost row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        _formatRent(item.monthlyRent.round()),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppSemanticColors.textPrimaryFor(
+                            theme.brightness,
+                          ),
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (item.securityDeposit != null &&
+                          item.securityDeposit! > 0) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        Flexible(
+                          child: Text(
+                            locale.moveInCostLabel(
+                              FlatmatesPriceText.formatRupee(moveInTotal),
+                            ),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 11,
+                              color: AppSemanticColors.textTertiaryFor(
+                                theme.brightness,
+                              ),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: AppSpacing.xs - 1),
                   Text(
@@ -227,7 +294,7 @@ class DiscoverListingCard extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.location_on_outlined,
-                          size: 11,
+                          size: 12,
                           color: AppSemanticColors.textSecondaryFor(
                             theme.brightness,
                           ),
@@ -237,7 +304,7 @@ class DiscoverListingCard extends StatelessWidget {
                           child: Text(
                             titleLocation,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
+                              fontSize: 11,
                               color: AppSemanticColors.textSecondaryFor(
                                 theme.brightness,
                               ),
@@ -249,19 +316,9 @@ class DiscoverListingCard extends StatelessWidget {
                       ],
                     ),
                   ],
-                  if (metaParts.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xs - 1),
-                    Text(
-                      metaParts.join(' \u00b7 '),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontSize: 9,
-                        color: AppSemanticColors.textTertiaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  if (metaItems.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    FlatmatesListingMetaChips(items: metaItems),
                   ],
                 ],
               ),

@@ -7,6 +7,7 @@
 library;
 
 export 'app_icons.dart';
+export 'flatmates_availability_pill.dart';
 export 'flatmates_async_view.dart';
 export 'flatmates_bottom_action_bar.dart';
 export 'flatmates_bottom_sheet.dart';
@@ -16,6 +17,7 @@ export 'flatmates_empty_state.dart';
 export 'flatmates_error_state.dart';
 export 'flatmates_header.dart';
 export 'flatmates_like_button.dart';
+export 'flatmates_listing_meta_chips.dart';
 export 'flatmates_listing_mini_card.dart';
 export 'flatmates_network_image.dart';
 export 'flatmates_otp_input.dart';

@@ -585,15 +585,15 @@ class QuickStatsRow extends StatelessWidget {
 
     if (pills.isEmpty) return const SizedBox.shrink();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    // Wrap grid — all stats visible at once, no hidden horizontal scroll.
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Row(
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
         children: [
-          for (var i = 0; i < pills.length; i++) ...[
-            if (i > 0) const SizedBox(width: AppSpacing.sm),
-            CompactPill(icon: pills[i].icon, label: pills[i].label),
-          ],
+          for (final pill in pills)
+            CompactPill(icon: pill.icon, label: pill.label),
         ],
       ),
     );

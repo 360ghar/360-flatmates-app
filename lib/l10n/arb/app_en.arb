@@ -1646,6 +1646,46 @@
   "keepEditing": "Keep editing",
   "discardChanges": "Discard",
 
+  "availableFromDate": "From {date}",
+  "@availableFromDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "moveInCostLabel": "Move-in {amount}",
+  "@moveInCostLabel": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "distanceAway": "{km} km away",
+  "@distanceAway": {
+    "placeholders": {
+      "km": { "type": "String" }
+    }
+  },
+  "listedByLabel": "Listed by {name}",
+  "@listedByLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "ownerModeCoHunter": "Co-Hunter",
+  "ownerModeRoomPoster": "Room Poster",
+  "ownerModeOpenToBoth": "Open to Both",
+  "perfViewsLabel": "{count} views",
+  "@perfViewsLabel": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "perfInterestLabel": "{count} interest",
+  "@perfInterestLabel": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+
   "loadMoreCta": "Load more",
   "loadOlderCta": "Load older",
   "startOfConversation": "You've reached the start of this conversation",

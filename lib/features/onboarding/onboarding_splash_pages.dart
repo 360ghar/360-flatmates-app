@@ -23,7 +23,12 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _pageCount = 4;
+  static const _illustrationAssets = [
+    'assets/illustrations/onboarding_find_flat.png',
+    'assets/illustrations/onboarding_lifestyle_match.png',
+    'assets/illustrations/onboarding_flatmate_match.png',
+    'assets/illustrations/onboarding_get_started.png',
+  ];
 
   @override
   void dispose() {
@@ -34,7 +39,8 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final isLast = _page == _pageCount - 1;
+    final pageCount = _illustrationAssets.length;
+    final isLast = _page == pageCount - 1;
 
     return FlatmatesScreen(
       body: Column(
@@ -42,12 +48,11 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
           Expanded(
             child: PageView.builder(
               controller: _controller,
-              itemCount: _pageCount,
+              itemCount: pageCount,
               onPageChanged: (i) => setState(() => _page = i),
               itemBuilder: (context, index) => _OnboardingContent(
                 key: ValueKey('onboarding_page_$index'),
-                illustrationAsset:
-                    'assets/illustrations/onboarding_illustration.png',
+                illustrationAsset: _illustrationAssets[index],
                 headline: switch (index) {
                   0 => locale.onboardingHeadline1,
                   1 => locale.onboardingHeadline2,
@@ -73,7 +78,7 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
             ),
             child: _OutlineDotsProgress(
               currentStep: _page,
-              totalSteps: _pageCount,
+              totalSteps: pageCount,
             ),
           ),
           // --- Action buttons ---

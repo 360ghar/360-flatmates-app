@@ -3480,6 +3480,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discardChanges => 'Discard';
 
   @override
+  String availableFromDate(String date) {
+    return 'From $date';
+  }
+
+  @override
+  String moveInCostLabel(String amount) {
+    return 'Move-in $amount';
+  }
+
+  @override
+  String distanceAway(String km) {
+    return '$km km away';
+  }
+
+  @override
+  String listedByLabel(String name) {
+    return 'Listed by $name';
+  }
+
+  @override
+  String get ownerModeCoHunter => 'Co-Hunter';
+
+  @override
+  String get ownerModeRoomPoster => 'Room Poster';
+
+  @override
+  String get ownerModeOpenToBoth => 'Open to Both';
+
+  @override
+  String perfViewsLabel(String count) {
+    return '$count views';
+  }
+
+  @override
+  String perfInterestLabel(String count) {
+    return '$count interest';
+  }
+
+  @override
   String get loadMoreCta => 'Load more';
 
   @override

@@ -202,16 +202,34 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
         item.subLocality!.trim(),
     ].join(', ');
 
-    final metaParts = <String>[
-      if (item.bedrooms != null) locale.homeBedsValue(item.bedrooms!),
-      if (item.bathrooms != null) locale.homeBathsValue(item.bathrooms!),
+    final metaItems = <ListingMetaItem>[
+      if (item.bedrooms != null)
+        ListingMetaItem(
+          icon: Icons.bed_outlined,
+          label: locale.homeBedsValue(item.bedrooms!),
+        ),
+      if (item.bathrooms != null)
+        ListingMetaItem(
+          icon: Icons.bathtub_outlined,
+          label: locale.homeBathsValue(item.bathrooms!),
+        ),
+      if (item.areaSqft != null)
+        ListingMetaItem(
+          icon: Icons.square_foot_outlined,
+          label: locale.sqftLabel(item.areaSqft!.round()),
+        ),
+      ListingMetaItem(
+        icon: Icons.people_outline_rounded,
+        label: switch (item.genderPreference) {
+          'male' => locale.genderSuffixMaleOnly,
+          'female' => locale.genderSuffixFemaleOnly,
+          _ => locale.genderSuffixAny,
+        },
+      ),
     ];
-    final genderSuffix = switch (item.genderPreference) {
-      'male' => locale.genderSuffixMaleOnly,
-      'female' => locale.genderSuffixFemaleOnly,
-      _ => locale.genderSuffixAny,
-    };
-    metaParts.add(genderSuffix);
+    final distanceLabel = (item.distanceKm != null && item.distanceKm! > 0)
+        ? locale.distanceAway(item.distanceKm!.toStringAsFixed(1))
+        : null;
 
     final hasImage =
         item.effectiveMainImageUrl != null &&
@@ -336,7 +354,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                                 child: Text(
                                   titleLocation,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     color: AppSemanticColors.textSecondaryFor(
                                       theme.brightness,
                                     ),
@@ -345,22 +363,23 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              if (distanceLabel != null) ...[
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  distanceLabel,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppSemanticColors.accent,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ],
-                        if (metaParts.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            metaParts.join(' \u00b7 '),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 9,
-                              color: AppSemanticColors.textTertiaryFor(
-                                theme.brightness,
-                              ),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        if (metaItems.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          FlatmatesListingMetaChips(items: metaItems),
                         ],
                       ],
                     ),

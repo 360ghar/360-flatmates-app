@@ -3494,6 +3494,45 @@ class AppLocalizationsHi extends AppLocalizations {
   String get discardChanges => 'रद्द करें';
 
   @override
+  String availableFromDate(String date) {
+    return '$date से';
+  }
+
+  @override
+  String moveInCostLabel(String amount) {
+    return 'शिफ्टिंग $amount';
+  }
+
+  @override
+  String distanceAway(String km) {
+    return '$km किमी दूर';
+  }
+
+  @override
+  String listedByLabel(String name) {
+    return '$name द्वारा सूचीबद्ध';
+  }
+
+  @override
+  String get ownerModeCoHunter => 'साथी ढूंढने वाला';
+
+  @override
+  String get ownerModeRoomPoster => 'कमरा देने वाला';
+
+  @override
+  String get ownerModeOpenToBoth => 'दोनों खुला';
+
+  @override
+  String perfViewsLabel(String count) {
+    return '$count व्यूज़';
+  }
+
+  @override
+  String perfInterestLabel(String count) {
+    return '$count रुचि';
+  }
+
+  @override
   String get loadMoreCta => 'और देखें';
 
   @override

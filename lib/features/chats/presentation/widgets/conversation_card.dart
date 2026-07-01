@@ -80,11 +80,30 @@ class ConversationCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    // Accent dot for unread threads — improves scannability.
+                    if (item.unreadCount > 0) ...[
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: AppSemanticColors.accent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                    ],
                     Expanded(
                       child: Text(
                         item.peer.fullName,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: item.unreadCount > 0
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: item.unreadCount > 0
+                              ? AppSemanticColors.textPrimaryFor(
+                                  theme.brightness,
+                                )
+                              : null,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -93,20 +112,19 @@ class ConversationCard extends StatelessWidget {
                     if (item.unreadCount > 0)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
+                          horizontal: AppSpacing.sm,
                           vertical: 2,
                         ),
-                        decoration: BoxDecoration(
-                          color: AppSemanticColors.accent.withValues(
-                            alpha: 0.12,
-                          ),
+                        decoration: const BoxDecoration(
+                          color: AppSemanticColors.accent,
                           borderRadius: AppRadius.pillBorder,
                         ),
                         child: Text(
                           '${item.unreadCount}',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppSemanticColors.accent,
+                            color: Colors.white,
                             fontWeight: FontWeight.w700,
+                            fontSize: 11,
                           ),
                         ),
                       ),

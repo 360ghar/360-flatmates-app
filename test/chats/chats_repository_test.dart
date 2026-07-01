@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flatmates_app/core/config/endpoints.dart';
@@ -13,6 +14,56 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   group('ChatsRepository', () {
+    test('chat realtime code does not reference removed Supabase tables', () {
+      final source = File(
+        'lib/features/chats/chats_repository.dart',
+      ).readAsStringSync();
+
+      expect(source, isNot(contains('user_conversations')));
+      expect(source, isNot(contains('user_messages')));
+      expect(source, contains("'messages'"));
+    });
+
+    test('watchMessages emits the REST seed page', () async {
+      final adapter = _CapturingAdapter(
+        responseBody: {
+          'items': [
+            {
+              'id': 9,
+              'conversation_id': 42,
+              'sender_id': 44,
+              'body': 'hello',
+              'message_type': 'text',
+              'created_at': '2026-06-30T08:00:00Z',
+            },
+          ],
+          'next_cursor': null,
+          'has_more': false,
+          'limit': 30,
+        },
+      );
+      final apiClient = ApiClient(
+        baseUrl: 'https://api.test.example.com',
+        tokenProvider: FakeAuthTokenProvider(),
+      );
+      apiClient.dio.httpClientAdapter = adapter;
+      final container = ProviderContainer(
+        overrides: [apiClientProvider.overrideWithValue(apiClient)],
+      );
+      addTearDown(container.dispose);
+
+      final stream = container.read(chatsRepositoryProvider).watchMessages(42);
+      final messages = await stream.first;
+
+      expect(
+        adapter.lastRequest?.path,
+        FlatmatesEndpoints.conversationMessages(42),
+      );
+      expect(messages, hasLength(1));
+      expect(messages.single.id, 9);
+      expect(messages.single.conversationId, 42);
+    });
+
     test('fetchIncomingLikes reads backend likes payload', () async {
       final adapter = _CapturingAdapter(
         responseBody: {

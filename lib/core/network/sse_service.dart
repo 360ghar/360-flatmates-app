@@ -147,12 +147,25 @@ class SseService {
                   _controller != null &&
                   !_controller!.isClosed) {
                 try {
-                  final parsed = jsonDecode(data) as Map<String, dynamic>;
+                  final parsed = jsonDecode(data);
+                  if (parsed is! Map<String, dynamic>) {
+                    debugPrint(
+                      'SseService: dropped non-map event '
+                      'type=${eventType ?? "message"} '
+                      'valueType=${parsed.runtimeType}',
+                    );
+                    eventType = null;
+                    buffer.clear();
+                    return;
+                  }
                   _controller!.add(
                     SseEvent(type: eventType ?? 'message', data: parsed),
                   );
                 } catch (e) {
-                  debugPrint('SseService: failed to parse event data: $e');
+                  debugPrint(
+                    'SseService: failed to parse event '
+                    'type=${eventType ?? "message"}: $e',
+                  );
                 }
               }
               eventType = null;

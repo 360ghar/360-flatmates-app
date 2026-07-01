@@ -1627,5 +1627,45 @@
   "unsavedChangesTitle": "बदलाव रद्द करें?",
   "unsavedChangesMessage": "आपके पास सहेजे न गए बदलाव हैं। यदि आप अभी छोड़ते हैं, तो वे खो जाएँगे।",
   "keepEditing": "संपादन जारी रखें",
-  "discardChanges": "रद्द करें"
+  "discardChanges": "रद्द करें",
+
+  "availableFromDate": "{date} से",
+  "@availableFromDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "moveInCostLabel": "शिफ्टिंग {amount}",
+  "@moveInCostLabel": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "distanceAway": "{km} किमी दूर",
+  "@distanceAway": {
+    "placeholders": {
+      "km": { "type": "String" }
+    }
+  },
+  "listedByLabel": "{name} द्वारा सूचीबद्ध",
+  "@listedByLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "ownerModeCoHunter": "साथी ढूंढने वाला",
+  "ownerModeRoomPoster": "कमरा देने वाला",
+  "ownerModeOpenToBoth": "दोनों खुला",
+  "perfViewsLabel": "{count} व्यूज़",
+  "@perfViewsLabel": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "perfInterestLabel": "{count} रुचि",
+  "@perfInterestLabel": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  }
 }
