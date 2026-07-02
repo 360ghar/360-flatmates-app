@@ -13,21 +13,19 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
   @override
   Future<BootstrapData?> build() async {
     // Bootstrap data is only meaningful for an authenticated user. Fetching it
-    // while unauthenticated — which happens eagerly at app launch because the
-    // router redirect and app shell read this provider before login — issues
-    // /bootstrap + /users/me/auth-state with no token. Those calls 401, the
-    // auth interceptor clears the session, and the resulting null-token event /
-    // AuthExpiredFailure race with (and tear down) the user's first successful
-    // login, bouncing them back to the login screen. Only fetch once
-    // authenticated; the post-login transition listener in app.dart drives
-    // refresh() with a warm token. Use ref.read (not watch) so this provider
-    // is not coupled to auth-state rebuilds — refresh is triggered explicitly.
-    final isLoggedIn = ref.read(authControllerProvider).isLoggedIn;
+    // while unauthenticated issues /bootstrap + /users/me/auth-state with no
+    // token, which can clear a fresh session through the auth interceptor. Only
+    // watch the boolean login state so this provider starts after login without
+    // refetching when auth-stage/profile gates are updated from auth-state.
+    final isLoggedIn = ref.watch(
+      authControllerProvider.select((state) => state.isLoggedIn),
+    );
     if (!isLoggedIn) return null;
     return _fetchBootstrapData();
   }
 
   Future<void> refresh() async {
+    if (state.isLoading) return;
     // Retain the previous value while reloading so widgets watching
     // `valueOrNull` (e.g. the Discover page's profile/city) don't flicker to
     // null mid-refresh. `isLoading` stays true for any spinner that needs it.

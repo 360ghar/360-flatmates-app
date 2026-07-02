@@ -17,6 +17,7 @@ import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
+import '../features/onboarding/onboarding_controller.dart';
 import '../features/settings/settings_controller.dart';
 import '../l10n/gen/app_localizations.dart';
 import 'router/app_router.dart';
@@ -134,10 +135,12 @@ class _AppState extends ConsumerState<App> {
       final error = next.asError?.error;
       if (error is AuthExpiredFailure) {
         unawaited(
-          ref
-              .read(authControllerProvider.notifier)
-              .signOut()
-              .catchError((_) {}),
+          ref.read(authControllerProvider.notifier).signOut().catchError((
+            Object error,
+            StackTrace stackTrace,
+          ) {
+            debugPrint('App.bootstrap auth-expired signOut failed: $error');
+          }),
         );
       }
     });
@@ -159,22 +162,41 @@ class _AppState extends ConsumerState<App> {
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       final wasLoggedIn = previous?.isLoggedIn ?? false;
       final isLoggedIn = next.isLoggedIn;
+      final completedPasswordGate =
+          wasLoggedIn &&
+          isLoggedIn &&
+          (previous?.needsPassword ?? false) &&
+          !next.needsPassword;
+
+      if (completedPasswordGate) {
+        _refreshBootstrapAfterAuth('password-gate');
+      } else if (isLoggedIn == wasLoggedIn &&
+          isLoggedIn &&
+          _bootstrapNeedsRefresh()) {
+        _refreshBootstrapAfterAuth('auth-resume');
+      }
+
       if (isLoggedIn == wasLoggedIn) return;
 
       if (isLoggedIn) {
-        ref.read(analyticsServiceProvider).logLogin();
-        ref.read(bootstrapControllerProvider.notifier).refresh();
-        ref.read(notificationServiceProvider).initialize();
-        // Connect SSE stream with a token refresher callback so reconnects
-        // always use a fresh JWT.
-        final config = ref.read(appConfigProvider);
-        final tokenProvider = ref.read(authTokenProviderProvider);
-        ref
-            .read(sseServiceProvider)
-            .connect(config.apiBaseUrl, () => tokenProvider.getAccessToken());
+        _refreshBootstrapAfterAuth('login');
+        _logLoginSafely();
+        _initializeNotificationsSafely();
+        _connectSseSafely();
       } else {
         ref.read(notificationServiceProvider).dispose();
         ref.read(sseServiceProvider).disconnect();
+        ref.read(pendingPhoneProvider.notifier).state = null;
+        ref.read(addPhonePromptProvider.notifier).state = false;
+        unawaited(
+          ref.read(onboardingDraftStorageProvider).clear().catchError((
+            Object error,
+            StackTrace stackTrace,
+          ) {
+            debugPrint('App.logout clear onboarding draft failed: $error');
+          }),
+        );
+        ref.invalidate(onboardingControllerProvider);
         ref.read(bootstrapControllerProvider.notifier).clear();
       }
     });
@@ -201,6 +223,73 @@ class _AppState extends ConsumerState<App> {
         );
       },
     );
+  }
+
+  bool _bootstrapNeedsRefresh() {
+    final bootstrap = ref.read(bootstrapControllerProvider);
+    final auth = ref.read(authControllerProvider);
+    return !bootstrap.isLoading &&
+        (bootstrap.valueOrNull == null ||
+            bootstrap.hasError ||
+            auth.authStage == AuthStage.unknown);
+  }
+
+  void _refreshBootstrapAfterAuth(String source) {
+    if (ref.read(bootstrapControllerProvider).isLoading) {
+      return;
+    }
+    unawaited(
+      ref.read(bootstrapControllerProvider.notifier).refresh().catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        debugPrint('App.$source bootstrap refresh failed: $error');
+      }),
+    );
+  }
+
+  void _logLoginSafely() {
+    try {
+      unawaited(
+        ref.read(analyticsServiceProvider).logLogin().catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          debugPrint('App.login analytics failed: $error');
+        }),
+      );
+    } catch (error) {
+      debugPrint('App.login analytics failed: $error');
+    }
+  }
+
+  void _initializeNotificationsSafely() {
+    try {
+      unawaited(
+        ref.read(notificationServiceProvider).initialize().catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          debugPrint('App.login notification init failed: $error');
+        }),
+      );
+    } catch (error) {
+      debugPrint('App.login notification init failed: $error');
+    }
+  }
+
+  void _connectSseSafely() {
+    try {
+      // Connect SSE stream with a token refresher callback so reconnects
+      // always use a fresh JWT.
+      final config = ref.read(appConfigProvider);
+      final tokenProvider = ref.read(authTokenProviderProvider);
+      ref
+          .read(sseServiceProvider)
+          .connect(config.apiBaseUrl, () => tokenProvider.getAccessToken());
+    } catch (error) {
+      debugPrint('App.login SSE connect failed: $error');
+    }
   }
 
   void _navigateFromPendingNotification(GoRouter router) {

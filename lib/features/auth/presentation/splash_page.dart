@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../bootstrap/bootstrap_controller.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
+import '../auth_controller.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -21,6 +24,8 @@ class SplashPage extends ConsumerStatefulWidget {
 class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  bool _bootstrapRecoveryQueued = false;
+  bool _bootstrapRecoveryAttempted = false;
 
   @override
   void initState() {
@@ -40,7 +45,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authControllerProvider);
     final bootstrap = ref.watch(bootstrapControllerProvider);
+    _queueBootstrapRecoveryIfNeeded(auth, bootstrap);
+
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -142,7 +150,19 @@ class _SplashPageState extends ConsumerState<SplashPage>
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xl),
                   child: bootstrap.when(
-                    data: (_) => const _SplashProgress(),
+                    data: (data) {
+                      if (auth.isLoggedIn &&
+                          data == null &&
+                          _bootstrapRecoveryAttempted) {
+                        return _SplashRetry(
+                          message: locale.errorUnknown,
+                          onPressed: () => ref
+                              .read(bootstrapControllerProvider.notifier)
+                              .refresh(),
+                        );
+                      }
+                      return const _SplashProgress();
+                    },
                     loading: () => const _SplashProgress(),
                     error: (error, _) {
                       final message = error is AppFailure
@@ -165,29 +185,11 @@ class _SplashPageState extends ConsumerState<SplashPage>
                               ),
                             )
                           : locale.errorUnknown;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.screen + AppSpacing.lg,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              message,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppSemanticColors.error,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            FlatmatesButton(
-                              label: locale.commonRetry,
-                              onPressed: () => ref
-                                  .read(bootstrapControllerProvider.notifier)
-                                  .refresh(),
-                            ),
-                          ],
-                        ),
+                      return _SplashRetry(
+                        message: message,
+                        onPressed: () => ref
+                            .read(bootstrapControllerProvider.notifier)
+                            .refresh(),
                       );
                     },
                   ),
@@ -198,6 +200,45 @@ class _SplashPageState extends ConsumerState<SplashPage>
         ),
       ),
     );
+  }
+
+  void _queueBootstrapRecoveryIfNeeded(
+    AuthState auth,
+    AsyncValue<BootstrapData?> bootstrap,
+  ) {
+    if (!auth.isLoggedIn || bootstrap.valueOrNull != null) {
+      _bootstrapRecoveryAttempted = false;
+      return;
+    }
+    if (bootstrap.isLoading ||
+        _bootstrapRecoveryAttempted ||
+        _bootstrapRecoveryQueued) {
+      return;
+    }
+
+    _bootstrapRecoveryQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bootstrapRecoveryQueued = false;
+      if (!mounted) return;
+
+      final latestAuth = ref.read(authControllerProvider);
+      final latestBootstrap = ref.read(bootstrapControllerProvider);
+      if (!latestAuth.isLoggedIn ||
+          latestBootstrap.isLoading ||
+          latestBootstrap.valueOrNull != null) {
+        return;
+      }
+
+      _bootstrapRecoveryAttempted = true;
+      unawaited(
+        ref.read(bootstrapControllerProvider.notifier).refresh().catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          debugPrint('SplashPage.bootstrap recovery failed: $error');
+        }),
+      );
+    });
   }
 }
 
@@ -221,6 +262,39 @@ class _StaggeredFadeSlide extends StatelessWidget {
           );
         },
         child: child,
+      ),
+    );
+  }
+}
+
+class _SplashRetry extends StatelessWidget {
+  const _SplashRetry({required this.message, required this.onPressed});
+
+  final String message;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screen + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.error,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FlatmatesButton(label: locale.commonRetry, onPressed: onPressed),
+        ],
       ),
     );
   }
