@@ -79,10 +79,66 @@ void main() {
       );
     },
   );
+
+  test(
+    'refresh waits for in-flight bootstrap and fetches fresh data',
+    () async {
+      final firstBootstrapGate = Completer<void>();
+      final adapter = _RecordingAdapter(firstBootstrapGate: firstBootstrapGate);
+      final apiClient = ApiClient(
+        baseUrl: fakeAppConfig().apiBaseUrl,
+        tokenProvider: FakeAuthTokenProvider(),
+      )..dio.httpClientAdapter = adapter;
+      final container = ProviderContainer(
+        overrides: [
+          authControllerProvider.overrideWith(_LoggedInAuthController.new),
+          apiClientProvider.overrideWithValue(apiClient),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final subscription = container.listen<AsyncValue<BootstrapData?>>(
+        bootstrapControllerProvider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      await adapter.firstBootstrapStarted.future;
+
+      final refresh = container
+          .read(bootstrapControllerProvider.notifier)
+          .refresh();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(adapter.bootstrapRequestCount, 1);
+
+      firstBootstrapGate.complete();
+      await refresh;
+
+      expect(
+        adapter.requestPaths.where(
+          (path) => path == FlatmatesEndpoints.bootstrap,
+        ),
+        hasLength(2),
+      );
+      expect(
+        adapter.requestPaths.where(
+          (path) => path == Uri.parse(FlatmatesEndpoints.authState).path,
+        ),
+        hasLength(2),
+      );
+    },
+  );
 }
 
 final class _RecordingAdapter implements HttpClientAdapter {
+  _RecordingAdapter({this.firstBootstrapGate});
+
+  final Completer<void>? firstBootstrapGate;
+  final firstBootstrapStarted = Completer<void>();
   final requestPaths = <String>[];
+  var bootstrapRequestCount = 0;
 
   @override
   Future<ResponseBody> fetch(
@@ -93,6 +149,13 @@ final class _RecordingAdapter implements HttpClientAdapter {
     requestPaths.add(options.uri.path);
 
     if (options.uri.path == FlatmatesEndpoints.bootstrap) {
+      bootstrapRequestCount += 1;
+      if (!firstBootstrapStarted.isCompleted) {
+        firstBootstrapStarted.complete();
+      }
+      if (bootstrapRequestCount == 1 && firstBootstrapGate != null) {
+        await firstBootstrapGate!.future;
+      }
       return _jsonResponse({
         'profile': {
           'id': 42,
@@ -135,4 +198,9 @@ final class _RecordingAdapter implements HttpClientAdapter {
       },
     );
   }
+}
+
+class _LoggedInAuthController extends FakeAuthController {
+  @override
+  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }

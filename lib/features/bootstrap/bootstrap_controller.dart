@@ -29,7 +29,13 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
       state = const AsyncValue.data(null);
       return;
     }
-    if (state.isLoading) return;
+    if (state.isLoading) {
+      await future.catchError((Object _) => null);
+      if (!ref.read(authControllerProvider).isLoggedIn) {
+        state = const AsyncValue.data(null);
+        return;
+      }
+    }
     // Retain the previous value while reloading so widgets watching
     // `valueOrNull` (e.g. the Discover page's profile/city) don't flicker to
     // null mid-refresh. `isLoading` stays true for any spinner that needs it.

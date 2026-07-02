@@ -59,6 +59,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final bootstrap = ref.watch(bootstrapControllerProvider);
+    // Keep the autoDispose queued guard alive while this page is mounted.
+    ref.watch(_bootstrapRecoveryQueuedProvider);
     final bootstrapRecoveryAttempted = ref.watch(
       _bootstrapRecoveryAttemptedProvider,
     );
