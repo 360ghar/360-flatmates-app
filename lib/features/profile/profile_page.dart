@@ -37,7 +37,6 @@ class ProfilePage extends ConsumerWidget {
             return const FlatmatesSkeleton.card();
           }
           final profileStrength = _profileStrengthPercent(profile);
-          final identityPills = buildIdentityPills(profile, locale);
           return ListView(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.xl,
@@ -175,26 +174,6 @@ class ProfilePage extends ConsumerWidget {
                                 ),
                               ),
                             ],
-                          ),
-                        ],
-
-                        // Scannable identity pills — mirrors what the swipe
-                        // card shows others about this user (mode, budget,
-                        // move-in). Keeps the profile a scannable identity
-                        // card rather than just a menu hub.
-                        if (identityPills.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          Wrap(
-                            spacing: AppSpacing.xs,
-                            runSpacing: AppSpacing.xs,
-                            children: identityPills
-                                .map(
-                                  (p) => IdentityPill(
-                                    item: p,
-                                    brightness: theme.brightness,
-                                  ),
-                                )
-                                .toList(),
                           ),
                         ],
                       ],

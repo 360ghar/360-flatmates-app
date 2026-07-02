@@ -4,7 +4,6 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
-import '../../../shared/presentation/flatmates_availability_pill.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_listing_meta_chips.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
@@ -134,24 +133,6 @@ class DiscoverListingCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Availability pill — surfaces move-in readiness at a glance.
-                  Builder(
-                    builder: (context) {
-                      final pill = AvailabilityPill.resolve(
-                        context: context,
-                        status: item.status,
-                        availableFrom: item.availableFrom,
-                        isAvailable: item.isAvailable,
-                        style: AvailabilityPillStyle.onImage,
-                      );
-                      if (pill == null) return const SizedBox.shrink();
-                      return Positioned(
-                        bottom: AppSpacing.sm,
-                        left: AppSpacing.sm,
-                        child: pill,
-                      );
-                    },
-                  ),
                   if (badgeLabel != null)
                     Positioned(
                       top: AppSpacing.sm,
@@ -239,7 +220,12 @@ class DiscoverListingCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(compact ? AppSpacing.xs : AppSpacing.sm),
+              padding: EdgeInsets.fromLTRB(
+                compact ? AppSpacing.xs : AppSpacing.sm,
+                compact ? AppSpacing.xs : AppSpacing.sm,
+                compact ? AppSpacing.xs : AppSpacing.sm,
+                AppSpacing.xs,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,

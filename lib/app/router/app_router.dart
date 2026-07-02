@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_motion.dart';
 import '../../core/deep_links/deep_link_service.dart';
+import '../../core/providers.dart';
+import '../../core/storage/app_preferences.dart';
 import '../app_shell.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -33,6 +37,7 @@ import '../../features/listings/listing_under_review_page.dart';
 import '../../features/listings/manage_listing_page.dart' as listings;
 import '../../features/listings/post_hub_page.dart';
 import '../../features/notifications/notifications_page.dart';
+import '../../features/onboarding/onboarding_controller.dart';
 import '../../features/onboarding/onboarding_page.dart';
 import '../../features/onboarding/waitlist_page.dart';
 import '../../features/profile/edit_profile_page.dart';
@@ -58,6 +63,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier();
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
+    if (!next.isLoggedIn) {
+      ref.read(flatmatesOnboardingCompletedOverrideProvider.notifier).state =
+          false;
+      unawaited(
+        ref
+            .read(appPreferencesProvider)
+            .remove(PrefKeys.flatmatesOnboardingCompletedUserId),
+      );
+    }
     if (previous?.status != next.status ||
         previous?.authStage != next.authStage ||
         previous?.needsPassword != next.needsPassword ||
@@ -77,6 +91,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   // Re-evaluate the redirect chain when the post-Google add-phone prompt
   // toggles (set after a phone-less Google sign-in, cleared on add/skip).
   ref.listen<bool>(addPhonePromptProvider, (previous, next) {
+    if (previous != next) {
+      refreshNotifier.refresh();
+    }
+  });
+  ref.listen<bool>(flatmatesOnboardingCompletedOverrideProvider, (
+    previous,
+    next,
+  ) {
     if (previous != next) {
       refreshNotifier.refresh();
     }
@@ -151,13 +173,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final bootstrapData = bootstrap.valueOrNull!;
       final profile = bootstrapData.profile;
+      final completedOverrideUserId = ref
+          .read(appPreferencesProvider)
+          .getString(PrefKeys.flatmatesOnboardingCompletedUserId);
+      final hasCompletedOnboardingLocally =
+          ref.read(flatmatesOnboardingCompletedOverrideProvider) ||
+          completedOverrideUserId == profile.id.toString();
+      final isAppReady = authenticatedAppReady(
+        authStage: auth.authStage,
+        hasCompletedOnboardingLocally: hasCompletedOnboardingLocally,
+      );
 
       if (auth.authStage == AuthStage.unknown) {
         return isSplash ? null : '/splash';
       }
 
       if (auth.authStage == AuthStage.identifierVerification) {
-        return isAuthRoute ? null : '/enter-phone';
+        if (!auth.sessionAuthenticated) {
+          return isAuthRoute ? null : '/enter-phone';
+        }
+        final localRedirect = authenticatedIdentifierVerificationRedirect(
+          location: location,
+          isAuthRoute: isAuthRoute,
+          isSplash: isSplash,
+          profile: profile,
+        );
+        if (localRedirect != null) return localRedirect;
       }
 
       // ── PROFILE_COMPLETION gate ──────────────────────────────────────────
@@ -169,11 +210,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/profile/edit';
       }
 
-      if (auth.authStage == AuthStage.appOnboarding && !isOnboarding) {
+      if (auth.authStage == AuthStage.appOnboarding &&
+          !hasCompletedOnboardingLocally &&
+          !isOnboarding) {
         return '/onboarding';
       }
 
-      if (auth.authStage == AuthStage.active && isOnboarding) {
+      if (isAppReady && isOnboarding) {
         return '/discover';
       }
 
@@ -181,7 +224,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // gates so it does not disturb the auth-stage state machine.
       final wantsAddPhone = ref.read(addPhonePromptProvider);
       final hasPhone = (profile.phone ?? '').trim().isNotEmpty;
-      if (auth.authStage == AuthStage.active && wantsAddPhone && !hasPhone) {
+      if (isAppReady && wantsAddPhone && !hasPhone) {
         return isAddPhone ? null : '/add-phone';
       }
       if (isAddPhone) {
@@ -583,6 +626,39 @@ class RouterRefreshNotifier extends ChangeNotifier {
   void refresh() {
     notifyListeners();
   }
+}
+
+@visibleForTesting
+bool authenticatedAppReady({
+  required AuthStage authStage,
+  required bool hasCompletedOnboardingLocally,
+}) {
+  return authStage == AuthStage.active || hasCompletedOnboardingLocally;
+}
+
+@visibleForTesting
+String? authenticatedIdentifierVerificationRedirect({
+  required String location,
+  required bool isAuthRoute,
+  required bool isSplash,
+  required FlatmatesProfileModel profile,
+}) {
+  // Frontend-only fallback for a stale backend verification mirror: Supabase
+  // has already issued a valid session, but /auth-state still reports
+  // identifier_verification. Continue with local bootstrap gates instead of
+  // bouncing the user back to login.
+  final isProfileEdit = location == '/profile/edit';
+  final isOnboarding = location == '/onboarding';
+  if ((profile.fullName ?? '').trim().isEmpty) {
+    return isProfileEdit ? null : '/profile/edit';
+  }
+  if (!profile.onboardingCompleted) {
+    return isOnboarding ? null : '/onboarding';
+  }
+  if (isSplash || isAuthRoute || isOnboarding) {
+    return '/discover';
+  }
+  return null;
 }
 
 /// Mode lookup for the `/tab2` shell branch.

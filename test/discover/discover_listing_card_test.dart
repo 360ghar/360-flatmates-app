@@ -49,11 +49,14 @@ void main() {
           body: Center(
             child: SizedBox(
               width: 130,
-              height: 180,
-              child: DiscoverListingCard(
-                item: _listing(),
-                compact: true,
-                onLike: () {},
+              height: 152,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: DiscoverListingCard(
+                  item: _listing(),
+                  compact: true,
+                  onLike: () {},
+                ),
               ),
             ),
           ),
@@ -64,5 +67,6 @@ void main() {
     await tester.pump();
 
     expect(tester.takeException(), isNull);
+    expect(find.text('Available Now'), findsNothing);
   });
 }

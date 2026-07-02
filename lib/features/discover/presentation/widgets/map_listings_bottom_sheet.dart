@@ -9,6 +9,8 @@ import '../../../shared/presentation/flatmates_empty_state.dart';
 import '../../discover_repository.dart';
 import 'discover_listing_card.dart';
 
+const _compactListingCardsHeight = 152.0;
+
 /// Bottom draggable sheet that surfaces a horizontally-scrolling list of
 /// listings overlaid on the map view. Highlights the selected property
 /// via [selectedPropertyProvider] and reports the centered card back so
@@ -41,11 +43,12 @@ class MapListingsBottomSheet extends ConsumerWidget {
         // Exact height calculation to tightly wrap the content:
         // Handle area (8 top + 4 line + 8 bottom) = 20
         // Title area (0 top + roughly 20 text + 8 bottom) = 28
-        // Cards area = 180
+        // Cards area = compact listing card height
         // Bottom padding (AppSpacing.lg = 16) + safeArea
         final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
         final bottomPadding = AppSpacing.lg + safeAreaBottom;
-        final contentHeight = 20.0 + 28.0 + 180.0 + bottomPadding;
+        final contentHeight =
+            20.0 + 28.0 + _compactListingCardsHeight + bottomPadding;
         const collapsedHeight = 60.0;
 
         final maxFraction = (contentHeight / constraints.maxHeight).clamp(
@@ -116,7 +119,7 @@ class MapListingsBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       SizedBox(
-                        height: 180,
+                        height: _compactListingCardsHeight,
                         child: listings.isEmpty
                             ? FlatmatesEmptyState(
                                 title: locale.noListingsMatchFilters,
@@ -197,14 +200,17 @@ class _HorizontalCardList extends ConsumerWidget {
           final selectedProperty = ref.watch(selectedPropertyProvider);
           return Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: SizedBox(
-              width: 130,
-              child: DiscoverListingCard(
-                item: item,
-                isSelected: item.id == selectedProperty?.id,
-                compact: true,
-                onTap: () => onTap(item),
-                onLike: () => onLike(item),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: 130,
+                child: DiscoverListingCard(
+                  item: item,
+                  isSelected: item.id == selectedProperty?.id,
+                  compact: true,
+                  onTap: () => onTap(item),
+                  onLike: () => onLike(item),
+                ),
               ),
             ),
           );

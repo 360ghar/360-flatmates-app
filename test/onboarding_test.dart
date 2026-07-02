@@ -4,9 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flatmates_app/core/providers.dart';
+import 'package:flatmates_app/core/storage/app_preferences.dart';
+import 'package:flatmates_app/features/auth/auth_controller.dart';
+import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import 'package:flatmates_app/features/onboarding/mode_selection_page.dart';
 import 'package:flatmates_app/features/onboarding/basic_info_page.dart';
 import 'package:flatmates_app/features/onboarding/onboarding_controller.dart';
+import 'package:flatmates_app/features/profile/profile_repository.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
 
 import 'helpers/test_helpers.dart';
@@ -145,6 +149,85 @@ void main() {
         expect(restored.mode, 'room_poster');
         expect(restored.city, 'Mumbai');
         expect(restored.isHydrated, isTrue);
+      },
+    );
+
+    test(
+      'submit completes only after bootstrap confirms onboarding is complete',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        resetTestAppPreferences();
+        final prefs = await testAppPreferences;
+        final repository = _FakeProfileRepository();
+        final container = ProviderContainer(
+          overrides: [
+            appPreferencesProvider.overrideWithValue(prefs),
+            profileRepositoryProvider.overrideWithValue(repository),
+            authControllerProvider.overrideWith(_OnboardingAuthController.new),
+            bootstrapControllerProvider.overrideWith(
+              _CompletedOnboardingBootstrapController.new,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final controller = container.read(
+          onboardingControllerProvider.notifier,
+        );
+        await _fillOnboardingDraft(controller);
+        await controller.submitNonNegotiables(['quiet_hours']);
+
+        final state = container.read(onboardingControllerProvider);
+        expect(state.isComplete, isTrue);
+        expect(state.hasError, isFalse);
+        expect(repository.updateCalls, 1);
+        expect(repository.completeCalls, 1);
+        expect(
+          container.read(authControllerProvider).authStage,
+          AuthStage.active,
+        );
+      },
+    );
+
+    test(
+      'submit completes with local override when refreshed gate is stale',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        resetTestAppPreferences();
+        final prefs = await testAppPreferences;
+        final repository = _FakeProfileRepository();
+        final container = ProviderContainer(
+          overrides: [
+            appPreferencesProvider.overrideWithValue(prefs),
+            profileRepositoryProvider.overrideWithValue(repository),
+            authControllerProvider.overrideWith(_OnboardingAuthController.new),
+            bootstrapControllerProvider.overrideWith(
+              _StaleOnboardingBootstrapController.new,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final controller = container.read(
+          onboardingControllerProvider.notifier,
+        );
+        await _fillOnboardingDraft(controller);
+        await controller.submitNonNegotiables(['quiet_hours']);
+
+        final state = container.read(onboardingControllerProvider);
+        expect(state.isSubmitting, isFalse);
+        expect(state.isComplete, isTrue);
+        expect(state.hasError, isFalse);
+        expect(
+          container.read(flatmatesOnboardingCompletedOverrideProvider),
+          isTrue,
+        );
+        expect(
+          prefs.getString(PrefKeys.flatmatesOnboardingCompletedUserId),
+          fakeBootstrapData().profile.id.toString(),
+        );
+        expect(repository.updateCalls, 1);
+        expect(repository.completeCalls, 1);
       },
     );
   });
@@ -318,4 +401,102 @@ void main() {
       expect(button.onPressed, isNotNull);
     });
   });
+}
+
+Future<void> _fillOnboardingDraft(OnboardingController controller) async {
+  await controller.setMode('co_hunter');
+  await controller.setLocation({
+    'city': 'Bangalore',
+    'locality': 'Koramangala',
+  });
+  await controller.setBasicInfo({
+    'full_name': 'Test User',
+    'age': 25,
+    'profession': 'Engineer',
+    'city': 'Bangalore',
+    'locality': 'Koramangala',
+  });
+  await controller.setPhotoUrls(['https://example.com/photo.jpg']);
+  await controller.setLifestyleAnswers({
+    'sleep_schedule': 'early_bird',
+    'cleanliness': 'very_clean',
+  });
+  await controller.setBudgetTimeline({
+    'budget_min': 10000.0,
+    'budget_max': 20000.0,
+    'move_in_timeline': 'within_month',
+  });
+  await controller.setPreferences({'gender_preference': 'any'});
+}
+
+class _FakeProfileRepository implements ProfileRepository {
+  var updateCalls = 0;
+  var completeCalls = 0;
+
+  @override
+  Future<FlatmatesProfileModel> updateProfile({
+    required Map<String, dynamic> payload,
+  }) async {
+    updateCalls += 1;
+    return fakeBootstrapData().profile.copyWith(
+      fullName: payload['full_name'] as String?,
+      onboardingCompleted: false,
+    );
+  }
+
+  @override
+  Future<FlatmatesProfileModel> fetchProfile() async {
+    return fakeBootstrapData().profile;
+  }
+
+  @override
+  Future<void> completeFlatmatesOnboarding() async {
+    completeCalls += 1;
+  }
+}
+
+class _OnboardingAuthController extends FakeAuthController {
+  @override
+  AuthState build() {
+    return const AuthState(
+      status: AuthStatus.authenticated,
+      authStage: AuthStage.appOnboarding,
+      sessionAuthenticated: true,
+    );
+  }
+}
+
+class _CompletedOnboardingBootstrapController extends BootstrapController {
+  @override
+  Future<BootstrapData?> build() async {
+    return fakeBootstrapData();
+  }
+
+  @override
+  Future<void> refresh() async {
+    ref.read(authControllerProvider.notifier).updateGateStage(AuthStage.active);
+    state = AsyncValue.data(fakeBootstrapData());
+  }
+}
+
+class _StaleOnboardingBootstrapController extends BootstrapController {
+  @override
+  Future<BootstrapData?> build() async {
+    return _incompleteBootstrapData();
+  }
+
+  @override
+  Future<void> refresh() async {
+    ref
+        .read(authControllerProvider.notifier)
+        .updateGateStage(AuthStage.appOnboarding);
+    state = AsyncValue.data(_incompleteBootstrapData());
+  }
+
+  BootstrapData _incompleteBootstrapData() {
+    final data = fakeBootstrapData();
+    return data.copyWith(
+      profile: data.profile.copyWith(onboardingCompleted: false),
+    );
+  }
 }

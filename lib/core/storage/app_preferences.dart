@@ -20,6 +20,11 @@ abstract final class PrefKeys {
 
   /// Masked last identifier (phone/email) used, for display hints.
   static const lastAuthIdentifier = 'last_auth_identifier';
+
+  /// Local fallback for a successful FlatMates onboarding completion when the
+  /// backend auth-state mirror is stale.
+  static const flatmatesOnboardingCompletedUserId =
+      'flatmates_onboarding_completed_user_id';
 }
 
 final class AppPreferences {

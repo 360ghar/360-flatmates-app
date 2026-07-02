@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
+import '../../core/storage/app_preferences.dart';
 import '../../core/storage/onboarding_draft_storage.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../profile/profile_repository.dart';
 import 'domain/onboarding_state.dart';
 
 export 'domain/onboarding_state.dart';
+
+final flatmatesOnboardingCompletedOverrideProvider = StateProvider<bool>(
+  (ref) => false,
+);
 
 class OnboardingController extends Notifier<OnboardingState> {
   @override
@@ -218,8 +223,18 @@ class OnboardingController extends Notifier<OnboardingState> {
         payload['profile_image_url'] = state.photoUrls.first;
       }
 
-      await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
+      final updatedProfile = await ref
+          .read(profileRepositoryProvider)
+          .updateProfile(payload: payload);
       await ref.read(profileRepositoryProvider).completeFlatmatesOnboarding();
+      await ref
+          .read(appPreferencesProvider)
+          .setString(
+            PrefKeys.flatmatesOnboardingCompletedUserId,
+            updatedProfile.id.toString(),
+          );
+      ref.read(flatmatesOnboardingCompletedOverrideProvider.notifier).state =
+          true;
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       state = state.copyWith(isSubmitting: false, isComplete: true);
       await _clearSavedState();
