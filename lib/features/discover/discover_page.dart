@@ -80,6 +80,12 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   }
 
   void _applyLocationToFeed(LocationData location, {double? radiusKm}) {
+    if (!location.latitude.isFinite ||
+        !location.longitude.isFinite ||
+        (location.latitude == 0 && location.longitude == 0)) {
+      return;
+    }
+
     final feedState = ref.read(discoverFeedControllerProvider);
     final effectiveRadiusKm =
         radiusKm ??

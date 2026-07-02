@@ -53,9 +53,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _ensureLocationData() {
-    final mapState = ref.read(mapListingsProvider);
-    if (mapState.filters.hasGeoLocation ||
-        (mapState.filters.location?.trim().isNotEmpty ?? false)) {
+    if (_hasLocationFilter()) {
       return;
     }
 
@@ -75,6 +73,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     ) {
       _autoLocationRunning = false;
       if (!mounted) return;
+      if (_hasLocationFilter()) return;
 
       final locState = ref.read(locationControllerProvider);
       final selectedLocation = locState.selectedLocation;
@@ -98,6 +97,12 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _applyLocationToMap(LocationData location, {double? radiusKm}) {
+    if (!location.latitude.isFinite ||
+        !location.longitude.isFinite ||
+        (location.latitude == 0 && location.longitude == 0)) {
+      return;
+    }
+
     final mapState = ref.read(mapListingsProvider);
     final effectiveRadiusKm =
         radiusKm ??
@@ -116,6 +121,12 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           longitude: location.longitude,
           radiusKm: effectiveRadiusKm,
         );
+  }
+
+  bool _hasLocationFilter() {
+    final mapState = ref.read(mapListingsProvider);
+    return mapState.filters.hasGeoLocation ||
+        (mapState.filters.location?.trim().isNotEmpty ?? false);
   }
 
   @override

@@ -172,7 +172,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
 
   Future<void> _selectTypedLocation() async {
     final location = _typedLocation;
-    if (location.isEmpty) return;
+    if (_isResolvingPlace || location.isEmpty) return;
 
     setState(() => _isResolvingPlace = true);
     final locale = AppLocalizations.of(context);

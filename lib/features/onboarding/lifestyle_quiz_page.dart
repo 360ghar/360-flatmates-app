@@ -128,7 +128,10 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
         ?.catalog('flatmates_lifestyle_quiz')
         ?.payload['questions'];
     if (catalogQuestionItems is List && catalogQuestionItems.isNotEmpty) {
-      return _catalogQuestions(catalogQuestionItems);
+      final parsedQuestions = _catalogQuestions(catalogQuestionItems);
+      if (parsedQuestions.isNotEmpty) {
+        return parsedQuestions;
+      }
     }
 
     final catalogQuestions = bootstrap?.catalogOptions(

@@ -60,7 +60,7 @@ class LocationState {
           ? null
           : (currentAddress ?? this.currentAddress),
       isLoading: isLoading ?? this.isLoading,
-      error: clearError ? null : error,
+      error: clearError ? null : (error ?? this.error),
       selectedLocation: clearSelectedLocation
           ? null
           : (selectedLocation ?? this.selectedLocation),
