@@ -24,6 +24,9 @@ class BasicInfoPage extends ConsumerStatefulWidget {
 }
 
 class _BasicInfoPageState extends ConsumerState<BasicInfoPage> {
+  static const _minimumAge = 18;
+  static const _maximumAge = 100;
+
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _professionController = TextEditingController();
@@ -57,7 +60,8 @@ class _BasicInfoPageState extends ConsumerState<BasicInfoPage> {
     final age = int.tryParse(_ageController.text.trim());
     return _nameController.text.trim().isNotEmpty &&
         age != null &&
-        age >= 18 &&
+        age >= _minimumAge &&
+        age <= _maximumAge &&
         _professionController.text.trim().isNotEmpty &&
         _cityController.text.trim().isNotEmpty;
   }

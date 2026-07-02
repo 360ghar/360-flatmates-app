@@ -46,6 +46,7 @@ void main() {
         isAuthRoute: true,
         isSplash: false,
         profile: profile,
+        hasCompletedOnboardingLocally: false,
       );
 
       expect(redirect, '/discover');
@@ -59,6 +60,7 @@ void main() {
         isAuthRoute: true,
         isSplash: false,
         profile: profile,
+        hasCompletedOnboardingLocally: false,
       );
 
       expect(redirect, '/profile/edit');
@@ -74,6 +76,7 @@ void main() {
         isAuthRoute: true,
         isSplash: false,
         profile: profile,
+        hasCompletedOnboardingLocally: false,
       );
 
       expect(redirect, '/onboarding');
@@ -87,9 +90,29 @@ void main() {
         isAuthRoute: false,
         isSplash: false,
         profile: profile,
+        hasCompletedOnboardingLocally: false,
       );
 
       expect(redirect, isNull);
     });
+
+    test(
+      'uses local completion when identifier verification mirror is stale',
+      () {
+        final profile = fakeBootstrapData().profile.copyWith(
+          onboardingCompleted: false,
+        );
+
+        final redirect = authenticatedIdentifierVerificationRedirect(
+          location: '/onboarding',
+          isAuthRoute: false,
+          isSplash: false,
+          profile: profile,
+          hasCompletedOnboardingLocally: true,
+        );
+
+        expect(redirect, '/discover');
+      },
+    );
   });
 }

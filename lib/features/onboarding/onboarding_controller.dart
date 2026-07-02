@@ -210,7 +210,6 @@ class OnboardingController extends Notifier<OnboardingState> {
         'budget_min': state.budgetMin,
         'budget_max': state.budgetMax,
         'move_in_timeline': state.moveInTimeline,
-        'onboarding_completed': true,
         'preferences': {
           'profession': state.profession,
           'photo_urls': state.photoUrls,
@@ -301,19 +300,81 @@ class OnboardingController extends Notifier<OnboardingState> {
   static Map<String, String> _profileLifestyleAnswers(
     Map<String, String> answers,
   ) {
-    const profileFields = {
-      'sleep_schedule',
-      'cleanliness',
-      'food_habits',
-      'smoking_drinking',
-      'guests_policy',
-      'work_style',
-    };
-    return {
-      for (final entry in answers.entries)
-        if (profileFields.contains(entry.key)) entry.key: entry.value,
-    };
+    final result = <String, String>{};
+    for (final entry in answers.entries) {
+      final value = _normalizeProfileLifestyleAnswer(entry.key, entry.value);
+      if (value != null) {
+        result[entry.key] = value;
+      }
+    }
+    return result;
   }
+
+  static String? _normalizeProfileLifestyleAnswer(String key, String value) {
+    final allowedValues = _profileLifestyleValues[key];
+    if (allowedValues == null) return null;
+
+    final normalizedValue =
+        _legacyProfileLifestyleAliases[key]?[value] ?? value;
+    if (allowedValues.contains(normalizedValue)) {
+      return normalizedValue;
+    }
+
+    debugPrint(
+      '[OnboardingController] Dropping invalid lifestyle value '
+      '$key=$value from top-level profile payload',
+    );
+    return null;
+  }
+
+  static const _profileLifestyleValues = <String, Set<String>>{
+    'sleep_schedule': {'early_bird', 'flexible', 'night_owl'},
+    'cleanliness': {'minimal', 'tidy', 'spotless'},
+    'food_habits': {
+      'vegetarian',
+      'vegan',
+      'non_vegetarian',
+      'eggetarian',
+      'no_preference',
+    },
+    'smoking_drinking': {
+      'neither',
+      'smoke_outside',
+      'drink_occasionally',
+      'both_fine',
+    },
+    'guests_policy': {'no_overnight_guests', 'occasional_ok', 'open_house'},
+    'work_style': {'wfh', 'office', 'hybrid'},
+  };
+
+  static const _legacyProfileLifestyleAliases = <String, Map<String, String>>{
+    'cleanliness': {
+      'very_clean': 'spotless',
+      'clean': 'tidy',
+      'messy': 'minimal',
+    },
+    'food_habits': {
+      'veg': 'vegetarian',
+      'non_veg': 'non_vegetarian',
+      'any': 'no_preference',
+    },
+    'smoking_drinking': {
+      'none': 'neither',
+      'no': 'neither',
+      'smoking': 'smoke_outside',
+      'drinking': 'drink_occasionally',
+    },
+    'guests_policy': {
+      'occasionally': 'occasional_ok',
+      'occasional': 'occasional_ok',
+      'no_guests': 'no_overnight_guests',
+    },
+    'work_style': {
+      'remote': 'wfh',
+      'work_from_home': 'wfh',
+      'on_site': 'office',
+    },
+  };
 }
 
 final onboardingControllerProvider =

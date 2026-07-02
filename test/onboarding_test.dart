@@ -183,7 +183,9 @@ void main() {
         expect(repository.updateCalls, 1);
         expect(repository.completeCalls, 1);
         expect(repository.lastPayload?['profession'], 'Engineer');
-        expect(repository.lastPayload?['onboarding_completed'], isTrue);
+        expect(repository.lastPayload?['cleanliness'], 'spotless');
+        expect(repository.lastPayload?['guests_policy'], 'occasional_ok');
+        expect(repository.lastPayload, isNot(contains('onboarding_completed')));
         expect(
           container.read(authControllerProvider).authStage,
           AuthStage.active,
@@ -231,7 +233,9 @@ void main() {
         expect(repository.updateCalls, 1);
         expect(repository.completeCalls, 1);
         expect(repository.lastPayload?['profession'], 'Engineer');
-        expect(repository.lastPayload?['onboarding_completed'], isTrue);
+        expect(repository.lastPayload?['cleanliness'], 'spotless');
+        expect(repository.lastPayload?['guests_policy'], 'occasional_ok');
+        expect(repository.lastPayload, isNot(contains('onboarding_completed')));
       },
     );
   });
@@ -424,6 +428,7 @@ Future<void> _fillOnboardingDraft(OnboardingController controller) async {
   await controller.setLifestyleAnswers({
     'sleep_schedule': 'early_bird',
     'cleanliness': 'very_clean',
+    'guests_policy': 'occasionally',
   });
   await controller.setBudgetTimeline({
     'budget_min': 10000.0,

@@ -77,6 +77,30 @@ void main() {
         'Invalid email',
       );
     });
+    test('422 with FastAPI detail list -> field-level ValidationFailure', () {
+      final e = DioException(
+        requestOptions: RequestOptions(),
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: RequestOptions(),
+          statusCode: 422,
+          data: {
+            'detail': [
+              {
+                'loc': ['body', 'cleanliness'],
+                'msg': 'Input should be minimal, tidy or spotless',
+              },
+            ],
+          },
+        ),
+      );
+      final result = ErrorPresenter.fromDio(e);
+      expect(result, isA<ValidationFailure>());
+      expect(
+        (result as ValidationFailure).fieldMessages['cleanliness'],
+        'Input should be minimal, tidy or spotless',
+      );
+    });
     test('429 -> RateLimitFailure', () {
       final result = ErrorPresenter.fromDio(
         _makeDioError(DioExceptionType.badResponse, statusCode: 429),

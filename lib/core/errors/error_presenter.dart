@@ -173,6 +173,27 @@ final class ErrorPresenter {
           stackTrace: st,
         );
       }
+      if (detail is List) {
+        final fieldMessages = <String, String>{};
+        for (var i = 0; i < detail.length; i++) {
+          final item = detail[i];
+          if (item is Map<String, dynamic>) {
+            final message = item['msg'];
+            if (message is String && message.isNotEmpty) {
+              fieldMessages[_validationFieldName(item['loc'], i)] = message;
+            }
+          } else if (item != null) {
+            fieldMessages['detail_$i'] = item.toString();
+          }
+        }
+        if (fieldMessages.isNotEmpty) {
+          return ValidationFailure(
+            fieldMessages: fieldMessages,
+            underlyingError: e,
+            stackTrace: st,
+          );
+        }
+      }
       if (detail is String) {
         return ValidationFailure(
           fieldMessages: {'detail': detail},
@@ -182,6 +203,18 @@ final class ErrorPresenter {
       }
     }
     return ValidationFailure(underlyingError: e, stackTrace: st);
+  }
+
+  static String _validationFieldName(Object? location, int fallbackIndex) {
+    if (location is List) {
+      final parts = location
+          .map((part) => part.toString())
+          .where((part) => part.isNotEmpty && part != 'body')
+          .toList(growable: false);
+      if (parts.isNotEmpty) return parts.join('.');
+    }
+    if (location is String && location.isNotEmpty) return location;
+    return 'detail_$fallbackIndex';
   }
 
   static AppFailure _fromUnknown(DioException e, StackTrace? st) {

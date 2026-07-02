@@ -197,6 +197,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           isAuthRoute: isAuthRoute,
           isSplash: isSplash,
           profile: profile,
+          hasCompletedOnboardingLocally: hasCompletedOnboardingLocally,
         );
         if (localRedirect != null) return localRedirect;
       }
@@ -642,6 +643,7 @@ String? authenticatedIdentifierVerificationRedirect({
   required bool isAuthRoute,
   required bool isSplash,
   required FlatmatesProfileModel profile,
+  required bool hasCompletedOnboardingLocally,
 }) {
   // Frontend-only fallback for a stale backend verification mirror: Supabase
   // has already issued a valid session, but /auth-state still reports
@@ -652,7 +654,7 @@ String? authenticatedIdentifierVerificationRedirect({
   if ((profile.fullName ?? '').trim().isEmpty) {
     return isProfileEdit ? null : '/profile/edit';
   }
-  if (!profile.onboardingCompleted) {
+  if (!profile.onboardingCompleted && !hasCompletedOnboardingLocally) {
     return isOnboarding ? null : '/onboarding';
   }
   if (isSplash || isAuthRoute || isOnboarding) {
