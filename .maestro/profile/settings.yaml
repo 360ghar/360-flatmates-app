@@ -14,14 +14,16 @@ tags:
     timeout: 5000
 
 # ── Navigate to settings ───────────────────────────────────
-- scroll:
+- scrollUntilVisible:
+    element:
+      id: "profile_settings_menu_item"
     direction: DOWN
 
 - tapOn:
-    text: "Settings"
+    id: "profile_settings_menu_item"
 - extendedWaitUntil:
     visible:
-      text: "Settings"
+      id: "preferences_menu_item"
     timeout: 5000
 
 # ── Open preferences sheet ─────────────────────────────────
@@ -46,15 +48,14 @@ tags:
 
 # ── Palette: switch ────────────────────────────────────────
 - tapOn:
-    text: "Warm Clay"
-    optional: true
+    id: "palette_ember_coral"
 
 # ── Language: switch to Hindi ──────────────────────────────
 - tapOn:
     id: "language_hindi_option"
 - extendedWaitUntil:
     visible:
-      text: "Settings"
+      id: "language_english_option"
     timeout: 3000
 
 # ── Language: switch back to English ───────────────────────
@@ -62,7 +63,7 @@ tags:
     id: "language_english_option"
 - extendedWaitUntil:
     visible:
-      text: "Settings"
+      id: "language_hindi_option"
     timeout: 3000
 
 # ── Privacy toggles ────────────────────────────────────────
@@ -82,18 +83,16 @@ tags:
 
 # ── Privacy & Security ─────────────────────────────────────
 - tapOn:
-    text: "Privacy & Security"
-    optional: true
+    id: "settings_privacy_security_item"
 - extendedWaitUntil:
     visible:
       id: "privacy_change_password_item"
     timeout: 3000
-    optional: true
 - back
 
 # ── Back to profile ────────────────────────────────────────
 - back
 - extendedWaitUntil:
     visible:
-      id: "nav_me_tab"
+      id: "profile_edit_button"
     timeout: 5000

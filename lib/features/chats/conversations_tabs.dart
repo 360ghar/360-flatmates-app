@@ -208,10 +208,11 @@ class _ChatsTab extends StatelessWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final item in state.items)
+          for (final (index, item) in state.items.indexed)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
               child: ConversationCard(
+                cardKey: Key('conversation_card_$index'),
                 item: item,
                 onTap: () => context.push('/chats/${item.id}', extra: item),
               ),

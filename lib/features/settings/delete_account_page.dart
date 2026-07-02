@@ -10,10 +10,10 @@ import '../auth/auth_controller.dart';
 import '../shared/presentation/components.dart';
 
 /// Tracks whether the account deletion request is in flight.
-final _deletingProvider = StateProvider<bool>((ref) => false);
+final _deletingProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 /// Tracks whether the user has typed the confirmation word ("DELETE").
-final _confirmedProvider = StateProvider<bool>((ref) => false);
+final _confirmedProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 class DeleteAccountPage extends ConsumerStatefulWidget {
   const DeleteAccountPage({super.key});

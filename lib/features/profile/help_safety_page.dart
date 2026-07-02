@@ -60,6 +60,7 @@ class HelpSafetyPage extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             FlatmatesMenuItem(
+              key: const Key('help_faq_item'),
               icon: Icons.help_outline,
               label: locale.faqTitle,
               subtitle: locale.faqSubtitle,
@@ -85,6 +86,7 @@ class HelpSafetyPage extends StatelessWidget {
               onTap: () => _navigateToSubPage(context, '/help-safety/account'),
             ),
             FlatmatesMenuItem(
+              key: const Key('help_contact_item'),
               icon: Icons.headset_mic,
               label: locale.contactSupport,
               subtitle: locale.contactSupportSubtitle,

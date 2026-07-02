@@ -115,6 +115,7 @@ class ProfilePage extends ConsumerWidget {
                       children: [
                         Text(
                           profile.fullName ?? locale.profileFallbackName,
+                          key: const Key('profile_name_text'),
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -291,6 +292,7 @@ class ProfilePage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 FlatmatesMenuItem(
+                  key: const Key('profile_settings_menu_item'),
                   icon: Icons.settings_outlined,
                   label: locale.settingsTitle,
                   onTap: () => context.push('/profile/settings'),
@@ -301,6 +303,7 @@ class ProfilePage extends ConsumerWidget {
                   endIndent: AppSpacing.lg,
                 ),
                 FlatmatesMenuItem(
+                  key: const Key('profile_help_safety_menu_item'),
                   icon: Icons.help_outline,
                   label: locale.helpSafetyTitle,
                   onTap: () => context.push('/help-safety'),

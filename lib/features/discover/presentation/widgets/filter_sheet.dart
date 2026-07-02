@@ -378,6 +378,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   iconColor: AppSemanticColors.blueMid,
                   iconBgColor: AppSemanticColors.blueSoft,
                   child: CatalogFilterChips(
+                    keyPrefix: 'search_room_type',
                     options: _catalogOrFallback('flatmates_room_types', [
                       'any',
                       'private',
@@ -397,6 +398,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   iconColor: AppSemanticColors.orangeMid,
                   iconBgColor: AppSemanticColors.orangeSoft,
                   child: CatalogFilterChips(
+                    keyPrefix: 'search_furnishing',
                     options: _catalogOrFallback('flatmates_furnishing', [
                       'any',
                       'furnished',

@@ -3,49 +3,59 @@ name: Schedule Visit
 tags:
   - chats
 ---
-# Schedule a visit from a chat thread.
-# Prerequisites: User is logged in, inside a chat thread.
+# Schedule a visit from a seeded conversation.
+# Prerequisites: User is logged in and at least 1 conversation exists.
 
 - tapOn:
     id: "nav_inbox_tab"
+- extendedWaitUntil:
+    visible:
+      id: "chats_chats_tab"
+    timeout: 5000
 - tapOn:
     id: "chats_chats_tab"
+- extendedWaitUntil:
+    visible:
+      id: "conversation_card_0"
+    timeout: 10000
 - tapOn:
-    text: "Maestro"
-    optional: true
+    id: "conversation_card_0"
+- extendedWaitUntil:
+    visible:
+      id: "chat_message_input"
+    timeout: 5000
 
 # ── Tap schedule visit in chat header ──────────────────────
 - tapOn:
     id: "chat_schedule_visit_button"
-    optional: true
 
 # ── Verify schedule visit page ─────────────────────────────
-- assertVisible:
-    text: "Schedule"
-    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "visit_send_request_button"
+    timeout: 5000
 
 # ── Select afternoon time slot ─────────────────────────────
 - tapOn:
     id: "visit_afternoon_slot"
-    optional: true
 
 # ── Add a note ─────────────────────────────────────────────
 - tapOn:
     id: "visit_note_input"
-    optional: true
 - inputText: "Looking forward to the visit!"
 
 # ── Send request ───────────────────────────────────────────
 - tapOn:
     id: "visit_send_request_button"
-    optional: true
 
 - extendedWaitUntil:
     visible:
       id: "chat_message_input"
     timeout: 5000
-    optional: true
 
 # Go back
 - back
-- back
+- extendedWaitUntil:
+    visible:
+      id: "conversation_card_0"
+    timeout: 5000

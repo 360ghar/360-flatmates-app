@@ -32,6 +32,7 @@ class PostHubPage extends ConsumerWidget {
       appBar: FlatmatesHeader.logo(
         actions: [
           IconButton(
+            key: const Key('post_notifications_button'),
             onPressed: () => context.push('/notifications'),
             icon: const Icon(Icons.notifications_outlined),
             tooltip: locale.notificationsTooltip,

@@ -15,6 +15,7 @@ class DiscoverListingCard extends StatelessWidget {
     required this.item,
     required this.onLike,
     super.key,
+    this.cardKey,
     this.badgeLabel,
     this.onTap,
     this.isSelected = false,
@@ -23,6 +24,7 @@ class DiscoverListingCard extends StatelessWidget {
 
   final PropertyListing item;
   final VoidCallback onLike;
+  final Key? cardKey;
   final String? badgeLabel;
   final VoidCallback? onTap;
   final bool isSelected;
@@ -82,7 +84,7 @@ class DiscoverListingCard extends StatelessWidget {
     final isLiked = item.liked ?? false;
 
     return FlatmatesCard(
-      key: Key('discover_listing_card_${item.id}'),
+      key: cardKey ?? Key('discover_listing_card_${item.id}'),
       padding: EdgeInsets.zero,
       onTap: onTap,
       elevation: isSelected ? 8 : null,

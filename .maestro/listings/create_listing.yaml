@@ -6,109 +6,56 @@ tags:
 # Multi-step listing creation (Room Poster mode).
 # The test account must have mode=room_poster.
 # Requires a real backend with catalog data.
+# This smoke intentionally stops at the photo step: advancing past it requires
+# native image-picker automation plus two real listing photo uploads.
 
 - tapOn:
     id: "nav_post_tab"
-    optional: true
 - extendedWaitUntil:
     visible:
       id: "post_hub_post_card"
     timeout: 5000
-    optional: true
 
 # ── Tap Post card ──────────────────────────────────────────
 - tapOn:
     id: "post_hub_post_card"
-    optional: true
 
 - extendedWaitUntil:
     visible:
-      text: "List Your Flat"
+      id: "listing_society_input"
     timeout: 5000
-    optional: true
 
-# ── Step 1: Flat Details → Next ────────────────────────────
+# ── Step 0: Location ───────────────────────────────────────
 - tapOn:
-    id: "listing_next_button"
-    optional: true
+    id: "listing_society_input"
+- inputText: "Test Society"
 
-- extendedWaitUntil:
-    visible:
-      id: "listing_city_input"
-    timeout: 5000
-    optional: true
-
-# ── Step 2: Location ──────────────────────────────────────
 - tapOn:
     id: "listing_city_input"
-    optional: true
 - inputText: "Bangalore"
 
 - tapOn:
     id: "listing_locality_input"
-    optional: true
 - inputText: "Koramangala"
 
 - tapOn:
-    id: "listing_society_input"
-    optional: true
-- inputText: "Test Society"
-
-- tapOn:
     id: "listing_next_button"
-    optional: true
 
-# ── Step 3: Costs ──────────────────────────────────────────
 - extendedWaitUntil:
     visible:
-      id: "listing_rent_input"
+      id: "listing_back_button"
     timeout: 5000
-    optional: true
 
-- tapOn:
-    id: "listing_rent_input"
-    optional: true
-- inputText: "25000"
-
+# ── Step 1: Society defaults are valid ─────────────────────
 - tapOn:
     id: "listing_next_button"
-    optional: true
 
-# ── Steps 4-6: Next through remaining ──────────────────────
+# ── Step 2: Room defaults are valid ────────────────────────
 - tapOn:
     id: "listing_next_button"
-    optional: true
+
+# ── Step 3: Photos is the first native/media dependency ────
 - extendedWaitUntil:
     visible:
-      id: "listing_next_button"
-    timeout: 3000
-    optional: true
-
-- tapOn:
-    id: "listing_next_button"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "listing_next_button"
-    timeout: 3000
-    optional: true
-
-- tapOn:
-    id: "listing_next_button"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "listing_publish_button"
-    timeout: 3000
-    optional: true
-
-# ── Publish ────────────────────────────────────────────────
-- tapOn:
-    id: "listing_publish_button"
-    optional: true
-
-- extendedWaitUntil:
-    visible:
-      text: "Under Review"
+      id: "listing_add_photos_tile"
     timeout: 5000
-    optional: true

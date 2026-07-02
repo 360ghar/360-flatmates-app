@@ -7,31 +7,24 @@ tags:
 # Prerequisites: User is logged in, on discover screen.
 
 - assertVisible:
-    id: "nav_home_tab"
+    id: "home_search_bar"
 
 # ── Open filter sheet ──────────────────────────────────────
-- scroll:
-    direction: DOWN
-
-# Tap the filter/search bar area to open filter sheet
 - tapOn:
-    text: "Search"
-    optional: true
+    id: "home_search_bar"
 
 - extendedWaitUntil:
     visible:
-      text: "Filters"
+      id: "search_show_results_button"
     timeout: 5000
 
 # ── Apply room type filter ─────────────────────────────────
 - tapOn:
-    text: "Private"
-    optional: true
+    id: "search_room_type_private"
 
 # ── Apply furnishing filter ────────────────────────────────
 - tapOn:
-    text: "Furnished"
-    optional: true
+    id: "search_furnishing_furnished"
 
 # ── Show results ───────────────────────────────────────────
 - tapOn:
@@ -39,5 +32,5 @@ tags:
 
 - extendedWaitUntil:
     visible:
-      text: "Picked for You"
+      id: "home_search_bar"
     timeout: 10000
