@@ -182,6 +182,8 @@ void main() {
         expect(state.hasError, isFalse);
         expect(repository.updateCalls, 1);
         expect(repository.completeCalls, 1);
+        expect(repository.lastPayload?['profession'], 'Engineer');
+        expect(repository.lastPayload?['onboarding_completed'], isTrue);
         expect(
           container.read(authControllerProvider).authStage,
           AuthStage.active,
@@ -228,6 +230,8 @@ void main() {
         );
         expect(repository.updateCalls, 1);
         expect(repository.completeCalls, 1);
+        expect(repository.lastPayload?['profession'], 'Engineer');
+        expect(repository.lastPayload?['onboarding_completed'], isTrue);
       },
     );
   });
@@ -432,12 +436,14 @@ Future<void> _fillOnboardingDraft(OnboardingController controller) async {
 class _FakeProfileRepository implements ProfileRepository {
   var updateCalls = 0;
   var completeCalls = 0;
+  Map<String, dynamic>? lastPayload;
 
   @override
   Future<FlatmatesProfileModel> updateProfile({
     required Map<String, dynamic> payload,
   }) async {
     updateCalls += 1;
+    lastPayload = payload;
     return fakeBootstrapData().profile.copyWith(
       fullName: payload['full_name'] as String?,
       onboardingCompleted: false,

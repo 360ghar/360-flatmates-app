@@ -204,11 +204,13 @@ class OnboardingController extends Notifier<OnboardingState> {
         'mode': state.mode,
         'full_name': state.fullName,
         'age': state.age,
+        'profession': state.profession,
         'city': state.city,
         'locality': state.locality,
         'budget_min': state.budgetMin,
         'budget_max': state.budgetMax,
         'move_in_timeline': state.moveInTimeline,
+        'onboarding_completed': true,
         'preferences': {
           'profession': state.profession,
           'photo_urls': state.photoUrls,
