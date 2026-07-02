@@ -25,6 +25,10 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
   }
 
   Future<void> refresh() async {
+    if (!ref.read(authControllerProvider).isLoggedIn) {
+      state = const AsyncValue.data(null);
+      return;
+    }
     if (state.isLoading) return;
     // Retain the previous value while reloading so widgets watching
     // `valueOrNull` (e.g. the Discover page's profile/city) don't flicker to

@@ -14,6 +14,13 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import '../auth_controller.dart';
 
+final _bootstrapRecoveryQueuedProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
+final _bootstrapRecoveryAttemptedProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
+
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -24,8 +31,6 @@ class SplashPage extends ConsumerStatefulWidget {
 class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  bool _bootstrapRecoveryQueued = false;
-  bool _bootstrapRecoveryAttempted = false;
 
   @override
   void initState() {
@@ -35,6 +40,13 @@ class _SplashPageState extends ConsumerState<SplashPage>
       duration: const Duration(milliseconds: 800),
     );
     _controller.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _queueBootstrapRecoveryIfNeeded(
+        ref.read(authControllerProvider),
+        ref.read(bootstrapControllerProvider),
+      );
+    });
   }
 
   @override
@@ -47,7 +59,22 @@ class _SplashPageState extends ConsumerState<SplashPage>
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final bootstrap = ref.watch(bootstrapControllerProvider);
-    _queueBootstrapRecoveryIfNeeded(auth, bootstrap);
+    final bootstrapRecoveryAttempted = ref.watch(
+      _bootstrapRecoveryAttemptedProvider,
+    );
+
+    ref.listen<AuthState>(authControllerProvider, (_, next) {
+      _queueBootstrapRecoveryIfNeeded(
+        next,
+        ref.read(bootstrapControllerProvider),
+      );
+    });
+    ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
+      _,
+      next,
+    ) {
+      _queueBootstrapRecoveryIfNeeded(ref.read(authControllerProvider), next);
+    });
 
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
@@ -153,12 +180,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     data: (data) {
                       if (auth.isLoggedIn &&
                           data == null &&
-                          _bootstrapRecoveryAttempted) {
+                          bootstrapRecoveryAttempted) {
                         return _SplashRetry(
                           message: locale.errorUnknown,
-                          onPressed: () => ref
-                              .read(bootstrapControllerProvider.notifier)
-                              .refresh(),
+                          onPressed: _retryBootstrap,
                         );
                       }
                       return const _SplashProgress();
@@ -187,9 +212,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                           : locale.errorUnknown;
                       return _SplashRetry(
                         message: message,
-                        onPressed: () => ref
-                            .read(bootstrapControllerProvider.notifier)
-                            .refresh(),
+                        onPressed: _retryBootstrap,
                       );
                     },
                   ),
@@ -207,19 +230,24 @@ class _SplashPageState extends ConsumerState<SplashPage>
     AsyncValue<BootstrapData?> bootstrap,
   ) {
     if (!auth.isLoggedIn || bootstrap.valueOrNull != null) {
-      _bootstrapRecoveryAttempted = false;
+      ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = false;
+      ref.read(_bootstrapRecoveryAttemptedProvider.notifier).state = false;
       return;
     }
+    final bootstrapRecoveryAttempted = ref.read(
+      _bootstrapRecoveryAttemptedProvider,
+    );
+    final bootstrapRecoveryQueued = ref.read(_bootstrapRecoveryQueuedProvider);
     if (bootstrap.isLoading ||
-        _bootstrapRecoveryAttempted ||
-        _bootstrapRecoveryQueued) {
+        bootstrapRecoveryAttempted ||
+        bootstrapRecoveryQueued) {
       return;
     }
 
-    _bootstrapRecoveryQueued = true;
+    ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _bootstrapRecoveryQueued = false;
       if (!mounted) return;
+      ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = false;
 
       final latestAuth = ref.read(authControllerProvider);
       final latestBootstrap = ref.read(bootstrapControllerProvider);
@@ -229,7 +257,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
         return;
       }
 
-      _bootstrapRecoveryAttempted = true;
+      ref.read(_bootstrapRecoveryAttemptedProvider.notifier).state = true;
       unawaited(
         ref.read(bootstrapControllerProvider.notifier).refresh().catchError((
           Object error,
@@ -239,6 +267,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
         }),
       );
     });
+  }
+
+  void _retryBootstrap() {
+    unawaited(ref.read(bootstrapControllerProvider.notifier).refresh());
   }
 }
 
@@ -293,7 +325,11 @@ class _SplashRetry extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          FlatmatesButton(label: locale.commonRetry, onPressed: onPressed),
+          FlatmatesButton(
+            key: const Key('splash_retry_button'),
+            label: locale.commonRetry,
+            onPressed: onPressed,
+          ),
         ],
       ),
     );

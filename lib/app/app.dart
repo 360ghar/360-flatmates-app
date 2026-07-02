@@ -179,7 +179,6 @@ class _AppState extends ConsumerState<App> {
       if (isLoggedIn == wasLoggedIn) return;
 
       if (isLoggedIn) {
-        _refreshBootstrapAfterAuth('login');
         _logLoginSafely();
         _initializeNotificationsSafely();
         _connectSseSafely();
@@ -188,15 +187,7 @@ class _AppState extends ConsumerState<App> {
         ref.read(sseServiceProvider).disconnect();
         ref.read(pendingPhoneProvider.notifier).state = null;
         ref.read(addPhonePromptProvider.notifier).state = false;
-        unawaited(
-          ref.read(onboardingDraftStorageProvider).clear().catchError((
-            Object error,
-            StackTrace stackTrace,
-          ) {
-            debugPrint('App.logout clear onboarding draft failed: $error');
-          }),
-        );
-        ref.invalidate(onboardingControllerProvider);
+        unawaited(_clearOnboardingDraftThenInvalidate());
         ref.read(bootstrapControllerProvider.notifier).clear();
       }
     });
@@ -289,6 +280,16 @@ class _AppState extends ConsumerState<App> {
           .connect(config.apiBaseUrl, () => tokenProvider.getAccessToken());
     } catch (error) {
       debugPrint('App.login SSE connect failed: $error');
+    }
+  }
+
+  Future<void> _clearOnboardingDraftThenInvalidate() async {
+    try {
+      await ref.read(onboardingDraftStorageProvider).clear();
+      if (!mounted) return;
+      ref.invalidate(onboardingControllerProvider);
+    } catch (error) {
+      debugPrint('App.logout clear onboarding draft failed: $error');
     }
   }
 

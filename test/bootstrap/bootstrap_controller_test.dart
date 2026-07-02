@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flatmates_app/core/config/endpoints.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
@@ -13,6 +14,26 @@ import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
+  test('refresh while logged out does not request bootstrap', () async {
+    final adapter = _RecordingAdapter();
+    final apiClient = ApiClient(
+      baseUrl: fakeAppConfig().apiBaseUrl,
+      tokenProvider: FakeAuthTokenProvider(),
+    )..dio.httpClientAdapter = adapter;
+    final container = ProviderContainer(
+      overrides: [
+        authControllerProvider.overrideWith(FakeAuthController.new),
+        apiClientProvider.overrideWithValue(apiClient),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(bootstrapControllerProvider.notifier).refresh();
+
+    expect(await container.read(bootstrapControllerProvider.future), isNull);
+    expect(adapter.requestPaths, isEmpty);
+  });
+
   test(
     'bootstrap starts automatically when auth becomes logged in after initial null build',
     () async {
@@ -50,9 +71,11 @@ void main() {
         container.read(authControllerProvider).authStage,
         AuthStage.active,
       );
+      expect(adapter.requestPaths, hasLength(2));
+      expect(adapter.requestPaths, contains(FlatmatesEndpoints.bootstrap));
       expect(
         adapter.requestPaths,
-        containsAllInOrder(['/flatmates/bootstrap', '/users/me/auth-state']),
+        contains(Uri.parse(FlatmatesEndpoints.authState).path),
       );
     },
   );
@@ -69,7 +92,7 @@ final class _RecordingAdapter implements HttpClientAdapter {
   ) async {
     requestPaths.add(options.uri.path);
 
-    if (options.uri.path.endsWith('/flatmates/bootstrap')) {
+    if (options.uri.path == FlatmatesEndpoints.bootstrap) {
       return _jsonResponse({
         'profile': {
           'id': 42,
@@ -86,7 +109,7 @@ final class _RecordingAdapter implements HttpClientAdapter {
       });
     }
 
-    if (options.uri.path.endsWith('/users/me/auth-state')) {
+    if (options.uri.path == Uri.parse(FlatmatesEndpoints.authState).path) {
       return _jsonResponse({
         'stage': 'active',
         'next_action': 'grant_access',
