@@ -38,6 +38,10 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   bool _locating = false;
   bool _selectingPlace = false;
 
+  String get _typedCity => _searchController.text.trim();
+
+  bool get _canContinue => _selectedCity != null || _typedCity.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -210,16 +214,6 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
-    final catalogCities =
-        bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
-    final cities = resolveCities(catalogCities);
-    final query = _searchController.text.trim().toLowerCase();
-    final visibleCities = query.isEmpty
-        ? cities
-        : cities
-              .where((c) => cityMatchesQuery(c, query))
-              .toList(growable: false);
     final searchState = ref.watch(locationSearchProvider);
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
     final isPlacesLoading = searchState.isLoading || _selectingPlace;
@@ -253,7 +247,14 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
             FlatmatesSearchBar(
               controller: _searchController,
               hint: locale.searchCityOrAreaHint,
-              onChanged: (_) => setState(() {}),
+              onChanged: (value) {
+                final selectedCity = _selectedCity;
+                if (selectedCity != null &&
+                    value.trim() != selectedCity.label) {
+                  _selectedCity = null;
+                }
+                setState(() {});
+              },
             ),
             const SizedBox(height: 18),
             LocationActionRow(
@@ -301,40 +302,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               ),
               const SizedBox(height: 8),
             ],
-            const SizedBox(height: 16),
-            Text(
-              locale.popularCitiesLabel,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                letterSpacing: 1.1,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: visibleCities.isEmpty
-                  ? Center(
-                      child: Text(
-                        locale.noLocationsAvailable,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    )
-                  : ListView.separated(
-                      itemCount: visibleCities.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final city = visibleCities[index];
-                        final selected = _selectedCity?.id == city.id;
-                        return LocationCityRow(
-                          city: city,
-                          selected: selected,
-                          onTap: city.comingSoon
-                              ? null
-                              : () => setState(() => _selectedCity = city),
-                        );
-                      },
-                    ),
-            ),
+            const Expanded(child: SizedBox.shrink()),
             Padding(
               padding: const EdgeInsets.only(
                 bottom: AppSpacing.section,
@@ -343,10 +311,10 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               child: FlatmatesButton(
                 label: locale.modeContinue,
                 fullWidth: true,
-                onPressed: _selectedCity == null
+                onPressed: !_canContinue
                     ? null
                     : () => widget.onLocationSelected({
-                        'city': _selectedCity!.label,
+                        'city': _selectedCity?.label ?? _typedCity,
                         'locality': null,
                       }),
               ),

@@ -192,6 +192,9 @@ class OnboardingController extends Notifier<OnboardingState> {
       final lifestyleAnswers = state.lifestyleAnswers;
       final preferences = state.preferences;
       final normalizedPreferences = _normalizePreferences(preferences);
+      final profileLifestyleAnswers = _profileLifestyleAnswers(
+        lifestyleAnswers,
+      );
       final payload = <String, dynamic>{
         'mode': state.mode,
         'full_name': state.fullName,
@@ -201,7 +204,6 @@ class OnboardingController extends Notifier<OnboardingState> {
         'budget_min': state.budgetMin,
         'budget_max': state.budgetMax,
         'move_in_timeline': state.moveInTimeline,
-        'onboarding_completed': true,
         'preferences': {
           'profession': state.profession,
           'photo_urls': state.photoUrls,
@@ -210,12 +212,14 @@ class OnboardingController extends Notifier<OnboardingState> {
           ...normalizedPreferences,
         },
       };
+      payload.addAll(profileLifestyleAnswers);
 
       if (state.photoUrls.isNotEmpty) {
         payload['profile_image_url'] = state.photoUrls.first;
       }
 
       await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
+      await ref.read(profileRepositoryProvider).completeFlatmatesOnboarding();
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       state = state.copyWith(isSubmitting: false, isComplete: true);
       await _clearSavedState();
@@ -275,6 +279,23 @@ class OnboardingController extends Notifier<OnboardingState> {
     }
 
     return normalized;
+  }
+
+  static Map<String, String> _profileLifestyleAnswers(
+    Map<String, String> answers,
+  ) {
+    const profileFields = {
+      'sleep_schedule',
+      'cleanliness',
+      'food_habits',
+      'smoking_drinking',
+      'guests_policy',
+      'work_style',
+    };
+    return {
+      for (final entry in answers.entries)
+        if (profileFields.contains(entry.key)) entry.key: entry.value,
+    };
   }
 }
 

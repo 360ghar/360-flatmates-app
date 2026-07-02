@@ -5,6 +5,8 @@ abstract final class FlatmatesEndpoints {
   // -- Auth / User --
   static const me = '/users/me';
   static const authState = '/users/me/auth-state?app=flatmates';
+  static const completeFlatmatesOnboarding =
+      '/users/me/onboarding?app=flatmates';
   static const deleteAccount = '/users/me';
   static const userLocation = '/users/location';
 

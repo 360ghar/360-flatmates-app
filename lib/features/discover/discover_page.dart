@@ -56,10 +56,16 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   Future<void> _autoDetectLocation() async {
     final locState = ref.read(locationControllerProvider);
-    if (locState.selectedLocation != null) return;
+    if (locState.selectedLocation != null) {
+      _applyLocationToFeed(locState.selectedLocation!);
+      return;
+    }
     await ref.read(locationControllerProvider.notifier).getCurrentLocation();
     final updated = ref.read(locationControllerProvider);
-    if (updated.selectedLocation != null) return;
+    if (updated.selectedLocation != null) {
+      _applyLocationToFeed(updated.selectedLocation!);
+      return;
+    }
     final pos = updated.currentPosition;
     final address = updated.currentAddress;
     if (pos != null && address != null && address.isNotEmpty) {
@@ -69,17 +75,35 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
         longitude: pos.longitude,
       );
       ref.read(locationControllerProvider.notifier).selectLocation(location);
-      final currentRadiusKm =
-          ref.read(discoverFeedControllerProvider).filters.radiusKm ??
-          DiscoverFeedController.defaultLocationRadiusKm;
-      ref
-          .read(discoverFeedControllerProvider.notifier)
-          .updateLocationFilter(
-            latitude: location.latitude,
-            longitude: location.longitude,
-            radiusKm: currentRadiusKm,
-          );
+      _applyLocationToFeed(location);
     }
+  }
+
+  void _applyLocationToFeed(LocationData location, {double? radiusKm}) {
+    if (!location.latitude.isFinite ||
+        !location.longitude.isFinite ||
+        (location.latitude == 0 && location.longitude == 0)) {
+      return;
+    }
+
+    final feedState = ref.read(discoverFeedControllerProvider);
+    final effectiveRadiusKm =
+        radiusKm ??
+        feedState.filters.radiusKm ??
+        DiscoverFeedController.defaultLocationRadiusKm;
+    if (feedState.filters.latitude == location.latitude &&
+        feedState.filters.longitude == location.longitude &&
+        feedState.filters.radiusKm == effectiveRadiusKm) {
+      return;
+    }
+
+    ref
+        .read(discoverFeedControllerProvider.notifier)
+        .updateLocationFilter(
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radiusKm: effectiveRadiusKm,
+        );
   }
 
   void _onScroll() {
@@ -154,13 +178,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
               .selectedLocation;
           if (activeLocation == null) return;
 
-          ref
-              .read(discoverFeedControllerProvider.notifier)
-              .updateLocationFilter(
-                latitude: activeLocation.latitude,
-                longitude: activeLocation.longitude,
-                radiusKm: radiusKm,
-              );
+          _applyLocationToFeed(activeLocation, radiusKm: radiusKm);
         });
       },
       onLocationSelected: (location) {
@@ -170,13 +188,19 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
               .read(locationControllerProvider.notifier)
               .selectAndPersistLocation(location),
         );
-        ref
-            .read(discoverFeedControllerProvider.notifier)
-            .updateLocationFilter(
-              latitude: location.latitude,
-              longitude: location.longitude,
-              radiusKm: selectedRadiusKm,
-            );
+        final feedController = ref.read(
+          discoverFeedControllerProvider.notifier,
+        );
+        if (location.latitude.isFinite && location.longitude.isFinite) {
+          feedController.updateLocationFilter(
+            latitude: location.latitude,
+            longitude: location.longitude,
+            radiusKm: selectedRadiusKm,
+          );
+        } else {
+          feedController.updateTextLocationFilter(location: location.name);
+        }
+        ref.invalidate(discoverListingsProvider);
       },
     );
   }

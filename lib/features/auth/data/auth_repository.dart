@@ -74,26 +74,14 @@ final class AuthRepository {
   final ApiClient _apiClient;
   final AuthTokenStorage _tokenStorage;
   final AppConfig _config;
+  Future<void>? _googleSignInInitializeFuture;
+  String? _googleSignInInitializeKey;
 
   SupabaseClient get _supabase => Supabase.instance.client;
 
   Session? get currentSession => _supabase.auth.currentSession;
   String? get currentPhone => currentSession?.user.phone;
   String? get currentEmail => currentSession?.user.email;
-
-  /// Emits whenever Supabase signs a user in (`signedIn` / `tokenRefreshed`
-  /// with a session). Used to detect the session that arrives asynchronously
-  /// from the Google OAuth redirect callback, which supabase_flutter
-  /// auto-exchanges. Kept as a plain bool stream to avoid leaking the gotrue
-  /// `AuthState` type (which collides with the app's domain `AuthState`).
-  Stream<bool> get onSignedIn => _supabase.auth.onAuthStateChange
-      .where(
-        (state) =>
-            state.session != null &&
-            (state.event == AuthChangeEvent.signedIn ||
-                state.event == AuthChangeEvent.tokenRefreshed),
-      )
-      .map((_) => true);
 
   /// Whether the signed-in user already has a (verified) phone on file.
   bool get hasPhone {
@@ -136,90 +124,31 @@ final class AuthRepository {
   }
 
   // ---------------------------------------------------------------------------
-  // Google sign-in (native ID-token when configured, else OAuth redirect)
+  // Google sign-in (native ID-token)
   // ---------------------------------------------------------------------------
 
-  /// Deep link the Google OAuth redirect returns to. Must be in Supabase's
-  /// Redirect URL allowlist and registered as an OS URL scheme.
-  ///
-  /// Override via the `AUTH_REDIRECT_URL` env var when running in a non-standard
-  /// environment (e.g. a custom deep link scheme for testing).
-  static const googleRedirectUrl = String.fromEnvironment(
+  /// Redirect URL used by email OTP links. Google sign-in uses only the native
+  /// ID-token flow and must not launch browser OAuth.
+  static const emailRedirectUrl = String.fromEnvironment(
     'AUTH_REDIRECT_URL',
     defaultValue: 'com.the360ghar.flatmates360://login-callback',
   );
+  static const _googleAuthScopes = <String>['email', 'profile'];
 
-  /// Whether native Google sign-in (ID-token flow) is available. When false,
-  /// [signInWithGoogle] falls back to the OAuth redirect flow using the
-  /// already-enabled Supabase Google provider.
+  /// Whether native Google sign-in (ID-token flow) is available.
   bool get isNativeGoogleAvailable =>
       _config.googleWebClientId.trim().isNotEmpty;
 
-  /// Starts Google sign-in.
-  ///
-  /// Returns `true` when the native ID-token flow completed synchronously
-  /// (token persisted + `/users/me` validated). Returns `false` when the OAuth
-  /// **redirect** flow was launched instead — the session then arrives
-  /// asynchronously via the deep-link callback (supabase_flutter
-  /// auto-exchanges the `?code=`) and the caller finishes via
-  /// [completeOAuthSession].
-  ///
-  /// Resilient native→redirect fallback: when a Web client id is configured we
-  /// attempt the native flow, but native OAuth clients + SHA fingerprints may
-  /// not be provisioned yet (the native call then throws). On any **non
-  /// user-cancellation** error we automatically fall back to the redirect flow
-  /// so Google sign-in works today and silently upgrades to native once the
-  /// clients are provisioned. A genuine user cancellation is **not** swallowed
-  /// — it rethrows so the UI can treat it as a cancel, not an error.
-  Future<bool> signInWithGoogle() async {
+  /// Starts Google sign-in with the native device account picker and exchanges
+  /// the returned ID token with Supabase. Browser OAuth is intentionally not
+  /// used here.
+  Future<void> signInWithGoogle() async {
     if (!isNativeGoogleAvailable) {
-      await _launchGoogleRedirect();
-      return false;
-    }
-    try {
-      await _signInWithGoogleNative();
-      return true;
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        rethrow; // User dismissed the picker — do not fall back.
-      }
-      debugPrint(
-        'AuthRepository.signInWithGoogle: native failed (${e.code}); '
-        'falling back to OAuth redirect.',
+      throw StateError(
+        'GOOGLE_WEB_CLIENT_ID is not configured; Google sign-in is unavailable.',
       );
-      await _launchGoogleRedirect();
-      return false;
-    } catch (e) {
-      // Misconfiguration (missing SHA / unprovisioned client / plugin error) —
-      // fall back to the redirect flow rather than failing the sign-in.
-      debugPrint(
-        'AuthRepository.signInWithGoogle: native error ($e); '
-        'falling back to OAuth redirect.',
-      );
-      await _launchGoogleRedirect();
-      return false;
     }
-  }
-
-  /// Launches the Google OAuth redirect flow in an external browser.
-  Future<void> _launchGoogleRedirect() async {
-    await _supabase.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: googleRedirectUrl,
-      authScreenLaunchMode: LaunchMode.externalApplication,
-    );
-  }
-
-  /// Completes the postlude after the OAuth redirect produced a session
-  /// (supabase_flutter auto-exchanges the `?code=` from the callback URI).
-  /// Mirrors the native postlude: persist the access token + validate `/me`.
-  Future<void> completeOAuthSession() async {
-    final session = _supabase.auth.currentSession;
-    if (session == null) {
-      throw StateError('Session missing after OAuth redirect.');
-    }
-    await _tokenStorage.save(session.accessToken);
-    await _apiClient.get(FlatmatesEndpoints.me);
+    await _signInWithGoogleNative();
   }
 
   /// Native Google Sign-In via the device account picker, exchanging the
@@ -236,36 +165,22 @@ final class AuthRepository {
       );
     }
 
-    final signIn = GoogleSignIn.instance;
-    await signIn.initialize(
-      // serverClientId is the Web client id; Supabase validates the audience
-      // against it. clientId is the iOS client id (ignored on Android).
-      serverClientId: webClientId,
-      clientId: (Platform.isIOS && iosClientId.trim().isNotEmpty)
-          ? iosClientId
-          : null,
+    final signIn = await _initializedGoogleSignIn(
+      webClientId: webClientId,
+      iosClientId: iosClientId,
     );
 
     if (!signIn.supportsAuthenticate()) {
       throw StateError('Google sign-in is not supported on this platform.');
     }
 
-    final account = await signIn.authenticate();
+    final account = await signIn.authenticate(scopeHint: _googleAuthScopes);
     final idToken = account.authentication.idToken;
     if (idToken == null) {
       throw StateError('Google did not return an ID token.');
     }
 
-    // Best-effort silent access-token retrieval; not required for the
-    // ID-token flow but improves Supabase provider-token availability.
-    String? accessToken;
-    try {
-      final authorization = await account.authorizationClient
-          .authorizationForScopes(const ['email', 'profile']);
-      accessToken = authorization?.accessToken;
-    } catch (e) {
-      debugPrint('AuthRepository.signInWithGoogle: scope auth skipped: $e');
-    }
+    final accessToken = await _googleAccessTokenFor(account);
 
     final response = await _supabase.auth.signInWithIdToken(
       provider: OAuthProvider.google,
@@ -278,6 +193,70 @@ final class AuthRepository {
     }
     await _tokenStorage.save(session.accessToken);
     await _apiClient.get(FlatmatesEndpoints.me);
+  }
+
+  Future<GoogleSignIn> _initializedGoogleSignIn({
+    required String webClientId,
+    required String iosClientId,
+  }) async {
+    final signIn = GoogleSignIn.instance;
+    final serverClientId = webClientId.trim();
+    final clientId = (Platform.isIOS && iosClientId.trim().isNotEmpty)
+        ? iosClientId.trim()
+        : null;
+    final configKey = '$serverClientId|${clientId ?? ''}';
+    final existingFuture = _googleSignInInitializeFuture;
+
+    if (existingFuture != null) {
+      if (_googleSignInInitializeKey != configKey) {
+        throw StateError(
+          'Google sign-in is already initialized with different client configuration.',
+        );
+      }
+      await existingFuture;
+      return signIn;
+    }
+
+    final initializeFuture = signIn.initialize(
+      // serverClientId is the Web client id; Supabase validates the audience
+      // against it. clientId is the iOS client id (ignored on Android).
+      serverClientId: serverClientId,
+      clientId: clientId,
+    );
+    _googleSignInInitializeFuture = initializeFuture;
+    _googleSignInInitializeKey = configKey;
+
+    try {
+      await initializeFuture;
+    } catch (e) {
+      debugPrint('AuthRepository._initializedGoogleSignIn failed: $e');
+      if (identical(_googleSignInInitializeFuture, initializeFuture)) {
+        _googleSignInInitializeFuture = null;
+        _googleSignInInitializeKey = null;
+      }
+      rethrow;
+    }
+
+    return signIn;
+  }
+
+  Future<String> _googleAccessTokenFor(GoogleSignInAccount account) async {
+    final authorizationClient = account.authorizationClient;
+    GoogleSignInClientAuthorization? authorization;
+    try {
+      authorization = await authorizationClient.authorizationForScopes(
+        _googleAuthScopes,
+      );
+    } catch (e) {
+      debugPrint(
+        'AuthRepository.signInWithGoogle: silent scope auth failed: $e',
+      );
+    }
+
+    authorization ??= await authorizationClient.authorizeScopes(
+      _googleAuthScopes,
+    );
+    return authorization.accessToken;
   }
 
   // ---------------------------------------------------------------------------
@@ -403,7 +382,7 @@ final class AuthRepository {
     await _supabase.auth.signInWithOtp(
       email: email,
       shouldCreateUser: shouldCreateUser,
-      emailRedirectTo: googleRedirectUrl,
+      emailRedirectTo: emailRedirectUrl,
     );
   }
 

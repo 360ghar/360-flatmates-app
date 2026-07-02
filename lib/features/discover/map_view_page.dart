@@ -53,20 +53,15 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _ensureLocationData() {
-    final mapState = ref.read(mapListingsProvider);
-    if (mapState.filters.hasGeoLocation) return;
+    if (_hasLocationFilter()) {
+      return;
+    }
 
     final selectedLocation = ref
         .read(locationControllerProvider)
         .selectedLocation;
     if (selectedLocation != null) {
-      ref
-          .read(mapListingsProvider.notifier)
-          .updateLocationFilter(
-            latitude: selectedLocation.latitude,
-            longitude: selectedLocation.longitude,
-            radiusKm: MapListingsController.defaultLocationRadiusKm,
-          );
+      _applyLocationToMap(selectedLocation);
       return;
     }
 
@@ -78,9 +73,15 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     ) {
       _autoLocationRunning = false;
       if (!mounted) return;
-      if (ref.read(locationControllerProvider).selectedLocation != null) return;
+      if (_hasLocationFilter()) return;
 
       final locState = ref.read(locationControllerProvider);
+      final selectedLocation = locState.selectedLocation;
+      if (selectedLocation != null) {
+        _applyLocationToMap(selectedLocation);
+        return;
+      }
+
       final pos = locState.currentPosition;
       final address = locState.currentAddress;
       if (pos != null && address != null && address.isNotEmpty) {
@@ -90,17 +91,42 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           longitude: pos.longitude,
         );
         ref.read(locationControllerProvider.notifier).selectLocation(location);
-        if (!ref.read(mapListingsProvider).filters.hasGeoLocation) {
-          ref
-              .read(mapListingsProvider.notifier)
-              .updateLocationFilter(
-                latitude: location.latitude,
-                longitude: location.longitude,
-                radiusKm: MapListingsController.defaultLocationRadiusKm,
-              );
-        }
+        _applyLocationToMap(location);
       }
     });
+  }
+
+  void _applyLocationToMap(LocationData location, {double? radiusKm}) {
+    if (!location.latitude.isFinite ||
+        !location.longitude.isFinite ||
+        (location.latitude == 0 && location.longitude == 0)) {
+      return;
+    }
+
+    final mapState = ref.read(mapListingsProvider);
+    final effectiveRadiusKm =
+        radiusKm ??
+        mapState.filters.radiusKm ??
+        MapListingsController.defaultLocationRadiusKm;
+    if (mapState.filters.latitude == location.latitude &&
+        mapState.filters.longitude == location.longitude &&
+        mapState.filters.radiusKm == effectiveRadiusKm) {
+      return;
+    }
+
+    ref
+        .read(mapListingsProvider.notifier)
+        .updateLocationFilter(
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radiusKm: effectiveRadiusKm,
+        );
+  }
+
+  bool _hasLocationFilter() {
+    final mapState = ref.read(mapListingsProvider);
+    return mapState.filters.hasGeoLocation ||
+        (mapState.filters.location?.trim().isNotEmpty ?? false);
   }
 
   @override

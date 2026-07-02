@@ -3,17 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/location/location_data.dart';
 import '../../core/location/location_helpers.dart';
 import '../../core/location/place_suggestion.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../location/application/location_controller.dart';
 import '../location/application/location_search_provider.dart';
 import '../location/presentation/location_picker_rows.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 import '../profile/profile_repository.dart';
+import 'application/discover_feed_controller.dart';
+import 'application/map_listings_controller.dart';
+import 'discover_repository.dart';
 
 final _selectedCityProvider = StateProvider<CatalogOption?>((ref) => null);
 final _locatingProvider = StateProvider<bool>((ref) => false);
@@ -31,10 +36,16 @@ class ChangeLocationPage extends ConsumerStatefulWidget {
 class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
   final _searchController = TextEditingController();
 
+  String get _typedCity => _searchController.text.trim();
+
   @override
   void initState() {
     super.initState();
     _searchController.addListener(() {
+      final selectedCity = ref.read(_selectedCityProvider);
+      if (selectedCity != null && _typedCity != selectedCity.label) {
+        ref.read(_selectedCityProvider.notifier).state = null;
+      }
       ref
           .read(locationSearchProvider.notifier)
           .onSearchChanged(_searchController.text);
@@ -64,6 +75,8 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       switch (detection.result) {
         case LocationDetectResult.success:
           ref.read(_selectedCityProvider.notifier).state = detection.city;
+          final city = detection.city;
+          if (city != null) _searchController.text = city.label;
         case LocationDetectResult.serviceDisabled:
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -132,14 +145,19 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
 
   Future<void> _save() async {
     final selectedCity = ref.read(_selectedCityProvider);
-    if (selectedCity == null || ref.read(_savingProvider)) return;
+    final city = selectedCity?.label ?? _typedCity;
+    if (city.isEmpty || ref.read(_savingProvider)) return;
     ref.read(_savingProvider.notifier).state = true;
 
     final locale = AppLocalizations.of(context);
     try {
+      final resolvedLocation = await _resolveCityLocation(city, selectedCity);
+      if (!mounted) return;
       await ref
           .read(profileRepositoryProvider)
-          .updateProfile(payload: {'city': selectedCity.label});
+          .updateProfile(payload: {'city': city});
+      if (!mounted) return;
+      _refreshDiscoveryLocation(city: city, location: resolvedLocation);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;
 
@@ -160,6 +178,56 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
     } finally {
       if (mounted) ref.read(_savingProvider.notifier).state = false;
     }
+  }
+
+  Future<LocationData?> _resolveCityLocation(
+    String city,
+    CatalogOption? selectedCity,
+  ) async {
+    final meta = selectedCity?.meta;
+    final latitude = (meta?['latitude'] as num?)?.toDouble();
+    final longitude = (meta?['longitude'] as num?)?.toDouble();
+    if (latitude != null &&
+        longitude != null &&
+        latitude.isFinite &&
+        longitude.isFinite) {
+      return LocationData(name: city, latitude: latitude, longitude: longitude);
+    }
+
+    return ref
+        .read(locationControllerProvider.notifier)
+        .resolveLocationName(city);
+  }
+
+  void _refreshDiscoveryLocation({
+    required String city,
+    required LocationData? location,
+  }) {
+    final locationController = ref.read(locationControllerProvider.notifier);
+    final feedController = ref.read(discoverFeedControllerProvider.notifier);
+    final mapController = ref.read(mapListingsProvider.notifier);
+
+    if (location != null &&
+        location.latitude.isFinite &&
+        location.longitude.isFinite) {
+      locationController.selectLocation(location);
+      feedController.updateLocationFilter(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
+      );
+      mapController.updateLocationFilter(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radiusKm: MapListingsController.defaultLocationRadiusKm,
+      );
+    } else {
+      locationController.clearSelectedLocation();
+      feedController.updateTextLocationFilter(location: city);
+      mapController.updateTextLocationFilter(location: city);
+    }
+
+    ref.invalidate(discoverListingsProvider);
   }
 
   Future<void> _selectPlace(PlaceSuggestion suggestion) async {
@@ -233,17 +301,9 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
-    final catalogCities =
-        bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
-    final cities = resolveCities(catalogCities);
     // Watch version so the visible-cities filter recomputes when search text
     // changes.
     ref.watch(_searchVersionProvider);
-    final query = _searchController.text.trim().toLowerCase();
-    final visibleCities = query.isEmpty
-        ? cities
-        : cities.where((c) => cityMatchesQuery(c, query)).toList();
     final searchState = ref.watch(locationSearchProvider);
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
     final selectingPlace = ref.watch(_selectingPlaceProvider);
@@ -251,6 +311,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
     final locating = ref.watch(_locatingProvider);
     final saving = ref.watch(_savingProvider);
     final selectedCity = ref.watch(_selectedCityProvider);
+    final canSave = (selectedCity?.label ?? _typedCity).isNotEmpty;
 
     return Scaffold(
       body: SafeArea(
@@ -356,54 +417,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
               ),
               const SizedBox(height: AppSpacing.md),
             ],
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: Text(
-                locale.popularCitiesLabel,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  letterSpacing: 1.1,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Expanded(
-              child: visibleCities.isEmpty
-                  ? Center(
-                      child: Text(
-                        locale.noLocationsAvailable,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.screen,
-                      ),
-                      itemCount: visibleCities.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final city = visibleCities[index];
-                        final selected = selectedCity?.id == city.id;
-                        return LocationCityRow(
-                          city: city,
-                          selected: selected,
-                          onTap: city.comingSoon
-                              ? null
-                              : () =>
-                                    ref
-                                            .read(
-                                              _selectedCityProvider.notifier,
-                                            )
-                                            .state =
-                                        city,
-                        );
-                      },
-                    ),
-            ),
+            const Expanded(child: SizedBox.shrink()),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screen,
@@ -414,7 +428,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
               child: FlatmatesButton(
                 label: locale.modeContinue,
                 fullWidth: true,
-                onPressed: selectedCity == null || saving ? null : _save,
+                onPressed: !canSave || saving ? null : _save,
               ),
             ),
           ],

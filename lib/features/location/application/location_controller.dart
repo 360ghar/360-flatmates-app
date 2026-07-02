@@ -60,7 +60,7 @@ class LocationState {
           ? null
           : (currentAddress ?? this.currentAddress),
       isLoading: isLoading ?? this.isLoading,
-      error: clearError ? null : error,
+      error: clearError ? null : (error ?? this.error),
       selectedLocation: clearSelectedLocation
           ? null
           : (selectedLocation ?? this.selectedLocation),
@@ -176,6 +176,28 @@ class LocationController extends Notifier<LocationState> {
     return _reverseGeocode(lat, lng);
   }
 
+  Future<LocationData?> resolveLocationName(String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return null;
+
+    try {
+      final locations = await locationFromAddress(
+        trimmed,
+      ).timeout(const Duration(seconds: 8));
+      if (locations.isEmpty) return null;
+
+      final location = locations.first;
+      return LocationData(
+        name: trimmed,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      );
+    } catch (e) {
+      debugPrint('LocationController.resolveLocationName failed: $e');
+      return null;
+    }
+  }
+
   Future<String?> _reverseGeocode(double lat, double lng) async {
     try {
       final placemarks = await placemarkFromCoordinates(lat, lng);
@@ -215,6 +237,10 @@ class LocationController extends Notifier<LocationState> {
 
   void selectLocation(LocationData location) {
     state = state.copyWith(selectedLocation: location);
+  }
+
+  void clearSelectedLocation() {
+    state = state.copyWith(clearSelectedLocation: true);
   }
 
   Future<void> selectAndPersistLocation(LocationData location) async {

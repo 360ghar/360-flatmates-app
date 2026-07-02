@@ -124,6 +124,16 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
   /// Resolve quiz questions: try backend catalog first, fall back to hardcoded.
   List<_QuizQuestion> get _questions {
     final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
+    final catalogQuestionItems = bootstrap
+        ?.catalog('flatmates_lifestyle_quiz')
+        ?.payload['questions'];
+    if (catalogQuestionItems is List && catalogQuestionItems.isNotEmpty) {
+      final parsedQuestions = _catalogQuestions(catalogQuestionItems);
+      if (parsedQuestions.isNotEmpty) {
+        return parsedQuestions;
+      }
+    }
+
     final catalogQuestions = bootstrap?.catalogOptions(
       'flatmates_lifestyle_quiz',
     );
@@ -165,6 +175,53 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
       'source of truth.',
     );
     return _fallbackQuestions;
+  }
+
+  List<_QuizQuestion> _catalogQuestions(List<dynamic> rawQuestions) {
+    return rawQuestions
+        .map((raw) {
+          if (raw is! Map) return null;
+          final map = Map<String, dynamic>.from(raw);
+          final key = (map['dimension'] ?? map['id'] ?? '').toString().trim();
+          final title = (map['text'] ?? map['label'] ?? key).toString().trim();
+          if (key.isEmpty || title.isEmpty) return null;
+
+          final options = <_QuizOption>[];
+          final rawOptions = map['options'];
+          if (rawOptions is List) {
+            for (final rawOption in rawOptions) {
+              if (rawOption is Map) {
+                final optionMap = Map<String, dynamic>.from(rawOption);
+                final id =
+                    (optionMap['id'] ??
+                            optionMap['value'] ??
+                            optionMap['key'] ??
+                            '')
+                        .toString()
+                        .trim();
+                final label = (optionMap['label'] ?? optionMap['name'] ?? id)
+                    .toString()
+                    .trim();
+                if (id.isNotEmpty && label.isNotEmpty) {
+                  options.add(_QuizOption(key: id, label: (_) => label));
+                }
+              }
+            }
+          }
+
+          if (options.isEmpty) {
+            options.add(_QuizOption(key: key, label: (_) => title));
+          }
+
+          return _QuizQuestion(
+            key: key,
+            emoji: map['emoji']?.toString() ?? '?',
+            title: (_) => title,
+            options: options,
+          );
+        })
+        .whereType<_QuizQuestion>()
+        .toList(growable: false);
   }
 
   @override

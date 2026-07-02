@@ -237,7 +237,25 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         latitude: latitude,
         longitude: longitude,
         radiusKm: normalizedRadiusKm,
+        clearLocation: true,
       ),
+      restartListings: true,
+    );
+    load();
+  }
+
+  void updateTextLocationFilter({required String location}) {
+    final normalizedLocation = location.trim();
+    if (normalizedLocation.isEmpty) return;
+
+    _setFilters(
+      state.filters.copyWith(
+        location: normalizedLocation,
+        clearLatitude: true,
+        clearLongitude: true,
+        clearRadiusKm: true,
+      ),
+      restartListings: true,
     );
     load();
   }
@@ -323,9 +341,18 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
     return filters.location?.trim().isNotEmpty ?? false;
   }
 
-  void _setFilters(DiscoverFilters filters) {
+  void _setFilters(DiscoverFilters filters, {bool restartListings = false}) {
     _filterVersion++;
-    state = state.copyWith(filters: filters);
+    state = state.copyWith(
+      listings: restartListings ? const [] : null,
+      setNextCursorNull: restartListings,
+      isLoading: restartListings ? true : null,
+      isRefreshing: restartListings ? false : null,
+      isLoadingMore: restartListings ? false : null,
+      hasMore: restartListings ? true : null,
+      clearError: restartListings,
+      filters: filters,
+    );
     ref.read(discoverFiltersProvider.notifier).state = filters.isEmpty
         ? null
         : filters;

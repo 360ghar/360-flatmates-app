@@ -30,6 +30,12 @@ class ProfileRepository {
       Map<String, dynamic>.from(responseData is Map ? responseData : const {}),
     );
   }
+
+  Future<void> completeFlatmatesOnboarding() async {
+    await _ref
+        .read(apiClientProvider)
+        .post(FlatmatesEndpoints.completeFlatmatesOnboarding);
+  }
 }
 
 final profileRepositoryProvider = Provider<ProfileRepository>(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +12,14 @@ import '../../../core/theme/app_typography.dart';
 import '../../bootstrap/bootstrap_controller.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
+import '../auth_controller.dart';
+
+final _bootstrapRecoveryQueuedProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
+final _bootstrapRecoveryAttemptedProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -30,6 +40,13 @@ class _SplashPageState extends ConsumerState<SplashPage>
       duration: const Duration(milliseconds: 800),
     );
     _controller.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _queueBootstrapRecoveryIfNeeded(
+        ref.read(authControllerProvider),
+        ref.read(bootstrapControllerProvider),
+      );
+    });
   }
 
   @override
@@ -40,7 +57,27 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authControllerProvider);
     final bootstrap = ref.watch(bootstrapControllerProvider);
+    // Keep the autoDispose queued guard alive while this page is mounted.
+    ref.watch(_bootstrapRecoveryQueuedProvider);
+    final bootstrapRecoveryAttempted = ref.watch(
+      _bootstrapRecoveryAttemptedProvider,
+    );
+
+    ref.listen<AuthState>(authControllerProvider, (_, next) {
+      _queueBootstrapRecoveryIfNeeded(
+        next,
+        ref.read(bootstrapControllerProvider),
+      );
+    });
+    ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
+      _,
+      next,
+    ) {
+      _queueBootstrapRecoveryIfNeeded(ref.read(authControllerProvider), next);
+    });
+
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -142,7 +179,17 @@ class _SplashPageState extends ConsumerState<SplashPage>
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xl),
                   child: bootstrap.when(
-                    data: (_) => const _SplashProgress(),
+                    data: (data) {
+                      if (auth.isLoggedIn &&
+                          data == null &&
+                          bootstrapRecoveryAttempted) {
+                        return _SplashRetry(
+                          message: locale.errorUnknown,
+                          onPressed: _retryBootstrap,
+                        );
+                      }
+                      return const _SplashProgress();
+                    },
                     loading: () => const _SplashProgress(),
                     error: (error, _) {
                       final message = error is AppFailure
@@ -165,29 +212,9 @@ class _SplashPageState extends ConsumerState<SplashPage>
                               ),
                             )
                           : locale.errorUnknown;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.screen + AppSpacing.lg,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              message,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppSemanticColors.error,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            FlatmatesButton(
-                              label: locale.commonRetry,
-                              onPressed: () => ref
-                                  .read(bootstrapControllerProvider.notifier)
-                                  .refresh(),
-                            ),
-                          ],
-                        ),
+                      return _SplashRetry(
+                        message: message,
+                        onPressed: _retryBootstrap,
                       );
                     },
                   ),
@@ -198,6 +225,54 @@ class _SplashPageState extends ConsumerState<SplashPage>
         ),
       ),
     );
+  }
+
+  void _queueBootstrapRecoveryIfNeeded(
+    AuthState auth,
+    AsyncValue<BootstrapData?> bootstrap,
+  ) {
+    if (!auth.isLoggedIn || bootstrap.valueOrNull != null) {
+      ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = false;
+      ref.read(_bootstrapRecoveryAttemptedProvider.notifier).state = false;
+      return;
+    }
+    final bootstrapRecoveryAttempted = ref.read(
+      _bootstrapRecoveryAttemptedProvider,
+    );
+    final bootstrapRecoveryQueued = ref.read(_bootstrapRecoveryQueuedProvider);
+    if (bootstrap.isLoading ||
+        bootstrapRecoveryAttempted ||
+        bootstrapRecoveryQueued) {
+      return;
+    }
+
+    ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = false;
+
+      final latestAuth = ref.read(authControllerProvider);
+      final latestBootstrap = ref.read(bootstrapControllerProvider);
+      if (!latestAuth.isLoggedIn ||
+          latestBootstrap.isLoading ||
+          latestBootstrap.valueOrNull != null) {
+        return;
+      }
+
+      ref.read(_bootstrapRecoveryAttemptedProvider.notifier).state = true;
+      unawaited(
+        ref.read(bootstrapControllerProvider.notifier).refresh().catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          debugPrint('SplashPage.bootstrap recovery failed: $error');
+        }),
+      );
+    });
+  }
+
+  void _retryBootstrap() {
+    unawaited(ref.read(bootstrapControllerProvider.notifier).refresh());
   }
 }
 
@@ -221,6 +296,43 @@ class _StaggeredFadeSlide extends StatelessWidget {
           );
         },
         child: child,
+      ),
+    );
+  }
+}
+
+class _SplashRetry extends StatelessWidget {
+  const _SplashRetry({required this.message, required this.onPressed});
+
+  final String message;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screen + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.error,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FlatmatesButton(
+            key: const Key('splash_retry_button'),
+            label: locale.commonRetry,
+            onPressed: onPressed,
+          ),
+        ],
       ),
     );
   }

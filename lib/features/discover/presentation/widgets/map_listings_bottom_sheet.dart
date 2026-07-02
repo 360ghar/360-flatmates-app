@@ -202,6 +202,7 @@ class _HorizontalCardList extends ConsumerWidget {
               child: DiscoverListingCard(
                 item: item,
                 isSelected: item.id == selectedProperty?.id,
+                compact: true,
                 onTap: () => onTap(item),
                 onLike: () => onLike(item),
               ),

@@ -63,6 +63,9 @@ class MapListingsController extends Notifier<MapListingsState> {
             smoking: sharedFilters.smoking,
             vibe: sharedFilters.vibe,
             moveInTimeline: sharedFilters.moveInTimeline,
+            latitude: sharedFilters.latitude,
+            longitude: sharedFilters.longitude,
+            radiusKm: sharedFilters.radiusKm,
           )
         : const DiscoverFilters();
     Future.microtask(() => _autoInjectLocationThenLoad());
@@ -70,7 +73,7 @@ class MapListingsController extends Notifier<MapListingsState> {
   }
 
   Future<void> _autoInjectLocationThenLoad() async {
-    if (!state.filters.hasGeoLocation) {
+    if (!state.filters.hasGeoLocation && !_hasTextLocation(state.filters)) {
       final selectedLocation = ref
           .read(locationControllerProvider)
           .selectedLocation;
@@ -156,10 +159,32 @@ class MapListingsController extends Notifier<MapListingsState> {
         ? radiusKm
         : defaultLocationRadiusKm;
     state = state.copyWith(
+      listings: const [],
+      isLoading: true,
+      clearError: true,
       filters: state.filters.copyWith(
         latitude: latitude,
         longitude: longitude,
         radiusKm: normalizedRadiusKm,
+        clearLocation: true,
+      ),
+    );
+    _filterVersion++;
+    load();
+  }
+
+  void updateTextLocationFilter({required String location}) {
+    final normalizedLocation = location.trim();
+    if (normalizedLocation.isEmpty) return;
+    state = state.copyWith(
+      listings: const [],
+      isLoading: true,
+      clearError: true,
+      filters: state.filters.copyWith(
+        location: normalizedLocation,
+        clearLatitude: true,
+        clearLongitude: true,
+        clearRadiusKm: true,
       ),
     );
     _filterVersion++;
@@ -167,9 +192,18 @@ class MapListingsController extends Notifier<MapListingsState> {
   }
 
   void clearLocationFilter() {
-    state = state.copyWith(filters: const DiscoverFilters());
+    state = state.copyWith(
+      listings: const [],
+      isLoading: true,
+      clearError: true,
+      filters: const DiscoverFilters(),
+    );
     _filterVersion++;
     load();
+  }
+
+  bool _hasTextLocation(DiscoverFilters filters) {
+    return filters.location?.trim().isNotEmpty ?? false;
   }
 }
 

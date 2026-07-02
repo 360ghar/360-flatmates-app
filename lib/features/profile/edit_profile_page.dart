@@ -431,7 +431,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         'food_habits': ref.read(_foodHabitsProvider),
         'smoking_drinking': ref.read(_smokingDrinkingProvider),
         'guests_policy': ref.read(_guestsPolicyProvider),
-        'onboarding_completed': true,
       };
       final photoUrls = ref.read(_photoUrlsProvider);
       if (photoUrls.isNotEmpty) {
@@ -444,7 +443,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ?.profile
           .preferences;
       payload['preferences'] = {
-        if (existingPreferences != null) ...existingPreferences,
+        ...?existingPreferences,
         'non_negotiables': nonNegotiables,
       };
 

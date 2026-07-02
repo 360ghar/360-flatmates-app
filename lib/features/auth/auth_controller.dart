@@ -24,7 +24,6 @@ final addPhonePromptProvider = StateProvider<bool>((ref) => false);
 
 class AuthController extends Notifier<AuthState> {
   StreamSubscription<String?>? _tokenSubscription;
-  StreamSubscription<bool>? _signedInSubscription;
 
   /// Whether the identifier resolved by the last [checkIdentifierStatus] call
   /// already has a password. Drives the mandatory set-password step after an
@@ -33,14 +32,9 @@ class AuthController extends Notifier<AuthState> {
   /// flows that bypass the state-machine never force a spurious step.
   bool _resolvedHasPassword = true;
 
-  /// True while waiting for the Google OAuth redirect callback to deliver a
-  /// session (redirect flow only; native flow completes synchronously).
-  bool _pendingGoogleRedirect = false;
-
   @override
   AuthState build() {
     _watchTokenClears();
-    _watchSignedIn();
     Future<void>.microtask(checkSession);
     return const AuthState(status: AuthStatus.checking);
   }
@@ -79,20 +73,6 @@ class AuthController extends Notifier<AuthState> {
 
     ref.onDispose(() {
       _tokenSubscription?.cancel();
-    });
-  }
-
-  /// Listens for Supabase sign-in events so the Google OAuth **redirect**
-  /// callback (auto-exchanged by supabase_flutter via the deep link) finishes
-  /// the postlude even though it arrives outside the [signInWithGoogle] call.
-  void _watchSignedIn() {
-    _signedInSubscription = _repository.onSignedIn.listen((_) {
-      if (_pendingGoogleRedirect) {
-        unawaited(_onSupabaseSignedIn());
-      }
-    });
-    ref.onDispose(() {
-      _signedInSubscription?.cancel();
     });
   }
 
@@ -191,6 +171,12 @@ class AuthController extends Notifier<AuthState> {
       if (authOp == 'password') {
         return 'failure:invalid_credentials';
       }
+      if (authOp == 'google') {
+        debugPrint(
+          'AuthController._userSafeMessage: $authOp auth failed: $error',
+        );
+        return 'failure:auth';
+      }
       // OTP verify: token invalid / expired / already consumed.
       return 'failure:otp_invalid';
     }
@@ -201,6 +187,12 @@ class AuthController extends Notifier<AuthState> {
         return 'failure:auth_session_missing';
       }
       return 'failure:unknown';
+    }
+    if (authOp == 'google') {
+      debugPrint(
+        'AuthController._userSafeMessage: $authOp auth failed: $error',
+      );
+      return 'failure:auth';
     }
     debugPrint(
       'AuthController._userSafeMessage: unhandled ${error.runtimeType}: $error',
@@ -256,55 +248,43 @@ class AuthController extends Notifier<AuthState> {
   // Google
   // ---------------------------------------------------------------------------
 
-  /// Starts Google sign-in. Native ID-token flow completes synchronously;
-  /// the OAuth **redirect** flow returns here after launching the browser and
-  /// is finished by [_completeGoogleSignIn] when the deep-link callback's
-  /// session arrives (see the auth-state-change listener).
+  /// Starts Google sign-in through the native ID-token flow only.
   Future<bool> signInWithGoogle() async {
     clearError();
     state = state.copyWith(status: AuthStatus.submitting, errorMessage: null);
     try {
-      final completed = await _repository.signInWithGoogle();
-      if (!completed) {
-        // Redirect flow launched — wait for the deep-link callback to deliver
-        // a session, which the onAuthStateChange listener finishes. Keep the
-        // submitting state so the UI shows progress.
-        _pendingGoogleRedirect = true;
-        return true;
-      }
+      await _repository.signInWithGoogle();
       await _completeGoogleSignIn();
       return true;
     } on GoogleSignInException catch (e) {
       // User dismissed the Google picker (the repository rethrows cancellation
       // instead of falling back) — treat as a benign cancel, no error banner.
-      _pendingGoogleRedirect = false;
       if (e.code == GoogleSignInExceptionCode.canceled) {
         state = state.copyWith(status: AuthStatus.unauthenticated);
       } else {
         state = state.copyWith(
           status: AuthStatus.error,
-          errorMessage: _userSafeMessage(e),
+          errorMessage: _userSafeMessage(e, authOp: 'google'),
         );
       }
       return false;
     } catch (error) {
-      _pendingGoogleRedirect = false;
       state = state.copyWith(
         status: AuthStatus.error,
-        errorMessage: _userSafeMessage(error),
+        errorMessage: _userSafeMessage(error, authOp: 'google'),
       );
       return false;
     }
   }
 
-  /// Shared Google postlude: record `last_auth_method=google`, gate the
-  /// skippable add-phone step for phone-less accounts, and mark authenticated.
+  /// Shared Google postlude: record `last_auth_method=google`, remember the
+  /// skippable add-phone prompt for phone-less accounts, and mark authenticated.
   Future<void> _completeGoogleSignIn() async {
     await _rememberMethod(
       AuthMethod.google,
       identifier: _repository.currentEmail,
     );
-    // Passwordless: prompt for a phone if the account doesn't have one yet.
+    // Passwordless: prompt for a phone after the required backend gates pass.
     if (!_repository.hasPhone) {
       ref.read(addPhonePromptProvider.notifier).state = true;
     }
@@ -313,23 +293,6 @@ class AuthController extends Notifier<AuthState> {
       phone: _repository.currentPhone,
       sessionAuthenticated: true,
     );
-  }
-
-  /// Handles the session delivered by the Google OAuth **redirect** callback.
-  /// supabase_flutter auto-exchanges the `?code=` from the callback deep link
-  /// and emits a `signedIn` event; this finishes the postlude exactly once.
-  Future<void> _onSupabaseSignedIn() async {
-    if (!_pendingGoogleRedirect) return;
-    _pendingGoogleRedirect = false;
-    try {
-      await _repository.completeOAuthSession();
-      await _completeGoogleSignIn();
-    } catch (error) {
-      state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: _userSafeMessage(error),
-      );
-    }
   }
 
   // ---------------------------------------------------------------------------
@@ -345,7 +308,7 @@ class AuthController extends Notifier<AuthState> {
         AuthMethod.apple,
         identifier: _repository.currentEmail,
       );
-      // Passwordless: prompt for a phone if the account doesn't have one yet.
+      // Passwordless: prompt for a phone after the required backend gates pass.
       if (!_repository.hasPhone) {
         ref.read(addPhonePromptProvider.notifier).state = true;
       }

@@ -156,16 +156,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isSplash ? null : '/splash';
       }
 
-      // Post-Google add-phone (skippable): a phone-less Google account is sent
-      // through /add-phone before onboarding. Cleared on add or skip.
-      final wantsAddPhone = ref.read(addPhonePromptProvider);
-      final hasPhone = (profile.phone ?? '').trim().isNotEmpty;
-      if (wantsAddPhone && !hasPhone) {
-        return isAddPhone ? null : '/add-phone';
-      }
-      if (isAddPhone) {
-        // Prompt resolved (added or skipped) — fall through to onboarding/home.
-        return profile.onboardingCompleted ? '/discover' : '/onboarding';
+      if (auth.authStage == AuthStage.identifierVerification) {
+        return isAuthRoute ? null : '/enter-phone';
       }
 
       // ── PROFILE_COMPLETION gate ──────────────────────────────────────────
@@ -177,13 +169,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/profile/edit';
       }
 
-      if (auth.authStage != AuthStage.profileCompletion &&
-          !profile.onboardingCompleted &&
-          !isOnboarding) {
+      if (auth.authStage == AuthStage.appOnboarding && !isOnboarding) {
         return '/onboarding';
       }
 
-      if (profile.onboardingCompleted && isOnboarding) {
+      if (auth.authStage == AuthStage.active && isOnboarding) {
+        return '/discover';
+      }
+
+      // Post-Google add-phone is skippable and sits after the required backend
+      // gates so it does not disturb the auth-stage state machine.
+      final wantsAddPhone = ref.read(addPhonePromptProvider);
+      final hasPhone = (profile.phone ?? '').trim().isNotEmpty;
+      if (auth.authStage == AuthStage.active && wantsAddPhone && !hasPhone) {
+        return isAddPhone ? null : '/add-phone';
+      }
+      if (isAddPhone) {
         return '/discover';
       }
 

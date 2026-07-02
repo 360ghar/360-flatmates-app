@@ -52,7 +52,7 @@ void main() {
   }
 
   Future<void> settle() async {
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 20; i++) {
       await Future<void>.delayed(Duration.zero);
     }
   }
@@ -125,6 +125,44 @@ void main() {
         reason: 'loadMore must not fetch a next page when at the end',
       );
       expect(container.read(discoverFeedControllerProvider).listings.length, 3);
+    });
+  });
+
+  group('DiscoverFeedController location filters', () {
+    test('location update clears old listings and sends geo query', () async {
+      final propertyRequests = <Map<String, dynamic>>[];
+      final adapter = _ScriptedAdapter(
+        onProperties: (options) {
+          propertyRequests.add(
+            Map<String, dynamic>.from(options.queryParameters),
+          );
+          return options.queryParameters.containsKey('lat')
+              ? pageBody(1, startId: 101)
+              : pageBody(2);
+        },
+      );
+      final container = makeContainer(adapter);
+      final notifier = await primed(container);
+
+      expect(container.read(discoverFeedControllerProvider).listings.length, 2);
+
+      notifier.updateLocationFilter(
+        latitude: 28.464615,
+        longitude: 77.029919,
+        radiusKm: 10,
+      );
+
+      final restartingState = container.read(discoverFeedControllerProvider);
+      expect(restartingState.listings, isEmpty);
+      expect(restartingState.isLoading, isTrue);
+
+      await settle();
+
+      final state = container.read(discoverFeedControllerProvider);
+      expect(state.listings.single.id, 101);
+      expect(propertyRequests.last['lat'], '28.464615');
+      expect(propertyRequests.last['lng'], '77.029919');
+      expect(propertyRequests.last['radius'], 10);
     });
   });
 
