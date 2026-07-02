@@ -14,30 +14,24 @@ tags:
     timeout: 5000
 
 # ── Navigate to Help & Safety ──────────────────────────────
-- scroll:
+- scrollUntilVisible:
+    element:
+      id: "profile_help_safety_menu_item"
     direction: DOWN
 
 - tapOn:
-    text: "Help"
-    optional: true
+    id: "profile_help_safety_menu_item"
 
 - extendedWaitUntil:
     visible:
-      text: "Help"
+      id: "help_faq_item"
     timeout: 5000
 
 # ── Verify help page content ───────────────────────────────
 - assertVisible:
-    text: "FAQ"
-    optional: true
+    id: "help_faq_item"
 - assertVisible:
-    text: "Contact"
-    optional: true
-
-# ── Tap Chat with Us ───────────────────────────────────────
-- tapOn:
-    id: "help_chat_with_us_button"
-    optional: true
+    id: "help_contact_item"
 
 # ── Back to profile ────────────────────────────────────────
 - back

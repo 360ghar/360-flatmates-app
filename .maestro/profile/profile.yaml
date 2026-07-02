@@ -15,23 +15,26 @@ tags:
 
 # ── Verify profile elements ────────────────────────────────
 - assertVisible:
-    text: "Maestro User"
-    optional: true
-- assertVisible:
-    text: "Co-Hunter"
-    optional: true
+    id: "profile_name_text"
 
 # ── Verify menu items ──────────────────────────────────────
-- assertVisible:
-    text: "Settings"
-    optional: true
-- assertVisible:
-    text: "Help"
-    optional: true
-
-# ── Scroll to see all items ────────────────────────────────
-- scroll:
+- scrollUntilVisible:
+    element:
+      id: "profile_settings_menu_item"
     direction: DOWN
 - assertVisible:
-    text: "Logout"
-    optional: true
+    id: "profile_settings_menu_item"
+- scrollUntilVisible:
+    element:
+      id: "profile_help_safety_menu_item"
+    direction: DOWN
+- assertVisible:
+    id: "profile_help_safety_menu_item"
+
+# ── Scroll to see all items ────────────────────────────────
+- scrollUntilVisible:
+    element:
+      id: "logout_button"
+    direction: DOWN
+- assertVisible:
+    id: "logout_button"

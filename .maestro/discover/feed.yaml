@@ -10,13 +10,14 @@ tags:
 # ── Verify feed sections ───────────────────────────────────
 - assertVisible:
     id: "nav_home_tab"
-
-- assertVisible:
-    text: "Hi"
-    optional: true
-- assertVisible:
-    text: "Picked for You"
-    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "home_search_bar"
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: "discover_listing_card_0"
+    timeout: 10000
 
 # ── Scroll the feed ────────────────────────────────────────
 - scroll:
@@ -27,9 +28,13 @@ tags:
     direction: UP
 
 # ── Open a listing card ────────────────────────────────────
+- scrollUntilVisible:
+    element:
+      id: "discover_listing_card_0"
+    direction: UP
+
 - tapOn:
-    text: "month"
-    optional: true
+    id: "discover_listing_card_0"
 
 - extendedWaitUntil:
     visible:
@@ -38,8 +43,7 @@ tags:
 
 # ── Verify flat details content ────────────────────────────
 - assertVisible:
-    text: "About"
-    optional: true
+    id: "flat_contact_button"
 
 # Scroll through details
 - scroll:
@@ -51,13 +55,17 @@ tags:
 - back
 - extendedWaitUntil:
     visible:
-      id: "nav_home_tab"
+      id: "home_search_bar"
     timeout: 5000
 
 # ── Open browse listings via "See all" ─────────────────────
+- scrollUntilVisible:
+    element:
+      id: "home_picked_for_you_see_all"
+    direction: UP
+
 - tapOn:
-    text: "See all"
-    optional: true
+    id: "home_picked_for_you_see_all"
 
 - extendedWaitUntil:
     visible:
@@ -66,3 +74,7 @@ tags:
 
 # Go back to discover
 - back
+- extendedWaitUntil:
+    visible:
+      id: "home_search_bar"
+    timeout: 5000

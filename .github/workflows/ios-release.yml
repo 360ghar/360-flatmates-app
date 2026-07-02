@@ -9,10 +9,14 @@ jobs:
   build_and_publish_ios:
     name: Build & Publish to App Store
     runs-on: macos-14
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           flutter-version-file: '.fvmrc'
           channel: 'stable'
@@ -30,33 +34,36 @@ jobs:
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
-          CERT_PATH=$RUNNER_TEMP/dist_cert.p12
-          PROFILE_PATH=$RUNNER_TEMP/profile.mobileprovision
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          CERT_PATH="$RUNNER_TEMP/dist_cert.p12"
+          PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
 
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PROFILE_PATH
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o "$PROFILE_PATH"
 
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security import $CERT_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Build IPA
-        run: flutter build ipa --release
+        env:
+          APP_STORE_ID: ${{ vars.APP_STORE_ID }}
+        run: flutter build ipa --release --dart-define=APP_STORE_ID="$APP_STORE_ID"
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: app-release-ipa
           path: build/ios/ipa/*.ipa
 
       - name: Set up fastlane
-        run: gem install fastlane
+        run: bundle install
 
       - name: Publish to App Store via fastlane
         env:
@@ -64,13 +71,12 @@ jobs:
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
         run: |
-          # Write API key to a temp file (process substitution does not work in Actions)
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > "$RUNNER_TEMP/asc_api_key.p8"
+          ruby -rjson -e 'puts JSON.pretty_generate({key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"), issuer_id: ENV.fetch("APP_STORE_CONNECT_API_ISSUER_ID"), key: ENV.fetch("APP_STORE_CONNECT_API_KEY_CONTENT")})' > "$RUNNER_TEMP/asc_api_key.json"
 
           IPA_PATH=$(find build/ios/ipa -name "*.ipa" | head -n 1)
-          fastlane deliver \
+          bundle exec fastlane deliver \
             --ipa "$IPA_PATH" \
-            --api_key_path "$RUNNER_TEMP/asc_api_key.p8" \
+            --api_key_path "$RUNNER_TEMP/asc_api_key.json" \
             --skip_screenshots \
             --skip_metadata \
             --force

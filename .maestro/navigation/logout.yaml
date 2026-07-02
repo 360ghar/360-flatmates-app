@@ -14,7 +14,9 @@ tags:
     timeout: 5000
 
 # Scroll to logout button
-- scroll:
+- scrollUntilVisible:
+    element:
+      id: "logout_button"
     direction: DOWN
 
 - tapOn:

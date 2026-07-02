@@ -6023,7 +6023,7 @@ abstract class AppLocalizations {
   /// No description provided for @shortlistRemoved.
   ///
   /// In en, this message translates to:
-  /// **'Removed'**
+  /// **'Like removed'**
   String get shortlistRemoved;
 
   /// No description provided for @contactRequestSentToast.

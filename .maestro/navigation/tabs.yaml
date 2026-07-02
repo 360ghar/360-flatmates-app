@@ -10,35 +10,39 @@ tags:
 # ── Home tab (already selected) ────────────────────────────
 - assertVisible:
     id: "nav_home_tab"
+- extendedWaitUntil:
+    visible:
+      id: "home_search_bar"
+    timeout: 5000
 
 # ── Swipe tab ──────────────────────────────────────────────
 - tapOn:
     id: "nav_swipe_tab"
 - extendedWaitUntil:
     visible:
-      id: "nav_swipe_tab"
-    timeout: 3000
+      id: "swipe_filter_tune"
+    timeout: 5000
 
 # ── Likes & Chat tab ──────────────────────────────────────
 - tapOn:
     id: "nav_inbox_tab"
 - extendedWaitUntil:
     visible:
-      id: "nav_inbox_tab"
-    timeout: 3000
+      id: "chats_chats_tab"
+    timeout: 5000
 
 # ── Profile tab ────────────────────────────────────────────
 - tapOn:
     id: "nav_me_tab"
 - extendedWaitUntil:
     visible:
-      id: "nav_me_tab"
-    timeout: 3000
+      id: "profile_edit_button"
+    timeout: 5000
 
 # ── Back to Home ───────────────────────────────────────────
 - tapOn:
     id: "nav_home_tab"
 - extendedWaitUntil:
     visible:
-      id: "nav_home_tab"
-    timeout: 3000
+      id: "home_search_bar"
+    timeout: 5000

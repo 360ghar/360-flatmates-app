@@ -156,12 +156,14 @@ class HomeSectionHeader extends StatelessWidget {
   const HomeSectionHeader({
     required this.title,
     this.actionLabel,
+    this.actionKey,
     this.onActionTap,
     super.key,
   });
 
   final String title;
   final String? actionLabel;
+  final Key? actionKey;
   final VoidCallback? onActionTap;
 
   @override
@@ -184,6 +186,7 @@ class HomeSectionHeader extends StatelessWidget {
         if (actionLabel != null) ...[
           const SizedBox(width: AppSpacing.sm),
           TextButton(
+            key: actionKey,
             onPressed: onActionTap,
             style: TextButton.styleFrom(
               visualDensity: VisualDensity.compact,
@@ -212,56 +215,60 @@ class HomeSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: AppSemanticColors.surfaceFor(theme.brightness),
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(
-            color: AppSemanticColors.line.withValues(alpha: 0.2),
+    return Semantics(
+      identifier: 'home_search_bar',
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 8,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+          decoration: BoxDecoration(
+            color: AppSemanticColors.surfaceFor(theme.brightness),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: AppSemanticColors.line.withValues(alpha: 0.2),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              AppIcons.search,
-              color: AppSemanticColors.accent,
-              size: 20,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context).homeSearchHint,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                AppIcons.search,
+                color: AppSemanticColors.accent,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context).homeSearchHint,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
                 ),
               ),
-            ),
-            Container(
-              padding: AppSpacing.edgeXs,
-              decoration: const BoxDecoration(
-                color: AppSemanticColors.accentSoft,
-                shape: BoxShape.circle,
+              Container(
+                padding: AppSpacing.edgeXs,
+                decoration: const BoxDecoration(
+                  color: AppSemanticColors.accentSoft,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  AppIcons.filter,
+                  color: AppSemanticColors.accent,
+                  size: 16,
+                ),
               ),
-              child: const Icon(
-                AppIcons.filter,
-                color: AppSemanticColors.accent,
-                size: 16,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

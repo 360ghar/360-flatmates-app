@@ -16,19 +16,17 @@ tags:
 # ── Verify Likes tab ───────────────────────────────────────
 - tapOn:
     id: "chats_likes_tab"
-    optional: true
 - extendedWaitUntil:
     visible:
-      text: "Likes"
+      id: "chats_likes_tab"
     timeout: 3000
 
 # ── Switch to Liked tab ────────────────────────────────────
 - tapOn:
     id: "chats_liked_tab"
-    optional: true
 - extendedWaitUntil:
     visible:
-      text: "Liked"
+      id: "chats_liked_tab"
     timeout: 3000
 
 # ── Switch to Chats tab ────────────────────────────────────
@@ -36,51 +34,37 @@ tags:
     id: "chats_chats_tab"
 - extendedWaitUntil:
     visible:
-      text: "Chats"
+      id: "chats_chats_tab"
     timeout: 3000
 
 # ── Open first conversation ────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "conversation_card_0"
+    timeout: 10000
 - tapOn:
-    text: "Maestro"
-    optional: true
+    id: "conversation_card_0"
 
-# If chat thread opened, send a message
-- assertVisible:
-    id: "chat_message_input"
-    optional: true
+# Send a message in the chat thread
+- extendedWaitUntil:
+    visible:
+      id: "chat_message_input"
+    timeout: 5000
 
 - tapOn:
     id: "chat_message_input"
-    optional: true
 - inputText: "Hey, I'm interested in the room!"
 - tapOn:
     id: "chat_send_button"
-    optional: true
 
 - extendedWaitUntil:
     visible:
       text: "Hey, I'm interested in the room!"
     timeout: 5000
-    optional: true
-
-# ── Open peer profile ──────────────────────────────────────
-- tapOn:
-    id: "chat_peer_header"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "peer_profile_call"
-    timeout: 3000
-    optional: true
-
-# Go back to chat
-- back
-
-# ── More options menu ──────────────────────────────────────
-- tapOn:
-    id: "chat_more_button"
-    optional: true
-- back
 
 # Go back to conversations
 - back
+- extendedWaitUntil:
+    visible:
+      id: "conversation_card_0"
+    timeout: 5000

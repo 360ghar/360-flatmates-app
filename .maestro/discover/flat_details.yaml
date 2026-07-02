@@ -7,22 +7,24 @@ tags:
 # Prerequisites: User is logged in, on discover screen with listings.
 
 - assertVisible:
-    id: "nav_home_tab"
+    id: "home_search_bar"
+
+- extendedWaitUntil:
+    visible:
+      id: "discover_listing_card_0"
+    timeout: 10000
 
 # ── Tap the first listing card ─────────────────────────────
 - tapOn:
-    index: 0
-    text: "month"
-    optional: true
+    id: "discover_listing_card_0"
 
 # ── Verify flat details page ───────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "flat_contact_button"
+    timeout: 5000
 - assertVisible:
-    text: "About"
-    optional: true
-
-- assertVisible:
-    id: "flat_contact_button"
-    optional: true
+    id: "flat_shortlist_button"
 
 # ── Scroll through details ─────────────────────────────────
 - scroll:
@@ -34,5 +36,5 @@ tags:
 - back
 - extendedWaitUntil:
     visible:
-      id: "nav_home_tab"
+      id: "home_search_bar"
     timeout: 5000

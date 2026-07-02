@@ -126,6 +126,7 @@ class CatalogFilterChips extends StatelessWidget {
     required this.selectedId,
     required this.anyKey,
     required this.onSelected,
+    this.keyPrefix,
     super.key,
   });
 
@@ -133,6 +134,7 @@ class CatalogFilterChips extends StatelessWidget {
   final String selectedId;
   final String anyKey;
   final ValueChanged<String> onSelected;
+  final String? keyPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +149,9 @@ class CatalogFilterChips extends StatelessWidget {
       runSpacing: AppSpacing.sm,
       children: options.map((opt) {
         return FlatmatesChip(
+          key: keyPrefix == null
+              ? null
+              : Key('${keyPrefix!}_${_stableKeySuffix(opt.id)}'),
           label: opt.label,
           variant: FlatmatesChipVariant.choice,
           selected: selectedId == opt.id,
@@ -154,5 +159,15 @@ class CatalogFilterChips extends StatelessWidget {
         );
       }).toList(),
     );
+  }
+
+  String _stableKeySuffix(String id) {
+    if (id == anyKey) return 'any';
+    return switch (id) {
+      'private_room' || 'master_bedroom' => 'private',
+      'shared_room' => 'shared',
+      'no_preference' => 'any',
+      _ => id,
+    };
   }
 }

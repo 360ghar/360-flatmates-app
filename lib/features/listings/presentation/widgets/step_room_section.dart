@@ -331,6 +331,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: GestureDetector(
+              key: const Key('listing_add_photos_tile'),
               onTap: widget.onPickPhotos,
               child: DashedBorderContainer(
                 color: AppSemanticColors.line,

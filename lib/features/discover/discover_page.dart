@@ -275,6 +275,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                   HomeSectionHeader(
                     title: locale.homePickedForYou,
                     actionLabel: filtered.length > 2 ? locale.seeAllCta : null,
+                    actionKey: const Key('home_picked_for_you_see_all'),
                     onActionTap: () =>
                         context.push('/discover/browse-listings'),
                   ),
@@ -302,6 +303,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         return StaggeredCardAppear(
                           index: index,
                           child: DiscoverListingCard(
+                            cardKey: index == 0
+                                ? const Key('discover_listing_card_0')
+                                : null,
                             item: item,
                             badgeLabel: badgeLabel,
                             onTap: () =>

@@ -37,15 +37,16 @@ tags:
       id: "swipe_card"
     direction: LEFT
 
-# Wait for next card
-- assertVisible:
-    id: "swipe_card"
-    optional: true
-
 # If match celebration appeared, dismiss it
 - tapOn:
     id: "match_keep_swiping"
     optional: true
+
+# Wait for next card
+- extendedWaitUntil:
+    visible:
+      id: "swipe_card"
+    timeout: 5000
 
 # ── Swipe up (Super Like) ──────────────────────────────────
 - swipe:

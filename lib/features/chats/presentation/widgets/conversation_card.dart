@@ -24,10 +24,12 @@ class ConversationCard extends StatelessWidget {
     required this.item,
     required this.onTap,
     super.key,
+    this.cardKey,
     this.highlightMode = false,
   });
 
   final ConversationSummaryModel item;
+  final Key? cardKey;
   final bool highlightMode;
   final VoidCallback onTap;
 
@@ -49,6 +51,7 @@ class ConversationCard extends StatelessWidget {
           ).format(item.lastMessageAt!.toLocal());
 
     return FlatmatesCard(
+      key: cardKey,
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

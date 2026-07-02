@@ -60,6 +60,7 @@ class SettingsPage extends ConsumerWidget {
                         endIndent: AppSpacing.lg,
                       ),
                       FlatmatesMenuItem(
+                        key: const Key('settings_privacy_security_item'),
                         icon: Icons.shield_outlined,
                         label: locale.privacySecurityLabel,
                         onTap: () => context.push('/privacy-security'),
