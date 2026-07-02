@@ -144,21 +144,53 @@ class CatalogFilterChips extends StatelessWidget {
         style: Theme.of(context).textTheme.bodyMedium,
       );
     }
+    final chipKeys = _chipKeys();
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
-      children: options.map((opt) {
+      children: List.generate(options.length, (i) {
+        final opt = options[i];
         return FlatmatesChip(
-          key: keyPrefix == null
-              ? null
-              : Key('${keyPrefix!}_${_stableKeySuffix(opt.id)}'),
+          key: chipKeys[i],
           label: opt.label,
           variant: FlatmatesChipVariant.choice,
           selected: selectedId == opt.id,
           onSelected: (_) => onSelected(opt.id),
         );
-      }).toList(),
+      }),
     );
+  }
+
+  /// Stable, Maestro-friendly chip keys that are also guaranteed unique.
+  ///
+  /// [_stableKeySuffix] deliberately collapses some catalog ids to a shared
+  /// readable form so E2E selectors stay stable (e.g. `search_room_type_private`
+  /// regardless of whether the server lists `private_room` or `master_bedroom`).
+  /// But that collapse is many-to-one: if the server-driven catalog ever
+  /// surfaces two ids that map to the same suffix (e.g. both `private_room` and
+  /// `master_bedroom`, or `no_preference` alongside the `anyKey` option), the
+  /// naive key would be duplicated and Flutter throws "Duplicate keys found".
+  /// The first occurrence keeps the clean key (so Maestro selectors still
+  /// resolve); any later duplicate falls back to its raw, unique id.
+  List<Key?> _chipKeys() {
+    if (keyPrefix == null) {
+      return List<Key?>.filled(options.length, null);
+    }
+    final used = <String>{};
+    final keys = <Key?>[];
+    for (final opt in options) {
+      final base = _stableKeySuffix(opt.id);
+      var suffix = base;
+      if (!used.add(suffix)) {
+        var n = 2;
+        do {
+          suffix = n == 2 ? '${base}_${opt.id}' : '${base}_${opt.id}_$n';
+          n++;
+        } while (!used.add(suffix));
+      }
+      keys.add(Key('${keyPrefix!}_$suffix'));
+    }
+    return keys;
   }
 
   String _stableKeySuffix(String id) {
