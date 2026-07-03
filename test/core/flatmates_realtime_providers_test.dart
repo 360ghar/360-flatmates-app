@@ -3,19 +3,22 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flatmates_app/core/config/endpoints.dart';
-import 'package:flatmates_app/core/network/flatmates_realtime_providers.dart';
 import 'package:flatmates_app/core/network/flatmates_realtime_service.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
+import 'package:flatmates_app/features/chats/application/chats_realtime_router.dart';
 import 'package:flatmates_app/features/chats/chats_repository.dart';
+import 'package:flatmates_app/features/notifications/application/notifications_realtime_router.dart';
 import 'package:flatmates_app/features/notifications/notifications_repository.dart';
+import 'package:flatmates_app/features/visits/application/visits_realtime_router.dart';
+import 'package:flatmates_app/features/visits/visits_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/test_helpers.dart';
 
 void main() {
-  group('Flatmates realtime event routing', () {
+  group('Flatmates realtime feature routing', () {
     late _CountingAdapter adapter;
     late ProviderContainer container;
 
@@ -53,11 +56,80 @@ void main() {
           FlatmatesEndpoints.conversationMessages(42),
         );
 
-        _route(
+        _routeChats(
           container,
           const FlatmatesRealtimeEvent(
             type: 'new_notification',
             data: {'type_key': 'flatmate_new_message', 'route': '/chats/42'},
+          ),
+        );
+        await container.pump();
+
+        await container.read(conversationsProvider.future);
+        await container.read(messagesProvider(42).future);
+        expect(
+          adapter.count('GET', FlatmatesEndpoints.conversations),
+          greaterThan(conversationsBefore),
+        );
+        expect(
+          adapter.count('GET', FlatmatesEndpoints.conversationMessages(42)),
+          greaterThan(messagesBefore),
+        );
+      },
+    );
+
+    test('new_message refreshes conversations and thread messages', () async {
+      await container.read(conversationsProvider.future);
+      await container.read(messagesProvider(42).future);
+      final conversationsBefore = adapter.count(
+        'GET',
+        FlatmatesEndpoints.conversations,
+      );
+      final messagesBefore = adapter.count(
+        'GET',
+        FlatmatesEndpoints.conversationMessages(42),
+      );
+
+      _routeChats(
+        container,
+        const FlatmatesRealtimeEvent(
+          type: 'new_message',
+          data: {'conversation_id': '42'},
+        ),
+      );
+      await container.pump();
+
+      await container.read(conversationsProvider.future);
+      await container.read(messagesProvider(42).future);
+      expect(
+        adapter.count('GET', FlatmatesEndpoints.conversations),
+        greaterThan(conversationsBefore),
+      );
+      expect(
+        adapter.count('GET', FlatmatesEndpoints.conversationMessages(42)),
+        greaterThan(messagesBefore),
+      );
+    });
+
+    test(
+      'conversation_updated refreshes conversations and thread messages',
+      () async {
+        await container.read(conversationsProvider.future);
+        await container.read(messagesProvider(42).future);
+        final conversationsBefore = adapter.count(
+          'GET',
+          FlatmatesEndpoints.conversations,
+        );
+        final messagesBefore = adapter.count(
+          'GET',
+          FlatmatesEndpoints.conversationMessages(42),
+        );
+
+        _routeChats(
+          container,
+          const FlatmatesRealtimeEvent(
+            type: 'conversation_updated',
+            data: {'conversation_id': 42},
           ),
         );
         await container.pump();
@@ -92,7 +164,7 @@ void main() {
         FlatmatesEndpoints.outgoingLikes,
       );
 
-      _route(
+      _routeChats(
         container,
         const FlatmatesRealtimeEvent(
           type: 'new_notification',
@@ -136,7 +208,7 @@ void main() {
         FlatmatesEndpoints.outgoingLikes,
       );
 
-      _route(
+      _routeChats(
         container,
         const FlatmatesRealtimeEvent(type: 'new_match', data: {}),
       );
@@ -164,7 +236,7 @@ void main() {
       await container.read(notificationsProvider.future);
       await container.read(conversationsProvider.future);
 
-      _route(
+      _routeNotifications(
         container,
         const FlatmatesRealtimeEvent(
           type: 'new_notification',
@@ -179,12 +251,46 @@ void main() {
       expect(adapter.count('GET', FlatmatesEndpoints.notifications), 2);
       expect(adapter.count('GET', FlatmatesEndpoints.conversations), 1);
     });
+
+    test('visit_updated refreshes visits', () async {
+      await container.read(visitsProvider.future);
+      final visitsBefore = adapter.count('GET', FlatmatesEndpoints.visits);
+
+      _routeVisits(
+        container,
+        const FlatmatesRealtimeEvent(type: 'visit_updated', data: {}),
+      );
+      await container.pump();
+
+      await container.read(visitsProvider.future);
+      expect(
+        adapter.count('GET', FlatmatesEndpoints.visits),
+        greaterThan(visitsBefore),
+      );
+    });
   });
 }
 
-void _route(ProviderContainer container, FlatmatesRealtimeEvent event) {
+void _routeChats(ProviderContainer container, FlatmatesRealtimeEvent event) {
   final triggerProvider = Provider<void>((ref) {
-    routeFlatmatesRealtimeEvent(ref, event);
+    routeChatsRealtimeEvent(ref, event);
+  });
+  container.read(triggerProvider);
+}
+
+void _routeNotifications(
+  ProviderContainer container,
+  FlatmatesRealtimeEvent event,
+) {
+  final triggerProvider = Provider<void>((ref) {
+    routeNotificationsRealtimeEvent(ref, event);
+  });
+  container.read(triggerProvider);
+}
+
+void _routeVisits(ProviderContainer container, FlatmatesRealtimeEvent event) {
+  final triggerProvider = Provider<void>((ref) {
+    routeVisitsRealtimeEvent(ref, event);
   });
   container.read(triggerProvider);
 }

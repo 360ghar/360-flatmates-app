@@ -210,11 +210,14 @@ class _ChatsTab extends StatelessWidget {
         children: [
           for (final (index, item) in state.items.indexed)
             Padding(
+              key: ValueKey('conversation_${item.id}'),
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-              child: ConversationCard(
-                cardKey: Key('conversation_card_$index'),
-                item: item,
-                onTap: () => context.push('/chats/${item.id}', extra: item),
+              child: Semantics(
+                identifier: 'conversation_card_$index',
+                child: ConversationCard(
+                  item: item,
+                  onTap: () => context.push('/chats/${item.id}', extra: item),
+                ),
               ),
             ),
           if (state.hasMore)

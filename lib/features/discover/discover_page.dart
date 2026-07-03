@@ -300,19 +300,22 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                           1 => locale.badgePopular,
                           _ => null,
                         };
+                        final card = DiscoverListingCard(
+                          item: item,
+                          badgeLabel: badgeLabel,
+                          onTap: () => context.push('/flat-details/${item.id}'),
+                          onLike: () =>
+                              _likeDebouncer.run(() => _handleLike(item)),
+                        );
                         return StaggeredCardAppear(
+                          key: ValueKey('discover_listing_${item.id}'),
                           index: index,
-                          child: DiscoverListingCard(
-                            cardKey: index == 0
-                                ? const Key('discover_listing_card_0')
-                                : null,
-                            item: item,
-                            badgeLabel: badgeLabel,
-                            onTap: () =>
-                                context.push('/flat-details/${item.id}'),
-                            onLike: () =>
-                                _likeDebouncer.run(() => _handleLike(item)),
-                          ),
+                          child: index == 0
+                              ? Semantics(
+                                  identifier: 'discover_listing_card_0',
+                                  child: card,
+                                )
+                              : card,
                         );
                       },
                     ),

@@ -58,7 +58,19 @@ jobs:
       - run: flutter pub get
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          : "${API_BASE_URL:?API_BASE_URL secret is required}"
+          : "${SUPABASE_URL:?SUPABASE_URL secret is required}"
+          : "${SUPABASE_PUBLISHABLE_KEY:?SUPABASE_PUBLISHABLE_KEY secret is required}"
+
+          flutter build apk --debug \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       - name: Run tests on emulator
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a

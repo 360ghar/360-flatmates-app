@@ -35,7 +35,7 @@ class _ListingUnderReviewPageState
     ref.listen(flatmatesRealtimeEventProvider, (previous, next) {
       final event = next.valueOrNull;
       if (event?.type == 'listing_status_changed') {
-        final listingId = event!.data['property_id'] as int?;
+        final listingId = _intValue(event!.data['property_id']);
         if (listingId == widget.listingId) {
           ref.invalidate(listingReviewProvider(widget.listingId));
         }
@@ -432,6 +432,11 @@ class _ListingUnderReviewPageState
       ),
     );
   }
+}
+
+int? _intValue(Object? value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }
 
 /// A single numbered step item in the "What happens next?" section.

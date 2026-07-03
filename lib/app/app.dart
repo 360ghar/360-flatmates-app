@@ -19,6 +19,7 @@ import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../features/settings/settings_controller.dart';
 import '../l10n/gen/app_localizations.dart';
+import 'flatmates_realtime_routers.dart';
 import 'router/app_router.dart';
 
 class App extends ConsumerStatefulWidget {
@@ -124,8 +125,8 @@ class _AppState extends ConsumerState<App> {
     final router = ref.watch(appRouterProvider);
     final bootstrapState = ref.watch(bootstrapControllerProvider);
 
-    // Activate Supabase Broadcast event stream and provider invalidation router.
-    ref.watch(flatmatesRealtimeEventRouterProvider);
+    // Activate Supabase Broadcast event stream and feature invalidation routers.
+    ref.watch(flatmatesRealtimeRoutersProvider);
 
     ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
       _,
@@ -140,17 +141,20 @@ class _AppState extends ConsumerState<App> {
               .catchError((_) {}),
         );
       }
-      final realtimeConfig = next.valueOrNull?.realtime;
+      if (next is! AsyncData<BootstrapData?>) return;
+      final bootstrapData = next.value;
+      final realtimeConfig = bootstrapData?.realtime;
+      final realtimeService = ref.read(flatmatesRealtimeServiceProvider);
       if (realtimeConfig != null) {
         final tokenProvider = ref.read(authTokenProviderProvider);
-        ref
-            .read(flatmatesRealtimeServiceProvider)
-            .connect(
-              channel: realtimeConfig.channel,
-              private: realtimeConfig.private,
-              events: realtimeConfig.events,
-              tokenRefresher: () => tokenProvider.getAccessToken(),
-            );
+        realtimeService.connect(
+          channel: realtimeConfig.channel,
+          private: realtimeConfig.private,
+          events: realtimeConfig.events,
+          tokenRefresher: () => tokenProvider.getAccessToken(),
+        );
+      } else if (bootstrapData != null) {
+        unawaited(realtimeService.disconnect());
       }
     });
 

@@ -55,7 +55,7 @@ tags:
     id: "language_hindi_option"
 - extendedWaitUntil:
     visible:
-      id: "language_english_option"
+      text: "भाषा"
     timeout: 3000
 
 # ── Language: switch back to English ───────────────────────
@@ -63,7 +63,7 @@ tags:
     id: "language_english_option"
 - extendedWaitUntil:
     visible:
-      id: "language_hindi_option"
+      text: "Language"
     timeout: 3000
 
 # ── Privacy toggles ────────────────────────────────────────

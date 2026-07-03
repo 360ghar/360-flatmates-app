@@ -164,7 +164,8 @@ class CatalogFilterChips extends StatelessWidget {
   String _stableKeySuffix(String id) {
     if (id == anyKey) return 'any';
     return switch (id) {
-      'private_room' || 'master_bedroom' => 'private',
+      'private_room' => 'private',
+      'master_bedroom' => 'master',
       'shared_room' => 'shared',
       'no_preference' => 'any',
       _ => id,

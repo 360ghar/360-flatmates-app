@@ -62,7 +62,7 @@ tags:
 - scrollUntilVisible:
     element:
       id: "home_picked_for_you_see_all"
-    direction: UP
+    direction: DOWN
 
 - tapOn:
     id: "home_picked_for_you_see_all"
