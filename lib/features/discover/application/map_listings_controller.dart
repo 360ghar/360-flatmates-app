@@ -201,7 +201,12 @@ class MapListingsController extends Notifier<MapListingsState> {
       listings: const [],
       isLoading: true,
       clearError: true,
-      filters: const DiscoverFilters(),
+      filters: state.filters.copyWith(
+        clearLocation: true,
+        clearLatitude: true,
+        clearLongitude: true,
+        clearRadiusKm: true,
+      ),
     );
     _filterVersion++;
     load();

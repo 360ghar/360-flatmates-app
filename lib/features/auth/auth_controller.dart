@@ -260,6 +260,7 @@ class AuthController extends Notifier<AuthState> {
       // User dismissed the Google picker (the repository rethrows cancellation
       // instead of falling back) — treat as a benign cancel, no error banner.
       if (e.code == GoogleSignInExceptionCode.canceled) {
+        debugPrint('AuthController.signInWithGoogle canceled: $e');
         state = state.copyWith(status: AuthStatus.unauthenticated);
       } else {
         state = state.copyWith(

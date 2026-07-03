@@ -64,6 +64,70 @@ void main() {
 
       expect(_outgoingItems(container).map((like) => like.peer.id), const [20]);
     });
+
+    test(
+      'pending optimistic like survives loadMore and a later refresh',
+      () async {
+        // Page 1 (initial load): two confirmed likes, more available.
+        // Page 2 (loadMore): an older like that is NOT the pending one.
+        // Page 3 (refresh): server still omits the pending like.
+        final backend = _ScriptedChatsBackend(
+          outgoingPages: [
+            _pageWith(
+              [
+                _like(id: 1, peerId: 10, peerName: 'Alpha'),
+                _like(id: 2, peerId: 20, peerName: 'Beta'),
+              ],
+              nextCursor: 'c2',
+              hasMore: true,
+            ),
+            _pageWith(
+              [_like(id: 3, peerId: 40, peerName: 'Gamma')],
+              hasMore: false,
+            ),
+            _pageWith(
+              [
+                _like(id: 1, peerId: 10, peerName: 'Alpha'),
+                _like(id: 2, peerId: 20, peerName: 'Beta'),
+                _like(id: 3, peerId: 40, peerName: 'Gamma'),
+              ],
+              hasMore: false,
+            ),
+          ],
+        );
+        final container = _containerWith(backend);
+
+        final notifier = await _primeOutgoingLikes(container);
+        expect(_outgoingItems(container).map((like) => like.peer.id), const [
+          10,
+          20,
+        ]);
+
+        // Optimistically insert a brand-new like not yet on the server.
+        notifier.upsertOutgoingLike(
+          _like(id: 99, peerId: 30, peerName: 'Pending'),
+        );
+        expect(_outgoingItems(container).map((like) => like.peer.id).first, 30);
+
+        // loadMore fetches page 2, which does not contain the pending like.
+        await notifier.loadMore();
+        expect(
+          _outgoingItems(container).map((like) => like.peer.id),
+          contains(30),
+        );
+
+        // A later refresh whose server page still omits peer 30 must NOT
+        // drop the pending optimistic like — it stays until the server
+        // actually returns it. Regression: previously loadMore fed the
+        // rendered list through _mergeOptimisticItems, falsely evicting
+        // the pending item so it vanished on the next refresh.
+        await notifier.refresh();
+        expect(
+          _outgoingItems(container).map((like) => like.peer.id),
+          contains(30),
+        );
+      },
+    );
   });
 }
 
@@ -109,6 +173,14 @@ IncomingLikeModel _like({
 
 _LikesPage _page(List<IncomingLikeModel> items) {
   return (items: items, nextCursor: null, hasMore: false);
+}
+
+_LikesPage _pageWith(
+  List<IncomingLikeModel> items, {
+  String? nextCursor,
+  required bool hasMore,
+}) {
+  return (items: items, nextCursor: nextCursor, hasMore: hasMore);
 }
 
 class _ScriptedChatsBackend {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../chats_repository.dart';
@@ -9,7 +10,9 @@ import '../chats_repository.dart';
 /// Subclasses override [fetchPage] to call their repository's
 /// `fetchXPage(cursor: ...)` method. The state machine is intentionally
 /// minimal: `load()` always starts fresh, `loadMore()` appends the next
-/// page. Both are safe against re-entry (re-entrant calls are dropped).
+/// page. Both are safe against re-entry: re-entrant `load()` calls are
+/// coalesced and re-run after the in-flight load completes; `loadMore()`
+/// drops them.
 ///
 /// The controller only depends on `ref` (no `family` arg) so the same
 /// instance can be reused across screen mounts; `refresh()` resets state
@@ -40,7 +43,8 @@ abstract class CursorListController<T>
   }
 
   /// Loads the first page. Subsequent calls while a load is in flight are
-  /// dropped — callers needing a forced refresh should call [refresh].
+  /// coalesced and re-run after the in-flight load completes — callers
+  /// needing a forced refresh should call [refresh].
   Future<void> load() async {
     if (_loadInFlight) {
       _refreshAfterCurrentLoad = true;
@@ -67,6 +71,7 @@ abstract class CursorListController<T>
           ),
         );
       } catch (e, st) {
+        debugPrint('CursorListController.load failed: $e');
         if (current == null) {
           state = AsyncValue.error(e, st);
         } else {
@@ -95,10 +100,19 @@ abstract class CursorListController<T>
       // snapshot, so concurrent mutations during the request (e.g. an
       // optimistic removal via removeOptimistically) are not clobbered.
       final latest = state.valueOrNull ?? current;
-      final mergedItems = _mergeOptimisticItems([
-        ...latest.items,
-        ...page.items,
-      ]);
+      // Don't feed the already-rendered list (which still contains pending
+      // optimistic entries) back through _mergeOptimisticItems — that would
+      // match them against _optimisticItems and falsely treat them as
+      // server-confirmed, evicting them from the pending set. Append only
+      // genuinely-new server items, and drop optimistics the new page
+      // actually confirms.
+      final newItems = page.items
+          .where((p) => !latest.items.any((e) => matchesItem(e, p)))
+          .toList();
+      _optimisticItems.removeWhere(
+        (opt) => page.items.any((pg) => matchesItem(pg, opt)),
+      );
+      final mergedItems = [...latest.items, ...newItems];
       state = AsyncValue.data(
         latest.copyWith(
           items: mergedItems,

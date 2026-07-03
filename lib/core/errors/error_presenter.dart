@@ -179,9 +179,10 @@ final class ErrorPresenter {
           final item = detail[i];
           if (item is Map<String, dynamic>) {
             final message = item['msg'];
-            if (message is String && message.isNotEmpty) {
-              fieldMessages[_validationFieldName(item['loc'], i)] = message;
-            }
+            final text = (message is String && message.isNotEmpty)
+                ? message
+                : (item['type']?.toString() ?? 'detail_$i');
+            fieldMessages[_validationFieldName(item['loc'], i)] = text;
           } else if (item != null) {
             fieldMessages['detail_$i'] = item.toString();
           }

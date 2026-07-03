@@ -211,7 +211,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   }
 
   List<CatalogOption> _catalogCities() {
-    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+    final bootstrap = ref.watch(bootstrapControllerProvider).valueOrNull;
     final catalogCities =
         bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
     return resolveCities(catalogCities);
