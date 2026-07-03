@@ -11,7 +11,7 @@ import '../core/app_config/optional_update_dialog.dart';
 import '../core/deep_links/deep_link_service.dart';
 import '../core/errors/app_failure.dart';
 import '../core/network/connectivity_monitor.dart';
-import '../core/network/sse_providers.dart';
+import '../core/network/flatmates_realtime_providers.dart';
 import '../core/providers.dart';
 import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
@@ -124,8 +124,8 @@ class _AppState extends ConsumerState<App> {
     final router = ref.watch(appRouterProvider);
     final bootstrapState = ref.watch(bootstrapControllerProvider);
 
-    // Activate SSE event stream and provider invalidation router.
-    ref.watch(sseEventRouterProvider);
+    // Activate Supabase Broadcast event stream and provider invalidation router.
+    ref.watch(flatmatesRealtimeEventRouterProvider);
 
     ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
       _,
@@ -139,6 +139,18 @@ class _AppState extends ConsumerState<App> {
               .signOut()
               .catchError((_) {}),
         );
+      }
+      final realtimeConfig = next.valueOrNull?.realtime;
+      if (realtimeConfig != null) {
+        final tokenProvider = ref.read(authTokenProviderProvider);
+        ref
+            .read(flatmatesRealtimeServiceProvider)
+            .connect(
+              channel: realtimeConfig.channel,
+              private: realtimeConfig.private,
+              events: realtimeConfig.events,
+              tokenRefresher: () => tokenProvider.getAccessToken(),
+            );
       }
     });
 
@@ -155,7 +167,7 @@ class _AppState extends ConsumerState<App> {
     // emission. Bootstrap fetches /users/me/auth-state and calls
     // updateGateStage(), which re-emits AuthState — so an unguarded listener
     // here would re-refresh bootstrap on every fetch and loop infinitely
-    // (each cycle also re-firing logLogin, notification init, and SSE connect).
+    // (each cycle also re-firing logLogin, notification init, and realtime connect).
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       final wasLoggedIn = previous?.isLoggedIn ?? false;
       final isLoggedIn = next.isLoggedIn;
@@ -165,16 +177,9 @@ class _AppState extends ConsumerState<App> {
         ref.read(analyticsServiceProvider).logLogin();
         ref.read(bootstrapControllerProvider.notifier).refresh();
         ref.read(notificationServiceProvider).initialize();
-        // Connect SSE stream with a token refresher callback so reconnects
-        // always use a fresh JWT.
-        final config = ref.read(appConfigProvider);
-        final tokenProvider = ref.read(authTokenProviderProvider);
-        ref
-            .read(sseServiceProvider)
-            .connect(config.apiBaseUrl, () => tokenProvider.getAccessToken());
       } else {
         ref.read(notificationServiceProvider).dispose();
-        ref.read(sseServiceProvider).disconnect();
+        unawaited(ref.read(flatmatesRealtimeServiceProvider).disconnect());
         ref.read(bootstrapControllerProvider.notifier).clear();
       }
     });

@@ -186,7 +186,7 @@
 | No re-login required | Auto-authenticated | [ ] | [ ] |
 | FCM token re-registered | `device_tokens` updated | [ ] | [ ] |
 | Notification service re-initialized | Foreground messages work | [ ] | [ ] |
-| SSE reconnected | Real-time events work | [ ] | [ ] |
+| Supabase Realtime reconnected | Real-time events work | [ ] | [ ] |
 
 ---
 

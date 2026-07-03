@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flatmates_app/core/config/endpoints.dart';
+import 'package:flatmates_app/core/network/flatmates_realtime_providers.dart';
+import 'package:flatmates_app/core/network/flatmates_realtime_service.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
-import 'package:flatmates_app/core/network/sse_providers.dart';
-import 'package:flatmates_app/core/network/sse_service.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/chats/chats_repository.dart';
 import 'package:flatmates_app/features/notifications/notifications_repository.dart';
@@ -15,7 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
-  group('SSE event routing', () {
+  group('Flatmates realtime event routing', () {
     late _CountingAdapter adapter;
     late ProviderContainer container;
 
@@ -55,7 +55,7 @@ void main() {
 
         _route(
           container,
-          const SseEvent(
+          const FlatmatesRealtimeEvent(
             type: 'new_notification',
             data: {'type_key': 'flatmate_new_message', 'route': '/chats/42'},
           ),
@@ -94,7 +94,7 @@ void main() {
 
       _route(
         container,
-        const SseEvent(
+        const FlatmatesRealtimeEvent(
           type: 'new_notification',
           data: {'type_key': 'flatmate_new_match'},
         ),
@@ -119,7 +119,7 @@ void main() {
       );
     });
 
-    test('swipe match events refresh conversations and like tabs', () async {
+    test('new_match events refresh conversations and like tabs', () async {
       await container.read(conversationsProvider.future);
       await container.read(incomingLikesProvider.future);
       await container.read(outgoingLikesProvider.future);
@@ -138,12 +138,7 @@ void main() {
 
       _route(
         container,
-        const SseEvent(
-          type: 'swipe',
-          data: {
-            'data': {'did_match': true},
-          },
-        ),
+        const FlatmatesRealtimeEvent(type: 'new_match', data: {}),
       );
       await container.pump();
 
@@ -171,7 +166,7 @@ void main() {
 
       _route(
         container,
-        const SseEvent(
+        const FlatmatesRealtimeEvent(
           type: 'new_notification',
           data: {'type_key': 'flatmate_listing_approved'},
         ),
@@ -187,9 +182,9 @@ void main() {
   });
 }
 
-void _route(ProviderContainer container, SseEvent event) {
+void _route(ProviderContainer container, FlatmatesRealtimeEvent event) {
   final triggerProvider = Provider<void>((ref) {
-    routeFlatmatesSseEvent(ref, event);
+    routeFlatmatesRealtimeEvent(ref, event);
   });
   container.read(triggerProvider);
 }

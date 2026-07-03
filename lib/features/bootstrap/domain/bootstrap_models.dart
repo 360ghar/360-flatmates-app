@@ -93,6 +93,29 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
 }
 
 @Freezed()
+class FlatmatesRealtimeConfigModel with _$FlatmatesRealtimeConfigModel {
+  const FlatmatesRealtimeConfigModel._();
+
+  const factory FlatmatesRealtimeConfigModel({
+    @Default('supabase') String provider,
+    required String channel,
+    @Default(true) bool private,
+    @Default([]) List<String> events,
+  }) = _FlatmatesRealtimeConfigModel;
+
+  factory FlatmatesRealtimeConfigModel.fromJson(Map<String, dynamic> json) {
+    return FlatmatesRealtimeConfigModel(
+      provider: json['provider'] as String? ?? 'supabase',
+      channel: json['channel'] as String? ?? '',
+      private: json['private'] as bool? ?? true,
+      events:
+          (json['events'] as List?)?.map((item) => item.toString()).toList() ??
+          const [],
+    );
+  }
+}
+
+@Freezed()
 class BootstrapData with _$BootstrapData {
   const BootstrapData._();
 
@@ -102,6 +125,7 @@ class BootstrapData with _$BootstrapData {
     @Default(0) int activeListingCount,
     @Default(0) int conversationCount,
     @Default(0) int unreadMessageCount,
+    FlatmatesRealtimeConfigModel? realtime,
   }) = _BootstrapData;
 
   factory BootstrapData.fromJson(Map<String, dynamic> json) {
@@ -117,6 +141,11 @@ class BootstrapData with _$BootstrapData {
       activeListingCount: (json['active_listing_count'] as num?)?.toInt() ?? 0,
       conversationCount: (json['conversation_count'] as num?)?.toInt() ?? 0,
       unreadMessageCount: (json['unread_message_count'] as num?)?.toInt() ?? 0,
+      realtime: json['realtime'] is Map
+          ? FlatmatesRealtimeConfigModel.fromJson(
+              Map<String, dynamic>.from(json['realtime'] as Map),
+            )
+          : null,
     );
   }
 }

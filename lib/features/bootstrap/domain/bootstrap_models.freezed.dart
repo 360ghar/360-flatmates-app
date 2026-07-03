@@ -918,12 +918,254 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
 }
 
 /// @nodoc
+mixin _$FlatmatesRealtimeConfigModel {
+  String get provider => throw _privateConstructorUsedError;
+  String get channel => throw _privateConstructorUsedError;
+  bool get private => throw _privateConstructorUsedError;
+  List<String> get events => throw _privateConstructorUsedError;
+
+  /// Create a copy of FlatmatesRealtimeConfigModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $FlatmatesRealtimeConfigModelCopyWith<FlatmatesRealtimeConfigModel>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $FlatmatesRealtimeConfigModelCopyWith<$Res> {
+  factory $FlatmatesRealtimeConfigModelCopyWith(
+    FlatmatesRealtimeConfigModel value,
+    $Res Function(FlatmatesRealtimeConfigModel) then,
+  ) =
+      _$FlatmatesRealtimeConfigModelCopyWithImpl<
+        $Res,
+        FlatmatesRealtimeConfigModel
+      >;
+  @useResult
+  $Res call({
+    String provider,
+    String channel,
+    bool private,
+    List<String> events,
+  });
+}
+
+/// @nodoc
+class _$FlatmatesRealtimeConfigModelCopyWithImpl<
+  $Res,
+  $Val extends FlatmatesRealtimeConfigModel
+>
+    implements $FlatmatesRealtimeConfigModelCopyWith<$Res> {
+  _$FlatmatesRealtimeConfigModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of FlatmatesRealtimeConfigModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? provider = null,
+    Object? channel = null,
+    Object? private = null,
+    Object? events = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            provider: null == provider
+                ? _value.provider
+                : provider // ignore: cast_nullable_to_non_nullable
+                      as String,
+            channel: null == channel
+                ? _value.channel
+                : channel // ignore: cast_nullable_to_non_nullable
+                      as String,
+            private: null == private
+                ? _value.private
+                : private // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            events: null == events
+                ? _value.events
+                : events // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$FlatmatesRealtimeConfigModelImplCopyWith<$Res>
+    implements $FlatmatesRealtimeConfigModelCopyWith<$Res> {
+  factory _$$FlatmatesRealtimeConfigModelImplCopyWith(
+    _$FlatmatesRealtimeConfigModelImpl value,
+    $Res Function(_$FlatmatesRealtimeConfigModelImpl) then,
+  ) = __$$FlatmatesRealtimeConfigModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String provider,
+    String channel,
+    bool private,
+    List<String> events,
+  });
+}
+
+/// @nodoc
+class __$$FlatmatesRealtimeConfigModelImplCopyWithImpl<$Res>
+    extends
+        _$FlatmatesRealtimeConfigModelCopyWithImpl<
+          $Res,
+          _$FlatmatesRealtimeConfigModelImpl
+        >
+    implements _$$FlatmatesRealtimeConfigModelImplCopyWith<$Res> {
+  __$$FlatmatesRealtimeConfigModelImplCopyWithImpl(
+    _$FlatmatesRealtimeConfigModelImpl _value,
+    $Res Function(_$FlatmatesRealtimeConfigModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of FlatmatesRealtimeConfigModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? provider = null,
+    Object? channel = null,
+    Object? private = null,
+    Object? events = null,
+  }) {
+    return _then(
+      _$FlatmatesRealtimeConfigModelImpl(
+        provider: null == provider
+            ? _value.provider
+            : provider // ignore: cast_nullable_to_non_nullable
+                  as String,
+        channel: null == channel
+            ? _value.channel
+            : channel // ignore: cast_nullable_to_non_nullable
+                  as String,
+        private: null == private
+            ? _value.private
+            : private // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        events: null == events
+            ? _value._events
+            : events // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$FlatmatesRealtimeConfigModelImpl extends _FlatmatesRealtimeConfigModel {
+  const _$FlatmatesRealtimeConfigModelImpl({
+    this.provider = 'supabase',
+    required this.channel,
+    this.private = true,
+    final List<String> events = const [],
+  }) : _events = events,
+       super._();
+
+  @override
+  @JsonKey()
+  final String provider;
+  @override
+  final String channel;
+  @override
+  @JsonKey()
+  final bool private;
+  final List<String> _events;
+  @override
+  @JsonKey()
+  List<String> get events {
+    if (_events is EqualUnmodifiableListView) return _events;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_events);
+  }
+
+  @override
+  String toString() {
+    return 'FlatmatesRealtimeConfigModel(provider: $provider, channel: $channel, private: $private, events: $events)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$FlatmatesRealtimeConfigModelImpl &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            (identical(other.channel, channel) || other.channel == channel) &&
+            (identical(other.private, private) || other.private == private) &&
+            const DeepCollectionEquality().equals(other._events, _events));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    provider,
+    channel,
+    private,
+    const DeepCollectionEquality().hash(_events),
+  );
+
+  /// Create a copy of FlatmatesRealtimeConfigModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$FlatmatesRealtimeConfigModelImplCopyWith<
+    _$FlatmatesRealtimeConfigModelImpl
+  >
+  get copyWith =>
+      __$$FlatmatesRealtimeConfigModelImplCopyWithImpl<
+        _$FlatmatesRealtimeConfigModelImpl
+      >(this, _$identity);
+}
+
+abstract class _FlatmatesRealtimeConfigModel
+    extends FlatmatesRealtimeConfigModel {
+  const factory _FlatmatesRealtimeConfigModel({
+    final String provider,
+    required final String channel,
+    final bool private,
+    final List<String> events,
+  }) = _$FlatmatesRealtimeConfigModelImpl;
+  const _FlatmatesRealtimeConfigModel._() : super._();
+
+  @override
+  String get provider;
+  @override
+  String get channel;
+  @override
+  bool get private;
+  @override
+  List<String> get events;
+
+  /// Create a copy of FlatmatesRealtimeConfigModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$FlatmatesRealtimeConfigModelImplCopyWith<
+    _$FlatmatesRealtimeConfigModelImpl
+  >
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$BootstrapData {
   FlatmatesProfileModel get profile => throw _privateConstructorUsedError;
   List<CatalogEntryModel> get catalogs => throw _privateConstructorUsedError;
   int get activeListingCount => throw _privateConstructorUsedError;
   int get conversationCount => throw _privateConstructorUsedError;
   int get unreadMessageCount => throw _privateConstructorUsedError;
+  FlatmatesRealtimeConfigModel? get realtime =>
+      throw _privateConstructorUsedError;
 
   /// Create a copy of BootstrapData
   /// with the given fields replaced by the non-null parameter values.
@@ -945,9 +1187,11 @@ abstract class $BootstrapDataCopyWith<$Res> {
     int activeListingCount,
     int conversationCount,
     int unreadMessageCount,
+    FlatmatesRealtimeConfigModel? realtime,
   });
 
   $FlatmatesProfileModelCopyWith<$Res> get profile;
+  $FlatmatesRealtimeConfigModelCopyWith<$Res>? get realtime;
 }
 
 /// @nodoc
@@ -970,6 +1214,7 @@ class _$BootstrapDataCopyWithImpl<$Res, $Val extends BootstrapData>
     Object? activeListingCount = null,
     Object? conversationCount = null,
     Object? unreadMessageCount = null,
+    Object? realtime = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -993,6 +1238,10 @@ class _$BootstrapDataCopyWithImpl<$Res, $Val extends BootstrapData>
                 ? _value.unreadMessageCount
                 : unreadMessageCount // ignore: cast_nullable_to_non_nullable
                       as int,
+            realtime: freezed == realtime
+                ? _value.realtime
+                : realtime // ignore: cast_nullable_to_non_nullable
+                      as FlatmatesRealtimeConfigModel?,
           )
           as $Val,
     );
@@ -1005,6 +1254,22 @@ class _$BootstrapDataCopyWithImpl<$Res, $Val extends BootstrapData>
   $FlatmatesProfileModelCopyWith<$Res> get profile {
     return $FlatmatesProfileModelCopyWith<$Res>(_value.profile, (value) {
       return _then(_value.copyWith(profile: value) as $Val);
+    });
+  }
+
+  /// Create a copy of BootstrapData
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $FlatmatesRealtimeConfigModelCopyWith<$Res>? get realtime {
+    if (_value.realtime == null) {
+      return null;
+    }
+
+    return $FlatmatesRealtimeConfigModelCopyWith<$Res>(_value.realtime!, (
+      value,
+    ) {
+      return _then(_value.copyWith(realtime: value) as $Val);
     });
   }
 }
@@ -1024,10 +1289,13 @@ abstract class _$$BootstrapDataImplCopyWith<$Res>
     int activeListingCount,
     int conversationCount,
     int unreadMessageCount,
+    FlatmatesRealtimeConfigModel? realtime,
   });
 
   @override
   $FlatmatesProfileModelCopyWith<$Res> get profile;
+  @override
+  $FlatmatesRealtimeConfigModelCopyWith<$Res>? get realtime;
 }
 
 /// @nodoc
@@ -1049,6 +1317,7 @@ class __$$BootstrapDataImplCopyWithImpl<$Res>
     Object? activeListingCount = null,
     Object? conversationCount = null,
     Object? unreadMessageCount = null,
+    Object? realtime = freezed,
   }) {
     return _then(
       _$BootstrapDataImpl(
@@ -1072,6 +1341,10 @@ class __$$BootstrapDataImplCopyWithImpl<$Res>
             ? _value.unreadMessageCount
             : unreadMessageCount // ignore: cast_nullable_to_non_nullable
                   as int,
+        realtime: freezed == realtime
+            ? _value.realtime
+            : realtime // ignore: cast_nullable_to_non_nullable
+                  as FlatmatesRealtimeConfigModel?,
       ),
     );
   }
@@ -1086,6 +1359,7 @@ class _$BootstrapDataImpl extends _BootstrapData {
     this.activeListingCount = 0,
     this.conversationCount = 0,
     this.unreadMessageCount = 0,
+    this.realtime,
   }) : _catalogs = catalogs,
        super._();
 
@@ -1109,10 +1383,12 @@ class _$BootstrapDataImpl extends _BootstrapData {
   @override
   @JsonKey()
   final int unreadMessageCount;
+  @override
+  final FlatmatesRealtimeConfigModel? realtime;
 
   @override
   String toString() {
-    return 'BootstrapData(profile: $profile, catalogs: $catalogs, activeListingCount: $activeListingCount, conversationCount: $conversationCount, unreadMessageCount: $unreadMessageCount)';
+    return 'BootstrapData(profile: $profile, catalogs: $catalogs, activeListingCount: $activeListingCount, conversationCount: $conversationCount, unreadMessageCount: $unreadMessageCount, realtime: $realtime)';
   }
 
   @override
@@ -1127,7 +1403,9 @@ class _$BootstrapDataImpl extends _BootstrapData {
             (identical(other.conversationCount, conversationCount) ||
                 other.conversationCount == conversationCount) &&
             (identical(other.unreadMessageCount, unreadMessageCount) ||
-                other.unreadMessageCount == unreadMessageCount));
+                other.unreadMessageCount == unreadMessageCount) &&
+            (identical(other.realtime, realtime) ||
+                other.realtime == realtime));
   }
 
   @override
@@ -1138,6 +1416,7 @@ class _$BootstrapDataImpl extends _BootstrapData {
     activeListingCount,
     conversationCount,
     unreadMessageCount,
+    realtime,
   );
 
   /// Create a copy of BootstrapData
@@ -1156,6 +1435,7 @@ abstract class _BootstrapData extends BootstrapData {
     final int activeListingCount,
     final int conversationCount,
     final int unreadMessageCount,
+    final FlatmatesRealtimeConfigModel? realtime,
   }) = _$BootstrapDataImpl;
   const _BootstrapData._() : super._();
 
@@ -1169,6 +1449,8 @@ abstract class _BootstrapData extends BootstrapData {
   int get conversationCount;
   @override
   int get unreadMessageCount;
+  @override
+  FlatmatesRealtimeConfigModel? get realtime;
 
   /// Create a copy of BootstrapData
   /// with the given fields replaced by the non-null parameter values.

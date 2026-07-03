@@ -2,7 +2,7 @@
 
 ## Product Alignment
 
-360 FlatMates is implemented as a new Flutter mobile client backed by the existing 360 Ghar FastAPI monolith. The mobile app uses Supabase directly for authentication and uses the FastAPI backend as the application system of record for flatmate profile data, listings, swipes, conversations, and visits.
+360 FlatMates is implemented as a Flutter mobile client backed by the existing 360 Ghar FastAPI monolith. The mobile app uses Supabase directly for authentication and app-wide private Realtime Broadcast subscriptions, and uses the FastAPI backend as the application system of record for flatmate profile data, listings, swipes, conversations, and visits.
 
 The product source remains `docs/prd.md`, but the implementation architecture in this document replaces the older Firebase and Firestore assumptions.
 
@@ -134,6 +134,7 @@ The Flutter application starts from a clean mobile-only scaffold and uses:
 - Shared preferences for theme, palette, and locale persistence
 - Secure storage for token persistence
 - ARB-based localization for English and Hindi
+- Supabase Realtime private Broadcast for app-wide flatmates events
 
 The app shell currently includes:
 
@@ -159,7 +160,7 @@ This implementation establishes the platform foundation, the first usable produc
 - Flatmate profile editing
 - Listing discovery through real property APIs
 - Listing-like to chat creation
-- Two-user conversations with Supabase Realtime (primary) and SSE-driven refetch fallback when realtime is unavailable, photo sharing, icebreaker chips, read receipts, and report/block/unmatch
+- Two-user conversations with Supabase table streams for mounted chat threads, app-wide Supabase private Broadcast invalidation, photo sharing, icebreaker chips, read receipts, and report/block/unmatch
 - Flatmate visit request, confirmation, reschedule, and cancellation
 - 8-step listing builder (location, society, room, photos, flat, costs, about, review)
 - Manage listing page with status badges, share, and boost

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flatmates_app/core/theme/theme.dart';
 
-import '../../core/network/sse_providers.dart';
+import '../../core/network/flatmates_realtime_providers.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../discover/discover_repository.dart';
 import '../shared/presentation/components.dart';
@@ -31,11 +31,11 @@ class _ListingUnderReviewPageState
   Widget build(BuildContext context) {
     final listingAsync = ref.watch(listingReviewProvider(widget.listingId));
 
-    // Listen for SSE listing status changes and refresh.
-    ref.listen(sseEventProvider, (previous, next) {
+    // Listen for listing status changes and refresh.
+    ref.listen(flatmatesRealtimeEventProvider, (previous, next) {
       final event = next.valueOrNull;
       if (event?.type == 'listing_status_changed') {
-        final listingId = event!.data['listing_id'] as int?;
+        final listingId = event!.data['property_id'] as int?;
         if (listingId == widget.listingId) {
           ref.invalidate(listingReviewProvider(widget.listingId));
         }

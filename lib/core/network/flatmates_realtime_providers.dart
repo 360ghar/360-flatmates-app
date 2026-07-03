@@ -1,53 +1,57 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/chats/chats_repository.dart';
 import '../../features/chats/application/cursor_list_controller.dart';
+import '../../features/chats/chats_repository.dart';
 import '../../features/notifications/notifications_repository.dart';
 import '../../features/visits/visits_repository.dart';
-import 'sse_service.dart';
+import 'flatmates_realtime_service.dart';
 
-// -- SSE service singleton ---------------------------------------------------
-
-final sseServiceProvider = Provider<SseService>((ref) {
-  final service = SseService();
-  ref.onDispose(() => service.dispose());
+final flatmatesRealtimeServiceProvider = Provider<FlatmatesRealtimeService>((
+  ref,
+) {
+  final service = FlatmatesRealtimeService();
+  ref.onDispose(() {
+    unawaited(service.dispose());
+  });
   return service;
 });
 
-// -- SSE event stream --------------------------------------------------------
-
-final sseEventProvider = StreamProvider<SseEvent>((ref) {
-  final service = ref.watch(sseServiceProvider);
-  // Stream is safe to access before connect — returns an empty broadcast stream.
-  return service.events;
+final flatmatesRealtimeEventProvider = StreamProvider<FlatmatesRealtimeEvent>((
+  ref,
+) {
+  return ref.watch(flatmatesRealtimeServiceProvider).events;
 });
 
-// -- SSE event router --------------------------------------------------------
-// Watches the event stream and invalidates the relevant Riverpod providers
-// so the UI refreshes in real-time without manual pull-to-refresh or polling.
+final flatmatesRealtimeEventRouterProvider = Provider<void>((ref) {
+  ref.watch(flatmatesRealtimeEventProvider);
 
-final sseEventRouterProvider = Provider<void>((ref) {
-  // Watching the stream provider activates it.
-  ref.watch(sseEventProvider);
-
-  ref.listen(sseEventProvider, (previous, next) {
+  ref.listen(flatmatesRealtimeEventProvider, (previous, next) {
     final event = next.valueOrNull;
     if (event == null) return;
-
-    routeFlatmatesSseEvent(ref, event);
+    routeFlatmatesRealtimeEvent(ref, event);
   });
 });
 
-void routeFlatmatesSseEvent(Ref ref, SseEvent event) {
+void routeFlatmatesRealtimeEvent(Ref ref, FlatmatesRealtimeEvent event) {
   switch (event.type) {
     case 'new_match':
       _invalidateMatchState(ref);
       break;
-    case 'swipe':
-      if (_boolAt(event.data, const ['data', 'did_match']) ||
-          _boolAt(event.data, const ['did_match'])) {
-        _invalidateMatchState(ref);
+    case 'new_message':
+      _invalidateConversationState(ref);
+      final conversationId = _intAt(event.data, const ['conversation_id']);
+      if (conversationId != null) {
+        ref.invalidate(messagesProvider(conversationId));
+      }
+      break;
+    case 'conversation_updated':
+      _invalidateConversationState(ref);
+      final conversationId = _intAt(event.data, const ['conversation_id']);
+      if (conversationId != null) {
+        ref.invalidate(messagesProvider(conversationId));
       }
       break;
     case 'new_like':
@@ -60,8 +64,10 @@ void routeFlatmatesSseEvent(Ref ref, SseEvent event) {
     case 'visit_updated':
       ref.invalidate(visitsProvider);
       break;
+    case 'listing_status_changed':
+      break;
     default:
-      debugPrint('SseRouter: unhandled event type=${event.type}');
+      debugPrint('FlatmatesRealtimeRouter: unhandled event type=${event.type}');
   }
 }
 
@@ -82,11 +88,6 @@ void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
           _stringAt(data, const ['data', 'route']);
       final conversationId = conversationIdFromRoute(route);
       if (conversationId != null) {
-        // Invalidate the REST seed so the next read pulls a fresh page.
-        // The realtime stream (messagesStreamProvider) stays open — it
-        // is the source of truth while the thread is mounted, and
-        // invalidating it would tear down the Supabase subscription on
-        // every inbound event.
         ref.invalidate(messagesProvider(conversationId));
       }
       break;
@@ -95,7 +96,9 @@ void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
       _invalidateMatchState(ref);
       break;
     default:
-      debugPrint('SseRouter: unhandled notification typeKey=$typeKey');
+      debugPrint(
+        'FlatmatesRealtimeRouter: unhandled notification typeKey=$typeKey',
+      );
   }
 }
 
@@ -135,11 +138,12 @@ String? _stringAt(Map<String, dynamic> data, List<String> path) {
   return cursor?.toString();
 }
 
-bool _boolAt(Map<String, dynamic> data, List<String> path) {
+int? _intAt(Map<String, dynamic> data, List<String> path) {
   Object? cursor = data;
   for (final key in path) {
-    if (cursor is! Map) return false;
+    if (cursor is! Map) return null;
     cursor = cursor[key];
   }
-  return cursor == true;
+  if (cursor is num) return cursor.toInt();
+  return int.tryParse(cursor?.toString() ?? '');
 }

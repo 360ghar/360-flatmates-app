@@ -689,7 +689,7 @@ No monetization in V1, but the following UI patterns are built in to train user 
 | **Backend**               | FastAPI monolith (existing 360 Ghar backend) — extended with flatmate-specific endpoints                   |
 | **Authentication**        | Supabase Auth (Phone OTP + password) — Supabase Flutter SDK                                                |
 | **Media Storage**         | Cloudinary (via backend API) for photos and video tours                                                    |
-| **Realtime Chat**         | Supabase Realtime for message streaming in chat threads                                                    |
+| **Realtime**              | Supabase Realtime for private app-wide Broadcast events and message streaming in mounted chat threads       |
 | **Geocoding**             | Google Maps Geocoding API — called on listing save (lat-lng stored, not displayed in V1)                   |
 | **Push Notifications**    | Firebase Cloud Messaging (FCM) + flutter_local_notifications                                               |
 | **Maps**                  | Google Maps Flutter with client-side clustering by locality                                                |
@@ -741,7 +741,7 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 
 - **WhatsApp share card** — Generated on-device using RepaintBoundary with three templates: original card, WhatsApp square (1080x1080), Instagram story (1080x1920). Includes QR code with deep link.
 
-- **Real-time chat** — Supabase Realtime subscription on `user_messages` table filtered by `conversation_id`. Falls back to SSE event-driven refetch (subscribes to `new_message` events on `/flatmates/sse` and refetches the message list) when realtime is unavailable. No HTTP polling.
+- **Real-time chat** — Supabase Realtime subscription on the messages table filtered by `conversation_id` while a thread is mounted. App-wide flatmates updates use a single private Supabase Broadcast channel from bootstrap. No HTTP polling and no backend SSE fallback.
 
 - **Auth flow** — Supabase Phone Auth for OTP. Access token stored in FlutterSecureStorage. Dio auth interceptor handles Bearer token injection and 401 refresh with request queuing.
 

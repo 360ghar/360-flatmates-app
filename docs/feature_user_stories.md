@@ -99,7 +99,7 @@ but not run in this pass.
 
 | ID | Story | Route / Page | Expected Behavior | Status | Errors Found | Fix Notes |
 |----|-------|--------------|-------------------|--------|--------------|-----------|
-| CHAT-01 | Conversation list | `/chats` `conversations_page.dart` | `conversationsProvider` (FutureProvider); realtime via `conversationsRealtimeProvider` (2 subs: `user_one_id` + `user_two_id`); cards with avatar/name/last msg/unread badge; pull-to-refresh invalidates 3 providers; tab override persisted. | Cataloged | | |
+| CHAT-01 | Conversation list | `/chats` `conversations_page.dart` | `conversationsProvider` (FutureProvider); app-wide realtime invalidation via `flatmatesRealtimeEventProvider`; cards with avatar/name/last msg/unread badge; pull-to-refresh invalidates providers; tab override persisted. | Cataloged | | |
 | CHAT-02 | Open chat thread | `/chats/{id}` `chat_thread_page.dart` | `conversationProvider(id)` + watch `messagesControllerProvider(id)` (FamilyNotifier); `markAsRead()` on mount; optimistic sends (negative ids, 60% opacity); Q&A nudge if new match; pre-message area (property card, Q&A); input bar. | Cataloged | | |
 | CHAT-03 | Send message | chat input → `MessagesController.sendMessage()` | Trim + `ProfanityFilter.censor()`; optimistic add (negative id, 60% opacity); `POST /conversations/{id}/messages`; on failure rollback + toast; on success authoritative `fetchMessages()` + `mergeMessages()` dedupe + `pruneConfirmedPending()` (±2min window); realtime fallback w/ exponential backoff (1s→32s). | Cataloged | | |
 | CHAT-04 | Send photo | chat input photo icon | `ImageUploadService.pickImages(limit:1)` → `uploadChatPhoto()` → `sendMessage(attachmentUrl, type:'image')`; same optimistic + refetch flow. | Cataloged | | |
@@ -129,7 +129,7 @@ but not run in this pass.
 | LIST-02 | Upload listing photos | step 2 of create | `ImageUploadService.pickImages(limit: 10-current)`; each `uploadListingPhoto()`; ≥2 photos required; on failure toast + break loop. | Fixed | Loop breaks on first upload failure (`create_listing_page.dart:192-203`) — remaining files not attempted | Removed `break` — loop continues on partial failure, shows toast per failed file |
 | LIST-03 | Submit listing for review | step 7 review | Validate required fields; build `ListingCreateRequest`; `POST /properties`; invalidate `discoverFeedControllerProvider` + refresh bootstrap; → `/listing-review/{id}`. | Cataloged | | |
 | LIST-04 | Manage listings | `/manage-listings` `manage_listing_page.dart` | `myListingsProvider`; tabs Active/Draft/Expired; actions Edit/View Stats/Share/Copy Link/Pause-Resume/Review; pause/resume optimistic via `_pausedListingIds`; refresh invalidates. | Cataloged | | |
-| LIST-05 | Listing under review | `/listing-review/{id}` `listing_under_review_page.dart` | `listingReviewProvider(id)`; SSE `listing_status_changed` listener; status icon + progress; rejected → message + resubmit; approved → "live" button. | Cataloged | | |
+| LIST-05 | Listing under review | `/listing-review/{id}` `listing_under_review_page.dart` | `listingReviewProvider(id)`; Supabase Broadcast `listing_status_changed` listener; status icon + progress; rejected → message + resubmit; approved → "live" button. | Cataloged | | |
 | LIST-06 | Post hub (room poster) | `/post` `post_hub_page.dart` | Two cards: "Post a Listing" → `/post/new`, "Manage Listings" → `/manage-listings`; counts from `myListingsProvider`; refresh indicator. | Cataloged | | |
 
 ## PROFILE
