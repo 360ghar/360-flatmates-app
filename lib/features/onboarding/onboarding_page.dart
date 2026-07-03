@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/errors/l10n_bridge.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -39,9 +38,8 @@ class OnboardingPage extends ConsumerWidget {
     }
 
     if (state.isComplete) {
-      Future.microtask(() {
-        if (context.mounted) context.go('/discover');
-      });
+      // The app router observes the local onboarding-complete override and
+      // owns the transition into the authenticated shell.
       return const FlatmatesScreen(
         body: Center(child: FlatmatesSkeleton.card()),
       );

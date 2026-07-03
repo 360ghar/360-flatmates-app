@@ -5540,6 +5540,12 @@ abstract class AppLocalizations {
   /// **'No cities found'**
   String get noCitiesFound;
 
+  /// No description provided for @moreCitiesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MORE CITIES'**
+  String get moreCitiesLabel;
+
   /// No description provided for @searchRadiusLabel.
   ///
   /// In en, this message translates to:

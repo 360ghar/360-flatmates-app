@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../chats/application/cursor_list_controller.dart';
+import '../../chats/chats_repository.dart';
 import '../../discover/discover_repository.dart';
 import '../swipe_repository.dart';
 
@@ -14,6 +17,9 @@ import '../swipe_repository.dart';
 class SwipeDeckState {
   const SwipeDeckState({
     this.profiles = const [],
+    this.currentIndex = 0,
+    this.lastSwipedProfile,
+    this.hasSwiped = false,
     this.nextCursor,
     this.isLoading = false,
     this.isLoadingMore = false,
@@ -22,6 +28,9 @@ class SwipeDeckState {
   });
 
   final List<SwipeProfile> profiles;
+  final int currentIndex;
+  final SwipeProfile? lastSwipedProfile;
+  final bool hasSwiped;
   final String? nextCursor;
   final bool isLoading;
   final bool isLoadingMore;
@@ -31,8 +40,29 @@ class SwipeDeckState {
   bool get hasError => error != null;
   bool get isEmpty => profiles.isEmpty && !isLoading;
 
+  List<SwipeProfile> visibleProfiles(int? currentUserId) {
+    return profiles.where((profile) => profile.id != currentUserId).toList();
+  }
+
+  SwipeProfile? currentProfile(int? currentUserId) {
+    final visible = visibleProfiles(currentUserId);
+    if (currentIndex < 0 || currentIndex >= visible.length) return null;
+    return visible[currentIndex];
+  }
+
+  SwipeProfile? relativeProfile(int? currentUserId, int offset) {
+    final visible = visibleProfiles(currentUserId);
+    final index = currentIndex + offset;
+    if (index < 0 || index >= visible.length) return null;
+    return visible[index];
+  }
+
   SwipeDeckState copyWith({
     List<SwipeProfile>? profiles,
+    int? currentIndex,
+    SwipeProfile? lastSwipedProfile,
+    bool clearLastSwipedProfile = false,
+    bool? hasSwiped,
     String? nextCursor,
     bool setNextCursorNull = false,
     bool? isLoading,
@@ -43,6 +73,11 @@ class SwipeDeckState {
   }) {
     return SwipeDeckState(
       profiles: profiles ?? this.profiles,
+      currentIndex: currentIndex ?? this.currentIndex,
+      lastSwipedProfile: clearLastSwipedProfile
+          ? null
+          : (lastSwipedProfile ?? this.lastSwipedProfile),
+      hasSwiped: hasSwiped ?? this.hasSwiped,
       nextCursor: setNextCursorNull ? null : (nextCursor ?? this.nextCursor),
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
@@ -164,23 +199,114 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     } finally {
       _loadInFlight = false;
     }
-  }
-
-  void markSwiped(int userId) {
-    _swipedUserIds.add(userId);
-    final current = state.profiles;
-    if (current.isNotEmpty) {
-      state = state.copyWith(
-        profiles: current.where((p) => p.id != userId).toList(),
-      );
+    if (myVersion != _filterVersion) {
+      await _load();
     }
   }
 
-  void undoSwipe(SwipeProfile profile) {
-    final wasSwiped = _swipedUserIds.remove(profile.id);
-    if (!wasSwiped) return;
-    final current = state.profiles;
-    state = state.copyWith(profiles: [profile, ...current]);
+  /// Advances by moving a cursor over the immutable profile list. The profile
+  /// remains available for widget-key reconciliation and for visual undo.
+  void advanceAfterSwipe(SwipeProfile profile) {
+    final didAdd = _swipedUserIds.add(profile.id);
+    if (!didAdd && state.lastSwipedProfile?.id == profile.id) return;
+    state = state.copyWith(
+      currentIndex: state.currentIndex + 1,
+      lastSwipedProfile: profile,
+      hasSwiped: true,
+      clearError: true,
+    );
+  }
+
+  /// Reverses an optimistic advance after a failed persisted swipe.
+  void rollbackSwipe(SwipeProfile profile) {
+    if (state.lastSwipedProfile?.id != profile.id) return;
+    final didRemove = _swipedUserIds.remove(profile.id);
+    if (!didRemove) return;
+    final nextIndex = state.currentIndex > 0 ? state.currentIndex - 1 : 0;
+    state = state.copyWith(
+      currentIndex: nextIndex,
+      hasSwiped: _swipedUserIds.isNotEmpty,
+      clearLastSwipedProfile: true,
+    );
+  }
+
+  bool undoLastSwipe() {
+    final last = state.lastSwipedProfile;
+    if (last == null || state.currentIndex <= 0) return false;
+    _swipedUserIds.remove(last.id);
+    state = state.copyWith(
+      currentIndex: state.currentIndex - 1,
+      hasSwiped: _swipedUserIds.isNotEmpty,
+      clearLastSwipedProfile: true,
+    );
+    return true;
+  }
+
+  Future<SwipeResult> persistSwipe({
+    required SwipeProfile profile,
+    required String action,
+  }) async {
+    final result = await ref
+        .read(swipeRepositoryProvider)
+        .swipeProfile(targetUserId: profile.id, action: action);
+    _syncSwipeSideEffects(profile: profile, action: action, result: result);
+    return result;
+  }
+
+  void _syncSwipeSideEffects({
+    required SwipeProfile profile,
+    required String action,
+    required SwipeResult result,
+  }) {
+    ref
+        .read(incomingLikesListControllerProvider.notifier)
+        .removePeerOptimistically(profile.id);
+    ref.invalidate(incomingLikesProvider);
+    unawaited(ref.read(incomingLikesListControllerProvider.notifier).refresh());
+
+    if (action != 'like') return;
+
+    ref
+        .read(outgoingLikesListControllerProvider.notifier)
+        .upsertOutgoingLike(_outgoingLikeFor(profile));
+    ref.invalidate(outgoingLikesProvider);
+    unawaited(ref.read(outgoingLikesListControllerProvider.notifier).refresh());
+
+    if (!result.didMatch) return;
+
+    ref.invalidate(conversationsProvider);
+    unawaited(ref.read(conversationsListControllerProvider.notifier).refresh());
+  }
+
+  IncomingLikeModel _outgoingLikeFor(SwipeProfile profile) {
+    return IncomingLikeModel(
+      id: -profile.id,
+      peer: ChatPeer(
+        id: profile.id,
+        fullName: profile.fullName ?? 'Flatmate',
+        profileImageUrl: profile.profileImageUrl,
+        mode: profile.mode,
+        city: profile.city,
+        locality: profile.locality,
+        age: profile.age,
+        profession: profile.profession,
+      ),
+      createdAt: DateTime.now().toUtc(),
+    );
+  }
+
+  Future<void> recordProfileView({
+    required int targetUserId,
+    required int durationSeconds,
+    int? scrollDepthPercent,
+  }) {
+    return ref
+        .read(swipeRepositoryProvider)
+        .recordProfileView(
+          targetUserId: targetUserId,
+          durationSeconds: durationSeconds,
+          scrollDepthPercent: scrollDepthPercent,
+        );
   }
 
   Future<void> refresh() async {

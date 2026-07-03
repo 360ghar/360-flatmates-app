@@ -2957,6 +2957,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noCitiesFound => 'कोई शहर नहीं मिला';
 
   @override
+  String get moreCitiesLabel => 'अन्य शहर';
+
+  @override
   String get searchRadiusLabel => 'खोज त्रिज्या';
 
   @override

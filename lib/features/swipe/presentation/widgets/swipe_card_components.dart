@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
@@ -79,6 +80,23 @@ class _HeroCarouselState extends State<HeroCarousel> {
   }
 
   @override
+  void didUpdateWidget(covariant HeroCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Defensive: the SwipeCardStack identity-keys each profile so this element
+    // should never be repurposed for a different profile. But if a parent ever
+    // fails to preserve the key, reset the carousel to the first photo so a
+    // stale page index (and the wrong image) from the previous profile does
+    // not bleed into the new one.
+    if (oldWidget.item.id != widget.item.id ||
+        !listEquals(oldWidget.images, widget.images)) {
+      _index = 0;
+      if (_controller.hasClients) {
+        _controller.jumpToPage(0);
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -90,116 +108,136 @@ class _HeroCarouselState extends State<HeroCarousel> {
     final hasImages = widget.images.isNotEmpty;
     return SizedBox(
       height: 320,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.card),
-            ),
-            child: hasImages
-                ? PageView.builder(
-                    controller: _controller,
-                    itemCount: widget.images.length,
-                    onPageChanged: (i) => setState(() => _index = i),
-                    itemBuilder: (context, i) => Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // Blurred background filling the space
-                        ImageFiltered(
-                          imageFilter: ui.ImageFilter.blur(
-                            sigmaX: 15,
-                            sigmaY: 15,
-                          ),
-                          child: FlatmatesNetworkImage(
-                            imageUrl: widget.images[i],
-                            fit: BoxFit.cover,
-                            fallbackName: widget.name,
-                          ),
-                        ),
-                        Container(color: Colors.black.withValues(alpha: 0.2)),
-                        // Sharp uncropped image on top
-                        FlatmatesNetworkImage(
-                          imageUrl: widget.images[i],
-                          fit: BoxFit.contain,
-                          fallbackName: widget.name,
-                        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final imageWidth = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : null;
+          final imageHeight = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : null;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.card),
+                ),
+                child: hasImages
+                    ? PageView.builder(
+                        controller: _controller,
+                        itemCount: widget.images.length,
+                        onPageChanged: (i) => setState(() => _index = i),
+                        itemBuilder: (context, i) {
+                          final imageUrl = widget.images[i];
+                          return Stack(
+                            key: ValueKey<String>(
+                              '${widget.item.id}:$imageUrl',
+                            ),
+                            fit: StackFit.expand,
+                            children: [
+                              ImageFiltered(
+                                imageFilter: ui.ImageFilter.blur(
+                                  sigmaX: 15,
+                                  sigmaY: 15,
+                                ),
+                                child: FlatmatesNetworkImage(
+                                  imageUrl: imageUrl,
+                                  width: imageWidth,
+                                  height: imageHeight,
+                                  fit: BoxFit.cover,
+                                  fallbackName: widget.name,
+                                ),
+                              ),
+                              Container(
+                                color: Colors.black.withValues(alpha: 0.2),
+                              ),
+                              FlatmatesNetworkImage(
+                                imageUrl: imageUrl,
+                                width: imageWidth,
+                                height: imageHeight,
+                                fit: BoxFit.contain,
+                                fallbackName: widget.name,
+                              ),
+                            ],
+                          );
+                        },
+                      )
+                    : PremiumPhotoFallback(name: widget.name),
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.35),
+                        Colors.black.withValues(alpha: 0.78),
                       ],
+                      stops: const [0.0, 0.4, 0.7, 1.0],
                     ),
-                  )
-                : PremiumPhotoFallback(name: widget.name),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.35),
-                    Colors.black.withValues(alpha: 0.78),
-                  ],
-                  stops: const [0.0, 0.4, 0.7, 1.0],
+                  ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            left: AppSpacing.md,
-            top: AppSpacing.md,
-            child: ModeChip(mode: widget.mode, locale: locale),
-          ),
-          Positioned(
-            right: AppSpacing.md,
-            top: AppSpacing.md,
-            child: MatchPill(percentage: widget.compatibility.percentage),
-          ),
-          if (hasImages && widget.images.length > 1)
-            Positioned(
-              top: AppSpacing.md,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: PhotoCounterPill(
-                  current: _index + 1,
-                  total: widget.images.length,
-                ),
+              Positioned(
+                left: AppSpacing.md,
+                top: AppSpacing.md,
+                child: ModeChip(mode: widget.mode, locale: locale),
               ),
-            ),
-          if (hasImages && widget.images.length > 1)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 90,
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(widget.images.length, (i) {
-                    final active = i == _index;
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(
-                          alpha: active ? 1.0 : 0.4,
-                        ),
-                      ),
-                    );
-                  }),
-                ),
+              Positioned(
+                right: AppSpacing.md,
+                top: AppSpacing.md,
+                child: MatchPill(percentage: widget.compatibility.percentage),
               ),
-            ),
-          Positioned(
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            bottom: AppSpacing.lg,
-            child: HeroInfoOverlay(item: widget.item),
-          ),
-        ],
+              if (hasImages && widget.images.length > 1)
+                Positioned(
+                  top: AppSpacing.md,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: PhotoCounterPill(
+                      current: _index + 1,
+                      total: widget.images.length,
+                    ),
+                  ),
+                ),
+              if (hasImages && widget.images.length > 1)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 90,
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(widget.images.length, (i) {
+                        final active = i == _index;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(
+                              alpha: active ? 1.0 : 0.4,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              Positioned(
+                left: AppSpacing.lg,
+                right: AppSpacing.lg,
+                bottom: AppSpacing.lg,
+                child: HeroInfoOverlay(item: widget.item),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

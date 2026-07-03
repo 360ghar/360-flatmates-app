@@ -21,6 +21,8 @@ abstract class CursorListController<T>
   String? _nextCursor;
   bool _hasMore = true;
   bool _loadInFlight = false;
+  bool _refreshAfterCurrentLoad = false;
+  final List<T> _optimisticItems = <T>[];
 
   /// Override to call the concrete repository's cursor-paginated endpoint.
   Future<({List<T> items, String? nextCursor, bool hasMore})> fetchPage({
@@ -40,23 +42,40 @@ abstract class CursorListController<T>
   /// Loads the first page. Subsequent calls while a load is in flight are
   /// dropped — callers needing a forced refresh should call [refresh].
   Future<void> load() async {
-    if (_loadInFlight) return;
-    _loadInFlight = true;
-    state = const AsyncValue.loading();
-    _nextCursor = null;
-    _hasMore = true;
-    try {
-      final page = await fetchPage(cursor: null);
-      _nextCursor = page.nextCursor;
-      _hasMore = page.hasMore;
-      state = AsyncValue.data(
-        CursorListState<T>(items: page.items, hasMore: page.hasMore),
-      );
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    } finally {
-      _loadInFlight = false;
+    if (_loadInFlight) {
+      _refreshAfterCurrentLoad = true;
+      return;
     }
+
+    do {
+      _refreshAfterCurrentLoad = false;
+      _loadInFlight = true;
+      final current = state.valueOrNull;
+      state = current == null
+          ? const AsyncValue.loading()
+          : AsyncValue.data(current.copyWith(clearError: true));
+      _nextCursor = null;
+      _hasMore = true;
+      try {
+        final page = await fetchPage(cursor: null);
+        _nextCursor = page.nextCursor;
+        _hasMore = page.hasMore;
+        state = AsyncValue.data(
+          CursorListState<T>(
+            items: _mergeOptimisticItems(page.items),
+            hasMore: page.hasMore,
+          ),
+        );
+      } catch (e, st) {
+        if (current == null) {
+          state = AsyncValue.error(e, st);
+        } else {
+          state = AsyncValue.data(current.copyWith(error: e));
+        }
+      } finally {
+        _loadInFlight = false;
+      }
+    } while (_refreshAfterCurrentLoad);
   }
 
   /// Appends the next page if more pages exist. Drops re-entrant calls.
@@ -76,9 +95,13 @@ abstract class CursorListController<T>
       // snapshot, so concurrent mutations during the request (e.g. an
       // optimistic removal via removeOptimistically) are not clobbered.
       final latest = state.valueOrNull ?? current;
+      final mergedItems = _mergeOptimisticItems([
+        ...latest.items,
+        ...page.items,
+      ]);
       state = AsyncValue.data(
         latest.copyWith(
-          items: [...latest.items, ...page.items],
+          items: mergedItems,
           isLoadingMore: false,
           hasMore: page.hasMore,
         ),
@@ -93,12 +116,28 @@ abstract class CursorListController<T>
       state = AsyncValue.data(latest.copyWith(isLoadingMore: false, error: e));
     } finally {
       _loadInFlight = false;
+      if (_refreshAfterCurrentLoad) {
+        unawaited(load());
+      }
     }
   }
 
   /// Drops the cache and reloads the first page.
   Future<void> refresh() async {
+    _refreshAfterCurrentLoad = true;
     await load();
+  }
+
+  /// Inserts or promotes [item] immediately while a background refresh
+  /// reconciles the real server id/order.
+  void upsertOptimistically(T item) {
+    _optimisticItems.removeWhere((existing) => matchesItem(existing, item));
+    _optimisticItems.insert(0, item);
+    final current = state.valueOrNull ?? CursorListState<T>();
+    final items = current.items
+        .where((existing) => !matchesItem(existing, item))
+        .toList(growable: false);
+    state = AsyncValue.data(current.copyWith(items: [item, ...items]));
   }
 
   /// Optimistically remove [item] from the rendered list (e.g. after the
@@ -107,21 +146,53 @@ abstract class CursorListController<T>
   /// invalidation; this just keeps the UI in sync with the mutation
   /// result without waiting for a network round-trip.
   void removeOptimistically(T item) {
+    removeWhereOptimistically((existing) => matchesItem(existing, item));
+  }
+
+  /// Optimistically removes every rendered and pending optimistic item matching
+  /// [test].
+  void removeWhereOptimistically(bool Function(T item) test) {
+    _optimisticItems.removeWhere(test);
     final current = state.valueOrNull;
     if (current == null) return;
     state = AsyncValue.data(
       current.copyWith(
-        items: current.items
-            .where((existing) => !_matches(existing, item))
-            .toList(),
+        items: current.items.where((existing) => !test(existing)).toList(),
       ),
     );
   }
 
   /// Subclasses can override to define equality semantics for optimistic
-  /// removal (e.g. by id).
-  bool _matches(T a, T b) {
+  /// updates (e.g. by id or peer id).
+  bool matchesItem(T a, T b) {
     return identical(a, b) || a.toString() == b.toString();
+  }
+
+  List<T> _mergeOptimisticItems(List<T> serverItems) {
+    if (_optimisticItems.isEmpty) return serverItems;
+
+    final merged = [...serverItems];
+    final pending = <T>[];
+    for (final optimistic in _optimisticItems) {
+      final serverIndex = merged.indexWhere(
+        (server) => matchesItem(server, optimistic),
+      );
+      if (serverIndex == -1) {
+        pending.add(optimistic);
+      } else {
+        final serverItem = merged.removeAt(serverIndex);
+        merged.insert(0, serverItem);
+      }
+    }
+    _optimisticItems
+      ..clear()
+      ..addAll(pending);
+
+    for (final optimistic in pending.reversed) {
+      merged.removeWhere((server) => matchesItem(server, optimistic));
+      merged.insert(0, optimistic);
+    }
+    return merged;
   }
 }
 
@@ -185,6 +256,15 @@ class IncomingLikesController extends CursorListController<IncomingLikeModel> {
         .read(chatsRepositoryProvider)
         .fetchIncomingLikesPage(cursor: cursor);
   }
+
+  void removePeerOptimistically(int peerId) {
+    removeWhereOptimistically((like) => like.peer.id == peerId);
+  }
+
+  @override
+  bool matchesItem(IncomingLikeModel a, IncomingLikeModel b) {
+    return a.peer.id == b.peer.id;
+  }
 }
 
 class OutgoingLikesController extends CursorListController<IncomingLikeModel> {
@@ -194,6 +274,15 @@ class OutgoingLikesController extends CursorListController<IncomingLikeModel> {
     return ref
         .read(chatsRepositoryProvider)
         .fetchOutgoingLikesPage(cursor: cursor);
+  }
+
+  void upsertOutgoingLike(IncomingLikeModel like) {
+    upsertOptimistically(like);
+  }
+
+  @override
+  bool matchesItem(IncomingLikeModel a, IncomingLikeModel b) {
+    return a.peer.id == b.peer.id;
   }
 }
 

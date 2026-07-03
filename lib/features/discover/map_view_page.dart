@@ -236,12 +236,15 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                           ),
                           child: Row(
                             children: [
-                              Flexible(
-                                child: MapLocationChip(
-                                  locationName: selectedDisplayText.isNotEmpty
-                                      ? selectedDisplayText
-                                      : null,
-                                  onTap: () => _showLocationPicker(context),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: MapLocationChip(
+                                    locationName: selectedDisplayText.isNotEmpty
+                                        ? selectedDisplayText
+                                        : null,
+                                    onTap: () => _showLocationPicker(context),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.sm),

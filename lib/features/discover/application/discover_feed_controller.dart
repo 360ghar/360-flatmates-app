@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bootstrap/bootstrap_controller.dart';
+import '../../chats/application/cursor_list_controller.dart';
 import '../../chats/chats_repository.dart';
 import '../discover_repository.dart';
 import 'move_in_filter.dart';
@@ -171,6 +172,10 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       // Invalidate on both like and unlike so the conversation list stays
       // in sync (unliking may remove a pending conversation/like entry).
       ref.invalidate(conversationsProvider);
+      // The ConversationsPage Chats tab watches the cursor controller, not the
+      // legacy FutureProvider above — refresh it too or the tab stays stale
+      // until a manual pull-to-refresh.
+      ref.invalidate(conversationsListControllerProvider);
       return conversationId;
     } catch (e) {
       debugPrint('DiscoverFeedController.toggleLike failed: $e');

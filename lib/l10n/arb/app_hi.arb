@@ -1354,6 +1354,7 @@
   "locationPickerSearchHint": "क्षेत्र, लोकैलिटी, शहर खोजें...",
   "matchingCitiesLabel": "मेल खाते शहर",
   "noCitiesFound": "कोई शहर नहीं मिला",
+  "moreCitiesLabel": "अन्य शहर",
   "searchRadiusLabel": "खोज त्रिज्या",
   "distanceKmLabel": "{distance} किमी",
   "@distanceKmLabel": {

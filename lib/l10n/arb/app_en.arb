@@ -1361,6 +1361,7 @@
   "locationPickerSearchHint": "Search area, locality, city...",
   "matchingCitiesLabel": "MATCHING CITIES",
   "noCitiesFound": "No cities found",
+  "moreCitiesLabel": "MORE CITIES",
   "searchRadiusLabel": "Search Radius",
   "distanceKmLabel": "{distance} km",
   "@distanceKmLabel": {

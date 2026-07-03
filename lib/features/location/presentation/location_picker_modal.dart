@@ -18,6 +18,7 @@ import '../../bootstrap/bootstrap_controller.dart';
 import '../../bootstrap/catalog_helpers.dart';
 import '../application/location_controller.dart';
 import '../application/location_search_provider.dart';
+import 'location_picker_rows.dart';
 
 class LocationPickerModal extends ConsumerStatefulWidget {
   final String? currentLocationName;
@@ -253,6 +254,52 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
     }
   }
 
+  void _onCityTap(CatalogOption city) {
+    if (city.comingSoon) return;
+    final lat = (city.meta['latitude'] as num?)?.toDouble() ?? 0.0;
+    final lng = (city.meta['longitude'] as num?)?.toDouble() ?? 0.0;
+    widget.onLocationSelected(
+      LocationData(name: city.label, latitude: lat, longitude: lng),
+    );
+    Navigator.of(context).pop();
+  }
+
+  bool _isCurrentCity(CatalogOption city) {
+    final current = widget.currentLocationName;
+    if (current == null || current.isEmpty) return false;
+    return current.toLowerCase() == city.label.toLowerCase();
+  }
+
+  Widget _citySection(String label, List<CatalogOption> cities) {
+    if (cities.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            letterSpacing: 1.1,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        ...cities.map(
+          (city) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: LocationCityRow(
+              key: Key('popular_city_${city.id}'),
+              city: city,
+              selected: _isCurrentCity(city),
+              onTap: _isResolvingPlace ? null : () => _onCityTap(city),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -263,6 +310,17 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
 
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
     final isLoading = searchState.isLoading || _isResolvingPlace;
+    final typedLocation = _typedLocation;
+    final catalogCities = _getCatalogCities();
+    final popularCities = catalogCities.where((c) => c.isPopular).toList();
+    final moreCities = catalogCities
+        .where((c) => !c.isPopular && !c.comingSoon)
+        .toList();
+    final matchingCities = typedLocation.isEmpty
+        ? const <CatalogOption>[]
+        : catalogCities
+              .where((c) => cityMatchesQuery(c, typedLocation))
+              .toList();
 
     return ClipRRect(
       borderRadius: AppRadius.sheetTopBorder,
@@ -352,6 +410,21 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (typedLocation.isEmpty) ...[
+                          _citySection(
+                            locale.popularCitiesLabel,
+                            popularCities,
+                          ),
+                          if (popularCities.isNotEmpty && moreCities.isNotEmpty)
+                            const SizedBox(height: AppSpacing.md),
+                          _citySection(locale.moreCitiesLabel, moreCities),
+                        ] else if (matchingCities.isNotEmpty) ...[
+                          _citySection(
+                            locale.matchingCitiesLabel,
+                            matchingCities,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
                         if (hasPlacesResults) ...[
                           Text(
                             locale.suggestionsLabel,

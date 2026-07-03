@@ -12,6 +12,7 @@ class CatalogOption {
   final Map<String, dynamic> meta;
 
   bool get comingSoon => meta['coming_soon'] == true;
+  bool get isPopular => meta['popular'] == true;
 }
 
 extension FlatmatesCatalogs on BootstrapData {

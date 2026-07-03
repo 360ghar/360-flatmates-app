@@ -2942,6 +2942,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noCitiesFound => 'No cities found';
 
   @override
+  String get moreCitiesLabel => 'MORE CITIES';
+
+  @override
   String get searchRadiusLabel => 'Search Radius';
 
   @override

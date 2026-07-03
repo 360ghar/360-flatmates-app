@@ -234,12 +234,14 @@ class SwipeRepository {
         SwipeProfile.fromJson,
         label: 'swipeProfiles',
       );
-      final moveInFiltered = page.items
-          .where(
-            (profile) =>
-                _profileMatchesMoveIn(profile, filters?.moveInTimeline),
-          )
-          .toList();
+      final moveInFiltered = _dedupeValidProfiles(
+        page.items
+            .where(
+              (profile) =>
+                  _profileMatchesMoveIn(profile, filters?.moveInTimeline),
+            )
+            .toList(),
+      );
       log(
         '[SwipeRepo] Response status: ${response.statusCode}, '
         'rows: ${moveInFiltered.length}, hasMore: ${page.hasMore}',
@@ -286,6 +288,16 @@ class SwipeRepository {
     }
 
     return normalizeMoveInFilter(profile.moveInTimeline) == normalized;
+  }
+
+  List<SwipeProfile> _dedupeValidProfiles(List<SwipeProfile> profiles) {
+    final seenIds = <int>{};
+    return profiles
+        .where((profile) {
+          if (profile.id <= 0) return false;
+          return seenIds.add(profile.id);
+        })
+        .toList(growable: false);
   }
 
   /// Extract non-negotiables from user preferences map stored in bootstrap.

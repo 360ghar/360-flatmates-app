@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bootstrap/bootstrap_controller.dart';
+import '../../chats/application/cursor_list_controller.dart';
 import '../../chats/chats_repository.dart';
 import '../../location/application/location_controller.dart';
 import '../discover_repository.dart';
@@ -141,6 +142,10 @@ class MapListingsController extends Notifier<MapListingsState> {
           .read(discoverRepositoryProvider)
           .setLiked(propertyId, liked);
       ref.invalidate(conversationsProvider);
+      // The ConversationsPage Chats tab watches the cursor controller, not the
+      // legacy FutureProvider above — refresh it too or the tab stays stale
+      // until a manual pull-to-refresh.
+      ref.invalidate(conversationsListControllerProvider);
       return conversationId;
     } catch (e) {
       debugPrint('MapListingsController.setLiked failed: $e');
