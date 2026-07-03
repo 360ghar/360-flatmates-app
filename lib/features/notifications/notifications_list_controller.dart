@@ -13,6 +13,9 @@ class NotificationsListController
         .read(notificationsRepositoryProvider)
         .fetchNotificationsPage(cursor: cursor);
   }
+
+  @override
+  bool matchesItem(NotificationModel a, NotificationModel b) => a.id == b.id;
 }
 
 final notificationsListControllerProvider =

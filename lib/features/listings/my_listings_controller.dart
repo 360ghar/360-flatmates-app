@@ -13,6 +13,9 @@ class MyListingsController extends CursorListController<PropertyListing> {
         .read(listingsRepositoryProvider)
         .fetchMyListingsPage(cursor: cursor);
   }
+
+  @override
+  bool matchesItem(PropertyListing a, PropertyListing b) => a.id == b.id;
 }
 
 final myListingsListControllerProvider =

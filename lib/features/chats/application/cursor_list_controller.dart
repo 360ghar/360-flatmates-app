@@ -25,6 +25,9 @@ abstract class CursorListController<T>
   bool _hasMore = true;
   bool _loadInFlight = false;
   bool _refreshAfterCurrentLoad = false;
+  // Resolved once the coalesced reload triggered by [refresh] actually lands,
+  // so callers awaiting [refresh] don't resolve before fresh data is in state.
+  Completer<void>? _refreshCompleter;
   final List<T> _optimisticItems = <T>[];
 
   /// Override to call the concrete repository's cursor-paginated endpoint.
@@ -81,6 +84,14 @@ abstract class CursorListController<T>
         _loadInFlight = false;
       }
     } while (_refreshAfterCurrentLoad);
+    // A refresh() may be awaiting the coalesced reload chain — release it now
+    // that a fresh first page has landed. Reached both when load() re-looped
+    // itself and when loadMore()'s finally fired the deferred load().
+    final refreshWaiter = _refreshCompleter;
+    if (refreshWaiter != null) {
+      _refreshCompleter = null;
+      if (!refreshWaiter.isCompleted) refreshWaiter.complete();
+    }
   }
 
   /// Appends the next page if more pages exist. Drops re-entrant calls.
@@ -100,19 +111,24 @@ abstract class CursorListController<T>
       // snapshot, so concurrent mutations during the request (e.g. an
       // optimistic removal via removeOptimistically) are not clobbered.
       final latest = state.valueOrNull ?? current;
-      // Don't feed the already-rendered list (which still contains pending
-      // optimistic entries) back through _mergeOptimisticItems — that would
-      // match them against _optimisticItems and falsely treat them as
-      // server-confirmed, evicting them from the pending set. Append only
-      // genuinely-new server items, and drop optimistics the new page
-      // actually confirms.
+      // Replace existing items (including optimistic placeholders) with their
+      // canonical server version when the new page confirms them, so stale
+      // fields or temporary ids don't linger after backend confirmation.
+      final substituted = latest.items.map((existing) {
+        for (final pageItem in page.items) {
+          if (matchesItem(existing, pageItem)) return pageItem;
+        }
+        return existing;
+      }).toList();
+      // Append only genuinely-new server items, dropping optimistics the new
+      // page actually confirms.
       final newItems = page.items
           .where((p) => !latest.items.any((e) => matchesItem(e, p)))
           .toList();
       _optimisticItems.removeWhere(
         (opt) => page.items.any((pg) => matchesItem(pg, opt)),
       );
-      final mergedItems = [...latest.items, ...newItems];
+      final mergedItems = [...substituted, ...newItems];
       state = AsyncValue.data(
         latest.copyWith(
           items: mergedItems,
@@ -137,8 +153,18 @@ abstract class CursorListController<T>
   }
 
   /// Drops the cache and reloads the first page.
+  ///
+  /// If a [load]/[loadMore] is already in flight, the reload is coalesced and
+  /// run after it; refresh() awaits that deferred reload rather than resolving
+  /// immediately, so pull-to-refresh handlers keep their spinner until fresh
+  /// data has actually landed.
   Future<void> refresh() async {
     _refreshAfterCurrentLoad = true;
+    if (_loadInFlight) {
+      final waiter = _refreshCompleter ??= Completer<void>();
+      await waiter.future;
+      return;
+    }
     await load();
   }
 
@@ -176,11 +202,14 @@ abstract class CursorListController<T>
     );
   }
 
-  /// Subclasses can override to define equality semantics for optimistic
-  /// updates (e.g. by id or peer id).
-  bool matchesItem(T a, T b) {
-    return identical(a, b) || a.toString() == b.toString();
-  }
+  /// Equality semantics for optimistic updates and pagination dedup.
+  /// Subclasses must define this by a stable identifier (e.g. `a.id == b.id`).
+  ///
+  /// The default object `toString()` fallback is intentionally absent: a plain
+  /// model class with no `==`/`toString` override would compare equal for *any*
+  /// two instances, silently making `loadMore()` drop every page item as a
+  /// duplicate. Requiring an explicit override keeps that footgun closed.
+  bool matchesItem(T a, T b);
 
   List<T> _mergeOptimisticItems(List<T> serverItems) {
     if (_optimisticItems.isEmpty) return serverItems;
@@ -259,6 +288,11 @@ class ConversationsListController
     return ref
         .read(chatsRepositoryProvider)
         .fetchConversationsPage(cursor: cursor);
+  }
+
+  @override
+  bool matchesItem(ConversationSummaryModel a, ConversationSummaryModel b) {
+    return a.id == b.id;
   }
 }
 

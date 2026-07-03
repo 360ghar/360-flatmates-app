@@ -153,6 +153,15 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
     try {
       final resolvedLocation = await _resolveCityLocation(city, selectedCity);
       if (!mounted) return;
+      // A typed (non-catalog) city that fails to geocode must not be persisted
+      // or applied as a filter — mirror LocationPickerModal's
+      // _selectTypedLocation, which blocks and surfaces locationDetailsFailed.
+      if (resolvedLocation == null && selectedCity == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(locale.locationDetailsFailed)));
+        return;
+      }
       await ref
           .read(profileRepositoryProvider)
           .updateProfile(payload: {'city': city});

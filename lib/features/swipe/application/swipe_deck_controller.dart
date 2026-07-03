@@ -208,7 +208,10 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
   /// remains available for widget-key reconciliation and for visual undo.
   void advanceAfterSwipe(SwipeProfile profile) {
     final didAdd = _swipedUserIds.add(profile.id);
-    if (!didAdd && state.lastSwipedProfile?.id == profile.id) return;
+    // Any already-swiped profile is a replayed/duplicate gesture — ignore it
+    // entirely so the deck cursor isn't advanced twice. Undo paths remove the
+    // id first, so a legitimate re-swipe after undo still reports didAdd=true.
+    if (!didAdd) return;
     state = state.copyWith(
       currentIndex: state.currentIndex + 1,
       lastSwipedProfile: profile,

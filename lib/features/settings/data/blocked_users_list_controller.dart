@@ -13,6 +13,10 @@ class BlockedUsersListController extends CursorListController<BlockedUser> {
         .read(blockedUsersRepositoryProvider)
         .getBlockedUsersPage(cursor: cursor);
   }
+
+  @override
+  bool matchesItem(BlockedUser a, BlockedUser b) =>
+      a.blockedUserId == b.blockedUserId;
 }
 
 final blockedUsersListControllerProvider =

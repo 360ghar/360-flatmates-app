@@ -10,6 +10,9 @@ class VisitsListController extends CursorListController<VisitItem> {
   fetchPage({String? cursor}) async {
     return ref.read(visitsRepositoryProvider).fetchVisitsPage(cursor: cursor);
   }
+
+  @override
+  bool matchesItem(VisitItem a, VisitItem b) => a.id == b.id;
 }
 
 final visitsListControllerProvider =

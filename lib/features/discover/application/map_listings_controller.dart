@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -175,7 +177,7 @@ class MapListingsController extends Notifier<MapListingsState> {
       ),
     );
     _filterVersion++;
-    load();
+    unawaited(load());
   }
 
   void updateTextLocationFilter({required String location}) {
@@ -193,7 +195,7 @@ class MapListingsController extends Notifier<MapListingsState> {
       ),
     );
     _filterVersion++;
-    load();
+    unawaited(load());
   }
 
   void clearLocationFilter() {
@@ -209,7 +211,7 @@ class MapListingsController extends Notifier<MapListingsState> {
       ),
     );
     _filterVersion++;
-    load();
+    unawaited(load());
   }
 
   bool _hasTextLocation(DiscoverFilters filters) {

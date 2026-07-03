@@ -176,8 +176,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final completedOverrideUserId = ref
           .read(appPreferencesProvider)
           .getString(PrefKeys.flatmatesOnboardingCompletedUserId);
+      // Trust only the persistent, user-scoped completion record for the
+      // redirect decision. The in-memory flatmatesOnboardingCompletedOverrideProvider
+      // is intentionally NOT consulted here: it is reset only on an explicit
+      // logout, so a session swap that skips a logged-out emission could
+      // otherwise let its lingering `true` bypass onboarding for a different
+      // user. It still drives router refresh via the ref.listen below.
       final hasCompletedOnboardingLocally =
-          ref.read(flatmatesOnboardingCompletedOverrideProvider) ||
           completedOverrideUserId == profile.id.toString();
       final isAppReady = authenticatedAppReady(
         authStage: auth.authStage,

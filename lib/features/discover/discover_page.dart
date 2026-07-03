@@ -191,13 +191,18 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
         final feedController = ref.read(
           discoverFeedControllerProvider.notifier,
         );
-        if (location.latitude.isFinite && location.longitude.isFinite) {
+        if (location.latitude.isFinite &&
+            location.longitude.isFinite &&
+            !(location.latitude == 0 && location.longitude == 0)) {
           feedController.updateLocationFilter(
             latitude: location.latitude,
             longitude: location.longitude,
             radiusKm: selectedRadiusKm,
           );
         } else {
+          // Non-finite or sentinel (0,0) coords mean the picked place lacks
+          // usable geometry (e.g. a catalog city with no lat/lng meta) — fall
+          // back to a text filter rather than writing an invalid geo filter.
           feedController.updateTextLocationFilter(location: location.name);
         }
         ref.invalidate(discoverListingsProvider);
