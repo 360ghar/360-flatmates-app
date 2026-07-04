@@ -73,26 +73,61 @@ class PasswordResetController extends Notifier<PasswordResetState> {
     );
   }
 
+  /// Normalizes phone identifiers to E.164 (+91…) before hitting the backend.
+  String _normalizeIdentifier(String raw) {
+    var identifier = raw.trim();
+    if (identifier.isEmpty || identifier.contains('@')) return identifier;
+
+    var digits = identifier.replaceAll(RegExp(r'\D'), '');
+    if (digits.length == 11 && digits.startsWith('0')) {
+      digits = digits.substring(1);
+    } else if (digits.startsWith('0')) {
+      digits = digits.replaceFirst(RegExp(r'^0+'), '');
+    }
+    if (digits.length == 10) {
+      return '+91$digits';
+    }
+    if (digits.length == 12 && digits.startsWith('91')) {
+      return '+$digits';
+    }
+    return identifier;
+  }
+
   /// Sends a reset OTP. Auto-detects the channel from the identifier (an `@`
   /// means email; otherwise phone) — decision 1: OTP for both channels.
   Future<void> sendOtp(String identifier) async {
-    final channel = identifier.contains('@')
+    final normalized = _normalizeIdentifier(identifier);
+    final channel = normalized.contains('@')
         ? AuthChannel.email
         : AuthChannel.phone;
     state = PasswordResetState(
       step: PasswordResetStep.sendingOtp,
-      identifier: identifier,
+      identifier: normalized,
       channel: channel,
     );
     try {
+      final status = await _repository.checkIdentifierStatus(normalized);
+      if (!status.exists) {
+        state = PasswordResetState(
+          step: PasswordResetStep.error,
+          identifier: normalized,
+          channel: channel,
+          failure: const NotFoundFailure(
+            serverMessage:
+                'No account found with this email or phone. Check the address or sign up.',
+          ),
+        );
+        return;
+      }
+
       if (channel == AuthChannel.email) {
-        await _repository.sendPasswordResetEmailOtp(identifier);
+        await _repository.sendPasswordResetEmailOtp(normalized);
       } else {
-        await _repository.sendPasswordResetOtp(identifier);
+        await _repository.sendPasswordResetOtp(normalized);
       }
       state = PasswordResetState(
         step: PasswordResetStep.otpSent,
-        identifier: identifier,
+        identifier: normalized,
         channel: channel,
       );
     } catch (e, st) {
@@ -100,7 +135,7 @@ class PasswordResetController extends Notifier<PasswordResetState> {
       debugPrint('PasswordResetController.sendOtp failed: ${failure.label}');
       state = PasswordResetState(
         step: PasswordResetStep.error,
-        identifier: identifier,
+        identifier: normalized,
         channel: channel,
         failure: failure,
       );

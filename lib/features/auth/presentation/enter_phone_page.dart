@@ -120,9 +120,28 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     try {
       final notifier = ref.read(authControllerProvider.notifier);
       final status = await notifier.checkIdentifierStatus(identifier);
-      if (status == null || !mounted) return;
+      if (!mounted) return;
+      if (status == null) {
+        final err = ref.read(authControllerProvider).errorMessage;
+        if (err != null && err.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(resolveAuthError(err, AppLocalizations.of(context)!))),
+          );
+        }
+        return;
+      }
 
       ref.read(pendingPhoneProvider.notifier).state = identifier;
+
+      if (status.exists && !status.verified && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Your account isn't verified yet. We've sent a code — enter it below or resend.",
+            ),
+          ),
+        );
+      }
 
       final encodedIdentifier = Uri.encodeComponent(identifier);
       if (status.channel == AuthChannel.email) {

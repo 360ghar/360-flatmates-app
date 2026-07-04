@@ -139,16 +139,34 @@ final class AuthRepository {
   bool get isNativeGoogleAvailable =>
       _config.googleWebClientId.trim().isNotEmpty;
 
-  /// Starts Google sign-in with the native device account picker and exchanges
-  /// the returned ID token with Supabase. Browser OAuth is intentionally not
-  /// used here.
+  /// Google sign-in: native ID-token when configured, OAuth redirect fallback
+  /// when native is unavailable or fails (missing SHA, wrong client ID, etc.).
   Future<void> signInWithGoogle() async {
     if (!isNativeGoogleAvailable) {
-      throw StateError(
-        'GOOGLE_WEB_CLIENT_ID is not configured; Google sign-in is unavailable.',
-      );
+      await _signInWithGoogleRedirect();
+      return;
     }
-    await _signInWithGoogleNative();
+    try {
+      await _signInWithGoogleNative();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        rethrow;
+      }
+      await _signInWithGoogleRedirect();
+    } catch (_) {
+      await _signInWithGoogleRedirect();
+    }
+  }
+
+  Future<void> _signInWithGoogleRedirect() async {
+    final launched = await _supabase.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: emailRedirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
+    );
+    if (!launched) {
+      throw StateError('Could not open Google sign-in.');
+    }
   }
 
   /// Native Google Sign-In via the device account picker, exchanging the
