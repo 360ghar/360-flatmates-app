@@ -1693,5 +1693,7 @@
   "noMoreListingsLabel": "You've seen all the matches.",
   "noMoreVisitsLabel": "No more visits to show.",
   "noMoreNotificationsLabel": "You're all caught up.",
-  "noMoreBlockedUsersLabel": "No more blocked users."
+  "noMoreBlockedUsersLabel": "No more blocked users.",
+
+  "unverifiedAccountHint": "Your account isn't verified yet. Complete verification below or resend a code."
 }

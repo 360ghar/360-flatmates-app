@@ -125,7 +125,11 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
         final err = ref.read(authControllerProvider).errorMessage;
         if (err != null && err.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(resolveAuthError(err, AppLocalizations.of(context)!))),
+            SnackBar(
+              content: Text(
+                resolveAuthError(err, AppLocalizations.of(context)!),
+              ),
+            ),
           );
         }
         return;
@@ -135,10 +139,8 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
 
       if (status.exists && !status.verified && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Your account isn't verified yet. We've sent a code — enter it below or resend.",
-            ),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).unverifiedAccountHint),
           ),
         );
       }

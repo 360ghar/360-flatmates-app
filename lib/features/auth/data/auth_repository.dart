@@ -139,34 +139,19 @@ final class AuthRepository {
   bool get isNativeGoogleAvailable =>
       _config.googleWebClientId.trim().isNotEmpty;
 
-  /// Google sign-in: native ID-token when configured, OAuth redirect fallback
-  /// when native is unavailable or fails (missing SHA, wrong client ID, etc.).
+  /// Google sign-in: native ID-token flow only. A browser OAuth redirect is
+  /// intentionally NOT used — it returns immediately after launching the
+  /// browser, so the standard post-auth postlude (persist access token +
+  /// `GET /users/me`) cannot run, leaving app-level auth/bootstrap state out
+  /// of sync with Supabase. When native sign-in is unavailable or fails, the
+  /// error surfaces to the caller instead of silently degrading.
   Future<void> signInWithGoogle() async {
     if (!isNativeGoogleAvailable) {
-      await _signInWithGoogleRedirect();
-      return;
+      throw StateError(
+        'GOOGLE_WEB_CLIENT_ID is not configured; Google sign-in is unavailable.',
+      );
     }
-    try {
-      await _signInWithGoogleNative();
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        rethrow;
-      }
-      await _signInWithGoogleRedirect();
-    } catch (_) {
-      await _signInWithGoogleRedirect();
-    }
-  }
-
-  Future<void> _signInWithGoogleRedirect() async {
-    final launched = await _supabase.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: emailRedirectUrl,
-      authScreenLaunchMode: LaunchMode.externalApplication,
-    );
-    if (!launched) {
-      throw StateError('Could not open Google sign-in.');
-    }
+    await _signInWithGoogleNative();
   }
 
   /// Native Google Sign-In via the device account picker, exchanging the

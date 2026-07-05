@@ -3556,4 +3556,8 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get noMoreBlockedUsersLabel =>
       'और कोई ब्लॉक किए गए उपयोगकर्ता नहीं हैं।';
+
+  @override
+  String get unverifiedAccountHint =>
+      'आपका खाता अभी सत्यापित नहीं हुआ है। नीचे सत्यापन पूरा करें या कोड दोबारा भेजें।';
 }

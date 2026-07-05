@@ -6613,6 +6613,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No more blocked users.'**
   String get noMoreBlockedUsersLabel;
+
+  /// No description provided for @unverifiedAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account isn\'t verified yet. Complete verification below or resend a code.'**
+  String get unverifiedAccountHint;
 }
 
 class _AppLocalizationsDelegate

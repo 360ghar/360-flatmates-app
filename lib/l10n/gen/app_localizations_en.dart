@@ -3542,4 +3542,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noMoreBlockedUsersLabel => 'No more blocked users.';
+
+  @override
+  String get unverifiedAccountHint =>
+      'Your account isn\'t verified yet. Complete verification below or resend a code.';
 }
