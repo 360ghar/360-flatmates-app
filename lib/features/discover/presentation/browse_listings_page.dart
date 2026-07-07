@@ -246,7 +246,6 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
       child: AnimatedContainer(
         duration: AppMotion.fast,
         curve: AppMotion.easeOutCubic,
-        height: 110,
         decoration: BoxDecoration(
           color: isDark
               ? AppSemanticColors.darkSurface
@@ -263,145 +262,147 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
           child: InkWell(
             onTap: () => context.push('/flat-details/${item.id}'),
             borderRadius: AppRadius.cardBorder,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(AppRadius.card),
-                  ),
-                  child: SizedBox(
-                    width: 110,
-                    height: 110,
-                    child: hasImage
-                        ? FlatmatesNetworkImage(
-                            imageUrl: item.effectiveMainImageUrl!,
-                            width: 110,
-                            height: 110,
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppSemanticColors.accent.withValues(
-                                    alpha: 0.85,
-                                  ),
-                                  AppSemanticColors.accent.withValues(
-                                    alpha: 0.45,
-                                  ),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.apartment_rounded,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                          ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(AppRadius.card),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _formatRent(item.monthlyRent.round()),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppSemanticColors.textPrimaryFor(
-                              theme.brightness,
-                            ),
-                            height: 1.2,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          item.title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (titleLocation.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 12,
-                                color: AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
+                    child: SizedBox(
+                      width: 110,
+                      child: hasImage
+                          ? FlatmatesNetworkImage(
+                              imageUrl: item.effectiveMainImageUrl!,
+                              width: 110,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppSemanticColors.accent.withValues(
+                                      alpha: 0.85,
+                                    ),
+                                    AppSemanticColors.accent.withValues(
+                                      alpha: 0.45,
+                                    ),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
                               ),
-                              const SizedBox(width: 2),
-                              Expanded(
-                                child: Text(
-                                  titleLocation,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 11,
-                                    color: AppSemanticColors.textSecondaryFor(
-                                      theme.brightness,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.apartment_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _formatRent(item.monthlyRent.round()),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: AppSemanticColors.textPrimaryFor(
+                                theme.brightness,
+                              ),
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            item.title,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              height: 1.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (titleLocation.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_outlined,
+                                  size: 12,
+                                  color: AppSemanticColors.textSecondaryFor(
+                                    theme.brightness,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Expanded(
+                                  child: Text(
+                                    titleLocation,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontSize: 11,
+                                      color: AppSemanticColors.textSecondaryFor(
+                                        theme.brightness,
+                                      ),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (distanceLabel != null) ...[
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Text(
+                                    distanceLabel,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppSemanticColors.accent,
                                     ),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (distanceLabel != null) ...[
-                                const SizedBox(width: AppSpacing.xs),
-                                Text(
-                                  distanceLabel,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppSemanticColors.accent,
-                                  ),
-                                ),
+                                ],
                               ],
-                            ],
-                          ),
+                            ),
+                          ],
+                          if (metaItems.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            FlatmatesListingMetaChips(items: metaItems),
+                          ],
                         ],
-                        if (metaItems.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.xs),
-                          FlatmatesListingMetaChips(items: metaItems),
-                        ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    right: AppSpacing.sm,
-                    top: AppSpacing.sm,
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        right: AppSpacing.sm,
+                        top: AppSpacing.sm,
+                      ),
+                      child: FlatmatesLikeButton(
+                        key: Key('browse_like_${item.id}'),
+                        liked: item.liked ?? false,
+                        onTap: () => unawaited(_handleLike()),
+                        size: 44,
+                        radius: 12,
+                        backgroundColor: AppSemanticColors.accentSoft,
+                        unlikedColor: AppSemanticColors.accent,
+                      ),
+                    ),
                   ),
-                  child: FlatmatesLikeButton(
-                    key: Key('browse_like_${item.id}'),
-                    liked: item.liked ?? false,
-                    onTap: () => unawaited(_handleLike()),
-                    size: 34,
-                    iconSize: 16,
-                    radius: 8,
-                    backgroundColor: AppSemanticColors.accentSoft,
-                    unlikedColor: AppSemanticColors.accent,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
