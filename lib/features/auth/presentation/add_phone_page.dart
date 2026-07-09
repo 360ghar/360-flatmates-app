@@ -16,7 +16,6 @@ import '../../shared/presentation/components.dart';
 import 'widgets/resend_countdown.dart';
 
 final _codeSentProvider = StateProvider<bool>((ref) => false);
-final _listeningProvider = StateProvider<bool>((ref) => false);
 final _addPhoneOtpTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Skippable post-Google step that lets a phone-less account add and verify a
@@ -44,6 +43,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   /// filling boxes — the sms_autofill package can fire with a stale code
   /// (BehaviorSubject replay) and should not auto-verify.
   bool _isSmsFilling = false;
+  bool _smsListening = false;
 
   String get _phone => _phoneController.text.trim();
 
@@ -65,8 +65,9 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   @override
   void dispose() {
     cancelResendCountdown();
-    if (ref.read(_listeningProvider)) {
+    if (_smsListening) {
       SmsAutoFill().unregisterListener();
+      _smsListening = false;
     }
     _phoneController.removeListener(_onPhoneChanged);
     _phoneController.dispose();
@@ -129,7 +130,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
       startResendCountdown();
       try {
         await SmsAutoFill().listenForCode();
-        if (mounted) ref.read(_listeningProvider.notifier).state = true;
+        if (mounted) _smsListening = true;
       } catch (_) {
         debugPrint('AddPhonePage._sendCode: SMS auto-fill unavailable');
       }

@@ -333,7 +333,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                           index: index,
                           child: DiscoverListingCard(
                             cardKey: index == 0
-                                ? const Key('discover_listing_card_0')
+                                ? const Key('discover_feed_card_0')
                                 : null,
                             item: item,
                             badgeLabel: badgeLabel,

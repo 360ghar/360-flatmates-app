@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -214,6 +215,11 @@ class NotificationService {
   Future<void> clearToken() async {
     if (!_messagingEnabled) return;
     try {
+      if (Platform.isIOS) {
+        final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        if (apnsToken == null || apnsToken.isEmpty) return;
+      }
+
       final token = await FirebaseMessaging.instance.getToken();
       if (token == null || token.isEmpty) return;
       await _ref
@@ -222,6 +228,11 @@ class NotificationService {
             FlatmatesEndpoints.notificationUnregister,
             queryParameters: {'token': token},
           );
+    } on FirebaseException catch (e) {
+      if (e.plugin == 'firebase_messaging' && e.code == 'apns-token-not-set') {
+        return;
+      }
+      debugPrint('NotificationService.clearToken failed: $e');
     } catch (e) {
       // Best-effort
       debugPrint('NotificationService.clearToken failed: $e');

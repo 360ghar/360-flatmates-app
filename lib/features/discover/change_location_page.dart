@@ -167,6 +167,9 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
           .updateProfile(payload: {'city': city});
       if (!mounted) return;
       _refreshDiscoveryLocation(city: city, location: resolvedLocation);
+      // Always refresh after profile PUT. BootstrapController.refresh()
+      // awaits any in-flight fetch before starting a new one, so this
+      // still picks up the updated city even when a load is active.
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;
 

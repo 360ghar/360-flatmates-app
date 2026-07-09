@@ -11,12 +11,12 @@ tags:
 
 - extendedWaitUntil:
     visible:
-      id: "discover_listing_card_0"
+      id: "discover_feed_card_0"
     timeout: 10000
 
 # ── Tap the first listing card ─────────────────────────────
 - tapOn:
-    id: "discover_listing_card_0"
+    id: "discover_feed_card_0"
 
 # ── Verify flat details page ───────────────────────────────
 - extendedWaitUntil:

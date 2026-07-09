@@ -81,18 +81,14 @@ void main() {
               nextCursor: 'c2',
               hasMore: true,
             ),
-            _pageWith(
-              [_like(id: 3, peerId: 40, peerName: 'Gamma')],
-              hasMore: false,
-            ),
-            _pageWith(
-              [
-                _like(id: 1, peerId: 10, peerName: 'Alpha'),
-                _like(id: 2, peerId: 20, peerName: 'Beta'),
-                _like(id: 3, peerId: 40, peerName: 'Gamma'),
-              ],
-              hasMore: false,
-            ),
+            _pageWith([
+              _like(id: 3, peerId: 40, peerName: 'Gamma'),
+            ], hasMore: false),
+            _pageWith([
+              _like(id: 1, peerId: 10, peerName: 'Alpha'),
+              _like(id: 2, peerId: 20, peerName: 'Beta'),
+              _like(id: 3, peerId: 40, peerName: 'Gamma'),
+            ], hasMore: false),
           ],
         );
         final container = _containerWith(backend);

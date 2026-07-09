@@ -84,7 +84,7 @@ class DiscoverListingCard extends StatelessWidget {
     final isLiked = item.liked ?? false;
 
     return FlatmatesCard(
-      key: cardKey ?? Key('discover_listing_card_${item.id}'),
+      key: cardKey ?? Key('discover_feed_card_${item.id}'),
       padding: EdgeInsets.zero,
       onTap: onTap,
       elevation: isSelected ? 8 : null,

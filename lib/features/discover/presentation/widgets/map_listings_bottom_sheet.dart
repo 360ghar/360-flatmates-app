@@ -145,7 +145,9 @@ class MapListingsBottomSheet extends ConsumerWidget {
 }
 
 /// Tracks whether the list is scrolling due to a programmatic tap on the map.
-final mapProgrammaticScrollProvider = StateProvider<bool>((ref) => false);
+final mapProgrammaticScrollProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
 
 class _HorizontalCardList extends ConsumerWidget {
   const _HorizontalCardList({
@@ -205,6 +207,7 @@ class _HorizontalCardList extends ConsumerWidget {
               child: SizedBox(
                 width: 130,
                 child: DiscoverListingCard(
+                  cardKey: Key('map_sheet_card_${item.id}'),
                   item: item,
                   isSelected: item.id == selectedProperty?.id,
                   compact: true,

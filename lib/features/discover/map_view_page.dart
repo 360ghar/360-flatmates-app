@@ -47,6 +47,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   @override
   void initState() {
     super.initState();
+    ref.read(mapProgrammaticScrollProvider.notifier).state = false;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ensureLocationData();
     });
@@ -131,7 +132,6 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   @override
   void dispose() {
-    ref.read(mapProgrammaticScrollProvider.notifier).state = false;
     _cardScrollController.dispose();
     _locationRadiusDebouncer.dispose();
     super.dispose();
@@ -143,6 +143,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep the autoDispose programmatic-scroll guard alive while map is mounted.
+    ref.watch(mapProgrammaticScrollProvider);
+
     final mapState = ref.watch(mapListingsProvider);
     final selectedLocation = ref.watch(
       locationControllerProvider.select((s) => s.selectedLocation),

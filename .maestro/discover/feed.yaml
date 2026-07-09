@@ -16,7 +16,7 @@ tags:
     timeout: 5000
 - extendedWaitUntil:
     visible:
-      id: "discover_listing_card_0"
+      id: "discover_feed_card_0"
     timeout: 10000
 
 # ── Scroll the feed ────────────────────────────────────────
@@ -30,11 +30,11 @@ tags:
 # ── Open a listing card ────────────────────────────────────
 - scrollUntilVisible:
     element:
-      id: "discover_listing_card_0"
+      id: "discover_feed_card_0"
     direction: UP
 
 - tapOn:
-    id: "discover_listing_card_0"
+    id: "discover_feed_card_0"
 
 - extendedWaitUntil:
     visible:
