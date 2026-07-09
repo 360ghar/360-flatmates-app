@@ -246,7 +246,9 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
       child: AnimatedContainer(
         duration: AppMotion.fast,
         curve: AppMotion.easeOutCubic,
-        height: 110,
+        // Content may grow past 110 (meta wrap / text scale); floor matches
+        // the prior design height and the browse skeleton.
+        constraints: const BoxConstraints(minHeight: 110),
         decoration: BoxDecoration(
           color: isDark
               ? AppSemanticColors.darkSurface
@@ -266,43 +268,60 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(AppRadius.card),
-                  ),
-                  child: SizedBox(
-                    width: 110,
-                    height: 110,
-                    child: hasImage
-                        ? FlatmatesNetworkImage(
-                            imageUrl: item.effectiveMainImageUrl!,
-                            width: 110,
-                            height: 110,
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppSemanticColors.accent.withValues(
-                                    alpha: 0.85,
+                SizedBox(
+                  width: 110,
+                  height: 110,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(AppRadius.card),
+                        ),
+                        child: hasImage
+                            ? FlatmatesNetworkImage(
+                                imageUrl: item.effectiveMainImageUrl!,
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppSemanticColors.accent.withValues(
+                                        alpha: 0.85,
+                                      ),
+                                      AppSemanticColors.accent.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  AppSemanticColors.accent.withValues(
-                                    alpha: 0.45,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.apartment_rounded,
+                                    color: Colors.white,
+                                    size: 28,
                                   ),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                                ),
                               ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.apartment_rounded,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                          ),
+                      ),
+                      Positioned(
+                        top: AppSpacing.sm,
+                        right: AppSpacing.sm,
+                        child: FlatmatesLikeButton(
+                          key: Key('browse_like_${item.id}'),
+                          liked: item.liked ?? false,
+                          onTap: () => unawaited(_handleLike()),
+                          size: 40,
+                          backgroundColor: AppSemanticColors.accentSoft,
+                          unlikedColor: AppSemanticColors.accent,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -312,6 +331,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                       vertical: AppSpacing.sm,
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -383,22 +403,6 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
                         ],
                       ],
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    right: AppSpacing.sm,
-                    top: AppSpacing.sm,
-                  ),
-                  child: FlatmatesLikeButton(
-                    key: Key('browse_like_${item.id}'),
-                    liked: item.liked ?? false,
-                    onTap: () => unawaited(_handleLike()),
-                    size: 34,
-                    iconSize: 16,
-                    radius: 8,
-                    backgroundColor: AppSemanticColors.accentSoft,
-                    unlikedColor: AppSemanticColors.accent,
                   ),
                 ),
               ],
