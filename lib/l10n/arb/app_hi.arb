@@ -444,6 +444,7 @@
   "blockConfirmMessage": "वे आपकी प्रोफ़ाइल नहीं देख पाएंगे या संपर्क नहीं कर पाएंगे।",
   "blockCta": "ब्लॉक करें",
   "userBlocked": "उपयोगकर्ता को ब्लॉक कर दिया गया है।",
+  "moreOptionsTooltip": "और विकल्प",
   "reportTitle": "इस व्यक्ति की रिपोर्ट करें",
   "reportFakeProfile": "नकली प्रोफ़ाइल",
   "reportSpam": "स्पैम",

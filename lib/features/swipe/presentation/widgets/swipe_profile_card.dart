@@ -181,6 +181,8 @@ class _SwipeProfileSections extends StatelessWidget {
     final furnishing = strList('furnishing');
     final societyAmenities = strList('society_amenities');
     final flatAmenities = strList('flat_amenities');
+    final societyVibes = strList('society_vibes');
+    final roomFeatures = strList('room_features');
     final existingFlatmates = flatmatesList();
     final videoTourUrl = str('video_tour_url');
     final monthlyRent = dbl('monthly_rent') ?? item.budgetMin;
@@ -188,6 +190,7 @@ class _SwipeProfileSections extends StatelessWidget {
     final maintenance = dbl('maintenance');
     final lat = dbl('latitude');
     final lng = dbl('longitude');
+    final topMatchChips = compatibility.topMatchChips;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -207,21 +210,25 @@ class _SwipeProfileSections extends StatelessWidget {
           flatConfig: flatConfig,
           furnishing: furnishing,
         ),
+        if (topMatchChips.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          TopMatchChipsRow(chips: topMatchChips),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.xl),
-              AboutSection(
-                bio: item.bio,
-                videoTourUrl: videoTourUrl,
-                compatibility: compatibility,
-              ),
+              AboutSection(bio: item.bio, videoTourUrl: videoTourUrl),
               const SizedBox(height: AppSpacing.xl),
               SectionHeader(label: locale.compatibilityBreakdown),
               const SizedBox(height: AppSpacing.sm),
               CompactCompatibilityBreakdown(result: compatibility),
+              // Lifestyle / dealbreakers sit next to the match bars so they
+              // surface without scrolling past a long bio.
+              LifestyleSection(item: item),
+              DealbreakersSection(nonNegotiables: item.nonNegotiables),
               const SizedBox(height: AppSpacing.xl),
               _PlaceBlock(
                 locality: item.locality,
@@ -232,6 +239,8 @@ class _SwipeProfileSections extends StatelessWidget {
                 floor: floor,
                 societyAmenities: societyAmenities,
                 flatAmenities: flatAmenities,
+                societyVibes: societyVibes,
+                roomFeatures: roomFeatures,
                 lat: lat,
                 lng: lng,
                 fallbackLabel:
@@ -272,6 +281,8 @@ class _PlaceBlock extends StatelessWidget {
     required this.floor,
     required this.societyAmenities,
     required this.flatAmenities,
+    this.societyVibes = const [],
+    this.roomFeatures = const [],
     required this.lat,
     required this.lng,
     required this.fallbackLabel,
@@ -285,6 +296,8 @@ class _PlaceBlock extends StatelessWidget {
   final String? floor;
   final List<String> societyAmenities;
   final List<String> flatAmenities;
+  final List<String> societyVibes;
+  final List<String> roomFeatures;
   final double? lat;
   final double? lng;
   final String fallbackLabel;
@@ -303,6 +316,8 @@ class _PlaceBlock extends StatelessWidget {
           floor: floor,
           societyAmenities: societyAmenities,
           flatAmenities: flatAmenities,
+          societyVibes: societyVibes,
+          roomFeatures: roomFeatures,
           lat: lat,
           lng: lng,
           fallbackLabel: fallbackLabel,

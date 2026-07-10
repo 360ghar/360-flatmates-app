@@ -245,6 +245,38 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     return true;
   }
 
+  /// Removes a profile from the deck (e.g. after block) without recording a
+  /// like/pass swipe. Marks the id as seen so [loadMore] will not re-add it.
+  void removeProfile(int userId) {
+    _swipedUserIds.add(userId);
+    final profiles = state.profiles;
+    final removedIndex = profiles.indexWhere((p) => p.id == userId);
+    if (removedIndex < 0) {
+      // Id still tracked so a future page load skips them.
+      return;
+    }
+    final nextProfiles = [
+      for (final p in profiles)
+        if (p.id != userId) p,
+    ];
+    // Keep the visual slot stable: removing the current card lets the next
+    // profile slide into the same index; removing an earlier card shifts the
+    // cursor back by one.
+    var nextIndex = state.currentIndex;
+    if (removedIndex < state.currentIndex) {
+      nextIndex = state.currentIndex - 1;
+    }
+    if (nextIndex < 0) nextIndex = 0;
+
+    final clearLast = state.lastSwipedProfile?.id == userId;
+    state = state.copyWith(
+      profiles: nextProfiles,
+      currentIndex: nextIndex,
+      clearLastSwipedProfile: clearLast,
+      hasSwiped: _swipedUserIds.isNotEmpty,
+    );
+  }
+
   Future<SwipeResult> persistSwipe({
     required SwipeProfile profile,
     required String action,

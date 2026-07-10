@@ -69,14 +69,7 @@ class HeroCarousel extends StatefulWidget {
 }
 
 class _HeroCarouselState extends State<HeroCarousel> {
-  late final PageController _controller;
   int _index = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PageController();
-  }
 
   @override
   void didUpdateWidget(covariant HeroCarousel oldWidget) {
@@ -89,22 +82,28 @@ class _HeroCarouselState extends State<HeroCarousel> {
     if (oldWidget.item.id != widget.item.id ||
         !listEquals(oldWidget.images, widget.images)) {
       _index = 0;
-      if (_controller.hasClients) {
-        _controller.jumpToPage(0);
-      }
     }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void _goToPrevious() {
+    if (_index <= 0) return;
+    setState(() => _index -= 1);
+  }
+
+  void _goToNext() {
+    if (_index >= widget.images.length - 1) return;
+    setState(() => _index += 1);
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final hasImages = widget.images.isNotEmpty;
+    final multiImage = hasImages && widget.images.length > 1;
+    // Clamp in case the list shrinks between rebuilds.
+    final safeIndex = hasImages ? _index.clamp(0, widget.images.length - 1) : 0;
+    final currentUrl = hasImages ? widget.images[safeIndex] : null;
+
     return SizedBox(
       height: 320,
       child: LayoutBuilder(
@@ -122,61 +121,77 @@ class _HeroCarouselState extends State<HeroCarousel> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppRadius.card),
                 ),
-                child: hasImages
-                    ? PageView.builder(
-                        controller: _controller,
-                        itemCount: widget.images.length,
-                        onPageChanged: (i) => setState(() => _index = i),
-                        itemBuilder: (context, i) {
-                          final imageUrl = widget.images[i];
-                          return Stack(
-                            key: ValueKey<String>(
-                              '${widget.item.id}:$imageUrl',
+                child: hasImages && currentUrl != null
+                    ? Stack(
+                        key: ValueKey<String>('${widget.item.id}:$currentUrl'),
+                        fit: StackFit.expand,
+                        children: [
+                          ImageFiltered(
+                            imageFilter: ui.ImageFilter.blur(
+                              sigmaX: 15,
+                              sigmaY: 15,
                             ),
-                            fit: StackFit.expand,
-                            children: [
-                              ImageFiltered(
-                                imageFilter: ui.ImageFilter.blur(
-                                  sigmaX: 15,
-                                  sigmaY: 15,
-                                ),
-                                child: FlatmatesNetworkImage(
-                                  imageUrl: imageUrl,
-                                  width: imageWidth,
-                                  height: imageHeight,
-                                  fit: BoxFit.cover,
-                                  fallbackName: widget.name,
-                                ),
-                              ),
-                              Container(
-                                color: Colors.black.withValues(alpha: 0.2),
-                              ),
-                              FlatmatesNetworkImage(
-                                imageUrl: imageUrl,
-                                width: imageWidth,
-                                height: imageHeight,
-                                fit: BoxFit.contain,
-                                fallbackName: widget.name,
-                              ),
-                            ],
-                          );
-                        },
+                            child: FlatmatesNetworkImage(
+                              imageUrl: currentUrl,
+                              width: imageWidth,
+                              height: imageHeight,
+                              fit: BoxFit.cover,
+                              fallbackName: widget.name,
+                            ),
+                          ),
+                          Container(color: Colors.black.withValues(alpha: 0.2)),
+                          FlatmatesNetworkImage(
+                            imageUrl: currentUrl,
+                            width: imageWidth,
+                            height: imageHeight,
+                            fit: BoxFit.contain,
+                            fallbackName: widget.name,
+                          ),
+                        ],
                       )
                     : PremiumPhotoFallback(name: widget.name),
               ),
+              // Tap zones for photo nav — no horizontal drag, so card swipe
+              // GestureDetector is free of PageView competition.
+              if (multiImage) ...[
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: constraints.maxWidth * 0.3,
+                  child: GestureDetector(
+                    key: const Key('swipe_photo_prev'),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: _goToPrevious,
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: constraints.maxWidth * 0.7,
+                  child: GestureDetector(
+                    key: const Key('swipe_photo_next'),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: _goToNext,
+                  ),
+                ),
+              ],
               Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.35),
-                        Colors.black.withValues(alpha: 0.78),
-                      ],
-                      stops: const [0.0, 0.4, 0.7, 1.0],
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.35),
+                          Colors.black.withValues(alpha: 0.78),
+                        ],
+                        stops: const [0.0, 0.4, 0.7, 1.0],
+                      ),
                     ),
                   ),
                 ),
@@ -191,19 +206,19 @@ class _HeroCarouselState extends State<HeroCarousel> {
                 top: AppSpacing.md,
                 child: MatchPill(percentage: widget.compatibility.percentage),
               ),
-              if (hasImages && widget.images.length > 1)
+              if (multiImage)
                 Positioned(
                   top: AppSpacing.md,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: PhotoCounterPill(
-                      current: _index + 1,
+                      current: safeIndex + 1,
                       total: widget.images.length,
                     ),
                   ),
                 ),
-              if (hasImages && widget.images.length > 1)
+              if (multiImage)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -212,7 +227,7 @@ class _HeroCarouselState extends State<HeroCarousel> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(widget.images.length, (i) {
-                        final active = i == _index;
+                        final active = i == safeIndex;
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: 2.5),
                           width: 6,
@@ -232,7 +247,7 @@ class _HeroCarouselState extends State<HeroCarousel> {
                 left: AppSpacing.lg,
                 right: AppSpacing.lg,
                 bottom: AppSpacing.lg,
-                child: HeroInfoOverlay(item: widget.item),
+                child: IgnorePointer(child: HeroInfoOverlay(item: widget.item)),
               ),
             ],
           );
@@ -689,27 +704,24 @@ class CompactPill extends StatelessWidget {
   }
 }
 
-// ── About section: bio + video tour + match chips ───────────────────────
+// ── About section: bio + video tour only ────────────────────────────────
 
 class AboutSection extends StatelessWidget {
   const AboutSection({
     super.key,
     required this.bio,
     required this.videoTourUrl,
-    required this.compatibility,
   });
 
   final String? bio;
   final String? videoTourUrl;
-  final CompatibilityResult compatibility;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasBio = bio != null && bio!.isNotEmpty;
     final hasVideo = videoTourUrl != null && videoTourUrl!.isNotEmpty;
-    final chips = compatibility.topMatchChips.take(3).toList();
-    if (!hasBio && !hasVideo && chips.isEmpty) return const SizedBox.shrink();
+    if (!hasBio && !hasVideo) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -729,15 +741,167 @@ class AboutSection extends StatelessWidget {
             borderRadius: AppRadius.mdBorder,
             child: FlatmatesVideoTourPlayer(videoUrl: videoTourUrl!),
           ),
-        if (chips.isNotEmpty) ...[
-          if (hasBio || hasVideo) const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: chips.map((c) => CompactMatchChip(label: c)).toList(),
-          ),
-        ],
       ],
+    );
+  }
+}
+
+// ── Top match chips (surfaced early, below quick stats) ─────────────────
+
+class TopMatchChipsRow extends StatelessWidget {
+  const TopMatchChipsRow({super.key, required this.chips});
+
+  final List<String> chips;
+
+  @override
+  Widget build(BuildContext context) {
+    if (chips.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          for (final chip in chips.take(3)) CompactMatchChip(label: chip),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Lifestyle chips from SwipeProfile lifestyle fields ──────────────────
+
+class LifestyleSection extends StatelessWidget {
+  const LifestyleSection({super.key, required this.item});
+
+  final SwipeProfile item;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final entries = <({IconData icon, String label})>[
+      if (_nonEmpty(item.sleepSchedule))
+        (
+          icon: Icons.bedtime_outlined,
+          label: humanizeFlatmatesToken(item.sleepSchedule!),
+        ),
+      if (_nonEmpty(item.foodHabits))
+        (
+          icon: Icons.restaurant_outlined,
+          label: humanizeFlatmatesToken(item.foodHabits!),
+        ),
+      if (_nonEmpty(item.cleanliness))
+        (
+          icon: Icons.cleaning_services_outlined,
+          label: humanizeFlatmatesToken(item.cleanliness!),
+        ),
+      if (_nonEmpty(item.partyHabit))
+        (
+          icon: Icons.celebration_outlined,
+          label: humanizeFlatmatesToken(item.partyHabit!),
+        ),
+      if (item.hasPets) (icon: Icons.pets_outlined, label: locale.petsLabel),
+      if (_nonEmpty(item.smokingDrinking))
+        (
+          icon: Icons.local_bar_outlined,
+          label: humanizeFlatmatesToken(item.smokingDrinking!),
+        ),
+      if (_nonEmpty(item.guestsPolicy))
+        (
+          icon: Icons.groups_outlined,
+          label: humanizeFlatmatesToken(item.guestsPolicy!),
+        ),
+      if (_nonEmpty(item.workStyle))
+        (
+          icon: Icons.work_outline_rounded,
+          label: humanizeFlatmatesToken(item.workStyle!),
+        ),
+    ];
+
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.xl),
+        SectionHeader(label: locale.lifestyleSectionTitle),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final e in entries) CompactPill(icon: e.icon, label: e.label),
+          ],
+        ),
+      ],
+    );
+  }
+
+  static bool _nonEmpty(String? value) =>
+      value != null && value.trim().isNotEmpty;
+}
+
+// ── Deal-breakers / non-negotiables ─────────────────────────────────────
+
+class DealbreakersSection extends StatelessWidget {
+  const DealbreakersSection({super.key, required this.nonNegotiables});
+
+  final List<String> nonNegotiables;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final items = nonNegotiables
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList(growable: false);
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.xl),
+        SectionHeader(label: locale.dealBreakersSectionTitle),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final item in items)
+              _WarningChip(label: humanizeFlatmatesToken(item)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _WarningChip extends StatelessWidget {
+  const _WarningChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppSemanticColors.warning.withValues(alpha: 0.1),
+        borderRadius: AppRadius.pillBorder,
+        border: Border.all(
+          color: AppSemanticColors.warning.withValues(alpha: 0.35),
+          width: 0.5,
+        ),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppSemanticColors.warning,
+        ),
+      ),
     );
   }
 }
@@ -819,6 +983,8 @@ class ThePlaceSection extends StatelessWidget {
     required this.floor,
     required this.societyAmenities,
     required this.flatAmenities,
+    this.societyVibes = const [],
+    this.roomFeatures = const [],
     required this.lat,
     required this.lng,
     required this.fallbackLabel,
@@ -832,6 +998,8 @@ class ThePlaceSection extends StatelessWidget {
   final String? floor;
   final List<String> societyAmenities;
   final List<String> flatAmenities;
+  final List<String> societyVibes;
+  final List<String> roomFeatures;
   final double? lat;
   final double? lng;
   final String fallbackLabel;
@@ -847,7 +1015,19 @@ class ThePlaceSection extends StatelessWidget {
       flatConfig,
       floor,
     ].whereType<String>().where((e) => e.isNotEmpty).join(' · ');
-    final allAmenities = <String>[...societyAmenities, ...flatAmenities];
+    // Deduped merge preserves first-seen order across amenity sources.
+    final allAmenities = <String>[];
+    final seen = <String>{};
+    for (final label in [
+      ...societyAmenities,
+      ...flatAmenities,
+      ...societyVibes,
+      ...roomFeatures,
+    ]) {
+      final trimmed = label.trim();
+      if (trimmed.isEmpty || !seen.add(trimmed)) continue;
+      allAmenities.add(trimmed);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -7,10 +7,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import '../bootstrap/catalog_helpers.dart';
+import '../chats/application/chat_actions_controller.dart';
+import '../chats/domain/chat_report_reason.dart';
+import '../chats/presentation/widgets/chat_dialogs.dart';
 import '../discover/discover_repository.dart';
+import '../shared/presentation/flatmates_bottom_sheet.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import 'application/profile_compatibility.dart';
@@ -304,27 +310,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     ref.read(swipeDeckControllerProvider.notifier).refresh();
   }
 
-  Widget _scaffoldWithHeader(Widget body) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.sm,
-                AppSpacing.xl,
-                0,
-              ),
-              child: SwipeDeckHeader(),
-            ),
-            Expanded(child: body),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     ref.listen(discoverFiltersProvider, (previous, next) {
@@ -490,6 +475,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           );
         },
       ),
+      onSafetyMenu: _showSafetyMenu,
     );
   }
 }

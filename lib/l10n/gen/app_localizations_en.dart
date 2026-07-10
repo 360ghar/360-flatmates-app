@@ -961,6 +961,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get userBlocked => 'User has been blocked.';
 
   @override
+  String get moreOptionsTooltip => 'More options';
+
+  @override
   String get reportTitle => 'Report this person';
 
   @override

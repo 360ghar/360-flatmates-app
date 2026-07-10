@@ -12,10 +12,19 @@ import '../../application/chat_actions_controller.dart';
 import '../../domain/chat_report_reason.dart';
 
 class ChatDialogs {
-  static Future<void> showBlockDialog({
+  /// Shows a block confirmation dialog.
+  ///
+  /// When [popOnSuccess] is true (default), the current route is popped after
+  /// a successful block — intended for chat threads that should leave the
+  /// conversation. Pass `false` for surfaces like the swipe deck that must
+  /// stay on the same shell route.
+  ///
+  /// Returns `true` when the user was blocked successfully.
+  static Future<bool> showBlockDialog({
     required BuildContext context,
     required int peerId,
     required ChatActionsController controller,
+    bool popOnSuccess = true,
   }) async {
     final locale = AppLocalizations.of(context);
 
@@ -36,15 +45,16 @@ class ChatDialogs {
         ],
       ),
     );
-    if (confirmed != true || !context.mounted) return;
+    if (confirmed != true || !context.mounted) return false;
 
     try {
       await controller.blockUser(peerId);
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
       FlatmatesToast.success(context, locale.userBlocked);
-      if (context.mounted) {
+      if (popOnSuccess && context.mounted) {
         context.pop();
       }
+      return true;
     } on AppFailure catch (e) {
       if (context.mounted) {
         FlatmatesToast.error(
@@ -52,11 +62,13 @@ class ChatDialogs {
           e.userMessage(locale.toUserMessageL10n()),
         );
       }
+      return false;
     } catch (e) {
       debugPrint('ChatDialogs.showBlockDialog failed for peer $peerId: $e');
       if (context.mounted) {
         FlatmatesToast.error(context, locale.failedToBlockUser);
       }
+      return false;
     }
   }
 

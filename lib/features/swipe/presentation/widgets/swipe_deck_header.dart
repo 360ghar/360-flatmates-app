@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/debouncer.dart';
 import '../../../shared/presentation/components.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -11,10 +12,14 @@ import '../../../discover/presentation/widgets/filter_sheet.dart';
 import '../../../location/application/location_controller.dart';
 import '../../../location/presentation/location_picker_modal.dart';
 
-/// Header row for the swipe deck: location pill (opens the location picker)
-/// and a filters button (opens the shared search filters page).
+/// Header row for the swipe deck: location pill (opens the location picker),
+/// optional safety menu, and a filters button (opens the shared search filters).
 class SwipeDeckHeader extends ConsumerStatefulWidget {
-  const SwipeDeckHeader({super.key});
+  const SwipeDeckHeader({super.key, this.onSafetyMenu});
+
+  /// Opens Report / Block for the current foreground profile.
+  /// When null, the more-options button is hidden.
+  final VoidCallback? onSafetyMenu;
 
   @override
   ConsumerState<SwipeDeckHeader> createState() => _SwipeDeckHeaderState();
@@ -147,7 +152,14 @@ class _SwipeDeckHeaderState extends ConsumerState<SwipeDeckHeader> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
+        if (widget.onSafetyMenu != null)
+          IconButton(
+            key: const Key('swipe_safety_menu'),
+            tooltip: locale.moreOptionsTooltip,
+            onPressed: widget.onSafetyMenu,
+            icon: const Icon(Icons.more_vert_rounded),
+          ),
         IconButton.filledTonal(
           key: const Key('swipe_filter_tune'),
           tooltip: locale.searchFiltersTitle,

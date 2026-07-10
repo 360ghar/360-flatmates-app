@@ -1862,6 +1862,12 @@ abstract class AppLocalizations {
   /// **'User has been blocked.'**
   String get userBlocked;
 
+  /// No description provided for @moreOptionsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get moreOptionsTooltip;
+
   /// No description provided for @reportTitle.
   ///
   /// In en, this message translates to:

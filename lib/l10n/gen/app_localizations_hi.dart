@@ -962,6 +962,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get userBlocked => 'उपयोगकर्ता को ब्लॉक कर दिया गया है।';
 
   @override
+  String get moreOptionsTooltip => 'और विकल्प';
+
+  @override
   String get reportTitle => 'इस व्यक्ति की रिपोर्ट करें';
 
   @override
