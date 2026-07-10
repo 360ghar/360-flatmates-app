@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_sizing.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
@@ -356,8 +357,8 @@ class _ProfileStrengthCard extends StatelessWidget {
             value: '$percent%',
             child: ExcludeSemantics(
               child: SizedBox(
-                width: 44,
-                height: 44,
+                width: AppSizing.progressRing,
+                height: AppSizing.progressRing,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
