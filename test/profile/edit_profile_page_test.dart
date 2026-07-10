@@ -12,7 +12,38 @@ import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 import '../helpers/test_helpers.dart';
 
-Widget _editProfileHarness() {
+/// Bootstrap with production-like move-in catalog (no legacy `flexible` id).
+class _CatalogBootstrapController extends FakeBootstrapController {
+  @override
+  Future<BootstrapData?> build() async {
+    final base = fakeBootstrapData();
+    final data = BootstrapData(
+      profile: base.profile.copyWith(moveInTimeline: 'flexible'),
+      catalogs: [
+        ...base.catalogs,
+        const CatalogEntryModel(
+          key: 'flatmates_move_in_timelines',
+          version: 1,
+          payload: {
+            'items': [
+              {'id': 'immediately', 'label': 'Immediately'},
+              {'id': 'within_2_weeks', 'label': 'Within 2 Weeks'},
+              {'id': 'within_1_month', 'label': 'Within 1 Month'},
+              {'id': 'just_exploring', 'label': 'Just Exploring'},
+            ],
+          },
+        ),
+      ],
+      activeListingCount: base.activeListingCount,
+      conversationCount: base.conversationCount,
+      unreadMessageCount: base.unreadMessageCount,
+    );
+    state = AsyncValue.data(data);
+    return data;
+  }
+}
+
+Widget _editProfileHarness({BootstrapController Function()? bootstrap}) {
   // Router so the page's go_router extensions (canPop/pop/go) resolve.
   // Start on /profile then push /profile/edit so the edit page sits on top of a
   // poppable route (mirrors production, where it is pushed from the profile
@@ -45,7 +76,9 @@ Widget _editProfileHarness() {
     overrides: [
       appConfigProvider.overrideWithValue(fakeAppConfig()),
       authControllerProvider.overrideWith(FakeAuthController.new),
-      bootstrapControllerProvider.overrideWith(FakeBootstrapController.new),
+      bootstrapControllerProvider.overrideWith(
+        bootstrap ?? FakeBootstrapController.new,
+      ),
     ],
     child: MaterialApp.router(
       locale: const Locale('en'),
@@ -56,8 +89,11 @@ Widget _editProfileHarness() {
   );
 }
 
-Future<void> _openEditPage(WidgetTester tester) async {
-  await tester.pumpWidget(_editProfileHarness());
+Future<void> _openEditPage(
+  WidgetTester tester, {
+  BootstrapController Function()? bootstrap,
+}) async {
+  await tester.pumpWidget(_editProfileHarness(bootstrap: bootstrap));
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('open_edit')));
   await tester.pumpAndSettle();
@@ -65,6 +101,26 @@ Future<void> _openEditPage(WidgetTester tester) async {
 
 void main() {
   group('EditProfilePage', () {
+    testWidgets('opens without throw when catalog omits legacy flexible id', (
+      tester,
+    ) async {
+      // Profile move_in_timeline is legacy `flexible` while catalog only has
+      // just_exploring — page must map the alias and not assert.
+      await _openEditPage(tester, bootstrap: _CatalogBootstrapController.new);
+
+      final saveFinder = find.byKey(const Key('profile_save_button'));
+      await tester.scrollUntilVisible(
+        saveFinder,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(saveFinder, findsOneWidget);
+      // Seed alone must not mark the form dirty.
+      final button = tester.widget<FlatmatesButton>(saveFinder);
+      expect(button.onPressed, isNull);
+    });
+
     testWidgets('save button is disabled until the form is edited', (
       tester,
     ) async {

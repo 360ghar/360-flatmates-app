@@ -6,9 +6,7 @@
 /// ```
 library;
 
-export 'app_gradients.dart';
 export 'app_motion.dart';
-export 'app_palette.dart';
 export 'app_radius.dart';
 export 'app_semantic_colors.dart';
 export 'app_shadows.dart';

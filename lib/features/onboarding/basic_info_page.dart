@@ -79,7 +79,7 @@ class _BasicInfoPageState extends ConsumerState<BasicInfoPage> {
             const SizedBox(height: AppSpacing.sm),
             // Step progress
             const FlatmatesStepProgress.dots(currentStep: 2, totalSteps: 4),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             Text(locale.basicInfoTitle, style: theme.textTheme.headlineLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -88,7 +88,7 @@ class _BasicInfoPageState extends ConsumerState<BasicInfoPage> {
                 color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             FlatmatesCard(
               child: Column(
                 children: [

@@ -229,7 +229,7 @@ class FlatDetailsLocation extends StatelessWidget {
                           color: AppSemanticColors.textSecondaryFor(
                             isDark ? Brightness.dark : Brightness.light,
                           ),
-                          fontSize: AppTypography.labelMediumSize,
+                          fontSize: AppTypography.microLabelSize,
                         ),
                       ),
                     ],
@@ -344,7 +344,7 @@ class _SocietyTagChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: AppTypography.labelMediumSize,
+                fontSize: AppTypography.microLabelSize,
                 fontWeight: FontWeight.w600,
                 color: selected
                     ? AppSemanticColors.accent
@@ -357,7 +357,7 @@ class _SocietyTagChip extends StatelessWidget {
             Text(
               netVotes.toString(),
               style: TextStyle(
-                fontSize: AppTypography.labelSmallSize,
+                fontSize: AppTypography.badgeSize,
                 fontWeight: FontWeight.w700,
                 color: AppSemanticColors.textSecondaryFor(
                   isDark ? Brightness.dark : Brightness.light,
@@ -402,7 +402,7 @@ class _StatItem extends StatelessWidget {
           value,
           style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w700,
-            fontSize: AppTypography.titleSmallSize,
+            fontSize: AppTypography.bodySmSize,
           ),
         ),
         const SizedBox(width: 2),
@@ -412,7 +412,7 @@ class _StatItem extends StatelessWidget {
             color: AppSemanticColors.textTertiaryFor(
               isDark ? Brightness.dark : Brightness.light,
             ),
-            fontSize: AppTypography.labelMediumSize,
+            fontSize: AppTypography.microLabelSize,
           ),
         ),
       ],

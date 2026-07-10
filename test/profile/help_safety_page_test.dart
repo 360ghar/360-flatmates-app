@@ -79,7 +79,11 @@ void main() {
       expect(find.text('Booking & Agreements'), findsOneWidget);
       expect(find.text('Account & Profile'), findsOneWidget);
       expect(find.text('Contact support'), findsWidgets);
+      await tester.ensureVisible(find.text('Report a Bug'));
+      await tester.pumpAndSettle();
       expect(find.text('Report a Bug'), findsOneWidget);
+      await tester.ensureVisible(find.text('Request a Feature'));
+      await tester.pumpAndSettle();
       expect(find.text('Request a Feature'), findsOneWidget);
 
       await tester.drag(find.byType(ListView), const Offset(0, -500));

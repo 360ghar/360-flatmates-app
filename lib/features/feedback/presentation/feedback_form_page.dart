@@ -207,7 +207,7 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               FlatmatesButton(
                 key: const Key('feedback_submit_button'),
                 label: locale.feedbackSubmitCta,

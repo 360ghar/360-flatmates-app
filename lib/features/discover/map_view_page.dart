@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -210,73 +208,64 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
             child: _buildMap(filtered, userLocation, locale, isDark),
           ),
 
-          // Top bar overlay with frosted glass background
+          // Top bar overlay — flat tinted surface (de-frosted).
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(
-                  sigmaX: AppSemanticColors.frostBlur,
-                  sigmaY: AppSemanticColors.frostBlur,
+            child: Container(
+              color: frostOverlayColor,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
                 ),
-                child: Container(
-                  color: frostOverlayColor,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.screen,
-                            AppSpacing.md,
-                            AppSpacing.screen,
-                            AppSpacing.xs,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: MapLocationChip(
-                                    locationName: selectedDisplayText.isNotEmpty
-                                        ? selectedDisplayText
-                                        : null,
-                                    onTap: () => _showLocationPicker(context),
-                                  ),
-                                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screen,
+                        AppSpacing.md,
+                        AppSpacing.screen,
+                        AppSpacing.xs,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: MapLocationChip(
+                                locationName: selectedDisplayText.isNotEmpty
+                                    ? selectedDisplayText
+                                    : null,
+                                onTap: () => _showLocationPicker(context),
                               ),
-                              const SizedBox(width: AppSpacing.sm),
-                              // The map page has no standalone text-search
-                              // surface — search lives inside the filter
-                              // sheet (its top field) — so we expose a single
-                              // filter affordance rather than two duplicate
-                              // buttons. Kept on the right of the location chip.
-                              IconButton(
-                                onPressed: () => _showFilterSheet(context),
-                                icon: const Icon(AppIcons.filter),
-                                tooltip: locale.searchFiltersTitle,
-                                style: IconButton.styleFrom(
-                                  backgroundColor:
-                                      theme.brightness == Brightness.dark
-                                      ? AppSemanticColors.darkSurfaceElevated
-                                      : AppSemanticColors.paper,
-                                  foregroundColor:
-                                      AppSemanticColors.textPrimaryFor(
-                                        theme.brightness,
-                                      ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: AppSpacing.sm),
+                          // The map page has no standalone text-search
+                          // surface — search lives inside the filter
+                          // sheet (its top field) — so we expose a single
+                          // filter affordance rather than two duplicate
+                          // buttons. Kept on the right of the location chip.
+                          IconButton(
+                            onPressed: () => _showFilterSheet(context),
+                            icon: const Icon(AppIcons.filter),
+                            tooltip: locale.searchFiltersTitle,
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  theme.brightness == Brightness.dark
+                                  ? AppSemanticColors.darkSurfaceElevated
+                                  : AppSemanticColors.paper,
+                              foregroundColor: AppSemanticColors.textPrimaryFor(
+                                theme.brightness,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),

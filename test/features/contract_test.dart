@@ -26,6 +26,10 @@ void main() {
       expect(data.activeListingCount, 2);
       expect(data.conversationCount, 5);
       expect(data.unreadMessageCount, 3);
+      expect(data.realtime, isNotNull);
+      expect(data.realtime!.channel, 'flatmates:user:1');
+      expect(data.realtime!.privateChannel, isTrue);
+      expect(data.realtime!.events, contains('new_match'));
     });
 
     test('PropertyListing parses from fixture', () {

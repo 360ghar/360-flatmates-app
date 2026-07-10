@@ -122,6 +122,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('notif_disable_all')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('notif_disable_all')));
       await tester.pumpAndSettle();
 
@@ -140,7 +142,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // First disable, then enable, to exercise both paths.
+      await tester.ensureVisible(find.byKey(const Key('notif_disable_all')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('notif_disable_all')));
+      await tester.pumpAndSettle();
+
+      // Dismiss the disable toast so it does not intercept the enable tap.
+      final messenger = ScaffoldMessenger.of(
+        tester.element(find.byType(NotificationSettingsPage)),
+      );
+      messenger.hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byKey(const Key('notif_enable_all')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('notif_enable_all')));
       await tester.pumpAndSettle();

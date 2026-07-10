@@ -151,7 +151,10 @@ class BlockedUsersPage extends ConsumerWidget {
             },
           );
         },
-        loading: () => const FlatmatesSkeleton.list(),
+        loading: () => const Padding(
+          padding: EdgeInsets.all(AppSpacing.xl),
+          child: FlatmatesSkeleton.list(),
+        ),
         error: (error, _) => FlatmatesErrorState(
           message: locale.couldNotLoadBlockedUsers,
           onRetry: () =>

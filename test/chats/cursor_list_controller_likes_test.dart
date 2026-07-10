@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 typedef _LikesPage = ({
-  List<IncomingLikeModel> items,
+  List<OutgoingLikeModel> items,
   String? nextCursor,
   bool hasMore,
 });
@@ -32,14 +32,14 @@ void main() {
         notifier.upsertOutgoingLike(_like(id: 3, peerId: 30, peerName: 'New'));
 
         final items = _outgoingItems(container);
-        expect(items.where((like) => like.peer.id == 10), hasLength(1));
+        expect(items.where((like) => like.peer!.id == 10), hasLength(1));
         expect(
-          items.singleWhere((like) => like.peer.id == 10).peer.fullName,
+          items.singleWhere((like) => like.peer!.id == 10).peer!.fullName,
           'Updated',
         );
-        expect(items.where((like) => like.peer.id == 30), hasLength(1));
+        expect(items.where((like) => like.peer!.id == 30), hasLength(1));
         expect(
-          items.map((like) => like.peer.id),
+          items.map((like) => like.peer!.id),
           containsAll(const [10, 20, 30]),
         );
       },
@@ -62,7 +62,9 @@ void main() {
         _like(id: 999, peerId: 10, peerName: 'Same peer'),
       );
 
-      expect(_outgoingItems(container).map((like) => like.peer.id), const [20]);
+      expect(_outgoingItems(container).map((like) => like.peer!.id), const [
+        20,
+      ]);
     });
 
     test(
@@ -94,7 +96,7 @@ void main() {
         final container = _containerWith(backend);
 
         final notifier = await _primeOutgoingLikes(container);
-        expect(_outgoingItems(container).map((like) => like.peer.id), const [
+        expect(_outgoingItems(container).map((like) => like.peer!.id), const [
           10,
           20,
         ]);
@@ -103,12 +105,15 @@ void main() {
         notifier.upsertOutgoingLike(
           _like(id: 99, peerId: 30, peerName: 'Pending'),
         );
-        expect(_outgoingItems(container).map((like) => like.peer.id).first, 30);
+        expect(
+          _outgoingItems(container).map((like) => like.peer!.id).first,
+          30,
+        );
 
         // loadMore fetches page 2, which does not contain the pending like.
         await notifier.loadMore();
         expect(
-          _outgoingItems(container).map((like) => like.peer.id),
+          _outgoingItems(container).map((like) => like.peer!.id),
           contains(30),
         );
 
@@ -119,7 +124,7 @@ void main() {
         // the pending item so it vanished on the next refresh.
         await notifier.refresh();
         expect(
-          _outgoingItems(container).map((like) => like.peer.id),
+          _outgoingItems(container).map((like) => like.peer!.id),
           contains(30),
         );
       },
@@ -147,32 +152,33 @@ Future<OutgoingLikesController> _primeOutgoingLikes(
   return notifier;
 }
 
-List<IncomingLikeModel> _outgoingItems(ProviderContainer container) {
+List<OutgoingLikeModel> _outgoingItems(ProviderContainer container) {
   return container
           .read(outgoingLikesListControllerProvider)
           .valueOrNull
           ?.items ??
-      const <IncomingLikeModel>[];
+      const <OutgoingLikeModel>[];
 }
 
-IncomingLikeModel _like({
+OutgoingLikeModel _like({
   required int id,
   required int peerId,
   required String peerName,
 }) {
-  return IncomingLikeModel(
+  return OutgoingLikeModel(
     id: id,
+    targetType: 'user',
     peer: ChatPeer(id: peerId, fullName: peerName),
     createdAt: DateTime.utc(2026).add(Duration(minutes: id)),
   );
 }
 
-_LikesPage _page(List<IncomingLikeModel> items) {
+_LikesPage _page(List<OutgoingLikeModel> items) {
   return (items: items, nextCursor: null, hasMore: false);
 }
 
 _LikesPage _pageWith(
-  List<IncomingLikeModel> items, {
+  List<OutgoingLikeModel> items, {
   String? nextCursor,
   required bool hasMore,
 }) {

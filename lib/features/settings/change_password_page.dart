@@ -175,7 +175,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
 
               // CTA
               FlatmatesButton(

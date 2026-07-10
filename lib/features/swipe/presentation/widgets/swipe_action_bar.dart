@@ -36,42 +36,41 @@ class SwipeActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _SwipeActionButton(
-            key: const Key('swipe_action_skip'),
-            icon: Icons.close_rounded,
-            color: AppSemanticColors.compatLow,
-            tooltip: locale.swipeSkipAction,
-            semanticLabel: locale.swipeSkipAction,
-            size: 60,
-            onPressed: enabled ? onSkip : null,
-          ),
-          const SizedBox(width: AppSpacing.xl),
-          _SwipeActionButton(
-            key: const Key('swipe_action_undo'),
-            icon: Icons.undo_rounded,
-            color: AppSemanticColors.warning,
-            tooltip: locale.swipeUndoAction,
-            semanticLabel: locale.swipeUndoAction,
-            size: 48,
-            onPressed: (enabled && canUndo) ? onUndo : null,
-          ),
-          const SizedBox(width: AppSpacing.xl),
-          _SwipeActionButton(
-            key: const Key('swipe_action_like'),
-            icon: Icons.favorite_rounded,
-            color: AppSemanticColors.success,
-            tooltip: locale.swipeLikeAction,
-            semanticLabel: locale.swipeLikeAction,
-            size: 60,
-            onPressed: enabled ? onLike : null,
-          ),
-        ],
-      ),
+    // No horizontal padding: bar is hosted inside the profile card scroll
+    // (card chrome already insets from the screen edge).
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _SwipeActionButton(
+          key: const Key('swipe_action_skip'),
+          icon: Icons.close_rounded,
+          color: AppSemanticColors.compatLow,
+          tooltip: locale.swipeSkipAction,
+          semanticLabel: locale.swipeSkipAction,
+          size: 60,
+          onPressed: enabled ? onSkip : null,
+        ),
+        const SizedBox(width: AppSpacing.xl),
+        _SwipeActionButton(
+          key: const Key('swipe_action_undo'),
+          icon: Icons.undo_rounded,
+          color: AppSemanticColors.warning,
+          tooltip: locale.swipeUndoAction,
+          semanticLabel: locale.swipeUndoAction,
+          size: 48,
+          onPressed: (enabled && canUndo) ? onUndo : null,
+        ),
+        const SizedBox(width: AppSpacing.xl),
+        _SwipeActionButton(
+          key: const Key('swipe_action_like'),
+          icon: Icons.favorite_rounded,
+          color: AppSemanticColors.success,
+          tooltip: locale.swipeLikeAction,
+          semanticLabel: locale.swipeLikeAction,
+          size: 60,
+          onPressed: enabled ? onLike : null,
+        ),
+      ],
     );
   }
 }

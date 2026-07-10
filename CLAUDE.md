@@ -68,7 +68,7 @@ lib/
     network/                    → Dio client, auth/error interceptors, connectivity monitor
     notifications/              → Firebase Messaging (foreground + background)
     storage/                    → SharedPreferences, secure storage, image upload
-    theme/                      → Material 3 theme, palette switching, design token constants
+    theme/                      → Material 3 theme (Airbnb Rausch), design token constants
     compatibility/              → client-side matching algorithm (6 weighted dimensions)
     deep_links/                 → DeepLinkService (app_links, cold+warm start)
     domain/                     → PagedState<T>, OptimisticUpdate, typed enums
@@ -81,12 +81,12 @@ lib/
     onboarding/                 → multi-step state machine with draft persistence [domain]
     discover/                   → listing feed + map + search filters [application/data/domain/presentation+widgets]
     swipe/                      → Tinder-like card deck with deal-breaker filtering [presentation+widgets]
-    chats/                      → conversations + messages (Supabase realtime + SSE refetch fallback + optimistic send) [application/domain/presentation+widgets]
+    chats/                      → conversations + messages (Supabase realtime + optimistic send) [application/domain/presentation+widgets]
     listings/                   → multi-step listing builder + manage [application/domain/presentation+widgets]
     visits/                     → schedule/confirm/reschedule visits
     notifications/              → notification list
     profile/                    → profile view/edit
-    settings/                   → theme, palette, locale, privacy, blocked users, change password [data/domain]
+    settings/                   → theme mode, locale, privacy, blocked users, change password [data/domain]
     shared/presentation/        → 18 Flatmates* reusable widgets, barrel-exported via components.dart
 ```
 
@@ -152,9 +152,9 @@ lib/
 
 ### Theme and localization
 
-- Material 3 via `ColorScheme.fromSeed()` with 3 palettes: electric indigo (default), ember coral, monsoon teal
-- Google Fonts: Sora (headlines), Plus Jakarta Sans (body)
-- Design token constant files in `core/theme/`: `AppSpacing`, `AppRadius`, `AppShadows`, `AppMotion`, `AppTypography`, `AppSemanticColors`, `AppGradients` — barrel-exported via `theme.dart`
+- Material 3 with single Airbnb Rausch primary (`#FF385C`), white canvas, ink `#222222`
+- Google Fonts: Inter (open-source substitute for Airbnb Cereal VF)
+- Design token constant files in `core/theme/`: `AppSpacing`, `AppRadius`, `AppShadows`, `AppMotion`, `AppTypography`, `AppSemanticColors` — barrel-exported via `theme.dart`
 - Light/dark/system theme modes, persisted to SharedPreferences (defaults: **Light mode**, **English** locale)
 - ARB-based l10n: English (`app_en.arb`, template) and Hindi (`app_hi.arb`), generated to `lib/l10n/gen/`
 
@@ -169,13 +169,13 @@ spacing, border radii, component behavior, and per-screen layout specs.
 
 - Freezed + json_serializable for domain models (AuthState, BootstrapData, SettingsState, OnboardingState, ChatMessage, ConversationSummaryModel). Run `dart run build_runner build --delete-conflicting-outputs` after changes.
 - DTO pattern: when backend JSON doesn't map cleanly to domain models, use a DTO class in the feature's `data/` layer (e.g., `PropertyListingDto` → `PropertyListing`).
-- Shared component library: 18 `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`. Components include premium polish: press scale feedback (`Listener` + `AnimatedScale`), focus glow (search bar), selection spring (chips), frosted-glass backdrop (bottom sheet/action bar/nav), animated entry (empty/error states), animated avatar ring, sliding indicator (segmented control), animated match ring (profile grid card), unread accent border (notification card). Skeleton variants: `.card()`, `.list()`, `.feed()`, `.profile()`.
-- Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Staggered list animations via `StaggeredCardAppear` (discover feed) or `Future.delayed` pattern (profile menu groups). Frosted-glass via `BackdropFilter` + `AppSemanticColors.frostBlur`. Ring animations via `CustomPaint` inside `AnimatedBuilder`. Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
+- Shared component library: 18 `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`. Components include premium polish: press scale feedback (`Listener` + `AnimatedScale`), focus glow (search bar), selection spring (chips), solid canvas chrome (bottom sheet/action bar/nav — no frost), animated entry (empty/error states), animated avatar ring, sliding indicator (segmented control), animated match ring (profile grid card), unread accent border (notification card). Skeleton variants: page-matched factories (`.discoverFeed()`, `.swipeCard()`, `.conversationList()`, `.form()`, `.settingsList()`, `.peerProfileSheet()`, `.legalContent()`, …); shared shimmer respects reduced motion.
+- Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Staggered list animations via `StaggeredCardAppear` (discover feed) or `Future.delayed` pattern (profile menu groups). Shell chrome uses solid surfaces + hairline borders (no `BackdropFilter` frost). Ring animations via `CustomPaint` inside `AnimatedBuilder`. Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
 - Card theme: light mode elevation 1 (refined from 2). Dialog theme: 24px radius, elevation 4. Android page transitions: `FadeUpwardsPageTransitionsBuilder`. iOS: `CupertinoPageTransitionsBuilder`.
 - `FlatmatesEndpoints` centralizes all API path constants — no hardcoded backend paths.
 - Image uploads go through the backend API (Cloudinary) via `ImageUploadService` (supports photos and video tours up to 50MB).
 - Compatibility scoring runs client-side in `core/compatibility/` with 6 weighted dimensions.
-- Chat uses Supabase realtime (`user_messages` table, filtered by `conversation_id`) for the open thread, with an SSE event-driven refetch fallback when realtime drops. `MessagesController` is a `FamilyNotifier` that owns the rendered message list: it merges live arrivals from `messagesStreamProvider` with optimistic pending sends (negative ids), and after a successful POST does an authoritative HTTP refetch so sent messages persist even when realtime is down. No HTTP polling.
+- Chat uses Supabase realtime (`user_messages` table, filtered by `conversation_id`) for the open thread. App-wide events use Supabase Realtime Broadcast on the private `flatmates:user:{id}` channel (config from bootstrap `realtime`). `MessagesController` is a `FamilyNotifier` that owns the rendered message list: it merges live arrivals from `messagesStreamProvider` with optimistic pending sends (negative ids), and after a successful POST does an authoritative HTTP refetch so sent messages persist even when realtime is down. No HTTP polling.
 - Banned patterns (enforced by `scripts/banned_patterns.sh`): no `error.toString()` in pages, no `apiClientProvider` in pages (use a repository), no `Supabase.instance` in pages, no raw `Image.network` in features (use `FlatmatesNetworkImage`), page files under 500 lines.
 - **Business logic in controllers, not widgets.** Create `application/` layer controllers that wrap repository calls. Widgets call `ref.read(controllerProvider.notifier).method()` instead of calling repositories directly. Examples: `FeedbackController`, `ChatActionsController`.
 - **Local UI state via `StateProvider`.** Avoid `setState()` in `ConsumerStatefulWidget`. Define `final _loadingProvider = StateProvider<bool>((ref) => false);` at file level. Read with `ref.watch()`, write with `ref.read(provider.notifier).state = value`.
@@ -202,7 +202,7 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - Do not add another state-management library.
 - Keep GoRouter as the routing layer.
 - All authenticated requests must flow through the shared Dio client and auth interceptor.
-- Maintain light/dark/system theme support and palette switching.
+- Maintain light/dark/system theme support with a single Rausch brand primary.
 - Keep English and Hindi localization in sync for primary flows.
 - Use meaningful `Key` values on interactive widgets for Maestro stability.
 - Update `docs/` when API surface, architecture, theme/localization strategy, auth flow, or Maestro assumptions change.

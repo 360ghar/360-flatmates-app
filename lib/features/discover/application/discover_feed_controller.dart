@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -154,16 +156,23 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
   /// The card fills/unfills instantly; on network failure the previous
   /// list is restored. Returns the `conversation_id` (non-null when a
   /// like created/reused a conversation).
-  Future<int?> toggleLike(int propertyId) async {
+  ///
+  /// [property] can be supplied when the listing is not currently in the
+  /// feed state (e.g. the Liked tab) so the outgoing-likes list can still be
+  /// updated optimistically.
+  Future<int?> toggleLike(int propertyId, {PropertyListing? property}) async {
     final original = state.listings;
     final index = original.indexWhere((listing) => listing.id == propertyId);
-    if (index < 0) return null;
+    final item = index >= 0 ? original[index] : property;
+    if (item == null) return null;
 
-    final item = original[index];
-    final newLiked = !(item.liked ?? false);
+    final currentLiked = item.liked ?? false;
+    final newLiked = !currentLiked;
     final optimistic = [...original];
-    optimistic[index] = item.copyWith(liked: newLiked);
-    state = state.copyWith(listings: optimistic);
+    if (index >= 0) {
+      optimistic[index] = item.copyWith(liked: newLiked);
+      state = state.copyWith(listings: optimistic);
+    }
 
     try {
       final conversationId = await ref
@@ -176,11 +185,27 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.
       ref.invalidate(conversationsListControllerProvider);
+
+      // Keep the Liked tab in sync optimistically (no full refresh — avoids
+      // flicker + extra network). Map's setLiked path is aligned.
+      final outgoing = ref.read(outgoingLikesListControllerProvider.notifier);
+      if (newLiked) {
+        outgoing.upsertOutgoingLike(
+          OutgoingLikeModel.fromPropertyListing(item.copyWith(liked: true)),
+        );
+      } else {
+        outgoing.removeOptimistically(
+          OutgoingLikeModel.fromPropertyListing(item),
+        );
+      }
+      ref.invalidate(outgoingLikesProvider);
       return conversationId;
     } catch (e) {
       debugPrint('DiscoverFeedController.toggleLike failed: $e');
       // Roll back the optimistic change on failure.
-      state = state.copyWith(listings: original);
+      if (index >= 0) {
+        state = state.copyWith(listings: original);
+      }
       rethrow;
     }
   }

@@ -242,7 +242,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
             ),
           ),
           const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
-          // Headline — Fraunces Regular + Instrument Serif italic for emphasis
+          // Headline — Inter display (Airbnb Cereal substitute)
           _StaggeredFadeSlide(
             animation: headlineAnim,
             child: RichText(
@@ -260,9 +260,9 @@ class _OnboardingContentState extends State<_OnboardingContent>
               widget.subheadline,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                fontWeight: AppTypography.bodyMediumWeight,
-                fontSize: AppTypography.bodyMediumSize,
-                height: AppTypography.bodyMediumHeight,
+                fontWeight: AppTypography.bodySmWeight,
+                fontSize: AppTypography.bodySmSize,
+                height: AppTypography.bodySmHeight,
                 color: AppSemanticColors.textSecondaryFor(brightness),
               ),
             ),
@@ -273,8 +273,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
   }
 
   /// Splits headline by **bold** markers.
-  /// Base text: Fraunces Regular (w400), editorial weight.
-  /// Emphasized text: Instrument Serif italic.
+  /// Base text: Inter display-xl. Emphasized text: Inter medium italic.
   List<InlineSpan> _buildStyledHeadline(String raw, Brightness brightness) {
     final parts = raw.split(RegExp(r'\*\*'));
     final spans = <InlineSpan>[];
@@ -288,48 +287,35 @@ class _OnboardingContentState extends State<_OnboardingContent>
         TextSpan(
           text: parts[i],
           style: isEmphasis
-              ? GoogleFonts.instrumentSerif(
+              ? GoogleFonts.inter(
                   fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w400,
-                  fontSize: AppTypography.h1Size,
-                  height: AppTypography.h1Height,
+                  fontWeight: FontWeight.w500,
+                  fontSize: AppTypography.displayXlSize,
+                  height: AppTypography.displayXlHeight,
                   color: textColor,
                 )
-              : GoogleFonts.fraunces(
-                  fontWeight: AppTypography.h1Weight,
-                  fontSize: AppTypography.h1Size,
-                  height: AppTypography.h1Height,
-                  letterSpacing: AppTypography.h1LetterSpacing,
+              : GoogleFonts.inter(
+                  fontWeight: AppTypography.displayXlWeight,
+                  fontSize: AppTypography.displayXlSize,
+                  height: AppTypography.displayXlHeight,
+                  letterSpacing: AppTypography.displayXlLetterSpacing,
                   color: textColor,
-                ).copyWith(
-                  fontVariations: const [
-                    FontVariation('opsz', 112),
-                    FontVariation('SOFT', 40),
-                    FontVariation('WONK', 0),
-                  ],
                 ),
         ),
       );
     }
-    // If no ** markers found, render entire text as Fraunces Regular
+    // If no ** markers found, render entire text as Inter display
     if (spans.isEmpty) {
       spans.add(
         TextSpan(
           text: raw,
-          style:
-              GoogleFonts.fraunces(
-                fontWeight: AppTypography.h1Weight,
-                fontSize: AppTypography.h1Size,
-                height: AppTypography.h1Height,
-                letterSpacing: AppTypography.h1LetterSpacing,
-                color: textColor,
-              ).copyWith(
-                fontVariations: const [
-                  FontVariation('opsz', 112),
-                  FontVariation('SOFT', 40),
-                  FontVariation('WONK', 0),
-                ],
-              ),
+          style: GoogleFonts.inter(
+            fontWeight: AppTypography.displayXlWeight,
+            fontSize: AppTypography.displayXlSize,
+            height: AppTypography.displayXlHeight,
+            letterSpacing: AppTypography.displayXlLetterSpacing,
+            color: textColor,
+          ),
         ),
       );
     }

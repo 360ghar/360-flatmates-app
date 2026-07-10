@@ -167,7 +167,7 @@ class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
     try {
       final conversationId = await ref
           .read(discoverFeedControllerProvider.notifier)
-          .toggleLike(widget.item.id);
+          .toggleLike(widget.item.id, property: widget.item);
       if (!mounted) return;
       if (wasLiked) {
         FlatmatesToast.success(context, locale.likeRemovedToast);

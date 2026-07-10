@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -324,142 +322,131 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
 
     return ClipRRect(
       borderRadius: AppRadius.sheetTopBorder,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: AppSemanticColors.frostBlur,
-          sigmaY: AppSemanticColors.frostBlur,
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              (isDark ? AppSemanticColors.darkSurface : AppSemanticColors.card)
+                  .withValues(alpha: 0.92),
+          borderRadius: AppRadius.sheetTopBorder,
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            color:
-                (isDark
-                        ? AppSemanticColors.darkSurface
-                        : AppSemanticColors.card)
-                    .withValues(alpha: 0.92),
-            borderRadius: AppRadius.sheetTopBorder,
+        child: AnimatedContainer(
+          duration: AppMotion.bottomSheet,
+          curve: AppMotion.easeOutQuart,
+          padding: EdgeInsets.only(
+            left: AppSpacing.screen,
+            right: AppSpacing.screen,
+            top: AppSpacing.md,
+            bottom: bottomInset + AppSpacing.lg,
           ),
-          child: AnimatedContainer(
-            duration: AppMotion.bottomSheet,
-            curve: AppMotion.easeOutQuart,
-            padding: EdgeInsets.only(
-              left: AppSpacing.screen,
-              right: AppSpacing.screen,
-              top: AppSpacing.md,
-              bottom: bottomInset + AppSpacing.lg,
-            ),
-            child: Column(
-              children: [
-                Text(
-                  locale.locationPickerTitle,
-                  style: theme.textTheme.headlineSmall,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FlatmatesSearchBar(
-                        controller: _searchController,
-                        hint: locale.locationPickerSearchHint,
-                        leadingIcon: AppIcons.search,
-                        trailingIcon: _searchController.text.isNotEmpty
-                            ? Icons.clear_rounded
-                            : null,
-                        onTrailingTap: () {
-                          _searchController.clear();
-                          ref.read(locationSearchProvider.notifier).clear();
-                          setState(() {});
-                        },
-                        onChanged: (query) {
-                          ref
-                              .read(locationSearchProvider.notifier)
-                              .onSearchChanged(query);
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _CurrentLocationIconButton(
-                      isLoading: _isDetectingLocation,
-                      onTap: _useCurrentLocation,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                _RadiusSlider(
-                  radius: _radius,
-                  onChanged: (value) {
-                    setState(() => _radius = value);
-                    widget.onRadiusChanged?.call(value);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                if (isLoading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+          child: Column(
+            children: [
+              Text(
+                locale.locationPickerTitle,
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: FlatmatesSearchBar(
+                      controller: _searchController,
+                      hint: locale.locationPickerSearchHint,
+                      leadingIcon: AppIcons.search,
+                      trailingIcon: _searchController.text.isNotEmpty
+                          ? Icons.clear_rounded
+                          : null,
+                      onTrailingTap: () {
+                        _searchController.clear();
+                        ref.read(locationSearchProvider.notifier).clear();
+                        setState(() {});
+                      },
+                      onChanged: (query) {
+                        ref
+                            .read(locationSearchProvider.notifier)
+                            .onSearchChanged(query);
+                        setState(() {});
+                      },
                     ),
                   ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (typedLocation.isEmpty) ...[
-                          _citySection(
-                            locale.popularCitiesLabel,
-                            popularCities,
-                          ),
-                          if (popularCities.isNotEmpty && moreCities.isNotEmpty)
-                            const SizedBox(height: AppSpacing.md),
-                          _citySection(locale.moreCitiesLabel, moreCities),
-                        ] else if (matchingCities.isNotEmpty) ...[
-                          _citySection(
-                            locale.matchingCitiesLabel,
-                            matchingCities,
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                        ],
-                        if (hasPlacesResults) ...[
-                          Text(
-                            locale.suggestionsLabel,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: AppSemanticColors.textSecondaryFor(
-                                theme.brightness,
-                              ),
-                              letterSpacing: 1.1,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          ...searchState.suggestions.map(
-                            (s) => _PlaceSuggestionTile(
-                              suggestion: s,
-                              onTap: _isResolvingPlace
-                                  ? null
-                                  : () => _onSuggestionTap(s),
-                            ),
-                          ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _CurrentLocationIconButton(
+                    isLoading: _isDetectingLocation,
+                    onTap: _useCurrentLocation,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _RadiusSlider(
+                radius: _radius,
+                onChanged: (value) {
+                  setState(() => _radius = value);
+                  widget.onRadiusChanged?.call(value);
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                ),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (typedLocation.isEmpty) ...[
+                        _citySection(locale.popularCitiesLabel, popularCities),
+                        if (popularCities.isNotEmpty && moreCities.isNotEmpty)
                           const SizedBox(height: AppSpacing.md),
-                          const Divider(color: AppSemanticColors.line),
-                          const SizedBox(height: AppSpacing.sm),
-                        ],
-                        if (_typedLocation.isNotEmpty)
-                          _TypedLocationTile(
-                            location: _typedLocation,
-                            onTap: _selectTypedLocation,
-                          ),
+                        _citySection(locale.moreCitiesLabel, moreCities),
+                      ] else if (matchingCities.isNotEmpty) ...[
+                        _citySection(
+                          locale.matchingCitiesLabel,
+                          matchingCities,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
                       ],
-                    ),
+                      if (hasPlacesResults) ...[
+                        Text(
+                          locale.suggestionsLabel,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppSemanticColors.textSecondaryFor(
+                              theme.brightness,
+                            ),
+                            letterSpacing: 1.1,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        ...searchState.suggestions.map(
+                          (s) => _PlaceSuggestionTile(
+                            suggestion: s,
+                            onTap: _isResolvingPlace
+                                ? null
+                                : () => _onSuggestionTap(s),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        const Divider(color: AppSemanticColors.line),
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
+                      if (_typedLocation.isNotEmpty)
+                        _TypedLocationTile(
+                          location: _typedLocation,
+                          onTap: _selectTypedLocation,
+                        ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -58,15 +58,15 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 ## UI Guidance
 
 - Maintain support for light, dark, and system theme modes (default: Light).
-- Preserve palette switching as a first-class product capability.
+- Use a single brand primary (Airbnb Rausch `#FF385C`). Do not reintroduce multi-palette switching.
 - Keep English and Hindi localization coverage in sync for all primary user flows (default: English).
 - Use meaningful keys on major interactive widgets so Maestro coverage can remain stable.
 - All visual tokens (colors, radii, spacing, typography, shadows, components) must match [DESIGN.md](DESIGN.md). Do not introduce values that contradict the design system.
-- Use design token constant files from `core/theme/` (AppSpacing, AppRadius, AppShadows, AppMotion, AppTypography, AppSemanticColors, AppGradients) barrel-exported via `theme.dart`. Do not use magic numbers.
+- Use design token constant files from `core/theme/` (AppSpacing, AppRadius, AppShadows, AppMotion, AppTypography, AppSemanticColors) barrel-exported via `theme.dart`. Do not use magic numbers.
 - Use `Flatmates*` shared components from `features/shared/presentation/` instead of duplicating Scaffold/SafeArea/ListView/async-state patterns.
 - Use `FlatmatesNetworkImage` instead of raw `Image.network` — enforced by `scripts/banned_patterns.sh`.
 - Use `AppMotion` for all animation durations and curves. Do not hard-code durations or `Curves`. Use `Listener` (not `GestureDetector`) for press-detection when wrapping interactive children (InkWell, FilledButton, OutlinedButton) to avoid gesture arena conflicts.
-- Frosted-glass overlays (bottom nav, bottom sheets, bottom action bars) use `BackdropFilter` with `AppSemanticColors.frostBlur` and semi-transparent surfaces. Apply `ClipRRect` before `BackdropFilter` to constrain blur bounds.
+- Shell chrome (bottom nav, bottom sheets, bottom action bars) uses solid canvas/surface colors with hairline borders — no frosted-glass `BackdropFilter`, no multi-palette switching.
 - **Always use `const` constructors** for widgets that don't change (SizedBox, Padding, Icon, Text, etc.). This enables widget reuse and reduces GC pressure.
 - **Add `tooltip` to every `IconButton`** for accessibility (screen readers). Common tooltips: `'Toggle password visibility'`, `'Back'`, `'Call'`, `'More options'`, `'Search'`, `'Like'`.
 - **Avoid heavy computations in `build()`.** Extract `List.generate()`, `.map().toList()`, and `for` loops to private methods or pre-compute in providers. `build()` runs 60fps during animations — every allocation matters.

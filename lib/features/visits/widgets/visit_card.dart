@@ -54,8 +54,8 @@ class VisitCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: AppTypography.displaySize,
-                height: AppTypography.displaySize,
+                width: 28.0,
+                height: 28.0,
                 decoration: BoxDecoration(
                   color: AppSemanticColors.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.sheet),
@@ -89,7 +89,7 @@ class VisitCard extends StatelessWidget {
                         locale.localeName,
                       ).format(item.scheduledDate.toLocal()),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: AppTypography.labelSmallSize,
+                        fontSize: AppTypography.badgeSize,
                         color: AppSemanticColors.textTertiaryFor(
                           theme.brightness,
                         ),
@@ -112,7 +112,7 @@ class VisitCard extends StatelessWidget {
                 item.visitContext == 'flatmate_meet'
                     ? Icons.people_outline
                     : Icons.meeting_room_outlined,
-                size: AppTypography.labelMediumSize,
+                size: AppTypography.microLabelSize,
                 color: AppSemanticColors.textTertiaryFor(theme.brightness),
               ),
               const SizedBox(width: AppSpacing.xs),
@@ -121,14 +121,14 @@ class VisitCard extends StatelessWidget {
                     ? locale.flatmateMeetLabel
                     : locale.propertyTourLabel,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: AppTypography.labelSmallSize,
+                  fontSize: AppTypography.badgeSize,
                   color: AppSemanticColors.textTertiaryFor(theme.brightness),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Icon(
                 Icons.calendar_month_outlined,
-                size: AppTypography.labelMediumSize,
+                size: AppTypography.microLabelSize,
                 color: AppSemanticColors.textTertiaryFor(theme.brightness),
               ),
               const SizedBox(width: AppSpacing.xs),
@@ -138,7 +138,7 @@ class VisitCard extends StatelessWidget {
                   locale.localeName,
                 ).format(item.scheduledDate.toLocal()),
                 style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: AppTypography.labelSmallSize,
+                  fontSize: AppTypography.badgeSize,
                   color: AppSemanticColors.textTertiaryFor(theme.brightness),
                 ),
               ),
@@ -239,8 +239,8 @@ class _CompactActionChip extends StatelessWidget {
             ),
             child: busy
                 ? SizedBox(
-                    width: AppTypography.h4Size,
-                    height: AppTypography.h4Size,
+                    width: 14.0,
+                    height: 14.0,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(foreground),
@@ -249,8 +249,8 @@ class _CompactActionChip extends StatelessWidget {
                 : Text(
                     label,
                     style: TextStyle(
-                      fontSize: AppTypography.labelSmallSize,
-                      fontWeight: AppTypography.labelLargeWeight,
+                      fontSize: AppTypography.badgeSize,
+                      fontWeight: AppTypography.buttonMdWeight,
                       color: foreground,
                     ),
                     overflow: TextOverflow.ellipsis,

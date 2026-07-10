@@ -91,7 +91,6 @@ class FlatDetailsHeader extends StatelessWidget {
                     Text(
                       locale.listingLabel.toUpperCase(),
                       style: TextStyle(
-                        fontFamily: AppTypography.fontFamilyMono,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.6,
@@ -121,11 +120,10 @@ class FlatDetailsHeader extends StatelessWidget {
                 Text(
                   l.title,
                   style: TextStyle(
-                    fontFamily: AppTypography.fontFamilyDisplay,
-                    fontSize: AppTypography.h2Size,
-                    fontWeight: AppTypography.h2Weight,
-                    height: AppTypography.h2Height,
-                    letterSpacing: AppTypography.h2LetterSpacing,
+                    fontSize: AppTypography.displayLgSize,
+                    fontWeight: AppTypography.displayLgWeight,
+                    height: AppTypography.displayLgHeight,
+                    letterSpacing: AppTypography.displayLgLetterSpacing,
                     color: AppSemanticColors.textPrimaryFor(
                       isDark ? Brightness.dark : Brightness.light,
                     ),

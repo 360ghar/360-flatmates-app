@@ -131,7 +131,7 @@ The Flutter application starts from a clean mobile-only scaffold and uses:
 - GoRouter for navigation
 - Dio for FastAPI communication
 - Supabase Flutter for auth
-- Shared preferences for theme, palette, and locale persistence
+- Shared preferences for theme mode and locale persistence
 - Secure storage for token persistence
 - ARB-based localization for English and Hindi
 
@@ -144,7 +144,7 @@ The app shell currently includes:
 - Visits
 - Profile and settings
 
-Theming supports light, dark, and system modes along with multiple palette presets. Localization currently supports English and Hindi only.
+Theming supports light, dark, and system modes with a single Airbnb Rausch primary. Localization currently supports English and Hindi only.
 
 ## Current Delivery State
 
@@ -159,12 +159,12 @@ This implementation establishes the platform foundation, the first usable produc
 - Flatmate profile editing
 - Listing discovery through real property APIs
 - Listing-like to chat creation
-- Two-user conversations with Supabase Realtime (primary) and SSE-driven refetch fallback when realtime is unavailable, photo sharing, icebreaker chips, read receipts, and report/block/unmatch
+- Two-user conversations with Supabase Realtime (primary), photo sharing, icebreaker chips, read receipts, and report/block/unmatch; app-wide events via private Broadcast channel from bootstrap `realtime`
 - Flatmate visit request, confirmation, reschedule, and cancellation
 - 8-step listing builder (location, society, room, photos, flat, costs, about, review)
 - Manage listing page with status badges, share, and boost
 - Map view with clustered pins and filter bar
-- Home feed with vibe and move-in filter chips, city counter, and Picked for You
+- Home feed with vibe and move-in filter chips and Picked for You
 - Backend AI pre-screening for review completeness, suspicious rent, missing photos, and spam/inappropriate content keywords
 - Repeat-report auto-pause for Flatmates profiles after 3 active reports
 - Expired move-in auto-pause for Room Poster listings, with owner pause/resume using backend moderation status
@@ -179,7 +179,7 @@ This implementation establishes the platform foundation, the first usable produc
 - 401 auth interceptor with token refresh retry
 - Image upload service (camera/gallery + Cloudinary via backend API)
 - Video tour upload and playback with client-side size and duration enforcement
-- Theme, palette, and locale switching
+- Theme mode and locale switching
 - EN + HI localization (150+ strings)
 
 ## Immediate Follow-On Work

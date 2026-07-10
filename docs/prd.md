@@ -658,8 +658,6 @@ Every listing auto-generates a shareable image card. The card is generated on-de
 
 Going pan-India from day one creates a density problem in smaller cities. Mitigation:
 
-- **City counter** — Home screen shows 'X people looking in \[your city] right now'. Transparency over fake activity.
-
 - **Waitlist mode** — In cities below a density threshold (< 50 active users), show a 'Notify me when more people join in \[city]' CTA instead of an empty swipe deck.
 
 - **Broad search radius default** — Users in tier-2 cities default to a 30km search radius rather than 5km, increasing visible deck size.
@@ -697,7 +695,7 @@ No monetization in V1, but the following UI patterns are built in to train user 
 | **AI Pre-Screening**      | Backend-side keyword/completeness classifier (no external ML API needed in V1)                             |
 | **Image Caching**         | CachedNetworkImage for all remote images                                                                   |
 | **Localization**          | ARB-based l10n — English + Hindi                                                                           |
-| **Theming**               | Material 3 with ColorScheme.fromSeed — 3 swappable palettes, light/dark/system                            |
+| **Theming**               | Material 3 with single Airbnb Rausch primary — light/dark/system                                          |
 
 ## **11.2 Flutter Project Structure**
 
@@ -741,13 +739,13 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 
 - **WhatsApp share card** — Generated on-device using RepaintBoundary with three templates: original card, WhatsApp square (1080x1080), Instagram story (1080x1920). Includes QR code with deep link.
 
-- **Real-time chat** — Supabase Realtime subscription on `user_messages` table filtered by `conversation_id`. Falls back to SSE event-driven refetch (subscribes to `new_message` events on `/flatmates/sse` and refetches the message list) when realtime is unavailable. No HTTP polling.
+- **Real-time chat** — Supabase Realtime subscription on `user_messages` table filtered by `conversation_id`. App-wide flatmates events use private Realtime Broadcast (`flatmates:user:{id}`) from bootstrap `realtime` config. No HTTP polling / SSE.
 
 - **Auth flow** — Supabase Phone Auth for OTP. Access token stored in FlutterSecureStorage. Dio auth interceptor handles Bearer token injection and 401 refresh with request queuing.
 
 - **Server-driven catalogs** — All business metadata (modes, timelines, quiz options, vibe tags, report reasons, icebreakers) loaded from `/flatmates/catalogs` at bootstrap. Hardcoded fallbacks exist for offline support.
 
-- **Theme and localization** — Material 3 with 3 palette presets (Electric Indigo, Ember Coral, Monsoon Teal). Light/dark/system mode. English + Hindi ARB-based localization. All persisted via SharedPreferences.
+- **Theme and localization** — Material 3 with single Airbnb Rausch primary. Light/dark/system mode. English + Hindi ARB-based localization. All persisted via SharedPreferences.
 
 # **12. Feature Priority Matrix — V1 vs V2**
 
@@ -782,7 +780,7 @@ The backend is an existing FastAPI monolith backed by PostgreSQL. The flatmate p
 | Manual listing review queue (Flutter Web admin)               |  **✅** |        |               |
 | AI pre-screening before review queue                          |  **✅** |        |               |
 | Freemium hook UI (boost slot)                                 |  **✅** |        |               |
-| Cold start: waitlist mode + city counter                      |  **✅** |        |               |
+| Cold start: waitlist mode                                     |  **✅** |        |               |
 | Lat-lng storage on all listings                               |        |        |     **✅**     |
 | Society tag vote counts (for community corrections)           |        |        |     **✅**     |
 | Profile view duration tracking                                |        |        |     **✅**     |

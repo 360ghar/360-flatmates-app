@@ -67,7 +67,6 @@ abstract final class FlatmatesEndpoints {
   static const bugs = '/bugs';
 
   // -- Flatmates --
-  static const sse = '/flatmates/sse';
   static const flatmatesProfile = '/flatmates/profile';
   static const flatmatesProfiles = '/flatmates/profiles';
   static String societyTagVotes(int id) =>

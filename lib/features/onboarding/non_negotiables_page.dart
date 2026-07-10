@@ -93,7 +93,7 @@ class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
               currentStep: completionPct.round(),
               totalSteps: 100,
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.nonNegotiablesTitle,
               style: theme.textTheme.headlineLarge,

@@ -75,7 +75,7 @@ class PasswordResetController extends Notifier<PasswordResetState> {
 
   /// Normalizes phone identifiers to E.164 (+91…) before hitting the backend.
   String _normalizeIdentifier(String raw) {
-    var identifier = raw.trim();
+    final identifier = raw.trim();
     if (identifier.isEmpty || identifier.contains('@')) return identifier;
 
     var digits = identifier.replaceAll(RegExp(r'\D'), '');

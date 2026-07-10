@@ -114,29 +114,20 @@ class _SplashPageState extends ConsumerState<SplashPage>
                 animation: logoAnimation,
                 child: const FlatmatesLogo(centered: true),
               ),
-              const SizedBox(height: AppSpacing.section),
-              // Tagline — Display 32sp Fraunces Regular (not bold)
+              const SizedBox(height: AppSpacing.xl),
+              // Tagline — display-xl Inter (Airbnb Cereal substitute)
               _StaggeredFadeSlide(
                 animation: taglineAnimation,
                 child: Text(
                   locale.splashTagline,
                   textAlign: TextAlign.center,
-                  style:
-                      GoogleFonts.fraunces(
-                        fontWeight: AppTypography.displayWeight,
-                        fontSize: AppTypography.displaySize,
-                        height: AppTypography.displayHeight,
-                        letterSpacing: AppTypography.displayLetterSpacing,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ).copyWith(
-                        fontVariations: const [
-                          FontVariation('opsz', 144),
-                          FontVariation('SOFT', 50),
-                          FontVariation('WONK', 0),
-                        ],
-                      ),
+                  style: GoogleFonts.inter(
+                    fontWeight: AppTypography.displayXlWeight,
+                    fontSize: AppTypography.displayXlSize,
+                    height: AppTypography.displayXlHeight,
+                    letterSpacing: AppTypography.displayXlLetterSpacing,
+                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -147,7 +138,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                   locale.splashSubtagline,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                    fontWeight: AppTypography.bodyMediumWeight,
+                    fontWeight: AppTypography.bodySmWeight,
                     fontSize: 15,
                     height: 1.5,
                     color: AppSemanticColors.textSecondaryFor(theme.brightness),
@@ -157,7 +148,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
               SizedBox(
                 height: MediaQuery.of(context).size.height < 560
                     ? AppSpacing.lg
-                    : AppSpacing.section,
+                    : AppSpacing.xl,
               ),
               // Illustration — fade in
               _StaggeredFadeSlide(
@@ -171,7 +162,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
               SizedBox(
                 height: MediaQuery.of(context).size.height < 560
                     ? AppSpacing.md
-                    : AppSpacing.section,
+                    : AppSpacing.xl,
               ),
               // Progress / error area
               _StaggeredFadeSlide(

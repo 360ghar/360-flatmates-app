@@ -7,6 +7,7 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
+import 'edit_profile_dropdown_utils.dart';
 
 class EditProfileContactInfoSection extends StatelessWidget {
   const EditProfileContactInfoSection({
@@ -249,7 +250,10 @@ class EditProfileModeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlatmatesCard(
       child: DropdownButtonFormField<String>(
-        initialValue: mode,
+        initialValue: dropdownValueOrFirst(
+          mode,
+          items.map((item) => item.value),
+        ),
         decoration: InputDecoration(labelText: locale.modeTitle),
         items: items,
         onChanged: (value) {
@@ -277,7 +281,9 @@ class EditProfileBudgetTimelineSection extends StatelessWidget {
   final AppLocalizations locale;
   final TextEditingController budgetMinController;
   final TextEditingController budgetMaxController;
-  final String moveInTimeline;
+
+  /// Null when unset or unmapped — do not coerce to a default in the UI.
+  final String? moveInTimeline;
   final String workStyle;
   final List<DropdownMenuItem<String>> timelineItems;
   final List<DropdownMenuItem<String>> workStyleItems;
@@ -286,6 +292,17 @@ class EditProfileBudgetTimelineSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final timelineIds = timelineItems.map((item) => item.value);
+    // Exact/alias match only — never substitute the first catalog id.
+    final safeMoveIn = dropdownValueInIds(
+      resolveMoveInTimelineId(moveInTimeline, timelineIds),
+      timelineIds,
+    );
+    final safeWorkStyle = dropdownValueOrFirst(
+      workStyle,
+      workStyleItems.map((item) => item.value),
+    );
+
     return FlatmatesCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,7 +335,7 @@ class EditProfileBudgetTimelineSection extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: moveInTimeline,
+            initialValue: safeMoveIn,
             decoration: InputDecoration(labelText: locale.moveInTimelineLabel),
             items: timelineItems,
             onChanged: (value) {
@@ -327,7 +344,7 @@ class EditProfileBudgetTimelineSection extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: workStyle,
+            initialValue: safeWorkStyle,
             decoration: InputDecoration(labelText: locale.workStyleTitle),
             items: workStyleItems,
             onChanged: (value) {
@@ -390,35 +407,50 @@ class EditProfileLifestyleSection extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: sleepSchedule,
+            initialValue: dropdownValueInIds(
+              sleepSchedule,
+              sleepItems.map((item) => item.value),
+            ),
             decoration: InputDecoration(labelText: locale.quizSleepSchedule),
             items: sleepItems,
             onChanged: onSleepScheduleChanged,
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: cleanliness,
+            initialValue: dropdownValueInIds(
+              cleanliness,
+              cleanlinessItems.map((item) => item.value),
+            ),
             decoration: InputDecoration(labelText: locale.quizCleanliness),
             items: cleanlinessItems,
             onChanged: onCleanlinessChanged,
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: foodHabits,
+            initialValue: dropdownValueInIds(
+              foodHabits,
+              foodItems.map((item) => item.value),
+            ),
             decoration: InputDecoration(labelText: locale.quizFoodHabits),
             items: foodItems,
             onChanged: onFoodHabitsChanged,
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: smokingDrinking,
+            initialValue: dropdownValueInIds(
+              smokingDrinking,
+              smokingItems.map((item) => item.value),
+            ),
             decoration: InputDecoration(labelText: locale.quizSmokingDrinking),
             items: smokingItems,
             onChanged: onSmokingDrinkingChanged,
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
-            initialValue: guestsPolicy,
+            initialValue: dropdownValueInIds(
+              guestsPolicy,
+              guestsItems.map((item) => item.value),
+            ),
             decoration: InputDecoration(labelText: locale.quizGuestsPolicy),
             items: guestsItems,
             onChanged: onGuestsPolicyChanged,

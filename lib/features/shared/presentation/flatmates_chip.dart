@@ -133,12 +133,13 @@ class FlatmatesChip extends StatelessWidget {
     }
 
     if (selected) {
+      // Airbnb-quiet selected: ink fill, white label (not brand-tinted slab).
       return _ChipColors(
-        background: isDark
-            ? AppSemanticColors.coralSoftDark
-            : AppSemanticColors.coralSoft,
-        foreground: AppSemanticColors.accent,
-        border: AppSemanticColors.accent.withValues(alpha: 0.15),
+        background: isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink,
+        foreground: isDark
+            ? AppSemanticColors.darkScaffold
+            : AppSemanticColors.onPrimary,
+        border: isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink,
       );
     }
 
@@ -147,11 +148,11 @@ class FlatmatesChip extends StatelessWidget {
         return _ChipColors(
           background: isDark
               ? AppSemanticColors.darkSurfaceElevated
-              : AppSemanticColors.paper2,
+              : AppSemanticColors.surfaceSoft,
           foreground: isDark
-              ? AppSemanticColors.paper3
-              : AppSemanticColors.ink2,
-          border: AppSemanticColors.line,
+              ? AppSemanticColors.darkBody
+              : AppSemanticColors.body,
+          border: AppSemanticColors.hairlineFor(theme.brightness),
         );
       case FlatmatesChipVariant.filter:
       case FlatmatesChipVariant.choice:
@@ -159,11 +160,11 @@ class FlatmatesChip extends StatelessWidget {
         return _ChipColors(
           background: isDark
               ? AppSemanticColors.darkSurface
-              : AppSemanticColors.paper2,
+              : AppSemanticColors.canvas,
           foreground: isDark
-              ? AppSemanticColors.paper3
-              : AppSemanticColors.ink2,
-          border: AppSemanticColors.line,
+              ? AppSemanticColors.darkBody
+              : AppSemanticColors.body,
+          border: AppSemanticColors.hairlineFor(theme.brightness),
         );
     }
   }

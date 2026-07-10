@@ -77,7 +77,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppSpacing.section),
+          const SizedBox(height: AppSpacing.xl),
           Text(
             locale.deleteAccountConfirmLabel,
             style: theme.textTheme.titleSmall?.copyWith(
@@ -112,7 +112,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.section),
+          const SizedBox(height: AppSpacing.xl),
           FlatmatesButton.secondary(
             key: const Key('delete_account_confirm_button'),
             label: isDeleting
@@ -175,6 +175,9 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
       context.go('/enter-phone');
     } else {
       ref.read(_deletingProvider.notifier).state = false;
+      // deleteAccount() returns a bool and never populates a per-call error
+      // message; show the delete-failure copy directly. Reading auth.errorMessage
+      // here would surface a stale key left by an unrelated prior auth attempt.
       FlatmatesToast.error(context, locale.deleteAccountFailed);
     }
   }

@@ -127,7 +127,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                resolveAuthError(err, AppLocalizations.of(context)!),
+                resolveAuthError(err, AppLocalizations.of(context)),
               ),
             ),
           );

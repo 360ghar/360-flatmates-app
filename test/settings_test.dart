@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:flatmates_app/core/theme/app_palette.dart';
 import 'package:flatmates_app/features/settings/settings_page.dart';
-import 'package:flatmates_app/features/shared/presentation/flatmates_chip.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_segmented_control.dart';
 
 import 'helpers/test_helpers.dart';
@@ -37,9 +35,7 @@ void main() {
       expect(find.byKey(const Key('theme_mode_dark_option')), findsOneWidget);
     });
 
-    testWidgets('renders palette choice chips for all palettes', (
-      tester,
-    ) async {
+    testWidgets('does not render palette choice chips', (tester) async {
       await tester.pumpWidget(
         await testableWidgetAsync(child: const SettingsPage()),
       );
@@ -47,12 +43,8 @@ void main() {
 
       await openPreferencesSheet(tester);
 
-      for (final palette in AppPalette.values) {
-        expect(
-          find.byKey(Key('palette_${palette.storageValue}')),
-          findsOneWidget,
-        );
-      }
+      expect(find.byKey(const Key('palette_rausch')), findsNothing);
+      expect(find.byKey(const Key('palette_ember_coral')), findsNothing);
     });
 
     testWidgets('tapping dark theme option updates state', (tester) async {
@@ -71,25 +63,6 @@ void main() {
             find.byType(FlatmatesSegmentedControl<ThemeMode>),
           );
       expect(segmentedControl.selected, equals(ThemeMode.dark));
-    });
-
-    testWidgets('tapping a palette chip updates state', (tester) async {
-      await tester.pumpWidget(
-        await testableWidgetAsync(child: const SettingsPage()),
-      );
-      await tester.pumpAndSettle();
-
-      await openPreferencesSheet(tester);
-
-      final emberChip = find.byKey(const Key('palette_ember_coral'));
-      await tester.ensureVisible(emberChip);
-      await tester.tap(emberChip, warnIfMissed: false);
-      await tester.pumpAndSettle();
-
-      final chip = tester.widget<FlatmatesChip>(
-        find.byKey(const Key('palette_ember_coral')),
-      );
-      expect(chip.selected, isTrue);
     });
 
     testWidgets('renders privacy toggles in preferences sheet', (tester) async {

@@ -86,7 +86,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
           children: [
             const SizedBox(height: AppSpacing.sm),
             const FlatmatesStepProgress.dots(currentStep: 3, totalSteps: 4),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.profilePhotoTitle,
               style: theme.textTheme.headlineLarge,
@@ -136,7 +136,16 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
             ],
             const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
             if (_uploading)
-              const Center(child: FlatmatesSkeleton.card())
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                child: Center(
+                  child: SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
             else ...[
               FlatmatesButton(
                 key: const Key('onboarding_photo_next'),

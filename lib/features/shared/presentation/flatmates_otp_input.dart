@@ -148,14 +148,14 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
       builder: (context, constraints) {
         final gapCount = widget.digitCount - 1;
         const gap = AppSpacing.sm;
-        const maxBoxWidth = AppSpacing.screen + AppSpacing.section;
+        const maxBoxWidth = AppSpacing.screen + AppSpacing.xl;
         final boxWidth =
             ((constraints.maxWidth - gap * gapCount) / widget.digitCount)
                 .clamp(0, maxBoxWidth)
                 .toDouble();
         final fontSize = boxWidth >= AppSpacing.screen + AppSpacing.xl
-            ? AppTypography.h2Size
-            : AppTypography.h3SizeLarge;
+            ? AppTypography.displayLgSize
+            : AppTypography.displaySmSize;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,

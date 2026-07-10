@@ -86,7 +86,7 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
               currentStep: 0,
               totalSteps: _totalSteps,
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             // --- Heading & subtitle ---
             Text(
               locale.modeSelectionTitle,
@@ -102,7 +102,7 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
                 color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             // --- Option cards ---
             Flexible(
               child: SingleChildScrollView(
@@ -198,7 +198,6 @@ class _ModeCardState extends State<_ModeCard> {
           borderColor: widget.isSelected
               ? AppSemanticColors.accent
               : AppSemanticColors.line.withValues(alpha: 0.4),
-          borderGlow: widget.isSelected,
           elevation: widget.isSelected ? 2 : 0.5,
           child: Row(
             children: [

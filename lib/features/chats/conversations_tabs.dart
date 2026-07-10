@@ -112,22 +112,20 @@ class _LikedTab extends StatelessWidget {
     required this.likes,
     required this.onRetry,
     required this.onLoadMore,
+    required this.onPropertyLike,
   });
 
-  final AsyncValue<CursorListState<IncomingLikeModel>> likes;
+  final AsyncValue<CursorListState<OutgoingLikeModel>> likes;
   final VoidCallback onRetry;
   final VoidCallback onLoadMore;
+  final ValueChanged<OutgoingLikeModel> onPropertyLike;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    const padding = AppSpacing.xl * 2;
-    final gridWidth = screenWidth - padding;
-    final itemWidth = (gridWidth - AppSpacing.md) / 2;
-    final childAspectRatio = itemWidth / (itemWidth + 72);
-
-    return FlatmatesAsyncView<CursorListState<IncomingLikeModel>>(
+    // Intrinsic-height list avoids fixed-aspect grid overflow when hosting
+    // full DiscoverListingCard (1:1 photo + multi-line meta).
+    return FlatmatesAsyncView<CursorListState<OutgoingLikeModel>>(
       value: likes,
       onRetry: onRetry,
       isEmpty: (state) => state.items.isEmpty,
@@ -138,32 +136,41 @@ class _LikedTab extends StatelessWidget {
       ),
       data: (state) => Column(
         children: [
-          GridView.builder(
+          ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: AppSpacing.md,
-              mainAxisSpacing: AppSpacing.md,
-              childAspectRatio: childAspectRatio,
-            ),
             itemCount: state.items.length,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
             itemBuilder: (context, index) {
               final item = state.items[index];
+              if (item.targetType == 'property' && item.property != null) {
+                final property = item.property!;
+                return DiscoverListingCard(
+                  key: ValueKey('outgoing_like_property_${property.id}'),
+                  item: property,
+                  onLike: () => onPropertyLike(item),
+                  onTap: () => context.push('/flat-details/${property.id}'),
+                );
+              }
+              final peer = item.peer;
               return FlatmatesProfileGridCard(
                 key: ValueKey('outgoing_like_${item.id}'),
-                name: item.peer.fullName,
-                age: item.peer.age,
-                location: _locationForPeer(item.peer),
-                profession: _professionForPeer(locale, item.peer),
-                matchPercentage: item.peer.matchPercentage,
-                imageUrl: item.peer.profileImageUrl,
+                name: peer?.fullName ?? locale.matchPeerFallbackName,
+                age: peer?.age,
+                location: peer != null ? _locationForPeer(peer) : '',
+                profession: peer != null
+                    ? _professionForPeer(locale, peer)
+                    : '',
+                matchPercentage: peer?.matchPercentage,
+                imageUrl: peer?.profileImageUrl,
                 matchButtonLabel: '',
-                onTap: () => FlatmateProfileSheet.show(
-                  context: context,
-                  userId: item.peer.id,
-                  nameFallback: item.peer.fullName,
-                ),
+                onTap: peer != null
+                    ? () => FlatmateProfileSheet.show(
+                        context: context,
+                        userId: peer.id,
+                        nameFallback: peer.fullName,
+                      )
+                    : null,
                 onMatchTap: null,
               );
             },

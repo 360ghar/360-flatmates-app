@@ -427,21 +427,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get themeDark => 'डार्क';
 
   @override
-  String get paletteTitle => 'पैलेट';
-
-  @override
-  String get paletteInkOnPaper => 'इंक ऑन पेपर';
-
-  @override
-  String get paletteElectricIndigo => 'पेपर ब्लू';
-
-  @override
-  String get paletteEmberCoral => 'वार्म क्ले';
-
-  @override
-  String get paletteMonsoonTeal => 'मानसून टील';
-
-  @override
   String get languageTitle => 'भाषा';
 
   @override
@@ -2095,10 +2080,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get moveInImmediate => 'तुरंत';
 
   @override
+  String get moveInWithin2Weeks => '2 सप्ताह में';
+
+  @override
   String get moveInThisMonth => 'इस महीने';
 
   @override
   String get moveInNextMonth => 'अगले महीने';
+
+  @override
+  String get moveInJustExploring => 'अभी सिर्फ़ देख रहे हैं';
 
   @override
   String get moreFiltersLabel => 'अन्य फ़िल्टर';
@@ -2297,23 +2288,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get addMorePhotosLabel => 'और फ़ोटो जोड़ें';
-
-  @override
-  String waitlistNudgeTitle(String city) {
-    return '$city में अभी ज़्यादा फ्लैटमेट्स नहीं हैं';
-  }
-
-  @override
-  String get waitlistNudgeSubtitle =>
-      'जब ज़्यादा लोग जुड़ेंगे तब हम सूचित करेंगे';
-
-  @override
-  String get waitlistNotifyMe => 'मुझे सूचित करें';
-
-  @override
-  String cityCounterShort(int count, String city) {
-    return '$city में $count ढूंढ रहे हैं';
-  }
 
   @override
   String get scheduleVisitTitle => 'विज़िट शेड्यूल करें';

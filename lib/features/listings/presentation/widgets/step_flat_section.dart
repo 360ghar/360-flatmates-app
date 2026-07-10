@@ -80,7 +80,7 @@ class StepFlatSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.section - AppSpacing.md),
+          const SizedBox(height: AppSpacing.xl - AppSpacing.md),
           Text(
             locale.flatAmenitiesLabel,
             style: theme.textTheme.titleMedium?.copyWith(

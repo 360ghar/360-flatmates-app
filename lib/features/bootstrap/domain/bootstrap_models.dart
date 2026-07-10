@@ -92,6 +92,77 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
   }
 }
 
+/// Server-owned Supabase Realtime subscription config from bootstrap.
+///
+/// Backend shape: `{ provider, channel, private, events }`.
+class FlatmatesRealtimeConfig {
+  const FlatmatesRealtimeConfig({
+    this.provider = 'supabase',
+    required this.channel,
+    this.privateChannel = true,
+    this.events = const [],
+  });
+
+  final String provider;
+  final String channel;
+  final bool privateChannel;
+  final List<String> events;
+
+  factory FlatmatesRealtimeConfig.fromJson(Map<String, dynamic> json) {
+    final rawEvents = json['events'];
+    final events = rawEvents is List
+        ? rawEvents
+              .map((e) => e.toString())
+              .where((e) => e.isNotEmpty)
+              .toList(growable: false)
+        : const <String>[];
+    return FlatmatesRealtimeConfig(
+      provider: json['provider'] as String? ?? 'supabase',
+      channel: json['channel'] as String? ?? '',
+      privateChannel: json['private'] as bool? ?? true,
+      events: events,
+    );
+  }
+
+  /// Client fallback when bootstrap omits `realtime` (older backends).
+  factory FlatmatesRealtimeConfig.fallbackForUser(int userId) {
+    return FlatmatesRealtimeConfig(
+      channel: 'flatmates:user:$userId',
+      events: const [
+        'new_match',
+        'new_message',
+        'conversation_updated',
+        'visit_updated',
+        'listing_status_changed',
+        'new_notification',
+      ],
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is FlatmatesRealtimeConfig &&
+            other.provider == provider &&
+            other.channel == channel &&
+            other.privateChannel == privateChannel &&
+            _listEquals(other.events, events);
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(provider, channel, privateChannel, Object.hashAll(events));
+}
+
+bool _listEquals(List<String> a, List<String> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 @Freezed()
 class BootstrapData with _$BootstrapData {
   const BootstrapData._();
@@ -102,9 +173,11 @@ class BootstrapData with _$BootstrapData {
     @Default(0) int activeListingCount,
     @Default(0) int conversationCount,
     @Default(0) int unreadMessageCount,
+    FlatmatesRealtimeConfig? realtime,
   }) = _BootstrapData;
 
   factory BootstrapData.fromJson(Map<String, dynamic> json) {
+    final realtimeJson = json['realtime'];
     return BootstrapData(
       profile: FlatmatesProfileModel.fromJson(
         Map<String, dynamic>.from(json['profile'] as Map? ?? const {}),
@@ -117,6 +190,11 @@ class BootstrapData with _$BootstrapData {
       activeListingCount: (json['active_listing_count'] as num?)?.toInt() ?? 0,
       conversationCount: (json['conversation_count'] as num?)?.toInt() ?? 0,
       unreadMessageCount: (json['unread_message_count'] as num?)?.toInt() ?? 0,
+      realtime: realtimeJson is Map
+          ? FlatmatesRealtimeConfig.fromJson(
+              Map<String, dynamic>.from(realtimeJson),
+            )
+          : null,
     );
   }
 }

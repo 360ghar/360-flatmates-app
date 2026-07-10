@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
-import '../../../shared/presentation/flatmates_card.dart';
+import '../../../shared/presentation/flatmates_like_button.dart';
 import '../../../shared/presentation/flatmates_listing_meta_chips.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../discover_repository.dart';
 
+/// Photo-first property card aligned with Airbnb `property-card`.
 class DiscoverListingCard extends StatelessWidget {
   const DiscoverListingCard({
     required this.item,
@@ -34,6 +36,10 @@ class DiscoverListingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final ink = AppSemanticColors.textPrimaryFor(brightness);
+    final body = AppSemanticColors.textSecondaryFor(brightness);
+    final muted = AppSemanticColors.textTertiaryFor(brightness);
 
     final titleLocation = [
       if (item.locality != null && item.locality!.trim().isNotEmpty)
@@ -48,7 +54,6 @@ class DiscoverListingCard extends StatelessWidget {
       _ => locale.genderSuffixAny,
     };
 
-    // Reusable, a11y-safe (11sp minimum) meta facts row.
     final metaItems = <ListingMetaItem>[
       if (item.bedrooms != null)
         ListingMetaItem(
@@ -74,7 +79,6 @@ class DiscoverListingCard extends StatelessWidget {
         ),
     ];
 
-    // Move-in cost (first month + deposit) — surfaces hidden costs up front.
     final moveInTotal =
         item.monthlyRent.round() + (item.securityDeposit?.round() ?? 0);
 
@@ -83,56 +87,41 @@ class DiscoverListingCard extends StatelessWidget {
         item.effectiveMainImageUrl!.trim().isNotEmpty;
     final isLiked = item.liked ?? false;
 
-    return FlatmatesCard(
+    return Material(
       key: cardKey ?? Key('discover_feed_card_${item.id}'),
-      padding: EdgeInsets.zero,
-      onTap: onTap,
-      elevation: isSelected ? 8 : null,
-      child: Container(
-        decoration: isSelected
-            ? BoxDecoration(
-                border: Border.all(color: AppSemanticColors.accent, width: 2),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(AppRadius.card),
-                ),
-              )
-            : null,
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.cardBorder,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             AspectRatio(
-              aspectRatio: compact ? 16 / 9 : 16 / 10,
+              // Feed: 1:1 photo-first. Compact map carousel: wider 16:10 to fit
+              // tight 130×152 slots without meta overflow.
+              aspectRatio: compact ? 16 / 10 : 1,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppRadius.card),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: AppRadius.cardBorder,
+                      boxShadow: isSelected
+                          ? AppShadows.elevationFor(brightness)
+                          : AppShadows.none,
                     ),
-                    child: hasImage
-                        ? FlatmatesNetworkImage(
-                            imageUrl: item.effectiveMainImageUrl!,
-                            fit: BoxFit.cover,
-                          )
-                        : _CardImageFallback(
-                            title: item.title,
-                            compact: compact,
-                          ),
-                  ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.35),
-                          ],
-                          stops: const [0.5, 1.0],
-                        ),
-                      ),
+                    child: ClipRRect(
+                      borderRadius: AppRadius.cardBorder,
+                      child: hasImage
+                          ? FlatmatesNetworkImage(
+                              imageUrl: item.effectiveMainImageUrl!,
+                              fit: BoxFit.cover,
+                            )
+                          : _CardImageFallback(
+                              title: item.title,
+                              compact: compact,
+                            ),
                     ),
                   ),
                   if (badgeLabel != null)
@@ -141,19 +130,20 @@ class DiscoverListingCard extends StatelessWidget {
                       left: AppSpacing.sm,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: AppSpacing.xs - 1,
+                          horizontal: AppSpacing.sm + AppSpacing.xxs,
+                          vertical: AppSpacing.xs,
                         ),
                         decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.canvas,
                           borderRadius: AppRadius.pillBorder,
+                          boxShadow: AppShadows.elevation,
                         ),
                         child: Text(
                           badgeLabel!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppSemanticColors.ink,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
                           ),
                         ),
                       ),
@@ -163,161 +153,156 @@ class DiscoverListingCard extends StatelessWidget {
                           item.sharingType == 'shared_room'))
                     Positioned(
                       top: AppSpacing.sm,
-                      right: AppSpacing.sm,
+                      left: badgeLabel != null ? null : AppSpacing.sm,
+                      // Clearance for the top-right like control (default size 32).
+                      right: badgeLabel != null
+                          ? AppSpacing.sm + AppSpacing.xl
+                          : null,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm - 2,
-                          vertical: AppSpacing.xs - 2,
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xxs,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.sm - 2,
+                          color: AppSemanticColors.canvas.withValues(
+                            alpha: 0.92,
                           ),
+                          borderRadius: AppRadius.pillBorder,
                         ),
                         child: Text(
                           item.sharingType == 'private_room'
                               ? locale.roomTypePrivate
                               : locale.roomTypeShared,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppSemanticColors.ink,
                             fontWeight: FontWeight.w600,
+                            fontSize: 11,
                           ),
                         ),
                       ),
                     ),
                   Positioned(
-                    bottom: AppSpacing.sm,
+                    top: AppSpacing.sm,
                     right: AppSpacing.sm,
-                    child: SizedBox(
-                      width: AppSpacing.section,
-                      height: AppSpacing.section,
-                      child: IconButton(
-                        key: Key('discover_like_${item.id}'),
-                        onPressed: onLike,
-                        icon: Icon(
-                          isLiked
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          size: 14,
-                          color: isLiked
-                              ? AppSemanticColors.accent
-                              : Colors.white,
-                        ),
-                        padding: EdgeInsets.zero,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.black38,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                        ),
-                        tooltip: isLiked
-                            ? locale.unlikeListingTooltip
-                            : locale.likeListingTooltip,
-                      ),
+                    child: FlatmatesLikeButton(
+                      key: Key('discover_like_${item.id}'),
+                      liked: isLiked,
+                      onTap: onLike,
+                      iconSize: 16,
+                      tooltip: isLiked
+                          ? locale.unlikeListingTooltip
+                          : locale.likeListingTooltip,
                     ),
                   ),
                 ],
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                compact ? AppSpacing.xs : AppSpacing.sm,
-                compact ? AppSpacing.xs : AppSpacing.sm,
-                compact ? AppSpacing.xs : AppSpacing.sm,
-                AppSpacing.xs,
+              padding: EdgeInsets.only(
+                top: compact ? AppSpacing.xs : AppSpacing.sm + AppSpacing.xxs,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Rent + move-in cost row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Flexible(
-                        child: Text(
+              child: compact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
                           _formatRent(item.monthlyRent.round()),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppSemanticColors.textPrimaryFor(
-                              theme.brightness,
-                            ),
-                            fontWeight: FontWeight.w800,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: ink,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                             height: 1.15,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      if (!compact &&
-                          item.securityDeposit != null &&
-                          item.securityDeposit! > 0) ...[
-                        const SizedBox(width: AppSpacing.xs),
-                        Flexible(
-                          child: Text(
-                            locale.moveInCostLabel(
-                              FlatmatesPriceText.formatRupee(moveInTotal),
-                            ),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 11,
-                              color: AppSemanticColors.textTertiaryFor(
-                                theme.brightness,
-                              ),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xs - 1),
-                  Text(
-                    item.title,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                      fontWeight: FontWeight.w600,
-                      height: 1.3,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (titleLocation.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xs - 2),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 12,
-                          color: AppSemanticColors.textSecondaryFor(
-                            theme.brightness,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: Text(
+                        if (titleLocation.isNotEmpty)
+                          Text(
                             titleLocation,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 11,
-                              color: AppSemanticColors.textSecondaryFor(
-                                theme.brightness,
-                              ),
+                              color: muted,
+                              fontSize: 10,
+                              height: 1.15,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          item.title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: ink,
+                            fontWeight: FontWeight.w600,
+                            height: 1.25,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (titleLocation.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            titleLocation,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: muted,
+                              height: 1.43,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        if (metaItems.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          FlatmatesListingMetaChips(items: metaItems),
+                        ],
+                        const SizedBox(height: AppSpacing.xs),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                _formatRent(item.monthlyRent.round()),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: ink,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.25,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              locale.perMonthSuffix,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: body,
+                              ),
+                            ),
+                            if (item.securityDeposit != null &&
+                                item.securityDeposit! > 0) ...[
+                              const SizedBox(width: AppSpacing.sm),
+                              Flexible(
+                                child: Text(
+                                  locale.moveInCostLabel(
+                                    FlatmatesPriceText.formatRupee(moveInTotal),
+                                  ),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: muted,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                  if (!compact && metaItems.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    FlatmatesListingMetaChips(items: metaItems),
-                  ],
-                ],
-              ),
             ),
           ],
         ),
@@ -346,16 +331,7 @@ class _CardImageFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.accent.withValues(alpha: 0.9),
-            AppSemanticColors.accent.withValues(alpha: 0.35),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      color: AppSemanticColors.surfaceStrong,
       padding: EdgeInsets.fromLTRB(
         compact ? AppSpacing.sm : AppSpacing.md,
         compact ? AppSpacing.xs : AppSpacing.sm,
@@ -368,15 +344,17 @@ class _CardImageFallback extends StatelessWidget {
         children: [
           Icon(
             Icons.apartment_rounded,
-            color: Colors.white,
-            size: compact ? 16 : 18,
+            color: AppSemanticColors.muted,
+            size: compact ? 16 : 22,
           ),
           SizedBox(height: compact ? 2 : AppSpacing.xs),
           Text(
             title,
             maxLines: compact ? 1 : 2,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(color: Colors.white),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppSemanticColors.ink,
+            ),
           ),
         ],
       ),

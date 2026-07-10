@@ -347,7 +347,14 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final hasSwiped = ref.watch(swipeDeckHasSwipedProvider);
 
     if (deckState.isLoading && profiles.isEmpty) {
-      return const Scaffold(body: Center(child: FlatmatesSkeleton.card()));
+      return const Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xl),
+            child: FlatmatesSkeleton.swipeCard(),
+          ),
+        ),
+      );
     }
     if (deckState.hasError && profiles.isEmpty) {
       return Scaffold(
@@ -438,44 +445,47 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
             interaction.dragOffset,
             screenWidth,
           );
-          return Column(
+          // Card stack fills the full body so the profile is complete on first
+          // paint. Skip / Undo / Like live as trailing scroll content inside
+          // the foreground card (revealed after scrolling to the end).
+          return Stack(
             children: [
-              Expanded(
-                child: SwipeCardStack(
-                  key: const Key('swipe_card'),
-                  item: item,
-                  compatibility: compatibility,
-                  nextItem: nextItem,
-                  nextCompatibility: nextCompatibility,
-                  thirdItem: thirdItem,
-                  thirdCompatibility: thirdCompatibility,
-                  dragOffset: interaction.dragOffset,
-                  dragProgress: progress,
-                  currentRotation: rotation,
-                  isDragging: interaction.isDragging,
-                  onHorizontalDragStart: _onHorizontalDragStart,
-                  onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                  onHorizontalDragEnd: _onHorizontalDragEnd,
+              SwipeCardStack(
+                key: const Key('swipe_card'),
+                item: item,
+                compatibility: compatibility,
+                nextItem: nextItem,
+                nextCompatibility: nextCompatibility,
+                thirdItem: thirdItem,
+                thirdCompatibility: thirdCompatibility,
+                dragOffset: interaction.dragOffset,
+                dragProgress: progress,
+                currentRotation: rotation,
+                isDragging: interaction.isDragging,
+                onHorizontalDragStart: _onHorizontalDragStart,
+                onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                onHorizontalDragEnd: _onHorizontalDragEnd,
+                actionBar: SwipeActionBar(
+                  onSkip: () => _triggerButtonSwipe(-1),
+                  onLike: () => _triggerButtonSwipe(1),
+                  onUndo: _undoLastSwipe,
+                  canUndo: deckState.lastSwipedProfile != null,
+                  enabled: !interaction.isBusy,
                 ),
               ),
               if (deckState.isLoadingMore)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                const Positioned(
+                  top: AppSpacing.sm,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                 ),
-              const SizedBox(height: AppSpacing.md),
-              SwipeActionBar(
-                onSkip: () => _triggerButtonSwipe(-1),
-                onLike: () => _triggerButtonSwipe(1),
-                onUndo: _undoLastSwipe,
-                canUndo: deckState.lastSwipedProfile != null,
-                enabled: !interaction.isBusy,
-              ),
-              const SizedBox(height: AppSpacing.lg),
             ],
           );
         },

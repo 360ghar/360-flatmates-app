@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'components.dart';
 
-/// One 48px premium search bar used everywhere.
+/// Pill-shaped global search bar (Airbnb `search-bar-pill`).
 ///
-/// Replaces all custom search bars across discover, help, location,
-/// and search filters screens.
+/// White surface, fully rounded, hairline + single elevation tier.
+/// No accent focus glow — quiet chrome.
 class FlatmatesSearchBar extends StatefulWidget {
   const FlatmatesSearchBar({
     super.key,
@@ -66,84 +65,62 @@ class _FlatmatesSearchBarState extends State<FlatmatesSearchBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final ink = AppSemanticColors.textPrimaryFor(theme.brightness);
+    final muted = AppSemanticColors.textTertiaryFor(theme.brightness);
+    final fill = isDark
+        ? AppSemanticColors.darkSurface
+        : AppSemanticColors.canvas;
+    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
 
-    return AnimatedScale(
-      scale: _isFocused ? 1.01 : 1.0,
-      duration: AppMotion.fast,
-      curve: AppMotion.easeOutCubic,
-      child: AnimatedContainer(
-        duration: AppMotion.fast,
-        curve: AppMotion.easeOutCubic,
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.smBorder,
-          boxShadow: _isFocused
-              ? [AppShadows.inputFocusGlow(AppSemanticColors.accent)]
-              : const [],
-        ),
-        child: SizedBox(
-          height: 48,
-          child: TextField(
-            focusNode: _focusNode,
-            controller: widget.controller,
-            onChanged: widget.onChanged,
-            onSubmitted: widget.onSubmitted,
-            onTap: widget.onTap,
-            readOnly: widget.readOnly,
-            autofocus: widget.autofocus,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.brightness == Brightness.dark
-                  ? AppSemanticColors.paper
-                  : AppSemanticColors.ink,
-            ),
-            decoration: InputDecoration(
-              hintText: widget.hint,
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: AppSemanticColors.ink3,
-              ),
-              prefixIcon: Icon(
-                widget.leadingIcon ?? AppIcons.search,
-                size: 20,
-                color: _isFocused
-                    ? AppSemanticColors.accent
-                    : AppSemanticColors.ink3,
-              ),
-              suffixIcon: widget.trailingIcon != null
-                  ? IconButton(
-                      icon: Icon(
-                        widget.trailingIcon,
-                        size: 20,
-                        color: AppSemanticColors.ink3,
-                      ),
-                      onPressed: widget.onTrailingTap,
-                      tooltip: widget.trailingTooltip,
-                    )
-                  : null,
-              filled: true,
-              fillColor: theme.brightness == Brightness.dark
-                  ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
-                  : AppSemanticColors.card,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md,
-              ),
-              border: const OutlineInputBorder(
-                borderRadius: AppRadius.smBorder,
-                borderSide: BorderSide(color: AppSemanticColors.line),
-              ),
-              enabledBorder: const OutlineInputBorder(
-                borderRadius: AppRadius.smBorder,
-                borderSide: BorderSide(color: AppSemanticColors.line),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderRadius: AppRadius.smBorder,
-                borderSide: BorderSide(
-                  color: AppSemanticColors.accent,
-                  width: 1.5,
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: AppRadius.pillBorder,
+        border: Border.all(color: hairline),
+        boxShadow: AppShadows.elevationFor(theme.brightness),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              focusNode: _focusNode,
+              controller: widget.controller,
+              onChanged: widget.onChanged,
+              onSubmitted: widget.onSubmitted,
+              onTap: widget.onTap,
+              readOnly: widget.readOnly,
+              autofocus: widget.autofocus,
+              style: theme.textTheme.bodyMedium?.copyWith(color: ink),
+              decoration: InputDecoration(
+                hintText: widget.hint,
+                hintStyle: theme.textTheme.bodyMedium?.copyWith(color: muted),
+                prefixIcon: Icon(
+                  widget.leadingIcon ?? AppIcons.search,
+                  size: 20,
+                  color: muted,
                 ),
+                suffixIcon: widget.trailingIcon != null
+                    ? IconButton(
+                        icon: Icon(widget.trailingIcon, size: 20, color: muted),
+                        onPressed: widget.onTrailingTap,
+                        tooltip: widget.trailingTooltip,
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.transparent,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.base,
+                  vertical: AppSpacing.md,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

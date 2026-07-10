@@ -1,10 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/theme/app_radius.dart';
 import '../core/theme/app_semantic_colors.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../l10n/gen/app_localizations.dart';
@@ -28,58 +25,39 @@ class AppShell extends ConsumerWidget {
         ) ??
         'co_hunter';
     final isDark = theme.brightness == Brightness.dark;
+    final surface = isDark
+        ? AppSemanticColors.darkSurface
+        : AppSemanticColors.canvas;
+    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
 
     final destinations = _buildDestinations(mode, locale);
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: AppSemanticColors.frostBlur,
-            sigmaY: AppSemanticColors.frostBlur,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppSemanticColors.frostOverlayDark
-                  : AppSemanticColors.frostOverlayLight,
-              border: Border(
-                top: BorderSide(
-                  color: AppSemanticColors.line.withValues(alpha: 0.2),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: NavigationBar(
-                height: 76,
-                selectedIndex: navigationShell.currentIndex.clamp(0, 4),
-                onDestinationSelected: (index) {
-                  navigationShell.goBranch(
-                    index,
-                    initialLocation: index == navigationShell.currentIndex,
-                  );
-                },
-                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                indicatorColor: AppSemanticColors.accent.withValues(
-                  alpha: 0.14,
-                ),
-                indicatorShape: const RoundedRectangleBorder(
-                  borderRadius: AppRadius.smBorder,
-                ),
-                // Tighten icon→label gap so the cluster looks centered
-                // in the 76 px bar instead of floating with an invisible
-                // 8 px dead-zone (4 px Stack slack + 4 px default padding).
-                labelPadding: EdgeInsets.zero,
-                destinations: destinations,
-              ),
-            ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: surface,
+          border: Border(top: BorderSide(color: hairline)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: NavigationBar(
+            height: 64,
+            selectedIndex: navigationShell.currentIndex.clamp(0, 4),
+            onDestinationSelected: (index) {
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: Colors.transparent,
+            labelPadding: EdgeInsets.zero,
+            destinations: destinations,
           ),
         ),
       ),
@@ -143,7 +121,6 @@ class AppShell extends ConsumerWidget {
     ];
   }
 
-  /// CRITICAL FIX: Removed ValueKey recreation that reset animation state.
   /// Semantics.identifier is sufficient for Maestro testing.
   Widget _navIcon(String identifier, IconData icon) {
     return Semantics(identifier: identifier, child: Icon(icon));

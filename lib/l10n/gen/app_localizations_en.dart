@@ -427,21 +427,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
-  String get paletteTitle => 'Palette';
-
-  @override
-  String get paletteInkOnPaper => 'Ink on Paper';
-
-  @override
-  String get paletteElectricIndigo => 'Paper Blue';
-
-  @override
-  String get paletteEmberCoral => 'Warm Clay';
-
-  @override
-  String get paletteMonsoonTeal => 'Monsoon Teal';
-
-  @override
   String get languageTitle => 'Language';
 
   @override
@@ -2092,10 +2077,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moveInImmediate => 'Immediate';
 
   @override
+  String get moveInWithin2Weeks => 'Within 2 Weeks';
+
+  @override
   String get moveInThisMonth => 'This Month';
 
   @override
   String get moveInNextMonth => 'Next Month';
+
+  @override
+  String get moveInJustExploring => 'Just Exploring';
 
   @override
   String get moreFiltersLabel => 'More Filters';
@@ -2294,22 +2285,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addMorePhotosLabel => 'Add more photos';
-
-  @override
-  String waitlistNudgeTitle(String city) {
-    return 'Not many flatmates in $city yet';
-  }
-
-  @override
-  String get waitlistNudgeSubtitle => 'We\'ll notify you when more people join';
-
-  @override
-  String get waitlistNotifyMe => 'Notify Me';
-
-  @override
-  String cityCounterShort(int count, String city) {
-    return '$count looking in $city';
-  }
 
   @override
   String get scheduleVisitTitle => 'Schedule Visit';

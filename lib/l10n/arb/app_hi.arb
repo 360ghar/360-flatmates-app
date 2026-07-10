@@ -262,11 +262,6 @@
   "themeSystem": "सिस्टम",
   "themeLight": "लाइट",
   "themeDark": "डार्क",
-  "paletteTitle": "पैलेट",
-  "paletteInkOnPaper": "इंक ऑन पेपर",
-  "paletteElectricIndigo": "पेपर ब्लू",
-  "paletteEmberCoral": "वार्म क्ले",
-  "paletteMonsoonTeal": "मानसून टील",
   "languageTitle": "भाषा",
   "languageEnglish": "अंग्रेज़ी",
   "languageHindi": "हिंदी",
@@ -885,8 +880,10 @@
   "moveInFilterLabel": "मूव-इन",
   "moveInAnytime": "कभी भी",
   "moveInImmediate": "तुरंत",
+  "moveInWithin2Weeks": "2 सप्ताह में",
   "moveInThisMonth": "इस महीने",
   "moveInNextMonth": "अगले महीने",
+  "moveInJustExploring": "अभी सिर्फ़ देख रहे हैं",
   "moreFiltersLabel": "अन्य फ़िल्टर",
   "petsLabel": "पालतू",
   "petsYes": "हाँ",
@@ -965,27 +962,6 @@
   "photoTipBathroomBalcony": "• उपलब्ध हो तो बाथरूम और बालकनी भी दिखाएं",
   "photoTipCleanRoom": "• फ़ोटो लेने से पहले कमरा साफ़ कर लें",
   "addMorePhotosLabel": "और फ़ोटो जोड़ें",
-  "waitlistNudgeTitle": "{city} में अभी ज़्यादा फ्लैटमेट्स नहीं हैं",
-  "@waitlistNudgeTitle": {
-    "placeholders": {
-      "city": {
-        "type": "String"
-      }
-    }
-  },
-  "waitlistNudgeSubtitle": "जब ज़्यादा लोग जुड़ेंगे तब हम सूचित करेंगे",
-  "waitlistNotifyMe": "मुझे सूचित करें",
-  "cityCounterShort": "{city} में {count} ढूंढ रहे हैं",
-  "@cityCounterShort": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "city": {
-        "type": "String"
-      }
-    }
-  },
   "scheduleVisitTitle": "विज़िट शेड्यूल करें",
   "selectTimeSlot": "समय चुनें",
   "timeSlotMorning": "सुबह",

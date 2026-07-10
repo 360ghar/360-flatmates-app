@@ -6,9 +6,9 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 
-/// Standard card with padding, 16px radius, optional elevation, light/dark aware.
+/// Standard card — flat by default, 14px radius, single elevation tier when floated.
 ///
-/// Replaces raw `Card`, styled `Container`, `Card(elevation: 0)` one-offs.
+/// Airbnb: most surfaces are flat; elevation is reserved for hover/float moments.
 class FlatmatesCard extends StatefulWidget {
   const FlatmatesCard({
     required this.child,
@@ -21,7 +21,6 @@ class FlatmatesCard extends StatefulWidget {
     this.borderColor,
     this.margin,
     this.gradient,
-    this.borderGlow = false,
   });
 
   /// Compact card with reduced padding.
@@ -35,10 +34,9 @@ class FlatmatesCard extends StatefulWidget {
     this.borderColor,
     this.margin,
     this.gradient,
-    this.borderGlow = false,
   }) : padding = const EdgeInsets.all(AppSpacing.md);
 
-  /// Elevated card with stronger shadow.
+  /// Elevated card using the single Airbnb shadow tier.
   const FlatmatesCard.elevated({
     required this.child,
     super.key,
@@ -49,8 +47,7 @@ class FlatmatesCard extends StatefulWidget {
     this.borderColor,
     this.margin,
     this.gradient,
-    this.borderGlow = false,
-  }) : elevation = 4;
+  }) : elevation = 1;
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -63,9 +60,6 @@ class FlatmatesCard extends StatefulWidget {
 
   /// Optional gradient background (overrides [backgroundColor]).
   final LinearGradient? gradient;
-
-  /// Whether to show a primary-tinted border glow on press.
-  final bool borderGlow;
 
   @override
   State<FlatmatesCard> createState() => _FlatmatesCardState();
@@ -82,36 +76,20 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
     final resolvedRadius = widget.borderRadius ?? AppRadius.cardBorder;
     final resolvedBg =
         widget.backgroundColor ??
-        (isDark ? AppSemanticColors.darkSurface : AppSemanticColors.card);
+        (isDark ? AppSemanticColors.darkSurface : AppSemanticColors.canvas);
 
     final bool isInteractive = widget.onTap != null;
-    final shadows = <BoxShadow>[];
-
-    if (widget.elevation != null) {
-      shadows.add(
-        BoxShadow(
-          color: AppSemanticColors.ink.withValues(
-            alpha: 0.06 * (widget.elevation! / 2),
-          ),
-          blurRadius: 4 * (widget.elevation! / 2),
-          offset: Offset(0, widget.elevation! / 2),
-        ),
-      );
+    final List<BoxShadow> shadows;
+    if (widget.elevation != null && widget.elevation! > 0) {
+      shadows = AppShadows.elevationFor(theme.brightness);
+    } else if (isInteractive && _pressed) {
+      shadows = AppShadows.elevationFor(theme.brightness);
     } else {
-      shadows.add(AppShadows.cardFor(theme.brightness));
-    }
-
-    if (isInteractive && _pressed) {
-      shadows.add(AppShadows.subtleGlowFor(theme.brightness));
+      shadows = AppShadows.none;
     }
 
     final border = widget.borderColor != null
         ? Border.all(color: widget.borderColor!)
-        : widget.borderGlow && _pressed
-        ? Border.all(
-            color: AppSemanticColors.accent.withValues(alpha: 0.3),
-            width: 1.5,
-          )
         : null;
 
     return Listener(

@@ -1,795 +1,568 @@
-# DESIGN.md — 360 Flatmates Design System
+---
+version: alpha
+name: Airbnb-design-analysis
+description: A warm, generous consumer marketplace anchored on a clean white canvas and Airbnb Rausch (#ff385c), the single brand voltage that carries every primary CTA, search-button orb, and rating dot. Type runs Airbnb Cereal VF at modest weights — display sits at 22–28px in weight 500/600 rather than the heavy 700+ that fintech and enterprise systems use; the brand trusts photography and generous whitespace over typographic muscle. Three product entries (Homes, Experiences, Services) sit in the top nav with hand-illustrated 32-icon glyphs and "NEW" badges, signaling a marketplace expansion rather than a feature dump. Pill-shaped search bars (`{rounded.full}`), softly rounded property cards (`{rounded.lg}` ~14px), and 32px button radii read as friendly and human — there is no hard corner anywhere except the body grid.
 
-> **Source of truth** for all UI tokens, component specifications, and screen-by-screen
-> implementation targets. Every visual change in this codebase should reference this file.
+colors:
+  primary: "#ff385c"
+  primary-active: "#e00b41"
+  primary-disabled: "#ffd1da"
+  primary-error-text: "#c13515"
+  primary-error-text-hover: "#b32505"
+  luxe: "#460479"
+  plus: "#92174d"
+  ink: "#222222"
+  body: "#3f3f3f"
+  muted: "#6a6a6a"
+  muted-soft: "#929292"
+  hairline: "#dddddd"
+  hairline-soft: "#ebebeb"
+  border-strong: "#c1c1c1"
+  canvas: "#ffffff"
+  surface-soft: "#f7f7f7"
+  surface-card: "#ffffff"
+  surface-strong: "#f2f2f2"
+  on-primary: "#ffffff"
+  on-dark: "#ffffff"
+  legal-link: "#428bff"
+  star-rating: "#222222"
+  scrim: "#000000"
 
-## Register
+typography:
+  display-xl:
+    fontFamily: "'Airbnb Cereal VF', Circular, -apple-system, system-ui, Roboto, 'Helvetica Neue', sans-serif"
+    fontSize: 28px
+    fontWeight: 700
+    lineHeight: 1.43
+    letterSpacing: 0
+  display-lg:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 22px
+    fontWeight: 500
+    lineHeight: 1.18
+    letterSpacing: -0.44px
+  display-md:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 21px
+    fontWeight: 700
+    lineHeight: 1.43
+    letterSpacing: 0
+  display-sm:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 20px
+    fontWeight: 600
+    lineHeight: 1.20
+    letterSpacing: -0.18px
+  title-md:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 16px
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: 0
+  title-sm:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 16px
+    fontWeight: 500
+    lineHeight: 1.25
+    letterSpacing: 0
+  rating-display:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 64px
+    fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: -1px
+  body-md:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 16px
+    fontWeight: 400
+    lineHeight: 1.5
+    letterSpacing: 0
+  body-sm:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 1.43
+    letterSpacing: 0
+  caption:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 14px
+    fontWeight: 500
+    lineHeight: 1.29
+    letterSpacing: 0
+  caption-sm:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 13px
+    fontWeight: 400
+    lineHeight: 1.23
+    letterSpacing: 0
+  badge:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 11px
+    fontWeight: 600
+    lineHeight: 1.18
+    letterSpacing: 0
+  micro-label:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 12px
+    fontWeight: 700
+    lineHeight: 1.33
+    letterSpacing: 0
+  uppercase-tag:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 8px
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: 0.32px
+    textTransform: uppercase
+  button-md:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 16px
+    fontWeight: 500
+    lineHeight: 1.25
+    letterSpacing: 0
+  button-sm:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 14px
+    fontWeight: 500
+    lineHeight: 1.29
+    letterSpacing: 0
+  link:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 1.43
+    letterSpacing: 0
+  nav-link:
+    fontFamily: "'Airbnb Cereal VF', Circular, sans-serif"
+    fontSize: 16px
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: 0
 
-Product app. Ink on paper — editorial, craft, warm. The aesthetic is warm-editorial:
-approachable like a well-designed journal, polished enough for financial transactions
-(rent, deposits), and distinctive enough to feel human in a sea of generic property portals.
+rounded:
+  none: 0px
+  xs: 4px
+  sm: 8px
+  md: 14px
+  lg: 20px
+  xl: 32px
+  full: 9999px
 
-**Physical scene:** A 26-year-old software engineer scrolling on their phone in a
-Bangalore co-working space at 3 PM, natural daylight from floor-to-ceiling windows,
-slightly distracted by Slack pings. They need to find a flatmate in the next two weeks
-and are cautiously optimistic. The UI should feel like a helpful friend who works at a
-design studio — someone who appreciates good typography, warm surfaces, and editorial craft.
+spacing:
+  xxs: 2px
+  xs: 4px
+  sm: 8px
+  md: 12px
+  base: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section: 64px
 
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.button-md}"
+    rounded: "{rounded.sm}"
+    padding: 14px 24px
+    height: 48px
+  button-primary-active:
+    backgroundColor: "{colors.primary-active}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.sm}"
+  button-primary-disabled:
+    backgroundColor: "{colors.primary-disabled}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.sm}"
+  button-secondary:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.button-md}"
+    rounded: "{rounded.sm}"
+    padding: 13px 23px
+    height: 48px
+  button-tertiary-text:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.button-md}"
+  button-pill-rausch:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.button-sm}"
+    rounded: "{rounded.full}"
+    padding: 10px 20px
+  search-orb:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.full}"
+    height: 48px
+  icon-button-circle:
+    backgroundColor: "{colors.surface-strong}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.full}"
+    height: 32px
+  icon-button-outline:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.full}"
+    height: 40px
+  top-nav:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.nav-link}"
+    height: 80px
+  product-tab-active:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.nav-link}"
+    rounded: "{rounded.none}"
+  product-tab-inactive:
+    backgroundColor: transparent
+    textColor: "{colors.muted}"
+    typography: "{typography.nav-link}"
+  search-bar-pill:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.full}"
+    padding: 14px 24px
+    height: 64px
+  search-field-segment:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.caption}"
+    padding: 8px 24px
+  category-strip:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.muted}"
+    typography: "{typography.button-sm}"
+  category-tab-active:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.button-sm}"
+    rounded: "{rounded.none}"
+  property-card:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+  property-card-photo:
+    rounded: "{rounded.md}"
+  experience-card:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.title-md}"
+    rounded: "{rounded.md}"
+  city-link-block:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.title-sm}"
+  rating-display-card:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.rating-display}"
+  guest-favorite-badge:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.badge}"
+    rounded: "{rounded.full}"
+    padding: 4px 10px
+  new-tag:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.uppercase-tag}"
+    rounded: "{rounded.full}"
+    padding: 2px 6px
+  amenity-row:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.body-md}"
+    padding: 12px 0
+  reviews-card:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+  host-card:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+    padding: 24px
+  reservation-card:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.md}"
+    padding: 24px
+  date-picker-day:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.full}"
+  date-picker-day-selected:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.on-dark}"
+    rounded: "{rounded.full}"
+  text-input:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.sm}"
+    padding: 14px 12px
+    height: 56px
+  footer-light:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    padding: 48px 80px
+  footer-link:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+  legal-band:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.muted}"
+    typography: "{typography.caption-sm}"
 ---
 
-## Color Tokens
+## Overview
 
-### Primary Palette
+Airbnb is the canonical example of a generous, photography-led consumer marketplace. The base canvas is **pure white** (`{colors.canvas}` — #ffffff) with deep near-black ink (`{colors.ink}` — #222222) for headlines and body, and a single voltage of **Rausch** (`{colors.primary}` — #ff385c) carrying every primary CTA, the search-button orb, the heart save state, and inline brand links. There is no secondary brand color in mainline marketing — the **Luxe purple** (`{colors.luxe}` — #460479) and **Plus magenta** (`{colors.plus}` — #92174d) tokens are sub-brand accents that only appear inside Airbnb Luxe / Plus contexts.
 
-| Token | Value | OKLCH (approx) | Usage |
-|-------|-------|----------------|-------|
-| **Primary (Accent)** | `#C96442` | oklch(0.55 0.12 30) | CTAs, active states, icons, progress bars, links |
-| **Primary Soft** | `rgba(201,100,66,0.10)` | — | Light terracotta bg tints, selected states |
-| **Primary Container** | `#F8D5C8` | oklch(0.90 0.04 30) | Filled chip backgrounds, hover states |
+Type runs **Airbnb Cereal VF** (a custom variable font Airbnb licenses), with **Circular** as the historic in-house fallback and a system stack underneath. Cereal sits at modest weights — display headlines render at 22–28px in weight 500–600, not the heavy 700+ weights that financial or enterprise systems lean on. The hero h1 ("Inspiration for future getaways") on the homepage is just 28px / 700, which would feel small on a typical SaaS page; here it works because the layout leans on photography (city collage, property cards) for visual weight rather than typographic muscle.
 
-### Paper Scale (Background Surfaces)
+The shape language is **soft**. Buttons are 8px radius (`{rounded.sm}`), property cards are ~14px (`{rounded.md}`), the search bar is fully pill-shaped (`{rounded.full}`), wishlist hearts and search orbs are circles (`{rounded.full}`), and category strip rounded corners run at 32px (`{rounded.xl}`). There is essentially no hard corner anywhere except the body grid itself — every interactive element is rounded.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Paper** | `#F4F3EE` | Page scaffold background (warm off-white) |
-| **Paper 2** | `#EDEBE3` | Sidebar bg, elevated surface, chip bg |
-| **Paper 3** | `#E4E1D7` | Deeper surface, muted pill backgrounds |
-| **Paper 4** | `#D8D4C7` | Deepest paper shade, disabled fills |
-| **Surface (Card)** | `#FFFFFF` | Card backgrounds, input fills, modal surfaces |
+**Key Characteristics:**
+- Single accent color: `{colors.primary}` (#ff385c — "Rausch") carries every primary CTA, the search orb, the heart save state, and the brand wordmark. Used scarcely — most pages are 90% white + ink with one or two Rausch moments.
+- Custom variable type: `Airbnb Cereal VF`. Display weights sit at 500–700, body at 400. Modest weight is intentional — the system trusts photography for visual heft.
+- Three-product top nav: Homes, Experiences, Services — each with a hand-illustrated 32px icon and "NEW" badges (`{component.new-tag}`) on the two newer products. Active tab uses an underline rule (`{component.product-tab-active}`).
+- Pill-shaped global search bar: white surface, fully rounded (`{rounded.full}`), divided by 1px hairlines into Where / When / Who segments, terminated by a circular Rausch search orb (`{component.search-orb}`).
+- Property cards are photo-first: aspect-ratio rectangles with `{rounded.md}` corner clipping, swipeable image carousel, "Guest favorite" floating badge top-left, heart icon top-right, then 4–5 lines of meta beneath.
+- Editorial dropdowns (footer, language picker) are clean text columns over the white canvas — no card surface, no shadow.
+- The design system caps elevation at one shadow tier (`box-shadow: rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.04) 0 2px 6px, rgba(0,0,0,0.1) 0 4px 8px`) — used on hover-floated cards and search/account dropdowns.
+- 8px base spacing system, with major sections at `{spacing.section}` (64px) — generous but not airy enough to feel editorial-magazine; the marketplace density wants more cards per scroll.
 
-### Ink Scale (Text)
+## Colors
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Ink (Text Primary)** | `#1F1A14` | Headlines, titles, important text, prices |
-| **Ink 2 (Text Secondary)** | `#4A463E` | Body text, descriptions, subtitles |
-| **Ink 3 (Text Tertiary)** | `#8A847A` | Timestamps, hints, placeholders, disabled text |
-| **Ink 4 (Text Quaternary)** | `#B5AFA3` | Disabled outlines, faint dividers |
+### Brand & Accent
+- **Rausch** (`{colors.primary}` — #ff385c): The single brand color. Used for primary CTA backgrounds (Reserve, Continue), the search orb, the heart save state on property cards, and inline brand links. The most recognizable color in consumer travel.
+- **Rausch Active** (`{colors.primary-active}` — #e00b41): The press / pointer-down variant — slightly more saturated. Used on `{component.button-primary-active}`.
+- **Rausch Disabled** (`{colors.primary-disabled}` — #ffd1da): A pale tint used on disabled CTAs.
+- **Luxe Purple** (`{colors.luxe}` — #460479): Sub-brand accent for Airbnb Luxe. Only appears inside Luxe-branded surfaces — never in mainline marketing.
+- **Plus Magenta** (`{colors.plus}` — #92174d): Sub-brand accent for Airbnb Plus. Same scoping as Luxe — sub-product only.
 
-### Line Scale (Borders)
+### Surface
+- **Canvas** (`{colors.canvas}` — #ffffff): The default page floor for every public page. Airbnb does not have a dark mode on the public web.
+- **Surface Soft** (`{colors.surface-soft}` — #f7f7f7): The lightest fill — used on disabled fields, sub-nav hover backgrounds, and the inline search filter band.
+- **Surface Strong** (`{colors.surface-strong}` — #f2f2f2): Slightly heavier fill — circular icon-button surface (e.g., the breadcrumb back-arrow and listing toolbar buttons).
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Line** | `rgba(31,26,20,0.08)` | Dividers, card borders, input borders |
-| **Line 2** | `rgba(31,26,20,0.04)` | Subtle borders, faint separators |
-| **Line Low** | `rgba(31,26,20,0.04)` | Disabled outlines, minimal contrast |
+### Hairlines & Borders
+- **Hairline** (`{colors.hairline}` — #dddddd): The default 1px border tone — search bar dividers, table separators, footer column splitters, card 1px borders.
+- **Hairline Soft** (`{colors.hairline-soft}` — #ebebeb): A lighter divider used on long-scrolling editorial body separators.
+- **Border Strong** (`{colors.border-strong}` — #c1c1c1): A heavier stroke used on disabled outline buttons and form input outlines after focus.
 
-### Semantic Colors
+### Text
+- **Ink** (`{colors.ink}` — #222222): The dominant text color on light surfaces. Display headlines, body paragraphs, primary nav links, and most inline link text. Never pure black.
+- **Body** (`{colors.body}` — #3f3f3f): A secondary running-text color used inside long-form review and amenity copy where ink would feel too heavy.
+- **Muted** (`{colors.muted}` — #6a6a6a): Sub-titles inside city link blocks ("Cottage rentals", "Villa rentals"), inactive product-tab labels, footer category sub-labels, "View all" links.
+- **Muted Soft** (`{colors.muted-soft}` — #929292): Disabled link text. Used very sparingly.
+- **Star Rating** (`{colors.star-rating}` — #222222): The same ink token — Airbnb's star icon and "4.81" rating numbers all render in ink rather than a yellow/gold color, which is a deliberate brand choice (yellow stars feel cheap in travel context).
+- **On Primary** (`{colors.on-primary}` — #ffffff): White text on Rausch CTAs.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Success** | `#5B8C44` | Match % rings, confirmed states, online indicators |
-| **Success Soft** | `rgba(91,140,68,0.12)` | Success bg tints |
-| **Error / Destructive** | `#B4452C` | Logout, errors, delete actions, declined states |
-| **Error Soft** | `rgba(180,69,44,0.10)` | Error bg tints |
-| **Warning** | `#B57828` | Pending states, reminders, expiring-soon badges |
-| **Warning Soft** | `rgba(181,120,40,0.10)` | Warning bg tints |
-| **Info** | `#C96442` (primary) | Informational badges, tips, links |
+### Semantic
+- **Error** (`{colors.primary-error-text}` — #c13515): Inline error text for form validation. Distinct from Rausch — slightly darker, more saturated red.
+- **Error Hover** (`{colors.primary-error-text-hover}` — #b32505): Darkens on link hover.
+- **Legal Link Blue** (`{colors.legal-link}` — #428bff): Inline links inside legal copy (Privacy, Terms). Only used inside the legal sub-band.
 
-### Compatibility Score Colors
-
-| Threshold | Color | Value | Usage |
-|-----------|-------|-------|-------|
-| ≥ 70% | Green | `#5B8C44` | High compatibility ring fill |
-| 40–69% | Amber | `#B57828` | Medium compatibility ring fill |
-| < 40% | Red | `#B4452C` | Low compatibility ring fill |
-
-### Categorical Pastel Palette
-
-Eight categorical colors for data visualization, feature pills, profile badges, and
-compatibility dimension labels. Each has three tiers: soft (background), mid (icon/accent),
-and ink (text on soft).
-
-| Category | Soft (bg) | Mid (accent) | Ink (text on bg) | Usage |
-|----------|-----------|-------------|-------------------|-------|
-| **Blue** | `#E1EAF4` | `#5B88B5` | `#2A4868` | Gender filter, blue accent |
-| **Purple** | `#E7DDF1` | `#8B7BB8` | `#4A3E70` | Purple accent, lifestyle |
-| **Green** | `#DCEAD4` | `#6A9068` | `#2D4A2E` | Food habits (veg), nature |
-| **Yellow** | `#F5E8B8` | `#C49840` | `#5C4318` | Warning category, budget |
-| **Orange** | `#FCE0C8` | `#D17847` | `#5E3318` | Primary accent family, warmth |
-| **Teal** | `#CFE4DF` | `#5A9DA8` | `#1A4A52` | Location, explore, map |
-| **Pink** | `#F6DDE3` | `#C28098` | `#6B3548` | Profile, likes, social |
-| **Coral** | `#F8D5C8` | `#C96442` | `#5E3318` | Primary accent, CTAs |
-
-### Dark Mode Derivations
-
-Dark mode derives a warm charcoal palette preserving the ink-on-paper feel:
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Dark Scaffold** | `#1A1612` | Page scaffold background (warm charcoal) |
-| **Dark Surface** | `#2A2520` | Card surfaces, input fills |
-| **Dark Surface Elevated** | `#342E28` | Elevated cards, bottom nav bg |
-| **Dark Paper 2** | `#252018` | Sidebar/secondary surface |
-
-Key dark mode rules:
-- Primary accent stays `#C96442` (terracotta works well on dark)
-- Ink text → lightened warm equivalents: primary `#F4F3EE`, secondary `#E4E1D7`, tertiary `#8A847A`
-- Shadows reduce significantly (dark mode has inherent depth)
-- Line/border alpha increases slightly for visibility on dark
-- Categorical pastel soft tiers darken to maintain contrast
-
----
+### Scrim
+- **Scrim** (`{colors.scrim}` — #000000 at 50% opacity): The global modal backdrop tone — date picker, login dialog, language picker. Stored as the base hex; opacity is applied at render time.
 
 ## Typography
 
-### Font Families
+### Font Family
+The system runs **Airbnb Cereal VF** for everything — display, body, navigation, captions, microcopy. Fallbacks walk `Circular, -apple-system, system-ui, Roboto, "Helvetica Neue", sans-serif`. **Circular** is the historic in-house typeface still kept as the first non-variable fallback; system stacks back it up.
 
-- **Display / Headlines:** Fraunces (Google Fonts) — variable optical-size serif, editorial, confident. Uses `opsz` and `SOFT` variation settings for typographic warmth. Weight 400 (variable serifs are naturally expressive at light weights).
-- **Body / UI:** Inter (Google Fonts) — clean, readable, neutral workhorse sans-serif
-- **Mono / Eyebrow:** JetBrains Mono (Google Fonts) — code, terminals, eyebrow labels, tabular data
-- **Italic Serif:** Instrument Serif (Google Fonts) — italic emphasis, pull quotes, decorative text
+There is no separate display family. The variable font carries the entire scale.
 
-### Type Scale
+### Hierarchy
 
-| Name | Size | Weight | Line Height | Letter Spacing | Font | Usage |
-|------|------|--------|-------------|----------------|------|-------|
-| **Display** | 32sp | Regular (400) | 1.05 | -0.035 | Fraunces | Splash tagline, hero text |
-| **H1** | 28sp | Regular (400) | 1.05 | -0.035 | Fraunces | Screen titles ("Profile", "Settings") |
-| **H2** | 24sp | Regular (400) | 1.1 | -0.025 | Fraunces | Section heads ("Picked for You") |
-| **H3** | 16sp | SemiBold (600) | 1.25 | -0.012 | Inter | Card titles, listing names |
-| **H4-H6** | 14sp | SemiBold (600) | 1.3 | -0.01 | Inter | Subtitles, small headings |
-| **Body Large** | 16sp | Medium (500) | 1.5 | 0 | Inter | Primary body text, greetings |
-| **Body Medium** | 14sp | Medium (500) | 1.45 | 0 | Inter | Secondary text, descriptions |
-| **Label Large** | 14sp | Bold (700) | 1.0 | 0.5 | Inter | Buttons, chip labels |
-| **Label Medium** | 12sp | SemiBold (600) | 1.4 | 0.2 | Inter | Tags, badges, metadata |
-| **Caption** | 12sp | Regular (400) | 1.4 | 0 | Inter | Timestamps, hints, placeholders |
-| **Eyebrow** | 10sp | SemiBold (600) | 1.4 | 0.16em (uppercase) | JetBrains Mono | Section labels, category markers |
-| **Italic Serif** | inherit | Regular (400) | inherit | -0.01 | Instrument Serif (italic) | Emphasized words, pull quotes |
+| Token | Size | Weight | Line Height | Letter Spacing | Use |
+|---|---|---|---|---|---|
+| `{typography.rating-display}` | 64px | 700 | 1.1 | -1px | Listing detail rating display ("4.81") |
+| `{typography.display-xl}` | 28px | 700 | 1.43 | 0 | Homepage h1 ("Inspiration for future getaways") |
+| `{typography.display-lg}` | 22px | 500 | 1.18 | -0.44px | Listing detail h1 ("Close to Fethiye Aliyah Bali Beach…") |
+| `{typography.display-md}` | 21px | 700 | 1.43 | 0 | Section heads inside listing detail ("What this place offers") |
+| `{typography.display-sm}` | 20px | 600 | 1.20 | -0.18px | Sub-section titles ("Things to know") |
+| `{typography.title-md}` | 16px | 600 | 1.25 | 0 | City link block titles ("Wilmington", "Athens") |
+| `{typography.title-sm}` | 16px | 500 | 1.25 | 0 | Footer column heads ("Support", "Hosting", "Airbnb") |
+| `{typography.body-md}` | 16px | 400 | 1.5 | 0 | Default running-text inside listing copy |
+| `{typography.body-sm}` | 14px | 400 | 1.43 | 0 | Card meta lines, dates, prices, distance text |
+| `{typography.caption}` | 14px | 500 | 1.29 | 0 | Search field segment labels ("Where", "When", "Who") |
+| `{typography.caption-sm}` | 13px | 400 | 1.23 | 0 | Footer legal line ("© 2026 Airbnb, Inc.") |
+| `{typography.badge}` | 11px | 600 | 1.18 | 0 | "Guest favorite" floating badge text |
+| `{typography.micro-label}` | 12px | 700 | 1.33 | 0 | Card amenity micro-labels ("Inline 6") |
+| `{typography.uppercase-tag}` | 8px | 700 | 1.25 | 0.32px (uppercase) | "NEW" badge on product nav tabs |
+| `{typography.button-md}` | 16px | 500 | 1.25 | 0 | Primary CTA button labels |
+| `{typography.button-sm}` | 14px | 500 | 1.29 | 0 | Pill button labels (category strip) |
+| `{typography.link}` | 14px | 400 | 1.43 | 0 | Inline body links |
+| `{typography.nav-link}` | 16px | 600 | 1.25 | 0 | Top product-nav labels (Homes, Experiences, Services) |
 
-### Fraunces Variable Settings
+### Principles
+Display weights stay modest. The homepage h1 at 28px / 700 is deliberately small — it tucks under the search bar so photography and the city-link grid carry visual hierarchy. The listing-detail h1 at 22px / 500 is even quieter; the listing photo banner does the work above it.
 
-Headlines using Fraunces should set font variation settings for optimal rendering:
-- `opsz`: Match the font size (e.g., H1 at 28sp → `opsz 112`, Display at 32sp → `opsz 144`)
-- `SOFT`: 50 for display, 40 for H1, 30 for H2 (controls serif softness)
-- `WONK`: 0 (disables alternate character forms for mobile readability)
+The single typographically loud moment in the entire system is the **rating display** (`{typography.rating-display}` — 64px / 700) on listing pages. That is the only place the system trusts type alone to carry hierarchy — rating numbers are a peak trust signal, so they get the loudest treatment.
+
+### Note on Font Substitutes
+If Airbnb Cereal VF and Circular are unavailable, **Inter** is the closest open-source substitute. Adjust display headlines down by ~2% in line-height to match Cereal's slightly tighter cap height; otherwise the proportions transfer cleanly.
+
+## Layout
+
+### Spacing System
+- **Base unit:** 4px (with 2px micro-step).
+- **Tokens:** `{spacing.xxs}` 2px · `{spacing.xs}` 4px · `{spacing.sm}` 8px · `{spacing.md}` 12px · `{spacing.base}` 16px · `{spacing.lg}` 24px · `{spacing.xl}` 32px · `{spacing.xxl}` 48px · `{spacing.section}` 64px.
+- **Section padding (vertical):** `{spacing.section}` (64px) for major page bands; tighter than typical SaaS marketing (80–96px) because marketplace pages need higher card density per scroll.
+- **Card internal padding:** `{spacing.lg}` (24px) for `{component.host-card}` and `{component.reservation-card}`; `{spacing.base}` (16px) for property-card meta block; `{spacing.sm}` (8px) for caption / date-row gutters.
+- **Gutters:** `{spacing.base}` (16px) between cards in the homepage city grid; `{spacing.lg}` (24px) inside footer column gutters; `{spacing.xs}` (4px) on dense category-strip dividers.
+
+### Grid & Container
+- **Max content width:** ~1280px centered on the homepage and editorial pages. Listing detail pages cap closer to 1080px to keep the photo banner and reservation rail readable.
+- **City link grid (homepage footer):** 6-column grid at desktop with each cell housing a city name in `{typography.title-md}` and a category sub-label in `{typography.body-sm}` muted.
+- **Listing detail:** 2-column with photo / amenity body on the left (~64% width) and a sticky reservation card (`{component.reservation-card}`) on the right (~32%).
+- **Footer:** 3-column link list (Support / Hosting / Airbnb) at desktop, collapsing to 1-column on mobile.
+
+### Whitespace Philosophy
+The system gives editorial bands 64px of vertical breathing room but compresses card grids — property and city-link cards sit just 16px apart. The contrast is intentional: the page reads as "open hero, dense marketplace below," reinforcing the marketplace nature without overwhelming the visitor at the fold.
+
+## Elevation
+
+The system has essentially **one shadow tier** plus the flat baseline.
+
+- **Flat (no shadow):** Body, hero, footer, all editorial bands — 95% of surfaces.
+- **Card hover float:** `box-shadow: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 6px 0, rgba(0, 0, 0, 0.1) 0 4px 8px 0` — applied to property cards on pointer hover, the search bar at rest, and the dropdown menus (account menu, language picker, date picker). This is the single shadow definition in the entire system.
+- **Modal scrim:** `{colors.scrim}` rendered at 50% opacity — the global modal backdrop. Used on date pickers, login dialogs, language picker.
+
+There are no progressive elevation tiers — the system either has the one shadow or none. Depth comes from photography, the white-on-white surface separation, and rounded-corner clipping rather than from layered shadows.
+
+## Components
+
+### Buttons
+
+**`button-primary`** — Rausch fill, white text, 8px radius, 14×24px padding, 48px height, weight 500. The most common CTA across the system: "Reserve", "Continue", "Search", account-flow primaries.
+
+**`button-primary-active`** — The press state. Background flips to `{colors.primary-active}`. No transform, no shadow change.
+
+**`button-primary-disabled`** — Pale Rausch tint at #ffd1da with white text. Cursor not-allowed.
+
+**`button-secondary`** — White fill with ink text and a 1px ink outline. 8px radius. Used for "Save", "Cancel", and inverse CTAs over Rausch surfaces.
+
+**`button-tertiary-text`** — Plain ink text, no surface, no border. Underlined on hover. Used for "Show more" type links and modal close labels.
+
+**`button-pill-rausch`** — A pill-shaped Rausch CTA used on featured cells (e.g., "Become a host" sub-CTA) — 9999px radius, 10×20px padding, 14px label.
+
+### Search Surface
+
+**`search-bar-pill`** — The signature global search bar. White fill, 9999px radius, 64px height, 1px hairline 1px-shadow border. Internally divided by vertical hairline rules into `{component.search-field-segment}` cells (Where / When / Who). Each segment holds an uppercase caption label above a placeholder line in `{typography.caption}`.
+
+**`search-orb`** — The circular Rausch orb terminating the right edge of the search bar. 48×48px, fully rounded, white magnifying-glass icon centered. The hottest single color moment on the homepage.
+
+### Top Navigation
+
+**`top-nav`** — White surface, 80px height, 1px bottom hairline. The Airbnb wordmark sits flush left, the three product tabs (Homes / Experiences / Services) sit in the dead center, and account utilities (host link, language globe, account menu) sit flush right.
+
+**`product-tab-active`** — Ink label in `{typography.nav-link}`, 32px hand-illustrated icon, 2px ink underline rule beneath the icon-label pair.
+
+**`product-tab-inactive`** — Muted label, illustrated icon, no underline. Becomes active on click.
+
+**`new-tag`** — A tiny rounded-pill badge (`{rounded.full}`) anchored top-right of an icon, carrying the uppercase "NEW" label in `{typography.uppercase-tag}` (8px / 700 with 0.32px tracking, uppercase). Used on Experiences and Services to signal recency.
+
+### Listing Cards
+
+**`property-card`** — A photo-first card. 1:1 aspect-ratio image with `{rounded.md}` corner clipping, image carousel dots overlay, "Guest favorite" floating badge top-left (`{component.guest-favorite-badge}`), and a heart icon top-right (`{component.icon-button-circle}` in default outlined state, Rausch-filled when saved). Beneath the image: 4–5 lines of meta — title (`{typography.title-md}`), distance / dates (`{typography.body-sm}` muted), and price ("$X night") right-aligned.
+
+**`property-card-photo`** — The photo plate itself, separated as a token because some surfaces (wishlist, search results) reuse just the photo without the meta block.
+
+**`experience-card`** — A taller-aspect card (4:5) for experience listings. Same `{rounded.md}` clipping, floating "NEW" badge top-left, heart top-right, and a single-line title beneath.
+
+**`guest-favorite-badge`** — White rounded pill (`{rounded.full}`) at 11px / 600 weight. Sits over the photo with the system's only shadow tier applied for elevation.
+
+### Listing Detail
+
+**`rating-display-card`** — The signature listing-detail moment. A 64px / 700 rating number ("4.81") flanked left and right by tiny laurel-wreath SVG ornaments. Beneath the rating: "Guest favorite" tagline and a row of ink stat columns. The largest typographic weight in the whole system.
+
+**`amenity-row`** — A 1-column list of amenity icons + ink labels in `{typography.body-md}`. 12px row padding, no border between rows; section is closed by a 1px hairline divider above and below.
+
+**`reviews-card`** — A 2-column grid of review excerpts. Each column holds an author row (avatar, name, date) above a 3-line excerpt with "Show more" tertiary link.
+
+**`host-card`** — A white card with `{rounded.md}` rounding and 24px padding holding a host avatar, name, "Superhost" badge, response-rate stat, and a "Contact host" `{component.button-secondary}`.
+
+**`reservation-card`** — The sticky right-rail card on listing detail pages. White surface, `{rounded.md}` rounding, 1px hairline border, 1px shadow tier elevation, 24px padding. Contains: nightly price (`{typography.display-md}` ink), date-range selector, guest-count stepper, "Reserve" primary CTA full-width, and a fee breakdown stack beneath in `{typography.body-sm}`.
+
+### Date Picker
+
+**`date-picker-day`** — A 40×40px circular cell carrying the day number in `{typography.body-sm}`. Default state is transparent fill, ink text.
+
+**`date-picker-day-selected`** — Ink fill, white text, full circle (`{rounded.full}`). Range states between two selected days carry a `{colors.surface-soft}` lozenge background that connects them.
+
+### Forms
+
+**`text-input`** — White surface, 1px hairline outline, `{rounded.sm}` 8px radius, 56px height, 14×12px padding. Stacked label above (in `{typography.caption}` muted), placeholder text in `{typography.body-md}` muted. On focus, the border thickens to 2px ink and the border color flips to `{colors.ink}` — no glow, no ring.
+
+### Footer
+
+**`footer-light`** — White surface (matches the page canvas — Airbnb has no contrast footer), 48×80px padding. Three columns of link blocks (Support / Hosting / Airbnb), separated by generous 24px gutters. Each column heads with a `{typography.title-sm}` ink label and stacks `{component.footer-link}` rows in `{typography.body-sm}` ink.
+
+**`legal-band`** — A bottom strip beneath the footer columns carrying the copyright line, language picker (globe icon + "English (US)" link), currency picker, and social icons (Facebook, X, Instagram). All text in muted `{colors.muted}` at `{typography.caption-sm}`.
+
+## Responsive Behavior
+
+| Name | Width | Key Changes |
+|---|---|---|
+| Mobile | < 744px | Top nav collapses to logo + hamburger; product tabs hide behind a sheet; search bar collapses to a single tappable pill; property cards stack 1-up; city grid 1-column; listing detail collapses reservation card to a sticky bottom bar. |
+| Tablet | 744–1128px | Top nav keeps product tabs but search bar narrows; property cards 2-up; city grid 2–3 column; reservation card stays sticky right-rail at narrower width. |
+| Desktop | 1128–1440px | Full top nav with three product tabs centered; search bar at full pill width with all 3 segments visible; property cards 4-up; city grid 6-column; listing detail 2-column with reservation rail. |
+| Wide | > 1440px | Content width caps at 1440px on listing/search pages and ~1280px on editorial; gutters absorb the rest. |
+
+### Touch Targets
+- Primary CTAs at minimum 48×48px (above WCAG AAA).
+- Search orb is 48×48px circular — the most-tapped element on the page.
+- Heart save button is 32×32px circular — borderline for AAA but compensated by a generous 12px padding inside the photo card.
+- Date-picker day cells are 40×40px circular.
+
+### Collapsing Strategy
+- Top product tabs collapse into a hamburger sheet below 744px.
+- Search bar's 3 segments collapse into a single-tap entry that opens a full-screen search overlay on mobile.
+- Property and city-link grids drop column counts cleanly at each breakpoint — never reflow rows; always reduce columns.
+- Reservation card on listing detail switches from sticky right-rail to a sticky bottom bar on mobile, carrying just the "Reserve" CTA + nightly price summary.
+
+## Loading / Skeleton screens
+
+Page and panel content loads use **layout-matched skeleton placeholders** (`FlatmatesSkeleton` in `lib/features/shared/presentation/skeleton/`), not spinners.
+
+### Tokens
+
+| Token | Light | Dark | Role |
+|---|---|---|---|
+| Bone fill | `surfaceStrong` (`#f2f2f2`) | `darkSurfaceElevated` (`#2a2a2a`) | Placeholder shapes |
+| Shimmer highlight | `canvas` (`#ffffff`) | `#3a3a3a` | Sweep highlight over bones |
+| Soft surface | `surfaceSoft` | dark surface @ 60% | Group containers under bones |
+| Unread tint | `primarySoft` | primary @ 12% | Emphasized rows (no left stripe) |
+| Shimmer duration | `AppMotion.skeletonShimmer` (1200ms) | linear, repeating | Disabled when reduced motion is on |
 
 ### Rules
 
-- Cap body line length at ~65-70 characters (Flutter's default wrapping handles this)
-- Headline-to-body scale ratio >= 1.25 (we use 28/16 = 1.75 for H1/body)
-- Never use em dashes; use commas, colons, or parentheses
-- Fraunces headlines should feel light and editorial — never bold the serif
-- Use Instrument Serif italic for inline emphasis instead of bold
-- Tabular/monospace text uses JetBrains Mono with `font-variant-numeric: tabular-nums`
-
----
-
-## Border Radius
-
-| Element | Radius | Notes |
-|---------|--------|-------|
-| **Cards (listing, notification, menu)** | 16px | Standard content cards |
-| **Cards (flat, compact)** | 12px | Flat card variant |
-| **Buttons (filled CTA)** | 10px | Primary action buttons |
-| **Buttons (outline/secondary)** | 10px | Secondary actions |
-| **Icon buttons** | 9px | Small square icon buttons |
-| **Inputs / Text Fields** | 9px | Search bars, form fields |
-| **Chips / Pills (filter, tag)** | 999px | Fully circular pills |
-| **Avatars** | 12px | Square-rounded avatar (editorial style) |
-| **Avatar (circular variant)** | 999px | Circular for profile photos |
-| **Icon containers (menu item icon bg)** | 12px | Small square icon backgrounds |
-| **Nav items** | 9px | Sidebar/bottom nav item background |
-| **Notification icon bg** | 999px (circular) | 48px circle for notification type icons |
-| **Bottom sheet / dialog top** | 8px | Top corners only |
-| **Snackbar / toast** | 16px | Notification toasts |
-| **FAB / floating action** | 16px | Edit avatar overlay button |
-| **Dialog** | 8px | All corners |
-| **Pipeline metrics** | 8px | Small metric cards |
-| **Toggle** | 999px | Rounded pill toggle |
-
----
-
-## Spacing
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Screen edge padding** | 20-24px | Left/right margins for page content |
-| **Section gap** | 24-28px | Vertical space between major sections |
-| **Card internal padding** | 16px | Padding inside cards |
-| **Element gap (tight)** | 8px | Between icon and label in a row |
-| **Element gap (normal)** | 12px | Between form fields, list items |
-| **Element gap (relaxed)** | 16px | Between heading and content |
-| **Element gap (section)** | 24px | Between distinct content blocks |
-| **List item vertical spacing** | 12-16px | Between items in a list |
-
----
-
-## Shadows
-
-All shadows use warm ink tints (`rgba(31,26,20,...)`) instead of cool black. Primary-tinted
-shadows use terracotta (`rgba(201,100,66,...)`) instead of purple.
-
-### Shadow Scale
-
-| Token | Shadow | Usage |
-|-------|--------|-------|
-| **Shadow xs** | `0 1px 2px rgba(31,26,20,0.04)` | Subtle nav items, flat cards |
-| **Shadow sm** | `0 2px 6px rgba(31,26,20,0.06)` | Standard content cards |
-| **Shadow md** | `0 6px 18px rgba(31,26,20,0.08)` | Hover lift, elevated elements |
-| **Shadow lg** | `0 18px 60px rgba(31,26,20,0.12), 0 4px 16px rgba(31,26,20,0.06)` | Modals, drawers, overlays |
-
-### Component Shadows
-
-| Element | Shadow | Usage |
-|---------|--------|-------|
-| **Cards** | `0 2px 6px rgba(31,26,20,0.06)` | Subtle elevation for content cards (sm) |
-| **Elevated (FAB, dropdown)** | `0 4px 12px rgba(31,26,20,0.10)` | Floating elements |
-| **Buttons (filled)** | `0 2px 8px rgba(201,100,66,0.18)` | Terracotta-tinted CTA shadow |
-| **Modal / Bottom Sheet** | `0 18px 60px rgba(31,26,20,0.12), 0 4px 16px rgba(31,26,20,0.06)` | Overlay surfaces (lg) |
-| **Card hover glow** | `0 4px 16px rgba(201,100,66,0.08)` | Terracotta-tinted ambient glow on interactive card press |
-| **Card pressed** | `0 4px 12px rgba(31,26,20,0.10)` | Elevated shadow for pressed interactive cards |
-| **Bottom bar top** | `0 1px 2px rgba(31,26,20,0.04)` | Top-edge shadow for bottom nav (xs) |
-| **Input focus glow** | `0 2px 12px rgba(201,100,66,0.12)` | Terracotta-tinted glow for focused search bars / inputs |
-
-### Dark Mode Shadow Derivations
-
-All shadow tokens have reduced-intensity warm dark mode variants:
-- Card: `0 1px 2px rgba(31,26,20,0.04)` (xs only)
-- Card hover: `0 2px 6px rgba(31,26,20,0.06)` (sm)
-- Terracotta glow: `0 2px 6px rgba(201,100,66,0.04)` (minimal)
-- Bottom bar: none (inherent dark-mode depth)
-- Navigation bar: none
-
----
-
-## Frost / Glassmorphism Tokens
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| **Frost blur (sigma)** | 3.0 | `BackdropFilter` sigma for frosted-glass surfaces (subtler than before) |
-| **Frost overlay (light)** | `rgba(244,243,238,0.88)` | Paper-tinted overlay behind frosted surfaces |
-| **Frost overlay (dark)** | `rgba(26,22,18,0.88)` | Warm charcoal overlay on dark surfaces |
-
-### Frosted-Glass Surfaces
-
-| Surface | Background Alpha | Blur | Notes |
-|---------|-----------------|------|-------|
-| **Bottom navigation bar** | 0.88 | 3σ | Semi-transparent paper surface over content |
-| **Bottom sheet** | 0.92 | 3σ | `ClipRRect` + `BackdropFilter` before content |
-| **Bottom action bar** | 0.88 | 3σ | `ClipRRect` + `BackdropFilter` before content |
-
----
-
-## Gradient Tokens
-
-| Token | Stops | Usage |
-|-------|-------|-------|
-| **Primary gradient** | accent(0.95) → accent(1.0) top-to-bottom | Subtle CTA depth |
-| **Surface gradient** | paper(0.5) → paper-2 top-to-bottom | Card depth wash |
-| **Shimmer gradient** | paper-2 → card → paper-2 (sweep) | Skeleton loading animation |
-| **Success gradient** | `#DCEAD4` → `#C2DAB2` top-left → bottom-right | Status banner wash |
-| **Warning gradient** | `#F5E8B8` → `#E8D5A0` top-left → bottom-right | Status banner wash |
-| **Error gradient** | `#F8D5C8` → `#F0C0B0` top-left → bottom-right | Status banner wash |
-| **Nudge gradient** | accent(0.08) → accent(0.03) top-left → bottom-right | Waitlist / promo cards |
-| **Ingestion category gradients** | pastel-soft → white (135deg) | Feature category cards |
-
----
-
-## Component Specifications
-
-### Primary Button (Filled CTA)
-
-- Background: solid `#C96442` (terracotta, NOT gradient)
-- Text: white, 14sp bold (Label Large), center-aligned
-- Padding: horizontal 24px, vertical 16px
-- Border radius: 10px
-- Height: 52px (standard), 56px (tall)
-- Full-width variant: stretch to parent width
-- Disabled: paper-4 bg, ink-3 text
-- Shadow: terracotta-tinted shadow when enabled
-- Press feedback: 0.97 scale on press (150ms easeOutCubic), terracotta glow shadow
-
-### Secondary Button (Outline)
-
-- Border: 1.5px solid #C96442 (or line for neutral)
-- Text: #C96442 (or ink for neutral)
-- Same dimensions as filled button
-- No shadow
-- Press feedback: 0.97 scale on press (150ms easeOutCubic), border animates to 0.7 alpha
-
-### Tertiary Button (Text)
-
-- Text only, #C96442 color, 14sp medium weight
-- No border, no background, no shadow
-- Used for Skip, "See all", links
-
-### Listing Card (Home Feed — Horizontal Layout)
-
-- Width: 300px, height: 370px
-- Layout: Row with image left (148px wide), content right
-- Image: aspect ratio 0.82, radius 16px, cover fit
-- Image overlay: heart icon (top-right, 40px white circle bg)
-- Price: 26sp bold, ink color (NOT terracotta)
-- Title: 16sp semiBold (Fraunces for hero cards), below price
-- Location: row with pin icon + ink-2 text
-- Info pills: beds, baths, area as compact pills
-- Feature pills: furnished, wifi, etc.
-- Owner row: small avatar (34px) + name + interest count
-- Description: 2-line max, truncated
-- Footer: solid FlatmatesButton (terracotta)
-- Compatibility ring: 32px, positioned above title
-- Interactive: terracotta glow shadow + optional borderGlow on press
-
-### Profile Grid Card (Likes Tab — 2-Column Grid)
-
-- Layout: Column within fixed-width cell (~48% of screen width)
-- Photo: top, 16px radius, 1:1 or 4:5 aspect ratio
-- Match % circle: green ring, top-right corner of photo, 44px — animated arc-draw on mount (300ms)
-- Name: 15sp bold, below photo
-- Age + location: 12sp ink-2, below name
-- Profession: 12sp ink-3, below location
-- "Match" CTA: full-width, solid terracotta, 10px radius, 42px height — scale bounce 0.8→1.0 on appear (easeOutBack)
-
-### Menu Item Row (Profile / Settings)
-
-- Height: 56px
-- Layout: Row with icon container (left), label (expanded), chevron (right)
-- Icon container: 40x40px, rounded 12px, pastel-tinted bg matching category
-- Label: 15sp medium weight, ink
-- Chevron: 20px, ink-3 color
-- Divider below each item (except last in group)
-- Group spacing: 24px between groups
-- Press feedback: 0.98 scale + icon container AnimatedOpacity (0.8→1.0), terracotta-tinted splash
-
-### Notification Card
-
-- Padding: 16px horizontal, 14px vertical
-- Layout: Row with icon container (left), content (center), time+dot (right)
-- Icon container: 48px circle, pastel bg per type:
-  - Booking confirmed: teal-soft
-  - New message: blue-soft
-  - Visit reminder: yellow-soft
-  - Listing approved: green-soft
-- Title: 15sp semiBold, ink
-- Description: 13sp regular, ink-2, 2 lines max
-- Timestamp: 12sp, ink-3, right-aligned
-- Unread indicator: 3px terracotta left accent border + 10px terracotta dot below timestamp
-- Card bg: white, 16px radius, warm shadow sm
-
-### Search Bar
-
-- Height: 48px
-- Border radius: 9px
-- Background: card white (light mode) / dark surface (dark mode)
-- Border: line (rgba(31,26,20,0.08))
-- Leading icon: search, 20px, ink-3
-- Placeholder: 14sp regular, ink-3
-- Trailing icon: optional (location pin, clear, mic)
-- Focus state: terracotta-tinted glow shadow (inputFocusGlow), 1.01 scale lift, prefix icon turns terracotta
-
-### Filter Chip
-
-- Selected: coral-soft bg (#F8D5C8), terracotta text, optional terracotta border
-- Unselected: paper-2 bg, ink-2 text, line border
-- Radius: 999px (pill-shaped)
-- Padding: horizontal 14px, vertical 8px
-- Avatar/icon support: 16px icon before label
-- Selection spring: 1.03 scale with easeOutBack overshoot on selection
-
-### Bottom Navigation Bar
-
-- Height: 76px
-- Background: paper color at 0.88 alpha with frosted-glass backdrop blur (3σ)
-- Active: terracotta (#C96442) for icon + label
-- Inactive: ink-3 (#8A847A) for icon + label
-- Labels: always visible (labelBehavior.alwaysShow)
-- No elevation / minimal top border
-- Indicator: terracotta.withAlpha(0.14) background
-- Mode-dependent destinations (see Navigation section below)
-
-### Avatar
-
-- Default size: 52px
-- Shape: 12px rounded square (editorial style); circular variant available for profile photos
-- Fallback: gradient from terracotta to terracotta.withAlpha(0.72), white initials
-- Shadow: subtle (blur 10, offset Y 4, ink at 8% alpha)
-- With image: ClipRRect + Image.network with error fallback
-- Optional ring: animated terracotta arc-draw on mount (300ms, ease-out) via `showRing: true`
-
-### Logo (36 FLATMATES)
-
-- Compact mode: "36" at 28sp extra-bold (Fraunces) + rotate_right icon (30px) + "FLATMATES" at 13sp (Inter, uppercase, 0.16em tracking)
-- Full mode: "36" at 38sp extra-bold (Fraunces) + rotate_right icon (38px) + "FLATMATES" at 15sp (Inter, uppercase, 0.16em tracking)
-- Color: terracotta (#C96442) for all elements
-- "36" letter-spacing: -1.4
-- "FLATMATES" letter-spacing: +1.6
-
-### Shared Component Library
-
-All pages should use the `Flatmates*` shared widgets from
-`features/shared/presentation/` (barrel-exported via `components.dart`) instead of
-duplicating Scaffold/SafeArea/ListView/async-state patterns:
-
-| Widget | Purpose |
-|--------|---------|
-| `FlatmatesScreen` | Unified page scaffold (Scaffold + SafeArea + padding + 200ms fade-in, paper background) |
-| `FlatmatesAsyncView` | Async state handler — renders loading/data/empty/error from `AsyncValue<T>` |
-| `FlatmatesNetworkImage` | Network image with placeholder/error fallback (replaces raw `Image.network`) |
-| `FlatmatesCard` | Content card container (interactive press glow, optional gradient/borderGlow) |
-| `FlatmatesChip` | Filter/tag chip with `.choice()` variant (selection spring animation) |
-| `FlatmatesHeader` | Page header with optional back button and actions |
-| `FlatmatesSkeleton` | Shimmer loading placeholder (`.card`, `.list`, `.feed`, `.profile` variants) |
-| `FlatmatesErrorState` | Error display with retry action (200ms fade-in + slide-up entry) |
-| `FlatmatesEmptyState` | Empty state with illustration and message (200ms fade-in + breathing icon) |
-| `FlatmatesBottomActionBar` | Sticky bottom action bar for CTAs (frosted-glass backdrop) |
-| `FlatmatesBottomSheet` | Styled bottom sheet container (frosted-glass backdrop) |
-| `FlatmatesSearchBar` | Search input with leading/trailing icons (focus glow + scale lift) |
-| `FlatmatesSegmentedControl` | Tab-style segmented selector (sliding pill indicator) |
-| `FlatmatesStepProgress` | Multi-step progress indicator |
-| `FlatmatesPriceText` | Formatted price display |
-| `FlatmatesTrustBadge` | Verified/trust indicator badge |
-| `FlatmatesProfileMiniCard` | Compact profile row (avatar + name + subtitle) |
-| `FlatmatesListingMiniCard` | Compact listing row (thumbnail + title + price) |
-
----
-
-## Navigation Structure
-
-### Mode-Dependent Bottom Navigation (PRD Section 4.1)
-
-Every user has exactly one mode. Mode determines which bottom nav tabs they see.
-
-| Tab | Room Poster | Co-Hunter | Open to Both |
-|-----|------------|-----------|-------------|
-| **1** | Home (Feed) | Home (Feed) | Home (Feed) |
-| **2** | Post / Manage Property | Properties (Map View) | Properties (Map View) |
-| **3** | Swipe | Swipe | Swipe |
-| **4** | Likes & Chat | Likes & Chat | Likes & Chat |
-| **5** | Profile | Profile | Profile |
-
-**Tab Icons & Labels:**
-
-| Tab | Icon (outlined / rounded) | Label |
-|-----|--------------------------|-------|
-| Home | home_outlined / home_rounded | Home |
-| Post (Room Poster) | add_home_outlined / add_home_rounded | Post |
-| Explore (Co-Hunter/Open) | map_outlined / map_rounded | Explore |
-| Swipe | swap_horiz (same) | Swipe |
-| Likes & Chat | favorite_border / favorite_rounded | Likes & Chat |
-| Profile | person_outline / person_rounded | Profile |
-
-**Note:** Notifications is accessed via a route (/notifications), not a tab.
-The notification bell icon may appear in specific screen headers but not globally.
-
----
-
-## Screen-by-Screen Specifications
-
-### Screen 01 — Splash (`360f_01_splash.png`)
-
-- Warm paper background (#F4F3EE)
-- Centered: 360 FLATMATES logo (full size, terracotta)
-- Tagline: "Find. Connect. Live Together." — Display/Regular, Fraunces, centered
-- Subtitle: "The smarter way to find your flat and flatmates." — Body Medium, Inter, centered
-- Illustration: Living room line art (sofa, plant, lamp, picture frame)
-- Bottom: Thin progress bar (track: paper-3, fill: terracotta, height: 4px, width: 60%)
-
-### Screen 02 — Onboarding (`360f_02_onboarding.png`)
-
-- Background: very light warm tint (#F4F3EE)
-- Illustration: Two people at cafe table (colored, warm tones)
-- Headline: "Find the **right** flat. The **right** flatmates." — H1, Fraunces Regular, "**right**" words in Instrument Serif italic
-- Subtitle: "Verified homes. Compatible flatmates. Better living, together." — Body Medium, Inter
-- Bottom row: Skip (text button, left) + Next (filled terracotta CTA with arrow icon, right)
-- Page dots: 4 dots, outline style, active = filled terracotta circle, centered above buttons
-
-### Screen 03 — Choose Role / Mode Selection (`360f_03_choose-role.png`)
-
-- Back arrow: top-left
-- Progress indicator: 4 dots connected by lines at top, first dot active (filled)
-- Heading: "I am looking to" — H1 bold
-- Subtitle: "Select the option that best describes you" — Body Medium
-- **3 option cards** (vertical stack, 16px radius, white bg, subtle shadow):
-  - Each: 56px terracotta-soft circle with outline icon (left) + text column (center) + chevron (right)
-  - Card 1: home icon + "Find a Flat / Flatmate" (H3) + "I want to find a place or a flatmate to stay with"
-  - Card 2: group icon + "List My Flat / Find Flatmate" (H3) + "I want to list my flat or find a flatmate"
-  - Card 3: swap_horiz icon + "Open to Both" (H3) + "I'm flexible — open to both finding a place and listing my flat"
-- CTA: "Continue" — filled terracotta, full width, 10px radius
-
-### Screen 04 — Location Selection (`360f_04_location.png`)
-
-- Back arrow: top-left
-- Heading: "Select your preferred location" — H1
-- Search bar: "Search location" placeholder, search icon
-- "Use my current location" row: location icon + terracotta text + chevron
-- Divider
-- "POPULAR CITIES" label: Caption uppercase, letter-spaced, ink-3 color
-- City rows (5): pin icon (terracotta) + city name + chevron, each in a rounded container (12px radius, paper-2 bg)
-- Cities: Bangalore, Hyderabad, Pune, Chennai, Mumbai
-- CTA: "Continue" — filled terracotta, full width
-
-### Screen 05 — Home / Discover (`360f_05_home-discover.png`)
-
-- Header row:
-  - Left: Greeting "Hi, [Name]!" (H2 bold)
-  - Below greeting: Location with dropdown chevron
-  - Right: Notification bell icon + user avatar (52px)
-- Search bar: "Search by location, name or landmark", 20px radius
-- Filter chips row (horizontal scroll): Nearby, 1BHK, Furnished, Budget+ (with + icon)
-- "Picked for You" section header + "See all >" link
-- Listing cards: horizontal scroll, 300px wide each (horizontal layout per user decision)
-- "New in [City]" section: subtitle + "Explore >" link
-- Bottom nav: 5 tabs (mode-dependent)
-
-### Screen 06 — Search & Filters (`360f_06_search-filters.png`)
-
-- Back arrow (left) + filter/tune icon (right)
-- Heading: "Search & Filters" — H1
-- Search bar with location pin icon (right side of bar)
-- "Filters" section label — H3
-- Collapsible filter sections:
-  - Location: label + "Select preferred areas" hint + selected chips (with X) + chevron
-  - Budget: label + "Select your budget range" + selected range text + chevron
-  - Room Type: label + "Select room configuration" + pills (Any/Private/Shared)
-  - Furnishing: label + "Select furnishing type" + pills (Any/Furnished/Unfurnished)
-  - Gender: label + "Select preferred gender" + pills (Any/Male/Female)
-  - Move-in: label + "Select move-in date" + "Anytime" + chevron
-  - More filters: expandable (chevron down/up)
-- CTA: "Show Results" — filled terracotta, full width, with filter icon
-
-### Screen 07 — Flat Details (`360f_07_flat-details.png`)
-
-- Image carousel: full-width, ~220px tall, back/share/heart icon overlays (top)
-- Title: "Modern 2BHK Flat" — H2 bold
-- Price: "₹24,000 / month" — H3 bold, terracotta color
-- Location: pin icon + "HSR Layout, Bangalore" — Body Medium
-- Icon row (compact): Beds(2), Furnished, WiFi, High-Speed, 24/7 Security, Parking, Lift
-- "About this Flat" section: description paragraph
-- Availability grid: Available from (date) | Posted on (date) — 2 columns
-- Action buttons: "Shortlist" (outline, left) + "Contact" (filled terracotta, right)
-- Verified badge: checkmark + "Verified listing"
-
-### Screen 08 — Chat Thread (`360f_08_chat.png`)
-
-- App bar: back arrow + avatar (40px) + name + verified dot + role badge + phone icon + video icon + 3-dot menu
-- Property card: thumbnail (88px) + title + price + owner + "View Listing" outlined button + time
-- Message bubbles:
-  - Sent: solid terracotta (#C96442), white text, 16px radius, right-aligned
-  - Received: paper-3 bg, ink text, 16px radius, left-aligned, avatar per message
-- Timestamps: below each bubble, 11sp, ink-3 color
-- Read receipts: double-check marks
-- Input bar: smiley icon (left) + "Type a message..." field + attachment + send circle (terracotta, right)
-
-### Screen 09 — Likes & Chat (`360f_09_likes-chat.png`)
-
-- Header: 360 logo (compact, left) + icons (search?, more?) + "Likes & Chat" (H1, bold)
-- Toggle: "Likes" (filled terracotta pill) / "Chats" (outline pill)
-- **Likes tab:** "People who liked you" (heart icon + text + "See all")
-  - 2-column grid of profile cards (photo, name/age/location/profession, match % circle, Match CTA)
-- **Chats tab:** Conversation list (avatar, name, preview, time)
-- Safety banner: shield icon + "Safety first" + privacy note + chevron
-- Bottom nav: 5 tabs
-
-### Screen 10 — Schedule Visit (`360f_10_schedule-visit.png`)
-
-- Back arrow (left) + 360 logo (top-center)
-- Property card: image + title + matched date + owner avatar/name
-- "Schedule Visit" — H2 bold
-- Calendar picker: month navigation, date grid, selected date circled (terracotta)
-- "Select Time Slot": Morning / Afternoon (selected, terracotta fill) / Evening pills
-- "Add a Note (Optional)": textfield with character count
-- Privacy note: shield icon + "Your visit request will be shared with [Owner]."
-- CTA: "Send Request" — filled terracotta, full width, with paper plane icon
-- Bottom nav: 5-6 tabs
-
-### Screen 11 — Add Listing Step 1 (`360f_11_add-listing.png`)
-
-- Back arrow (left) + 360 logo (top-center)
-- "List Your Flat" — H1 bold
-- "Step 1 of 7" + progress bar (thin, terracotta fill proportion)
-- Form fields (white bg, no card wrappers):
-  - Flat Details (dropdown with chevron)
-  - Flat Title (text input, placeholder "E.g. 2BHK in Koramangala")
-  - Location (dropdown with pin icon + chevron)
-  - Rent (text input with ₹ prefix icon)
-  - Room Type (dropdown with chevron)
-  - Furnishing (dropdown with chevron)
-- CTA: "Next" — filled terracotta, full width
-
-### Screen 12 — Add Photos (`360f_12_photos.png`)
-
-- Back arrow (left)
-- "Add Photos" — H1 bold
-- Tips toggle (right-aligned): "Tips" pill button
-- Instruction: "Add clear photos of the room and common areas to get more matches."
-- Uploaded photo cards: 3 shown, each with delete (X) icon overlay, 16px radius
-- "+ Add More" link with plus icon
-- Pagination dots: 3 dots, second active
-- CTA: "Next" — filled terracotta, full width
-
-### Screen 13 — Preferences (`360f_13_preferences.png`)
-
-- Back arrow (left)
-- Progress bar: 5 segments, third segment filled (step 3 of 5+)
-- "Preferences" — H1 bold
-- Subtitle: "Tell us what matters to you so we can find the right flatmates and homes."
-- Collapsible sections (each with icon, label, hint, chevron):
-  - Preferred Gender: pills (No Preference / Male Only / Female Only / Other)
-  - Allowed Flatmates: number pills (1 / 2 / 3 / 4+)
-  - Food Habits: pills (Veg / Non-Veg / Egggetarian / No Preference)
-  - Pets: pills (Yes / No / No Preference)
-  - Smoking: pills (No / Yes / No Preference)
-  - Move-in Timeline: dropdown ("Within 1 Month")
-- CTA: "Next →" — filled terracotta, full width, with arrow icon
-
-### Screen 14 — Review & Publish (`360f_14_review-publish.png`)
-
-- Back arrow (left)
-- Progress bar: 5 segments, fourth filled (step 4 of 5)
-- "Review Your Listing" — H1 bold
-- Subtitle: "Please review all details before publishing."
-- Property photo + details card (compact listing preview)
-- Expandable sections (each with icon + label + edit chevron):
-  - Preferences summary
-  - Property Rules summary
-  - Nearby & Notes summary
-- Review notice banner: shield icon + "We'll review your listing" + approval note
-- CTA: "Publish Listing" — filled terracotta, full width, with upload icon
-- "Save as Draft" — text link, centered
-
-### Screen 15 — Profile (`360f_15_profile.png`)
-
-- Header: "Profile" (H1, left) + settings gear icon (top-right)
-- Avatar: large circular photo with edit pencil FAB overlay (bottom-right, terracotta circle bg)
-- Name: "Rahul Sharma" — H2 bold, centered
-- Role badge: checkmark icon + "Co-Hunter" — outlined pill, terracotta color
-- Location: pin icon + "Bengaluru, Karnataka" — Body Medium, centered
-- Menu list (using FlatmatesMenuItem):
-  1. My Bookings (calendar_month_outlined)
-  2. Shortlisted (favorite_border)
-  3. My Chats (chat_bubble_outline)
-  4. Documents (description_outlined)
-  5. Payment Methods (payment_outlined)
-  6. Settings (settings_outlined)
-  7. Help & Support (help_outline)
-  8. Logout (logout, error color)
-- Bottom nav: 5 tabs
-
-### Screen 16 — Listing Under Review (`360f_16_listing-under-review.png`)
-
-- 360 logo (top-left area)
-- Clipboard/checkmark illustration (center-top)
-- "Listing Under Review" — H1 bold
-- "Thank you! Your listing has been submitted." — Body Medium
-- "Review Listing" button — outlined terracotta
-- "We'll review your listing within 24 hours" — highlighted text
-- "What happens next?" — H3 + 3 numbered steps:
-  1. Team reviews (quality + safety)
-  2. Verify you (ID confirmation)
-  3. Go live (flat connecting)
-- Property preview card (small)
-- CTAs: "Go to Home Feed" (filled, with home icon) + "View Listing" (outline, with eye icon)
-- Bottom nav: 5-6 tabs
-
-### Screen 17 — Notifications (`360f_17_notifications.png`)
-
-- Header: "Notifications" (H1, left) + checkmark/mark-all-read icon (top-right)
-- Notification cards (using FlatmatesNotificationCard):
-  1. Booking Confirmed — calendar icon, "Your visit with Arjun is confirmed..."
-  2. New Message from Priya — chat icon, "Hey! I'm interested..."
-  3. Visit Reminder — bell icon, "You have a visit with Neha..."
-  4. Listing Approved — verified icon, 'Your listing "2BHK..." is now live.'
-- Each card: unread dot (terracotta) for unread items
-- Bottom nav: 5 tabs, notifications tab highlighted if present
-
-### Screen 18 — Help & Support (`360f_18_help-support.png`)
-
-- Back arrow (left)
-- "Help & Support" — H1 bold
-- Search bar: "Search for help" placeholder
-- Category rows (using FlatmatesMenuItem pattern):
-  1. FAQ (?) — "Find answers to common questions"
-  2. Popular Topics (fire) — "Explore trending help topics"
-  3. Payments & Refunds (wallet) — "Payment issues, refunds and more"
-  4. Booking & Agreements (clipboard) — "Bookings, agreements & policies"
-  5. Account & Profile (person) — "Manage your account and profile"
-  6. Contact Support (headset) — "Get in touch with our support team"
-- CTA: "Chat with Us" — filled terracotta, full width, with chat icon
-- Note: "We usually reply in a few minutes" with shield icon
-- Bottom nav: 5 tabs
-
-### Screen 19 — Settings (`360f_19_settings.png`)
-
-- Back arrow (left)
-- "Settings" — H1 bold, centered
-- Groups using FlatmatesMenuItem:
-  - **Account:**
-    1. Edit Profile (person)
-    2. Change Password (lock)
-    3. Privacy & Security (shield)
-    4. Preferences (tune)
-  - **App:**
-    5. Notification Settings (bell)
-    6. Blocked Users (person_off)
-  - **Legal:**
-    7. About (info)
-    8. Terms & Conditions (description)
-  - **Standalone:**
-    9. Logout (logout, error text + error icon)
-- Bottom nav: 5 tabs, Settings active
-
-### Screen 20 — Post & Manage Property (`360f_20_post-manage-property.png`)
-
-- 360 logo (top-left) + icons (search?, more?)
-- "Post & Manage Property" — H1 bold
-- "New Listing" CTA: filled terracotta, full width, with grid icon + "New Listing" text
-- Tab bar: "Active Listings (N)" / "Drafts (N)" / "Expired (N)" — segmented control
-- Property cards:
-  - Image + title + price + quick stats (beds/baths/sqft/wifi)
-  - Owner info row
-  - Stats grid (2 rows x 3 cols): Match Count (24) | Edit | Boost | View Stats (3.8k) | Review | Share
-- Bottom nav: 5 tabs, Post/Manage active
-
----
-
-## Animation Guidelines
-
-| Animation | Duration | Curve | Notes |
-|-----------|----------|-------|-------|
-| Page transitions (route push/pop) | 250ms | ease-out-quart (decelerate) | Default Material transition |
-| Android page transition | — | FadeUpwardsPageTransitionsBuilder | Applied via `pageTransitionsTheme` |
-| iOS page transition | — | CupertinoPageTransitionsBuilder | Platform-convention slide |
-| Tab switch (bottom nav) | 200ms | ease-out | Fade + slight scale |
-| Button press (ripple/scale) | 150ms | ease-out-circ | Scale down to 0.97 on press |
-| Card appear (staggered list) | 300ms | ease-out | 50ms stagger between items |
-| Hero / shared-element transition | 300ms | ease-out-quart | Shared element transitions |
-| AnimatedSwitcher | 220ms | ease-out-cubic | Content swap transitions |
-| Page entry fade-in | 200ms | ease-out-cubic | FlatmatesScreen mount animation |
-| Stagger item delay | 100ms | — | Delay between menu group / list item animations |
-| Breathing icon pulse | 2000ms | linear | Repeating reverse for empty-state icons |
-| Swipe card rotation | varies | spring physics | Max 15° rotation |
-| Compatibility ring fill | 300ms | ease-out | Animated arc drawing |
-| Avatar ring draw | 300ms | ease-out | Animated arc on mount via `showRing` |
-| Match celebration | <600ms | ease-out-expo | Card flip + confetti |
-| Filter chip select | 150ms | ease-out-back | 1.03 scale spring overshoot |
-| Bottom sheet show/dismiss | 280ms | ease-out-quart | From bottom |
-| FAB → expanded state | 250ms | ease-out-back | Slight overshoot |
-| Skeleton shimmer | 1200ms | linear | Repeating gradient |
-| Segmented pill slide | 220ms | ease-out-quart | AnimatedPositioned indicator |
-
-### Motion Rules
-
-- Don't animate layout properties (use AnimatedSize/Position instead)
-- Ease-out curves only (exponential: quart/quint/expo)
-- No bounce, no elastic (except intentional FAB overshoot)
-- Keep animations under 400ms for micro-interactions
-- Respect `reduceAccessibility` / animation scale settings
-
-### Premium Motion Behaviors
-
-- **Press feedback**: All interactive cards, buttons, and menu items scale down to 0.97 on pointer-down via `AnimatedScale` + `Listener` (not `GestureDetector`, to avoid gesture arena conflicts). Return to 1.0 on pointer-up with `easeOutCubic` (150ms).
-- **Focus glow**: Search bar and focused inputs gain a terracotta-tinted `BoxShadow` glow (`inputFocusGlow`) + subtle 1.01 scale lift on focus.
-- **Selection spring**: Chips scale to 1.03 with `easeOutBack` overshoot on selection, returning to 1.0 on deselect.
-- **Staggered appear**: Feed cards fade in + slide up with 50ms stagger between items (`StaggeredCardAppear`). Profile menu groups stagger with 100ms delay between groups.
-- **Animated ring**: Compatibility rings and avatar rings draw their arc on mount (300ms, ease-out) via `CustomPaint` inside `AnimatedBuilder`.
-- **Frosted glass**: Bottom nav, bottom sheets, and bottom action bars use `BackdropFilter` with 3σ blur + semi-transparent paper surface (0.88–0.92 alpha). Apply `ClipRRect` before `BackdropFilter` to constrain blur bounds.
-- **Page entry**: `FlatmatesScreen` wraps body in 200ms `FadeTransition` for silky page entry. Android routes use `FadeUpwardsPageTransitionsBuilder`.
-- **Sliding pill**: `FlatmatesSegmentedControl` uses `AnimatedPositioned` for a sliding selection indicator (220ms, easeOutQuart).
-- **Entry animations**: `FlatmatesEmptyState` and `FlatmatesErrorState` fade in + slide up on mount (200ms). Empty-state icons have a subtle 2s breathing (pulse) animation.
-
----
-
-## Dark Mode
-
-All tokens above apply to both light and dark modes. Dark mode specifics:
-
-- Backgrounds derive from warm charcoal palette (`#1A1612`, `#2A2520`, `#342E28`)
-- Text colors use lightened warm ink equivalents: `#F4F3EE` (primary), `#E4E1D7` (secondary), `#8A847A` (tertiary)
-- Cards use `#2A2520` instead of pure white
-- Primary terracotta stays the same (#C96442) — it works well on dark
-- Borders become slightly more visible (dark mode needs more contrast; use `rgba(31,26,20,0.16)`)
-- Shadows are reduced (dark mode has inherent depth)
-- Categorical pastel soft tiers darken to maintain contrast
-- All screens must be tested in dark mode after any light-mode changes
-
----
-
-## Accessibility
-
-- Minimum touch target: 44x44px for all interactive elements
-- Color contrast ratio: minimum 4.5:1 for normal text, 3:1 for large text
-- Don't convey information by color alone (always pair with icons/text)
-- Screen reader labels on all interactive elements (via Semantics or Tooltip)
-- Focus indication visible for keyboard/navigation users
-- Reduced motion: disable/ simplify all animations when system setting is on
+- Use **skeleton** for full-screen / full-panel content placeholders that mirror the eventual layout (discover feed, lists, chat, profile, map, filters, forms).
+- Use **`CircularProgressIndicator`** only for **in-action** progress: button submit, photo/video upload, pagination footers, inline search fields.
+- Prefer page-specific factories: `.discoverFeed()`, `.browseListings()`, `.flatDetails()`, `.swipeCard()`, `.conversationList()`, `.chatMessages()`, `.notificationList()`, `.visitList()`, `.manageListings()`, `.mapExplore()`, `.profile()`, `.searchFilters()`, `.settingsList()`, `.form()`, `.peerProfileSheet()`, `.legalContent()`.
+- Generic `.list()` defaults to multiple rows; `.card()` / `.feed()` are legacy helpers.
+- Bones use `AppRadius` tokens (xs for text lines, card for photos, pill for chips).
+- Respect **reduced motion**: static bones, no shimmer animation.
+- Skeleton roots expose `Semantics(label: 'Loading')`.
+
+### Known Gaps
+
+- **Hover state colors:** intentionally not documented per the global no-hover policy — Airbnb's actual `:hover` styling for property cards is a subtle elevation lift, but precise extraction is unreliable.
+- **Map view styling:** the search-results map uses Mapbox-tinted tiles with custom Rausch markers; not captured here.
+- **Form input error states:** error text color (`{colors.primary-error-text}`) is documented, but the full input outline + helper-text combination on validation failure was not visible in the captured surfaces.
+- **Sub-brand palettes:** Luxe (`{colors.luxe}`) and Plus (`{colors.plus}`) are documented as tokens, but their full sub-system (typography overrides, surface treatment) lives on separate sub-domains and is not captured here.

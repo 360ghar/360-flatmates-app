@@ -7,7 +7,6 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import '../../../../core/compatibility/compatibility_engine.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
@@ -286,7 +285,6 @@ class PremiumPhotoFallback extends StatelessWidget {
                     color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    fontFamily: AppTypography.fontFamilySerif,
                     letterSpacing: 1,
                   ),
                 ),
@@ -299,7 +297,6 @@ class PremiumPhotoFallback extends StatelessWidget {
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
-                fontFamily: AppTypography.fontFamilySerif,
               ),
             ),
           ],
@@ -499,7 +496,6 @@ class HeroInfoOverlay extends StatelessWidget {
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            fontFamily: AppTypography.fontFamilySerif,
             height: 1.2,
             shadows: [
               Shadow(

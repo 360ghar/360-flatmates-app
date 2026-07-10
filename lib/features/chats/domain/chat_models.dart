@@ -1,5 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../discover/data/property_listing_dto.dart';
+import '../../discover/domain/property_listing.dart';
+
 part 'chat_models.freezed.dart';
 
 @Freezed()
@@ -218,6 +221,64 @@ class IncomingLikeModel {
       createdAt:
           DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+  }
+}
+
+class OutgoingLikeModel {
+  const OutgoingLikeModel({
+    required this.id,
+    required this.targetType,
+    this.peer,
+    this.property,
+    this.contextProperty,
+    required this.createdAt,
+  });
+
+  final int id;
+  final String targetType;
+  final ChatPeer? peer;
+  final PropertyListing? property;
+  final ChatPropertyContext? contextProperty;
+  final DateTime createdAt;
+
+  factory OutgoingLikeModel.fromJson(Map<String, dynamic> json) {
+    final targetType = json['target_type'] as String? ?? 'user';
+    PropertyListing? property;
+    if (targetType == 'property' && json['property'] is Map) {
+      // Outgoing property likes are always liked from the owner's perspective.
+      // Force true so Liked-tab hearts and toggle-unlike never depend on a
+      // missing/mis-typed `liked` field from the payload.
+      property = PropertyListingDto.fromJson(
+        Map<String, dynamic>.from(json['property'] as Map),
+      ).copyWith(liked: true);
+    }
+    return OutgoingLikeModel(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      targetType: targetType,
+      peer: targetType == 'property'
+          ? null
+          : ChatPeer.fromJson(
+              Map<String, dynamic>.from(json['peer'] as Map? ?? const {}),
+            ),
+      property: property,
+      contextProperty: json['context_property'] == null
+          ? null
+          : ChatPropertyContext.fromJson(
+              Map<String, dynamic>.from(json['context_property'] as Map),
+            ),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+  }
+
+  factory OutgoingLikeModel.fromPropertyListing(PropertyListing property) {
+    return OutgoingLikeModel(
+      id: -property.id,
+      targetType: 'property',
+      property: property.copyWith(liked: true),
+      createdAt: DateTime.now().toUtc(),
     );
   }
 }

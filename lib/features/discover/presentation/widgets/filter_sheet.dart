@@ -11,7 +11,6 @@ import '../../application/discover_feed_controller.dart';
 import '../../discover_repository.dart';
 import 'search_active_filter_chips.dart';
 import 'search_budget_filter_card.dart';
-import 'search_filter_form_skeleton.dart';
 import 'search_filter_widgets.dart';
 import 'search_more_filters_card.dart';
 
@@ -339,10 +338,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
         ),
         const SizedBox(height: AppSpacing.sm),
         if (showSkeleton)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: SearchFilterFormSkeleton(),
-          )
+          const SizedBox(height: 420, child: FlatmatesSkeleton.searchFilters())
         else if (showError)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),

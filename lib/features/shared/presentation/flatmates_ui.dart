@@ -102,21 +102,7 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
       decoration: BoxDecoration(
         shape: widget.shape,
         borderRadius: resolvedRadius,
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.accent.withValues(alpha: 0.95),
-            AppSemanticColors.accent.withValues(alpha: 0.72),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppSemanticColors.accent.withValues(alpha: 0.18),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppSemanticColors.surfaceStrong,
       ),
       child: hasImage
           ? (isCircle
@@ -145,7 +131,7 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
           return CustomPaint(
             painter: _RingPainter(
               progress: _ringController.value,
-              color: AppSemanticColors.accent,
+              color: AppSemanticColors.primary,
               strokeWidth: 2.5,
               isCircle: isCircle,
               borderRadiusValue: resolvedRadius != null
@@ -251,9 +237,9 @@ class _AvatarFallback extends StatelessWidget {
       child: Text(
         initials,
         style: theme.textTheme.titleMedium?.copyWith(
-          color: Colors.white,
+          color: AppSemanticColors.ink,
           fontSize: size * 0.34,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -290,8 +276,9 @@ class FlatmatesLogo extends StatelessWidget {
                 text: '36',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontSize: numberSize,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: -1.4,
+                  color: AppSemanticColors.ink,
                 ),
               ),
               WidgetSpan(
@@ -300,7 +287,7 @@ class FlatmatesLogo extends StatelessWidget {
                   offset: Offset(0, compact ? -2 : -4),
                   child: Icon(
                     Icons.rotate_right_rounded,
-                    color: AppSemanticColors.accent,
+                    color: AppSemanticColors.primary,
                     size: compact ? 30 : 38,
                   ),
                 ),
@@ -311,10 +298,10 @@ class FlatmatesLogo extends StatelessWidget {
         Text(
           'FLATMATES',
           style: theme.textTheme.labelLarge?.copyWith(
-            color: AppSemanticColors.accent,
+            color: AppSemanticColors.primary,
             fontSize: labelSize,
             letterSpacing: 1.6,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -353,7 +340,7 @@ class FlatmatesButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.icon,
-    this.height = 52,
+    this.height = 48,
     this.fullWidth = false,
   }) : variant = FlatmatesButtonVariant.primary,
        iconOnly = false,
@@ -364,7 +351,7 @@ class FlatmatesButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.icon,
-    this.height = 52,
+    this.height = 48,
     this.fullWidth = false,
     this.destructive = false,
   }) : variant = FlatmatesButtonVariant.secondary,
@@ -397,7 +384,7 @@ class FlatmatesButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.icon,
-    this.height = 52,
+    this.height = 48,
     this.fullWidth = false,
   }) : variant = FlatmatesButtonVariant.google,
        destructive = false,
@@ -460,18 +447,18 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
               backgroundColor: widget.destructive
                   ? AppSemanticColors.error
                   : enabled
-                  ? AppSemanticColors.accent
-                  : null,
-              foregroundColor: Colors.white,
+                  ? AppSemanticColors.primary
+                  : AppSemanticColors.primaryDisabled,
+              foregroundColor: AppSemanticColors.onPrimary,
+              disabledBackgroundColor: AppSemanticColors.primaryDisabled,
+              disabledForegroundColor: AppSemanticColors.onPrimary,
               shape: const RoundedRectangleBorder(
-                borderRadius: AppRadius.mdBorder,
+                borderRadius: AppRadius.smBorder,
               ),
-              elevation: enabled ? 1 : 0,
-              shadowColor: enabled && !widget.destructive
-                  ? AppSemanticColors.accent.withValues(alpha: 0.18)
-                  : null,
+              elevation: 0,
+              shadowColor: Colors.transparent,
             ),
-            child: _buildChild(theme, Colors.white),
+            child: _buildChild(theme, AppSemanticColors.onPrimary),
           ),
         ),
       ),
@@ -479,12 +466,13 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
   }
 
   Widget _buildSecondary(ThemeData theme, bool enabled) {
+    final isDark = theme.brightness == Brightness.dark;
     final borderColor = widget.destructive
         ? AppSemanticColors.error
-        : AppSemanticColors.accent;
+        : (isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink);
     final textColor = widget.destructive
         ? AppSemanticColors.error
-        : AppSemanticColors.accent;
+        : (isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink);
 
     return Listener(
       onPointerDown: enabled ? (_) => setState(() => _pressed = true) : null,
@@ -501,14 +489,12 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
             onPressed: widget.onPressed,
             style: OutlinedButton.styleFrom(
               foregroundColor: textColor,
-              side: BorderSide(
-                color: _pressed
-                    ? borderColor.withValues(alpha: 0.7)
-                    : borderColor,
-                width: 1.5,
-              ),
+              backgroundColor: isDark
+                  ? AppSemanticColors.darkSurface
+                  : AppSemanticColors.canvas,
+              side: BorderSide(color: borderColor),
               shape: const RoundedRectangleBorder(
-                borderRadius: AppRadius.mdBorder,
+                borderRadius: AppRadius.smBorder,
               ),
             ),
             child: _buildChild(theme, textColor),
@@ -521,7 +507,7 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
   Widget _buildTertiary(ThemeData theme, bool enabled) {
     final textColor = widget.destructive
         ? AppSemanticColors.error
-        : AppSemanticColors.accent;
+        : AppSemanticColors.textPrimaryFor(theme.brightness);
 
     return TextButton(
       onPressed: widget.onPressed,
@@ -533,7 +519,7 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
   Widget _buildIconButton(ThemeData theme, bool enabled) {
     final color = widget.destructive
         ? AppSemanticColors.error
-        : AppSemanticColors.accent;
+        : AppSemanticColors.textPrimaryFor(theme.brightness);
 
     return SizedBox(
       width: widget.height,

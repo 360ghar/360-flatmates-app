@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import 'flatmates_ui.dart';
 
 class FlatmatesNetworkImage extends ConsumerWidget {
@@ -252,7 +251,6 @@ class _PhotoPendingFallback extends StatelessWidget {
             color: Colors.white,
             fontSize: (height != null && height! < 100) ? 20 : 36,
             fontWeight: FontWeight.w700,
-            fontFamily: AppTypography.fontFamilySerif,
           ),
         ),
       ),

@@ -204,7 +204,7 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
             currentStep: completionPct.round(),
             totalSteps: 100,
           ),
-          const SizedBox(height: AppSpacing.section),
+          const SizedBox(height: AppSpacing.xl),
           Text(locale.preferencesTitle, style: theme.textTheme.headlineLarge),
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -213,7 +213,7 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
               color: AppSemanticColors.textSecondaryFor(theme.brightness),
             ),
           ),
-          const SizedBox(height: AppSpacing.section),
+          const SizedBox(height: AppSpacing.xl),
 
           // 1. Preferred Gender
           _PreferenceSection(

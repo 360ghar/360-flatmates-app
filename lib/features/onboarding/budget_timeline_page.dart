@@ -6,6 +6,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
+import '../profile/presentation/widgets/edit_profile_dropdown_utils.dart';
 import '../shared/presentation/components.dart';
 import 'onboarding_controller.dart';
 
@@ -71,6 +72,14 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
     return _fallbackTimelineOptions;
   }
 
+  /// Selected id remapped onto the current option list (catalog vs fallback).
+  String get _selectedTimeline {
+    final options = _timelineOptions;
+    final ids = options.map((opt) => opt.key);
+    return resolveMoveInTimelineId(_moveInTimeline, ids) ??
+        (options.isNotEmpty ? options.last.key : _moveInTimeline);
+  }
+
   IconData _iconFromName(String name) {
     return switch (name) {
       'flash_on_rounded' => Icons.flash_on_rounded,
@@ -98,7 +107,7 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
               currentStep: completionPct.round(),
               totalSteps: 100,
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.budgetTimelineTitle,
               style: theme.textTheme.headlineLarge,
@@ -110,7 +119,7 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                 color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             FlatmatesCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +195,7 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
                     children: _timelineOptions.map((opt) {
-                      final selected = _moveInTimeline == opt.key;
+                      final selected = _selectedTimeline == opt.key;
                       return FlatmatesChip(
                         key: Key('timeline_${opt.key}'),
                         icon: opt.icon,
@@ -212,7 +221,7 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                   : () => widget.onComplete({
                       'budget_min': _budgetMin,
                       'budget_max': _budgetMax,
-                      'move_in_timeline': _moveInTimeline,
+                      'move_in_timeline': _selectedTimeline,
                     }),
               icon: Icons.arrow_forward_rounded,
             ),
@@ -233,14 +242,20 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
         if (opt.id == key) return opt.label;
       }
     }
-    // Fall back to localized hardcoded labels
+    // Fall back to localized hardcoded labels (covers catalog + legacy ids).
     switch (key) {
       case 'immediate':
+      case 'immediately':
         return locale.timelineImmediate;
       case 'this_month':
+      case 'within_1_month':
         return locale.timelineThisMonth;
       case 'next_month':
         return locale.timelineNextMonth;
+      case 'within_2_weeks':
+        return locale.timelineThisMonth;
+      case 'just_exploring':
+      case 'flexible':
       default:
         return locale.timelineFlexible;
     }

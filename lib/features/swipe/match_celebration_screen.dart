@@ -162,7 +162,7 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.section + AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.xl + AppSpacing.xl),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.screen + AppSpacing.md,

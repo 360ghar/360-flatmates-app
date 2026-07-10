@@ -262,11 +262,6 @@
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
-  "paletteTitle": "Palette",
-  "paletteInkOnPaper": "Ink on Paper",
-  "paletteElectricIndigo": "Paper Blue",
-  "paletteEmberCoral": "Warm Clay",
-  "paletteMonsoonTeal": "Monsoon Teal",
   "languageTitle": "Language",
   "languageEnglish": "English",
   "languageHindi": "Hindi",
@@ -899,8 +894,10 @@
   "moveInFilterLabel": "Move-in",
   "moveInAnytime": "Anytime",
   "moveInImmediate": "Immediate",
+  "moveInWithin2Weeks": "Within 2 Weeks",
   "moveInThisMonth": "This Month",
   "moveInNextMonth": "Next Month",
+  "moveInJustExploring": "Just Exploring",
   "moreFiltersLabel": "More Filters",
   "petsLabel": "Pets",
   "petsYes": "Yes",
@@ -972,27 +969,6 @@
   "photoTipBathroomBalcony": "• Include bathroom and balcony if available",
   "photoTipCleanRoom": "• Clean up before taking photos",
   "addMorePhotosLabel": "Add more photos",
-  "waitlistNudgeTitle": "Not many flatmates in {city} yet",
-  "@waitlistNudgeTitle": {
-    "placeholders": {
-      "city": {
-        "type": "String"
-      }
-    }
-  },
-  "waitlistNudgeSubtitle": "We'll notify you when more people join",
-  "waitlistNotifyMe": "Notify Me",
-  "cityCounterShort": "{count} looking in {city}",
-  "@cityCounterShort": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "city": {
-        "type": "String"
-      }
-    }
-  },
   "scheduleVisitTitle": "Schedule Visit",
   "selectTimeSlot": "Select Time Slot",
   "timeSlotMorning": "Morning",

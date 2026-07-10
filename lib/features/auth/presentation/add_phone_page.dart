@@ -296,7 +296,7 @@ class _OtpFieldRowState extends State<_OtpFieldRow> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(6, (index) {
         return SizedBox(
-          width: AppSpacing.section,
+          width: AppSpacing.xl,
           child: TextField(
             key: Key('add_phone_otp_$index'),
             controller: widget.controllers[index],

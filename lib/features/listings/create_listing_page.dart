@@ -329,7 +329,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
                         AppSpacing.screen,
                         0,
                         AppSpacing.screen,
-                        AppSpacing.section * 4 + AppSpacing.sm,
+                        AppSpacing.xl * 4 + AppSpacing.sm,
                       ),
                       children: [
                         ListingStepView(
@@ -353,8 +353,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
               if (loadingExisting)
                 const Positioned.fill(
                   child: ColoredBox(
-                    color: Colors.black12,
-                    child: Center(child: CircularProgressIndicator()),
+                    color: Color(0x0D000000),
+                    child: FlatmatesSkeleton.form(itemCount: 4),
                   ),
                 ),
             ],

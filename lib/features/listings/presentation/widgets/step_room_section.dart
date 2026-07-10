@@ -96,7 +96,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppSpacing.section - AppSpacing.md),
+          const SizedBox(height: AppSpacing.xl - AppSpacing.md),
           Text(
             locale.furnishingLabel,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -117,7 +117,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppSpacing.section - AppSpacing.md),
+          const SizedBox(height: AppSpacing.xl - AppSpacing.md),
           Text(
             locale.roomFeaturesLabel,
             style: theme.textTheme.titleMedium?.copyWith(

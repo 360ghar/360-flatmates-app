@@ -45,5 +45,18 @@
   ],
   "active_listing_count": 2,
   "conversation_count": 5,
-  "unread_message_count": 3
+  "unread_message_count": 3,
+  "realtime": {
+    "provider": "supabase",
+    "channel": "flatmates:user:1",
+    "private": true,
+    "events": [
+      "new_match",
+      "new_message",
+      "conversation_updated",
+      "visit_updated",
+      "listing_status_changed",
+      "new_notification"
+    ]
+  }
 }

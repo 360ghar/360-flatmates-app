@@ -830,36 +830,6 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get themeDark;
 
-  /// No description provided for @paletteTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Palette'**
-  String get paletteTitle;
-
-  /// No description provided for @paletteInkOnPaper.
-  ///
-  /// In en, this message translates to:
-  /// **'Ink on Paper'**
-  String get paletteInkOnPaper;
-
-  /// No description provided for @paletteElectricIndigo.
-  ///
-  /// In en, this message translates to:
-  /// **'Paper Blue'**
-  String get paletteElectricIndigo;
-
-  /// No description provided for @paletteEmberCoral.
-  ///
-  /// In en, this message translates to:
-  /// **'Warm Clay'**
-  String get paletteEmberCoral;
-
-  /// No description provided for @paletteMonsoonTeal.
-  ///
-  /// In en, this message translates to:
-  /// **'Monsoon Teal'**
-  String get paletteMonsoonTeal;
-
   /// No description provided for @languageTitle.
   ///
   /// In en, this message translates to:
@@ -3998,6 +3968,12 @@ abstract class AppLocalizations {
   /// **'Immediate'**
   String get moveInImmediate;
 
+  /// No description provided for @moveInWithin2Weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 2 Weeks'**
+  String get moveInWithin2Weeks;
+
   /// No description provided for @moveInThisMonth.
   ///
   /// In en, this message translates to:
@@ -4009,6 +3985,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next Month'**
   String get moveInNextMonth;
+
+  /// No description provided for @moveInJustExploring.
+  ///
+  /// In en, this message translates to:
+  /// **'Just Exploring'**
+  String get moveInJustExploring;
 
   /// No description provided for @moreFiltersLabel.
   ///
@@ -4393,30 +4375,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add more photos'**
   String get addMorePhotosLabel;
-
-  /// No description provided for @waitlistNudgeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Not many flatmates in {city} yet'**
-  String waitlistNudgeTitle(String city);
-
-  /// No description provided for @waitlistNudgeSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'We\'ll notify you when more people join'**
-  String get waitlistNudgeSubtitle;
-
-  /// No description provided for @waitlistNotifyMe.
-  ///
-  /// In en, this message translates to:
-  /// **'Notify Me'**
-  String get waitlistNotifyMe;
-
-  /// No description provided for @cityCounterShort.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} looking in {city}'**
-  String cityCounterShort(int count, String city);
 
   /// No description provided for @scheduleVisitTitle.
   ///

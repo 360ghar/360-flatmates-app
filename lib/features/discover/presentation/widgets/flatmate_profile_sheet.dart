@@ -46,10 +46,7 @@ class FlatmateProfileSheet extends ConsumerWidget {
     final profileAsync = ref.watch(peerProfileProvider(userId));
 
     return profileAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.section),
-        child: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () => const FlatmatesSkeleton.peerProfileSheet(),
       // A null payload is the actual failure path (fetchPeerProfile catches
       // errors and returns null rather than throwing), so treat null + error
       // alike: show the "couldn't load" hint.
@@ -80,7 +77,7 @@ class _LoadError extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.section),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

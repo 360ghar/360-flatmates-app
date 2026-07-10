@@ -18,7 +18,6 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$SettingsState {
   ThemeMode get themeMode => throw _privateConstructorUsedError;
-  AppPalette get palette => throw _privateConstructorUsedError;
   Locale? get locale => throw _privateConstructorUsedError;
   bool get loaded => throw _privateConstructorUsedError;
   bool get hideLastName => throw _privateConstructorUsedError;
@@ -45,7 +44,6 @@ abstract class $SettingsStateCopyWith<$Res> {
   @useResult
   $Res call({
     ThemeMode themeMode,
-    AppPalette palette,
     Locale? locale,
     bool loaded,
     bool hideLastName,
@@ -74,7 +72,6 @@ class _$SettingsStateCopyWithImpl<$Res, $Val extends SettingsState>
   @override
   $Res call({
     Object? themeMode = null,
-    Object? palette = null,
     Object? locale = freezed,
     Object? loaded = null,
     Object? hideLastName = null,
@@ -91,10 +88,6 @@ class _$SettingsStateCopyWithImpl<$Res, $Val extends SettingsState>
                 ? _value.themeMode
                 : themeMode // ignore: cast_nullable_to_non_nullable
                       as ThemeMode,
-            palette: null == palette
-                ? _value.palette
-                : palette // ignore: cast_nullable_to_non_nullable
-                      as AppPalette,
             locale: freezed == locale
                 ? _value.locale
                 : locale // ignore: cast_nullable_to_non_nullable
@@ -148,7 +141,6 @@ abstract class _$$SettingsStateImplCopyWith<$Res>
   @useResult
   $Res call({
     ThemeMode themeMode,
-    AppPalette palette,
     Locale? locale,
     bool loaded,
     bool hideLastName,
@@ -176,7 +168,6 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? themeMode = null,
-    Object? palette = null,
     Object? locale = freezed,
     Object? loaded = null,
     Object? hideLastName = null,
@@ -193,10 +184,6 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
             ? _value.themeMode
             : themeMode // ignore: cast_nullable_to_non_nullable
                   as ThemeMode,
-        palette: null == palette
-            ? _value.palette
-            : palette // ignore: cast_nullable_to_non_nullable
-                  as AppPalette,
         locale: freezed == locale
             ? _value.locale
             : locale // ignore: cast_nullable_to_non_nullable
@@ -243,7 +230,6 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
 class _$SettingsStateImpl extends _SettingsState {
   const _$SettingsStateImpl({
     this.themeMode = ThemeMode.light,
-    this.palette = AppPalette.inkOnPaper,
     this.locale = const Locale('en'),
     this.loaded = false,
     this.hideLastName = false,
@@ -258,9 +244,6 @@ class _$SettingsStateImpl extends _SettingsState {
   @override
   @JsonKey()
   final ThemeMode themeMode;
-  @override
-  @JsonKey()
-  final AppPalette palette;
   @override
   @JsonKey()
   final Locale? locale;
@@ -291,7 +274,7 @@ class _$SettingsStateImpl extends _SettingsState {
 
   @override
   String toString() {
-    return 'SettingsState(themeMode: $themeMode, palette: $palette, locale: $locale, loaded: $loaded, hideLastName: $hideLastName, hideExactLocation: $hideExactLocation, notifNewMessages: $notifNewMessages, notifVisitReminders: $notifVisitReminders, notifNewMatches: $notifNewMatches, notifListingUpdates: $notifListingUpdates, notifPromotions: $notifPromotions)';
+    return 'SettingsState(themeMode: $themeMode, locale: $locale, loaded: $loaded, hideLastName: $hideLastName, hideExactLocation: $hideExactLocation, notifNewMessages: $notifNewMessages, notifVisitReminders: $notifVisitReminders, notifNewMatches: $notifNewMatches, notifListingUpdates: $notifListingUpdates, notifPromotions: $notifPromotions)';
   }
 
   @override
@@ -301,7 +284,6 @@ class _$SettingsStateImpl extends _SettingsState {
             other is _$SettingsStateImpl &&
             (identical(other.themeMode, themeMode) ||
                 other.themeMode == themeMode) &&
-            (identical(other.palette, palette) || other.palette == palette) &&
             (identical(other.locale, locale) || other.locale == locale) &&
             (identical(other.loaded, loaded) || other.loaded == loaded) &&
             (identical(other.hideLastName, hideLastName) ||
@@ -324,7 +306,6 @@ class _$SettingsStateImpl extends _SettingsState {
   int get hashCode => Object.hash(
     runtimeType,
     themeMode,
-    palette,
     locale,
     loaded,
     hideLastName,
@@ -348,7 +329,6 @@ class _$SettingsStateImpl extends _SettingsState {
 abstract class _SettingsState extends SettingsState {
   const factory _SettingsState({
     final ThemeMode themeMode,
-    final AppPalette palette,
     final Locale? locale,
     final bool loaded,
     final bool hideLastName,
@@ -363,8 +343,6 @@ abstract class _SettingsState extends SettingsState {
 
   @override
   ThemeMode get themeMode;
-  @override
-  AppPalette get palette;
   @override
   Locale? get locale;
   @override

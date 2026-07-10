@@ -22,8 +22,10 @@ final _modeProvider = StateProvider.autoDispose<String>(
   (ref) => 'open_to_both',
 );
 final _workStyleProvider = StateProvider.autoDispose<String>((ref) => 'hybrid');
-final _moveInTimelineProvider = StateProvider.autoDispose<String>(
-  (ref) => 'flexible',
+// Null until seeded from profile / user picks a catalog id — avoids overwriting
+// an unmapped server value with a silent default on save.
+final _moveInTimelineProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
 );
 final _sleepScheduleProvider = StateProvider.autoDispose<String?>(
   (ref) => null,
@@ -67,35 +69,39 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   bool _hasEmail = false;
   bool _hasPhone = false;
 
+  /// Suppresses dirty writes while seeding controllers (listener fires on .text=).
+  bool _seeding = false;
+
   void _markDirty() {
+    if (_seeding) return;
     if (!ref.read(_dirtyProvider)) {
       ref.read(_dirtyProvider.notifier).state = true;
     }
   }
 
+  List<TextEditingController> get _textControllers => [
+    _nameController,
+    _ageController,
+    _professionController,
+    _cityController,
+    _localityController,
+    _budgetMinController,
+    _budgetMaxController,
+    _bioController,
+    _emailController,
+    _phoneController,
+  ];
+
   @override
   void initState() {
     super.initState();
-    // Reset transient local state for a fresh edit session. Done post-frame so
-    // we never mutate providers during the initial build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(_savingProvider.notifier).state = false;
       ref.read(_photoUploadingProvider.notifier).state = false;
       ref.read(_dirtyProvider.notifier).state = false;
     });
-    for (final controller in [
-      _nameController,
-      _ageController,
-      _professionController,
-      _cityController,
-      _localityController,
-      _budgetMinController,
-      _budgetMaxController,
-      _bioController,
-      _emailController,
-      _phoneController,
-    ]) {
+    for (final controller in _textControllers) {
       controller.addListener(_markDirty);
     }
   }
@@ -105,7 +111,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     super.didChangeDependencies();
     if (_initialized) return;
     final profile = ref.read(bootstrapControllerProvider).valueOrNull?.profile;
-    if (profile != null) {
+    if (profile == null) return;
+    _seedControllers(profile);
+    _hasEmail = profile.email?.isNotEmpty == true;
+    _hasPhone = profile.phone?.isNotEmpty == true;
+    final snapshot = profile;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _seedProviders(snapshot);
+    });
+    _initialized = true;
+  }
+
+  void _seedControllers(FlatmatesProfileModel profile) {
+    _seeding = true;
+    try {
       _nameController.text = profile.fullName ?? '';
       _ageController.text = profile.age?.toString() ?? '';
       _professionController.text = profile.profession ?? '';
@@ -116,57 +136,36 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       _bioController.text = profile.bio ?? '';
       _emailController.text = profile.email ?? '';
       _phoneController.text = profile.phone ?? '';
-      _hasEmail = profile.email?.isNotEmpty == true;
-      _hasPhone = profile.phone?.isNotEmpty == true;
-      // Seed providers post-frame to avoid mutating during build.
-      final mode = profile.mode;
-      final workStyle = profile.workStyle;
-      final timeline = profile.moveInTimeline;
-      final prefs = profile.preferences;
-      final nonNeg = prefs['non_negotiables'] is List
-          ? List<String>.from(prefs['non_negotiables'] as List)
-          : const <String>[];
-      final photos = profile.profileImageUrl != null
-          ? [profile.profileImageUrl!]
-          : const <String>[];
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (mode != null) ref.read(_modeProvider.notifier).state = mode;
-        if (workStyle != null) {
-          ref.read(_workStyleProvider.notifier).state = workStyle;
-        }
-        if (timeline != null) {
-          ref.read(_moveInTimelineProvider.notifier).state = timeline;
-        }
-        ref.read(_sleepScheduleProvider.notifier).state = profile.sleepSchedule;
-        ref.read(_cleanlinessProvider.notifier).state = profile.cleanliness;
-        ref.read(_foodHabitsProvider.notifier).state = profile.foodHabits;
-        ref.read(_smokingDrinkingProvider.notifier).state =
-            profile.smokingDrinking;
-        ref.read(_guestsPolicyProvider.notifier).state = profile.guestsPolicy;
-        ref.read(_nonNegotiablesProvider.notifier).state = nonNeg;
-        ref.read(_photoUrlsProvider.notifier).state = photos;
-        // Seeding initial values should not mark the form dirty.
-        ref.read(_dirtyProvider.notifier).state = false;
-      });
-      _initialized = true;
+    } finally {
+      _seeding = false;
     }
+  }
+
+  void _seedProviders(FlatmatesProfileModel profile) {
+    final seed = EditProfileOptions(
+      locale: AppLocalizations.of(context),
+      bootstrap: ref.read(bootstrapControllerProvider).valueOrNull,
+    ).seedFromProfile(profile);
+    if (seed.mode != null) ref.read(_modeProvider.notifier).state = seed.mode!;
+    if (seed.workStyle != null) {
+      ref.read(_workStyleProvider.notifier).state = seed.workStyle!;
+    }
+    if (seed.moveInTimeline != null) {
+      ref.read(_moveInTimelineProvider.notifier).state = seed.moveInTimeline!;
+    }
+    ref.read(_sleepScheduleProvider.notifier).state = seed.sleepSchedule;
+    ref.read(_cleanlinessProvider.notifier).state = seed.cleanliness;
+    ref.read(_foodHabitsProvider.notifier).state = seed.foodHabits;
+    ref.read(_smokingDrinkingProvider.notifier).state = seed.smokingDrinking;
+    ref.read(_guestsPolicyProvider.notifier).state = seed.guestsPolicy;
+    ref.read(_nonNegotiablesProvider.notifier).state = seed.nonNegotiables;
+    ref.read(_photoUrlsProvider.notifier).state = seed.photoUrls;
+    ref.read(_dirtyProvider.notifier).state = false;
   }
 
   @override
   void dispose() {
-    for (final controller in [
-      _nameController,
-      _ageController,
-      _professionController,
-      _cityController,
-      _localityController,
-      _budgetMinController,
-      _budgetMaxController,
-      _bioController,
-      _emailController,
-      _phoneController,
-    ]) {
+    for (final controller in _textControllers) {
       controller.removeListener(_markDirty);
       controller.dispose();
     }
@@ -232,10 +231,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     return discard ?? false;
   }
 
-  /// Navigate away from the edit page. The route may have been reached via the
-  /// profileCompletion redirect (no page to pop), so fall back to /profile.
   void _leaveEditPage() {
     if (!mounted) return;
+    // profileCompletion redirect may leave no stack entry to pop.
     if (context.canPop()) {
       context.pop();
     } else {
@@ -272,9 +270,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         unawaited(_handlePop());
       },
       child: Scaffold(
-        // Route the in-app back button through the unsaved-changes guard. The
-        // shared header uses Navigator.pop(), which bypasses PopScope, so we
-        // handle the confirmation explicitly here.
+        // Header back bypasses PopScope; route through the unsaved-changes guard.
         appBar: FlatmatesHeader.backTitle(
           title: locale.editProfileCta,
           onBack: _handlePop,
@@ -297,7 +293,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 hasEmail: _hasEmail,
                 hasPhone: _hasPhone,
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               EditProfileBasicInfoSection(
                 locale: locale,
                 nameController: _nameController,
@@ -306,7 +302,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 cityController: _cityController,
                 localityController: _localityController,
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               EditProfileModeSection(
                 locale: locale,
                 mode: ref.watch(_modeProvider),
@@ -316,7 +312,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   _markDirty();
                 },
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               EditProfileBudgetTimelineSection(
                 locale: locale,
                 budgetMinController: _budgetMinController,
@@ -334,7 +330,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   _markDirty();
                 },
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               EditProfileLifestyleSection(
                 locale: locale,
                 sleepSchedule: ref.watch(_sleepScheduleProvider),
@@ -368,7 +364,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   _markDirty();
                 },
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               EditProfileNonNegotiablesSection(
                 locale: locale,
                 options: options.nonNegotiableOptions(),
@@ -378,12 +374,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   _markDirty();
                 },
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               EditProfileBioSection(
                 locale: locale,
                 bioController: _bioController,
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               FlatmatesButton(
                 key: const Key('profile_save_button'),
                 label: saving ? locale.profileSaving : locale.commonSave,
@@ -401,6 +397,49 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
+  Map<String, dynamic> _buildSavePayload(
+    String? Function(TextEditingController) nullableText,
+    double? budgetMin,
+    double? budgetMax,
+  ) {
+    final payload = <String, dynamic>{
+      'full_name': nullableText(_nameController),
+      'age': int.tryParse(_ageController.text.trim()),
+      'profession': nullableText(_professionController),
+      'mode': ref.read(_modeProvider),
+      'city': nullableText(_cityController),
+      'locality': nullableText(_localityController),
+      'budget_min': budgetMin,
+      'budget_max': budgetMax,
+      if (ref.read(_moveInTimelineProvider) != null)
+        'move_in_timeline': ref.read(_moveInTimelineProvider),
+      'work_style': ref.read(_workStyleProvider),
+      'bio': nullableText(_bioController),
+      'sleep_schedule': ref.read(_sleepScheduleProvider),
+      'cleanliness': ref.read(_cleanlinessProvider),
+      'food_habits': ref.read(_foodHabitsProvider),
+      'smoking_drinking': ref.read(_smokingDrinkingProvider),
+      'guests_policy': ref.read(_guestsPolicyProvider),
+      'preferences': {
+        ...?ref
+            .read(bootstrapControllerProvider)
+            .valueOrNull
+            ?.profile
+            .preferences,
+        'non_negotiables': ref.read(_nonNegotiablesProvider),
+      },
+    };
+    final photoUrls = ref.read(_photoUrlsProvider);
+    if (photoUrls.isNotEmpty) {
+      payload['profile_image_url'] = photoUrls.first;
+    }
+    final newEmail = _emailController.text.trim();
+    final newPhone = _phoneController.text.trim();
+    if (!_hasEmail && newEmail.isNotEmpty) payload['email'] = newEmail;
+    if (!_hasPhone && newPhone.isNotEmpty) payload['phone'] = newPhone;
+    return payload;
+  }
+
   Future<void> _save(
     String? Function(TextEditingController) nullableText,
   ) async {
@@ -414,49 +453,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
     ref.read(_savingProvider.notifier).state = true;
     try {
-      final payload = <String, dynamic>{
-        'full_name': nullableText(_nameController),
-        'age': int.tryParse(_ageController.text.trim()),
-        'profession': nullableText(_professionController),
-        'mode': ref.read(_modeProvider),
-        'city': nullableText(_cityController),
-        'locality': nullableText(_localityController),
-        'budget_min': budgetMin,
-        'budget_max': budgetMax,
-        'move_in_timeline': ref.read(_moveInTimelineProvider),
-        'work_style': ref.read(_workStyleProvider),
-        'bio': nullableText(_bioController),
-        'sleep_schedule': ref.read(_sleepScheduleProvider),
-        'cleanliness': ref.read(_cleanlinessProvider),
-        'food_habits': ref.read(_foodHabitsProvider),
-        'smoking_drinking': ref.read(_smokingDrinkingProvider),
-        'guests_policy': ref.read(_guestsPolicyProvider),
-      };
-      final photoUrls = ref.read(_photoUrlsProvider);
-      if (photoUrls.isNotEmpty) {
-        payload['profile_image_url'] = photoUrls.first;
-      }
-      final nonNegotiables = ref.read(_nonNegotiablesProvider);
-      final existingPreferences = ref
-          .read(bootstrapControllerProvider)
-          .valueOrNull
-          ?.profile
-          .preferences;
-      payload['preferences'] = {
-        ...?existingPreferences,
-        'non_negotiables': nonNegotiables,
-      };
-
-      // Include email/phone if newly added.
-      final newEmail = _emailController.text.trim();
-      final newPhone = _phoneController.text.trim();
-      if (!_hasEmail && newEmail.isNotEmpty) {
-        payload['email'] = newEmail;
-      }
-      if (!_hasPhone && newPhone.isNotEmpty) {
-        payload['phone'] = newPhone;
-      }
-
+      final payload = _buildSavePayload(nullableText, budgetMin, budgetMax);
       await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;

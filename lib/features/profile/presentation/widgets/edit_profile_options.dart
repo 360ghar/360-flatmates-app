@@ -3,7 +3,36 @@ import 'package:flutter/material.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
 import '../../../bootstrap/catalog_helpers.dart';
+import '../../../bootstrap/domain/bootstrap_models.dart';
+import 'edit_profile_dropdown_utils.dart';
 import 'edit_profile_sections.dart';
+
+/// Dropdown field values resolved against current catalog/fallback item ids.
+class EditProfileSeedValues {
+  const EditProfileSeedValues({
+    this.mode,
+    this.workStyle,
+    this.moveInTimeline,
+    this.sleepSchedule,
+    this.cleanliness,
+    this.foodHabits,
+    this.smokingDrinking,
+    this.guestsPolicy,
+    this.nonNegotiables = const [],
+    this.photoUrls = const [],
+  });
+
+  final String? mode;
+  final String? workStyle;
+  final String? moveInTimeline;
+  final String? sleepSchedule;
+  final String? cleanliness;
+  final String? foodHabits;
+  final String? smokingDrinking;
+  final String? guestsPolicy;
+  final List<String> nonNegotiables;
+  final List<String> photoUrls;
+}
 
 /// Builds dropdown items and option lists for the edit-profile form, preferring
 /// server-driven catalog options (via [BootstrapData.catalogOptions]) and
@@ -16,6 +45,47 @@ class EditProfileOptions {
 
   final AppLocalizations locale;
   final BootstrapData? bootstrap;
+
+  /// Safe selected value for a generic dropdown (exact id match only).
+  String? safeValue(String? value, List<DropdownMenuItem<String>> items) {
+    return dropdownValueInIds(value, items.map((item) => item.value));
+  }
+
+  /// Safe selected value for move-in timeline (applies legacy id aliases).
+  String? safeMoveInValue(String? value, List<DropdownMenuItem<String>> items) {
+    final ids = items.map((item) => item.value);
+    final resolved = resolveMoveInTimelineId(value, ids);
+    return dropdownValueInIds(resolved, ids);
+  }
+
+  /// Maps profile fields onto ids present in the current dropdown item lists.
+  EditProfileSeedValues seedFromProfile(FlatmatesProfileModel profile) {
+    String? exact(String? value, List<DropdownMenuItem<String>> items) =>
+        dropdownValueInIds(value, items.map((item) => item.value));
+
+    final prefs = profile.preferences;
+    final nonNeg = prefs['non_negotiables'] is List
+        ? List<String>.from(prefs['non_negotiables'] as List)
+        : const <String>[];
+
+    return EditProfileSeedValues(
+      mode: exact(profile.mode, modeItems()),
+      workStyle: exact(profile.workStyle, workStyleItems()),
+      moveInTimeline: resolveMoveInTimelineId(
+        profile.moveInTimeline,
+        timelineItems().map((item) => item.value),
+      ),
+      sleepSchedule: exact(profile.sleepSchedule, sleepItems()),
+      cleanliness: exact(profile.cleanliness, cleanlinessItems()),
+      foodHabits: exact(profile.foodHabits, foodItems()),
+      smokingDrinking: exact(profile.smokingDrinking, smokingItems()),
+      guestsPolicy: exact(profile.guestsPolicy, guestsItems()),
+      nonNegotiables: nonNeg,
+      photoUrls: profile.profileImageUrl != null
+          ? [profile.profileImageUrl!]
+          : const [],
+    );
+  }
 
   List<DropdownMenuItem<String>> _resolve(
     String catalogKey,
@@ -31,12 +101,12 @@ class EditProfileOptions {
   }
 
   List<DropdownMenuItem<String>> modeItems() {
+    // Match backend catalog `flatmates_modes` (no legacy `seeker`).
     return _resolve('flatmates_modes', [
       DropdownMenuItem(
         value: 'room_poster',
         child: Text(locale.modeRoomPoster),
       ),
-      DropdownMenuItem(value: 'seeker', child: Text(locale.modeSeeker)),
       DropdownMenuItem(value: 'co_hunter', child: Text(locale.modeCoHunter)),
       DropdownMenuItem(
         value: 'open_to_both',
@@ -53,18 +123,27 @@ class EditProfileOptions {
     ]);
   }
 
+  /// Prefer catalog when bootstrap is loaded. Fallback ids match the server
+  /// catalog (`flatmates_move_in_timelines`); [resolveMoveInTimelineId] maps
+  /// legacy values (`flexible`, `immediate`, …) onto these.
   List<DropdownMenuItem<String>> timelineItems() {
     return _resolve('flatmates_move_in_timelines', [
-      DropdownMenuItem(value: 'immediate', child: Text(locale.moveInImmediate)),
       DropdownMenuItem(
-        value: 'this_month',
+        value: 'immediately',
+        child: Text(locale.moveInImmediate),
+      ),
+      DropdownMenuItem(
+        value: 'within_2_weeks',
+        child: Text(locale.moveInWithin2Weeks),
+      ),
+      DropdownMenuItem(
+        value: 'within_1_month',
         child: Text(locale.moveInThisMonth),
       ),
       DropdownMenuItem(
-        value: 'next_month',
-        child: Text(locale.moveInNextMonth),
+        value: 'just_exploring',
+        child: Text(locale.moveInJustExploring),
       ),
-      DropdownMenuItem(value: 'flexible', child: Text(locale.moveInAnytime)),
     ]);
   }
 

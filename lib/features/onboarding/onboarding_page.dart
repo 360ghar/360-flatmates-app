@@ -32,17 +32,13 @@ class OnboardingPage extends ConsumerWidget {
       // Draft is still being read from SharedPreferences; render a placeholder
       // so we don't flash the default splash and then bounce the user into a
       // mid-flow step.
-      return const FlatmatesScreen(
-        body: Center(child: FlatmatesSkeleton.card()),
-      );
+      return const FlatmatesScreen(body: FlatmatesSkeleton.form());
     }
 
     if (state.isComplete) {
       // The app router observes the local onboarding-complete override and
       // owns the transition into the authenticated shell.
-      return const FlatmatesScreen(
-        body: Center(child: FlatmatesSkeleton.card()),
-      );
+      return const FlatmatesScreen(body: FlatmatesSkeleton.form());
     }
 
     if (state.isSubmitting) {

@@ -293,7 +293,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
             ),
             const SizedBox(height: 28),
             const FlatmatesStepProgress.dots(currentStep: 1, totalSteps: 4),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.locationSelectionTitle,
               style: theme.textTheme.headlineLarge,
@@ -381,7 +381,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
             ),
             Padding(
               padding: const EdgeInsets.only(
-                bottom: AppSpacing.section,
+                bottom: AppSpacing.xl,
                 top: AppSpacing.md,
               ),
               child: FlatmatesButton(

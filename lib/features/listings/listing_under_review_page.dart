@@ -31,11 +31,13 @@ class _ListingUnderReviewPageState
   Widget build(BuildContext context) {
     final listingAsync = ref.watch(listingReviewProvider(widget.listingId));
 
-    // Listen for SSE listing status changes and refresh.
-    ref.listen(sseEventProvider, (previous, next) {
+    // Listen for Realtime listing status changes and refresh.
+    ref.listen(flatmatesRealtimeEventProvider, (previous, next) {
       final event = next.valueOrNull;
       if (event?.type == 'listing_status_changed') {
-        final listingId = event!.data['listing_id'] as int?;
+        final listingId = event!.data['listing_id'] as int? ??
+            (event.data['listing_id'] as num?)?.toInt() ??
+            (event.data['property_id'] as num?)?.toInt();
         if (listingId == widget.listingId) {
           ref.invalidate(listingReviewProvider(widget.listingId));
         }
@@ -454,8 +456,8 @@ class _StepItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: AppSpacing.section,
-            height: AppSpacing.section,
+            width: 28.0,
+            height: 28.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppSemanticColors.accent.withValues(alpha: 0.12),

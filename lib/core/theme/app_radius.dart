@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
 
-/// Canonical border-radius tokens from DESIGN.md.
+/// Canonical border-radius tokens from DESIGN.md (Airbnb soft geometry).
 abstract final class AppRadius {
-  static const double sm = 9;
-  static const double md = 10;
-  static const double card = 16;
-  static const double sheet = 8;
-  static const double pill = 999;
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 14;
+  static const double lg = 20;
+  static const double xl = 32;
+  static const double full = 9999;
+
+  /// Alias for property cards / host cards.
+  static const double card = md;
+
+  /// Alias for bottom sheets (soft top corners).
+  static const double sheet = xl;
+
+  /// Pill / full round.
+  static const double pill = full;
 
   // Convenience BorderRadius
+  static const BorderRadius xsBorder = BorderRadius.all(Radius.circular(xs));
   static const BorderRadius smBorder = BorderRadius.all(Radius.circular(sm));
   static const BorderRadius mdBorder = BorderRadius.all(Radius.circular(md));
+  static const BorderRadius lgBorder = BorderRadius.all(Radius.circular(lg));
+  static const BorderRadius xlBorder = BorderRadius.all(Radius.circular(xl));
   static const BorderRadius cardBorder = BorderRadius.all(
     Radius.circular(card),
   );

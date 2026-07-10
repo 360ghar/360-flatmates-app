@@ -78,7 +78,7 @@ class ChatsRepository {
   }
 
   /// Fetches a single page of outgoing likes using cursor pagination.
-  Future<({List<IncomingLikeModel> items, String? nextCursor, bool hasMore})>
+  Future<({List<OutgoingLikeModel> items, String? nextCursor, bool hasMore})>
   fetchOutgoingLikesPage({String? cursor, int limit = 20}) async {
     final queryParameters = <String, dynamic>{'limit': limit};
     if (cursor != null && cursor.isNotEmpty) {
@@ -93,13 +93,13 @@ class ChatsRepository {
     final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
     return parsePagedEnvelope(
       data,
-      IncomingLikeModel.fromJson,
+      OutgoingLikeModel.fromJson,
       label: 'outgoingLikes',
     );
   }
 
   /// Backwards-compatible helper returning the first page as a list.
-  Future<List<IncomingLikeModel>> fetchOutgoingLikes() async {
+  Future<List<OutgoingLikeModel>> fetchOutgoingLikes() async {
     final page = await fetchOutgoingLikesPage();
     return page.items;
   }
@@ -356,7 +356,7 @@ final incomingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
   (ref) => ref.watch(chatsRepositoryProvider).fetchIncomingLikes(),
 );
 
-final outgoingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
+final outgoingLikesProvider = FutureProvider<List<OutgoingLikeModel>>(
   (ref) => ref.watch(chatsRepositoryProvider).fetchOutgoingLikes(),
 );
 

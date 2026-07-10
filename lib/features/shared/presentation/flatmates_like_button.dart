@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
+import '../../../core/theme/app_semantic_colors.dart';
 
-/// A heart like/favorite toggle with an animated scale-pop on tap.
+/// Circular heart save toggle (Airbnb property-card heart).
 ///
-/// Shows a filled red heart when [liked] and an outline otherwise.
-/// The pop animation respects reduced-motion. State (liked/unliked) is
-/// owned by the caller — [onTap] should flip it optimistically.
+/// Default: white/outline on photo. Liked: Rausch filled heart.
 class FlatmatesLikeButton extends StatefulWidget {
   const FlatmatesLikeButton({
     required this.liked,
     required this.onTap,
     super.key,
-    this.size = 36,
+    this.size = 32,
     this.iconSize = 18,
-    this.backgroundColor = Colors.black38,
-    this.unlikedColor = Colors.white,
-    this.likedColor = Colors.red,
-    this.radius = 10,
+    this.backgroundColor = Colors.white,
+    this.unlikedColor = AppSemanticColors.ink,
+    this.likedColor = AppSemanticColors.primary,
+    this.radius = AppRadius.full,
     this.tooltip = 'Like',
   });
 
@@ -51,13 +51,13 @@ class _FlatmatesLikeButtonState extends State<FlatmatesLikeButton>
       TweenSequenceItem(
         tween: Tween<double>(
           begin: 1,
-          end: 1.3,
+          end: 1.25,
         ).chain(CurveTween(curve: AppMotion.easeOutBack)),
         weight: 50,
       ),
       TweenSequenceItem(
         tween: Tween<double>(
-          begin: 1.3,
+          begin: 1.25,
           end: 1,
         ).chain(CurveTween(curve: AppMotion.easeOutCubic)),
         weight: 50,
@@ -80,26 +80,41 @@ class _FlatmatesLikeButtonState extends State<FlatmatesLikeButton>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: ScaleTransition(
-        scale: _scale,
-        child: IconButton(
-          onPressed: _handleTap,
-          padding: EdgeInsets.zero,
-          tooltip: widget.tooltip,
-          icon: Icon(
-            widget.liked
-                ? Icons.favorite_rounded
-                : Icons.favorite_border_rounded,
-            size: widget.iconSize,
-            color: widget.liked ? widget.likedColor : widget.unlikedColor,
-          ),
-          style: IconButton.styleFrom(
-            backgroundColor: widget.backgroundColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(widget.radius),
+    final heartColor = widget.liked ? widget.likedColor : widget.unlikedColor;
+    final shape = widget.radius >= AppRadius.full / 2
+        ? const CircleBorder()
+        : RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(widget.radius),
+          );
+
+    return Semantics(
+      button: true,
+      label: widget.tooltip,
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: ScaleTransition(
+          scale: _scale,
+          child: Material(
+            color: widget.backgroundColor == Colors.white
+                ? Colors.white.withValues(alpha: 0.92)
+                : widget.backgroundColor,
+            shape: shape,
+            child: InkWell(
+              customBorder: shape,
+              onTap: _handleTap,
+              child: Tooltip(
+                message: widget.tooltip,
+                child: Center(
+                  child: Icon(
+                    widget.liked
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    size: widget.iconSize,
+                    color: heartColor,
+                  ),
+                ),
+              ),
             ),
           ),
         ),

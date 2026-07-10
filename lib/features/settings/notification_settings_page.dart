@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import 'settings_controller.dart';
@@ -25,7 +26,7 @@ class NotificationSettingsPage extends ConsumerWidget {
         appBar: FlatmatesHeader.backTitle(
           title: locale.notificationSettingsTitle,
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const FlatmatesSkeleton.settingsList(),
       );
     }
 
@@ -35,7 +36,7 @@ class NotificationSettingsPage extends ConsumerWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
           children: [
             const SizedBox(height: AppSpacing.lg),
 
@@ -47,7 +48,7 @@ class NotificationSettingsPage extends ConsumerWidget {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
 
             // Notification toggles
             FlatmatesCard(
@@ -115,7 +116,7 @@ class NotificationSettingsPage extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
 
             // Quick actions
             Row(

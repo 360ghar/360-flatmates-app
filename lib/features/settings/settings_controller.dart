@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
 import '../../core/storage/app_preferences.dart';
-import '../../core/theme/app_palette.dart';
 import 'domain/settings_state.dart';
 export 'domain/settings_state.dart';
 
@@ -18,7 +17,6 @@ class SettingsController extends Notifier<SettingsState> {
 
   Future<void> load() async {
     final themeRaw = _prefs.getString(PrefKeys.themeMode);
-    final paletteRaw = _prefs.getString(PrefKeys.palette);
     final languageCode = _prefs.getString(PrefKeys.localeLanguageCode);
     final countryCode = _prefs.getString(PrefKeys.localeCountryCode);
 
@@ -29,7 +27,6 @@ class SettingsController extends Notifier<SettingsState> {
         'system' => ThemeMode.system,
         _ => ThemeMode.light,
       },
-      palette: AppPaletteX.fromStorage(paletteRaw),
       locale: languageCode == null
           ? const Locale('en')
           : Locale(languageCode, countryCode),
@@ -61,11 +58,6 @@ class SettingsController extends Notifier<SettingsState> {
     };
     await _prefs.setString(PrefKeys.themeMode, raw);
     state = state.copyWith(themeMode: mode);
-  }
-
-  Future<void> updatePalette(AppPalette palette) async {
-    await _prefs.setString(PrefKeys.palette, palette.storageValue);
-    state = state.copyWith(palette: palette);
   }
 
   Future<void> updateLocale(Locale? locale) async {

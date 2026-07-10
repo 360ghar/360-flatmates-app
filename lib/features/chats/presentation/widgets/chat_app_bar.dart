@@ -125,7 +125,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                         child: Text(
                           conversation?.peer.fullName ?? locale.chatsTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: AppTypography.h3Weight,
+                            fontWeight: AppTypography.titleMdWeight,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -164,7 +164,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontSize: AppTypography.captionSize,
-                          fontWeight: AppTypography.labelMediumWeight,
+                          fontWeight: FontWeight.w600,
                           color: AppSemanticColors.accent,
                         ),
                       ),

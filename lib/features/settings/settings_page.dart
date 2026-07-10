@@ -3,7 +3,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_palette.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
@@ -92,7 +91,7 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.section),
+                const SizedBox(height: AppSpacing.xl),
 
                 // App group
                 _SectionHeader(label: locale.settingsGroupApp),
@@ -120,7 +119,7 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.section),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Legal group
                 _SectionHeader(label: locale.settingsGroupLegal),
@@ -148,7 +147,7 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.section),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Standalone Logout
                 FlatmatesButton.tertiary(
@@ -194,7 +193,7 @@ class SettingsPage extends ConsumerWidget {
   }
 }
 
-/// Bottom sheet for Preferences — holds theme mode, palette, and language
+/// Bottom sheet for Preferences — holds theme mode and language
 /// selectors that were moved out of the main settings page.
 class _PreferencesSheet extends StatelessWidget {
   const _PreferencesSheet();
@@ -212,7 +211,7 @@ class _PreferencesSheet extends StatelessWidget {
             initialChildSize: 0.4,
             expand: false,
             builder: (context, scrollController) {
-              return const Center(child: CircularProgressIndicator());
+              return const FlatmatesSkeleton.settingsList(itemCount: 3);
             },
           );
         }
@@ -297,31 +296,6 @@ class _PreferencesSheet extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xl),
 
                       Text(
-                        locale.paletteTitle,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Wrap(
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.sm,
-                        children: AppPalette.values.map((palette) {
-                          final selected = settings.palette == palette;
-                          return FlatmatesChip(
-                            key: Key('palette_${palette.storageValue}'),
-                            label: _paletteLabel(locale, palette),
-                            variant: FlatmatesChipVariant.choice,
-                            selected: selected,
-                            onSelected: (_) {
-                              ref
-                                  .read(settingsControllerProvider.notifier)
-                                  .updatePalette(palette);
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-
-                      Text(
                         locale.languageTitle,
                         style: theme.textTheme.titleMedium,
                       ),
@@ -388,19 +362,6 @@ class _PreferencesSheet extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-String _paletteLabel(AppLocalizations locale, AppPalette palette) {
-  switch (palette) {
-    case AppPalette.inkOnPaper:
-      return locale.paletteInkOnPaper;
-    case AppPalette.electricIndigo:
-      return locale.paletteElectricIndigo;
-    case AppPalette.emberCoral:
-      return locale.paletteEmberCoral;
-    case AppPalette.monsoonTeal:
-      return locale.paletteMonsoonTeal;
   }
 }
 

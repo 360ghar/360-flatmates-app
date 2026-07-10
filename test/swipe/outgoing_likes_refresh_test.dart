@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 typedef _LikesPage = ({
-  List<IncomingLikeModel> items,
+  List<OutgoingLikeModel> items,
   String? nextCursor,
   bool hasMore,
 });
@@ -53,7 +53,7 @@ void main() {
         await initialLoad;
         await refresh;
 
-        expect(_outgoingItems(container).map((like) => like.peer.id), const [
+        expect(_outgoingItems(container).map((like) => like.peer!.id), const [
           20,
         ]);
       },
@@ -73,27 +73,28 @@ ProviderContainer _containerWith(_BlockingChatsBackend backend) {
   return container;
 }
 
-List<IncomingLikeModel> _outgoingItems(ProviderContainer container) {
+List<OutgoingLikeModel> _outgoingItems(ProviderContainer container) {
   return container
           .read(outgoingLikesListControllerProvider)
           .valueOrNull
           ?.items ??
-      const <IncomingLikeModel>[];
+      const <OutgoingLikeModel>[];
 }
 
-IncomingLikeModel _like({
+OutgoingLikeModel _like({
   required int id,
   required int peerId,
   required String peerName,
 }) {
-  return IncomingLikeModel(
+  return OutgoingLikeModel(
     id: id,
+    targetType: 'user',
     peer: ChatPeer(id: peerId, fullName: peerName),
     createdAt: DateTime.utc(2026).add(Duration(minutes: id)),
   );
 }
 
-_LikesPage _page(List<IncomingLikeModel> items) {
+_LikesPage _page(List<OutgoingLikeModel> items) {
   return (items: items, nextCursor: null, hasMore: false);
 }
 

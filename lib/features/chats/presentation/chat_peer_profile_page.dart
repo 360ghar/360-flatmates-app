@@ -88,7 +88,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
           AppSpacing.xl,
           AppSpacing.lg,
           AppSpacing.xl,
-          AppSpacing.section,
+          AppSpacing.xl,
         ),
         children: [
           // -- Header: avatar, name, mode, demographics, location, match --
@@ -100,7 +100,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 name,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: AppTypography.h2Weight,
+                  fontWeight: AppTypography.displayLgWeight,
                 ),
               ),
               if (mode != null) ...[
@@ -152,7 +152,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 Text(
                   locale.percentMatch(matchPercentage.round()),
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: AppTypography.h3Weight,
+                    fontWeight: AppTypography.titleMdWeight,
                     color: _matchColor(theme.brightness, matchPercentage),
                   ),
                 ),
@@ -222,7 +222,8 @@ class ChatPeerProfilePage extends ConsumerWidget {
 
           if (profileAsync.isLoading && profile == null) ...[
             const SizedBox(height: AppSpacing.xl),
-            const FlatmatesSkeleton.card(),
+            // Inline enrichment skeleton (not the bottom-sheet chrome).
+            const FlatmatesSkeleton.list(itemCount: 3),
           ],
         ],
       ),
@@ -288,7 +289,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label,
         style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: AppTypography.h3Weight,
+          fontWeight: AppTypography.titleMdWeight,
         ),
       ),
     );

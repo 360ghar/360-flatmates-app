@@ -43,10 +43,7 @@ class OwnerProfileSheet extends ConsumerWidget {
     final profileAsync = ref.watch(peerProfileProvider(ownerId));
 
     return profileAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.section),
-        child: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () => const FlatmatesSkeleton.peerProfileSheet(),
       error: (_, _) => _OwnerProfileBody(
         peerData: null,
         listingOwnerName: listingOwnerName,

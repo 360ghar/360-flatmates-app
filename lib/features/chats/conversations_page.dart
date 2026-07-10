@@ -10,6 +10,8 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../discover/application/discover_feed_controller.dart';
+import '../discover/presentation/widgets/discover_listing_card.dart';
 import '../discover/presentation/widgets/flatmate_profile_sheet.dart';
 import '../shared/presentation/components.dart';
 import '../swipe/match_qna_nudge.dart';
@@ -73,6 +75,27 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     ref.invalidate(conversationsProvider);
     ref.invalidate(incomingLikesProvider);
     ref.invalidate(outgoingLikesProvider);
+  }
+
+  Future<void> _onPropertyLike(OutgoingLikeModel like) async {
+    final property = like.property;
+    if (property == null) return;
+
+    try {
+      await ref
+          .read(discoverFeedControllerProvider.notifier)
+          .toggleLike(property.id, property: property);
+    } catch (e) {
+      debugPrint(
+        'ConversationsPage._onPropertyLike failed for ${property.id}: $e',
+      );
+      if (mounted) {
+        FlatmatesToast.error(
+          context,
+          AppLocalizations.of(context).actionFailedRetry,
+        );
+      }
+    }
   }
 
   Future<void> _matchIncomingLike(IncomingLikeModel like) async {
@@ -191,6 +214,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                 onLoadMore: () => ref
                     .read(outgoingLikesListControllerProvider.notifier)
                     .loadMore(),
+                onPropertyLike: _onPropertyLike,
               )
             else
               _ChatsTab(
@@ -239,7 +263,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                   Text(
                     locale.safetyFirstTitle,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: AppTypography.h3Weight,
+                      fontWeight: AppTypography.titleMdWeight,
                     ),
                   ),
                   const SizedBox(height: 2),

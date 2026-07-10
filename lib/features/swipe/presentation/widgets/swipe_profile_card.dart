@@ -9,14 +9,96 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../swipe_repository.dart';
 import 'swipe_card_components.dart';
 
-// ── Scrollable Swipe Profile Card (redesigned) ─────────────────────────
+// ── Scrollable Swipe Profile Card ──────────────────────────────────────
 
-/// Single scrollable profile card for the swipe deck.
+/// Profile card for the swipe deck.
 ///
-/// Thin wrapper around [SwipeProfileDetailBody] — adds the card chrome
-/// (padding + [FlatmatesCard] + rounded clip) that the swipe stack expects.
+/// Owns a single vertical [ListView]:
+/// 1. [FlatmatesCard] chrome around profile sections only
+/// 2. Optional [trailing] (e.g. [SwipeActionBar]) **outside** the card so
+///    controls read as floating below the closed card edge
+///
+/// When [trailing] is set, the card block is min-height constrained to the
+/// viewport so actions stay below the fold until the user scrolls.
 class SwipeProfileCard extends StatelessWidget {
   const SwipeProfileCard({
+    required this.item,
+    required this.compatibility,
+    this.trailing,
+    super.key,
+  });
+
+  final SwipeProfile item;
+  final CompatibilityResult compatibility;
+
+  /// Floating actions after the card ends (foreground swipe controls).
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = _SwipeProfileSections(
+      item: item,
+      compatibility: compatibility,
+    );
+
+    final profileCard = FlatmatesCard(
+      padding: EdgeInsets.zero,
+      child: ClipRRect(borderRadius: AppRadius.cardBorder, child: sections),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxHeight = constraints.maxHeight;
+          final forceBelowFold =
+              trailing != null && maxHeight.isFinite && maxHeight > 0;
+
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: [
+              ConstrainedBox(
+                constraints: forceBelowFold
+                    ? BoxConstraints(minHeight: maxHeight)
+                    : const BoxConstraints(),
+                // Column expands to minHeight when content is short, but the
+                // card itself stays content-sized at the top — empty space
+                // under the card is outside chrome (not padded card surface).
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [profileCard],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                // Claim horizontal drags on the action strip so the parent
+                // card-level swipe GestureDetector does not compete with taps.
+                GestureDetector(
+                  onHorizontalDragStart: (_) {},
+                  onHorizontalDragUpdate: (_) {},
+                  onHorizontalDragEnd: (_) {},
+                  behavior: HitTestBehavior.opaque,
+                  child: trailing,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// The scrollable rich profile body shared with the profile sheet.
+///
+/// Layout: hero carousel → quick stats pills → about → compatibility →
+/// the place → people → costs. Renders a [ListView] so it scrolls natively
+/// wherever it is hosted. Does **not** host swipe action controls.
+class SwipeProfileDetailBody extends StatelessWidget {
+  const SwipeProfileDetailBody({
     required this.item,
     required this.compatibility,
     super.key,
@@ -27,34 +109,24 @@ class SwipeProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: FlatmatesCard(
-        padding: EdgeInsets.zero,
-        child: ClipRRect(
-          borderRadius: AppRadius.cardBorder,
-          child: SwipeProfileDetailBody(
-            item: item,
-            compatibility: compatibility,
-          ),
-        ),
-      ),
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      children: [
+        _SwipeProfileSections(item: item, compatibility: compatibility),
+      ],
     );
   }
 }
 
-/// The scrollable rich profile body shared by the swipe card and the
-/// profile sheet.
+/// Shared profile content used by the swipe card and the profile sheet.
 ///
-/// Layout: hero carousel → quick stats pills → about → compatibility →
-/// the place → people → costs. All existing data fields are preserved but
-/// reorganized for better visual hierarchy. Renders a [ListView] so it
-/// scrolls natively wherever it is hosted.
-class SwipeProfileDetailBody extends StatelessWidget {
-  const SwipeProfileDetailBody({
+/// Renders as a [Column] so a parent [ListView] can place card chrome around
+/// it without nesting scrollables.
+class _SwipeProfileSections extends StatelessWidget {
+  const _SwipeProfileSections({
     required this.item,
     required this.compatibility,
-    super.key,
   });
 
   final SwipeProfile item;
@@ -95,7 +167,6 @@ class SwipeProfileDetailBody extends StatelessWidget {
           .toList();
     }
 
-    // Combine the primary photo + extra image_urls (dedupe + filter empty).
     final allImages = <String>{
       if (item.profileImageUrl != null &&
           item.profileImageUrl!.trim().isNotEmpty)
@@ -118,9 +189,9 @@ class SwipeProfileDetailBody extends StatelessWidget {
     final lat = dbl('latitude');
     final lng = dbl('longitude');
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         HeroCarousel(
           images: allImages,

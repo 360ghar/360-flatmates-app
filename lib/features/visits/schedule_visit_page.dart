@@ -147,7 +147,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       appBar: FlatmatesHeader.logo(onBack: () => context.pop()),
       body: SafeArea(
         child: fetchedConversation?.isLoading == true
-            ? const Center(child: FlatmatesSkeleton.card())
+            ? const FlatmatesSkeleton.form()
             : fetchedConversation?.hasError == true
             ? Center(
                 child: Column(
@@ -246,7 +246,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.section),
+                  const SizedBox(height: AppSpacing.xl),
                   Text(
                     locale.scheduleVisitTitle,
                     style: theme.textTheme.headlineMedium,

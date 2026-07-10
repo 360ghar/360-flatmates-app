@@ -248,6 +248,13 @@ class _ScriptedAdapter implements HttpClientAdapter {
       if (body == null) return _json('{"detail":"boom"}', 500);
       return _json(body, 200);
     }
+    if (options.path == FlatmatesEndpoints.outgoingLikes ||
+        options.path == FlatmatesEndpoints.conversations) {
+      return _json(
+        '{"items":[],"next_cursor":null,"has_more":false,"limit":20}',
+        200,
+      );
+    }
     throw StateError('Unexpected request path: ${options.path}');
   }
 

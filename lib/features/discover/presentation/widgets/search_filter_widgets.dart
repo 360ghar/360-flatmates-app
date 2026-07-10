@@ -60,7 +60,7 @@ class CompactFilterSection extends StatelessWidget {
                       title,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        fontSize: AppTypography.bodyLargeSize - 1,
+                        fontSize: AppTypography.bodyMdSize - 1,
                       ),
                     ),
                     if (subtitle != null)

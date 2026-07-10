@@ -315,22 +315,26 @@ class IncomingLikesController extends CursorListController<IncomingLikeModel> {
   }
 }
 
-class OutgoingLikesController extends CursorListController<IncomingLikeModel> {
+class OutgoingLikesController extends CursorListController<OutgoingLikeModel> {
   @override
-  Future<({List<IncomingLikeModel> items, String? nextCursor, bool hasMore})>
+  Future<({List<OutgoingLikeModel> items, String? nextCursor, bool hasMore})>
   fetchPage({String? cursor}) async {
     return ref
         .read(chatsRepositoryProvider)
         .fetchOutgoingLikesPage(cursor: cursor);
   }
 
-  void upsertOutgoingLike(IncomingLikeModel like) {
+  void upsertOutgoingLike(OutgoingLikeModel like) {
     upsertOptimistically(like);
   }
 
   @override
-  bool matchesItem(IncomingLikeModel a, IncomingLikeModel b) {
-    return a.peer.id == b.peer.id;
+  bool matchesItem(OutgoingLikeModel a, OutgoingLikeModel b) {
+    if (a.targetType != b.targetType) return false;
+    if (a.targetType == 'property') {
+      return a.property?.id == b.property?.id;
+    }
+    return a.peer?.id == b.peer?.id;
   }
 }
 
@@ -349,7 +353,7 @@ final incomingLikesListControllerProvider =
 final outgoingLikesListControllerProvider =
     NotifierProvider<
       OutgoingLikesController,
-      AsyncValue<CursorListState<IncomingLikeModel>>
+      AsyncValue<CursorListState<OutgoingLikeModel>>
     >(OutgoingLikesController.new);
 
 /// After a block/unmatch, the conversation list + like tabs must drop the

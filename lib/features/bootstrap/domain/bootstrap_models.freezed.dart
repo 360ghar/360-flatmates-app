@@ -924,6 +924,7 @@ mixin _$BootstrapData {
   int get activeListingCount => throw _privateConstructorUsedError;
   int get conversationCount => throw _privateConstructorUsedError;
   int get unreadMessageCount => throw _privateConstructorUsedError;
+  FlatmatesRealtimeConfig? get realtime => throw _privateConstructorUsedError;
 
   /// Create a copy of BootstrapData
   /// with the given fields replaced by the non-null parameter values.
@@ -945,6 +946,7 @@ abstract class $BootstrapDataCopyWith<$Res> {
     int activeListingCount,
     int conversationCount,
     int unreadMessageCount,
+    FlatmatesRealtimeConfig? realtime,
   });
 
   $FlatmatesProfileModelCopyWith<$Res> get profile;
@@ -970,6 +972,7 @@ class _$BootstrapDataCopyWithImpl<$Res, $Val extends BootstrapData>
     Object? activeListingCount = null,
     Object? conversationCount = null,
     Object? unreadMessageCount = null,
+    Object? realtime = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -993,6 +996,10 @@ class _$BootstrapDataCopyWithImpl<$Res, $Val extends BootstrapData>
                 ? _value.unreadMessageCount
                 : unreadMessageCount // ignore: cast_nullable_to_non_nullable
                       as int,
+            realtime: freezed == realtime
+                ? _value.realtime
+                : realtime // ignore: cast_nullable_to_non_nullable
+                      as FlatmatesRealtimeConfig?,
           )
           as $Val,
     );
@@ -1024,6 +1031,7 @@ abstract class _$$BootstrapDataImplCopyWith<$Res>
     int activeListingCount,
     int conversationCount,
     int unreadMessageCount,
+    FlatmatesRealtimeConfig? realtime,
   });
 
   @override
@@ -1049,6 +1057,7 @@ class __$$BootstrapDataImplCopyWithImpl<$Res>
     Object? activeListingCount = null,
     Object? conversationCount = null,
     Object? unreadMessageCount = null,
+    Object? realtime = freezed,
   }) {
     return _then(
       _$BootstrapDataImpl(
@@ -1072,6 +1081,10 @@ class __$$BootstrapDataImplCopyWithImpl<$Res>
             ? _value.unreadMessageCount
             : unreadMessageCount // ignore: cast_nullable_to_non_nullable
                   as int,
+        realtime: freezed == realtime
+            ? _value.realtime
+            : realtime // ignore: cast_nullable_to_non_nullable
+                  as FlatmatesRealtimeConfig?,
       ),
     );
   }
@@ -1086,6 +1099,7 @@ class _$BootstrapDataImpl extends _BootstrapData {
     this.activeListingCount = 0,
     this.conversationCount = 0,
     this.unreadMessageCount = 0,
+    this.realtime,
   }) : _catalogs = catalogs,
        super._();
 
@@ -1109,10 +1123,12 @@ class _$BootstrapDataImpl extends _BootstrapData {
   @override
   @JsonKey()
   final int unreadMessageCount;
+  @override
+  final FlatmatesRealtimeConfig? realtime;
 
   @override
   String toString() {
-    return 'BootstrapData(profile: $profile, catalogs: $catalogs, activeListingCount: $activeListingCount, conversationCount: $conversationCount, unreadMessageCount: $unreadMessageCount)';
+    return 'BootstrapData(profile: $profile, catalogs: $catalogs, activeListingCount: $activeListingCount, conversationCount: $conversationCount, unreadMessageCount: $unreadMessageCount, realtime: $realtime)';
   }
 
   @override
@@ -1127,7 +1143,9 @@ class _$BootstrapDataImpl extends _BootstrapData {
             (identical(other.conversationCount, conversationCount) ||
                 other.conversationCount == conversationCount) &&
             (identical(other.unreadMessageCount, unreadMessageCount) ||
-                other.unreadMessageCount == unreadMessageCount));
+                other.unreadMessageCount == unreadMessageCount) &&
+            (identical(other.realtime, realtime) ||
+                other.realtime == realtime));
   }
 
   @override
@@ -1138,6 +1156,7 @@ class _$BootstrapDataImpl extends _BootstrapData {
     activeListingCount,
     conversationCount,
     unreadMessageCount,
+    realtime,
   );
 
   /// Create a copy of BootstrapData
@@ -1156,6 +1175,7 @@ abstract class _BootstrapData extends BootstrapData {
     final int activeListingCount,
     final int conversationCount,
     final int unreadMessageCount,
+    final FlatmatesRealtimeConfig? realtime,
   }) = _$BootstrapDataImpl;
   const _BootstrapData._() : super._();
 
@@ -1169,6 +1189,8 @@ abstract class _BootstrapData extends BootstrapData {
   int get conversationCount;
   @override
   int get unreadMessageCount;
+  @override
+  FlatmatesRealtimeConfig? get realtime;
 
   /// Create a copy of BootstrapData
   /// with the given fields replaced by the non-null parameter values.

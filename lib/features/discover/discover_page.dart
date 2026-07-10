@@ -126,7 +126,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     try {
       final conversationId = await ref
           .read(discoverFeedControllerProvider.notifier)
-          .toggleLike(item.id);
+          .toggleLike(item.id, property: item);
       if (!mounted) return;
       if (wasLiked) {
         FlatmatesToast.success(context, locale.likeRemovedToast);
@@ -272,13 +272,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                   const SizedBox(height: AppSpacing.sm),
                   HomeSearchBar(onTap: () => showFiltersSheet(context)),
                   const SizedBox(height: AppSpacing.sm),
-                  if (filtered.length < 5 && city != null) ...[
-                    WaitlistNudgeCard(
-                      city: city,
-                      listingCount: filtered.length,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
                   /*
                   if (isSeeker && city != null) ...[
                     HomeSectionHeader(title: locale.homeNewInCity(city)),

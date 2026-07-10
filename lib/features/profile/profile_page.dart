@@ -34,7 +34,7 @@ class ProfilePage extends ConsumerWidget {
             if (state != null && state.trim().isNotEmpty) state.trim(),
           ].join(', ');
           if (profile == null) {
-            return const FlatmatesSkeleton.card();
+            return const FlatmatesSkeleton.profile();
           }
           final profileStrength = _profileStrengthPercent(profile);
           return ListView(
@@ -187,7 +187,7 @@ class ProfilePage extends ConsumerWidget {
                 percent: profileStrength,
                 onTap: () => context.push('/profile/edit'),
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               // --- Menu items with staggered appear ---
               MenuGroupLabel(label: locale.discoverySectionLabel),
               const SizedBox(height: AppSpacing.sm),
@@ -237,7 +237,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               MenuGroupLabel(label: locale.trustSectionLabel),
               const SizedBox(height: AppSpacing.sm),
               StaggeredMenuGroup(
@@ -256,9 +256,9 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               _accountGroup(context, locale),
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: AppSpacing.xl),
               // Group 4: Logout (standalone destructive tertiary button)
               FlatmatesButton.tertiary(
                 key: const Key('logout_button'),

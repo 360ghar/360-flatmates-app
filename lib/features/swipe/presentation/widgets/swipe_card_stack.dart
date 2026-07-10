@@ -39,6 +39,7 @@ class SwipeCardStack extends StatelessWidget {
     required this.onHorizontalDragStart,
     required this.onHorizontalDragUpdate,
     required this.onHorizontalDragEnd,
+    this.actionBar,
     super.key,
   });
 
@@ -56,6 +57,10 @@ class SwipeCardStack extends StatelessWidget {
   final void Function(DragStartDetails) onHorizontalDragStart;
   final void Function(DragUpdateDetails) onHorizontalDragUpdate;
   final void Function(DragEndDetails) onHorizontalDragEnd;
+
+  /// Skip / Undo / Like controls, shown only on the foreground card as
+  /// trailing scroll content (below the fold).
+  final Widget? actionBar;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +95,7 @@ class SwipeCardStack extends StatelessWidget {
           onHorizontalDragStart: onHorizontalDragStart,
           onHorizontalDragUpdate: onHorizontalDragUpdate,
           onHorizontalDragEnd: onHorizontalDragEnd,
+          trailing: actionBar,
         ),
       ],
     );
@@ -118,6 +124,7 @@ class _SwipeCardLayer extends StatelessWidget {
     this.onHorizontalDragStart,
     this.onHorizontalDragUpdate,
     this.onHorizontalDragEnd,
+    this.trailing,
   });
 
   final SwipeProfile profile;
@@ -130,6 +137,9 @@ class _SwipeCardLayer extends StatelessWidget {
   final void Function(DragStartDetails)? onHorizontalDragStart;
   final void Function(DragUpdateDetails)? onHorizontalDragUpdate;
   final void Function(DragEndDetails)? onHorizontalDragEnd;
+
+  /// Foreground-only trailing scroll content (e.g. action bar).
+  final Widget? trailing;
 
   bool get isForeground => depth == 0;
 
@@ -226,7 +236,11 @@ class _SwipeCardLayer extends StatelessWidget {
     final double shadowDy = foreground ? 4 + 8 * progress : 3;
 
     final card = RepaintBoundary(
-      child: SwipeProfileCard(item: profile, compatibility: compatibility),
+      child: SwipeProfileCard(
+        item: profile,
+        compatibility: compatibility,
+        trailing: trailing,
+      ),
     );
 
     return Positioned(

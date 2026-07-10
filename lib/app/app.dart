@@ -125,8 +125,8 @@ class _AppState extends ConsumerState<App> {
     final router = ref.watch(appRouterProvider);
     final bootstrapState = ref.watch(bootstrapControllerProvider);
 
-    // Activate SSE event stream and provider invalidation router.
-    ref.watch(sseEventRouterProvider);
+    // Activate Realtime event stream and provider invalidation router.
+    ref.watch(flatmatesRealtimeEventRouterProvider);
 
     ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
       _,
@@ -143,6 +143,12 @@ class _AppState extends ConsumerState<App> {
           }),
         );
       }
+
+      // Connect Realtime once bootstrap has a profile id (channel name source).
+      final data = next.valueOrNull;
+      if (data != null && ref.read(authControllerProvider).isLoggedIn) {
+        _connectRealtimeIfReady();
+      }
     });
 
     // Handle notification deep links on bootstrap completion
@@ -158,7 +164,7 @@ class _AppState extends ConsumerState<App> {
     // emission. Bootstrap fetches /users/me/auth-state and calls
     // updateGateStage(), which re-emits AuthState — so an unguarded listener
     // here would re-refresh bootstrap on every fetch and loop infinitely
-    // (each cycle also re-firing logLogin, notification init, and SSE connect).
+    // (each cycle also re-firing logLogin, notification init, and Realtime).
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       final wasLoggedIn = previous?.isLoggedIn ?? false;
       final isLoggedIn = next.isLoggedIn;
@@ -181,10 +187,13 @@ class _AppState extends ConsumerState<App> {
       if (isLoggedIn) {
         _logLoginSafely();
         _initializeNotificationsSafely();
-        _connectSseSafely();
+        // Realtime needs the numeric profile id from bootstrap — connect
+        // when bootstrap data is already present, otherwise bootstrap listener
+        // above will connect once profile id is available.
+        _connectRealtimeIfReady();
       } else {
         ref.read(notificationServiceProvider).dispose();
-        ref.read(sseServiceProvider).disconnect();
+        ref.read(flatmatesRealtimeServiceProvider).disconnect();
         ref.read(pendingPhoneProvider.notifier).state = null;
         ref.read(addPhonePromptProvider.notifier).state = false;
         unawaited(_clearOnboardingDraftThenInvalidate());
@@ -195,14 +204,8 @@ class _AppState extends ConsumerState<App> {
     return MaterialApp.router(
       title: '360 FlatMates',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.build(
-        brightness: Brightness.light,
-        palette: settings.palette,
-      ),
-      darkTheme: AppTheme.build(
-        brightness: Brightness.dark,
-        palette: settings.palette,
-      ),
+      theme: AppTheme.build(brightness: Brightness.light),
+      darkTheme: AppTheme.build(brightness: Brightness.dark),
       themeMode: settings.themeMode,
       locale: settings.locale,
       routerConfig: router,
@@ -269,17 +272,28 @@ class _AppState extends ConsumerState<App> {
     }
   }
 
-  void _connectSseSafely() {
+  void _connectRealtimeIfReady() {
     try {
-      // Connect SSE stream with a token refresher callback so reconnects
-      // always use a fresh JWT.
-      final config = ref.read(appConfigProvider);
+      final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+      final profileId = bootstrap?.profile.id;
+      if (profileId == null || profileId <= 0) return;
+
+      final realtime =
+          bootstrap?.realtime ??
+          FlatmatesRealtimeConfig.fallbackForUser(profileId);
+      if (realtime.channel.isEmpty) return;
+
       final tokenProvider = ref.read(authTokenProviderProvider);
       ref
-          .read(sseServiceProvider)
-          .connect(config.apiBaseUrl, () => tokenProvider.getAccessToken());
+          .read(flatmatesRealtimeServiceProvider)
+          .connect(
+            channelName: realtime.channel,
+            tokenRefresher: () => tokenProvider.getAccessToken(),
+            privateChannel: realtime.privateChannel,
+            events: realtime.events.isNotEmpty ? realtime.events : null,
+          );
     } catch (error) {
-      debugPrint('App.login SSE connect failed: $error');
+      debugPrint('App.login Realtime connect failed: $error');
     }
   }
 

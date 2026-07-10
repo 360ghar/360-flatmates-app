@@ -59,7 +59,7 @@ class StepSocietySection extends StatelessWidget {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppSpacing.section - AppSpacing.md),
+          const SizedBox(height: AppSpacing.xl - AppSpacing.md),
           Text(
             locale.societyAmenitiesLabel,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -81,7 +81,7 @@ class StepSocietySection extends StatelessWidget {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppSpacing.section - AppSpacing.md),
+          const SizedBox(height: AppSpacing.xl - AppSpacing.md),
           Text(
             locale.societyVibeLabel,
             style: theme.textTheme.titleMedium?.copyWith(

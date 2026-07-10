@@ -24,7 +24,7 @@ class HelpSafetyPage extends StatelessWidget {
       appBar: FlatmatesHeader.backTitle(title: locale.helpSafetyTitle),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
           children: [
             const SizedBox(height: AppSpacing.lg),
             FlatmatesCard.elevated(
@@ -108,7 +108,7 @@ class HelpSafetyPage extends StatelessWidget {
               onTap: () =>
                   _navigateToSubPage(context, '/help-safety/request-feature'),
             ),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: AppSpacing.xl),
             FlatmatesButton(
               key: const Key('help_chat_with_us_button'),
               label: locale.contactSupport,
@@ -158,7 +158,7 @@ class HelpSafetyTopicPage extends StatelessWidget {
       appBar: FlatmatesHeader.backTitle(title: content.title),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
           children: [
             const SizedBox(height: AppSpacing.lg),
             FlatmatesCard.elevated(

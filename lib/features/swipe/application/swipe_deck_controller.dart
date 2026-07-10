@@ -281,9 +281,10 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     unawaited(ref.read(conversationsListControllerProvider.notifier).refresh());
   }
 
-  IncomingLikeModel _outgoingLikeFor(SwipeProfile profile) {
-    return IncomingLikeModel(
+  OutgoingLikeModel _outgoingLikeFor(SwipeProfile profile) {
+    return OutgoingLikeModel(
       id: -profile.id,
+      targetType: 'user',
       peer: ChatPeer(
         id: profile.id,
         fullName: profile.fullName ?? 'Flatmate',

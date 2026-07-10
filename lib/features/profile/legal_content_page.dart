@@ -8,6 +8,7 @@ import 'package:flatmates_app/core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_async_view.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_skeleton.dart';
 
 final _legalContentProvider = FutureProvider.autoDispose.family<String, String>(
   (ref, assetPath) => rootBundle.loadString(assetPath),
@@ -32,7 +33,7 @@ class LegalContentPage extends ConsumerWidget {
       body: SafeArea(
         child: FlatmatesAsyncView<String>(
           value: content,
-          loading: const Center(child: CircularProgressIndicator()),
+          loading: const FlatmatesSkeleton.legalContent(),
           error: (error, stack) => const _LegalContentError(),
           data: (content) => _LegalMarkdownContent(content: content),
         ),
