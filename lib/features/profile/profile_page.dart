@@ -23,7 +23,10 @@ class ProfilePage extends ConsumerWidget {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return FlatmatesScreen(
+      backgroundColor: listHubBg,
       body: bootstrap.when(
         data: (data) {
           final profile = data?.profile;
@@ -39,10 +42,10 @@ class ProfilePage extends ConsumerWidget {
           final profileStrength = _profileStrengthPercent(profile);
           return ListView(
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.lg,
-              AppSpacing.xl,
-              AppSpacing.xl,
+              AppSpacing.screen,
+              AppSpacing.base,
+              AppSpacing.screen,
+              AppSpacing.xxl,
             ),
             children: [
               // --- Compact header: avatar left, text right, whole group centered ---
@@ -96,7 +99,7 @@ class ProfilePage extends ConsumerWidget {
                                     child: const Icon(
                                       Icons.edit,
                                       size: 14,
-                                      color: Colors.white,
+                                      color: AppSemanticColors.onPrimary,
                                     ),
                                   ),
                                 ),
@@ -195,6 +198,9 @@ class ProfilePage extends ConsumerWidget {
                 delayIndex: 0,
                 child: FlatmatesCard(
                   padding: EdgeInsets.zero,
+                  backgroundColor: AppSemanticColors.surfaceFor(
+                    theme.brightness,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -244,6 +250,9 @@ class ProfilePage extends ConsumerWidget {
                 delayIndex: 1,
                 child: FlatmatesCard(
                   padding: EdgeInsets.zero,
+                  backgroundColor: AppSemanticColors.surfaceFor(
+                    theme.brightness,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -288,6 +297,9 @@ class ProfilePage extends ConsumerWidget {
           delayIndex: 2,
           child: FlatmatesCard(
             padding: EdgeInsets.zero,
+            backgroundColor: AppSemanticColors.surfaceFor(
+              Theme.of(context).brightness,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -403,7 +415,7 @@ class _ProfileStrengthCard extends StatelessWidget {
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

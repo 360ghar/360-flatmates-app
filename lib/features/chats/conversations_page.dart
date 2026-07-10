@@ -10,8 +10,6 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../discover/application/discover_feed_controller.dart';
-import '../discover/presentation/widgets/discover_listing_card.dart';
 import '../discover/presentation/widgets/flatmate_profile_sheet.dart';
 import '../shared/presentation/components.dart';
 import '../swipe/match_qna_nudge.dart';
@@ -66,27 +64,6 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     } else {
       await ref.read(conversationsListControllerProvider.notifier).refresh();
       ref.invalidate(conversationsProvider);
-    }
-  }
-
-  Future<void> _onPropertyLike(OutgoingLikeModel like) async {
-    final property = like.property;
-    if (property == null) return;
-
-    try {
-      await ref
-          .read(discoverFeedControllerProvider.notifier)
-          .toggleLike(property.id, property: property);
-    } catch (e) {
-      debugPrint(
-        'ConversationsPage._onPropertyLike failed for ${property.id}: $e',
-      );
-      if (mounted) {
-        FlatmatesToast.error(
-          context,
-          AppLocalizations.of(context).actionFailedRetry,
-        );
-      }
     }
   }
 
@@ -153,6 +130,8 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     final theme = Theme.of(context);
 
     final Widget tabBody;
+    final bool tabIsEmpty;
+    final bool tabHasData;
     if (tab == 'likes') {
       final incomingLikes = ref.watch(incomingLikesListControllerProvider);
       tabBody = _LikesTab(
@@ -164,6 +143,12 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
             ref.read(incomingLikesListControllerProvider.notifier).loadMore(),
         onMatchTap: _matchIncomingLike,
       );
+      tabIsEmpty =
+          incomingLikes.hasValue &&
+          (incomingLikes.valueOrNull?.items.isEmpty ?? true);
+      tabHasData =
+          incomingLikes.hasValue &&
+          (incomingLikes.valueOrNull?.items.isNotEmpty ?? false);
     } else if (tab == 'liked') {
       final outgoingLikes = ref.watch(outgoingLikesListControllerProvider);
       tabBody = _LikedTab(
@@ -172,8 +157,13 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
             ref.read(outgoingLikesListControllerProvider.notifier).refresh(),
         onLoadMore: () =>
             ref.read(outgoingLikesListControllerProvider.notifier).loadMore(),
-        onPropertyLike: _onPropertyLike,
       );
+      tabIsEmpty =
+          outgoingLikes.hasValue &&
+          (outgoingLikes.valueOrNull?.items.isEmpty ?? true);
+      tabHasData =
+          outgoingLikes.hasValue &&
+          (outgoingLikes.valueOrNull?.items.isNotEmpty ?? false);
     } else {
       final conversations = ref.watch(conversationsListControllerProvider);
       tabBody = _ChatsTab(
@@ -182,47 +172,86 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
             ref.read(conversationsListControllerProvider.notifier).refresh(),
         onLoadMore: () =>
             ref.read(conversationsListControllerProvider.notifier).loadMore(),
-        loading: const FlatmatesSkeleton.conversationList(),
+        // High-contrast white cards — conversationList bones blend into soft hub bg.
+        loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.list),
       );
+      tabIsEmpty =
+          conversations.hasValue &&
+          (conversations.valueOrNull?.items.isEmpty ?? true);
+      tabHasData =
+          conversations.hasValue &&
+          (conversations.valueOrNull?.items.isNotEmpty ?? false);
     }
 
+    // Hide the safety promo when the tab is empty so empty hubs don't look
+    // like they already have content. Show it only alongside real list data.
+    final showSafetyBanner = tabHasData && !tabIsEmpty;
+
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return FlatmatesScreen(
+      backgroundColor: listHubBg,
       body: RefreshIndicator(
+        color: AppSemanticColors.primary,
+        backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
         onRefresh: _refresh,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            AppSpacing.lg,
-            AppSpacing.xl,
-            _kBottomNavOffset,
-          ),
-          children: [
-            const SizedBox(height: AppSpacing.md),
-            FlatmatesSegmentedControl<String>(
-              segmentKeys: const [
-                Key('chats_chats_tab'),
-                Key('chats_likes_tab'),
-                Key('chats_liked_tab'),
-              ],
-              segments: [
-                (
-                  'chats',
-                  locale.chatsTabLabel,
-                  Icons.chat_bubble_outline_rounded,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.base,
+                AppSpacing.screen,
+                _kBottomNavOffset,
+              ),
+              children: [
+                FlatmatesSegmentedControl<String>(
+                  segmentKeys: const [
+                    Key('chats_chats_tab'),
+                    Key('chats_likes_tab'),
+                    Key('chats_liked_tab'),
+                  ],
+                  segments: [
+                    (
+                      'chats',
+                      locale.chatsTabLabel,
+                      Icons.chat_bubble_outline_rounded,
+                    ),
+                    (
+                      'likes',
+                      locale.likesTabLabel,
+                      Icons.favorite_border_rounded,
+                    ),
+                    ('liked', locale.likedTabLabel, Icons.favorite_rounded),
+                  ],
+                  selected: tab,
+                  onChanged: (v) =>
+                      ref
+                              .read(_conversationsTabOverrideProvider.notifier)
+                              .state =
+                          v,
                 ),
-                ('likes', locale.likesTabLabel, Icons.favorite_border_rounded),
-                ('liked', locale.likedTabLabel, Icons.favorite_rounded),
+                const SizedBox(height: AppSpacing.lg),
+                if (tabIsEmpty)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: (constraints.maxHeight - 160).clamp(
+                        280.0,
+                        double.infinity,
+                      ),
+                    ),
+                    child: tabBody,
+                  )
+                else
+                  tabBody,
+                if (showSafetyBanner) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildSafetyBanner(context, theme, locale),
+                ],
               ],
-              selected: tab,
-              onChanged: (v) =>
-                  ref.read(_conversationsTabOverrideProvider.notifier).state =
-                      v,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            tabBody,
-            const SizedBox(height: AppSpacing.md),
-            _buildSafetyBanner(context, theme, locale),
-          ],
+            );
+          },
         ),
       ),
     );

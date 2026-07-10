@@ -52,6 +52,7 @@ void main() {
       guestsPolicy: null,
       workStyle: null,
       gender: null,
+      genderPreference: null,
       nonNegotiables: const [],
       hasPets: false,
       partyHabit: null,

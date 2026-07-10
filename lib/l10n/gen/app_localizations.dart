@@ -104,11 +104,17 @@ abstract class AppLocalizations {
   /// **'360 FlatMates'**
   String get appName;
 
-  /// No description provided for @splashTagline.
+  /// No description provided for @splashTaglineLine1.
   ///
   /// In en, this message translates to:
-  /// **'Find. Connect. Live Together.'**
-  String get splashTagline;
+  /// **'Find. Connect.'**
+  String get splashTaglineLine1;
+
+  /// No description provided for @splashTaglineLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Together.'**
+  String get splashTaglineLine2;
 
   /// No description provided for @splashSubtagline.
   ///
@@ -323,26 +329,26 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Good afternoon, {name}'**
-  String homeGreeting(String name);
+  /// **'Afternoon'**
+  String get homeGreeting;
 
   /// No description provided for @homeGreetingMorning.
   ///
   /// In en, this message translates to:
-  /// **'Good morning, {name}'**
-  String homeGreetingMorning(String name);
+  /// **'Morning'**
+  String get homeGreetingMorning;
 
   /// No description provided for @homeGreetingAfternoon.
   ///
   /// In en, this message translates to:
-  /// **'Good afternoon, {name}'**
-  String homeGreetingAfternoon(String name);
+  /// **'Afternoon'**
+  String get homeGreetingAfternoon;
 
   /// No description provided for @homeGreetingEvening.
   ///
   /// In en, this message translates to:
-  /// **'Good evening, {name}'**
-  String homeGreetingEvening(String name);
+  /// **'Evening'**
+  String get homeGreetingEvening;
 
   /// No description provided for @homeGuestName.
   ///
@@ -6211,6 +6217,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
+
+  /// No description provided for @dealBreakersSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-negotiables they set'**
+  String get dealBreakersSectionSubtitle;
+
+  /// No description provided for @matchToneGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Great match'**
+  String get matchToneGreat;
+
+  /// No description provided for @matchToneWorkable.
+  ///
+  /// In en, this message translates to:
+  /// **'Workable'**
+  String get matchToneWorkable;
+
+  /// No description provided for @matchToneGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Preference gaps'**
+  String get matchToneGaps;
+
+  /// No description provided for @compatAlignedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} aligned'**
+  String compatAlignedCount(int count);
+
+  /// No description provided for @compatWorkableCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} workable'**
+  String compatWorkableCount(int count);
+
+  /// No description provided for @compatGapCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} gaps'**
+  String compatGapCount(int count);
+
+  /// No description provided for @lifestyleDimSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get lifestyleDimSleep;
+
+  /// No description provided for @lifestyleDimCleanliness.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleanliness'**
+  String get lifestyleDimCleanliness;
+
+  /// No description provided for @lifestyleDimFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get lifestyleDimFood;
+
+  /// No description provided for @lifestyleDimSmoking.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking / Drinking'**
+  String get lifestyleDimSmoking;
+
+  /// No description provided for @lifestyleDimGuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests'**
+  String get lifestyleDimGuests;
+
+  /// No description provided for @lifestyleDimWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get lifestyleDimWork;
+
+  /// No description provided for @lifestyleDimParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Parties'**
+  String get lifestyleDimParty;
+
+  /// No description provided for @societyVibesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Society vibes'**
+  String get societyVibesLabel;
+
+  /// No description provided for @dealBreakersCountBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} deal-breakers'**
+  String dealBreakersCountBadge(int count);
 
   /// No description provided for @likeListingTooltip.
   ///

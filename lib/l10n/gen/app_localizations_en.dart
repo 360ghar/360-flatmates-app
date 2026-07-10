@@ -12,7 +12,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => '360 FlatMates';
 
   @override
-  String get splashTagline => 'Find. Connect. Live Together.';
+  String get splashTaglineLine1 => 'Find. Connect.';
+
+  @override
+  String get splashTaglineLine2 => 'Live Together.';
 
   @override
   String get splashSubtagline =>
@@ -128,24 +131,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyListings => 'No flatmate listings are available right now.';
 
   @override
-  String homeGreeting(String name) {
-    return 'Good afternoon, $name';
-  }
+  String get homeGreeting => 'Afternoon';
 
   @override
-  String homeGreetingMorning(String name) {
-    return 'Good morning, $name';
-  }
+  String get homeGreetingMorning => 'Morning';
 
   @override
-  String homeGreetingAfternoon(String name) {
-    return 'Good afternoon, $name';
-  }
+  String get homeGreetingAfternoon => 'Afternoon';
 
   @override
-  String homeGreetingEvening(String name) {
-    return 'Good evening, $name';
-  }
+  String get homeGreetingEvening => 'Evening';
 
   @override
   String get homeGuestName => 'there';
@@ -3307,6 +3302,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'Deal-breakers';
+
+  @override
+  String get dealBreakersSectionSubtitle => 'Non-negotiables they set';
+
+  @override
+  String get matchToneGreat => 'Great match';
+
+  @override
+  String get matchToneWorkable => 'Workable';
+
+  @override
+  String get matchToneGaps => 'Preference gaps';
+
+  @override
+  String compatAlignedCount(int count) {
+    return '$count aligned';
+  }
+
+  @override
+  String compatWorkableCount(int count) {
+    return '$count workable';
+  }
+
+  @override
+  String compatGapCount(int count) {
+    return '$count gaps';
+  }
+
+  @override
+  String get lifestyleDimSleep => 'Sleep';
+
+  @override
+  String get lifestyleDimCleanliness => 'Cleanliness';
+
+  @override
+  String get lifestyleDimFood => 'Food';
+
+  @override
+  String get lifestyleDimSmoking => 'Smoking / Drinking';
+
+  @override
+  String get lifestyleDimGuests => 'Guests';
+
+  @override
+  String get lifestyleDimWork => 'Work';
+
+  @override
+  String get lifestyleDimParty => 'Parties';
+
+  @override
+  String get societyVibesLabel => 'Society vibes';
+
+  @override
+  String dealBreakersCountBadge(int count) {
+    return '$count deal-breakers';
+  }
 
   @override
   String get likeListingTooltip => 'Add to your likes';

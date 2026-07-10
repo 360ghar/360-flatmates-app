@@ -124,6 +124,7 @@ class MapListingsBottomSheet extends ConsumerWidget {
                             ? FlatmatesEmptyState(
                                 title: locale.noListingsMatchFilters,
                                 icon: Icons.search_off_rounded,
+                                compact: true,
                               )
                             : _HorizontalCardList(
                                 listings: listings,

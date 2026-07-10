@@ -118,16 +118,36 @@ class _SplashPageState extends ConsumerState<SplashPage>
               // Tagline — display-xl Inter (Airbnb Cereal substitute)
               _StaggeredFadeSlide(
                 animation: taglineAnimation,
-                child: Text(
-                  locale.splashTagline,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontWeight: AppTypography.displayXlWeight,
-                    fontSize: AppTypography.displayXlSize,
-                    height: AppTypography.displayXlHeight,
-                    letterSpacing: AppTypography.displayXlLetterSpacing,
-                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      locale.splashTaglineLine1,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontWeight: AppTypography.displayXlWeight,
+                        fontSize: AppTypography.displayXlSize,
+                        height: AppTypography.displayXlHeight,
+                        letterSpacing: AppTypography.displayXlLetterSpacing,
+                        color: AppSemanticColors.textPrimaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      locale.splashTaglineLine2,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontWeight: AppTypography.displayXlWeight,
+                        fontSize: AppTypography.displayXlSize,
+                        height: AppTypography.displayXlHeight,
+                        letterSpacing: AppTypography.displayXlLetterSpacing,
+                        color: AppSemanticColors.textPrimaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AppSpacing.md),

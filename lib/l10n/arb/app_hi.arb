@@ -1,7 +1,8 @@
 {
   "@@locale": "hi",
   "appName": "360 फ्लैटमेट्स",
-  "splashTagline": "ढूंढें। जुड़ें। साथ रहें।",
+  "splashTaglineLine1": "ढूंढें। जुड़ें।",
+  "splashTaglineLine2": "साथ रहें।",
   "splashSubtagline": "अपना फ्लैट और फ्लैटमेट ढूंढने का बेहतरीन तरीका।",
   "commonRetry": "फिर से प्रयास करें",
   "commonSave": "सहेजें",
@@ -51,38 +52,10 @@
   },
   "discoverTitle": "डिस्कवर",
   "emptyListings": "अभी कोई फ्लैटमेट लिस्टिंग उपलब्ध नहीं है।",
-  "homeGreeting": "नमस्ते, {name}",
-  "@homeGreeting": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingMorning": "सुप्रभात, {name}",
-  "@homeGreetingMorning": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingAfternoon": "नमस्कार, {name}",
-  "@homeGreetingAfternoon": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingEvening": "शुभ संध्या, {name}",
-  "@homeGreetingEvening": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "homeGreeting": "नमस्ते",
+  "homeGreetingMorning": "सुप्रभात",
+  "homeGreetingAfternoon": "नमस्कार",
+  "homeGreetingEvening": "शुभ संध्या",
   "homeGuestName": "दोस्त",
   "homeSubtitle": "{city} में अपना अगला फ्लैटमेट खोजें",
   "@homeSubtitle": {
@@ -1520,6 +1493,44 @@
   "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें",
   "lifestyleSectionTitle": "जीवनशैली",
   "dealBreakersSectionTitle": "डील-ब्रेकर्स",
+  "dealBreakersSectionSubtitle": "उनकी गैर-समझौता शर्तें",
+  "matchToneGreat": "बेहतरीन मैच",
+  "matchToneWorkable": "ठीक-ठाक",
+  "matchToneGaps": "प्राथमिकता अंतर",
+  "compatAlignedCount": "{count} मेल",
+  "@compatAlignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatWorkableCount": "{count} ठीक-ठाक",
+  "@compatWorkableCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatGapCount": "{count} अंतर",
+  "@compatGapCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lifestyleDimSleep": "नींद",
+  "lifestyleDimCleanliness": "साफ़-सफ़ाई",
+  "lifestyleDimFood": "खाना",
+  "lifestyleDimSmoking": "धूम्रपान / पेय",
+  "lifestyleDimGuests": "मेहमान",
+  "lifestyleDimWork": "काम",
+  "lifestyleDimParty": "पार्टियाँ",
+  "societyVibesLabel": "सोसाइटी वाइब्स",
+  "roomFeaturesLabel": "कमरे की सुविधाएँ",
+  "availableFromLabel": "उपलब्धता",
+  "dealBreakersCountBadge": "{count} डील-ब्रेकर्स",
+  "@dealBreakersCountBadge": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "likeListingTooltip": "अपनी पसंद में जोड़ें",
   "unlikeListingTooltip": "अपनी पसंद से हटाएँ",
   "togglePasswordVisibility": "पासवर्ड दिखाएं या छिपाएं",

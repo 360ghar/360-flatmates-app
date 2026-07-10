@@ -53,7 +53,7 @@ class AppConfigService {
   ///
   /// Fail-open: any network/server error returns null so the app continues.
   /// Uses a short critical-path timeout so a wedged API does not block the
-  /// first frame for the full global Dio receiveTimeout.
+  /// first frame for the default Dio receiveTimeout.
   Future<VersionCheckResult?> checkForUpdates() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();

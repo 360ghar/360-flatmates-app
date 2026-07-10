@@ -20,6 +20,10 @@ import 'swipe_card_components.dart';
 ///
 /// When [trailing] is set, the card block is min-height constrained to the
 /// viewport so actions stay below the fold until the user scrolls.
+/// Taller hero for the swipe card so images read edge-to-edge without feeling
+/// cropped or letterboxed.
+const double _swipeCardHeroHeight = 460;
+
 class SwipeProfileCard extends StatelessWidget {
   const SwipeProfileCard({
     required this.item,
@@ -39,6 +43,8 @@ class SwipeProfileCard extends StatelessWidget {
     final sections = _SwipeProfileSections(
       item: item,
       compatibility: compatibility,
+      showStatsOnHero: true,
+      heroHeight: _swipeCardHeroHeight,
     );
 
     final profileCard = FlatmatesCard(
@@ -47,7 +53,7 @@ class SwipeProfileCard extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final maxHeight = constraints.maxHeight;
@@ -57,19 +63,20 @@ class SwipeProfileCard extends StatelessWidget {
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
+            // Keep the trailing action bar in the element tree even when it sits
+            // below the fold (ListView otherwise defers building off-viewport kids).
+            cacheExtent: forceBelowFold ? maxHeight : null,
             children: [
               ConstrainedBox(
                 constraints: forceBelowFold
                     ? BoxConstraints(minHeight: maxHeight)
                     : const BoxConstraints(),
-                // Column expands to minHeight when content is short, but the
-                // card itself stays content-sized at the top — empty space
-                // under the card is outside chrome (not padded card surface).
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [profileCard],
-                ),
+                // Align fills the minHeight box while keeping the card
+                // content-sized at the top — empty space under the card stays
+                // outside chrome so the action bar remains below the fold.
+                child: forceBelowFold
+                    ? Align(alignment: Alignment.topCenter, child: profileCard)
+                    : profileCard,
               ),
               if (trailing != null) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -127,18 +134,34 @@ class _SwipeProfileSections extends StatelessWidget {
   const _SwipeProfileSections({
     required this.item,
     required this.compatibility,
+    this.showStatsOnHero = false,
+    this.heroHeight = kDefaultHeroHeight,
   });
 
   final SwipeProfile item;
   final CompatibilityResult compatibility;
+
+  /// When true, quick stats render on the hero image (swipe card). When false,
+  /// they render as a row below the hero (profile sheet).
+  final bool showStatsOnHero;
+  final double heroHeight;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final details = item.listingDetails;
 
-    String? str(String key) =>
-        details[key] is String ? details[key] as String : null;
+    // Coerce strings and numbers — API may emit floor/total_floors as ints.
+    String? str(String key) {
+      final v = details[key];
+      if (v == null) return null;
+      if (v is String) {
+        final t = v.trim();
+        return t.isEmpty ? null : t;
+      }
+      if (v is num) return v.toString();
+      return null;
+    }
 
     List<String> strList(String key) {
       final v = details[key];
@@ -151,6 +174,7 @@ class _SwipeProfileSections extends StatelessWidget {
     double? dbl(String key) {
       final v = details[key];
       if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v);
       return null;
     }
 
@@ -177,17 +201,35 @@ class _SwipeProfileSections extends StatelessWidget {
     final roomType = str('room_type');
     final flatConfig = str('flat_config');
     final floor = str('floor');
+    final totalFloors = str('total_floors');
     final societyName = str('society_name');
     final furnishing = strList('furnishing');
     final societyAmenities = strList('society_amenities');
     final flatAmenities = strList('flat_amenities');
+    final societyVibes = strList('society_vibes');
+    final roomFeatures = strList('room_features');
+    final availableFrom = str('available_from');
     final existingFlatmates = flatmatesList();
     final videoTourUrl = str('video_tour_url');
-    final monthlyRent = dbl('monthly_rent') ?? item.budgetMin;
+    // Only real listing rent — never fall back to seeker budget (would mislabel costs).
+    final monthlyRent = dbl('monthly_rent');
     final securityDeposit = dbl('security_deposit');
     final maintenance = dbl('maintenance');
     final lat = dbl('latitude');
     final lng = dbl('longitude');
+    final hasPlaceContent =
+        (item.locality != null && item.locality!.trim().isNotEmpty) ||
+        (item.city != null && item.city!.trim().isNotEmpty) ||
+        (societyName != null && societyName.isNotEmpty) ||
+        (roomType != null && roomType.isNotEmpty) ||
+        (flatConfig != null && flatConfig.isNotEmpty) ||
+        (floor != null && floor.isNotEmpty) ||
+        societyAmenities.isNotEmpty ||
+        flatAmenities.isNotEmpty ||
+        societyVibes.isNotEmpty ||
+        roomFeatures.isNotEmpty ||
+        (availableFrom != null && availableFrom.isNotEmpty) ||
+        (lat != null && lng != null);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -199,14 +241,26 @@ class _SwipeProfileSections extends StatelessWidget {
           mode: item.mode ?? 'open_to_both',
           compatibility: compatibility,
           item: item,
+          showStatsOverlay: showStatsOnHero,
+          heroHeight: heroHeight,
+          quickStats: buildQuickStatPills(
+            context: context,
+            item: item,
+            roomType: roomType,
+            flatConfig: flatConfig,
+            furnishing: furnishing,
+            availableFrom: availableFrom,
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
-        QuickStatsRow(
-          item: item,
-          roomType: roomType,
-          flatConfig: flatConfig,
-          furnishing: furnishing,
-        ),
+        if (!showStatsOnHero)
+          QuickStatsRow(
+            item: item,
+            roomType: roomType,
+            flatConfig: flatConfig,
+            furnishing: furnishing,
+            availableFrom: availableFrom,
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
@@ -219,24 +273,40 @@ class _SwipeProfileSections extends StatelessWidget {
                 compatibility: compatibility,
               ),
               const SizedBox(height: AppSpacing.xl),
-              SectionHeader(label: locale.compatibilityBreakdown),
-              const SizedBox(height: AppSpacing.sm),
-              CompactCompatibilityBreakdown(result: compatibility),
+              LifestylePreferencesSection(item: item),
+              if (_hasLifestyle(item)) const SizedBox(height: AppSpacing.xl),
+              PreferencesSection(item: item),
               const SizedBox(height: AppSpacing.xl),
-              _PlaceBlock(
-                locality: item.locality,
-                city: item.city,
-                societyName: societyName,
-                roomType: roomType,
-                flatConfig: flatConfig,
-                floor: floor,
-                societyAmenities: societyAmenities,
-                flatAmenities: flatAmenities,
-                lat: lat,
-                lng: lng,
-                fallbackLabel:
-                    item.locality ?? item.city ?? locale.propertyFallbackLabel,
-              ),
+              DealBreakersSection(nonNegotiables: item.nonNegotiables),
+              if (item.nonNegotiables.isNotEmpty)
+                const SizedBox(height: AppSpacing.xl),
+              if (compatibility.dimensions.isNotEmpty) ...[
+                SectionHeader(label: locale.compatibilityBreakdown),
+                const SizedBox(height: AppSpacing.sm),
+                CompactCompatibilityBreakdown(result: compatibility),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+              if (hasPlaceContent)
+                _PlaceBlock(
+                  locality: item.locality,
+                  city: item.city,
+                  societyName: societyName,
+                  roomType: roomType,
+                  flatConfig: flatConfig,
+                  floor: floor,
+                  societyAmenities: societyAmenities,
+                  flatAmenities: flatAmenities,
+                  lat: lat,
+                  lng: lng,
+                  fallbackLabel:
+                      item.locality ??
+                      item.city ??
+                      locale.propertyFallbackLabel,
+                  societyVibes: societyVibes,
+                  roomFeatures: roomFeatures,
+                  availableFrom: availableFrom,
+                  totalFloors: totalFloors,
+                ),
               if (existingFlatmates.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xl),
                 SectionHeader(label: locale.peopleSectionTitle),
@@ -260,6 +330,17 @@ class _SwipeProfileSections extends StatelessWidget {
   }
 }
 
+bool _hasLifestyle(SwipeProfile item) {
+  bool nonEmpty(String? v) => v != null && v.trim().isNotEmpty;
+  return nonEmpty(item.sleepSchedule) ||
+      nonEmpty(item.cleanliness) ||
+      nonEmpty(item.foodHabits) ||
+      nonEmpty(item.smokingDrinking) ||
+      nonEmpty(item.guestsPolicy) ||
+      nonEmpty(item.workStyle) ||
+      nonEmpty(item.partyHabit);
+}
+
 /// Wraps [ThePlaceSection] with an optional [MiniMapView] + directions CTA
 /// when geo-coordinates are available.
 class _PlaceBlock extends StatelessWidget {
@@ -275,6 +356,10 @@ class _PlaceBlock extends StatelessWidget {
     required this.lat,
     required this.lng,
     required this.fallbackLabel,
+    this.societyVibes = const [],
+    this.roomFeatures = const [],
+    this.availableFrom,
+    this.totalFloors,
   });
 
   final String? locality;
@@ -288,6 +373,10 @@ class _PlaceBlock extends StatelessWidget {
   final double? lat;
   final double? lng;
   final String fallbackLabel;
+  final List<String> societyVibes;
+  final List<String> roomFeatures;
+  final String? availableFrom;
+  final String? totalFloors;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +395,10 @@ class _PlaceBlock extends StatelessWidget {
           lat: lat,
           lng: lng,
           fallbackLabel: fallbackLabel,
+          societyVibes: societyVibes,
+          roomFeatures: roomFeatures,
+          availableFrom: availableFrom,
+          totalFloors: totalFloors,
         ),
         if (lat != null && lng != null) ...[
           const SizedBox(height: AppSpacing.md),

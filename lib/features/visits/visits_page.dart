@@ -53,7 +53,10 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return Scaffold(
+      backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(title: locale.scheduleTitle),
       body: FlatmatesAsyncView<CursorListState<VisitItem>>(
         value: visitsState,
@@ -87,9 +90,9 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                 ref.read(visitsListControllerProvider.notifier).refresh(),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
                 AppSpacing.screen,
-                AppSpacing.xl,
+                AppSpacing.screen,
+                AppSpacing.screen,
                 120,
               ),
               children: [

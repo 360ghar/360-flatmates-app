@@ -311,9 +311,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           children: [
             const Padding(
               padding: EdgeInsets.fromLTRB(
-                AppSpacing.xl,
+                AppSpacing.screen,
                 AppSpacing.sm,
-                AppSpacing.xl,
+                AppSpacing.screen,
                 0,
               ),
               child: SwipeDeckHeader(),

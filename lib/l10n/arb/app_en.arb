@@ -1,7 +1,8 @@
 {
   "@@locale": "en",
   "appName": "360 FlatMates",
-  "splashTagline": "Find. Connect. Live Together.",
+  "splashTaglineLine1": "Find. Connect.",
+  "splashTaglineLine2": "Live Together.",
   "splashSubtagline": "The smarter way to find your flat and flatmates.",
   "commonRetry": "Retry",
   "commonSave": "Save",
@@ -51,38 +52,10 @@
   },
   "discoverTitle": "Discover",
   "emptyListings": "No flatmate listings are available right now.",
-  "homeGreeting": "Good afternoon, {name}",
-  "@homeGreeting": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingMorning": "Good morning, {name}",
-  "@homeGreetingMorning": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingAfternoon": "Good afternoon, {name}",
-  "@homeGreetingAfternoon": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingEvening": "Good evening, {name}",
-  "@homeGreetingEvening": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "homeGreeting": "Afternoon",
+  "homeGreetingMorning": "Morning",
+  "homeGreetingAfternoon": "Afternoon",
+  "homeGreetingEvening": "Evening",
   "homeGuestName": "there",
   "homeSubtitle": "Find your next flatmate in {city}",
   "@homeSubtitle": {
@@ -1537,6 +1510,44 @@
   "meetPotentialFlatmates": "Meet potential flatmates",
   "lifestyleSectionTitle": "Lifestyle",
   "dealBreakersSectionTitle": "Deal-breakers",
+  "dealBreakersSectionSubtitle": "Non-negotiables they set",
+  "matchToneGreat": "Great match",
+  "matchToneWorkable": "Workable",
+  "matchToneGaps": "Preference gaps",
+  "compatAlignedCount": "{count} aligned",
+  "@compatAlignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatWorkableCount": "{count} workable",
+  "@compatWorkableCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatGapCount": "{count} gaps",
+  "@compatGapCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lifestyleDimSleep": "Sleep",
+  "lifestyleDimCleanliness": "Cleanliness",
+  "lifestyleDimFood": "Food",
+  "lifestyleDimSmoking": "Smoking / Drinking",
+  "lifestyleDimGuests": "Guests",
+  "lifestyleDimWork": "Work",
+  "lifestyleDimParty": "Parties",
+  "societyVibesLabel": "Society vibes",
+  "roomFeaturesLabel": "Room features",
+  "availableFromLabel": "Available from",
+  "dealBreakersCountBadge": "{count} deal-breakers",
+  "@dealBreakersCountBadge": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "likeListingTooltip": "Add to your likes",
   "unlikeListingTooltip": "Remove from your likes",
   "togglePasswordVisibility": "Toggle password visibility",

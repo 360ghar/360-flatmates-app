@@ -12,6 +12,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
 import '../shared/presentation/flatmates_async_view.dart';
+import '../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
@@ -67,11 +68,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final notificationsState = ref.watch(notificationsListControllerProvider);
     final locale = AppLocalizations.of(context);
 
+    final theme = Theme.of(context);
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return Scaffold(
+      backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(
         title: locale.notificationsTitle,
         actions: [
-          IconButton(
+          FlatmatesChromeIconButton(
             key: const Key('notification_mark_all_read'),
             onPressed: () async {
               try {
@@ -86,7 +91,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 }
               }
             },
-            icon: const Icon(Icons.check_circle_outline),
+            icon: Icons.check_circle_outline,
             tooltip: locale.markAllRead,
           ),
         ],
@@ -117,7 +122,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       itemCount: state.items.length + (state.hasMore ? 1 : 0),
                       itemBuilder: (context, index) {

@@ -19,7 +19,6 @@ import 'application/map_listings_controller.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/discover_map.dart';
 import 'presentation/widgets/filter_sheet.dart';
-import 'presentation/widgets/map_filter_bar.dart';
 import 'presentation/widgets/map_listing_sheets.dart';
 import 'presentation/widgets/map_listings_bottom_sheet.dart';
 import 'presentation/widgets/map_location_picker.dart';
@@ -234,10 +233,12 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: MapLocationChip(
+                              child: FlatmatesLocationChip(
                                 locationName: selectedDisplayText.isNotEmpty
                                     ? selectedDisplayText
                                     : null,
+                                placeholder: locale.selectLocationLabel,
+                                dense: true,
                                 onTap: () => _showLocationPicker(context),
                               ),
                             ),
@@ -248,19 +249,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                           // sheet (its top field) — so we expose a single
                           // filter affordance rather than two duplicate
                           // buttons. Kept on the right of the location chip.
-                          IconButton(
+                          FlatmatesChromeIconButton(
                             onPressed: () => _showFilterSheet(context),
-                            icon: const Icon(AppIcons.filter),
+                            icon: AppIcons.filter,
                             tooltip: locale.searchFiltersTitle,
-                            style: IconButton.styleFrom(
-                              backgroundColor:
-                                  theme.brightness == Brightness.dark
-                                  ? AppSemanticColors.darkSurfaceElevated
-                                  : AppSemanticColors.paper,
-                              foregroundColor: AppSemanticColors.textPrimaryFor(
-                                theme.brightness,
-                              ),
-                            ),
                           ),
                         ],
                       ),
@@ -342,19 +334,17 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           onListingTap: _handleListingTap,
           onClusterTap: _handleClusterTap,
         ),
-        if (!hasMarkers)
+        // Empty messaging lives in the bottom sheet only — avoid a second
+        // full-map empty state stacking on top of "0 listings".
+        if (!hasMarkers && filtered.isEmpty)
           Positioned.fill(
             child: IgnorePointer(
-              child: Container(
-                color: isDark
-                    ? AppSemanticColors.darkSurface.withValues(alpha: 0.7)
-                    : Colors.white.withValues(alpha: 0.7),
-                child: FlatmatesEmptyState(
-                  title: filtered.isEmpty
-                      ? locale.emptyListings
-                      : locale.noListingsMatchFilters,
-                  icon: Icons.map_outlined,
-                ),
+              child: ColoredBox(
+                color:
+                    (isDark
+                            ? AppSemanticColors.darkSurface
+                            : AppSemanticColors.canvas)
+                        .withValues(alpha: 0.35),
               ),
             ),
           ),

@@ -12,7 +12,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get appName => '360 फ्लैटमेट्स';
 
   @override
-  String get splashTagline => 'ढूंढें। जुड़ें। साथ रहें।';
+  String get splashTaglineLine1 => 'ढूंढें। जुड़ें।';
+
+  @override
+  String get splashTaglineLine2 => 'साथ रहें।';
 
   @override
   String get splashSubtagline =>
@@ -129,24 +132,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get emptyListings => 'अभी कोई फ्लैटमेट लिस्टिंग उपलब्ध नहीं है।';
 
   @override
-  String homeGreeting(String name) {
-    return 'नमस्ते, $name';
-  }
+  String get homeGreeting => 'नमस्ते';
 
   @override
-  String homeGreetingMorning(String name) {
-    return 'सुप्रभात, $name';
-  }
+  String get homeGreetingMorning => 'सुप्रभात';
 
   @override
-  String homeGreetingAfternoon(String name) {
-    return 'नमस्कार, $name';
-  }
+  String get homeGreetingAfternoon => 'नमस्कार';
 
   @override
-  String homeGreetingEvening(String name) {
-    return 'शुभ संध्या, $name';
-  }
+  String get homeGreetingEvening => 'शुभ संध्या';
 
   @override
   String get homeGuestName => 'दोस्त';
@@ -571,7 +566,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get mainImageUrlLabel => 'मुख्य इमेज URL';
 
   @override
-  String get availableFromLabel => 'कब से उपलब्ध';
+  String get availableFromLabel => 'उपलब्धता';
 
   @override
   String get availableFromUnset => 'मूव-इन उपलब्धता चुनें';
@@ -1132,7 +1127,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get furnishingCurtains => 'पर्दे';
 
   @override
-  String get roomFeaturesLabel => 'कमरे की विशेषताएँ';
+  String get roomFeaturesLabel => 'कमरे की सुविधाएँ';
 
   @override
   String get roomFeatureBalcony => 'प्राइवेट बालकनी';
@@ -3320,6 +3315,62 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get dealBreakersSectionTitle => 'डील-ब्रेकर्स';
+
+  @override
+  String get dealBreakersSectionSubtitle => 'उनकी गैर-समझौता शर्तें';
+
+  @override
+  String get matchToneGreat => 'बेहतरीन मैच';
+
+  @override
+  String get matchToneWorkable => 'ठीक-ठाक';
+
+  @override
+  String get matchToneGaps => 'प्राथमिकता अंतर';
+
+  @override
+  String compatAlignedCount(int count) {
+    return '$count मेल';
+  }
+
+  @override
+  String compatWorkableCount(int count) {
+    return '$count ठीक-ठाक';
+  }
+
+  @override
+  String compatGapCount(int count) {
+    return '$count अंतर';
+  }
+
+  @override
+  String get lifestyleDimSleep => 'नींद';
+
+  @override
+  String get lifestyleDimCleanliness => 'साफ़-सफ़ाई';
+
+  @override
+  String get lifestyleDimFood => 'खाना';
+
+  @override
+  String get lifestyleDimSmoking => 'धूम्रपान / पेय';
+
+  @override
+  String get lifestyleDimGuests => 'मेहमान';
+
+  @override
+  String get lifestyleDimWork => 'काम';
+
+  @override
+  String get lifestyleDimParty => 'पार्टियाँ';
+
+  @override
+  String get societyVibesLabel => 'सोसाइटी वाइब्स';
+
+  @override
+  String dealBreakersCountBadge(int count) {
+    return '$count डील-ब्रेकर्स';
+  }
 
   @override
   String get likeListingTooltip => 'अपनी पसंद में जोड़ें';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
@@ -161,60 +160,6 @@ class MapFilterBar extends StatelessWidget {
                 onBudgetChanged(min, max);
                 Navigator.pop(ctx);
               },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MapLocationChip extends StatelessWidget {
-  const MapLocationChip({this.locationName, this.onTap, super.key});
-
-  final String? locationName;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs + 2,
-        ),
-        decoration: BoxDecoration(
-          color: theme.brightness == Brightness.dark
-              ? AppSemanticColors.darkSurfaceElevated
-              : AppSemanticColors.paper,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.location_on_rounded,
-              size: 16,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                locationName ?? locale.selectLocationLabel,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 16,
-              color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
         ),

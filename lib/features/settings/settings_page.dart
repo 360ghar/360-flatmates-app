@@ -16,7 +16,11 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
 
+    final theme = Theme.of(context);
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return FlatmatesScreen(
+      backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(title: locale.settingsTitle),
       body: Column(
         children: [
@@ -24,7 +28,7 @@ class SettingsPage extends ConsumerWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
+                horizontal: AppSpacing.screen,
                 vertical: AppSpacing.md,
               ),
               children: [

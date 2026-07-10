@@ -23,11 +23,11 @@ import 'presentation/widgets/filter_sheet.dart';
 import 'presentation/widgets/home_section_widgets.dart';
 import 'presentation/widgets/staggered_card_appear.dart';
 
-String _timeBasedGreeting(AppLocalizations locale, String name) {
+String _timeBasedGreetingLabel(AppLocalizations locale) {
   final hour = DateTime.now().hour;
-  if (hour < 12) return locale.homeGreetingMorning(name);
-  if (hour < 17) return locale.homeGreetingAfternoon(name);
-  return locale.homeGreetingEvening(name);
+  if (hour < 12) return locale.homeGreetingMorning;
+  if (hour < 17) return locale.homeGreetingAfternoon;
+  return locale.homeGreetingEvening;
 }
 
 class DiscoverPage extends ConsumerStatefulWidget {
@@ -236,9 +236,11 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
     final preview = filtered.take(_homeFeedPreviewCount).toList();
     final showSeeAll =
-        filtered.length > 2 ||
-        feedState.hasMore ||
-        filtered.length > preview.length;
+        filtered.isNotEmpty && (filtered.length > 2 || feedState.hasMore);
+
+    final showMeet =
+        (ref.watch(homeMeetProfilesProvider).valueOrNull?.length ?? 0) > 0;
+    final hasMovingSoon = movingSoonItems(filtered).isNotEmpty;
 
     return FlatmatesScreen(
       body: feedState.isLoading && filtered.isEmpty
@@ -253,42 +255,54 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.xl,
+                      AppSpacing.screen,
                       AppSpacing.sm,
-                      AppSpacing.xl,
+                      AppSpacing.screen,
                       0,
                     ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        DiscoverHeader(
-                          greeting: _timeBasedGreeting(locale, displayName),
-                          location: currentLocation,
-                          avatarUrl: profile?.profileImageUrl,
-                          userName: profile?.fullName,
-                          onAvatarTap: () => context.push('/profile'),
-                          onLocationTap: () => _showLocationPicker(
-                            context,
-                            currentLocation: currentLocation,
-                            currentRadiusKm: currentRadiusKm,
+                        // Extra L/R inset on the first row only (greeting +
+                        // location + avatar); sections below keep screen gutter.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                          child: DiscoverHeader(
+                            greetingLabel: _timeBasedGreetingLabel(locale),
+                            name: displayName,
+                            location: currentLocation,
+                            avatarUrl: profile?.profileImageUrl,
+                            userName: profile?.fullName,
+                            onAvatarTap: () => context.push('/profile'),
+                            onLocationTap: () => _showLocationPicker(
+                              context,
+                              currentLocation: currentLocation,
+                              currentRadiusKm: currentRadiusKm,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.base),
                         HomeSearchBar(onTap: () => showFiltersSheet(context)),
-                        const SizedBox(height: AppSpacing.sm),
                         if (!isSeeker) ...[
+                          const SizedBox(height: AppSpacing.lg),
                           PostYourSpaceCard(
                             onTap: () => context.push('/post/new'),
                           ),
-                          const SizedBox(height: AppSpacing.sm),
                         ],
                         if (city != null) ...[
+                          const SizedBox(height: AppSpacing.lg),
                           TrendingNeighborhoodsSection(city: city),
-                          const SizedBox(height: AppSpacing.sm),
                         ],
-                        const MeetFlatmatesSection(),
-                        const SizedBox(height: AppSpacing.sm),
-                        MovingSoonSection(items: filtered),
-                        const SizedBox(height: AppSpacing.sm),
+                        if (showMeet) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          const MeetFlatmatesSection(),
+                        ],
+                        if (hasMovingSoon) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          MovingSoonSection(items: filtered),
+                        ],
+                        const SizedBox(height: AppSpacing.lg),
                         HomeSectionHeader(
                           title: locale.homePickedForYou,
                           actionLabel: showSeeAll ? locale.seeAllCta : null,
@@ -296,12 +310,14 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                           onActionTap: () =>
                               context.push('/discover/browse-listings'),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.md),
                         if (filtered.isEmpty && !feedState.isLoading)
                           FlatmatesEmptyState(
                             title: locale.homeNoResults,
                             subtitle: locale.homeNoResultsSubtitle,
                             icon: Icons.search_off_rounded,
+                            padHorizontally: false,
+                            compact: true,
                           ),
                       ]),
                     ),
@@ -309,9 +325,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                   if (preview.isNotEmpty)
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.xl,
+                        AppSpacing.screen,
                         0,
-                        AppSpacing.xl,
+                        AppSpacing.screen,
                         _kBottomNavOffset,
                       ),
                       sliver: SliverList(

@@ -36,7 +36,7 @@ final class ApiClient {
 
   /// Per-request timeouts for cold-start critical paths (bootstrap, auth-state,
   /// version check). Keeps splash recovery under ~15s when the API/DB is
-  /// wedged instead of waiting for the global 60s receive timeout twice.
+  /// wedged instead of waiting for the default 30s receive timeout twice.
   static Options criticalPathOptions({
     Duration timeout = const Duration(seconds: 15),
   }) => Options(

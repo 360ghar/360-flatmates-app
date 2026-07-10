@@ -20,6 +20,7 @@ export 'flatmates_header.dart';
 export 'flatmates_like_button.dart';
 export 'flatmates_listing_meta_chips.dart';
 export 'flatmates_listing_mini_card.dart';
+export 'flatmates_location_chip.dart';
 export 'flatmates_network_image.dart';
 export 'flatmates_otp_input.dart';
 export 'flatmates_price_text.dart';

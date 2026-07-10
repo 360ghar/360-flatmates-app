@@ -176,7 +176,7 @@ class HomeSectionHeader extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: AppSemanticColors.textPrimaryFor(theme.brightness),
             ),
             maxLines: 1,
@@ -229,7 +229,7 @@ class HomeSearchBar extends StatelessWidget {
             color: AppSemanticColors.surfaceFor(theme.brightness),
             borderRadius: BorderRadius.circular(100),
             border: Border.all(
-              color: AppSemanticColors.line.withValues(alpha: 0.2),
+              color: AppSemanticColors.hairlineFor(theme.brightness),
             ),
             boxShadow: [
               BoxShadow(

@@ -34,6 +34,7 @@ void main() {
     guestsPolicy: null,
     workStyle: null,
     gender: null,
+    genderPreference: null,
     nonNegotiables: [],
     hasPets: false,
     partyHabit: null,
@@ -83,9 +84,11 @@ void main() {
       findsNothing,
     );
 
-    // Still below the fold on first paint.
+    // Still below the fold on first paint (use the actual ListView viewport,
+    // not the requested SizedBox height — the test surface may clamp it).
+    final listHeight = tester.getSize(find.byType(ListView)).height;
     final topBefore = tester.getRect(like).top;
-    expect(topBefore, greaterThanOrEqualTo(viewportHeight));
+    expect(topBefore, greaterThanOrEqualTo(listHeight));
 
     await tester.scrollUntilVisible(
       find.byKey(const Key('swipe_action_like'), skipOffstage: false),
@@ -97,7 +100,7 @@ void main() {
     final topAfter = tester
         .getRect(find.byKey(const Key('swipe_action_like')))
         .top;
-    expect(topAfter, lessThan(viewportHeight));
+    expect(topAfter, lessThan(listHeight));
     expect(topAfter, lessThan(topBefore));
 
     // Still outside the card after scrolling into view.

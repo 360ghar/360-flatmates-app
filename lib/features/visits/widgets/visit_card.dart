@@ -44,6 +44,7 @@ class VisitCard extends StatelessWidget {
         item.status == 'confirmed';
 
     return FlatmatesCard(
+      backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
@@ -218,7 +219,7 @@ class _CompactActionChip extends StatelessWidget {
         : AppSemanticColors.accent;
     final inactive = busy || disabled;
     final effectiveAccent = inactive ? accent.withValues(alpha: 0.4) : accent;
-    final foreground = filled ? Colors.white : effectiveAccent;
+    final foreground = filled ? AppSemanticColors.onPrimary : effectiveAccent;
 
     return Expanded(
       child: Semantics(
