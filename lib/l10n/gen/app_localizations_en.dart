@@ -289,6 +289,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get callCta => 'Call';
 
   @override
+  String get messageCta => 'Message';
+
+  @override
   String get listingDetails => 'Listing details';
 
   @override
@@ -2136,6 +2139,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInputHint => 'Type a message...';
 
   @override
+  String get emojiCta => 'Emoji';
+
+  @override
+  String get dismissCta => 'Dismiss';
+
+  @override
   String get phoneNotAvailable => 'Phone number not available';
 
   @override
@@ -2430,6 +2439,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sayHelloOrIcebreaker => 'Say hello or use an icebreaker';
+
+  @override
+  String get noMessagesYet => 'No messages here yet...';
+
+  @override
+  String get noMessagesYetHint =>
+      'Send a message or tap the icebreakers below.';
 
   @override
   String get messagesArePrivate => 'Messages are private';

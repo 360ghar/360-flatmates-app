@@ -141,15 +141,47 @@ class _FlatmatesEmptyStateState extends State<FlatmatesEmptyState>
     );
 
     if (widget.expand) {
-      return SizedBox.expand(child: Center(child: content));
-    }
-    if (widget.minHeight != null) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(minHeight: widget.minHeight!),
-        child: Center(child: content),
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final effectiveMinHeight = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : null;
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: effectiveMinHeight != null
+                  ? BoxConstraints(minHeight: effectiveMinHeight)
+                  : const BoxConstraints(),
+              child: Center(child: content),
+            ),
+          );
+        },
       );
     }
-    return Center(child: content);
+    if (widget.minHeight != null) {
+      return SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: widget.minHeight!),
+          child: Center(child: content),
+        ),
+      );
+    }
+    // When the parent has bounded height, center content and scroll if the
+    // available height is reduced (keyboard open, emoji picker). When the
+    // parent is unbounded (SliverList, etc.) just size to content so we
+    // never impose an infinite minHeight constraint.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.maxHeight.isFinite) {
+          return Center(child: content);
+        }
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(child: content),
+          ),
+        );
+      },
+    );
   }
 }
 

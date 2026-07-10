@@ -20,7 +20,6 @@ void main() {
       testableWidget(
         child: Scaffold(
           appBar: ChatAppBar(
-            conversationId: 7,
             conversation: conversation,
             reportReasons: ChatReportReason.defaults(),
             onBlock: () {},

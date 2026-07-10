@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/compatibility/compatibility_engine.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
@@ -283,6 +284,60 @@ class ChatsRepository {
     }
   }
 
+  /// Fetches per-dimension compatibility data against a peer. Returns null
+  /// when the breakdown is unavailable (no dimensions, or HTTP error).
+  ///
+  /// The backend may emit `overall_percentage: null` when no dimensions are
+  /// comparable while still returning per-dimension "not enough data" rows.
+  /// We parse dimensions even in that case so the UI can show the breakdown
+  /// section. Dimensions with empty user/peer values are filtered out so
+  /// missing data is never misrepresented as a mismatch (0% bars).
+  Future<CompatibilityResult?> fetchPeerCompatibility(int userId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .get(FlatmatesEndpoints.flatmatesPeerCompatibility(userId));
+      final data = response.data;
+      if (data is! Map) return null;
+      final dims = data['dimensions'] as List?;
+      if (dims == null || dims.isEmpty) return null;
+      final overallPct = (data['overall_percentage'] as num?)?.toDouble();
+
+      final dimensions = dims
+          .whereType<Map>()
+          .map((d) {
+            final m = Map<String, dynamic>.from(d);
+            return CompatibilityDimension(
+              key: m['name'] as String? ?? '',
+              weight: (m['weight'] as num?)?.toDouble() ?? 0,
+              userValue: m['user_value'] as String? ?? '',
+              peerValue: m['peer_value'] as String? ?? '',
+              score: (m['score'] as num?)?.toDouble() ?? 0,
+              isMatch: m['match'] as bool? ?? false,
+              summary: m['summary'] as String? ?? '',
+            );
+          })
+          // Skip dimensions where either side has no data — the backend
+          // emits these with score=0 and summary "not enough data". Showing
+          // them as 0% bars would misrepresent missing data as mismatch.
+          .where((dim) => dim.userValue.isNotEmpty || dim.peerValue.isNotEmpty)
+          .toList();
+
+      if (dimensions.isEmpty) return null;
+
+      return CompatibilityResult(
+        percentage: overallPct ?? 0,
+        dimensions: dimensions,
+        topMatchChips:
+            (data['summary'] as List?)?.whereType<String>().toList() ??
+            const [],
+      );
+    } catch (e) {
+      debugPrint('ChatsRepository.fetchPeerCompatibility: $e');
+      return null;
+    }
+  }
+
   Future<void> markMessagesAsRead(int conversationId) async {
     await _ref
         .read(apiClientProvider)
@@ -380,3 +435,9 @@ final messagesStreamProvider = StreamProvider.family
 final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
   (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
 );
+
+final peerCompatibilityProvider =
+    FutureProvider.family<CompatibilityResult?, int>(
+      (ref, userId) =>
+          ref.watch(chatsRepositoryProvider).fetchPeerCompatibility(userId),
+    );

@@ -69,6 +69,8 @@ abstract final class FlatmatesEndpoints {
   // -- Flatmates --
   static const flatmatesProfile = '/flatmates/profile';
   static const flatmatesProfiles = '/flatmates/profiles';
+  static String flatmatesPeerCompatibility(int userId) =>
+      '/flatmates/profiles/$userId/compatibility';
   static String societyTagVotes(int id) =>
       '/flatmates/listings/$id/society-tags/votes';
 
