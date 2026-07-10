@@ -302,7 +302,14 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                         context.push('/discover/browse-listings'),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  if (filtered.isEmpty && !feedState.isLoading)
+                  if (filtered.isEmpty && feedState.hasError)
+                    FlatmatesErrorState(
+                      message: locale.actionFailedRetry,
+                      onRetry: () => ref
+                          .read(discoverFeedControllerProvider.notifier)
+                          .refresh(),
+                    )
+                  else if (filtered.isEmpty && !feedState.isLoading)
                     FlatmatesEmptyState(
                       title: locale.homeNoResults,
                       subtitle: locale.homeNoResultsSubtitle,

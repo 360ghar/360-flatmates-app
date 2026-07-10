@@ -242,6 +242,13 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
 
   Future<void> _handleContact(PropertyListing listing) async {
     if (ref.read(_contactingProvider)) return;
+
+    // Already contacted — open existing conversation without re-POSTing like
+    if (_conversationId != null) {
+      unawaited(context.push('/chats/$_conversationId'));
+      return;
+    }
+
     ref.read(_contactingProvider.notifier).state = true;
 
     try {
