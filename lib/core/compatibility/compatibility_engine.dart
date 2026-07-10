@@ -108,9 +108,7 @@ class CompatibilityEngine {
       weightTotal += dim.weight;
     }
 
-    final percentage = weightTotal > 0
-        ? (weightedSum / weightTotal) * 100.0
-        : 0.0;
+    final percentage = weightTotal > 0 ? (weightedSum / weightTotal) : 0.0;
 
     // Sort dimensions by score (highest first) and take top 3 matches
     final sortedDimensions = List<CompatibilityDimension>.from(dimensions)

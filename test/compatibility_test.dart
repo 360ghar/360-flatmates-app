@@ -22,6 +22,35 @@ void main() {
       expect(result.topMatchChips.length, 3);
     });
 
+    // Regression for #17: scores are already 0–100 and weights sum to ~1.0,
+    // so percentage must not multiply by 100 again (which clamped mixed results to 100%).
+    test('mixed dimensions yield weighted average under 100%', () {
+      final user = <String, String>{
+        'sleep_schedule': 'early_bird',
+        'cleanliness': 'tidy',
+        'food_habits': 'vegetarian',
+        'smoking_drinking': 'neither',
+        'guests_policy': 'occasional_ok',
+        'work_style': 'hybrid',
+      };
+      // Opposite sleep only; all other dimensions match defaults/user values.
+      final peer = <String, String>{
+        'sleep_schedule': 'night_owl',
+        'cleanliness': 'tidy',
+        'food_habits': 'vegetarian',
+        'smoking_drinking': 'neither',
+        'guests_policy': 'occasional_ok',
+        'work_style': 'hybrid',
+      };
+
+      final result = CompatibilityEngine.calculate(user: user, peer: peer);
+
+      // sleep=0 (w=0.20); remaining five dimensions at 100 → weighted avg = 80.
+      expect(result.percentage, closeTo(80.0, 0.001));
+      expect(result.percentage, greaterThan(0));
+      expect(result.percentage, lessThan(100));
+    });
+
     test('opposite sleep schedule yields lower sleep score', () {
       final earlyBird = {'sleep_schedule': 'early_bird'};
       final nightOwl = {'sleep_schedule': 'night_owl'};
