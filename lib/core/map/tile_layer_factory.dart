@@ -17,10 +17,11 @@ import 'package:http/http.dart';
 ///
 /// OSM tile usage policy: identify the app via [userAgentPackageName], do not
 /// use subdomain round-robin on tile.openstreetmap.org, and keep traffic
-/// reasonable. For high-traffic production, move to a commercial tile CDN.
+/// reasonable. For high-traffic production, move to a commercial tile CDN that
+/// matches openstreetmap-carto colors.
 class TileLayerFactory {
   /// Bump when basemap URL or provider changes — used as [ValueKey].
-  static const int styleVersion = 7;
+  static const int styleVersion = 10;
 
   /// Official OSM raster tiles (no `{s}` subdomains — policy requirement).
   static const String _lightUrlTemplate =

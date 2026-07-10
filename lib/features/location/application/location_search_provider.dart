@@ -59,18 +59,32 @@ class LocationSearchNotifier extends Notifier<LocationSearchState> {
     final googleService = ref.read(googlePlacesServiceProvider);
     final nominatimService = ref.read(nominatimServiceProvider);
 
-    final results = await Future.wait([
-      googleService
+    // Prefer Google Places when configured. Public Nominatim has a strict
+    // 1 req/s usage policy and must not be hit in parallel on every keystroke
+    // in production. Use Nominatim only when Places is unavailable.
+    final List<PlaceSuggestion> google;
+    final List<PlaceSuggestion> nominatim;
+    if (GooglePlacesService.isConfigured) {
+      google = await googleService
           .getPlaceSuggestions(query)
-          .catchError((_) => <PlaceSuggestion>[]),
-      nominatimService.search(query).catchError((_) => <PlaceSuggestion>[]),
-    ]);
+          .catchError((_) => <PlaceSuggestion>[]);
+      nominatim = const [];
+    } else {
+      final results = await Future.wait([
+        googleService
+            .getPlaceSuggestions(query)
+            .catchError((_) => <PlaceSuggestion>[]),
+        nominatimService.search(query).catchError((_) => <PlaceSuggestion>[]),
+      ]);
+      google = results[0];
+      nominatim = results[1];
+    }
 
     if (version != _searchVersion) return;
 
     final merged = <PlaceSuggestion>[];
     final seenDescriptions = <String>{};
-    for (final list in results) {
+    for (final list in [google, nominatim]) {
       for (final s in list) {
         final key =
             '${s.mainText.toLowerCase()}|${s.secondaryText.toLowerCase()}';
