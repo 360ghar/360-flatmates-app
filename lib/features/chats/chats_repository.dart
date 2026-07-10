@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/compatibility/compatibility_engine.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
@@ -283,6 +284,40 @@ class ChatsRepository {
     }
   }
 
+  /// Fetches per-dimension compatibility data against a peer. Returns null
+  /// when the breakdown is unavailable (no data, or 404/error).
+  Future<CompatibilityResult?> fetchPeerCompatibility(int userId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .get(FlatmatesEndpoints.flatmatesPeerCompatibility(userId));
+      final data = response.data;
+      if (data is! Map) return null;
+      final dims = data['dimensions'] as List?;
+      final overallPct = (data['overall_percentage'] as num?)?.toDouble();
+      if (dims == null || overallPct == null) return null;
+      return CompatibilityResult(
+        percentage: overallPct,
+        dimensions: dims.map((d) {
+          final m = d as Map<String, dynamic>;
+          return CompatibilityDimension(
+            key: m['name'] as String? ?? '',
+            weight: (m['weight'] as num?)?.toDouble() ?? 0,
+            userValue: m['user_value'] as String? ?? '',
+            peerValue: m['peer_value'] as String? ?? '',
+            score: (m['score'] as num?)?.toDouble() ?? 0,
+            isMatch: m['match'] as bool? ?? false,
+            summary: m['summary'] as String? ?? '',
+          );
+        }).toList(),
+        topMatchChips: (data['summary'] as List?)?.cast<String>() ?? [],
+      );
+    } catch (e) {
+      debugPrint('ChatsRepository.fetchPeerCompatibility: $e');
+      return null;
+    }
+  }
+
   Future<void> markMessagesAsRead(int conversationId) async {
     await _ref
         .read(apiClientProvider)
@@ -380,3 +415,9 @@ final messagesStreamProvider = StreamProvider.family
 final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
   (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
 );
+
+final peerCompatibilityProvider =
+    FutureProvider.family<CompatibilityResult?, int>(
+      (ref, userId) =>
+          ref.watch(chatsRepositoryProvider).fetchPeerCompatibility(userId),
+    );

@@ -289,6 +289,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get callCta => 'कॉल करें';
 
   @override
+  String get messageCta => 'संदेश';
+
+  @override
   String get listingDetails => 'लिस्टिंग विवरण';
 
   @override
@@ -2139,6 +2142,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chatInputHint => 'संदेश टाइप करें...';
 
   @override
+  String get emojiCta => 'इमोजी';
+
+  @override
+  String get dismissCta => 'बंद करें';
+
+  @override
   String get phoneNotAvailable => 'फोन नंबर उपलब्ध नहीं है';
 
   @override
@@ -2434,6 +2443,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get sayHelloOrIcebreaker => 'नमस्ते कहें या आइसब्रेकर इस्तेमाल करें';
+
+  @override
+  String get noMessagesYet => 'अभी कोई संदेश नहीं...';
+
+  @override
+  String get noMessagesYetHint =>
+      'संदेश भेजें या नीचे दिए गए आइसब्रेकर्स पर टैप करें।';
 
   @override
   String get messagesArePrivate => 'संदेश निजी हैं';

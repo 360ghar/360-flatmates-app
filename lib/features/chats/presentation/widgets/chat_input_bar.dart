@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 
 class ChatInputBar extends StatelessWidget {
   const ChatInputBar({
     required this.controller,
+    required this.focusNode,
+    required this.showEmoji,
+    required this.onToggleEmoji,
     required this.onSend,
-    required this.onAttachment,
     super.key,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool showEmoji;
+  final VoidCallback onToggleEmoji;
   final VoidCallback onSend;
-  final VoidCallback onAttachment;
 
   @override
   Widget build(BuildContext context) {
@@ -33,25 +36,38 @@ class ChatInputBar extends StatelessWidget {
           ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _InteractivePressScale(
               child: IconButton(
-                key: const Key('chat_attachment_button'),
-                onPressed: onAttachment,
+                key: const Key('chat_emoji_button'),
+                padding: const EdgeInsets.all(12),
+                constraints: const BoxConstraints(),
+                onPressed: onToggleEmoji,
+                tooltip: locale.emojiCta,
                 icon: Icon(
-                  Icons.attach_file_rounded,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  size: 22,
+                  showEmoji
+                      ? Icons.keyboard_outlined
+                      : Icons.emoji_emotions_outlined,
+                  color: showEmoji
+                      ? AppSemanticColors.accent
+                      : AppSemanticColors.textSecondaryFor(theme.brightness),
+                  size: 24,
                 ),
-                tooltip: 'Attach file',
               ),
             ),
             Expanded(
               child: TextField(
                 key: const Key('chat_message_input'),
                 controller: controller,
+                focusNode: focusNode,
                 textInputAction: TextInputAction.send,
+                onTap: () {
+                  if (showEmoji) onToggleEmoji();
+                },
                 onSubmitted: (_) => onSend(),
+                minLines: 1,
+                maxLines: 5,
                 decoration: InputDecoration(
                   hintText: locale.chatInputHint,
                   hintStyle: TextStyle(
@@ -68,25 +84,29 @@ class ChatInputBar extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
-              width: 44,
-              height: 44,
-              child: Material(
-                color: AppSemanticColors.accent,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  key: const Key('chat_send_button'),
-                  onTap: onSend,
-                  customBorder: const CircleBorder(),
-                  child: const Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 20,
+            _InteractivePressScale(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 8, 8),
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: Material(
+                    color: AppSemanticColors.accent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      key: const Key('chat_send_button'),
+                      onTap: onSend,
+                      customBorder: const CircleBorder(),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: AppSpacing.xs),
           ],
         ),
       ),

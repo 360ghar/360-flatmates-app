@@ -63,9 +63,6 @@ class SwipeProfileCard extends StatelessWidget {
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
-            // Keep the trailing action bar in the element tree even when it sits
-            // below the fold (ListView otherwise defers building off-viewport kids).
-            cacheExtent: forceBelowFold ? maxHeight : null,
             children: [
               ConstrainedBox(
                 constraints: forceBelowFold

@@ -38,12 +38,20 @@ class ImageUploadService {
   final ApiClient _apiClient;
 
   Future<List<File>> pickImages({int limit = 10}) async {
+    debugPrint(
+      '[ImageUploadService.pickImages] invoking ImagePicker.pickMultiImage '
+      '(limit=$limit)',
+    );
     final picker = ImagePicker();
     final images = await picker.pickMultiImage(
       imageQuality: 80,
       maxWidth: 1920,
       maxHeight: 1920,
       limit: limit,
+    );
+    debugPrint(
+      '[ImageUploadService.pickImages] picker returned ${images.length} '
+      'XFile(s)',
     );
     if (images.isEmpty) return [];
     return images.map((x) => File(x.path)).toList();

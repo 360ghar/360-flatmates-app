@@ -584,6 +584,12 @@ abstract class AppLocalizations {
   /// **'Call'**
   String get callCta;
 
+  /// No description provided for @messageCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messageCta;
+
   /// No description provided for @listingDetails.
   ///
   /// In en, this message translates to:
@@ -4100,6 +4106,18 @@ abstract class AppLocalizations {
   /// **'Type a message...'**
   String get chatInputHint;
 
+  /// No description provided for @emojiCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get emojiCta;
+
+  /// No description provided for @dismissCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismissCta;
+
   /// No description provided for @phoneNotAvailable.
   ///
   /// In en, this message translates to:
@@ -4663,6 +4681,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Say hello or use an icebreaker'**
   String get sayHelloOrIcebreaker;
+
+  /// No description provided for @noMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages here yet...'**
+  String get noMessagesYet;
+
+  /// No description provided for @noMessagesYetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a message or tap the icebreakers below.'**
+  String get noMessagesYetHint;
 
   /// No description provided for @messagesArePrivate.
   ///

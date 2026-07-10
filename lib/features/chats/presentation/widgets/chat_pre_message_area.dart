@@ -86,38 +86,27 @@ class ChatIcebreakerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.xl,
-        AppSpacing.xs,
+        AppSpacing.md,
         AppSpacing.xl,
         AppSpacing.sm,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(locale.icebreakerTitle, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Row(
-              children: icebreakers.map((prompt) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: AppSpacing.sm),
-                  child: FlatmatesChip(
-                    label: prompt,
-                    onSelected: (_) => onSelected(prompt),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        child: Row(
+          children: icebreakers.map((prompt) {
+            return Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: FlatmatesChip(
+                label: prompt,
+                onSelected: (_) => onSelected(prompt),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

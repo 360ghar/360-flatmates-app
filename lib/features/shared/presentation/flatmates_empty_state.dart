@@ -141,15 +141,34 @@ class _FlatmatesEmptyStateState extends State<FlatmatesEmptyState>
     );
 
     if (widget.expand) {
-      return SizedBox.expand(child: Center(child: content));
-    }
-    if (widget.minHeight != null) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(minHeight: widget.minHeight!),
-        child: Center(child: content),
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(child: content),
+          ),
+        ),
       );
     }
-    return Center(child: content);
+    if (widget.minHeight != null) {
+      return SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: widget.minHeight!),
+          child: Center(child: content),
+        ),
+      );
+    }
+    // Defaults to filling the bounded parent (e.g. an Expanded area) so the
+    // content stays centered, but scrolls instead of overflowing when the
+    // available height is reduced (keyboard open, emoji picker open).
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(child: content),
+        ),
+      ),
+    );
   }
 }
 

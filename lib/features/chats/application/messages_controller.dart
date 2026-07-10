@@ -140,14 +140,26 @@ class MessagesController extends AutoDisposeFamilyNotifier<MessagesState, int> {
   void _onStreamUpdate(AsyncValue<List<ChatMessage>> next) {
     final messages = next.valueOrNull;
     if (messages != null) {
+      // A realtime (re)connect can momentarily emit an empty list before the
+      // HTTP refetch lands. Never let a spurious empty emission wipe history
+      // we already loaded — otherwise reopening a conversation would silently
+      // drop its messages.
+      if (messages.isEmpty && state.messages.isNotEmpty) return;
       state = state.copyWith(
         messages: messages,
         pendingMessages: pruneConfirmedPending(messages, state.pendingMessages),
         isLoading: false,
         clearError: true,
       );
-    } else if (next.hasError && state.messages.isEmpty) {
-      state = state.copyWith(isLoading: false, error: next.error);
+    } else if (next.hasError) {
+      debugPrint(
+        'MessagesController stream error for conversation $arg: ${next.error}',
+      );
+      // Only surface the error if we have nothing to show; otherwise keep the
+      // loaded history on screen and let the next emission recover.
+      if (state.messages.isEmpty) {
+        state = state.copyWith(isLoading: false, error: next.error);
+      }
     }
   }
 
@@ -159,26 +171,43 @@ class MessagesController extends AutoDisposeFamilyNotifier<MessagesState, int> {
   Future<void> _seedOldestCursor(int conversationId) async {
     if (_seedingCursor || state.oldestCursor != null) return;
     _seedingCursor = true;
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       final response = await ref
           .read(chatsRepositoryProvider)
           .fetchMessages(conversationId);
-      state = state.copyWith(
-        messages: mergeMessages(state.messages, response.messages),
-        pendingMessages: pruneConfirmedPending(
-          response.messages,
-          state.pendingMessages,
-        ),
-        hasMoreOlder: response.hasMore,
-        oldestCursor: response.nextCursor,
-        isLoading: false,
-        clearError: true,
-      );
+      if (state.messages.isEmpty) {
+        state = state.copyWith(
+          messages: response.messages,
+          pendingMessages: pruneConfirmedPending(
+            response.messages,
+            state.pendingMessages,
+          ),
+          hasMoreOlder: response.hasMore,
+          oldestCursor: response.nextCursor,
+          isLoading: false,
+          clearError: true,
+        );
+      } else {
+        // History already arrived via the realtime refetch; just record the
+        // pagination cursor and stop spinning the loader.
+        state = state.copyWith(
+          hasMoreOlder: response.hasMore,
+          oldestCursor: response.nextCursor,
+          isLoading: false,
+          clearError: true,
+        );
+      }
     } catch (e) {
       debugPrint(
         'MessagesController._seedOldestCursor failed for conversation '
         '$conversationId: $e',
       );
+      // Surface the failure only if we have no messages to show; otherwise
+      // keep the loaded history visible.
+      if (state.messages.isEmpty) {
+        state = state.copyWith(isLoading: false, error: e);
+      }
     } finally {
       _seedingCursor = false;
     }

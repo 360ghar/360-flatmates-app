@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/compatibility/compatibility_engine.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -17,6 +15,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatAppBar({
     required this.conversationId,
     required this.conversation,
+    required this.avatarLink,
     required this.reportReasons,
     required this.onBlock,
     required this.onReport,
@@ -29,6 +28,9 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final int conversationId;
   final ConversationSummaryModel? conversation;
+
+  /// Shared with the floating mode tooltip so its tail points at this avatar.
+  final LayerLink avatarLink;
   final List<ChatReportReason> reportReasons;
   final VoidCallback onBlock;
   final VoidCallback onReport;
@@ -37,7 +39,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onScheduleVisit;
   final VoidCallback? onPeerTap;
 
-  static const double toolbarHeight = 56;
+  static const double toolbarHeight = 64;
 
   @override
   Size get preferredSize => const Size.fromHeight(toolbarHeight);
@@ -119,10 +121,34 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         onTap: onPeerTap,
         child: Row(
           children: [
-            FlatmatesAvatar(
-              name: conversation?.peer.fullName,
-              imageUrl: conversation?.peer.profileImageUrl,
-              size: 36,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CompositedTransformTarget(
+                  link: avatarLink,
+                  child: FlatmatesAvatar(
+                    name: conversation?.peer.fullName,
+                    imageUrl: conversation?.peer.profileImageUrl,
+                    size: 36,
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppSemanticColors.scaffoldFor(brightness),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
@@ -144,46 +170,8 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                           maxLines: 1,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      if (score != null)
-                        Container(
-                          width: AppSpacing.sm,
-                          height: AppSpacing.sm,
-                          decoration: BoxDecoration(
-                            color: compatibilityScoreColor(score),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
                     ],
                   ),
-                  if (conversation?.peer.mode != null) ...[
-                    const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppSemanticColors.accent.withValues(
-                            alpha: 0.4,
-                          ),
-                        ),
-                        borderRadius: AppRadius.smBorder,
-                      ),
-                      child: Text(
-                        localizedFlatmatesModeLabel(
-                          locale,
-                          conversation?.peer.mode ?? '',
-                        ),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: AppTypography.captionSize,
-                          fontWeight: FontWeight.w600,
-                          color: AppSemanticColors.accent,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
