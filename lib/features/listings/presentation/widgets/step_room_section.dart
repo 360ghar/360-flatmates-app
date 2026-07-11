@@ -290,7 +290,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
           return Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: FlatmatesCard(
-              borderColor: AppSemanticColors.line,
+              borderColor: AppSemanticColors.hairlineFor(theme.brightness),
               padding: EdgeInsets.zero,
               child: Stack(
                 children: [
@@ -334,7 +334,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               key: const Key('listing_add_photos_tile'),
               onTap: widget.onPickPhotos,
               child: DashedBorderContainer(
-                color: AppSemanticColors.line,
+                color: AppSemanticColors.hairlineFor(theme.brightness),
                 child: SizedBox(
                   width: double.infinity,
                   height: 140,
@@ -388,7 +388,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
                     decoration: BoxDecoration(
                       color: isActive
                           ? AppSemanticColors.accent
-                          : AppSemanticColors.line,
+                          : AppSemanticColors.hairlineFor(theme.brightness),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );

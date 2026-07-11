@@ -381,9 +381,15 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
                 onTap: locating ? null : _useCurrentLocation,
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-              child: Divider(color: AppSemanticColors.line),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screen,
+              ),
+              child: Divider(
+                color: AppSemanticColors.hairlineFor(
+                  Theme.of(context).brightness,
+                ),
+              ),
             ),
             if (isPlacesLoading)
               const Padding(

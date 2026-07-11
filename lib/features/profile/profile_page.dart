@@ -8,12 +8,17 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import '../settings/preferences_sheet.dart';
 import '../settings/settings_controller.dart';
 import '../shared/presentation/components.dart';
 import 'presentation/widgets/identity_pills.dart';
+import 'presentation/widgets/profile_strength_card.dart';
 
 const double _kAvatarOffset = 2.0;
 const double _kVerticalSpacingCompact = 6.0;
+
+/// Dense menu: hPad(16) + iconWell(32) + gap(12).
+const double _kDenseDividerIndent = 60;
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -35,18 +40,18 @@ class ProfilePage extends ConsumerWidget {
           if (profile == null) {
             return const FlatmatesSkeleton.profile();
           }
-          final displayName = _displayOwnName(
+          final displayName = displayOwnName(
             profile.fullName,
             hideLastName: settings.hideLastName,
             fallback: locale.profileFallbackName,
           );
-          final location = _displayOwnLocation(
+          final location = displayOwnLocation(
             city: profile.city,
             state: profile.state,
             locality: profile.locality,
             hideExactLocation: settings.hideExactLocation,
           );
-          final profileStrength = _profileStrengthPercent(profile);
+          final profileStrength = profileStrengthPercent(profile);
           return ListView(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screen,
@@ -190,12 +195,12 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.screen),
-              _ProfileStrengthCard(
+              const SizedBox(height: AppSpacing.base),
+              ProfileStrengthCard(
                 percent: profileStrength,
                 onTap: () => context.push('/profile/edit'),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.base),
               // --- Menu items with staggered appear ---
               MenuGroupLabel(label: locale.discoverySectionLabel),
               const SizedBox(height: AppSpacing.sm),
@@ -210,36 +215,40 @@ class ProfilePage extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       FlatmatesMenuItem(
+                        dense: true,
                         icon: Icons.add_home_outlined,
                         label: locale.profileMenuPostListing,
                         onTap: () => context.push('/manage-listings'),
                       ),
                       const Divider(
                         height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        indent: _kDenseDividerIndent,
                         endIndent: AppSpacing.lg,
                       ),
                       FlatmatesMenuItem(
+                        dense: true,
                         icon: Icons.calendar_month_outlined,
                         label: locale.profileMenuVisits,
                         onTap: () => context.push('/profile/visits'),
                       ),
                       const Divider(
                         height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        indent: _kDenseDividerIndent,
                         endIndent: AppSpacing.lg,
                       ),
                       FlatmatesMenuItem(
+                        dense: true,
                         icon: Icons.favorite_border,
                         label: locale.profileMenuShortlisted,
                         onTap: () => context.go('/chats?tab=likes'),
                       ),
                       const Divider(
                         height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                        indent: _kDenseDividerIndent,
                         endIndent: AppSpacing.lg,
                       ),
                       FlatmatesMenuItem(
+                        dense: true,
                         icon: Icons.chat_bubble_outline_rounded,
                         label: locale.profileMenuChats,
                         onTap: () => context.go('/chats'),
@@ -248,7 +257,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.base),
               MenuGroupLabel(label: locale.trustSectionLabel),
               const SizedBox(height: AppSpacing.sm),
               StaggeredMenuGroup(
@@ -262,6 +271,7 @@ class ProfilePage extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       FlatmatesMenuItem(
+                        dense: true,
                         icon: Icons.description_outlined,
                         label: locale.profileMenuDocuments,
                         onTap: () => context.push('/help-safety/bookings'),
@@ -270,10 +280,9 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.base),
               _accountGroup(context, locale),
-              const SizedBox(height: AppSpacing.xl),
-              // Group 4: Logout (standalone destructive tertiary button)
+              const SizedBox(height: AppSpacing.base),
               FlatmatesButton.tertiary(
                 key: const Key('logout_button'),
                 label: locale.logoutCta,
@@ -308,18 +317,44 @@ class ProfilePage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 FlatmatesMenuItem(
+                  key: const Key('preferences_menu_item'),
+                  dense: true,
+                  icon: AppIcons.filter,
+                  label: locale.preferencesLabel,
+                  onTap: () => showPreferencesSheet(context),
+                ),
+                const Divider(
+                  height: 1,
+                  indent: _kDenseDividerIndent,
+                  endIndent: AppSpacing.lg,
+                ),
+                FlatmatesMenuItem(
+                  key: const Key('profile_notification_settings_menu_item'),
+                  dense: true,
+                  icon: Icons.notifications_outlined,
+                  label: locale.notificationSettingsLabel,
+                  onTap: () => context.push('/notification-settings'),
+                ),
+                const Divider(
+                  height: 1,
+                  indent: _kDenseDividerIndent,
+                  endIndent: AppSpacing.lg,
+                ),
+                FlatmatesMenuItem(
                   key: const Key('profile_settings_menu_item'),
+                  dense: true,
                   icon: Icons.settings_outlined,
                   label: locale.settingsTitle,
                   onTap: () => context.push('/profile/settings'),
                 ),
                 const Divider(
                   height: 1,
-                  indent: AppSpacing.xl * 3 + AppSpacing.sm,
+                  indent: _kDenseDividerIndent,
                   endIndent: AppSpacing.lg,
                 ),
                 FlatmatesMenuItem(
                   key: const Key('profile_help_safety_menu_item'),
+                  dense: true,
                   icon: Icons.help_outline,
                   label: locale.helpSafetyTitle,
                   onTap: () => context.push('/help-safety'),
@@ -331,39 +366,6 @@ class ProfilePage extends ConsumerWidget {
       ],
     );
   }
-}
-
-/// Masks the last token of [fullName] when [hideLastName] is on.
-String _displayOwnName(
-  String? fullName, {
-  required bool hideLastName,
-  required String fallback,
-}) {
-  final raw = fullName?.trim() ?? '';
-  if (raw.isEmpty) return fallback;
-  if (!hideLastName) return raw;
-  final parts = raw.split(RegExp(r'\s+'));
-  if (parts.length <= 1) return parts.first;
-  return parts.sublist(0, parts.length - 1).join(' ');
-}
-
-/// City only when [hideExactLocation]; else locality + city + state.
-String? _displayOwnLocation({
-  String? city,
-  String? state,
-  String? locality,
-  required bool hideExactLocation,
-}) {
-  final cityTrim = city?.trim() ?? '';
-  final stateTrim = state?.trim() ?? '';
-  final localityTrim = locality?.trim() ?? '';
-  if (hideExactLocation) return cityTrim.isEmpty ? null : cityTrim;
-  final parts = <String>[
-    if (localityTrim.isNotEmpty) localityTrim,
-    if (cityTrim.isNotEmpty) cityTrim,
-    if (stateTrim.isNotEmpty) stateTrim,
-  ];
-  return parts.isEmpty ? null : parts.join(', ');
 }
 
 Future<void> _confirmAndLogout(BuildContext context, WidgetRef ref) async {
@@ -389,108 +391,5 @@ Future<void> _confirmAndLogout(BuildContext context, WidgetRef ref) async {
   );
   if (confirmed == true && context.mounted) {
     await ref.read(authControllerProvider.notifier).signOut();
-  }
-}
-
-int _profileStrengthPercent(FlatmatesProfileModel profile) {
-  final checks = <bool>[
-    profile.fullName?.trim().isNotEmpty ?? false,
-    profile.profileImageUrl?.trim().isNotEmpty ?? false,
-    profile.city?.trim().isNotEmpty ?? false,
-    profile.locality?.trim().isNotEmpty ?? false,
-    profile.mode?.trim().isNotEmpty ?? false,
-    profile.budgetMin != null && profile.budgetMax != null,
-    profile.moveInTimeline?.trim().isNotEmpty ?? false,
-    profile.bio?.trim().isNotEmpty ?? false,
-    profile.cleanliness?.trim().isNotEmpty ?? false,
-    profile.foodHabits?.trim().isNotEmpty ?? false,
-  ];
-  final completed = checks.where((value) => value).length;
-  return ((completed / checks.length) * 100).round().clamp(0, 100);
-}
-
-class _ProfileStrengthCard extends StatelessWidget {
-  const _ProfileStrengthCard({required this.percent, required this.onTap});
-
-  final int percent;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-
-    return FlatmatesCard(
-      onTap: onTap,
-      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
-      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.06),
-      child: Row(
-        children: [
-          Semantics(
-            label: locale.profileStrengthTitle(percent),
-            value: '$percent%',
-            child: ExcludeSemantics(
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CircularProgressIndicator(
-                      value: percent / 100,
-                      strokeWidth: 3.5,
-                      backgroundColor: AppSemanticColors.line.withValues(
-                        alpha: 0.25,
-                      ),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppSemanticColors.accent,
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        '$percent',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppSemanticColors.accent,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  locale.profileStrengthTitle(percent),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: _kAvatarOffset),
-                Text(
-                  locale.profileStrengthSubtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            size: 20,
-            color: AppSemanticColors.accent,
-          ),
-        ],
-      ),
-    );
   }
 }

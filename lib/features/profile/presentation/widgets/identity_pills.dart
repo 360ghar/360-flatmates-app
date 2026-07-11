@@ -100,7 +100,9 @@ class IdentityPill extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppSemanticColors.paper2 : AppSemanticColors.ink2,
+              color: AppSemanticColors.textSecondaryFor(
+                isDark ? Brightness.dark : Brightness.light,
+              ),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

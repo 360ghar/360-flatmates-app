@@ -198,7 +198,9 @@ class _ModeCardState extends State<_ModeCard> {
           onTap: widget.onTap,
           borderColor: widget.isSelected
               ? AppSemanticColors.accent
-              : AppSemanticColors.line.withValues(alpha: 0.4),
+              : AppSemanticColors.hairlineFor(
+                  theme.brightness,
+                ).withValues(alpha: 0.4),
           elevation: widget.isSelected ? 2 : 0.5,
           child: Row(
             children: [

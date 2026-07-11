@@ -63,19 +63,17 @@ class PeerActionButton extends StatelessWidget {
     }
 
     final bg = switch (color) {
-      PeerActionButtonColor.blue =>
-        isDark ? AppSemanticColors.blueSoftDark : AppSemanticColors.blueSoft,
-      PeerActionButtonColor.green =>
-        isDark ? AppSemanticColors.greenSoftDark : AppSemanticColors.greenSoft,
-      PeerActionButtonColor.pink =>
-        isDark ? AppSemanticColors.pinkSoftDark : AppSemanticColors.pinkSoft,
-      PeerActionButtonColor.red =>
-        isDark ? AppSemanticColors.errorSoftDark : AppSemanticColors.errorBg,
+      PeerActionButtonColor.blue => AppSemanticColors.blueSoftFor(brightness),
+      PeerActionButtonColor.green => AppSemanticColors.greenSoftFor(brightness),
+      PeerActionButtonColor.pink => AppSemanticColors.pinkSoftFor(brightness),
+      PeerActionButtonColor.red => AppSemanticColors.errorSoftFor(brightness),
     };
     final fg = switch (color) {
-      PeerActionButtonColor.blue => AppSemanticColors.blueInk,
-      PeerActionButtonColor.green => AppSemanticColors.greenInk,
-      PeerActionButtonColor.pink => AppSemanticColors.pinkInk,
+      PeerActionButtonColor.blue =>
+        isDark ? AppSemanticColors.blueMid : AppSemanticColors.blueInk,
+      PeerActionButtonColor.green => AppSemanticColors.greenInkFor(brightness),
+      PeerActionButtonColor.pink =>
+        isDark ? AppSemanticColors.pinkMid : AppSemanticColors.pinkInk,
       PeerActionButtonColor.red => AppSemanticColors.error,
     };
 

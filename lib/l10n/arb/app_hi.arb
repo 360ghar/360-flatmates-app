@@ -845,6 +845,14 @@
       }
     }
   },
+  "budgetPresetAny": "कोई भी",
+  "budgetPresetUnder15k": "₹15k से कम",
+  "budgetPreset15to25k": "₹15–25k",
+  "budgetPreset25to40k": "₹25–40k",
+  "budgetPreset40to60k": "₹40–60k",
+  "budgetPreset60kPlus": "₹60k+",
+  "lifestyleFiltersLabel": "लाइफ़स्टाइल",
+  "lifestyleFiltersSummaryAny": "कोई प्राथमिकता नहीं",
   "roomTypeFilterLabel": "कमरे का प्रकार",
   "roomTypeAny": "कोई भी",
   "roomTypePrivate": "प्राइवेट",
@@ -1202,6 +1210,14 @@
   "workStyleWfh": "वर्क फ्रॉम होम",
   "phoneVerifiedLabel": "फ़ोन सत्यापित",
   "showResultsCta": "परिणाम दिखाएं",
+  "showResultsWithFiltersCta": "परिणाम दिखाएं · {count} फ़िल्टर",
+  "@showResultsWithFiltersCta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchFiltersTitle": "खोजें और फ़िल्टर",
   "clearAllFilters": "सभी हटाएं",
   "errorNetwork": "कोई इंटरनेट कनेक्शन नहीं। कृपया अपना नेटवर्क जांचें और पुनः प्रयास करें।",

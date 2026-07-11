@@ -2049,6 +2049,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get budgetPresetAny => 'Any';
+
+  @override
+  String get budgetPresetUnder15k => 'Under ₹15k';
+
+  @override
+  String get budgetPreset15to25k => '₹15–25k';
+
+  @override
+  String get budgetPreset25to40k => '₹25–40k';
+
+  @override
+  String get budgetPreset40to60k => '₹40–60k';
+
+  @override
+  String get budgetPreset60kPlus => '₹60k+';
+
+  @override
+  String get lifestyleFiltersLabel => 'Lifestyle';
+
+  @override
+  String get lifestyleFiltersSummaryAny => 'No preference';
+
+  @override
   String get roomTypeFilterLabel => 'Room Type';
 
   @override
@@ -2748,6 +2772,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showResultsCta => 'Show Results';
+
+  @override
+  String showResultsWithFiltersCta(int count) {
+    return 'Show Results · $count filters';
+  }
 
   @override
   String get searchFiltersTitle => 'Search & Filters';

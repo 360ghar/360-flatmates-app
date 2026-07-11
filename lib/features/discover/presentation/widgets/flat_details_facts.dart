@@ -346,37 +346,32 @@ class _ColoredChip extends StatelessWidget {
   }
 
   (Color, Color) _resolve(_ChipPalette p, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return switch (p) {
-      _ChipPalette.blue =>
-        isDark
-            ? (AppSemanticColors.blueSoftDark, AppSemanticColors.blueMid)
-            : (AppSemanticColors.blueSoft, AppSemanticColors.blueInk),
-      _ChipPalette.teal =>
-        isDark
-            ? (AppSemanticColors.tealSoftDark, AppSemanticColors.tealMid)
-            : (AppSemanticColors.tealSoft, AppSemanticColors.tealInk),
-      _ChipPalette.purple =>
-        isDark
-            ? (AppSemanticColors.purpleSoftDark, AppSemanticColors.purpleMid)
-            : (AppSemanticColors.purpleSoft, AppSemanticColors.purpleInk),
-      _ChipPalette.orange =>
-        isDark
-            ? (AppSemanticColors.orangeSoftDark, AppSemanticColors.orangeMid)
-            : (AppSemanticColors.orangeSoft, AppSemanticColors.orangeInk),
-      _ChipPalette.green =>
-        isDark
-            ? (AppSemanticColors.greenSoftDark, AppSemanticColors.greenMid)
-            : (AppSemanticColors.greenSoft, AppSemanticColors.greenInk),
-      _ChipPalette.neutral =>
-        isDark
-            ? (
-                AppSemanticColors.paper2,
-                AppSemanticColors.textSecondaryFor(Brightness.dark),
-              )
-            : (
-                AppSemanticColors.paper2,
-                AppSemanticColors.textSecondaryFor(Brightness.light),
-              ),
+      _ChipPalette.blue => (
+        AppSemanticColors.blueSoftFor(brightness),
+        isDark ? AppSemanticColors.blueMid : AppSemanticColors.blueInk,
+      ),
+      _ChipPalette.teal => (
+        AppSemanticColors.tealSoftFor(brightness),
+        isDark ? AppSemanticColors.tealMid : AppSemanticColors.tealInk,
+      ),
+      _ChipPalette.purple => (
+        AppSemanticColors.purpleSoftFor(brightness),
+        isDark ? AppSemanticColors.purpleMid : AppSemanticColors.purpleInk,
+      ),
+      _ChipPalette.orange => (
+        AppSemanticColors.orangeSoftFor(brightness),
+        isDark ? AppSemanticColors.orangeMid : AppSemanticColors.orangeInk,
+      ),
+      _ChipPalette.green => (
+        AppSemanticColors.greenSoftFor(brightness),
+        AppSemanticColors.greenInkFor(brightness),
+      ),
+      _ChipPalette.neutral => (
+        AppSemanticColors.secondarySurfaceFor(brightness),
+        AppSemanticColors.textSecondaryFor(brightness),
+      ),
     };
   }
 }

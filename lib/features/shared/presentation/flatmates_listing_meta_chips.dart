@@ -138,46 +138,35 @@ class _ChipPalette {
   final Color foreground;
 
   static _ChipPalette forColor(MetaChipColor color, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return switch (color) {
       MetaChipColor.blue => _ChipPalette(
-        background: isDark
-            ? AppSemanticColors.blueSoftDark
-            : AppSemanticColors.blueSoft,
+        background: AppSemanticColors.blueSoftFor(brightness),
         foreground: isDark
             ? AppSemanticColors.blueMid
             : AppSemanticColors.blueInk,
       ),
       MetaChipColor.teal => _ChipPalette(
-        background: isDark
-            ? AppSemanticColors.tealSoftDark
-            : AppSemanticColors.tealSoft,
+        background: AppSemanticColors.tealSoftFor(brightness),
         foreground: isDark
             ? AppSemanticColors.tealMid
             : AppSemanticColors.tealInk,
       ),
       MetaChipColor.purple => _ChipPalette(
-        background: isDark
-            ? AppSemanticColors.purpleSoftDark
-            : AppSemanticColors.purpleSoft,
+        background: AppSemanticColors.purpleSoftFor(brightness),
         foreground: isDark
             ? AppSemanticColors.purpleMid
             : AppSemanticColors.purpleInk,
       ),
       MetaChipColor.orange => _ChipPalette(
-        background: isDark
-            ? AppSemanticColors.orangeSoftDark
-            : AppSemanticColors.orangeSoft,
+        background: AppSemanticColors.orangeSoftFor(brightness),
         foreground: isDark
             ? AppSemanticColors.orangeMid
             : AppSemanticColors.orangeInk,
       ),
       MetaChipColor.green => _ChipPalette(
-        background: isDark
-            ? AppSemanticColors.greenSoftDark
-            : AppSemanticColors.greenSoft,
-        foreground: isDark
-            ? AppSemanticColors.greenMid
-            : AppSemanticColors.greenInk,
+        background: AppSemanticColors.greenSoftFor(brightness),
+        foreground: AppSemanticColors.greenInkFor(brightness),
       ),
     };
   }

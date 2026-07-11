@@ -447,7 +447,11 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.md),
-                        const Divider(color: AppSemanticColors.line),
+                        Divider(
+                          color: AppSemanticColors.hairlineFor(
+                            Theme.of(context).brightness,
+                          ),
+                        ),
                         const SizedBox(height: AppSpacing.sm),
                       ],
                       if (_typedLocation.isNotEmpty)
@@ -502,7 +506,7 @@ class _PlaceSuggestionTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppSemanticColors.ink3,
+                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
                 ),
               )
             : null,
@@ -541,10 +545,10 @@ class _TypedLocationTile extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.chevron_right,
           size: 18,
-          color: AppSemanticColors.line,
+          color: AppSemanticColors.hairlineFor(theme.brightness),
         ),
         onTap: onTap,
       ),
@@ -575,7 +579,9 @@ class _CurrentLocationIconButton extends StatelessWidget {
               ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
               : AppSemanticColors.card,
           borderRadius: AppRadius.smBorder,
-          border: Border.all(color: AppSemanticColors.line),
+          border: Border.all(
+            color: AppSemanticColors.hairlineFor(theme.brightness),
+          ),
         ),
         child: Center(
           child: isLoading

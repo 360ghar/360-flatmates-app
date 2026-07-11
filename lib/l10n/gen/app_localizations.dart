@@ -3926,6 +3926,54 @@ abstract class AppLocalizations {
   /// **'₹{min} – ₹{max}'**
   String budgetRangeLabel(String min, String max);
 
+  /// No description provided for @budgetPresetAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get budgetPresetAny;
+
+  /// No description provided for @budgetPresetUnder15k.
+  ///
+  /// In en, this message translates to:
+  /// **'Under ₹15k'**
+  String get budgetPresetUnder15k;
+
+  /// No description provided for @budgetPreset15to25k.
+  ///
+  /// In en, this message translates to:
+  /// **'₹15–25k'**
+  String get budgetPreset15to25k;
+
+  /// No description provided for @budgetPreset25to40k.
+  ///
+  /// In en, this message translates to:
+  /// **'₹25–40k'**
+  String get budgetPreset25to40k;
+
+  /// No description provided for @budgetPreset40to60k.
+  ///
+  /// In en, this message translates to:
+  /// **'₹40–60k'**
+  String get budgetPreset40to60k;
+
+  /// No description provided for @budgetPreset60kPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'₹60k+'**
+  String get budgetPreset60kPlus;
+
+  /// No description provided for @lifestyleFiltersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get lifestyleFiltersLabel;
+
+  /// No description provided for @lifestyleFiltersSummaryAny.
+  ///
+  /// In en, this message translates to:
+  /// **'No preference'**
+  String get lifestyleFiltersSummaryAny;
+
   /// No description provided for @roomTypeFilterLabel.
   ///
   /// In en, this message translates to:
@@ -5227,6 +5275,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Results'**
   String get showResultsCta;
+
+  /// No description provided for @showResultsWithFiltersCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Results · {count} filters'**
+  String showResultsWithFiltersCta(int count);
 
   /// No description provided for @searchFiltersTitle.
   ///

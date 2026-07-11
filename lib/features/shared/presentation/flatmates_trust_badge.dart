@@ -71,9 +71,7 @@ class FlatmatesTrustBadge extends StatelessWidget {
       case FlatmatesTrustBadgeVariant.safe:
         return AppSemanticColors.success;
       case FlatmatesTrustBadgeVariant.privacy:
-        return theme.brightness == Brightness.dark
-            ? AppSemanticColors.paper3
-            : AppSemanticColors.ink2;
+        return AppSemanticColors.textSecondaryFor(theme.brightness);
     }
   }
 }

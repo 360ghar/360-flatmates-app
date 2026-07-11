@@ -166,6 +166,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                           icon: _iconForType(notification.type),
                           iconBgColor: _iconBackgroundForType(
                             notification.type,
+                            Theme.of(context).brightness,
                           ),
                           iconColor: _iconColorForType(notification.type),
                           isRead: notification.isRead,
@@ -247,25 +248,25 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     }
   }
 
-  Color _iconBackgroundForType(String type) {
+  Color _iconBackgroundForType(String type, Brightness brightness) {
     switch (type) {
       case 'new_match':
       case 'flatmate_new_match':
-        return AppSemanticColors.pinkSoft;
+        return AppSemanticColors.pinkSoftFor(brightness);
       case 'new_message':
       case 'flatmate_new_message':
-        return AppSemanticColors.blueSoft;
+        return AppSemanticColors.blueSoftFor(brightness);
       case 'listing_approved':
       case 'flatmate_listing_approved':
-        return AppSemanticColors.greenSoft;
+        return AppSemanticColors.greenSoftFor(brightness);
       case 'visit_scheduled':
       case 'flatmate_visit_scheduled':
-        return AppSemanticColors.yellowSoft;
+        return AppSemanticColors.yellowSoftFor(brightness);
       case 'visit_confirmed':
       case 'flatmate_visit_confirmed':
-        return AppSemanticColors.tealSoft;
+        return AppSemanticColors.tealSoftFor(brightness);
       default:
-        return AppSemanticColors.coralSoft;
+        return AppSemanticColors.coralSoftFor(brightness);
     }
   }
 

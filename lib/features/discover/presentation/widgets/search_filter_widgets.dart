@@ -34,6 +34,7 @@ class CompactFilterSection extends StatelessWidget {
     final accentColor = iconColor ?? AppSemanticColors.accent;
 
     return Padding(
+      // Section-level air: keep chips dense, separate groups clearly.
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,6 +87,68 @@ class CompactFilterSection extends StatelessWidget {
   }
 }
 
+/// Hairline separator between major filter blocks in the sheet.
+class FilterSectionDivider extends StatelessWidget {
+  const FilterSectionDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: AppSemanticColors.hairlineFor(Theme.of(context).brightness),
+      ),
+    );
+  }
+}
+
+/// Leading icon for a catalog filter option id (client-side only).
+///
+/// Covers room type, furnishing, gender, and move-in ids used by
+/// [FilterSheet]. Pets/smoking use section-specific maps on
+/// [MoreFiltersCard] so yes/no can differ by domain.
+IconData? filterOptionIcon(String id) {
+  return switch (id) {
+    'any' || 'no_preference' => Icons.tune,
+    'private' ||
+    'private_room' ||
+    'master_bedroom' => Icons.single_bed_outlined,
+    'shared' || 'shared_room' => Icons.bed_outlined,
+    'furnished' => Icons.chair_outlined,
+    'unfurnished' => Icons.event_seat_outlined,
+    'male' || 'male_only' => Icons.man_outlined,
+    'female' || 'female_only' => Icons.woman_outlined,
+    'immediate' => Icons.bolt_outlined,
+    'this_month' => Icons.calendar_today_outlined,
+    'next_month' => Icons.date_range_outlined,
+    'yes' => Icons.check_circle_outline,
+    'no' => Icons.block_outlined,
+    _ => null,
+  };
+}
+
+/// Pets option icons (preference / allowed / not allowed).
+IconData? petsFilterOptionIcon(String id) {
+  return switch (id) {
+    'no_preference' => Icons.pets_outlined,
+    'yes' => Icons.pets,
+    'no' => Icons.block_outlined,
+    _ => filterOptionIcon(id),
+  };
+}
+
+/// Smoking option icons (preference / smoke-free / smoking ok).
+IconData? smokingFilterOptionIcon(String id) {
+  return switch (id) {
+    'no_preference' => Icons.tune,
+    'no' => Icons.smoke_free_outlined,
+    'yes' => Icons.smoking_rooms_outlined,
+    _ => filterOptionIcon(id),
+  };
+}
+
 class FilterChipWrap extends StatelessWidget {
   const FilterChipWrap({
     required this.values,
@@ -107,11 +170,12 @@ class FilterChipWrap extends StatelessWidget {
       );
     }
     return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
       children: values.map((value) {
         return FlatmatesChip(
           label: humanizeFlatmatesToken(value),
+          icon: filterOptionIcon(value),
           selected: selected == value,
           onSelected: (_) => onSelected(value),
         );
@@ -127,6 +191,7 @@ class CatalogFilterChips extends StatelessWidget {
     required this.anyKey,
     required this.onSelected,
     this.keyPrefix,
+    this.iconForId = filterOptionIcon,
     super.key,
   });
 
@@ -135,6 +200,9 @@ class CatalogFilterChips extends StatelessWidget {
   final String anyKey;
   final ValueChanged<String> onSelected;
   final String? keyPrefix;
+
+  /// Resolves a leading icon for each option. Defaults to [filterOptionIcon].
+  final IconData? Function(String id) iconForId;
 
   @override
   Widget build(BuildContext context) {
@@ -146,13 +214,14 @@ class CatalogFilterChips extends StatelessWidget {
     }
     final chipKeys = _chipKeys();
     return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
       children: List.generate(options.length, (i) {
         final opt = options[i];
         return FlatmatesChip(
           key: chipKeys[i],
           label: opt.label,
+          icon: iconForId(opt.id),
           variant: FlatmatesChipVariant.choice,
           selected: selectedId == opt.id,
           onSelected: (_) => onSelected(opt.id),

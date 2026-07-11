@@ -193,9 +193,7 @@ class _CostsBreakdown extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: isDark
-                ? AppSemanticColors.coralSoftDark
-                : AppSemanticColors.accentSoft,
+            color: AppSemanticColors.coralSoftFor(theme.brightness),
             borderRadius: AppRadius.mdBorder,
           ),
           child: Row(
@@ -302,7 +300,9 @@ class _AvailabilityTile extends StatelessWidget {
         ),
         borderRadius: AppRadius.mdBorder,
         border: Border.all(
-          color: AppSemanticColors.line.withValues(alpha: 0.25),
+          color: AppSemanticColors.hairlineFor(
+            theme.brightness,
+          ).withValues(alpha: 0.25),
         ),
       ),
       child: Column(

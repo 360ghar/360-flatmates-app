@@ -139,7 +139,9 @@ class FlatDetailsHeader extends StatelessWidget {
                 FlatmatesPriceText.hero(
                   amount: l.monthlyRent.round(),
                   period: 'month',
-                  color: AppSemanticColors.ink,
+                  color: AppSemanticColors.textPrimaryFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
@@ -308,8 +310,7 @@ class _OwnerCard extends StatelessWidget {
 
 /// Scannable quick-stat pills (gender, sharing type, available from, furnished)
 /// shown below the location row — inspired by the swipe card's quick-stat
-/// overlay. Uses paper2 bg + accent icon + label, matching the swipe card's
-/// `CompactPill` style.
+/// overlay. Uses brightness-aware soft pastel fills (not light paper2).
 class _QuickStatPills extends StatelessWidget {
   const _QuickStatPills({required this.listing, required this.locale});
 
@@ -328,7 +329,11 @@ class _QuickStatPills extends StatelessWidget {
       _ => locale.genderSuffixAny,
     };
     pills.add(
-      _StatPill(icon: Icons.people_outline_rounded, label: genderLabel),
+      _StatPill(
+        icon: Icons.people_outline_rounded,
+        label: genderLabel,
+        palette: _StatPillPalette.orange,
+      ),
     );
 
     // Sharing type / room type
@@ -337,22 +342,31 @@ class _QuickStatPills extends StatelessWidget {
         _StatPill(
           icon: Icons.meeting_room_outlined,
           label: localizedFlatmatesSharingTypeLabel(locale, l.sharingType!),
+          palette: _StatPillPalette.purple,
         ),
       );
     }
 
-    // Available from
+    // Available from (schedule / move-in fact)
     final availableLabel = l.availableFrom != null
         ? DateFormat.yMMMd(locale.localeName).format(l.availableFrom!)
         : locale.flexibleLabel;
     pills.add(
-      _StatPill(icon: Icons.event_available_outlined, label: availableLabel),
+      _StatPill(
+        icon: Icons.event_available_outlined,
+        label: availableLabel,
+        palette: _StatPillPalette.blue,
+      ),
     );
 
     // Furnished
     if (l.isFurnished) {
       pills.add(
-        _StatPill(icon: Icons.chair_outlined, label: locale.featureFurnished),
+        _StatPill(
+          icon: Icons.chair_outlined,
+          label: locale.featureFurnished,
+          palette: _StatPillPalette.green,
+        ),
       );
     }
 
@@ -364,10 +378,17 @@ class _QuickStatPills extends StatelessWidget {
   }
 }
 
+enum _StatPillPalette { orange, blue, purple, green }
+
 class _StatPill {
-  const _StatPill({required this.icon, required this.label});
+  const _StatPill({
+    required this.icon,
+    required this.label,
+    required this.palette,
+  });
   final IconData icon;
   final String label;
+  final _StatPillPalette palette;
 }
 
 class _StatPillChip extends StatelessWidget {
@@ -377,28 +398,54 @@ class _StatPillChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final (bg, fg) = _resolve(pill.palette, isDark);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppSemanticColors.paper2,
+        color: bg,
         borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: AppSemanticColors.line, width: 0.5),
+        border: Border.all(color: fg.withValues(alpha: 0.25), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(pill.icon, size: 13, color: AppSemanticColors.accent),
+          Icon(pill.icon, size: 13, color: fg),
           const SizedBox(width: 4),
           Text(
             pill.label,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              color: fg,
             ),
           ),
         ],
       ),
     );
+  }
+
+  (Color, Color) _resolve(_StatPillPalette palette, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    return switch (palette) {
+      _StatPillPalette.orange => (
+        AppSemanticColors.orangeSoftFor(brightness),
+        isDark ? AppSemanticColors.orangeMid : AppSemanticColors.orangeInk,
+      ),
+      _StatPillPalette.blue => (
+        AppSemanticColors.blueSoftFor(brightness),
+        isDark ? AppSemanticColors.blueMid : AppSemanticColors.blueInk,
+      ),
+      _StatPillPalette.purple => (
+        AppSemanticColors.purpleSoftFor(brightness),
+        isDark ? AppSemanticColors.purpleMid : AppSemanticColors.purpleInk,
+      ),
+      _StatPillPalette.green => (
+        AppSemanticColors.greenSoftFor(brightness),
+        AppSemanticColors.greenInkFor(brightness),
+      ),
+    };
   }
 }

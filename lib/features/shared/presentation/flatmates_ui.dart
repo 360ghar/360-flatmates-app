@@ -879,17 +879,13 @@ class InfoPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final brightness = theme.brightness;
     final background = highlighted
-        ? (isDark
-              ? AppSemanticColors.coralSoftDark
-              : AppSemanticColors.accentSoft)
-        : (isDark
-              ? AppSemanticColors.darkSurfaceElevated
-              : AppSemanticColors.paper2);
+        ? AppSemanticColors.coralSoftFor(brightness)
+        : AppSemanticColors.secondarySurfaceFor(brightness);
     final foreground = highlighted
         ? AppSemanticColors.accent
-        : (isDark ? AppSemanticColors.paper3 : AppSemanticColors.ink2);
+        : AppSemanticColors.textSecondaryFor(brightness);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -899,7 +895,9 @@ class InfoPill extends StatelessWidget {
         border: Border.all(
           color: highlighted
               ? AppSemanticColors.accent.withValues(alpha: 0.15)
-              : AppSemanticColors.line.withValues(alpha: 0.35),
+              : AppSemanticColors.hairlineFor(
+                  brightness,
+                ).withValues(alpha: 0.35),
         ),
       ),
       child: Row(
@@ -934,6 +932,7 @@ class FlatmatesMenuItem extends StatefulWidget {
     this.subtitle,
     this.onTap,
     this.isDestructive = false,
+    this.dense = false,
   });
 
   final String label;
@@ -941,6 +940,9 @@ class FlatmatesMenuItem extends StatefulWidget {
   final String? subtitle;
   final VoidCallback? onTap;
   final bool isDestructive;
+
+  /// Smaller padding and icon well for compact lists (e.g. Me tab).
+  final bool dense;
 
   @override
   State<FlatmatesMenuItem> createState() => _FlatmatesMenuItemState();
@@ -954,6 +956,13 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
     final theme = Theme.of(context);
     final palette = _menuIconPalette(widget.icon, widget.isDestructive, theme);
     final textColor = widget.isDestructive ? AppSemanticColors.error : null;
+    final dense = widget.dense;
+    final hPad = dense ? 16.0 : 20.0;
+    final vPad = dense ? 10.0 : 14.0;
+    final iconWell = dense ? 32.0 : 40.0;
+    final iconSize = dense ? 18.0 : 20.0;
+    final iconRadius = dense ? 10.0 : 12.0;
+    final iconGap = dense ? 12.0 : 14.0;
 
     return Listener(
       onPointerDown: widget.onTap != null
@@ -975,27 +984,27 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
           duration: AppMotion.buttonPress,
           curve: AppMotion.easeOutCubic,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
             child: Row(
               children: [
                 AnimatedOpacity(
                   opacity: _pressed ? 0.8 : 1.0,
                   duration: AppMotion.fast,
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: iconWell,
+                    height: iconWell,
                     decoration: BoxDecoration(
                       color: palette.background,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(iconRadius),
                     ),
                     child: Icon(
                       widget.icon,
-                      size: 20,
+                      size: iconSize,
                       color: palette.foreground,
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: iconGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1019,10 +1028,10 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right,
                   size: 20,
-                  color: AppSemanticColors.ink3,
+                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
                 ),
               ],
             ),
@@ -1198,7 +1207,7 @@ class FlatmatesNotificationCard extends StatelessWidget {
                   time,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontSize: 11,
-                    color: AppSemanticColors.ink3,
+                    color: AppSemanticColors.textTertiaryFor(brightness),
                   ),
                 ),
                 if (!isRead) ...[

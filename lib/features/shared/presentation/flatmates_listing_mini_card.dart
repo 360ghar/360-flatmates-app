@@ -33,9 +33,7 @@ class FlatmatesListingMiniCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final secondaryColor = theme.brightness == Brightness.dark
-        ? AppSemanticColors.paper3
-        : AppSemanticColors.ink2;
+    final secondaryColor = AppSemanticColors.textSecondaryFor(theme.brightness);
     final thumbSize = compact ? 56.0 : 88.0;
 
     return InkWell(
@@ -121,13 +119,18 @@ class FlatmatesListingMiniCard extends StatelessWidget {
   }
 
   Widget _placeholder() {
-    return Container(
-      color: AppSemanticColors.accentSoft,
-      child: Icon(
-        Icons.home_rounded,
-        color: AppSemanticColors.accent.withValues(alpha: 0.4),
-        size: compact ? 24 : 32,
-      ),
+    return Builder(
+      builder: (context) {
+        final brightness = Theme.of(context).brightness;
+        return Container(
+          color: AppSemanticColors.coralSoftFor(brightness),
+          child: Icon(
+            Icons.home_rounded,
+            color: AppSemanticColors.accent.withValues(alpha: 0.4),
+            size: compact ? 24 : 32,
+          ),
+        );
+      },
     );
   }
 }

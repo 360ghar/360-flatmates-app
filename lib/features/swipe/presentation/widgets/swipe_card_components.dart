@@ -757,12 +757,16 @@ class CompactPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppSemanticColors.paper2,
+        color: AppSemanticColors.secondarySurfaceFor(brightness),
         borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: AppSemanticColors.line, width: 0.5),
+        border: Border.all(
+          color: AppSemanticColors.hairlineFor(brightness),
+          width: 0.5,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -773,7 +777,7 @@ class CompactPill extends StatelessWidget {
             label,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 11,
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              color: AppSemanticColors.textSecondaryFor(brightness),
             ),
           ),
         ],
@@ -960,10 +964,7 @@ class DealBreakersSection extends StatelessWidget {
 
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark
-        ? AppSemanticColors.warningSoftDark
-        : AppSemanticColors.warningSoft;
+    final bg = AppSemanticColors.warningSoftFor(theme.brightness);
     const fg = AppSemanticColors.warning;
 
     return Column(
@@ -1232,9 +1233,12 @@ class _AmenitiesChipsState extends State<AmenitiesChips> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppSemanticColors.paper2,
+              color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
               borderRadius: AppRadius.pillBorder,
-              border: Border.all(color: AppSemanticColors.line, width: 0.5),
+              border: Border.all(
+                color: AppSemanticColors.hairlineFor(theme.brightness),
+                width: 0.5,
+              ),
             ),
             child: Text(
               humanizeFlatmatesToken(label),
@@ -1250,7 +1254,7 @@ class _AmenitiesChipsState extends State<AmenitiesChips> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppSemanticColors.accentSoft,
+                color: AppSemanticColors.coralSoftFor(theme.brightness),
                 borderRadius: AppRadius.pillBorder,
                 border: Border.all(
                   color: AppSemanticColors.accent.withValues(alpha: 0.25),
@@ -1293,9 +1297,12 @@ class ExistingFlatmatesRow extends StatelessWidget {
               width: 110,
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: AppSemanticColors.paper2,
+                color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
                 borderRadius: AppRadius.mdBorder,
-                border: Border.all(color: AppSemanticColors.line, width: 0.5),
+                border: Border.all(
+                  color: AppSemanticColors.hairlineFor(theme.brightness),
+                  width: 0.5,
+                ),
               ),
               child: Column(
                 children: [
@@ -1349,7 +1356,6 @@ class CostsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final total = monthlyRent + (maintenance ?? 0);
     final locale = AppLocalizations.of(context);
 
@@ -1362,9 +1368,7 @@ class CostsSection extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: isDark
-                ? AppSemanticColors.coralSoftDark
-                : AppSemanticColors.accentSoft,
+            color: AppSemanticColors.coralSoftFor(theme.brightness),
             borderRadius: AppRadius.mdBorder,
           ),
           child: Row(
@@ -1445,7 +1449,10 @@ class CostLineItem extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Container(height: 0.5, color: AppSemanticColors.line),
+          Container(
+            height: 0.5,
+            color: AppSemanticColors.hairlineFor(theme.brightness),
+          ),
         ],
       ),
     );
@@ -1461,7 +1468,7 @@ class CompactMatchChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final brightness = theme.brightness;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -1469,9 +1476,7 @@ class CompactMatchChip extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppSemanticColors.successSoftDark
-            : AppSemanticColors.successSoft,
+        color: AppSemanticColors.successSoftFor(brightness),
         borderRadius: AppRadius.pillBorder,
         border: Border.all(
           color: AppSemanticColors.success.withValues(alpha: 0.2),
@@ -1488,8 +1493,8 @@ class CompactMatchChip extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: const TextStyle(
-              color: AppSemanticColors.greenInk,
+            style: TextStyle(
+              color: AppSemanticColors.greenInkFor(brightness),
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),

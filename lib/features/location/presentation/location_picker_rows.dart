@@ -44,7 +44,10 @@ class LocationActionRow extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppSemanticColors.line),
+            Icon(
+              Icons.chevron_right,
+              color: AppSemanticColors.hairlineFor(theme.brightness),
+            ),
           ],
         ),
       ),
@@ -66,9 +69,10 @@ class LocationSuggestionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
     return FlatmatesCard(
       onTap: onTap,
-      borderColor: AppSemanticColors.line.withValues(alpha: 0.35),
+      borderColor: hairline.withValues(alpha: 0.35),
       child: Row(
         children: [
           const Icon(
@@ -93,7 +97,7 @@ class LocationSuggestionRow extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppSemanticColors.line),
+          Icon(Icons.chevron_right, color: hairline),
         ],
       ),
     );
@@ -118,6 +122,8 @@ class LocationCityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    final brightness = theme.brightness;
+    final hairline = AppSemanticColors.hairlineFor(brightness);
     if (city.comingSoon) {
       return Opacity(
         opacity: 0.6,
@@ -126,19 +132,19 @@ class LocationCityRow extends StatelessWidget {
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md + AppSpacing.xs,
           ),
-          borderColor: AppSemanticColors.line.withValues(alpha: 0.35),
+          borderColor: hairline.withValues(alpha: 0.35),
           child: Row(
             children: [
               Icon(
                 Icons.location_on_outlined,
-                color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                color: AppSemanticColors.textTertiaryFor(brightness),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   city.label,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                    color: AppSemanticColors.textTertiaryFor(brightness),
                   ),
                 ),
               ),
@@ -148,13 +154,13 @@ class LocationCityRow extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppSemanticColors.paper2,
+                  color: AppSemanticColors.secondarySurfaceFor(brightness),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   locale.comingSoon,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                    color: AppSemanticColors.textTertiaryFor(brightness),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -175,7 +181,7 @@ class LocationCityRow extends StatelessWidget {
           : null,
       borderColor: selected
           ? AppSemanticColors.accent
-          : AppSemanticColors.line.withValues(alpha: 0.35),
+          : hairline.withValues(alpha: 0.35),
       child: Row(
         children: [
           const Icon(
@@ -190,7 +196,7 @@ class LocationCityRow extends StatelessWidget {
               color: AppSemanticColors.accent,
             )
           else
-            const Icon(Icons.chevron_right, color: AppSemanticColors.line),
+            Icon(Icons.chevron_right, color: hairline),
         ],
       ),
     );

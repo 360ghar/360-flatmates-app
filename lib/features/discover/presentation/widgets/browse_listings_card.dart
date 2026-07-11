@@ -199,7 +199,9 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
                           liked: item.liked ?? false,
                           onTap: () => unawaited(_handleLike()),
                           size: 40,
-                          backgroundColor: AppSemanticColors.accentSoft,
+                          backgroundColor: AppSemanticColors.coralSoftFor(
+                            Theme.of(context).brightness,
+                          ),
                           unlikedColor: AppSemanticColors.accent,
                         ),
                       ),

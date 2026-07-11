@@ -2052,6 +2052,30 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String get budgetPresetAny => 'कोई भी';
+
+  @override
+  String get budgetPresetUnder15k => '₹15k से कम';
+
+  @override
+  String get budgetPreset15to25k => '₹15–25k';
+
+  @override
+  String get budgetPreset25to40k => '₹25–40k';
+
+  @override
+  String get budgetPreset40to60k => '₹40–60k';
+
+  @override
+  String get budgetPreset60kPlus => '₹60k+';
+
+  @override
+  String get lifestyleFiltersLabel => 'लाइफ़स्टाइल';
+
+  @override
+  String get lifestyleFiltersSummaryAny => 'कोई प्राथमिकता नहीं';
+
+  @override
   String get roomTypeFilterLabel => 'कमरे का प्रकार';
 
   @override
@@ -2763,6 +2787,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get showResultsCta => 'परिणाम दिखाएं';
+
+  @override
+  String showResultsWithFiltersCta(int count) {
+    return 'परिणाम दिखाएं · $count फ़िल्टर';
+  }
 
   @override
   String get searchFiltersTitle => 'खोजें और फ़िल्टर';

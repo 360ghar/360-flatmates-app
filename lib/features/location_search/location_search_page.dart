@@ -275,18 +275,22 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                           ),
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right,
-                        color: AppSemanticColors.line,
+                        color: AppSemanticColors.hairlineFor(theme.brightness),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-              child: Divider(color: AppSemanticColors.line),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screen,
+              ),
+              child: Divider(
+                color: AppSemanticColors.hairlineFor(theme.brightness),
+              ),
             ),
             if (isPlacesLoading)
               const Padding(
@@ -328,9 +332,9 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                       onTap: ref.watch(_selectingPlaceProvider)
                           ? null
                           : () => _selectPlace(suggestion),
-                      borderColor: AppSemanticColors.line.withValues(
-                        alpha: 0.35,
-                      ),
+                      borderColor: AppSemanticColors.hairlineFor(
+                        theme.brightness,
+                      ).withValues(alpha: 0.35),
                       child: Row(
                         children: [
                           const Icon(
@@ -358,9 +362,11 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                               ],
                             ),
                           ),
-                          const Icon(
+                          Icon(
                             Icons.chevron_right,
-                            color: AppSemanticColors.line,
+                            color: AppSemanticColors.hairlineFor(
+                              theme.brightness,
+                            ),
                           ),
                         ],
                       ),

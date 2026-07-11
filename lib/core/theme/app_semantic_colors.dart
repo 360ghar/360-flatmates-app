@@ -194,6 +194,42 @@ abstract final class AppSemanticColors {
   static Color coralSoftFor(Brightness brightness) =>
       brightness == Brightness.dark ? coralSoftDark : primarySoft;
 
+  // Soft pastel helpers — dark mode maps to *SoftDark tokens.
+  // Used by notification wells, meta chips, swipe match chips, peer actions.
+  static Color successSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? successSoftDark : successSoft;
+
+  static Color warningSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? warningSoftDark : warningSoft;
+
+  static Color errorSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? errorSoftDark : errorSoft;
+
+  static Color blueSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? blueSoftDark : blueSoft;
+
+  static Color purpleSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? purpleSoftDark : purpleSoft;
+
+  static Color greenSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? greenSoftDark : greenSoft;
+
+  static Color yellowSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? yellowSoftDark : yellowSoft;
+
+  static Color orangeSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? orangeSoftDark : orangeSoft;
+
+  static Color tealSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? tealSoftDark : tealSoft;
+
+  static Color pinkSoftFor(Brightness brightness) =>
+      brightness == Brightness.dark ? pinkSoftDark : pinkSoft;
+
+  /// Ink on soft green chips (match chips, meta tags).
+  static Color greenInkFor(Brightness brightness) =>
+      brightness == Brightness.dark ? greenMid : greenInk;
+
   static Color hairlineFor(Brightness brightness) =>
       brightness == Brightness.dark ? darkHairline : hairline;
 

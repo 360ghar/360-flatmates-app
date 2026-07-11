@@ -327,7 +327,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
               vertical: 10,
             ),
             const SizedBox(height: 18),
-            const Divider(color: AppSemanticColors.line),
+            Divider(color: AppSemanticColors.hairlineFor(theme.brightness)),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(

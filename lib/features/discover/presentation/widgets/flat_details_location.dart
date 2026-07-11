@@ -326,7 +326,9 @@ class _SocietyTagChip extends StatelessWidget {
           border: Border.all(
             color: selected
                 ? AppSemanticColors.accent.withValues(alpha: 0.4)
-                : AppSemanticColors.line,
+                : AppSemanticColors.hairlineFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
           ),
         ),
         child: Row(

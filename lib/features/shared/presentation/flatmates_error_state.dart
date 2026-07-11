@@ -81,9 +81,7 @@ class _FlatmatesErrorStateState extends State<FlatmatesErrorState>
           Text(
             widget.message,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.brightness == Brightness.dark
-                  ? AppSemanticColors.paper3
-                  : AppSemanticColors.ink2,
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
             ),
             textAlign: TextAlign.center,
           ),

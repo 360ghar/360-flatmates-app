@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
-import '../../../shared/presentation/flatmates_chip.dart';
 
 /// Contextual QnA nudge banner shown ABOVE the message list for new matches.
 ///
@@ -74,6 +74,8 @@ class ChatQnANudgeCard extends StatelessWidget {
 
 /// Horizontal "Break the ice" suggested-message chips, shown just ABOVE the
 /// input bar so they're close to where the user composes a message.
+///
+/// Compact horizontal padding so more suggestions fit on screen.
 class ChatIcebreakerRow extends StatelessWidget {
   const ChatIcebreakerRow({
     required this.icebreakers,
@@ -88,24 +90,73 @@ class ChatIcebreakerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.md,
-        AppSpacing.xl,
         AppSpacing.sm,
+        AppSpacing.sm,
+        AppSpacing.sm,
+        AppSpacing.xs,
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         child: Row(
-          children: icebreakers.map((prompt) {
-            return Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: FlatmatesChip(
-                label: prompt,
-                onSelected: (_) => onSelected(prompt),
+          children: [
+            for (var i = 0; i < icebreakers.length; i++) ...[
+              if (i > 0) const SizedBox(width: AppSpacing.xs),
+              _IcebreakerChip(
+                label: icebreakers[i],
+                onTap: () => onSelected(icebreakers[i]),
               ),
-            );
-          }).toList(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dense pill used only for icebreaker suggestions (tighter than
+/// [FlatmatesChip] so more prompts stay visible horizontally).
+class _IcebreakerChip extends StatelessWidget {
+  const _IcebreakerChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final background = isDark
+        ? AppSemanticColors.darkSurface
+        : AppSemanticColors.canvas;
+    final foreground = isDark
+        ? AppSemanticColors.darkBody
+        : AppSemanticColors.body;
+    final border = AppSemanticColors.hairlineFor(theme.brightness);
+
+    return Material(
+      color: background,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadius.pillBorder,
+        side: BorderSide(color: border),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.pillBorder,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: foreground,
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
         ),
       ),
     );

@@ -52,9 +52,9 @@ class FlatmatesNetworkImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final absoluteUrl = _resolveAbsoluteUrl(ref);
     final theme = Theme.of(context);
-    final placeholderColor = theme.brightness == Brightness.dark
-        ? AppSemanticColors.darkSurfaceElevated
-        : AppSemanticColors.paper2;
+    final placeholderColor = AppSemanticColors.secondarySurfaceFor(
+      theme.brightness,
+    );
 
     // Explicit dimensions: transform + decode at those sizes immediately.
     if (width != null || height != null) {
@@ -258,7 +258,9 @@ class _Placeholder extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: color ?? AppSemanticColors.paper2,
+        color:
+            color ??
+            AppSemanticColors.secondarySurfaceFor(Theme.of(context).brightness),
         borderRadius: borderRadius,
       ),
       child: const Center(

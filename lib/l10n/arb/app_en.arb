@@ -859,6 +859,14 @@
       }
     }
   },
+  "budgetPresetAny": "Any",
+  "budgetPresetUnder15k": "Under ₹15k",
+  "budgetPreset15to25k": "₹15–25k",
+  "budgetPreset25to40k": "₹25–40k",
+  "budgetPreset40to60k": "₹40–60k",
+  "budgetPreset60kPlus": "₹60k+",
+  "lifestyleFiltersLabel": "Lifestyle",
+  "lifestyleFiltersSummaryAny": "No preference",
   "roomTypeFilterLabel": "Room Type",
   "roomTypeAny": "Any",
   "roomTypePrivate": "Private",
@@ -1209,6 +1217,14 @@
   "workStyleWfh": "WFH",
   "phoneVerifiedLabel": "Phone verified",
   "showResultsCta": "Show Results",
+  "showResultsWithFiltersCta": "Show Results · {count} filters",
+  "@showResultsWithFiltersCta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchFiltersTitle": "Search & Filters",
   "clearAllFilters": "Clear all",
   "errorNetwork": "No internet connection. Please check your network and try again.",

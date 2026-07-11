@@ -268,8 +268,10 @@ class _MessageListState extends ConsumerState<MessageList>
 
     return ListView.builder(
       controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
+        horizontal: AppSpacing.screen,
         vertical: AppSpacing.lg,
       ),
       itemCount:
@@ -286,7 +288,9 @@ class _MessageListState extends ConsumerState<MessageList>
               children: [
                 Expanded(
                   child: Divider(
-                    color: AppSemanticColors.line.withValues(alpha: 0.5),
+                    color: AppSemanticColors.hairlineFor(
+                      theme.brightness,
+                    ).withValues(alpha: 0.5),
                   ),
                 ),
                 Padding(
@@ -300,7 +304,9 @@ class _MessageListState extends ConsumerState<MessageList>
                 ),
                 Expanded(
                   child: Divider(
-                    color: AppSemanticColors.line.withValues(alpha: 0.5),
+                    color: AppSemanticColors.hairlineFor(
+                      theme.brightness,
+                    ).withValues(alpha: 0.5),
                   ),
                 ),
               ],

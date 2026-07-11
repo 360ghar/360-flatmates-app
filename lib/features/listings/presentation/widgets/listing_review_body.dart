@@ -225,7 +225,9 @@ class _UnderReviewProgress extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: animatedValue,
                 minHeight: 4,
-                backgroundColor: AppSemanticColors.line.withValues(alpha: 0.3),
+                backgroundColor: AppSemanticColors.hairlineFor(
+                  Theme.of(context).brightness,
+                ).withValues(alpha: 0.3),
                 valueColor: const AlwaysStoppedAnimation(
                   AppSemanticColors.accent,
                 ),
@@ -289,7 +291,9 @@ class _LiveProgress extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: animatedValue,
                 minHeight: 4,
-                backgroundColor: AppSemanticColors.line.withValues(alpha: 0.3),
+                backgroundColor: AppSemanticColors.hairlineFor(
+                  Theme.of(context).brightness,
+                ).withValues(alpha: 0.3),
                 valueColor: const AlwaysStoppedAnimation(
                   AppSemanticColors.success,
                 ),

@@ -54,7 +54,9 @@ class ChatInputBar extends StatelessWidget {
           color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: AppSemanticColors.line.withValues(alpha: 0.35),
+            color: AppSemanticColors.hairlineFor(
+              theme.brightness,
+            ).withValues(alpha: 0.35),
           ),
         ),
         child: Row(

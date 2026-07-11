@@ -2,14 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flatmates_app/features/settings/preferences_sheet.dart';
 import 'package:flatmates_app/features/settings/settings_page.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_segmented_control.dart';
 
 import 'helpers/test_helpers.dart';
 
-/// Opens the Preferences bottom sheet by tapping the menu item.
+/// Opens the Preferences bottom sheet from a minimal harness.
 Future<void> openPreferencesSheet(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('preferences_menu_item')));
+  await tester.tap(find.byKey(const Key('open_preferences_test_button')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> pumpPreferencesHost(WidgetTester tester) async {
+  await tester.pumpWidget(
+    await testableWidgetAsync(
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: Center(
+              child: TextButton(
+                key: const Key('open_preferences_test_button'),
+                onPressed: () => showPreferencesSheet(context),
+                child: const Text('Open Preferences'),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -18,15 +40,11 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('SettingsPage', () {
+  group('PreferencesSheet', () {
     testWidgets('renders theme mode segmented button in preferences sheet', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        await testableWidgetAsync(child: const SettingsPage()),
-      );
-      await tester.pumpAndSettle();
-
+      await pumpPreferencesHost(tester);
       await openPreferencesSheet(tester);
 
       expect(find.byType(FlatmatesSegmentedControl<ThemeMode>), findsOneWidget);
@@ -36,11 +54,7 @@ void main() {
     });
 
     testWidgets('does not render palette choice chips', (tester) async {
-      await tester.pumpWidget(
-        await testableWidgetAsync(child: const SettingsPage()),
-      );
-      await tester.pumpAndSettle();
-
+      await pumpPreferencesHost(tester);
       await openPreferencesSheet(tester);
 
       expect(find.byKey(const Key('palette_rausch')), findsNothing);
@@ -48,11 +62,7 @@ void main() {
     });
 
     testWidgets('tapping dark theme option updates state', (tester) async {
-      await tester.pumpWidget(
-        await testableWidgetAsync(child: const SettingsPage()),
-      );
-      await tester.pumpAndSettle();
-
+      await pumpPreferencesHost(tester);
       await openPreferencesSheet(tester);
 
       await tester.tap(find.byKey(const Key('theme_mode_dark_option')));
@@ -66,11 +76,7 @@ void main() {
     });
 
     testWidgets('renders privacy toggles in preferences sheet', (tester) async {
-      await tester.pumpWidget(
-        await testableWidgetAsync(child: const SettingsPage()),
-      );
-      await tester.pumpAndSettle();
-
+      await pumpPreferencesHost(tester);
       await openPreferencesSheet(tester);
 
       // Scroll the bottom sheet's scrollable to reveal privacy toggles.
@@ -93,7 +99,9 @@ void main() {
       expect(find.byKey(const Key('setting_hide_last_name')), findsOneWidget);
       expect(find.byKey(const Key('setting_hide_location')), findsOneWidget);
     });
+  });
 
+  group('SettingsPage', () {
     testWidgets('renders logout button on main page', (tester) async {
       await tester.pumpWidget(
         await testableWidgetAsync(child: const SettingsPage()),

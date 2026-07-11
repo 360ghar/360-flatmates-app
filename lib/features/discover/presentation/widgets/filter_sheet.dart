@@ -26,8 +26,8 @@ Future<void> showFiltersSheet(BuildContext context) {
   );
 }
 
-/// The filter form rendered inside [showFiltersSheet]. All sections are
-/// shown directly (no collapsing) so every value is visible at once.
+/// The filter form rendered inside [showFiltersSheet].
+/// Primary filters stay expanded; lifestyle prefs collapse under a header.
 class FilterSheet extends ConsumerStatefulWidget {
   const FilterSheet({super.key});
 
@@ -71,6 +71,45 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
     return fallbackIds
         .map((id) => (id: id, label: _localizedLabel(locale, catalogKey, id)))
         .toList();
+  }
+
+  /// Ensures a leading "Any" option exists for single-select filter groups.
+  ///
+  /// Server catalogs often omit the synthetic any key; without it the
+  /// segmented control's selected value (`any` when unset) matches nothing
+  /// and no pill is highlighted.
+  List<({String id, String label})> _catalogWithAny(
+    String catalogKey,
+    List<String> fallbackIds,
+    String anyKey,
+    String anyLabel,
+  ) {
+    final options = _catalogOrFallback(catalogKey, fallbackIds);
+    if (options.any((o) => o.id == anyKey)) return options;
+    return [(id: anyKey, label: anyLabel), ...options];
+  }
+
+  /// Map stored selection onto a catalog option id (handles private ↔ private_room).
+  String _resolvedSelection(
+    String? selected,
+    List<({String id, String label})> options,
+    String anyKey,
+  ) {
+    if (selected == null) return anyKey;
+    if (options.any((o) => o.id == selected)) return selected;
+    // Normalize room-type aliases when catalog uses backend ids.
+    final aliases = switch (selected) {
+      'private' => const ['private_room', 'master_bedroom', 'private'],
+      'shared' => const ['shared_room', 'shared'],
+      'private_room' ||
+      'master_bedroom' => const ['private', 'private_room', 'master_bedroom'],
+      'shared_room' => const ['shared', 'shared_room'],
+      _ => <String>[selected],
+    };
+    for (final id in aliases) {
+      if (options.any((o) => o.id == id)) return id;
+    }
+    return anyKey;
   }
 
   String _localizedLabel(
@@ -207,6 +246,35 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
     };
   }
 
+  List<(String, String, IconData?)> _segmentTuples(
+    List<({String id, String label})> options,
+  ) {
+    return [
+      for (final opt in options) (opt.id, opt.label, filterOptionIcon(opt.id)),
+    ];
+  }
+
+  List<Key?> _segmentKeys(
+    String prefix,
+    List<({String id, String label})> options,
+    String anyKey,
+  ) {
+    return [
+      for (final opt in options)
+        Key('${prefix}_${_segmentKeySuffix(opt.id, anyKey)}'),
+    ];
+  }
+
+  String _segmentKeySuffix(String id, String anyKey) {
+    if (id == anyKey) return 'any';
+    return switch (id) {
+      'private_room' || 'master_bedroom' => 'private',
+      'shared_room' => 'shared',
+      'no_preference' => 'any',
+      _ => id,
+    };
+  }
+
   List<({String label, VoidCallback onRemove})> get _activeFilters {
     return [
       if (_budgetValues.start != _budgetMin || _budgetValues.end != _budgetMax)
@@ -317,156 +385,227 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
     final showError = bootstrap.hasError && bootstrap.valueOrNull == null;
     final activeFilters = _activeFilters;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                locale.searchFiltersTitle,
-                style: theme.textTheme.headlineSmall,
-              ),
-            ),
-            if (activeFilters.isNotEmpty)
-              FlatmatesButton.tertiary(
-                key: const Key('search_clear_filters'),
-                label: locale.clearAllFilters,
-                onPressed: _clearAllFilters,
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (showSkeleton)
-          const SizedBox(height: 420, child: FlatmatesSkeleton.searchFilters())
-        else if (showError)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: FlatmatesErrorState(
-              message: locale.couldNotLoadListing,
-              onRetry: () =>
-                  ref.read(bootstrapControllerProvider.notifier).refresh(),
-            ),
-          )
-        else ...[
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+    // Bound sheet body height so the list scrolls instead of overflowing the
+    // modal's maxHeight (Phase 2 content is taller: presets + segments).
+    final sheetBodyHeight = MediaQuery.sizeOf(context).height * 0.78;
+
+    final roomOptions = _catalogWithAny(
+      'flatmates_room_types',
+      const ['any', 'private', 'shared'],
+      'any',
+      locale.roomTypeAny,
+    );
+    final furnishingOptions = _catalogWithAny(
+      'flatmates_furnishing',
+      const ['any', 'furnished', 'unfurnished'],
+      'any',
+      locale.furnishingAny,
+    );
+    final genderOptions = _catalogWithAny(
+      'flatmates_gender_options',
+      const ['any', 'male', 'female'],
+      'any',
+      locale.genderFilterAny,
+    );
+    final moveInOptions = _catalogWithAny(
+      'flatmates_move_in_timelines',
+      const ['any', 'immediate', 'this_month', 'next_month'],
+      'any',
+      locale.moveInAnytime,
+    );
+
+    // Full width so the title can truly center in the sheet content area
+    // (a shrink-wrapped Stack only centers within the text width).
+    return SizedBox(
+      width: double.infinity,
+      height: sheetBodyHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                FlatmatesSearchBar(
-                  controller: _searchController,
-                  hint: locale.homeSearchHint,
-                  trailingIcon: AppIcons.search,
+                Text(
+                  locale.searchFiltersTitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall,
                 ),
-                ActiveFilterChips(filters: activeFilters),
-                BudgetFilterCard(
-                  budgetValues: _budgetValues,
-                  budgetMin: _budgetMin,
-                  budgetMax: _budgetMax,
-                  onChanged: (values) => setState(() => _budgetValues = values),
-                  formatBudget: _formatBudget,
-                ),
-                CompactFilterSection(
-                  title: locale.roomTypeFilterLabel,
-                  subtitle: _roomTypeSubtitle(),
-                  icon: Icons.bed_outlined,
-                  iconColor: AppSemanticColors.blueMid,
-                  iconBgColor: AppSemanticColors.blueSoft,
-                  child: CatalogFilterChips(
-                    keyPrefix: 'search_room_type',
-                    options: _catalogOrFallback('flatmates_room_types', [
-                      'any',
-                      'private',
-                      'shared',
-                    ]),
-                    selectedId: _selectedRoomType ?? 'any',
-                    anyKey: 'any',
-                    onSelected: (id) => setState(
-                      () => _selectedRoomType = id == 'any' ? null : id,
+                if (activeFilters.isNotEmpty)
+                  Positioned(
+                    right: 0,
+                    child: FlatmatesButton.tertiary(
+                      key: const Key('search_clear_filters'),
+                      label: locale.clearAllFilters,
+                      onPressed: _clearAllFilters,
                     ),
                   ),
-                ),
-                CompactFilterSection(
-                  title: locale.furnishingFilterLabel,
-                  subtitle: _furnishingSubtitle(),
-                  icon: Icons.chair_outlined,
-                  iconColor: AppSemanticColors.orangeMid,
-                  iconBgColor: AppSemanticColors.orangeSoft,
-                  child: CatalogFilterChips(
-                    keyPrefix: 'search_furnishing',
-                    options: _catalogOrFallback('flatmates_furnishing', [
-                      'any',
-                      'furnished',
-                      'unfurnished',
-                    ]),
-                    selectedId: _selectedFurnishing ?? 'any',
-                    anyKey: 'any',
-                    onSelected: (id) => setState(
-                      () => _selectedFurnishing = id == 'any' ? null : id,
-                    ),
-                  ),
-                ),
-                CompactFilterSection(
-                  title: locale.genderFilterLabel,
-                  subtitle: _genderSubtitle(),
-                  icon: Icons.people_outlined,
-                  iconColor: AppSemanticColors.purpleMid,
-                  iconBgColor: AppSemanticColors.purpleSoft,
-                  child: CatalogFilterChips(
-                    options: _catalogOrFallback('flatmates_gender_options', [
-                      'any',
-                      'male',
-                      'female',
-                    ]),
-                    selectedId: _selectedGender ?? 'any',
-                    anyKey: 'any',
-                    onSelected: (id) => setState(
-                      () => _selectedGender = id == 'any' ? null : id,
-                    ),
-                  ),
-                ),
-                CompactFilterSection(
-                  title: locale.moveInFilterLabel,
-                  subtitle: _moveInSubtitle(),
-                  icon: Icons.calendar_today_outlined,
-                  iconColor: AppSemanticColors.tealMid,
-                  iconBgColor: AppSemanticColors.tealSoft,
-                  child: CatalogFilterChips(
-                    options: _catalogOrFallback('flatmates_move_in_timelines', [
-                      'any',
-                      'immediate',
-                      'this_month',
-                      'next_month',
-                    ]),
-                    selectedId: _selectedMoveIn ?? 'any',
-                    anyKey: 'any',
-                    onSelected: (id) => setState(
-                      () => _selectedMoveIn = id == 'any' ? null : id,
-                    ),
-                  ),
-                ),
-                MoreFiltersCard(
-                  selectedPets: _selectedPets,
-                  selectedSmoking: _selectedSmoking,
-                  onPetsChanged: (v) => setState(() => _selectedPets = v),
-                  onSmokingChanged: (v) => setState(() => _selectedSmoking = v),
-                  catalogOrFallback: _catalogOrFallback,
-                ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          FlatmatesButton(
-            key: const Key('search_show_results_button'),
-            label: locale.showResultsCta,
-            icon: AppIcons.filter,
-            fullWidth: true,
-            onPressed: _applyFilters,
-          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (showSkeleton)
+            const Expanded(child: FlatmatesSkeleton.searchFilters())
+          else if (showError)
+            Expanded(
+              child: Center(
+                child: FlatmatesErrorState(
+                  message: locale.couldNotLoadListing,
+                  onRetry: () =>
+                      ref.read(bootstrapControllerProvider.notifier).refresh(),
+                ),
+              ),
+            )
+          else ...[
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: AppSpacing.base),
+                children: [
+                  FlatmatesSearchBar(
+                    controller: _searchController,
+                    hint: locale.homeSearchHint,
+                    trailingIcon: AppIcons.search,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  ActiveFilterChips(filters: activeFilters),
+                  if (activeFilters.isNotEmpty)
+                    const SizedBox(height: AppSpacing.sm),
+                  BudgetFilterCard(
+                    budgetValues: _budgetValues,
+                    budgetMin: _budgetMin,
+                    budgetMax: _budgetMax,
+                    onChanged: (values) =>
+                        setState(() => _budgetValues = values),
+                    formatBudget: _formatBudget,
+                  ),
+                  const FilterSectionDivider(),
+                  CompactFilterSection(
+                    title: locale.roomTypeFilterLabel,
+                    icon: Icons.bed_outlined,
+                    iconColor: AppSemanticColors.blueMid,
+                    iconBgColor: AppSemanticColors.blueSoft,
+                    child: _filterChoice(
+                      options: roomOptions,
+                      selected: _resolvedSelection(
+                        _selectedRoomType,
+                        roomOptions,
+                        'any',
+                      ),
+                      anyKey: 'any',
+                      keyPrefix: 'search_room_type',
+                      onSelected: (id) => setState(
+                        () => _selectedRoomType = id == 'any' ? null : id,
+                      ),
+                    ),
+                  ),
+                  CompactFilterSection(
+                    title: locale.furnishingFilterLabel,
+                    icon: Icons.chair_outlined,
+                    iconColor: AppSemanticColors.orangeMid,
+                    iconBgColor: AppSemanticColors.orangeSoft,
+                    child: _filterChoice(
+                      options: furnishingOptions,
+                      selected: _resolvedSelection(
+                        _selectedFurnishing,
+                        furnishingOptions,
+                        'any',
+                      ),
+                      anyKey: 'any',
+                      keyPrefix: 'search_furnishing',
+                      onSelected: (id) => setState(
+                        () => _selectedFurnishing = id == 'any' ? null : id,
+                      ),
+                    ),
+                  ),
+                  CompactFilterSection(
+                    title: locale.genderFilterLabel,
+                    icon: Icons.people_outlined,
+                    iconColor: AppSemanticColors.purpleMid,
+                    iconBgColor: AppSemanticColors.purpleSoft,
+                    child: _filterChoice(
+                      options: genderOptions,
+                      selected: _resolvedSelection(
+                        _selectedGender,
+                        genderOptions,
+                        'any',
+                      ),
+                      anyKey: 'any',
+                      keyPrefix: 'search_gender',
+                      onSelected: (id) => setState(
+                        () => _selectedGender = id == 'any' ? null : id,
+                      ),
+                    ),
+                  ),
+                  CompactFilterSection(
+                    title: locale.moveInFilterLabel,
+                    icon: Icons.calendar_today_outlined,
+                    iconColor: AppSemanticColors.tealMid,
+                    iconBgColor: AppSemanticColors.tealSoft,
+                    child: CatalogFilterChips(
+                      options: moveInOptions,
+                      selectedId: _resolvedSelection(
+                        _selectedMoveIn,
+                        moveInOptions,
+                        'any',
+                      ),
+                      anyKey: 'any',
+                      onSelected: (id) => setState(
+                        () => _selectedMoveIn = id == 'any' ? null : id,
+                      ),
+                    ),
+                  ),
+                  const FilterSectionDivider(),
+                  MoreFiltersCard(
+                    selectedPets: _selectedPets,
+                    selectedSmoking: _selectedSmoking,
+                    onPetsChanged: (v) => setState(() => _selectedPets = v),
+                    onSmokingChanged: (v) =>
+                        setState(() => _selectedSmoking = v),
+                    catalogOrFallback: _catalogOrFallback,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            FlatmatesButton(
+              key: const Key('search_show_results_button'),
+              label: activeFilters.isEmpty
+                  ? locale.showResultsCta
+                  : locale.showResultsWithFiltersCta(activeFilters.length),
+              icon: AppIcons.filter,
+              fullWidth: true,
+              onPressed: _applyFilters,
+            ),
+          ],
         ],
-      ],
+      ),
+    );
+  }
+
+  /// Prefer a compact segmented control for 2–3 options; fall back to chips
+  /// when the catalog is larger so labels never overflow a fixed segment row.
+  Widget _filterChoice({
+    required List<({String id, String label})> options,
+    required String selected,
+    required String anyKey,
+    required String keyPrefix,
+    required ValueChanged<String> onSelected,
+  }) {
+    if (options.length <= 3) {
+      return FlatmatesSegmentedControl<String>(
+        segments: _segmentTuples(options),
+        selected: selected,
+        onChanged: onSelected,
+        segmentKeys: _segmentKeys(keyPrefix, options, anyKey),
+      );
+    }
+    return CatalogFilterChips(
+      keyPrefix: keyPrefix,
+      options: options,
+      selectedId: selected,
+      anyKey: anyKey,
+      onSelected: onSelected,
     );
   }
 }

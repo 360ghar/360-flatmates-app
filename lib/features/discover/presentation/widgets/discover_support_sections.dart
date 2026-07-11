@@ -54,8 +54,8 @@ class NewInCitySection extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(
-              color: AppSemanticColors.accentSoft,
+            decoration: BoxDecoration(
+              color: AppSemanticColors.coralSoftFor(theme.brightness),
               borderRadius: AppRadius.smBorder,
             ),
             child: const Icon(

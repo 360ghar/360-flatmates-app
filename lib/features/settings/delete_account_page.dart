@@ -100,7 +100,9 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: AppRadius.smBorder,
                 borderSide: BorderSide(
-                  color: AppSemanticColors.line.withValues(alpha: 0.35),
+                  color: AppSemanticColors.hairlineFor(
+                    theme.brightness,
+                  ).withValues(alpha: 0.35),
                 ),
               ),
               focusedBorder: const OutlineInputBorder(

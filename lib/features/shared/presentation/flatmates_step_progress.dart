@@ -67,6 +67,9 @@ class _DotProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = AppSemanticColors.hairlineFor(
+      Theme.of(context).brightness,
+    );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(totalSteps, (index) {
@@ -74,7 +77,7 @@ class _DotProgress extends StatelessWidget {
         final isCompleted = index < currentStep;
         final color = isActive || isCompleted
             ? AppSemanticColors.accent
-            : AppSemanticColors.line;
+            : inactive;
 
         return AnimatedContainer(
           duration: AppMotion.standard,
@@ -102,13 +105,16 @@ class _SegmentProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = AppSemanticColors.hairlineFor(
+      Theme.of(context).brightness,
+    ).withValues(alpha: 0.3);
     return Row(
       children: List.generate(totalSteps, (index) {
         final isCompleted = index < currentStep;
         final isCurrent = index == currentStep;
         final color = isCompleted || isCurrent
             ? AppSemanticColors.accent
-            : AppSemanticColors.line.withValues(alpha: 0.3);
+            : inactive;
 
         return Expanded(
           child: AnimatedContainer(
@@ -144,7 +150,9 @@ class _LinearProgress extends StatelessWidget {
       child: LinearProgressIndicator(
         value: progress,
         minHeight: 4,
-        backgroundColor: AppSemanticColors.line.withValues(alpha: 0.3),
+        backgroundColor: AppSemanticColors.hairlineFor(
+          Theme.of(context).brightness,
+        ).withValues(alpha: 0.3),
         valueColor: const AlwaysStoppedAnimation(AppSemanticColors.accent),
       ),
     );

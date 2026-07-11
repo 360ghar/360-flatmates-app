@@ -108,9 +108,9 @@ class _DiscoverMapState extends State<DiscoverMap> {
                     TileLayerFactory.attributionFor(context),
                     textStyle: TextStyle(
                       fontSize: 10,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppSemanticColors.paper3
-                          : AppSemanticColors.ink2,
+                      color: AppSemanticColors.textSecondaryFor(
+                        Theme.of(context).brightness,
+                      ),
                     ),
                   ),
                 ],

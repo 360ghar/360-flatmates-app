@@ -3,7 +3,21 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_chip.dart';
 import 'search_filter_widgets.dart';
+
+/// Named rent bands used as quick budget presets (India market bands).
+class BudgetPreset {
+  const BudgetPreset({
+    required this.id,
+    required this.label,
+    required this.range,
+  });
+
+  final String id;
+  final String label;
+  final RangeValues range;
+}
 
 class BudgetFilterCard extends StatelessWidget {
   const BudgetFilterCard({
@@ -21,10 +35,57 @@ class BudgetFilterCard extends StatelessWidget {
   final ValueChanged<RangeValues> onChanged;
   final String Function(double) formatBudget;
 
+  List<BudgetPreset> _presets(AppLocalizations locale) {
+    return [
+      BudgetPreset(
+        id: 'any',
+        label: locale.budgetPresetAny,
+        range: RangeValues(budgetMin, budgetMax),
+      ),
+      BudgetPreset(
+        id: 'under_15k',
+        label: locale.budgetPresetUnder15k,
+        range: RangeValues(budgetMin, 15000),
+      ),
+      BudgetPreset(
+        id: '15_25k',
+        label: locale.budgetPreset15to25k,
+        range: const RangeValues(15000, 25000),
+      ),
+      BudgetPreset(
+        id: '25_40k',
+        label: locale.budgetPreset25to40k,
+        range: const RangeValues(25000, 40000),
+      ),
+      BudgetPreset(
+        id: '40_60k',
+        label: locale.budgetPreset40to60k,
+        range: const RangeValues(40000, 60000),
+      ),
+      BudgetPreset(
+        id: '60k_plus',
+        label: locale.budgetPreset60kPlus,
+        range: RangeValues(60000, budgetMax),
+      ),
+    ];
+  }
+
+  String? _matchingPresetId(List<BudgetPreset> presets) {
+    for (final preset in presets) {
+      if (budgetValues.start == preset.range.start &&
+          budgetValues.end == preset.range.end) {
+        return preset.id;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final presets = _presets(locale);
+    final selectedPresetId = _matchingPresetId(presets);
 
     return CompactFilterSection(
       title: locale.budgetFilterLabel,
@@ -71,19 +132,34 @@ class BudgetFilterCard extends StatelessWidget {
                 Text(
                   formatBudget(budgetMin),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.ink3,
+                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
                     fontSize: 11,
                   ),
                 ),
                 Text(
                   formatBudget(budgetMax),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.ink3,
+                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
                     fontSize: 11,
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              for (final preset in presets)
+                FlatmatesChip(
+                  key: Key('budget_preset_${preset.id}'),
+                  label: preset.label,
+                  variant: FlatmatesChipVariant.choice,
+                  selected: selectedPresetId == preset.id,
+                  onSelected: (_) => onChanged(preset.range),
+                ),
+            ],
           ),
         ],
       ),

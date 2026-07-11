@@ -30,7 +30,9 @@ class LocationSelector extends StatelessWidget {
               ? AppSemanticColors.darkSurface.withValues(alpha: 0.8)
               : AppSemanticColors.card.withValues(alpha: 0.9),
           borderRadius: AppRadius.pillBorder,
-          border: Border.all(color: AppSemanticColors.line),
+          border: Border.all(
+            color: AppSemanticColors.hairlineFor(theme.brightness),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -50,17 +52,17 @@ class LocationSelector extends StatelessWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: displayText != null
                       ? AppSemanticColors.textPrimaryFor(theme.brightness)
-                      : AppSemanticColors.ink3,
+                      : AppSemanticColors.textTertiaryFor(theme.brightness),
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
-            const Icon(
+            Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 18,
-              color: AppSemanticColors.ink3,
+              color: AppSemanticColors.textTertiaryFor(theme.brightness),
             ),
           ],
         ),
