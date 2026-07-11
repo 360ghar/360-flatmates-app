@@ -1,0 +1,19 @@
+appId: com.the360ghar.flatmates360
+name: Listings - Post Hub
+tags:
+  - listings
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_post_tab
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: post_hub_post_card
+    timeout: 5000
+- assertVisible:
+    id: post_hub_manage_card
+- assertVisible:
+    id: post_notifications_button

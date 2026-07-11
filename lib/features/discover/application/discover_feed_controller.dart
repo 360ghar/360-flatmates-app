@@ -540,9 +540,9 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       filters: filters,
       isBroadened: false,
     );
-    ref.read(discoverFiltersProvider.notifier).state = filters.isEmpty
-        ? null
-        : filters;
+    ref
+        .read(discoverFiltersProvider.notifier)
+        .set(filters.isEmpty ? null : filters);
   }
 }
 

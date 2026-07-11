@@ -1,0 +1,53 @@
+appId: com.the360ghar.flatmates360
+name: Navigation Tabs Room Poster
+tags:
+  - navigation
+---
+- launchApp:
+    clearState: true
+
+- runFlow: ../_shared/login.yaml
+
+# Assumes the logged-in user is in room_poster mode.
+- assertVisible:
+    id: "nav_home_tab"
+
+- tapOn:
+    id: "nav_post_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "post_hub_post_card"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_swipe_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "swipe_filter_tune"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_inbox_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "chats_chats_tab"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_me_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_home_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "home_search_bar"
+    timeout: 5000

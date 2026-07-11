@@ -1,0 +1,22 @@
+appId: com.the360ghar.flatmates360
+name: Like Listing - Toggle Like on Feed Card
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: discover_feed_card_0
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: discover_like_0
+    direction: UP
+    optional: true
+- tapOn:
+    id: discover_like_0
+    optional: true
+- assertVisible:
+    id: discover_feed_card_0

@@ -10,13 +10,6 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../profile/profile_repository.dart';
 import '../shared/presentation/components.dart';
 
-/// Local UI state for the profile-completion form.
-final _savingProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _hasErrorProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _dobProvider = StateProvider.autoDispose<DateTime?>((ref) => null);
-final _nameProvider = StateProvider.autoDispose<String>((ref) => '');
-final _initializedProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 /// A focused, onboarding-style page that collects only the mandatory profile
 /// fields reported missing by the backend `profile_completion` auth gate
 /// (typically `full_name` and `date_of_birth`).
@@ -36,12 +29,17 @@ class ProfileCompletionPage extends ConsumerStatefulWidget {
 
 class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
   late final TextEditingController _nameController;
+  bool _saving = false;
+  bool _hasError = false;
+  bool _initialized = false;
+  DateTime? _dob;
+  String _name = '';
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    // Prefill once after the first frame so we never mutate providers in build.
+    // Prefill once after the first frame so we never mutate state in build.
     WidgetsBinding.instance.addPostFrameCallback((_) => _prefillFromProfile());
   }
 
@@ -52,16 +50,17 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
   }
 
   void _prefillFromProfile() {
-    if (!mounted) return;
-    if (ref.read(_initializedProvider)) return;
+    if (!mounted || _initialized) return;
     final profile = ref.read(bootstrapControllerProvider).valueOrNull?.profile;
     if (profile == null) return;
 
-    ref.read(_initializedProvider.notifier).state = true;
+    _initialized = true;
     final existingName = profile.fullName ?? '';
-    if (existingName.isNotEmpty && ref.read(_nameProvider).isEmpty) {
-      ref.read(_nameProvider.notifier).state = existingName;
-      _nameController.text = existingName;
+    if (existingName.isNotEmpty && _name.isEmpty) {
+      setState(() {
+        _name = existingName;
+        _nameController.text = existingName;
+      });
     }
   }
 
@@ -69,10 +68,6 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final saving = ref.watch(_savingProvider);
-    final hasError = ref.watch(_hasErrorProvider);
-    final dob = ref.watch(_dobProvider);
-    final name = ref.watch(_nameProvider);
     final missingFields = ref
         .watch(authControllerProvider)
         .missingProfileFields;
@@ -83,16 +78,15 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
 
     // If bootstrap arrives after first frame, prefill when it becomes ready.
     ref.listen(bootstrapControllerProvider, (previous, next) {
-      if (!ref.read(_initializedProvider) &&
-          next.valueOrNull?.profile != null) {
+      if (!_initialized && next.valueOrNull?.profile != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _prefillFromProfile();
         });
       }
     });
 
-    final isNameValid = name.trim().length >= 2;
-    final isDobValid = dob != null && _isAtLeast18(dob);
+    final isNameValid = _name.trim().length >= 2;
+    final isDobValid = _dob != null && _isAtLeast18(_dob!);
     final isValid = (!needsName || isNameValid) && (!needsDob || isDobValid);
 
     return Scaffold(
@@ -127,18 +121,18 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
                   labelText: locale.fullNameLabel,
                   prefixIcon: const Icon(Icons.person_outline),
                 ),
-                onChanged: (v) => ref.read(_nameProvider.notifier).state = v,
+                onChanged: (v) => setState(() => _name = v),
               ),
               const SizedBox(height: AppSpacing.xl),
             ],
             if (needsDob) ...[
               _DateOfBirthField(
-                selectedDate: dob,
+                selectedDate: _dob,
                 onTap: () => _pickDateOfBirth(context, locale),
               ),
               const SizedBox(height: AppSpacing.sm),
             ],
-            if (hasError) ...[
+            if (_hasError) ...[
               const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
@@ -162,11 +156,11 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
             const SizedBox(height: AppSpacing.xxl),
             FlatmatesButton(
               key: const Key('profile_completion_submit'),
-              label: saving
+              label: _saving
                   ? locale.profileCompletionSaving
                   : locale.profileCompletionContinue,
               fullWidth: true,
-              onPressed: (isValid && !saving)
+              onPressed: (isValid && !_saving)
                   ? () => _submit(
                       context,
                       locale,
@@ -174,7 +168,7 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
                       needsDob: needsDob,
                     )
                   : null,
-              icon: saving ? null : Icons.arrow_forward_rounded,
+              icon: _saving ? null : Icons.arrow_forward_rounded,
             ),
             const SizedBox(height: AppSpacing.xxl),
           ],
@@ -207,8 +201,8 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
       lastDate: DateTime(now.year - 18, now.month, now.day),
       helpText: locale.dateOfBirthPickerTitle,
     );
-    if (picked != null) {
-      ref.read(_dobProvider.notifier).state = picked;
+    if (picked != null && mounted) {
+      setState(() => _dob = picked);
     }
   }
 
@@ -218,21 +212,22 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     required bool needsName,
     required bool needsDob,
   }) async {
-    final dob = ref.read(_dobProvider);
-    final name = ref.read(_nameProvider);
-    if (ref.read(_savingProvider)) return;
-    if (needsName && name.trim().length < 2) return;
-    if (needsDob && dob == null) return;
+    if (_saving) return;
+    if (needsName && _name.trim().length < 2) return;
+    if (needsDob && _dob == null) return;
 
-    ref.read(_savingProvider.notifier).state = true;
-    ref.read(_hasErrorProvider.notifier).state = false;
+    setState(() {
+      _saving = true;
+      _hasError = false;
+    });
 
     try {
       final payload = <String, dynamic>{};
       if (needsName) {
-        payload['full_name'] = name.trim();
+        payload['full_name'] = _name.trim();
       }
-      if (needsDob && dob != null) {
+      if (needsDob && _dob != null) {
+        final dob = _dob!;
         payload['date_of_birth'] =
             '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
       }
@@ -245,11 +240,11 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     } catch (e) {
       debugPrint('ProfileCompletionPage._submit error: $e');
       if (context.mounted) {
-        ref.read(_hasErrorProvider.notifier).state = true;
+        setState(() => _hasError = true);
         FlatmatesToast.error(context, locale.profileCompletionError);
       }
     } finally {
-      if (context.mounted) ref.read(_savingProvider.notifier).state = false;
+      if (context.mounted) setState(() => _saving = false);
     }
   }
 }

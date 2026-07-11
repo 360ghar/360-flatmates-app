@@ -345,7 +345,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
       smoking: _selectedSmoking,
       moveInTimeline: _selectedMoveIn,
     );
-    ref.read(discoverFiltersProvider.notifier).state = filters;
+    ref.read(discoverFiltersProvider.notifier).set(filters);
     ref.read(discoverFeedControllerProvider.notifier).updateFilters(filters);
     Navigator.of(context).pop();
   }

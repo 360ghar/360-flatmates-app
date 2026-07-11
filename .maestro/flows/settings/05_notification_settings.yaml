@@ -1,0 +1,35 @@
+appId: com.the360ghar.flatmates360
+name: Settings - Notification Settings
+tags:
+  - settings
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: profile_notification_settings_menu_item
+    direction: DOWN
+    optional: true
+- tap:
+    id: profile_notification_settings_menu_item
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: notif_enable_all
+    timeout: 5000
+    optional: true
+- tap:
+    id: notif_disable_all
+    optional: true
+- tap:
+    id: notif_enable_all
+    optional: true
+- back:
+    optional: true

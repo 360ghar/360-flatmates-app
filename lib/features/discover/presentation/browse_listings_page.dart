@@ -11,8 +11,6 @@ import 'widgets/broadened_radius_banner.dart';
 import 'widgets/browse_listings_card.dart';
 import 'widgets/filter_sheet.dart';
 
-final _isSearchActiveProvider = StateProvider<bool>((ref) => false);
-
 class BrowseListingsPage extends ConsumerStatefulWidget {
   const BrowseListingsPage({super.key});
 
@@ -28,6 +26,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
   final _searchDebouncer = ActionDebouncer(
     duration: const Duration(milliseconds: 400),
   );
+  bool _isSearchActive = false;
 
   @override
   void initState() {
@@ -36,7 +35,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
     final filters = ref.read(discoverFeedControllerProvider).filters;
     _searchController.text = filters.query ?? '';
     if (_searchController.text.isNotEmpty) {
-      ref.read(_isSearchActiveProvider.notifier).state = true;
+      _isSearchActive = true;
     }
   }
 
@@ -67,7 +66,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
     final locale = AppLocalizations.of(context);
     final feedState = ref.watch(discoverFeedControllerProvider);
     final filtered = ref.watch(filteredListingsProvider);
-    final isSearchActive = ref.watch(_isSearchActiveProvider);
+    final isSearchActive = _isSearchActive;
 
     return Scaffold(
       appBar: FlatmatesHeader.backTitle(
@@ -108,7 +107,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                 _searchDebouncer.dispose();
                 _searchController.clear();
                 _applySearchQuery(null);
-                ref.read(_isSearchActiveProvider.notifier).state = false;
+                setState(() => _isSearchActive = false);
               },
               icon: Icons.close_rounded,
             )
@@ -116,8 +115,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
             FlatmatesChromeIconButton(
               key: const Key('browse_search_open'),
               tooltip: locale.searchCityOrAreaHint,
-              onPressed: () =>
-                  ref.read(_isSearchActiveProvider.notifier).state = true,
+              onPressed: () => setState(() => _isSearchActive = true),
               icon: AppIcons.search,
             ),
           FlatmatesChromeIconButton(

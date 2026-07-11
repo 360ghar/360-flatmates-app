@@ -1,0 +1,41 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Lifestyle Quiz
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "quiz_sleep_schedule_early_bird"
+    timeout: 5000
+
+- tapOn:
+    id: "quiz_sleep_schedule_early_bird"
+
+- tapOn:
+    id: "quiz_cleanliness_tidy"
+
+- tapOn:
+    id: "quiz_food_habits_vegetarian"
+
+- tapOn:
+    id: "quiz_smoking_drinking_neither"
+
+- tapOn:
+    id: "quiz_guests_policy_occasional_ok"
+
+- tapOn:
+    id: "quiz_parties_at_home_never"
+
+- tapOn:
+    id: "quiz_work_style_office"
+
+- tapOn:
+    id: "quiz_pets_no_pets"
+
+- tapOn:
+    id: "onboarding_quiz_next"
+
+- extendedWaitUntil:
+    visible:
+      id: "timeline_flexible"
+    timeout: 5000

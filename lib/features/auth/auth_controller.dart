@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/providers.dart';
+import '../../core/providers/mutable_notifier.dart';
 import '../../core/storage/app_preferences.dart';
 import 'data/auth_repository.dart';
 import 'domain/auth_state.dart';
@@ -16,12 +17,18 @@ import 'last_auth_method.dart';
 
 export 'domain/auth_state.dart';
 
-final pendingPhoneProvider = StateProvider<String?>((ref) => null);
+/// Identifier held between auth steps (phone/email) while the user verifies OTP.
+final pendingPhoneProvider =
+    NotifierProvider<MutableNotifier<String?>, String?>(
+      () => MutableNotifier(null),
+    );
 
 /// One-shot signal that a freshly signed-in Google account has no phone yet,
 /// so the router should route into the skippable `/add-phone` step. Cleared
 /// when the user adds a phone or skips.
-final addPhonePromptProvider = StateProvider<bool>((ref) => false);
+final addPhonePromptProvider = NotifierProvider<MutableNotifier<bool>, bool>(
+  () => MutableNotifier(false),
+);
 
 class AuthController extends Notifier<AuthState> {
   StreamSubscription<String?>? _tokenSubscription;
@@ -299,7 +306,7 @@ class AuthController extends Notifier<AuthState> {
     );
     // Passwordless: prompt for a phone after the required backend gates pass.
     if (!_repository.hasPhone) {
-      ref.read(addPhonePromptProvider.notifier).state = true;
+      ref.read(addPhonePromptProvider.notifier).set(true);
     }
     await _setPendingPasswordSetup(false);
     state = AuthState(
@@ -324,7 +331,7 @@ class AuthController extends Notifier<AuthState> {
       );
       // Passwordless: prompt for a phone after the required backend gates pass.
       if (!_repository.hasPhone) {
-        ref.read(addPhonePromptProvider.notifier).state = true;
+        ref.read(addPhonePromptProvider.notifier).set(true);
       }
       await _setPendingPasswordSetup(false);
       state = AuthState(
@@ -594,7 +601,7 @@ class AuthController extends Notifier<AuthState> {
     );
     try {
       await _repository.verifyAddPhoneOtp(phone: phone, otp: otp);
-      ref.read(addPhonePromptProvider.notifier).state = false;
+      ref.read(addPhonePromptProvider.notifier).set(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: phone,
@@ -613,7 +620,7 @@ class AuthController extends Notifier<AuthState> {
 
   /// Skips the post-Google add-phone step; keeps `last_auth_method = google`.
   void skipAddPhone() {
-    ref.read(addPhonePromptProvider.notifier).state = false;
+    ref.read(addPhonePromptProvider.notifier).set(false);
   }
 
   // ---------------------------------------------------------------------------

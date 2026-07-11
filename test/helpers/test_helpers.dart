@@ -185,10 +185,6 @@ BootstrapData fakeBootstrapData() => const BootstrapData(
 );
 
 class FakeBootstrapController extends BootstrapController {
-  FakeBootstrapController() {
-    state = AsyncValue.data(fakeBootstrapData());
-  }
-
   @override
   Future<BootstrapData?> build() async {
     state = AsyncValue.data(fakeBootstrapData());

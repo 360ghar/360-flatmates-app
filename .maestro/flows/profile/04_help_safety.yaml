@@ -1,0 +1,29 @@
+appId: com.the360ghar.flatmates360
+name: Profile - Help & Safety
+tags:
+  - profile
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: profile_help_safety_menu_item
+    direction: DOWN
+- tap:
+    id: profile_help_safety_menu_item
+- extendedWaitUntil:
+    visible:
+      id: help_faq_item
+    timeout: 5000
+- assertVisible:
+    id: help_faq_item
+- assertVisible:
+    id: help_contact_item
+- back

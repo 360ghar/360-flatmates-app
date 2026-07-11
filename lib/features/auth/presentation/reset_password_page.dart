@@ -102,7 +102,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
               channel: _routeChannel,
             );
         if (_routeChannel == AuthChannel.phone) {
-          ref.read(pendingPhoneProvider.notifier).state = routeIdentifier;
+          ref.read(pendingPhoneProvider.notifier).set(routeIdentifier);
         }
       });
     }
@@ -157,7 +157,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
       final state = ref.read(passwordResetControllerProvider);
       if (state.step == PasswordResetStep.otpSent) {
         if (state.channel == AuthChannel.phone) {
-          ref.read(pendingPhoneProvider.notifier).state = _identifier;
+          ref.read(pendingPhoneProvider.notifier).set(_identifier);
         }
         startResendCountdown();
       }

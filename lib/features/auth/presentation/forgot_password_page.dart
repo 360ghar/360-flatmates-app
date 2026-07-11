@@ -121,8 +121,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         final normalized = state.identifier ?? identifier;
                         final isEmail = state.channel == AuthChannel.email;
                         if (!isEmail) {
-                          ref.read(pendingPhoneProvider.notifier).state =
-                              normalized;
+                          ref
+                              .read(pendingPhoneProvider.notifier)
+                              .set(normalized);
                         }
                         final query = Uri(
                           path: '/reset-password',

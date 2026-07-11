@@ -19,7 +19,7 @@ import '../../shared/presentation/components.dart';
 import 'widgets/terms_checkbox.dart';
 
 /// Whether the user has accepted the terms checkbox.
-final _termsAcceptedProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _termsAcceptedProvider = StateProvider.autoDispose<bool>((ref) => true);
 
 /// Local "submitting" guard while the identifier-status round trip runs. The
 /// shared [authControllerProvider] also goes to `submitting`, but this closes
@@ -135,7 +135,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
         return;
       }
 
-      ref.read(pendingPhoneProvider.notifier).state = identifier;
+      ref.read(pendingPhoneProvider.notifier).set(identifier);
 
       if (status.exists && !status.verified && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

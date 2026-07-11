@@ -1,0 +1,33 @@
+appId: com.the360ghar.flatmates360
+name: Notifications - Mark all read
+tags:
+  - notifications
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_post_tab
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: post_hub_post_card
+    timeout: 5000
+    optional: true
+- tapOn:
+    id: post_notifications_button
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: notification_mark_all_read
+    timeout: 5000
+- tapOn:
+    id: notification_mark_all_read
+- scroll:
+    direction: DOWN
+- back
+- extendedWaitUntil:
+    visible:
+      id: post_hub_post_card
+    timeout: 5000
+    optional: true

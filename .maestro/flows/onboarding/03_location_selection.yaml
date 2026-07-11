@@ -1,0 +1,20 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Location Selection
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      text: "Bangalore"
+    timeout: 5000
+
+- tapOn:
+    text: "Bangalore"
+
+- tapOn:
+    text: "Continue"
+
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_name"
+    timeout: 5000

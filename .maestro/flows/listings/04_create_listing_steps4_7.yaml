@@ -1,0 +1,36 @@
+appId: com.the360ghar.flatmates360
+name: Listings - Create Listing Steps 4-7
+tags:
+  - listings
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_post_tab
+- extendedWaitUntil:
+    visible:
+      id: post_hub_post_card
+    timeout: 5000
+- tap:
+    id: post_hub_post_card
+- extendedWaitUntil:
+    visible:
+      id: listing_society_input
+    timeout: 5000
+- tap:
+    id: listing_next_button
+- extendedWaitUntil:
+    visible:
+      id: listing_back_button
+    timeout: 5000
+- tap:
+    id: listing_next_button
+- tap:
+    id: listing_next_button
+- extendedWaitUntil:
+    visible:
+      id: listing_add_photos_tile
+    timeout: 5000
+- back
+- back

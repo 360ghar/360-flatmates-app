@@ -44,7 +44,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   @override
   void initState() {
     super.initState();
-    ref.read(mapProgrammaticScrollProvider.notifier).state = false;
+    // Do not write providers here — Riverpod forbids modifications while the
+    // widget tree is building. [mapProgrammaticScrollProvider] is autoDispose
+    // and rebuilds to `false` on each mount, so no explicit reset is needed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ensureLocationData();
     });
@@ -381,7 +383,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _handleListingTap(PropertyListing item) {
-    ref.read(selectedPropertyProvider.notifier).state = item;
+    ref.read(selectedPropertyProvider.notifier).set(item);
 
     if (item.latitude != null && item.longitude != null) {
       _mapController?.move(LatLng(item.latitude!, item.longitude!), 15.0);
@@ -404,7 +406,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       targetOffset = targetOffset.clamp(minScroll, maxScroll);
 
       final gen = ++_scrollAnimGen;
-      ref.read(mapProgrammaticScrollProvider.notifier).state = true;
+      ref.read(mapProgrammaticScrollProvider.notifier).set(true);
       _cardScrollController
           .animateTo(
             targetOffset,
@@ -413,7 +415,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           )
           .whenComplete(() {
             if (mounted && _scrollAnimGen == gen) {
-              ref.read(mapProgrammaticScrollProvider.notifier).state = false;
+              ref.read(mapProgrammaticScrollProvider.notifier).set(false);
             }
           });
     }

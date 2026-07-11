@@ -1,0 +1,17 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Profile Photo
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_photo_skip"
+    timeout: 5000
+
+- tapOn:
+    id: "onboarding_photo_skip"
+
+- extendedWaitUntil:
+    visible:
+      id: "quiz_sleep_schedule_early_bird"
+    timeout: 5000

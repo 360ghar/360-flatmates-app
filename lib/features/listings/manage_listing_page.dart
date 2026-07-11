@@ -17,10 +17,6 @@ import 'my_listings_controller.dart';
 import 'presentation/widgets/manage_listing_card.dart';
 import 'presentation/widgets/manage_stats_widgets.dart';
 
-final _manageTabProvider = StateProvider<String>(
-  (ref) => 'active',
-); // 'active', 'draft', 'expired'
-
 class ManageListingPage extends ConsumerStatefulWidget {
   const ManageListingPage({super.key});
 
@@ -30,6 +26,9 @@ class ManageListingPage extends ConsumerStatefulWidget {
 
 class _ManageListingPageState extends ConsumerState<ManageListingPage> {
   final _scrollController = ScrollController();
+
+  /// 'active', 'draft', or 'expired'
+  String _manageTab = 'active';
 
   @override
   void initState() {
@@ -65,7 +64,7 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
   @override
   Widget build(BuildContext context) {
     final listingsState = ref.watch(myListingsListControllerProvider);
-    final status = ref.watch(_manageTabProvider);
+    final status = _manageTab;
     final actionsState = ref.watch(manageListingsActionsControllerProvider);
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
@@ -148,8 +147,7 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
                     ),
                   ],
                   selected: status,
-                  onChanged: (v) =>
-                      ref.read(_manageTabProvider.notifier).state = v,
+                  onChanged: (v) => setState(() => _manageTab = v),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),

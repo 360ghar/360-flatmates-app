@@ -67,8 +67,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
     if (!next.isLoggedIn) {
-      ref.read(flatmatesOnboardingCompletedOverrideProvider.notifier).state =
-          false;
+      ref
+          .read(flatmatesOnboardingCompletedOverrideProvider.notifier)
+          .set(false);
       unawaited(
         ref
             .read(appPreferencesProvider)

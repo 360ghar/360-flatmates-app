@@ -1,0 +1,33 @@
+appId: com.the360ghar.flatmates360
+name: Settings - Preferences Privacy
+tags:
+  - settings
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: preferences_menu_item
+    direction: DOWN
+- tap:
+    id: preferences_menu_item
+- extendedWaitUntil:
+    visible:
+      id: setting_hide_last_name
+    timeout: 5000
+- tap:
+    id: setting_hide_last_name
+- tap:
+    id: setting_hide_location
+- tap:
+    id: setting_hide_last_name
+- tap:
+    id: setting_hide_location
+- back

@@ -1,0 +1,33 @@
+appId: com.the360ghar.flatmates360
+name: Notifications - Open notifications list
+tags:
+  - notifications
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_post_tab
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: post_hub_post_card
+    timeout: 5000
+    optional: true
+- tapOn:
+    id: post_notifications_button
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: notification_mark_all_read
+    timeout: 5000
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: UP
+- back
+- extendedWaitUntil:
+    visible:
+      id: post_hub_post_card
+    timeout: 5000
+    optional: true

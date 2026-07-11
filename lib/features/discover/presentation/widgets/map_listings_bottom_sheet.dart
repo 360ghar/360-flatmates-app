@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/mutable_notifier.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -153,9 +154,10 @@ class MapListingsBottomSheet extends ConsumerWidget {
 }
 
 /// Tracks whether the list is scrolling due to a programmatic tap on the map.
-final mapProgrammaticScrollProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
+final mapProgrammaticScrollProvider =
+    NotifierProvider.autoDispose<AutoDisposeMutableNotifier<bool>, bool>(
+      () => AutoDisposeMutableNotifier(false),
+    );
 
 class _HorizontalCardList extends ConsumerWidget {
   const _HorizontalCardList({
@@ -195,7 +197,7 @@ class _HorizontalCardList extends ConsumerWidget {
           final visibleItem = listings[index];
           final currentSelected = ref.read(selectedPropertyProvider);
           if (currentSelected?.id != visibleItem.id) {
-            ref.read(selectedPropertyProvider.notifier).state = visibleItem;
+            ref.read(selectedPropertyProvider.notifier).set(visibleItem);
           }
         }
         return false;

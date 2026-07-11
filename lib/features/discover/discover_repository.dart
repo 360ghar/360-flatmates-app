@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
+import '../../core/providers/mutable_notifier.dart';
 import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../location/application/location_controller.dart';
@@ -411,11 +412,18 @@ final discoverRepositoryProvider = Provider<DiscoverRepository>(
   (ref) => DiscoverRepository(ref),
 );
 
-final discoverFiltersProvider = StateProvider<DiscoverFilters?>((ref) => null);
+/// Shared discover/map/swipe filter selection (product state).
+final discoverFiltersProvider =
+    NotifierProvider<MutableNotifier<DiscoverFilters?>, DiscoverFilters?>(
+      () => MutableNotifier(null),
+    );
 
-final selectedPropertyProvider = StateProvider.autoDispose<PropertyListing?>(
-  (ref) => null,
-);
+/// Currently selected property on the map carousel (route-scoped).
+final selectedPropertyProvider =
+    NotifierProvider.autoDispose<
+      AutoDisposeMutableNotifier<PropertyListing?>,
+      PropertyListing?
+    >(() => AutoDisposeMutableNotifier(null));
 
 final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
   final profile = ref.watch(

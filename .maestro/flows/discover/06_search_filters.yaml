@@ -1,0 +1,30 @@
+appId: com.the360ghar.flatmates360
+name: Search Filters - Apply Filters
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000
+- tapOn:
+    id: home_search_bar
+- extendedWaitUntil:
+    visible:
+      id: search_show_results_button
+    timeout: 5000
+- tapOn:
+    id: search_room_type_private
+    optional: true
+- tapOn:
+    id: search_furnishing_furnished
+    optional: true
+- tapOn:
+    id: search_show_results_button
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 10000

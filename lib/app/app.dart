@@ -167,6 +167,18 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     // Activate Realtime event stream and provider invalidation router.
     ref.watch(flatmatesRealtimeEventRouterProvider);
 
+    // Gate Realtime on device connectivity so DNS/host-lookup failures while
+    // offline do not thrash reconnects (and resume cleanly when online).
+    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
+      final online = next.valueOrNull;
+      if (online == null) return;
+      final service = ref.read(flatmatesRealtimeServiceProvider);
+      service.setNetworkAvailable(online);
+      if (online && ref.read(authControllerProvider).isLoggedIn) {
+        _connectRealtimeIfReady();
+      }
+    });
+
     ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
       _,
       next,
@@ -241,8 +253,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       } else {
         ref.read(notificationServiceProvider).dispose();
         ref.read(flatmatesRealtimeServiceProvider).disconnect();
-        ref.read(pendingPhoneProvider.notifier).state = null;
-        ref.read(addPhonePromptProvider.notifier).state = false;
+        ref.read(pendingPhoneProvider.notifier).set(null);
+        ref.read(addPhonePromptProvider.notifier).set(false);
         unawaited(_clearOnboardingDraftThenInvalidate());
         ref.read(bootstrapControllerProvider.notifier).clear();
       }
@@ -330,15 +342,17 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
           FlatmatesRealtimeConfig.fallbackForUser(profileId);
       if (realtime.channel.isEmpty) return;
 
+      final online = ref.read(connectivityProvider).valueOrNull ?? true;
+      final service = ref.read(flatmatesRealtimeServiceProvider);
+      service.setNetworkAvailable(online);
+
       final tokenProvider = ref.read(authTokenProviderProvider);
-      ref
-          .read(flatmatesRealtimeServiceProvider)
-          .connect(
-            channelName: realtime.channel,
-            tokenRefresher: () => tokenProvider.getAccessToken(),
-            privateChannel: realtime.privateChannel,
-            events: realtime.events.isNotEmpty ? realtime.events : null,
-          );
+      service.connect(
+        channelName: realtime.channel,
+        tokenRefresher: () => tokenProvider.getAccessToken(),
+        privateChannel: realtime.privateChannel,
+        events: realtime.events.isNotEmpty ? realtime.events : null,
+      );
     } catch (error) {
       debugPrint('App.login Realtime connect failed: $error');
     }

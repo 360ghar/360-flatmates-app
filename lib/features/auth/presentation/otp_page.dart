@@ -10,8 +10,6 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/resend_countdown.dart';
 
-final _otpTextProvider = StateProvider.autoDispose<String>((ref) => '');
-
 class OtpPage extends ConsumerStatefulWidget {
   const OtpPage({this.phone = '', this.email, super.key});
 
@@ -28,6 +26,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
     with CodeAutoFill, ResendCountdownMixin {
   final _otpKey = GlobalKey<FlatmatesOtpInputState>();
   bool _isListening = false;
+  String _otpText = '';
 
   /// Local guard to prevent re-entrant submissions from dual autofill sources
   /// (sms_autofill + AutofillHints.oneTimeCode). The Riverpod `auth.status`
@@ -70,7 +69,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
       // (BehaviorSubject replay); auto-submitting it would produce a
       // spurious "Invalid or expired" error.
       _otpKey.currentState?.silentFillOtp(code!);
-      if (mounted) ref.read(_otpTextProvider.notifier).state = code!;
+      if (mounted) setState(() => _otpText = code!);
     }
   }
 
@@ -108,7 +107,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
   Future<void> _resendOtp() async {
     if (!canResend) return;
     _otpKey.currentState?.silentFillOtp('');
-    ref.read(_otpTextProvider.notifier).state = '';
+    setState(() => _otpText = '');
     final notifier = ref.read(authControllerProvider.notifier);
     // Default resend to login mode unless the identifier is explicitly
     // unverified. A null/unknown verified state should not opt into signup,
@@ -143,7 +142,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSuccess = auth.status == AuthStatus.authenticated;
-    final otpComplete = ref.watch(_otpTextProvider).length == 6;
+    final otpComplete = _otpText.length == 6;
     final canSubmit =
         otpComplete && auth.status != AuthStatus.submitting && !isSuccess;
 
@@ -179,8 +178,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
             const SizedBox(height: AppSpacing.screen),
             FlatmatesOtpInput(
               key: _otpKey,
-              onChanged: (otp) =>
-                  ref.read(_otpTextProvider.notifier).state = otp,
+              onChanged: (otp) => setState(() => _otpText = otp),
               onCompleted: (_) => _submitOtp(),
             ),
             if (auth.status == AuthStatus.error &&

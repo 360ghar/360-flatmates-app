@@ -33,10 +33,13 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Use `PagedState<T>` for paginated data and `OptimisticUpdate.perform<T>()` for optimistic writes with rollback.
 - Invalidate feature providers after write operations instead of manually syncing widget trees.
 - Avoid global mutable state outside provider-controlled objects.
-- **Use `ref.watch()` in `build()` to read state; `ref.read()` in callbacks to write.** Never use `ref.read()` to read state inside `build()` — it creates non-reactive snapshots. Never mutate state (`ref.read().state = ...`) inside `build()` — move mutations to event handlers.
-- **Do not use `setState()` in `ConsumerStatefulWidget`.** Use `StateProvider<bool>` / `StateProvider<String>` etc. for local UI state (loading flags, visibility toggles, form values). The `setState()` pattern creates a hybrid architecture that undermines Riverpod's reactive model.
-- Local UI state providers (booleans, strings, ints) are defined at the file level as `final _myFlagProvider = StateProvider<bool>((ref) => false);`.
-- Use `ref.watch(provider)` to read and `ref.read(provider.notifier).state = value` to write.
+- **Use `ref.watch()` in `build()` to read state; `ref.read()` in callbacks to write.** Never use `ref.read()` to read state inside `build()` — it creates non-reactive snapshots. Never mutate state inside `build()` — move mutations to event handlers.
+- **State tiers:**
+  - **Shared / product state** → `Notifier` / `AsyncNotifier`, or `MutableNotifier` / `AutoDisposeMutableNotifier` in `core/providers/mutable_notifier.dart` for simple values (filters, auth routing signals, map selection). Write with `.set(value)` / `.update(fn)`.
+  - **Multi-field form / page UI** → one page-level `Notifier` with a single state object when practical.
+  - **True ephemeral UI** (password visibility, carousel index, one-shot spinner) → **`setState` on `State` / `ConsumerState` is preferred** when the value never leaves the widget.
+- **`StateProvider`:** still available on Riverpod 2 for simple cases, but **do not add new ones for shared/product state** — use `MutableNotifier` instead. On a future Riverpod 3 upgrade, `StateProvider` moves to `package:flutter_riverpod/legacy.dart` (discouraged, not removed); migrating shared providers now avoids that tax.
+- Prefer `AsyncValue.value` / `valueOrNull` as supported by the current Riverpod version.
 
 ## Error Handling
 

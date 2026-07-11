@@ -1,0 +1,20 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Budget Timeline
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "timeline_flexible"
+    timeout: 5000
+
+- tapOn:
+    id: "timeline_flexible"
+
+- tapOn:
+    id: "onboarding_budget_next"
+
+- extendedWaitUntil:
+    visible:
+      id: "pref_no_preference"
+    timeout: 5000

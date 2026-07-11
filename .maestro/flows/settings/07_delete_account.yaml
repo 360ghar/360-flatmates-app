@@ -1,0 +1,46 @@
+appId: com.the360ghar.flatmates360
+name: Settings - Delete Account
+tags:
+  - settings
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: profile_settings_menu_item
+    direction: DOWN
+- tap:
+    id: profile_settings_menu_item
+- extendedWaitUntil:
+    visible:
+      id: settings_privacy_security_item
+    timeout: 5000
+- tap:
+    id: settings_privacy_security_item
+- extendedWaitUntil:
+    visible:
+      id: privacy_delete_account_item
+    timeout: 3000
+- scrollUntilVisible:
+    element:
+      id: privacy_delete_account_item
+    direction: DOWN
+- tap:
+    id: privacy_delete_account_item
+- extendedWaitUntil:
+    visible:
+      id: delete_account_confirm_field
+    timeout: 5000
+- tap:
+    id: delete_account_cancel_button
+- extendedWaitUntil:
+    visible:
+      id: privacy_delete_account_item
+    timeout: 5000

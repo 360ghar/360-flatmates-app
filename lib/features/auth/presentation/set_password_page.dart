@@ -10,15 +10,6 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/password_policy.dart';
 
-final _obscurePasswordProvider = StateProvider.autoDispose<bool>((ref) => true);
-final _localErrorProvider = StateProvider.autoDispose<String?>((ref) => null);
-
-/// Mirrors the password field text so the live rules checklist and the
-/// submit-button enabled state rebuild on each keystroke without a `setState`
-/// in this ConsumerStatefulWidget.
-final _passwordTextProvider = StateProvider.autoDispose<String>((ref) => '');
-final _confirmTextProvider = StateProvider.autoDispose<String>((ref) => '');
-
 /// Mandatory (non-skippable) set-password step shown after an email/phone OTP
 /// verify when the account has no password yet (requirement 6). The router
 /// gates this screen — it cannot be popped or bypassed; completing it records
@@ -33,6 +24,10 @@ class SetPasswordPage extends ConsumerStatefulWidget {
 class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  bool _obscurePassword = true;
+  String? _localError;
+  String _passwordText = '';
+  String _confirmText = '';
 
   @override
   void dispose() {
@@ -46,14 +41,14 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
     final password = _passwordController.text;
     final policyError = PasswordPolicy.validate(password, locale);
     if (policyError != null) {
-      ref.read(_localErrorProvider.notifier).state = policyError;
+      setState(() => _localError = policyError);
       return;
     }
     if (password != _confirmController.text) {
-      ref.read(_localErrorProvider.notifier).state = locale.passwordsDoNotMatch;
+      setState(() => _localError = locale.passwordsDoNotMatch);
       return;
     }
-    ref.read(_localErrorProvider.notifier).state = null;
+    setState(() => _localError = null);
     await ref
         .read(authControllerProvider.notifier)
         .setPasswordAfterSignup(password);
@@ -65,9 +60,7 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
-    final passwordText = ref.watch(_passwordTextProvider);
-    final confirmText = ref.watch(_confirmTextProvider);
-    final passwordsMatch = passwordText == confirmText;
+    final passwordsMatch = _passwordText == _confirmText;
     final isBusy = auth.status == AuthStatus.submitting;
     // The phone/email this password is being set for (masked for display).
     final identifier = auth.identifier ?? auth.phone;
@@ -109,46 +102,42 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                     TextField(
                       key: const Key('set_password_input'),
                       controller: _passwordController,
-                      obscureText: ref.watch(_obscurePasswordProvider),
+                      obscureText: _obscurePassword,
                       autofillHints: const [AutofillHints.newPassword],
                       onChanged: (value) =>
-                          ref.read(_passwordTextProvider.notifier).state =
-                              value,
+                          setState(() => _passwordText = value),
                       decoration: InputDecoration(
                         labelText: locale.passwordLabel,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            ref.watch(_obscurePasswordProvider)
+                            _obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                           ),
-                          onPressed: () {
-                            final notifier = ref.read(
-                              _obscurePasswordProvider.notifier,
-                            );
-                            notifier.state = !notifier.state;
-                          },
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                           tooltip: locale.togglePasswordVisibility,
                         ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    PasswordRulesChecklist(password: passwordText),
+                    PasswordRulesChecklist(password: _passwordText),
                     const SizedBox(height: AppSpacing.lg),
                     TextField(
                       key: const Key('set_password_confirm_input'),
                       controller: _confirmController,
-                      obscureText: ref.watch(_obscurePasswordProvider),
+                      obscureText: _obscurePassword,
                       autofillHints: const [AutofillHints.newPassword],
                       onChanged: (value) =>
-                          ref.read(_confirmTextProvider.notifier).state = value,
+                          setState(() => _confirmText = value),
                       onSubmitted: (_) => isBusy ? null : _submit(),
                       decoration: InputDecoration(
                         labelText: locale.confirmPasswordLabel,
                       ),
                     ),
-                    if (passwordText.isNotEmpty &&
-                        confirmText.isNotEmpty &&
+                    if (_passwordText.isNotEmpty &&
+                        _confirmText.isNotEmpty &&
                         !passwordsMatch) ...[
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -159,10 +148,10 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                   ],
                 ),
               ),
-              if (ref.watch(_localErrorProvider) != null) ...[
+              if (_localError != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  ref.watch(_localErrorProvider)!,
+                  _localError!,
                   style: const TextStyle(color: AppSemanticColors.error),
                 ),
               ],
@@ -181,9 +170,9 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                 fullWidth: true,
                 onPressed:
                     isBusy ||
-                        !PasswordPolicy.isValid(passwordText) ||
+                        !PasswordPolicy.isValid(_passwordText) ||
                         !passwordsMatch ||
-                        confirmText.isEmpty
+                        _confirmText.isEmpty
                     ? null
                     : _submit,
               ),

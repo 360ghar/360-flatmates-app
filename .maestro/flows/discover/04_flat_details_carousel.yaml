@@ -1,0 +1,23 @@
+appId: com.the360ghar.flatmates360
+name: Flat Details - Image Carousel Swipe
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: discover_feed_card_0
+    timeout: 10000
+- tapOn:
+    id: discover_feed_card_0
+- extendedWaitUntil:
+    visible:
+      id: flat_contact_button
+    timeout: 5000
+- swipe LEFT
+- swipe LEFT
+- swipe RIGHT
+- assertVisible:
+    id: flat_contact_button

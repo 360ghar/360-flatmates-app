@@ -6,15 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 360 FlatMates — a Flutter mobile client for flatmate-finding in India. Uses Supabase for auth and a FastAPI backend monolith at `../backend` for all business logic, product data, and storage (Cloudinary).
 
-- **Flutter:** 3.35.2 (pinned via FVM in `.fvmrc`)
-- **Dart SDK:** ^3.11.0
+- **Flutter:** 3.41.9 (pinned via FVM in `.fvmrc`)
+- **Dart SDK:** ^3.9.0
+- **Riverpod:** `flutter_riverpod` ^2.6.1
 - **App ID:** `com.the360ghar.flatmates`
 
 ## Commands
 
 ```bash
 # Setup
-cp .env.example .env          # then fill in SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, API_BASE_URL, GOOGLE_MAPS_API_KEY
+cp .env.example .env          # then fill in SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, API_BASE_URL, GOOGLE_PLACES_API_KEY
 flutter pub get
 
 # VS Code format-on-save (auto-applies dart format on every save)
@@ -60,12 +61,15 @@ lib/
   bootstrap.dart                → DI setup, Supabase init, Firebase, ProviderScope with 3 overrides
   app/
     app.dart                    → MaterialApp.router + OfflineBanner in Stack, DeepLinkService init
-    app_shell.dart              → mode-dependent bottom nav (5 visible tabs from 7 branches)
+    app_shell.dart              → mode-dependent bottom nav (5 shell branches)
     router/app_router.dart      → GoRouter with auth/bootstrap redirects + deep links
   core/                         → app-wide plumbing only (no feature logic)
-    providers.dart              → global Riverpod provider graph (7 providers)
+    providers.dart              → global Riverpod provider graph (app config, prefs, secure store, Dio, …)
+    providers/                  → MutableNotifier / AutoDisposeMutableNotifier helpers
     config/                     → AppConfig, FlatmatesEndpoints, constants, env loader
-    network/                    → Dio client, auth/error interceptors, connectivity monitor
+    network/                    → Dio client, auth/error interceptors, connectivity, realtime/SSE
+    location/                   → GooglePlacesService, Nominatim, location helpers
+    map/                        → TileLayerFactory (OSM light / CARTO dark), map controller
     notifications/              → Firebase Messaging (foreground + background)
     storage/                    → SharedPreferences, secure storage, image upload
     theme/                      → Material 3 theme (Airbnb Rausch), design token constants
@@ -74,44 +78,89 @@ lib/
     domain/                     → PagedState<T>, OptimisticUpdate, typed enums
     errors/                     → AppFailure sealed class, ErrorPresenter, l10n bridge
     analytics/                  → AnalyticsEvents + AnalyticsProps constants
-    utils/                      → ActionDebouncer
+    utils/                      → ActionDebouncer, etc.
   features/                     → each feature owns its controller, repo, models, pages
-    auth/                       → Supabase auth (phone+password, OTP) [data/domain/presentation]
-    bootstrap/                  → loads /flatmates/bootstrap (profile + catalogs + counts) [domain]
-    onboarding/                 → multi-step state machine with draft persistence [domain]
-    discover/                   → listing feed + map + search filters [application/data/domain/presentation+widgets]
-    swipe/                      → Tinder-like card deck with deal-breaker filtering [presentation+widgets]
-    chats/                      → conversations + messages (Supabase realtime + optimistic send) [application/domain/presentation+widgets]
-    listings/                   → multi-step listing builder + manage [application/domain/presentation+widgets]
-    visits/                     → schedule/confirm/reschedule visits
-    notifications/              → notification list
+    auth/                       → Supabase auth (phone/email + password, OTP, social) [data/domain/presentation]
+    bootstrap/                  → loads /flatmates/bootstrap (profile + catalogs + counts)
+    onboarding/                 → multi-step state machine with draft persistence
+    discover/                   → listing feed + map + search filters
+    swipe/                      → Tinder-like card deck with deal-breaker filtering
+    chats/                      → conversations + messages (Supabase realtime + optimistic send)
+    listings/                   → multi-step listing builder + manage
+    visits/                     → schedule/confirm/reschedule visits (under /profile/visits)
+    notifications/              → notification list + route resolver
     profile/                    → profile view/edit
-    settings/                   → theme mode, locale, privacy, blocked users, change password [data/domain]
-    shared/presentation/        → 18 Flatmates* reusable widgets, barrel-exported via components.dart
+    settings/                   → theme/locale + server-driven notification & privacy settings
+    feedback/                   → bug/feature feedback form
+    location_search/            → location search page
+    shared/presentation/        → Flatmates* reusable widgets, barrel-exported via components.dart
 ```
 
 ### State management — Riverpod
 
-- `NotifierProvider` / `AsyncNotifierProvider` for controllers with explicit state and named methods (`DiscoverFeedController`, `ListingDraftController`, `MessagesController`, `AuthController`, `BootstrapController`, `OnboardingController`, `SettingsController`)
+**Controllers / app state**
+
+- `NotifierProvider` / `AsyncNotifierProvider` for controllers with explicit state and named methods (`DiscoverFeedController`, `MessagesController`, `AuthController`, `BootstrapController`, `OnboardingController`, `SettingsController`, …)
 - `FamilyNotifier` for parameterized controllers (`MessagesController` per conversation)
 - `Provider` for repositories and services (injected via `ref.watch`)
-- `FutureProvider` / `FutureProvider.family` for one-shot async data (swipe profiles, conversations, notifications, visits)
+- `FutureProvider` / `FutureProvider.family` for one-shot async data
 - `StreamProvider` for streams (`connectivityProvider`)
-- `StateProvider` for local UI state (loading flags, visibility toggles, form values) — define at file level as `final _myFlagProvider = StateProvider<bool>((ref) => false);`
-- `PagedState<T>` for paginated data with initial/refresh/load-more loading states
-- `OptimisticUpdate.perform<T>()` for optimistic UI writes with rollback on failure
+- `PagedState<T>` for paginated data; `OptimisticUpdate.perform<T>()` for optimistic writes with rollback
 - Three providers overridden at `ProviderScope` root: `appConfigProvider`, `appPreferencesProvider`, `secureStoreProvider`
 - After write operations, **invalidate** the relevant provider rather than manually syncing widget state
-- **Read state via `ref.watch()` in `build()`, write state via `ref.read(provider.notifier).state = value` in callbacks.** Never use `ref.read()` to read state in `build()`. Never use `setState()` in `ConsumerStatefulWidget` — use `StateProvider` instead.
+
+**State tiers (required)**
+
+| Kind | Prefer | Write API |
+|------|--------|-----------|
+| **Shared / product state** (filters, auth routing signals, map selection, cross-widget flags) | `Notifier` / `AsyncNotifier`, or `MutableNotifier` / `AutoDisposeMutableNotifier` in `core/providers/mutable_notifier.dart` | `ref.read(provider.notifier).set(value)` or `.update(fn)` |
+| **Multi-field form / page UI** | One page-level `Notifier` with a single state object when practical | Named methods on the notifier |
+| **True ephemeral UI** (password visibility, carousel index, OTP text, one-shot spinner, emoji picker open) | **`setState` on `State` / `ConsumerState`** when the value never leaves the widget | `setState(() => …)` — guard with `if (!mounted) return` after `await` |
+
+**`StateProvider`**
+
+- Still available on Riverpod 2 for remaining/legacy call sites.
+- **Do not add new shared/product `StateProvider`s** — use `MutableNotifier` (or a full `Notifier`).
+- On a future Riverpod 3 upgrade, `StateProvider` moves to `package:flutter_riverpod/legacy.dart` (discouraged, not removed). Migrating shared providers now avoids that tax.
+- Some multi-field form pages still use page-local `StateProvider`s; convert on touch toward `setState` (ephemeral) or a single form `Notifier` (complex forms).
+
+**Examples of shared state on `MutableNotifier`**
+
+- `pendingPhoneProvider`, `addPhonePromptProvider` (`auth_controller.dart`)
+- `flatmatesOnboardingCompletedOverrideProvider` (`onboarding_controller.dart`)
+- `discoverFiltersProvider`, `selectedPropertyProvider` (`discover_repository.dart`)
+- `mapProgrammaticScrollProvider` (map bottom sheet)
+
+```dart
+// Shared simple value
+final flagProvider =
+    NotifierProvider<MutableNotifier<bool>, bool>(() => MutableNotifier(false));
+ref.watch(flagProvider);
+ref.read(flagProvider.notifier).set(true);
+
+// Route-scoped autoDispose
+final selectedProvider = NotifierProvider.autoDispose<
+  AutoDisposeMutableNotifier<MyType?>,
+  MyType?
+>(() => AutoDisposeMutableNotifier(null));
+```
+
+**Read / write rules**
+
+- **Read** state with `ref.watch()` in `build()`; **write** with `ref.read(provider.notifier)` methods in callbacks.
+- Never use `ref.read()` to read state in `build()`.
+- Never mutate providers while the widget tree is building (including in `initState` for first-frame setup — use `addPostFrameCallback` / `Future.microtask` if a write is required). AutoDispose providers that rebuild to their initial value on remount often need no reset write.
+- When converting ephemeral flags to `setState`, callbacks invoked from async helpers (e.g. upload `finally`) must check `mounted` before `setState`.
 
 ### Routing — GoRouter
 
-- `StatefulShellRoute.indexedStack` with 7 branches: `/discover`, `/map`, `/swipe`, `/chats`, `/post`, `/visits`, `/profile`
-- Mode-dependent bottom nav shows 5 of 7 tabs: Room Poster sees Home|Post|Swipe|Likes&Chat|Profile; Co-Hunter/Open to Both sees Home|Explore|Swipe|Likes&Chat|Profile
-- Additional full-screen routes (using `parentNavigatorKey`): `/search-filters`, `/schedule-visit`, `/change-password`, `/blocked-users`, `/flat-details`, `/chat-thread`
+- `StatefulShellRoute.indexedStack` with **5 branches**: `/discover` (nested browse), `/tab2` (mode-dependent Explore/Map or Post hub), `/swipe`, `/chats` (nested thread), `/profile` (nested edit/settings/visits)
+- Bottom nav has 5 shape-stable slots; slot 2 swaps by mode: Room Poster sees Home|Post|Swipe|Likes&Chat|Profile; Co-Hunter/Open to Both sees Home|Explore|Swipe|Likes&Chat|Profile
+- Full-screen routes (`parentNavigatorKey`): `/post/new`, `/manage-listings`, `/listing-review/:id`, `/search-filters`, `/schedule-visit`, `/change-password`, `/blocked-users`, `/flat-details`, `/complete-profile`, `/location-search`, `/change-location`, …
+- Soft onboarding / profile-completion gate: core feature routes can redirect to `/complete-profile` when mandatory fields are missing; not a hard block on every path
 - Auth redirect chain: checking → `/splash`, unauthenticated → `/enter-phone`, onboarding incomplete → `/onboarding`
-- Router refreshes on `authControllerProvider` and `bootstrapControllerProvider` changes
-- Deep links: `/flatmates/listing/{id}` → flat details, `/flatmates/chat/{id}` → chat thread (via `app_links`)
+- Router refreshes on `authControllerProvider`, `bootstrapControllerProvider`, and auth routing signals (`addPhonePromptProvider`, onboarding override)
+- Deep links: `/flatmates/listing/{id}` → flat details, `/flatmates/chat/{id}` → chat thread (`app_links`). Remap legacy/push paths via `notification_route_resolver.dart` (`/post` → `/post/new`, `/visits` → `/profile/visits`)
 
 ### Error handling
 
@@ -130,6 +179,11 @@ lib/
 - `FlatmatesEndpoints` (`core/config/endpoints.dart`) centralizes all API path constants
 - Backend paths are relative to `AppConfig.apiBaseUrl` (set via `.env` or `--dart-define`)
 
+### Map and location
+
+- `TileLayerFactory` — light OSM / dark CARTO basemaps; bump `styleVersion` when tile URLs change
+- `GooglePlacesService` — autocomplete + place details; gate UI on `GooglePlacesService.isConfigured` (`GOOGLE_PLACES_API_KEY`)
+
 ### Deep linking
 
 - `DeepLinkService` (`core/deep_links/deep_link_service.dart`) parses incoming HTTP deep links via `app_links`
@@ -143,12 +197,13 @@ lib/
 
 ### Auth flow
 
-1. Phone input → password login or OTP via Supabase
+1. Identifier input (phone or email) → password login or OTP via Supabase
 2. After auth, `GET /users/me` validates user exists in backend
 3. `BootstrapController` fetches `/flatmates/bootstrap` for profile + catalogs
-4. If `onboardingCompleted == false`, router redirects to onboarding flow
+4. If `onboardingCompleted == false`, router redirects to onboarding; missing mandatory profile fields → `/complete-profile`
 5. Missing env vars show `_ConfigErrorApp`; missing Firebase config sets `NotificationService.messagingEnabled = false`
-6. Account deletion: `DeleteAccountPage` → `AuthController.deleteAccount()` → `AuthRepository.deleteAccount()` calls `DELETE /users/me` (the `FlatmatesEndpoints.deleteAccount` constant), then best-effort Supabase `signOut()` + token clear (the backend already hard-deletes the Supabase user), sets state to unauthenticated, and the page navigates to `/enter-phone`.
+6. Account deletion: `DeleteAccountPage` → `AuthController.deleteAccount()` → `DELETE /users/me`, then best-effort Supabase sign-out + token clear → `/enter-phone`
+7. Phone held between auth steps via `pendingPhoneProvider` (`MutableNotifier`); post-social “add phone” prompt via `addPhonePromptProvider`
 
 ### Theme and localization
 
@@ -167,22 +222,21 @@ spacing, border radii, component behavior, and per-screen layout specs.
 
 ### Key patterns
 
-- Freezed + json_serializable for domain models (AuthState, BootstrapData, SettingsState, OnboardingState, ChatMessage, ConversationSummaryModel). Run `dart run build_runner build --delete-conflicting-outputs` after changes.
+- Freezed + json_serializable for domain models. Run `dart run build_runner build --delete-conflicting-outputs` after changes.
 - DTO pattern: when backend JSON doesn't map cleanly to domain models, use a DTO class in the feature's `data/` layer (e.g., `PropertyListingDto` → `PropertyListing`).
-- Shared component library: 18 `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`. Components include premium polish: press scale feedback (`Listener` + `AnimatedScale`), focus glow (search bar), selection spring (chips), solid canvas chrome (bottom sheet/action bar/nav — no frost), animated entry (empty/error states), animated avatar ring, sliding indicator (segmented control), animated match ring (profile grid card), unread accent border (notification card). Skeleton variants: page-matched factories (`.discoverFeed()`, `.swipeCard()`, `.conversationList()`, `.form()`, `.settingsList()`, `.peerProfileSheet()`, `.legalContent()`, …); shared shimmer respects reduced motion.
-- Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Staggered list animations via `StaggeredCardAppear` (discover feed) or `Future.delayed` pattern (profile menu groups). Shell chrome uses solid surfaces + hairline borders (no `BackdropFilter` frost). Ring animations via `CustomPaint` inside `AnimatedBuilder`. Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
-- Card theme: light mode elevation 1 (refined from 2). Dialog theme: 24px radius, elevation 4. Android page transitions: `FadeUpwardsPageTransitionsBuilder`. iOS: `CupertinoPageTransitionsBuilder`.
+- Shared component library: `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`, `FlatmatesChromeIconButton`, `FlatmatesLocationChip`. Shell chrome uses solid surfaces + hairline borders (no `BackdropFilter` frost).
+- Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
 - `FlatmatesEndpoints` centralizes all API path constants — no hardcoded backend paths.
-- Image uploads go through the backend API (Cloudinary) via `ImageUploadService` (supports photos and video tours up to 50MB).
+- Image uploads go through the backend API (Cloudinary) via `ImageUploadService`.
 - Compatibility scoring runs client-side in `core/compatibility/` with 6 weighted dimensions.
-- Chat uses Supabase realtime (`user_messages` table, filtered by `conversation_id`) for the open thread. App-wide events use Supabase Realtime Broadcast on the private `flatmates:user:{id}` channel (config from bootstrap `realtime`). `MessagesController` is a `FamilyNotifier` that owns the rendered message list: it merges live arrivals from `messagesStreamProvider` with optimistic pending sends (negative ids), and after a successful POST does an authoritative HTTP refetch so sent messages persist even when realtime is down. No HTTP polling.
-- Banned patterns (enforced by `scripts/banned_patterns.sh`): no `error.toString()` in pages, no `apiClientProvider` in pages (use a repository), no `Supabase.instance` in pages, no raw `Image.network` in features (use `FlatmatesNetworkImage`), page files under 500 lines.
-- **Business logic in controllers, not widgets.** Create `application/` layer controllers that wrap repository calls. Widgets call `ref.read(controllerProvider.notifier).method()` instead of calling repositories directly. Examples: `FeedbackController`, `ChatActionsController`.
-- **Local UI state via `StateProvider`.** Avoid `setState()` in `ConsumerStatefulWidget`. Define `final _loadingProvider = StateProvider<bool>((ref) => false);` at file level. Read with `ref.watch()`, write with `ref.read(provider.notifier).state = value`.
-- **Always use `const` constructors** for stateless widgets, SizedBox, Padding, Icon, Text, etc. Run `dart fix --apply lib/` to auto-fix `prefer_const_constructors` issues.
-- **Add `tooltip` to all `IconButton` widgets** for accessibility. Common values: `'Back'`, `'Toggle password visibility'`, `'Call'`, `'More options'`, `'Search'`.
+- Chat uses Supabase realtime for the open thread; app-wide events use Realtime Broadcast on `flatmates:user:{id}`. `MessagesController` merges live arrivals with optimistic pending sends and refetches after successful POST.
+- Banned patterns (`scripts/banned_patterns.sh`): no `error.toString()` in pages, no `apiClientProvider` in pages, no `Supabase.instance` in pages, no raw `Image.network` in features, page files under 500 lines.
+- **Business logic in controllers, not widgets.** Examples: `FeedbackController`, `ChatActionsController`, `SwipeDeckController`, `ManageListingsActionsController`, `NotificationsActionsController`.
+- **Local UI state:** ephemeral → `setState` (with `mounted` checks after async); shared/product → `Notifier` / `MutableNotifier`. Do not reintroduce shared `StateProvider`s.
+- **Always use `const` constructors** where possible. Run `dart fix --apply lib/` periodically.
+- **Add `tooltip` to all `IconButton` widgets** for accessibility.
 - **No empty catch blocks.** Every `catch` must log via `debugPrint`. Use `unawaited()` for fire-and-forget futures.
-- **Check `mounted` before using `context` after `await`.** Use `if (!mounted) return;` before `context.push(...)`, `context.pop()`, etc. after any `await` call.
+- **Check `mounted` before using `context` or `setState` after `await`.**
 
 ## iOS Simulator Browser Preview
 
@@ -206,8 +260,10 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - Keep English and Hindi localization in sync for primary flows.
 - Use meaningful `Key` values on interactive widgets for Maestro stability.
 - Update `docs/` when API surface, architecture, theme/localization strategy, auth flow, or Maestro assumptions change.
-- **`StateProvider` over `setState()`** in `ConsumerStatefulWidget`. Use `ref.watch()`/`ref.read()` instead.
+- **Ephemeral UI → `setState`; shared state → `Notifier` / `MutableNotifier`.** Avoid new shared `StateProvider`s. Write shared simple values with `.set` / `.update`, not `.notifier.state =`.
 - **Controllers over direct repository calls** in widgets. Create `application/` layer controllers.
 - **`debugPrint` over empty catch blocks.** Never use `catch (_) {}` without logging.
 - **`const` constructors everywhere.** Run `dart fix --apply lib/` to auto-fix.
 - **`tooltip` on every `IconButton`** for accessibility.
+- **Never mutate providers during build / `initState` first frame** without deferral; prefer autoDispose initial values over reset writes.
+- **`mounted` before `setState` / `context` after `await`.**

@@ -33,17 +33,6 @@ import 'presentation/widgets/message_list.dart';
 import 'presentation/widgets/mode_tooltip_controller.dart';
 import 'presentation/widgets/chat_qna_answers_card.dart';
 
-/// Local UI state: whether the emoji picker is visible above the input bar.
-/// AutoDispose so the panel resets when the chat thread leaves the tree.
-final _showEmojiPickerProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-
-/// Local UI state: chat photo upload in flight (gallery pick → Cloudinary).
-final _isUploadingPhotoProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-
 class ChatThreadPage extends ConsumerStatefulWidget {
   const ChatThreadPage({
     required this.conversationId,
@@ -74,6 +63,12 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   final _sendDebouncer = ActionDebouncer(
     duration: const Duration(milliseconds: 300),
   );
+
+  /// Whether the emoji picker is visible above the input bar.
+  bool _showEmojiPicker = false;
+
+  /// Chat photo upload in flight (gallery pick → Cloudinary).
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -184,7 +179,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       messagesControllerProvider(widget.conversationId),
     );
     // Gate double-tap / re-entry while a send or photo upload is in flight.
-    if (messagesState.isSending || ref.read(_isUploadingPhotoProvider)) {
+    if (messagesState.isSending || _isUploadingPhoto) {
       return;
     }
 
@@ -301,11 +296,11 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   void _toggleEmojiPicker() {
-    final showEmoji = ref.read(_showEmojiPickerProvider);
+    final showEmoji = _showEmojiPicker;
     if (showEmoji) {
       // Hide panel first so the scaffold is not both keyboard-inset and
       // growing by the emoji panel height during the keyboard animation.
-      ref.read(_showEmojiPickerProvider.notifier).state = false;
+      setState(() => _showEmojiPicker = false);
       _messageFocus.requestFocus();
       return;
     }
@@ -314,9 +309,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       Future.delayed(AppMotion.standard, () {
         if (!mounted) return;
         // User may have toggled again while the keyboard was settling.
-        if (ref.read(_showEmojiPickerProvider)) return;
+        if (_showEmojiPicker) return;
         if (_messageFocus.hasFocus) return;
-        ref.read(_showEmojiPickerProvider.notifier).state = true;
+        setState(() => _showEmojiPicker = true);
       }),
     );
   }
@@ -341,8 +336,8 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       (m) => m.senderId == currentUserId,
     );
 
-    final showEmoji = ref.watch(_showEmojiPickerProvider);
-    final isUploadingPhoto = ref.watch(_isUploadingPhotoProvider);
+    final showEmoji = _showEmojiPicker;
+    final isUploadingPhoto = _isUploadingPhoto;
 
     if (_conversation == null && fetchedConversation != null) {
       if (fetchedConversation.isLoading) {
@@ -443,9 +438,13 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
               context: context,
               ref: ref,
               conversationId: widget.conversationId,
-              isUploading: () => ref.read(_isUploadingPhotoProvider),
-              setUploading: (v) =>
-                  ref.read(_isUploadingPhotoProvider.notifier).state = v,
+              isUploading: () => _isUploadingPhoto,
+              setUploading: (v) {
+                // sendPhotoFromChat may call this from a finally after the
+                // route has been popped — never setState on a disposed State.
+                if (!mounted) return;
+                setState(() => _isUploadingPhoto = v);
+              },
               onSuccess: _modeTooltip.remove,
             ),
             isSending: messagesState.isSending,

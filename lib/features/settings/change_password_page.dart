@@ -15,11 +15,6 @@ import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
 
-final _savingProvider = StateProvider<bool>((ref) => false);
-final _obscureNewPasswordProvider = StateProvider<bool>((ref) => true);
-final _obscureConfirmPasswordProvider = StateProvider<bool>((ref) => true);
-final _buildTriggerProvider = StateProvider<int>((ref) => 0);
-
 class ChangePasswordPage extends ConsumerStatefulWidget {
   const ChangePasswordPage({super.key});
 
@@ -31,20 +26,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // These are top-level (shared) StateProviders. Reset them on every fresh
-    // visit so an interrupted save can't leave the submit button permanently
-    // disabled, and obscure toggles start in the secure default state.
-    Future.microtask(() {
-      if (!mounted) return;
-      ref.read(_savingProvider.notifier).state = false;
-      ref.read(_obscureNewPasswordProvider.notifier).state = true;
-      ref.read(_obscureConfirmPasswordProvider.notifier).state = true;
-    });
-  }
+  bool _saving = false;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -56,7 +40,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   Future<void> _submit() async {
     final locale = AppLocalizations.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    ref.read(_savingProvider.notifier).state = true;
+    setState(() => _saving = true);
     try {
       await ref
           .read(authRepositoryProvider)
@@ -72,7 +56,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       FlatmatesToast.error(context, msg);
     } finally {
       if (mounted) {
-        ref.read(_savingProvider.notifier).state = false;
+        setState(() => _saving = false);
       }
     }
   }
@@ -80,7 +64,6 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    ref.watch(_buildTriggerProvider);
 
     return Scaffold(
       appBar: FlatmatesHeader.backTitle(title: locale.changePasswordLabel),
@@ -115,26 +98,22 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     // New password field with visibility toggle
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: ref.watch(_obscureNewPasswordProvider),
+                      obscureText: _obscureNewPassword,
                       decoration: InputDecoration(
                         labelText: locale.newPasswordLabel,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            ref.watch(_obscureNewPasswordProvider)
+                            _obscureNewPassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                           ),
-                          onPressed: () {
-                            final notifier = ref.read(
-                              _obscureNewPasswordProvider.notifier,
-                            );
-                            notifier.state = !notifier.state;
-                          },
+                          onPressed: () => setState(
+                            () => _obscureNewPassword = !_obscureNewPassword,
+                          ),
                           tooltip: locale.togglePasswordVisibility,
                         ),
                       ),
-                      onChanged: (_) =>
-                          ref.read(_buildTriggerProvider.notifier).state++,
+                      onChanged: (_) => setState(() {}),
                       validator: (value) =>
                           PasswordPolicy.validate(value ?? '', locale),
                     ),
@@ -147,21 +126,19 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     // Confirm password field with visibility toggle
                     TextFormField(
                       controller: _confirmController,
-                      obscureText: ref.watch(_obscureConfirmPasswordProvider),
+                      obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
                         labelText: locale.confirmPasswordLabel,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            ref.watch(_obscureConfirmPasswordProvider)
+                            _obscureConfirmPassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                           ),
-                          onPressed: () {
-                            final notifier = ref.read(
-                              _obscureConfirmPasswordProvider.notifier,
-                            );
-                            notifier.state = !notifier.state;
-                          },
+                          onPressed: () => setState(
+                            () => _obscureConfirmPassword =
+                                !_obscureConfirmPassword,
+                          ),
                           tooltip: locale.togglePasswordVisibility,
                         ),
                       ),
@@ -181,8 +158,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
               FlatmatesButton(
                 label: locale.updatePasswordCta,
                 fullWidth: true,
-                onPressed: ref.watch(_savingProvider) ? null : _submit,
-                icon: ref.watch(_savingProvider) ? null : Icons.lock_outline,
+                onPressed: _saving ? null : _submit,
+                icon: _saving ? null : Icons.lock_outline,
               ),
             ],
           ),

@@ -32,12 +32,11 @@ class LocationSelectionPage extends ConsumerStatefulWidget {
       _LocationSelectionPageState();
 }
 
-final _locatingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   final _searchController = TextEditingController();
   CatalogOption? _selectedCity;
   bool _selectingPlace = false;
+  bool _locating = false;
 
   String get _typedCity => _searchController.text.trim();
 
@@ -60,7 +59,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   }
 
   Future<void> _useCurrentLocation() async {
-    ref.read(_locatingProvider.notifier).state = true;
+    setState(() => _locating = true);
     try {
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
@@ -136,7 +135,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
         );
       }
     } finally {
-      if (mounted) ref.read(_locatingProvider.notifier).state = false;
+      if (mounted) setState(() => _locating = false);
     }
   }
 
@@ -265,7 +264,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final searchState = ref.watch(locationSearchProvider);
-    final locating = ref.watch(_locatingProvider);
+    final locating = _locating;
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
     final isPlacesLoading = searchState.isLoading || _selectingPlace;
     final typedCity = _typedCity;

@@ -9,8 +9,6 @@ import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/components.dart';
 import 'onboarding_controller.dart';
 
-final _uploadingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 class ProfilePhotoPage extends ConsumerStatefulWidget {
   const ProfilePhotoPage({required this.onComplete, super.key});
 
@@ -22,6 +20,7 @@ class ProfilePhotoPage extends ConsumerStatefulWidget {
 
 class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
   final _photoUrls = <String>[];
+  bool _uploading = false;
 
   @override
   void initState() {
@@ -34,7 +33,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     final service = ref.read(imageUploadServiceProvider);
     final files = await service.pickImages(limit: 5 - _photoUrls.length);
     if (files.isEmpty) return;
-    ref.read(_uploadingProvider.notifier).state = true;
+    setState(() => _uploading = true);
     try {
       for (final file in files) {
         final result = await service.uploadProfilePhoto(file);
@@ -59,7 +58,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
         FlatmatesToast.error(context, AppLocalizations.of(context).errorUpload);
       }
     } finally {
-      if (mounted) ref.read(_uploadingProvider.notifier).state = false;
+      if (mounted) setState(() => _uploading = false);
     }
   }
 
@@ -67,7 +66,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     final service = ref.read(imageUploadServiceProvider);
     final file = await service.pickFromCamera();
     if (file == null) return;
-    ref.read(_uploadingProvider.notifier).state = true;
+    setState(() => _uploading = true);
     try {
       final result = await service.uploadProfilePhoto(file);
       if (result is UploadSuccess) {
@@ -90,7 +89,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
         FlatmatesToast.error(context, AppLocalizations.of(context).errorUpload);
       }
     } finally {
-      if (mounted) ref.read(_uploadingProvider.notifier).state = false;
+      if (mounted) setState(() => _uploading = false);
     }
   }
 
@@ -103,7 +102,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final state = ref.watch(onboardingControllerProvider);
-    final uploading = ref.watch(_uploadingProvider);
+    final uploading = _uploading;
     final fullName = state.fullName;
     final displayUrl = _photoUrls.isEmpty ? null : _photoUrls.first;
 

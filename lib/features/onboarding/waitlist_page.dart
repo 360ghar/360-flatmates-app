@@ -8,49 +8,48 @@ import '../../l10n/gen/app_localizations.dart';
 import '../profile/profile_repository.dart';
 import '../shared/presentation/components.dart';
 
-final _waitlistNotifiedProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final _waitlistSubmittingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-
-class WaitlistPage extends ConsumerWidget {
+class WaitlistPage extends ConsumerStatefulWidget {
   const WaitlistPage({required this.city, super.key});
 
   final String city;
 
-  Future<void> _notify(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<WaitlistPage> createState() => _WaitlistPageState();
+}
+
+class _WaitlistPageState extends ConsumerState<WaitlistPage> {
+  bool _notified = false;
+  bool _submitting = false;
+
+  Future<void> _notify() async {
     final locale = AppLocalizations.of(context);
-    ref.read(_waitlistSubmittingProvider.notifier).state = true;
+    setState(() => _submitting = true);
     try {
       await ref
           .read(profileRepositoryProvider)
           .updateProfile(
             payload: {
               'preferences': {
-                'waitlist_city': city,
+                'waitlist_city': widget.city,
                 'waitlist_at': DateTime.now().toUtc().toIso8601String(),
               },
             },
           );
-      if (!context.mounted) return;
-      ref.read(_waitlistNotifiedProvider.notifier).state = true;
+      if (!mounted) return;
+      setState(() => _notified = true);
       FlatmatesToast.success(context, locale.waitlistConfirmed);
     } catch (e, st) {
       debugPrint('[WaitlistPage] notify error: $e\n$st');
-      if (!context.mounted) return;
+      if (!mounted) return;
       FlatmatesToast.error(context, locale.errorUnknown);
     } finally {
-      ref.read(_waitlistSubmittingProvider.notifier).state = false;
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final notified = ref.watch(_waitlistNotifiedProvider);
-    final submitting = ref.watch(_waitlistSubmittingProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -62,10 +61,10 @@ class WaitlistPage extends ConsumerWidget {
               FlatmatesEmptyState(
                 icon: Icons.group_add_rounded,
                 title: locale.waitlistTitle,
-                subtitle: locale.waitlistSubtitle(city),
+                subtitle: locale.waitlistSubtitle(widget.city),
               ),
               const SizedBox(height: AppSpacing.screen),
-              if (notified) ...[
+              if (_notified) ...[
                 InfoPill(
                   icon: Icons.check_circle_rounded,
                   label: locale.waitlistConfirmed,
@@ -75,7 +74,7 @@ class WaitlistPage extends ConsumerWidget {
                 FlatmatesButton(
                   label: locale.waitlistNotifyCta,
                   fullWidth: true,
-                  onPressed: submitting ? null : () => _notify(context, ref),
+                  onPressed: _submitting ? null : _notify,
                   icon: Icons.notifications_active_outlined,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -84,8 +83,8 @@ class WaitlistPage extends ConsumerWidget {
                   label: locale.waitlistInviteFriends,
                   fullWidth: true,
                   onPressed: () {
-                    final url = DeepLinkService.flatmatesUrl(city: city);
-                    Share.share(locale.waitlistShareMessage(city, url));
+                    final url = DeepLinkService.flatmatesUrl(city: widget.city);
+                    Share.share(locale.waitlistShareMessage(widget.city, url));
                   },
                   icon: Icons.share_outlined,
                 ),

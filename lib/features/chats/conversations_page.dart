@@ -5,6 +5,7 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/mutable_notifier.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
@@ -22,8 +23,14 @@ part 'conversations_tabs.dart';
 
 /// Overrides the tab coming from the route's `?tab=` query parameter once the
 /// user switches tabs manually. Reset to null when a new initialTab arrives.
-final _conversationsTabOverrideProvider = StateProvider<String?>((ref) => null);
-final _matchingLikeIdsProvider = StateProvider<Set<int>>((ref) => {});
+final _conversationsTabOverrideProvider =
+    NotifierProvider<MutableNotifier<String?>, String?>(
+      () => MutableNotifier(null),
+    );
+final _matchingLikeIdsProvider =
+    NotifierProvider<MutableNotifier<Set<int>>, Set<int>>(
+      () => MutableNotifier(const <int>{}),
+    );
 
 class ConversationsPage extends ConsumerStatefulWidget {
   const ConversationsPage({super.key, this.initialTab = 'chats'});
@@ -46,7 +53,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
       // controller is watched in build() and auto-loads on first create.
       Future.microtask(() {
         if (!mounted) return;
-        ref.read(_conversationsTabOverrideProvider.notifier).state = null;
+        ref.read(_conversationsTabOverrideProvider.notifier).set(null);
       });
     }
   }
@@ -70,10 +77,9 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
   Future<void> _matchIncomingLike(IncomingLikeModel like) async {
     final matchingIds = ref.read(_matchingLikeIdsProvider);
     if (matchingIds.contains(like.id)) return;
-    ref.read(_matchingLikeIdsProvider.notifier).state = {
-      ...matchingIds,
-      like.id,
-    };
+    ref
+        .read(_matchingLikeIdsProvider.notifier)
+        .update((ids) => {...ids, like.id});
 
     final locale = AppLocalizations.of(context);
     try {
@@ -107,9 +113,11 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
       if (mounted) _showMatchFailure(locale);
     } finally {
       if (mounted) {
-        ref.read(_matchingLikeIdsProvider.notifier).state = {
-          ...ref.read(_matchingLikeIdsProvider),
-        }..remove(like.id);
+        ref.read(_matchingLikeIdsProvider.notifier).update((ids) {
+          final next = {...ids};
+          next.remove(like.id);
+          return next;
+        });
       }
     }
   }
@@ -226,11 +234,9 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
                     ('liked', locale.likedTabLabel, Icons.favorite_rounded),
                   ],
                   selected: tab,
-                  onChanged: (v) =>
-                      ref
-                              .read(_conversationsTabOverrideProvider.notifier)
-                              .state =
-                          v,
+                  onChanged: (v) => ref
+                      .read(_conversationsTabOverrideProvider.notifier)
+                      .set(v),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 if (tabIsEmpty)
