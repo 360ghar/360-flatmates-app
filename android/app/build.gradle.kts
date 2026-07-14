@@ -95,9 +95,9 @@ android {
 
     defaultConfig {
         applicationId = "com.the360ghar.flatmates360"
-        // maplibre_gl requires minSdk >= 21. Flutter's default (24) already
-        // satisfies this; guard explicitly so the requirement survives any
-        // future change to the Flutter default.
+        // flutter_map and related plugins need minSdk >= 21. Flutter's default
+        // (24) already satisfies this; guard explicitly so the requirement
+        // survives any future change to the Flutter default.
         minSdk = maxOf(21, flutter.minSdkVersion)
         // Pin to 35 to match the previous Play Store release's device catalog.
         // Flutter 3.41.x defaults to 36 which drops ~18k device profiles.
@@ -115,6 +115,12 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

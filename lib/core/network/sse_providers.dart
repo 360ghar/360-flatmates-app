@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/chats/chats_repository.dart';
 import '../../features/chats/application/cursor_list_controller.dart';
+import '../../features/chats/application/messages_controller.dart';
+import '../../features/chats/chats_repository.dart';
+import '../../features/notifications/notifications_list_controller.dart';
 import '../../features/notifications/notifications_repository.dart';
+import '../../features/visits/application/visits_list_controller.dart';
 import '../../features/visits/visits_repository.dart';
 import 'flatmates_realtime_service.dart';
 
@@ -55,6 +60,7 @@ void routeFlatmatesRealtimeEvent(Ref ref, FlatmatesRealtimeEvent event) {
       break;
     case 'visit_updated':
       ref.invalidate(visitsProvider);
+      ref.invalidate(visitsListControllerProvider);
       break;
     case 'new_message':
     case 'conversation_updated':
@@ -63,7 +69,7 @@ void routeFlatmatesRealtimeEvent(Ref ref, FlatmatesRealtimeEvent event) {
           _intAt(event.data, const ['conversation_id']) ??
           _intAt(event.data, const ['data', 'conversation_id']);
       if (conversationId != null) {
-        ref.invalidate(messagesProvider(conversationId));
+        _refreshConversationThread(ref, conversationId);
       }
       break;
     case 'listing_status_changed':
@@ -76,6 +82,7 @@ void routeFlatmatesRealtimeEvent(Ref ref, FlatmatesRealtimeEvent event) {
 
 void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
   ref.invalidate(notificationsProvider);
+  ref.invalidate(notificationsListControllerProvider);
 
   final typeKey =
       _stringAt(data, const ['type_key']) ??
@@ -91,9 +98,7 @@ void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
           _stringAt(data, const ['data', 'route']);
       final conversationId = conversationIdFromRoute(route);
       if (conversationId != null) {
-        // Invalidate the REST seed so the next read pulls a fresh page.
-        // The messages realtime stream stays open as source of truth.
-        ref.invalidate(messagesProvider(conversationId));
+        _refreshConversationThread(ref, conversationId);
       }
       break;
     case 'flatmate_new_match':
@@ -113,6 +118,23 @@ void _invalidateMatchState(Ref ref) {
 void _invalidateConversationState(Ref ref) {
   ref.invalidate(conversationsProvider);
   ref.invalidate(conversationsListControllerProvider);
+}
+
+/// Refresh open-thread state via HTTP. Prefer [MessagesController.refetchLatest]
+/// when the thread is mounted so we do not depend on Postgres Changes on
+/// `public.messages`. Also invalidates the one-shot REST seed provider.
+void _refreshConversationThread(Ref ref, int conversationId) {
+  ref.invalidate(messagesProvider(conversationId));
+  if (ref.exists(messagesControllerProvider(conversationId))) {
+    unawaited(
+      ref
+          .read(messagesControllerProvider(conversationId).notifier)
+          .refetchLatest(),
+    );
+  } else {
+    // Thread not open: drop stream cache so the next open re-seeds from HTTP.
+    ref.invalidate(messagesStreamProvider(conversationId));
+  }
 }
 
 void _invalidateLikeState(Ref ref) {

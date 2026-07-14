@@ -6,32 +6,35 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../chats/chats_repository.dart'
-    show
-        conversationsProvider,
-        incomingLikesProvider,
-        messagesProvider,
-        peerProfileProvider;
+    show conversationsProvider, incomingLikesProvider, peerProfileProvider;
 import '../chats/application/cursor_list_controller.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
-import '../visits/application/visits_list_controller.dart';
-import '../visits/visits_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'discover_repository.dart';
+import 'presentation/widgets/flat_details_actions.dart';
 import 'presentation/widgets/full_screen_gallery.dart';
 import 'presentation/widgets/flat_details_about.dart';
 import 'presentation/widgets/flat_details_header.dart';
 import 'presentation/widgets/flat_details_location.dart';
 import 'presentation/widgets/flat_details_media.dart';
-import 'presentation/widgets/owner_profile_sheet.dart';
 import 'presentation/widgets/staggered_card_appear.dart';
 import 'share_listing_card.dart';
 
-final _currentImageIndexProvider = StateProvider<int>((ref) => 0);
-final _contactingProvider = StateProvider<bool>((ref) => false);
+// Scoped per listingId so carousel index / contact / schedule flags do not
+// leak across different flat-details navigations.
+final _currentImageIndexProvider = StateProvider.autoDispose.family<int, int>(
+  (ref, listingId) => 0,
+);
+final _contactingProvider = StateProvider.autoDispose.family<bool, int>(
+  (ref, listingId) => false,
+);
+final _schedulingProvider = StateProvider.autoDispose.family<bool, int>(
+  (ref, listingId) => false,
+);
 
 class FlatDetailsPage extends ConsumerStatefulWidget {
   const FlatDetailsPage({required this.listingId, super.key});
@@ -49,7 +52,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   void didUpdateWidget(covariant FlatDetailsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.listingId != widget.listingId) {
-      ref.read(_currentImageIndexProvider.notifier).state = 0;
+      _conversationId = null;
     }
   }
 
@@ -57,7 +60,11 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   Widget build(BuildContext context) {
     final listingState = ref.watch(propertyListingProvider(widget.listingId));
     final locale = AppLocalizations.of(context);
-    final currentImageIndex = ref.watch(_currentImageIndexProvider);
+    final currentImageIndex = ref.watch(
+      _currentImageIndexProvider(widget.listingId),
+    );
+    final isContacting = ref.watch(_contactingProvider(widget.listingId));
+    final isScheduling = ref.watch(_schedulingProvider(widget.listingId));
     final currentUserId = ref
         .watch(bootstrapControllerProvider)
         .valueOrNull
@@ -108,15 +115,28 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                           currentIndex: currentImageIndex,
                           onPageChanged: (index) =>
                               ref
-                                      .read(_currentImageIndexProvider.notifier)
+                                      .read(
+                                        _currentImageIndexProvider(
+                                          widget.listingId,
+                                        ).notifier,
+                                      )
                                       .state =
                                   index,
                           onBack: () => context.pop(),
                           onShare: () => _showShareSheet(listing),
-                          onFavorite: () => _handleShortlist(listing),
+                          // Header carousel requires a non-null callback; no-op
+                          // when self-owned so favorite matches bottom-bar disable.
+                          onFavorite: isSelfOwned
+                              ? () {}
+                              : () => _handleShortlist(listing),
                           isFavorite: hasLiked,
                           onOwnerTap: canViewOwner
-                              ? () => _handleOwnerTap(listing)
+                              ? () => handleOwnerTap(
+                                  ref: ref,
+                                  context: context,
+                                  listing: listing,
+                                  onContact: () => _handleContact(listing),
+                                )
                               : null,
                           onImageTap: listing.imageUrls.isNotEmpty
                               ? () => _openGallery(listing.imageUrls)
@@ -137,8 +157,14 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                         child: FlatDetailsLocation(
                           listing: listing,
                           currentUserId: currentUserId,
-                          onVoteSocietyTag: (tag, vote) =>
-                              _handleSocietyTagVote(listing, tag, vote),
+                          onVoteSocietyTag: (tag, vote) => handleSocietyTagVote(
+                            ref: ref,
+                            context: context,
+                            listing: listing,
+                            tag: tag,
+                            vote: vote,
+                            listingId: widget.listingId,
+                          ),
                         ),
                       ),
                     ],
@@ -149,13 +175,42 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
               FlatmatesBottomActionBar(
                 primaryButtonKey: const Key('flat_contact_button'),
                 label: hasLiked ? locale.openChatCta : locale.contactCta,
-                onPressed: isSelfOwned ? null : () => _handleContact(listing),
+                onPressed: isSelfOwned || isContacting
+                    ? null
+                    : () => _handleContact(listing),
                 icon: Icons.send_rounded,
                 secondaryLabel: hasLiked && !isSelfOwned
                     ? locale.scheduleVisitCta
                     : null,
-                secondaryOnPressed: hasLiked && !isSelfOwned
-                    ? () => _handleScheduleVisit(listing)
+                secondaryOnPressed: hasLiked && !isSelfOwned && !isScheduling
+                    ? () {
+                        if (ref.read(_schedulingProvider(widget.listingId))) {
+                          return;
+                        }
+                        unawaited(
+                          scheduleVisitFromDetails(
+                            ref: ref,
+                            context: context,
+                            listing: listing,
+                            listingId: widget.listingId,
+                            conversationId: _conversationId,
+                            onConversationId: (cid) => _conversationId = cid,
+                            onLikeSynced: _syncLikeAcrossViews,
+                            setScheduling: (v) {
+                              if (mounted) {
+                                ref
+                                        .read(
+                                          _schedulingProvider(
+                                            widget.listingId,
+                                          ).notifier,
+                                        )
+                                        .state =
+                                    v;
+                              }
+                            },
+                          ),
+                        );
+                      }
                     : null,
                 secondaryIcon: Icons.calendar_month_outlined,
                 tertiaryIcon: hasLiked
@@ -192,7 +247,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     return FullScreenGallery.open(
       context: context,
       images: images,
-      initialIndex: ref.read(_currentImageIndexProvider),
+      initialIndex: ref.read(_currentImageIndexProvider(widget.listingId)),
       heroTagPrefix: 'flat-gallery-${widget.listingId}',
     );
   }
@@ -230,6 +285,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       if (cid != null) _conversationId = cid;
       _syncLikeAcrossViews();
     } catch (e) {
+      debugPrint('FlatDetailsPage._handleShortlist: $e');
       if (mounted) {
         final locale = AppLocalizations.of(context);
         final msg = e is AppFailure
@@ -241,8 +297,8 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   }
 
   Future<void> _handleContact(PropertyListing listing) async {
-    if (ref.read(_contactingProvider)) return;
-    ref.read(_contactingProvider.notifier).state = true;
+    if (ref.read(_contactingProvider(widget.listingId))) return;
+    ref.read(_contactingProvider(widget.listingId).notifier).state = true;
 
     try {
       final hasLiked = listing.liked ?? false;
@@ -263,6 +319,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
         );
       }
     } catch (e) {
+      debugPrint('FlatDetailsPage._handleContact: $e');
       if (mounted) {
         final locale = AppLocalizations.of(context);
         final msg = e is AppFailure
@@ -273,200 +330,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     }
 
     if (mounted) {
-      ref.read(_contactingProvider.notifier).state = false;
+      ref.read(_contactingProvider(widget.listingId).notifier).state = false;
     }
-  }
-
-  Future<void> _handleScheduleVisit(PropertyListing listing) async {
-    final currentUserId = ref
-        .read(bootstrapControllerProvider)
-        .valueOrNull
-        ?.profile
-        .id;
-    if (currentUserId == null) return;
-
-    final locale = AppLocalizations.of(context);
-    final now = DateTime.now();
-
-    final date = await showDatePicker(
-      context: context,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 90)),
-      initialDate: now.add(const Duration(days: 1)),
-    );
-    if (date == null || !mounted) return;
-
-    final timeSlot = await _showTimeSlotPicker();
-    if (timeSlot == null || !mounted) return;
-
-    final scheduledDate = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      timeSlot.hour,
-      timeSlot.minute,
-    );
-    if (!scheduledDate.isAfter(DateTime.now())) {
-      if (mounted) FlatmatesToast.error(context, locale.visitTimeInPast);
-      return;
-    }
-
-    final ownerId = listing.owner?.id ?? listing.ownerId;
-    if (ownerId == null) return;
-
-    // Ensure we have a conversation ID for the visit
-    int cid;
-    if (_conversationId != null) {
-      cid = _conversationId!;
-    } else {
-      final wasLiked = listing.liked ?? false;
-      final result = await ref
-          .read(propertyListingProvider(widget.listingId).notifier)
-          .ensureLiked();
-      if (result == null) {
-        if (mounted) FlatmatesToast.error(context, locale.actionFailedRetry);
-        return;
-      }
-      _conversationId = result;
-      cid = result;
-      if (!wasLiked) _syncLikeAcrossViews();
-    }
-
-    try {
-      await ref
-          .read(visitsRepositoryProvider)
-          .scheduleVisitAndNotify(
-            propertyId: listing.id,
-            counterpartyUserId: ownerId,
-            conversationId: cid,
-            scheduledDate: scheduledDate,
-            note: locale.visitFromDetailPageNote,
-            timeSlotLabel: _timeSlotLabel(locale, timeSlot),
-          );
-      ref.invalidate(propertyListingProvider(widget.listingId));
-      ref.invalidate(visitsListControllerProvider);
-      ref.invalidate(visitsProvider);
-      ref.invalidate(messagesProvider(cid));
-      if (mounted) {
-        FlatmatesToast.success(context, locale.visitRequestSent);
-      }
-    } catch (e) {
-      if (mounted) {
-        final msg = e is AppFailure
-            ? e.userMessage(locale.toUserMessageL10n())
-            : locale.actionFailedRetry;
-        FlatmatesToast.error(context, msg);
-      }
-    }
-  }
-
-  Future<TimeOfDay?> _showTimeSlotPicker() async {
-    final locale = AppLocalizations.of(context);
-    return showDialog<TimeOfDay>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(locale.selectTimeSlot),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(locale.timeSlotMorning),
-              subtitle: const Text('10:00 AM'),
-              leading: const Icon(Icons.wb_sunny_outlined),
-              onTap: () =>
-                  Navigator.of(ctx).pop(const TimeOfDay(hour: 10, minute: 0)),
-            ),
-            ListTile(
-              title: Text(locale.timeSlotAfternoon),
-              subtitle: const Text('3:00 PM'),
-              leading: const Icon(Icons.wb_cloudy_outlined),
-              onTap: () =>
-                  Navigator.of(ctx).pop(const TimeOfDay(hour: 15, minute: 0)),
-            ),
-            ListTile(
-              title: Text(locale.timeSlotEvening),
-              subtitle: const Text('6:00 PM'),
-              leading: const Icon(Icons.nights_stay_outlined),
-              onTap: () =>
-                  Navigator.of(ctx).pop(const TimeOfDay(hour: 18, minute: 0)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _timeSlotLabel(AppLocalizations locale, TimeOfDay timeSlot) {
-    return switch (timeSlot.hour) {
-      10 => locale.timeSlotMorning,
-      18 => locale.timeSlotEvening,
-      _ => locale.timeSlotAfternoon,
-    };
-  }
-
-  void _handleSocietyTagVote(
-    PropertyListing listing,
-    String tag,
-    String vote,
-  ) async {
-    try {
-      await ref
-          .read(discoverRepositoryProvider)
-          .voteSocietyTag(listingId: listing.id, tag: tag, vote: vote);
-      ref.invalidate(propertyListingProvider(widget.listingId));
-    } catch (e) {
-      if (mounted) {
-        final locale = AppLocalizations.of(context);
-        final msg = e is AppFailure
-            ? e.userMessage(locale.toUserMessageL10n())
-            : locale.actionFailedRetry;
-        FlatmatesToast.error(context, msg);
-      }
-    }
-  }
-
-  void _handleOwnerTap(PropertyListing listing) {
-    final ownerId = listing.owner?.id ?? listing.ownerId;
-    if (ownerId == null) {
-      debugPrint(
-        'FlatDetailsPage._handleOwnerTap: no ownerId on listing ${listing.id}',
-      );
-      return;
-    }
-
-    final currentUserId = ref
-        .read(bootstrapControllerProvider)
-        .valueOrNull
-        ?.profile
-        .id;
-    // Hardened self-owner guard: an unresolved (null) viewer is treated as
-    // "not allowed to open" rather than silently bypassing the check. This
-    // also prevents the owner sheet from ever showing the viewer's own
-    // profile when tapping through their own listing.
-    if (currentUserId == null || currentUserId == ownerId) {
-      debugPrint(
-        'FlatDetailsPage._handleOwnerTap: suppressed self/null owner view',
-      );
-      return;
-    }
-
-    // Prefer the nested owner name (now populated by the backend) and fall
-    // back to the flat owner_name field, then a generic label.
-    final locale = AppLocalizations.of(context);
-    final ownerName = listing.owner?.fullName.trim().isNotEmpty == true
-        ? listing.owner!.fullName
-        : (listing.ownerName?.trim().isNotEmpty == true
-              ? listing.ownerName!
-              : locale.ownerFallbackLabel);
-
-    OwnerProfileSheet.show(
-      context: context,
-      ownerId: ownerId,
-      listingOwnerName: ownerName,
-      onSendMessage: () {
-        Navigator.of(context).pop();
-        _handleContact(listing);
-      },
-    );
   }
 }

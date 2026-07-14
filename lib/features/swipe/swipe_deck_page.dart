@@ -123,15 +123,18 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final interaction = _interaction.value;
     if (!interaction.isDragging || interaction.isAnimating) return;
     _interaction.value = interaction.copyWith(isDragging: false);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final threshold = screenWidth * 0.20;
-
-    if (interaction.dragOffset.dx.abs() > threshold) {
+    final width = MediaQuery.of(context).size.width;
+    final dx = interaction.dragOffset.dx;
+    final vx = details.velocity.pixelsPerSecond.dx;
+    if (dx.abs() > width * 0.20) {
       _triggerFlyOff(interaction.dragOffset);
-      return;
+    } else if (vx.abs() > 800) {
+      _triggerFlyOff(
+        Offset(vx.sign * (dx.abs() > 1 ? dx.abs() : width * 0.15), 0),
+      );
+    } else {
+      _triggerSnapBack(interaction.dragOffset);
     }
-
-    _triggerSnapBack(interaction.dragOffset);
   }
 
   void _triggerSnapBack(Offset startOffset) {
@@ -217,15 +220,16 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     }
 
     _recordProfileView();
-    final locale = AppLocalizations.of(context);
     final controller = ref.read(swipeDeckControllerProvider.notifier);
     controller.advanceAfterSwipe(pending.profile);
     _trackedProfileId = null;
-    _interaction.value = _interaction.value.copyWith(
-      dragOffset: Offset.zero,
-      isDragging: false,
-      isAnimating: true,
-    );
+    if (mounted) {
+      _interaction.value = _interaction.value.copyWith(
+        dragOffset: Offset.zero,
+        isDragging: false,
+        isAnimating: true,
+      );
+    }
 
     late final SwipeResult swipeResult;
     try {
@@ -235,18 +239,19 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       );
     } catch (e) {
       controller.rollbackSwipe(pending.profile);
-      if (mounted) {
-        final message = e is AppFailure
-            ? e.userMessage(locale.toUserMessageL10n())
-            : locale.actionFailedRetry;
-        _showSnack(message);
-      }
+      if (!mounted) return;
+      final locale = AppLocalizations.of(context);
+      final message = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.actionFailedRetry;
+      _showSnack(message);
       _resetAfterSwipe();
       return;
     }
 
     if (!mounted) return;
 
+    final locale = AppLocalizations.of(context);
     final isLikeAction = pending.action == 'like';
     final didMatch = swipeResult.didMatch;
 
@@ -259,70 +264,6 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     }
 
     _resetAfterSwipe();
-  }
-
-  void _recordProfileView() {
-    final sample = _profileViewTracker.finish();
-    if (sample == null) return;
-    unawaited(
-      ref
-          .read(swipeDeckControllerProvider.notifier)
-          .recordProfileView(
-            targetUserId: sample.profileId,
-            durationSeconds: sample.durationSeconds,
-            scrollDepthPercent: 100,
-          )
-          .catchError((Object e, StackTrace st) {
-            debugPrint(
-              'SwipeDeckPage.recordProfileView failed for ${sample.profileId}: $e',
-            );
-          }),
-    );
-  }
-
-  void _resetAfterSwipe() {
-    _pendingSwipe = null;
-    _interaction.value = const SwipeInteractionState();
-  }
-
-  void _undoLastSwipe() {
-    if (_interaction.value.isBusy) return;
-    final didUndo = ref
-        .read(swipeDeckControllerProvider.notifier)
-        .undoLastSwipe();
-    if (!didUndo) return;
-    unawaited(HapticFeedback.selectionClick());
-    _trackedProfileId = null;
-    _interaction.value = const SwipeInteractionState();
-  }
-
-  void _refreshProfiles() {
-    _compatibilityCache.clear();
-    _trackedProfileId = null;
-    _pendingSwipe = null;
-    _interaction.value = const SwipeInteractionState();
-    ref.read(swipeDeckControllerProvider.notifier).refresh();
-  }
-
-  Widget _scaffoldWithHeader(Widget body) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.sm,
-                AppSpacing.xl,
-                0,
-              ),
-              child: SwipeDeckHeader(),
-            ),
-            Expanded(child: body),
-          ],
-        ),
-      ),
-    );
   }
 
   @override

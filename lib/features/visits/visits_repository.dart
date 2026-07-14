@@ -141,7 +141,7 @@ class VisitsRepository {
             'Visit requested for ${timeSlotLabel ?? DateFormat('d MMM, h:mm a').format(scheduledDate.toLocal())}',
         metadata: {
           'visit_id': visitId,
-          'status': 'scheduled',
+          'status': 'requested',
           'scheduled_date': scheduledDate.toUtc().toIso8601String(),
           if (timeSlotLabel != null && timeSlotLabel.trim().isNotEmpty)
             'time_slot_label': timeSlotLabel.trim(),
@@ -162,15 +162,14 @@ class VisitsRepository {
         .put(FlatmatesEndpoints.visit(visitId), data: {'status': 'confirmed'});
   }
 
+  /// Suggest a new visit time via POST /visits/{id}/reschedule.
+  /// Backend transitions the visit to `reschedule_suggested`.
   Future<void> rescheduleVisit(int visitId, DateTime newDate) async {
     await _ref
         .read(apiClientProvider)
-        .put(
-          FlatmatesEndpoints.visit(visitId),
-          data: {
-            'scheduled_date': newDate.toUtc().toIso8601String(),
-            'status': 'requested',
-          },
+        .post(
+          FlatmatesEndpoints.visitReschedule(visitId),
+          data: {'new_date': newDate.toUtc().toIso8601String()},
         );
   }
 

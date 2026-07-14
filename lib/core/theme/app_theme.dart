@@ -189,6 +189,16 @@ abstract final class AppTheme {
         centerTitle: false,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
+        toolbarHeight: 56,
+        titleSpacing: AppSpacing.sm,
+        titleTextStyle: inter(
+          fontWeight: AppTypography.titleMdWeight,
+          fontSize: AppTypography.titleMdSize,
+          height: AppTypography.titleMdHeight,
+          color: textPrimary,
+        ),
+        iconTheme: IconThemeData(color: textPrimary, size: 20),
+        actionsIconTheme: IconThemeData(color: textPrimary, size: 20),
       ),
       cardTheme: CardThemeData(
         elevation: 0,

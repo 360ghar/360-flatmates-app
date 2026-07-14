@@ -1,0 +1,28 @@
+appId: com.the360ghar.flatmates360
+name: Home Feed - Load and Scroll
+tags:
+  - smoke
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- assertVisible:
+    id: nav_home_tab
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: discover_feed_card_0
+    timeout: 10000
+- scroll DOWN
+- scroll DOWN
+- scroll UP
+- scrollUntilVisible:
+    element:
+      id: discover_feed_card_0
+    direction: UP
+- assertVisible:
+    id: discover_feed_card_0

@@ -16,7 +16,7 @@ class PrivacySecurityPage extends StatelessWidget {
       appBar: FlatmatesHeader.backTitle(title: locale.privacySecurityLabel),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
           children: [
             const SizedBox(height: AppSpacing.lg),
             FlatmatesCard(

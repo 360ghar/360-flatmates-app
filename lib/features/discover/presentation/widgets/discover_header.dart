@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
+import '../../../../core/theme/app_motion.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../shared/presentation/flatmates_location_chip.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
 class DiscoverHeader extends StatelessWidget {
   const DiscoverHeader({
-    required this.greeting,
+    required this.greetingLabel,
+    required this.name,
     required this.location,
     required this.avatarUrl,
     required this.userName,
@@ -14,16 +19,46 @@ class DiscoverHeader extends StatelessWidget {
     super.key,
   });
 
-  final String greeting;
+  /// Max characters shown on the home location chip (full name opens in picker).
+  static const int locationPreviewMaxChars = 15;
+
+  /// Time-of-day label only, e.g. "Afternoon" / "Morning" / "Evening".
+  final String greetingLabel;
+
+  /// First name shown in brand pink after the greeting label.
+  final String name;
+
   final String location;
   final String? avatarUrl;
   final String? userName;
   final VoidCallback? onAvatarTap;
   final VoidCallback? onLocationTap;
 
+  /// Short label for the location chip; full [location] is still used by the picker.
+  static String locationPreview(
+    String location, {
+    int maxChars = locationPreviewMaxChars,
+  }) {
+    final trimmed = location.trim();
+    if (trimmed.length <= maxChars) return trimmed;
+    return '${trimmed.substring(0, maxChars)}…';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final ink = AppSemanticColors.textPrimaryFor(brightness);
+    const brand = AppSemanticColors.primary;
+    final previewLocation = locationPreview(location);
+
+    final greetingStyle = theme.textTheme.titleMedium?.copyWith(
+      color: ink,
+      fontSize: AppTypography.displaySmSize,
+      fontWeight: AppTypography.displaySmWeight,
+      height: AppTypography.displaySmHeight,
+      letterSpacing: AppTypography.displaySmLetterSpacing,
+    );
 
     return Row(
       children: [
@@ -32,62 +67,38 @@ class DiscoverHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                greeting,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                  fontWeight: FontWeight.w800,
+              Text.rich(
+                TextSpan(
+                  style: greetingStyle,
+                  children: [
+                    TextSpan(text: '$greetingLabel, '),
+                    TextSpan(
+                      text: name,
+                      style: greetingStyle?.copyWith(color: brand),
+                    ),
+                  ],
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (location.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                _InteractivePressScale(
-                  onTap: onLocationTap,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Flexible(
-                        child: Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppSemanticColors.textPrimaryFor(
-                              theme.brightness,
-                            ),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 14,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                    ],
+              if (previewLocation.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: FlatmatesLocationChip(
+                    locationName: previewLocation,
+                    dense: true,
+                    onTap: onLocationTap,
                   ),
                 ),
               ],
             ],
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         _InteractivePressScale(
           onTap: onAvatarTap,
-          child: FlatmatesAvatar(name: userName, imageUrl: avatarUrl, size: 36),
+          child: FlatmatesAvatar(name: userName, imageUrl: avatarUrl, size: 45),
         ),
       ],
     );
@@ -120,8 +131,8 @@ class _InteractivePressScaleState extends State<_InteractivePressScale> {
         onTap: widget.onTap,
         child: AnimatedScale(
           scale: _scale,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOutCubic,
+          duration: AppMotion.buttonPress,
+          curve: AppMotion.easeOutCubic,
           child: widget.child,
         ),
       ),

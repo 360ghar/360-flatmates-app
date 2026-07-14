@@ -29,9 +29,7 @@ class FlatmatesProfileMiniCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtitleColor = theme.brightness == Brightness.dark
-        ? AppSemanticColors.paper3
-        : AppSemanticColors.ink3;
+    final subtitleColor = AppSemanticColors.textTertiaryFor(theme.brightness);
 
     return InkWell(
       onTap: onTap,

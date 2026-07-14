@@ -268,6 +268,10 @@ class ListingFormData {
     };
   }
 
+  /// Whether the form has the minimum data required to publish a listing
+  /// (location, ≥2 photos, valid rent / electricity when separate).
+  bool get canPublish => canProceed(0) && canProceed(3) && canProceed(5);
+
   /// Build the [ListingCreateRequest] from current form state.
   ListingCreateRequest toRequest() {
     final features = [
@@ -291,6 +295,7 @@ class ListingFormData {
       maintenanceCharges: double.tryParse(maintenance),
       areaSqft: null,
       bedrooms: bedrooms,
+      // Form has no bathrooms control; default matches draft submit path.
       bathrooms: 1,
       features: features,
       tags: societyVibeTags.toList(growable: false),
@@ -303,6 +308,17 @@ class ListingFormData {
       societyAmenities: societyAmenities.toList(growable: false),
       societyVibeTags: societyVibeTags.toList(growable: false),
       videoTourUrl: videoTourUrl,
+      fullAddress: address.isEmpty ? null : address,
+      floorNumber: int.tryParse(floor),
+      totalFloors: int.tryParse(totalFloors),
+      ageMin: ageMin.round(),
+      ageMax: ageMax.round(),
+      nonNegotiables: nonNegotiables.toList(growable: false),
+      electricityIncluded: electricityIncluded,
+      electricityEst: double.tryParse(electricityEstController.text.trim()),
+      cookCost: double.tryParse(cookCostController.text.trim()),
+      maidCost: double.tryParse(maidCostController.text.trim()),
+      setupCost: double.tryParse(setupCostController.text.trim()),
     );
   }
 

@@ -9,6 +9,7 @@ import '../../bootstrap/bootstrap_controller.dart';
 import '../../discover/application/discover_feed_controller.dart';
 import '../../discover/discover_repository.dart';
 import '../listings_repository.dart';
+import '../my_listings_controller.dart';
 
 /// Application-layer controller for the create/edit listing flow.
 ///
@@ -30,7 +31,7 @@ class CreateListingController {
       _imageService.pickImages(limit: limit);
 
   /// Uploads a single room photo. Throws [UploadFailure] so the UI can
-  /// surface the reason and stop the batch.
+  /// surface the reason per file without aborting the rest of the batch.
   Future<String> uploadRoomPhoto(File file) async {
     final result = await _imageService.uploadListingPhoto(file);
     switch (result) {
@@ -57,6 +58,7 @@ class CreateListingController {
 
     unawaited(_ref.read(discoverFeedControllerProvider.notifier).refresh());
     _ref.invalidate(myListingsProvider);
+    _ref.invalidate(myListingsListControllerProvider);
     await _ref.read(bootstrapControllerProvider.notifier).refresh();
 
     return listingId;

@@ -49,7 +49,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final isSubmitting = resetState.step == PasswordResetStep.sendingOtp;
 
     return FlatmatesScreen(
-      appBar: AppBar(),
+      appBar: const FlatmatesHeader.backTitle(title: ''),
       scrollable: true,
       body: AutofillGroup(
         child: Column(
@@ -115,15 +115,20 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       if (!context.mounted) return;
                       final state = ref.read(passwordResetControllerProvider);
                       if (state.step == PasswordResetStep.otpSent) {
+                        // Prefer controller-normalized E.164 / email so the
+                        // reset page and pending-phone match what the OTP
+                        // was actually sent to.
+                        final normalized = state.identifier ?? identifier;
                         final isEmail = state.channel == AuthChannel.email;
                         if (!isEmail) {
-                          ref.read(pendingPhoneProvider.notifier).state =
-                              identifier;
+                          ref
+                              .read(pendingPhoneProvider.notifier)
+                              .set(normalized);
                         }
                         final query = Uri(
                           path: '/reset-password',
                           queryParameters: {
-                            isEmail ? 'email' : 'phone': identifier,
+                            isEmail ? 'email' : 'phone': normalized,
                           },
                         ).toString();
                         unawaited(context.push(query));

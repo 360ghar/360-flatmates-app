@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
-import 'settings_controller.dart';
 import '../shared/presentation/components.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -16,18 +15,19 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
 
+    final theme = Theme.of(context);
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return FlatmatesScreen(
-      appBar: FlatmatesHeader.backTitle(
-        title: locale.settingsTitle,
-        centerTitle: true,
-      ),
+      backgroundColor: listHubBg,
+      appBar: FlatmatesHeader.backTitle(title: locale.settingsTitle),
       body: Column(
         children: [
           // Scrollable content
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
+                horizontal: AppSpacing.screen,
                 vertical: AppSpacing.md,
               ),
               children: [
@@ -70,17 +70,6 @@ class SettingsPage extends ConsumerWidget {
                         endIndent: AppSpacing.lg,
                       ),
                       FlatmatesMenuItem(
-                        key: const Key('preferences_menu_item'),
-                        icon: AppIcons.filter,
-                        label: locale.preferencesLabel,
-                        onTap: () => _showPreferences(context, ref),
-                      ),
-                      const Divider(
-                        height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
-                        endIndent: AppSpacing.lg,
-                      ),
-                      FlatmatesMenuItem(
                         key: const Key('delete_account_menu_item'),
                         icon: Icons.delete_forever_outlined,
                         label: locale.deleteAccountCta,
@@ -100,16 +89,6 @@ class SettingsPage extends ConsumerWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FlatmatesMenuItem(
-                        icon: Icons.notifications_outlined,
-                        label: locale.notificationSettingsLabel,
-                        onTap: () => context.push('/notification-settings'),
-                      ),
-                      const Divider(
-                        height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
-                        endIndent: AppSpacing.lg,
-                      ),
                       FlatmatesMenuItem(
                         icon: Icons.person_off_outlined,
                         label: locale.blockedUsersLabel,
@@ -154,8 +133,7 @@ class SettingsPage extends ConsumerWidget {
                   key: const Key('logout_button'),
                   label: locale.logoutCta,
                   destructive: true,
-                  onPressed: () =>
-                      ref.read(authControllerProvider.notifier).signOut(),
+                  onPressed: () => _confirmAndLogout(context, ref),
                 ),
 
                 const SizedBox(height: AppSpacing.screen),
@@ -164,15 +142,6 @@ class SettingsPage extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showPreferences(BuildContext context, WidgetRef ref) {
-    FlatmatesBottomSheet.show(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) =>
-          Consumer(builder: (context, ref, _) => const _PreferencesSheet()),
     );
   }
 
@@ -191,177 +160,32 @@ class SettingsPage extends ConsumerWidget {
   void _openTermsOfService(BuildContext context) {
     context.push('/terms-of-service');
   }
-}
 
-/// Bottom sheet for Preferences — holds theme mode and language
-/// selectors that were moved out of the main settings page.
-class _PreferencesSheet extends StatelessWidget {
-  const _PreferencesSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final settings = ref.watch(settingsControllerProvider);
-        final locale = AppLocalizations.of(context);
-        final theme = Theme.of(context);
-
-        if (!settings.loaded) {
-          return DraggableScrollableSheet(
-            initialChildSize: 0.4,
-            expand: false,
-            builder: (context, scrollController) {
-              return const FlatmatesSkeleton.settingsList(itemCount: 3);
-            },
-          );
-        }
-
-        return DraggableScrollableSheet(
-          initialChildSize: 0.65,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: AppSpacing.sm),
-                  width: AppSpacing.xl,
-                  height: AppSpacing.xs,
-                  decoration: BoxDecoration(
-                    color: AppSemanticColors.line.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.sm,
-                  ),
-                  child: Text(
-                    locale.preferencesLabel,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                    ),
-                    children: [
-                      Text(
-                        locale.themeModeTitle,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      FlatmatesSegmentedControl<ThemeMode>(
-                        segments: [
-                          (
-                            ThemeMode.system,
-                            locale.themeSystem,
-                            Icons.brightness_auto_outlined,
-                          ),
-                          (
-                            ThemeMode.light,
-                            locale.themeLight,
-                            Icons.light_mode_outlined,
-                          ),
-                          (
-                            ThemeMode.dark,
-                            locale.themeDark,
-                            Icons.dark_mode_outlined,
-                          ),
-                        ],
-                        selected: settings.themeMode,
-                        onChanged: (value) {
-                          ref
-                              .read(settingsControllerProvider.notifier)
-                              .updateThemeMode(value);
-                        },
-                        segmentKeys: const [
-                          Key('theme_mode_system_option'),
-                          Key('theme_mode_light_option'),
-                          Key('theme_mode_dark_option'),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-
-                      Text(
-                        locale.languageTitle,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      FlatmatesSegmentedControl<String>(
-                        segments: [
-                          ('en', locale.languageEnglish, null),
-                          ('hi', locale.languageHindi, null),
-                        ],
-                        selected: settings.locale?.languageCode ?? 'en',
-                        onChanged: (value) {
-                          ref
-                              .read(settingsControllerProvider.notifier)
-                              .updateLocale(Locale(value));
-                        },
-                        segmentKeys: const [
-                          Key('language_english_option'),
-                          Key('language_hindi_option'),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-
-                      Material(
-                        color: Colors.transparent,
-                        child: SwitchListTile(
-                          key: const Key('setting_hide_last_name'),
-                          secondary: const Icon(
-                            Icons.person_off_outlined,
-                            color: AppSemanticColors.accent,
-                          ),
-                          title: Text(locale.hideLastNameLabel),
-                          value: settings.hideLastName,
-                          onChanged: (v) {
-                            ref
-                                .read(settingsControllerProvider.notifier)
-                                .updateHideLastName(v);
-                          },
-                        ),
-                      ),
-                      const Divider(),
-                      Material(
-                        color: Colors.transparent,
-                        child: SwitchListTile(
-                          key: const Key('setting_hide_location'),
-                          secondary: const Icon(
-                            Icons.location_off_outlined,
-                            color: AppSemanticColors.accent,
-                          ),
-                          title: Text(locale.hideExactLocationLabel),
-                          value: settings.hideExactLocation,
-                          onChanged: (v) {
-                            ref
-                                .read(settingsControllerProvider.notifier)
-                                .updateHideExactLocation(v);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
+  Future<void> _confirmAndLogout(BuildContext context, WidgetRef ref) async {
+    final locale = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(locale.logoutCta),
+        actions: [
+          TextButton(
+            key: const Key('logout_dialog_cancel'),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(locale.cancelCta),
+          ),
+          TextButton(
+            key: const Key('logout_dialog_confirm'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppSemanticColors.error,
+            ),
+            child: Text(locale.logoutCta),
+          ),
+        ],
+      ),
     );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(authControllerProvider.notifier).signOut();
   }
 }
 

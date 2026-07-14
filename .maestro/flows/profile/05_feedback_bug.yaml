@@ -1,0 +1,46 @@
+appId: com.the360ghar.flatmates360
+name: Profile - Feedback Bug Report
+tags:
+  - profile
+  - feedback
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: profile_help_safety_menu_item
+    direction: DOWN
+- tap:
+    id: profile_help_safety_menu_item
+- extendedWaitUntil:
+    visible:
+      id: help_faq_item
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: report_a_bug_menu_item
+    direction: DOWN
+- tap:
+    id: report_a_bug_menu_item
+- extendedWaitUntil:
+    visible:
+      id: feedback_title_field
+    timeout: 5000
+- tap:
+    id: feedback_title_field
+- inputText: "Test bug report"
+- tap:
+    id: feedback_description_field
+- inputText: "This is a test bug description for E2E testing"
+- tap:
+    id: feedback_submit_button
+# Success toast
+- back:
+    optional: true

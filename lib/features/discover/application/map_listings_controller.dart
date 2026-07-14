@@ -163,12 +163,27 @@ class MapListingsController extends Notifier<MapListingsState> {
           );
         }
       }
+      // Keep the discover feed heart in sync without a full reload.
+      ref
+          .read(discoverFeedControllerProvider.notifier)
+          .applyLikedLocally(propertyId, liked);
       return conversationId;
     } catch (e) {
       debugPrint('MapListingsController.setLiked failed: $e');
       state = state.copyWith(listings: original);
       rethrow;
     }
+  }
+
+  /// Toggles like for [propertyId] (like ↔ unlike). Returns conversation id
+  /// when a like creates/reuses a conversation.
+  Future<int?> toggleLike(int propertyId) async {
+    final index = state.listings.indexWhere(
+      (listing) => listing.id == propertyId,
+    );
+    if (index < 0) return null;
+    final currentLiked = state.listings[index].liked ?? false;
+    return setLiked(propertyId, !currentLiked);
   }
 
   void updateLocationFilter({

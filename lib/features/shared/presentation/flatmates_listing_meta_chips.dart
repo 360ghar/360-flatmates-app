@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+
+/// Semantic colour categories for [ListingMetaItem] pills.
+///
+/// Each maps to a soft-background + coloured-icon pair from the categorical
+/// pastel tokens in [AppSemanticColors]. These are product-only tokens (not
+/// Airbnb mainline) used to differentiate property facts at a glance.
+enum MetaChipColor { blue, teal, purple, orange, green }
 
 /// A single compact "icon + label" fact used by [FlatmatesListingMetaChips].
 class ListingMetaItem {
@@ -9,6 +17,7 @@ class ListingMetaItem {
     required this.icon,
     required this.label,
     this.emphasis = false,
+    this.chipColor,
   });
 
   final IconData icon;
@@ -16,6 +25,11 @@ class ListingMetaItem {
 
   /// When true the label uses the accent colour (e.g. "Furnished" highlight).
   final bool emphasis;
+
+  /// When set, the chip renders as a soft-background pill with a matching
+  /// coloured icon + label. When null, the chip renders as a plain icon+label
+  /// in the secondary text colour (legacy style).
+  final MetaChipColor? chipColor;
 }
 
 /// A scannable, a11y-safe row of small icon+label facts for property cards.
@@ -62,6 +76,40 @@ class _MetaFact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Colour-coded pill style when a chipColor is specified.
+    if (item.chipColor != null) {
+      final palette = _ChipPalette.forColor(
+        item.chipColor!,
+        theme.brightness == Brightness.dark,
+      );
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm - AppSpacing.xxs,
+          vertical: AppSpacing.xxs + 1,
+        ),
+        decoration: BoxDecoration(
+          color: palette.background,
+          borderRadius: AppRadius.xsBorder,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(item.icon, size: 13, color: palette.foreground),
+            const SizedBox(width: 3),
+            Text(
+              item.label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: palette.foreground,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Legacy plain style (no chipColor).
     final color = item.emphasis ? AppSemanticColors.accent : secondary;
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -78,5 +126,48 @@ class _MetaFact extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Resolves a [MetaChipColor] to its soft-background + foreground colour pair,
+/// with dark-mode variants.
+class _ChipPalette {
+  const _ChipPalette({required this.background, required this.foreground});
+
+  final Color background;
+  final Color foreground;
+
+  static _ChipPalette forColor(MetaChipColor color, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    return switch (color) {
+      MetaChipColor.blue => _ChipPalette(
+        background: AppSemanticColors.blueSoftFor(brightness),
+        foreground: isDark
+            ? AppSemanticColors.blueMid
+            : AppSemanticColors.blueInk,
+      ),
+      MetaChipColor.teal => _ChipPalette(
+        background: AppSemanticColors.tealSoftFor(brightness),
+        foreground: isDark
+            ? AppSemanticColors.tealMid
+            : AppSemanticColors.tealInk,
+      ),
+      MetaChipColor.purple => _ChipPalette(
+        background: AppSemanticColors.purpleSoftFor(brightness),
+        foreground: isDark
+            ? AppSemanticColors.purpleMid
+            : AppSemanticColors.purpleInk,
+      ),
+      MetaChipColor.orange => _ChipPalette(
+        background: AppSemanticColors.orangeSoftFor(brightness),
+        foreground: isDark
+            ? AppSemanticColors.orangeMid
+            : AppSemanticColors.orangeInk,
+      ),
+      MetaChipColor.green => _ChipPalette(
+        background: AppSemanticColors.greenSoftFor(brightness),
+        foreground: AppSemanticColors.greenInkFor(brightness),
+      ),
+    };
   }
 }

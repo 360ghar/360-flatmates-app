@@ -10,6 +10,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
+import 'flatmates_card.dart';
 import 'flatmates_network_image.dart';
 
 String initialsFromName(String? name) {
@@ -30,6 +31,72 @@ String initialsFromName(String? name) {
         .toUpperCase();
   }
   return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+}
+
+/// Deterministic pastel pair for initials avatars (Profile/Settings language).
+///
+/// Stable per [name] so the same person always gets the same colors.
+({Color background, Color foreground}) avatarPaletteForName(
+  String? name, {
+  Brightness brightness = Brightness.light,
+}) {
+  final isDark = brightness == Brightness.dark;
+  // (light bg, light fg, dark bg, dark fg)
+  const palettes = <(Color, Color, Color, Color)>[
+    (
+      AppSemanticColors.blueSoft,
+      AppSemanticColors.blueInk,
+      AppSemanticColors.blueSoftDark,
+      AppSemanticColors.blueMid,
+    ),
+    (
+      AppSemanticColors.pinkSoft,
+      AppSemanticColors.pinkInk,
+      AppSemanticColors.pinkSoftDark,
+      AppSemanticColors.pinkMid,
+    ),
+    (
+      AppSemanticColors.tealSoft,
+      AppSemanticColors.tealInk,
+      AppSemanticColors.tealSoftDark,
+      AppSemanticColors.tealMid,
+    ),
+    (
+      AppSemanticColors.purpleSoft,
+      AppSemanticColors.purpleInk,
+      AppSemanticColors.purpleSoftDark,
+      AppSemanticColors.purpleMid,
+    ),
+    (
+      AppSemanticColors.greenSoft,
+      AppSemanticColors.greenInk,
+      AppSemanticColors.greenSoftDark,
+      AppSemanticColors.greenMid,
+    ),
+    (
+      AppSemanticColors.orangeSoft,
+      AppSemanticColors.orangeInk,
+      AppSemanticColors.orangeSoftDark,
+      AppSemanticColors.orangeMid,
+    ),
+    (
+      AppSemanticColors.yellowSoft,
+      AppSemanticColors.yellowInk,
+      AppSemanticColors.yellowSoftDark,
+      AppSemanticColors.yellowMid,
+    ),
+  ];
+
+  final key = name?.trim() ?? '';
+  var hash = 0;
+  for (final unit in key.codeUnits) {
+    hash = (hash * 31 + unit) & 0x7fffffff;
+  }
+  final pair = palettes[hash % palettes.length];
+  return (
+    background: isDark ? pair.$3 : pair.$1,
+    foreground: isDark ? pair.$4 : pair.$2,
+  );
 }
 
 class FlatmatesAvatar extends StatefulWidget {
@@ -95,6 +162,10 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
     final resolvedRadius = isCircle
         ? null
         : (widget.borderRadius ?? BorderRadius.circular(12));
+    final palette = avatarPaletteForName(
+      widget.name,
+      brightness: Theme.of(context).brightness,
+    );
 
     final avatar = Container(
       width: widget.size,
@@ -102,13 +173,15 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
       decoration: BoxDecoration(
         shape: widget.shape,
         borderRadius: resolvedRadius,
-        color: AppSemanticColors.surfaceStrong,
+        color: hasImage ? AppSemanticColors.surfaceStrong : palette.background,
       ),
       child: hasImage
           ? (isCircle
                 ? ClipOval(
                     child: FlatmatesNetworkImage(
                       imageUrl: widget.imageUrl!,
+                      width: widget.size,
+                      height: widget.size,
                       fit: BoxFit.cover,
                     ),
                   )
@@ -116,10 +189,16 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
                     borderRadius: resolvedRadius!,
                     child: FlatmatesNetworkImage(
                       imageUrl: widget.imageUrl!,
+                      width: widget.size,
+                      height: widget.size,
                       fit: BoxFit.cover,
                     ),
                   ))
-          : _AvatarFallback(initials: initials, size: widget.size),
+          : _AvatarFallback(
+              initials: initials,
+              size: widget.size,
+              foreground: palette.foreground,
+            ),
     );
 
     Widget avatarContent = avatar;
@@ -225,10 +304,15 @@ class _RingPainter extends CustomPainter {
 }
 
 class _AvatarFallback extends StatelessWidget {
-  const _AvatarFallback({required this.initials, required this.size});
+  const _AvatarFallback({
+    required this.initials,
+    required this.size,
+    required this.foreground,
+  });
 
   final String initials;
   final double size;
+  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
@@ -237,9 +321,9 @@ class _AvatarFallback extends StatelessWidget {
       child: Text(
         initials,
         style: theme.textTheme.titleMedium?.copyWith(
-          color: AppSemanticColors.ink,
+          color: foreground,
           fontSize: size * 0.34,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -252,14 +336,52 @@ class _AvatarFallback extends StatelessWidget {
 /// represents the "0" in "360", making the logo read as "360 FLATMATES".
 /// Do NOT change "36" to "360" or replace the icon with a literal "0".
 class FlatmatesLogo extends StatelessWidget {
-  const FlatmatesLogo({super.key, this.compact = false, this.centered = false});
+  const FlatmatesLogo({
+    super.key,
+    this.compact = false,
+    this.centered = false,
+    this.toolbar = false,
+  });
 
   final bool compact;
   final bool centered;
 
+  /// Single-line mark sized for a 56px app bar (number + icon only).
+  final bool toolbar;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final ink = AppSemanticColors.textPrimaryFor(theme.brightness);
+
+    if (toolbar) {
+      return RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: '36',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -1.2,
+                color: ink,
+                height: 1,
+              ),
+            ),
+            const WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Icon(
+                Icons.rotate_right_rounded,
+                color: AppSemanticColors.primary,
+                size: 24,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final numberSize = compact ? 28.0 : 38.0;
     final labelSize = compact ? 13.0 : 15.0;
 
@@ -278,7 +400,9 @@ class FlatmatesLogo extends StatelessWidget {
                   fontSize: numberSize,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -1.4,
-                  color: AppSemanticColors.ink,
+                  color: isDark
+                      ? AppSemanticColors.darkInk
+                      : AppSemanticColors.ink,
                 ),
               ),
               WidgetSpan(
@@ -755,17 +879,13 @@ class InfoPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final brightness = theme.brightness;
     final background = highlighted
-        ? (isDark
-              ? AppSemanticColors.coralSoftDark
-              : AppSemanticColors.accentSoft)
-        : (isDark
-              ? AppSemanticColors.darkSurfaceElevated
-              : AppSemanticColors.paper2);
+        ? AppSemanticColors.coralSoftFor(brightness)
+        : AppSemanticColors.secondarySurfaceFor(brightness);
     final foreground = highlighted
         ? AppSemanticColors.accent
-        : (isDark ? AppSemanticColors.paper3 : AppSemanticColors.ink2);
+        : AppSemanticColors.textSecondaryFor(brightness);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -775,7 +895,9 @@ class InfoPill extends StatelessWidget {
         border: Border.all(
           color: highlighted
               ? AppSemanticColors.accent.withValues(alpha: 0.15)
-              : AppSemanticColors.line.withValues(alpha: 0.35),
+              : AppSemanticColors.hairlineFor(
+                  brightness,
+                ).withValues(alpha: 0.35),
         ),
       ),
       child: Row(
@@ -810,6 +932,7 @@ class FlatmatesMenuItem extends StatefulWidget {
     this.subtitle,
     this.onTap,
     this.isDestructive = false,
+    this.dense = false,
   });
 
   final String label;
@@ -817,6 +940,9 @@ class FlatmatesMenuItem extends StatefulWidget {
   final String? subtitle;
   final VoidCallback? onTap;
   final bool isDestructive;
+
+  /// Smaller padding and icon well for compact lists (e.g. Me tab).
+  final bool dense;
 
   @override
   State<FlatmatesMenuItem> createState() => _FlatmatesMenuItemState();
@@ -830,6 +956,13 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
     final theme = Theme.of(context);
     final palette = _menuIconPalette(widget.icon, widget.isDestructive, theme);
     final textColor = widget.isDestructive ? AppSemanticColors.error : null;
+    final dense = widget.dense;
+    final hPad = dense ? 16.0 : 20.0;
+    final vPad = dense ? 10.0 : 14.0;
+    final iconWell = dense ? 32.0 : 40.0;
+    final iconSize = dense ? 18.0 : 20.0;
+    final iconRadius = dense ? 10.0 : 12.0;
+    final iconGap = dense ? 12.0 : 14.0;
 
     return Listener(
       onPointerDown: widget.onTap != null
@@ -851,27 +984,27 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
           duration: AppMotion.buttonPress,
           curve: AppMotion.easeOutCubic,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
             child: Row(
               children: [
                 AnimatedOpacity(
                   opacity: _pressed ? 0.8 : 1.0,
                   duration: AppMotion.fast,
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: iconWell,
+                    height: iconWell,
                     decoration: BoxDecoration(
                       color: palette.background,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(iconRadius),
                     ),
                     child: Icon(
                       widget.icon,
-                      size: 20,
+                      size: iconSize,
                       color: palette.foreground,
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: iconGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -895,10 +1028,10 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right,
                   size: 20,
-                  color: AppSemanticColors.ink3,
+                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
                 ),
               ],
             ),
@@ -1017,88 +1150,80 @@ class FlatmatesNotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: !isRead
-            ? const Border(
-                left: BorderSide(color: AppSemanticColors.accent, width: 3),
-              )
-            : null,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screen,
+        vertical: AppSpacing.xs,
       ),
-      child: Card(
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 0,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: AppSpacing.edgeLg,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, size: 24, color: iconColor),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        body,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: 13,
-                          height: 1.35,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  children: [
-                    Text(
-                      time,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: AppSemanticColors.ink3,
-                      ),
+      child: FlatmatesCard(
+        onTap: onTap,
+        backgroundColor: isRead
+            ? null
+            : AppSemanticColors.secondarySurfaceFor(brightness),
+        padding: AppSpacing.edgeBase,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: iconColor),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: isRead ? FontWeight.w600 : FontWeight.w700,
                     ),
-                    if (!isRead) ...[
-                      const SizedBox(height: 6),
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    body,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: 13,
+                      height: 1.35,
+                      color: AppSemanticColors.textSecondaryFor(brightness),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Column(
+              children: [
+                Text(
+                  time,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 11,
+                    color: AppSemanticColors.textTertiaryFor(brightness),
+                  ),
                 ),
+                if (!isRead) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppSemanticColors.accent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -1172,135 +1297,180 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
         ? compatibilityScoreColor(widget.matchPercentage!)
         : AppSemanticColors.accent;
 
-    final body = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: SizedBox(
-            width: double.infinity,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
-                    ImageFiltered(
-                      imageFilter: ImageFilter.blur(
-                        sigmaX: widget.blurImage ? 7 : 0,
-                        sigmaY: widget.blurImage ? 7 : 0,
-                      ),
-                      child: FlatmatesNetworkImage(
-                        imageUrl: widget.imageUrl!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  else
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppSemanticColors.accent.withValues(alpha: 0.18),
-                            AppSemanticColors.secondarySurfaceFor(
-                              theme.brightness,
-                            ),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              initialsFromName(widget.name),
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                color: AppSemanticColors.accent,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              AppLocalizations.of(context).photoPendingLabel,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
-                                ),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
+    final title = widget.age == null
+        ? widget.name
+        : '${widget.name}, ${widget.age}';
+    final location = widget.location.trim();
+    final profession = widget.profession.trim();
+
+    // Photo-first card: meta sits on a bottom scrim like the match badge.
+    final body = ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(
+                sigmaX: widget.blurImage ? 7 : 0,
+                sigmaY: widget.blurImage ? 7 : 0,
+              ),
+              // LayoutBuilder inside FlatmatesNetworkImage sizes the
+              // Cloudinary delivery + mem cache to this expanded slot.
+              child: FlatmatesNetworkImage(
+                imageUrl: widget.imageUrl!,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppSemanticColors.accent.withValues(alpha: 0.18),
+                    AppSemanticColors.secondarySurfaceFor(theme.brightness),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      initialsFromName(widget.name),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: AppSemanticColors.accent,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                  if (widget.matchPercentage != null)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: AnimatedBuilder(
-                        animation: _ringController,
-                        builder: (context, child) {
-                          return CustomPaint(
-                            painter: _MatchRingPainter(
-                              progress: _ringController.value,
-                              color: matchColor,
-                              strokeWidth: 3,
-                            ),
-                            child: child,
-                          );
-                        },
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppSemanticColors.surfaceFor(
-                              theme.brightness,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            hasReliableMatch
-                                ? '${widget.matchPercentage!.toInt()}%'
-                                : 'New',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: matchColor,
-                            ),
-                          ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      AppLocalizations.of(context).photoPendingLabel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
                         ),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                ],
+                  ],
+                ),
+              ),
+            ),
+          // Bottom scrim for legible name / location / profession.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppSemanticColors.scrim.withValues(alpha: 0),
+                    AppSemanticColors.scrim.withValues(alpha: 0.55),
+                    AppSemanticColors.scrim.withValues(alpha: 0.78),
+                  ],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.sm,
+                  AppSpacing.xl,
+                  AppSpacing.sm,
+                  AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppSemanticColors.onPrimary,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (location.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        location,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppSemanticColors.onPrimary.withValues(
+                            alpha: 0.88,
+                          ),
+                          fontSize: 12,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (profession.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        profession,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppSemanticColors.onPrimary.withValues(
+                            alpha: 0.78,
+                          ),
+                          fontSize: 12,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          widget.age == null ? widget.name : '${widget.name}, ${widget.age}',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (widget.location.trim().isNotEmpty)
-          Text(
-            widget.location,
-            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        if (widget.profession.trim().isNotEmpty)
-          Text(
-            widget.profession,
-            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-      ],
+          if (widget.matchPercentage != null)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: AnimatedBuilder(
+                animation: _ringController,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: _MatchRingPainter(
+                      progress: _ringController.value,
+                      color: matchColor,
+                      strokeWidth: 3,
+                    ),
+                    child: child,
+                  );
+                },
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppSemanticColors.surfaceFor(theme.brightness),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    hasReliableMatch
+                        ? '${widget.matchPercentage!.toInt()}%'
+                        : 'New',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: matchColor,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
 
     // Make the body (image + name/location/profession) tappable when an
@@ -1329,11 +1499,11 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
           );
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(child: tappableBody),
         if (widget.matchButtonLabel.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           SizedBox(
             width: double.infinity,
             height: 34,

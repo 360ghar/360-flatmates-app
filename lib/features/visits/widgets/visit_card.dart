@@ -40,10 +40,11 @@ class VisitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasActions =
         item.status == 'requested' ||
-        item.status == 'scheduled' ||
+        item.status == 'reschedule_suggested' ||
         item.status == 'confirmed';
 
     return FlatmatesCard(
+      backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
@@ -154,7 +155,8 @@ class VisitCard extends StatelessWidget {
   }
 
   List<Widget> _buildActions(BuildContext context) {
-    if (item.status == 'requested') {
+    // requested / reschedule_suggested: counterparty must Confirm or Cancel
+    if (item.status == 'requested' || item.status == 'reschedule_suggested') {
       return [
         _CompactActionChip(
           label: locale.visitConfirmTitle,
@@ -171,7 +173,7 @@ class VisitCard extends StatelessWidget {
         ),
       ];
     }
-    // scheduled / confirmed
+    // confirmed: Reschedule (suggest new time) + Cancel
     return [
       _CompactActionChip(
         label: locale.visitRescheduleCta,
@@ -218,7 +220,7 @@ class _CompactActionChip extends StatelessWidget {
         : AppSemanticColors.accent;
     final inactive = busy || disabled;
     final effectiveAccent = inactive ? accent.withValues(alpha: 0.4) : accent;
-    final foreground = filled ? Colors.white : effectiveAccent;
+    final foreground = filled ? AppSemanticColors.onPrimary : effectiveAccent;
 
     return Expanded(
       child: Semantics(

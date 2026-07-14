@@ -193,23 +193,27 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
                       fontWeight: FontWeight.w700,
                       fontSize: fontSize,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       counterText: '',
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                         vertical: AppSpacing.sm,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
-                        borderSide: BorderSide(color: AppSemanticColors.line),
+                        borderSide: BorderSide(
+                          color: AppSemanticColors.hairlineFor(
+                            theme.brightness,
+                          ),
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
+                      focusedBorder: const OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
                         borderSide: BorderSide(
                           color: AppSemanticColors.accent,
                           width: 2,
                         ),
                       ),
-                      errorBorder: OutlineInputBorder(
+                      errorBorder: const OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
                         borderSide: BorderSide(color: AppSemanticColors.error),
                       ),

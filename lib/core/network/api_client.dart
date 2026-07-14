@@ -10,8 +10,10 @@ final class ApiClient {
     : _dio = Dio(
         BaseOptions(
           baseUrl: baseUrl,
-          connectTimeout: const Duration(seconds: 60),
-          receiveTimeout: const Duration(seconds: 60),
+          // Interactive GETs should fail fast enough for retry UX; large
+          // uploads override send/receive via Options on the request.
+          connectTimeout: const Duration(seconds: 20),
+          receiveTimeout: const Duration(seconds: 30),
           sendTimeout: const Duration(seconds: 60),
           headers: const {'Accept': 'application/json'},
         ),
@@ -31,6 +33,17 @@ final class ApiClient {
       // Currently alice dev_dependency conflicts with share_plus ^10.1.4
     }
   }
+
+  /// Per-request timeouts for cold-start critical paths (bootstrap, auth-state,
+  /// version check). Keeps splash recovery under ~15s when the API/DB is
+  /// wedged instead of waiting for the default 30s receive timeout twice.
+  static Options criticalPathOptions({
+    Duration timeout = const Duration(seconds: 15),
+  }) => Options(
+    connectTimeout: timeout,
+    sendTimeout: timeout,
+    receiveTimeout: timeout,
+  );
 
   final Dio _dio;
 

@@ -1,5 +1,13 @@
 # Maestro test configuration for 360 FlatMates
 # Env vars: MAESTRO_PHONE, MAESTRO_PASSWORD (injected via CI or local shell)
+#
+# Parallel execution:
+#   maestro test .maestro/flows/auth/ --parallel
+#   maestro test .maestro/flows/discover/ --parallel
+#   maestro test .maestro/flows/ --parallel   (all features, max parallelism)
+#
+# Sequential smoke (CI):
+#   maestro test .maestro/e2e.yaml
 
 appId: com.the360ghar.flatmates360
 
@@ -9,10 +17,14 @@ tags:
   - onboarding
   - navigation
   - discover
+  - map
   - swipe
   - chats
-  - profile
+  - visits
   - listings
+  - profile
+  - settings
   - notifications
+  - feedback
 
 testOutputDir: build/maestro-results

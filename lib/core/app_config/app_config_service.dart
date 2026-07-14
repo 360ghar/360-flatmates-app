@@ -6,6 +6,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../analytics/analytics_service.dart';
 import '../config/endpoints.dart';
+import '../errors/app_failure.dart';
+import '../network/api_client.dart';
 import '../providers.dart';
 
 enum AppUpdateStatus { upToDate, optionalUpdate, forceUpdate }
@@ -48,6 +50,10 @@ class AppConfigService {
 
   /// Calls the backend's POST /versions/check endpoint to see if an update
   /// is available for the current app/platform/version.
+  ///
+  /// Fail-open: any network/server error returns null so the app continues.
+  /// Uses a short critical-path timeout so a wedged API does not block the
+  /// first frame for the default Dio receiveTimeout.
   Future<VersionCheckResult?> checkForUpdates() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -61,6 +67,7 @@ class AppConfigService {
               'current_version': packageInfo.version,
               'build_number': packageInfo.buildNumber,
             },
+            options: ApiClient.criticalPathOptions(),
           );
       final data = response.data;
       if (data is Map<String, dynamic>) {
@@ -68,6 +75,11 @@ class AppConfigService {
       }
       return null;
     } catch (e, st) {
+      // Expected during outages — don't spam Crashlytics with pure network fails.
+      if (e is NetworkFailure) {
+        debugPrint('AppConfigService.checkForUpdates: network unavailable: $e');
+        return null;
+      }
       try {
         unawaited(ref.read(analyticsServiceProvider).recordError(e, st));
       } catch (e2) {

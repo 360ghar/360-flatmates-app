@@ -59,23 +59,31 @@ class DiscoverListingCard extends StatelessWidget {
         ListingMetaItem(
           icon: Icons.bed_outlined,
           label: locale.homeBedsValue(item.bedrooms!),
+          chipColor: MetaChipColor.blue,
         ),
       if (item.bathrooms != null)
         ListingMetaItem(
           icon: Icons.bathtub_outlined,
           label: locale.homeBathsValue(item.bathrooms!),
+          chipColor: MetaChipColor.teal,
         ),
       if (item.areaSqft != null)
         ListingMetaItem(
           icon: Icons.square_foot_outlined,
           label: locale.sqftLabel(item.areaSqft!.round()),
+          chipColor: MetaChipColor.purple,
         ),
-      ListingMetaItem(icon: Icons.people_outline_rounded, label: genderSuffix),
+      ListingMetaItem(
+        icon: Icons.people_outline_rounded,
+        label: genderSuffix,
+        chipColor: MetaChipColor.orange,
+      ),
       if (item.isFurnished)
         ListingMetaItem(
           icon: Icons.chair_outlined,
           label: locale.featureFurnished,
           emphasis: true,
+          chipColor: MetaChipColor.green,
         ),
     ];
 
@@ -98,8 +106,8 @@ class DiscoverListingCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             AspectRatio(
-              // Feed: 1:1 photo-first. Compact map carousel: wider 16:10 to fit
-              // tight 130×152 slots without meta overflow.
+              // Feed: 1:1 photo-first. Compact map carousel: 16:10 balances
+              // photo size with readable rent/locality text below.
               aspectRatio: compact ? 16 / 10 : 1,
               child: Stack(
                 fit: StackFit.expand,
@@ -113,10 +121,13 @@ class DiscoverListingCard extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: AppRadius.cardBorder,
+                      // FlatmatesNetworkImage uses LayoutBuilder to size
+                      // Cloudinary delivery + mem decode for this slot.
                       child: hasImage
                           ? FlatmatesNetworkImage(
                               imageUrl: item.effectiveMainImageUrl!,
                               fit: BoxFit.cover,
+                              fallbackName: item.title,
                             )
                           : _CardImageFallback(
                               title: item.title,
@@ -199,7 +210,7 @@ class DiscoverListingCard extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsets.only(
-                top: compact ? AppSpacing.xs : AppSpacing.sm + AppSpacing.xxs,
+                top: compact ? AppSpacing.sm : AppSpacing.sm + AppSpacing.xxs,
               ),
               child: compact
                   ? Column(
@@ -210,9 +221,9 @@ class DiscoverListingCard extends StatelessWidget {
                           _formatRent(item.monthlyRent.round()),
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: ink,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            height: 1.15,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            height: 1.2,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -222,8 +233,8 @@ class DiscoverListingCard extends StatelessWidget {
                             titleLocation,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: muted,
-                              fontSize: 10,
-                              height: 1.15,
+                              fontSize: 12,
+                              height: 1.2,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -246,14 +257,26 @@ class DiscoverListingCard extends StatelessWidget {
                         ),
                         if (titleLocation.isNotEmpty) ...[
                           const SizedBox(height: 2),
-                          Text(
-                            titleLocation,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: muted,
-                              height: 1.43,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_rounded,
+                                size: 12,
+                                color: AppSemanticColors.primary,
+                              ),
+                              const SizedBox(width: 2),
+                              Flexible(
+                                child: Text(
+                                  titleLocation,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: muted,
+                                    height: 1.43,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                         if (metaItems.isNotEmpty) ...[
@@ -270,7 +293,7 @@ class DiscoverListingCard extends StatelessWidget {
                                 _formatRent(item.monthlyRent.round()),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   color: ink,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
                                   height: 1.25,
                                 ),
                                 maxLines: 1,

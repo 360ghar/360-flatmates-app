@@ -108,42 +108,11 @@ class BlockedUsersPage extends ConsumerWidget {
                       height: 36,
                       onPressed: isUnblocking
                           ? null
-                          : () async {
-                              ref
-                                  .read(_unblockingIdsProvider.notifier)
-                                  .state = {
-                                ...ref.read(_unblockingIdsProvider),
-                                user.blockedUserId,
-                              };
-                              try {
-                                await ref
-                                    .read(blockedUsersRepositoryProvider)
-                                    .unblockUser(user.blockedUserId);
-                                ref.invalidate(
-                                  blockedUsersListControllerProvider,
-                                );
-                                if (!context.mounted) return;
-                                FlatmatesToast.success(
-                                  context,
-                                  locale.userUnblocked,
-                                );
-                              } catch (e) {
-                                debugPrint(
-                                  'BlockedUsersPage: unblock failed for user ${user.blockedUserId}: $e',
-                                );
-                                if (!context.mounted) return;
-                                final msg = e is AppFailure
-                                    ? e.userMessage(locale.toUserMessageL10n())
-                                    : locale.unblockFailed;
-                                FlatmatesToast.error(context, msg);
-                              } finally {
-                                ref
-                                    .read(_unblockingIdsProvider.notifier)
-                                    .state = {
-                                  ...ref.read(_unblockingIdsProvider),
-                                }..remove(user.blockedUserId);
-                              }
-                            },
+                          : () => _confirmAndUnblock(
+                              context,
+                              ref,
+                              user.blockedUserId,
+                            ),
                     ),
                   ],
                 ),
@@ -165,4 +134,54 @@ class BlockedUsersPage extends ConsumerWidget {
   }
 }
 
-final _unblockingIdsProvider = StateProvider<Set<int>>((ref) => {});
+Future<void> _confirmAndUnblock(
+  BuildContext context,
+  WidgetRef ref,
+  int blockedUserId,
+) async {
+  final locale = AppLocalizations.of(context);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(locale.unblockCta),
+      actions: [
+        TextButton(
+          key: const Key('unblock_dialog_cancel'),
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(locale.cancelCta),
+        ),
+        TextButton(
+          key: const Key('unblock_dialog_confirm'),
+          onPressed: () => Navigator.of(ctx).pop(true),
+          style: TextButton.styleFrom(foregroundColor: AppSemanticColors.error),
+          child: Text(locale.unblockCta),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  ref.read(_unblockingIdsProvider.notifier).state = {
+    ...ref.read(_unblockingIdsProvider),
+    blockedUserId,
+  };
+  try {
+    await ref.read(blockedUsersRepositoryProvider).unblockUser(blockedUserId);
+    ref.invalidate(blockedUsersListControllerProvider);
+    if (!context.mounted) return;
+    FlatmatesToast.success(context, locale.userUnblocked);
+  } catch (e) {
+    debugPrint('BlockedUsersPage: unblock failed for user $blockedUserId: $e');
+    if (!context.mounted) return;
+    final msg = e is AppFailure
+        ? e.userMessage(locale.toUserMessageL10n())
+        : locale.unblockFailed;
+    FlatmatesToast.error(context, msg);
+  } finally {
+    ref.read(_unblockingIdsProvider.notifier).state = {
+      ...ref.read(_unblockingIdsProvider),
+    }..remove(blockedUserId);
+  }
+}
+
+final _unblockingIdsProvider = StateProvider.autoDispose<Set<int>>((ref) => {});

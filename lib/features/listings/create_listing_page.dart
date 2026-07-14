@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/errors/app_failure.dart';
-import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 import 'application/create_listing_controller.dart';
+import 'presentation/widgets/create_listing_actions.dart';
 import 'presentation/widgets/listing_form_data.dart';
 import 'presentation/widgets/listing_step_header.dart';
 import 'presentation/widgets/listing_step_view.dart';
@@ -183,75 +182,35 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     super.dispose();
   }
 
-  Future<void> _pickRoomPhotos() async {
-    if (ref.read(_createListingPhotosUploadingProvider)) return;
-    final locale = AppLocalizations.of(context);
-    final controller = ref.read(createListingControllerProvider);
-    try {
-      final files = await controller.pickRoomPhotos(
-        limit: 10 - _roomPhotoUrls.length,
-      );
-      if (files.isEmpty) return;
-      if (!mounted) return;
-      ref.read(_createListingPhotosUploadingProvider.notifier).state = true;
-      for (final file in files) {
-        final url = await controller.uploadRoomPhoto(file);
-        if (!mounted) return;
-        setState(() => _roomPhotoUrls.add(url));
-        ref.read(_createListingValidationProvider.notifier).state =
-            kNoListingValidation;
-        ref.read(_createListingDirtyProvider.notifier).state = true;
-      }
-    } catch (e) {
-      debugPrint('CreateListingPage._pickRoomPhotos failed: $e');
-      if (!mounted) return;
-      final msg = e is AppFailure
-          ? e.userMessage(locale.toUserMessageL10n())
-          : locale.listingSubmitFailed;
-      FlatmatesToast.error(context, msg);
-    } finally {
-      if (mounted) {
-        ref.read(_createListingPhotosUploadingProvider.notifier).state = false;
-      }
-    }
-  }
+  Future<void> _pickRoomPhotos() => pickAndUploadRoomPhotos(
+    ref: ref,
+    context: context,
+    isMounted: () => mounted,
+    currentPhotoCount: _roomPhotoUrls.length,
+    onUrlAdded: (url) => setState(() => _roomPhotoUrls.add(url)),
+    isUploading: ref.read(_createListingPhotosUploadingProvider),
+    setUploading: (v) =>
+        ref.read(_createListingPhotosUploadingProvider.notifier).state = v,
+    clearValidation: _clearValidationFlags,
+    markDirty: () =>
+        ref.read(_createListingDirtyProvider.notifier).state = true,
+  );
 
-  Future<void> _submit() async {
-    if (ref.read(_createListingSubmittingProvider)) return;
-    final locale = AppLocalizations.of(context);
-    final editingId = widget.listingId;
-    ref.read(_createListingSubmittingProvider.notifier).state = true;
-    try {
-      final request = _formData.toRequest();
-      final listingId = await ref
-          .read(createListingControllerProvider)
-          .submit(request: request, editingId: editingId);
-      if (!mounted) return;
-      ref.read(_createListingDirtyProvider.notifier).state = false;
-      FlatmatesToast.success(
-        context,
-        editingId != null
-            ? locale.listingUpdatedToast
-            : locale.postListingSuccess,
-      );
-      if (listingId != null) {
-        context.go('/listing-review/$listingId');
-      } else {
-        context.go('/discover');
-      }
-    } catch (error) {
-      debugPrint('CreateListingPage._submit failed: $error');
-      if (!mounted) return;
-      final msg = error is AppFailure
-          ? error.userMessage(locale.toUserMessageL10n())
-          : locale.listingSubmitFailed;
-      FlatmatesToast.error(context, msg);
-    } finally {
-      if (mounted) {
-        ref.read(_createListingSubmittingProvider.notifier).state = false;
-      }
-    }
-  }
+  Future<void> _submit() => submitListingForm(
+    ref: ref,
+    context: context,
+    isMounted: () => mounted,
+    formData: _formData,
+    editingId: widget.listingId,
+    isSubmitting: ref.read(_createListingSubmittingProvider),
+    setSubmitting: (v) =>
+        ref.read(_createListingSubmittingProvider.notifier).state = v,
+    setStep: (s) => ref.read(_createListingStepProvider.notifier).state = s,
+    setValidation: (v) =>
+        ref.read(_createListingValidationProvider.notifier).state = v,
+    markClean: () =>
+        ref.read(_createListingDirtyProvider.notifier).state = false,
+  );
 
   Future<bool> _confirmDiscard() async {
     if (!ref.read(_createListingDirtyProvider) ||
@@ -372,7 +331,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
               : (step < totalSteps - 1
                     ? locale.onboardingNext
                     : locale.publishListingCta),
-          onPressed: submitting
+          onPressed: submitting || photosUploading
               ? null
               : (step < totalSteps - 1
                     ? (canAdvance
@@ -387,6 +346,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
                           : () {
                               _showInlineValidation(step);
                             })
+                    // _submit itself gates canPublish and jumps to the first
+                    // incomplete required step instead of posting empty data.
                     : _submit),
           icon: step < totalSteps - 1
               ? Icons.arrow_forward_rounded

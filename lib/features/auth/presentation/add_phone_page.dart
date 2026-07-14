@@ -15,7 +15,7 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/resend_countdown.dart';
 
-final _codeSentProvider = StateProvider<bool>((ref) => false);
+final _codeSentProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _addPhoneOtpTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Skippable post-Google step that lets a phone-less account add and verify a
@@ -187,7 +187,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     final canSubmit = !isBusy && (codeSent ? otpComplete : _phoneLooksValid);
 
     return FlatmatesScreen(
-      appBar: AppBar(),
+      appBar: const FlatmatesHeader.backTitle(title: ''),
       scrollable: true,
       body: AutofillGroup(
         child: Column(

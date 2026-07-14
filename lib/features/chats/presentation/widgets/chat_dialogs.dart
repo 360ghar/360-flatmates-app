@@ -157,7 +157,10 @@ class ChatDialogs {
     try {
       await controller.unmatchConversation(conversationId, peerId);
       if (!context.mounted) return;
-      context.pop();
+      FlatmatesToast.success(context, locale.userUnmatched);
+      if (context.mounted) {
+        context.pop();
+      }
     } on AppFailure catch (e) {
       if (context.mounted) {
         FlatmatesToast.error(

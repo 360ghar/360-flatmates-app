@@ -45,18 +45,21 @@ class _MatchQnANudgeSheetState extends ConsumerState<MatchQnANudgeSheet> {
 
   Future<void> _submitAnswers() async {
     final locale = AppLocalizations.of(context);
+    // Persist Q2 as a numeric scale "1".."5" so clients/locales share one
+    // canonical payload (chats MatchQnA already does the same).
     final success = await ref
         .read(matchQnAControllerProvider.notifier)
         .submitAnswers(
           conversationId: widget.conversationId,
           q1: _q1Controller.text.trim(),
-          q2: _socialScaleLabel(locale),
+          q2: _socialScale.toString(),
           q3: _q3Controller.text.trim(),
         );
     if (!mounted) return;
     if (success) {
       Navigator.of(context).pop();
     } else {
+      // Keep the nudge open so the user can retry without reopening.
       FlatmatesToast.error(context, locale.commonRetry);
     }
   }

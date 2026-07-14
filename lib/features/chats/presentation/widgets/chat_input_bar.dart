@@ -1,57 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
+import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 
 class ChatInputBar extends StatelessWidget {
   const ChatInputBar({
     required this.controller,
+    required this.focusNode,
+    required this.showEmoji,
+    required this.onToggleEmoji,
     required this.onSend,
-    required this.onAttachment,
+    this.onPickPhoto,
+    this.isSending = false,
+    this.isUploadingPhoto = false,
     super.key,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool showEmoji;
+  final VoidCallback onToggleEmoji;
   final VoidCallback onSend;
-  final VoidCallback onAttachment;
+  final VoidCallback? onPickPhoto;
+
+  /// When true, keyboard submit and the send affordance are disabled so a
+  /// double-tap cannot enqueue a second in-flight POST.
+  final bool isSending;
+
+  /// When true, send and photo controls are disabled while a gallery upload
+  /// is in flight.
+  final bool isUploadingPhoto;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    final busy = isSending || isUploadingPhoto;
+    final canSend = !busy;
+    final canPickPhoto = onPickPhoto != null && !busy;
 
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      minimum: const EdgeInsets.fromLTRB(
+        AppSpacing.base,
+        AppSpacing.md,
+        AppSpacing.base,
+        AppSpacing.base,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: AppSemanticColors.line.withValues(alpha: 0.35),
+            color: AppSemanticColors.hairlineFor(
+              theme.brightness,
+            ).withValues(alpha: 0.35),
           ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _InteractivePressScale(
               child: IconButton(
-                key: const Key('chat_attachment_button'),
-                onPressed: onAttachment,
+                key: const Key('chat_emoji_button'),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                constraints: const BoxConstraints(),
+                onPressed: onToggleEmoji,
+                tooltip: locale.emojiCta,
                 icon: Icon(
-                  Icons.attach_file_rounded,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  size: 22,
+                  showEmoji
+                      ? Icons.keyboard_outlined
+                      : Icons.emoji_emotions_outlined,
+                  color: showEmoji
+                      ? AppSemanticColors.accent
+                      : AppSemanticColors.textSecondaryFor(theme.brightness),
+                  size: 24,
                 ),
-                tooltip: 'Attach file',
               ),
             ),
             Expanded(
               child: TextField(
                 key: const Key('chat_message_input'),
                 controller: controller,
+                focusNode: focusNode,
                 textInputAction: TextInputAction.send,
-                onSubmitted: (_) => onSend(),
+                onTap: () {
+                  if (showEmoji) onToggleEmoji();
+                },
+                onSubmitted: canSend ? (_) => onSend() : null,
+                minLines: 1,
+                maxLines: 5,
                 decoration: InputDecoration(
                   hintText: locale.chatInputHint,
                   hintStyle: TextStyle(
@@ -64,29 +104,82 @@ class ChatInputBar extends StatelessWidget {
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   filled: false,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 44,
-              height: 44,
-              child: Material(
-                color: AppSemanticColors.accent,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  key: const Key('chat_send_button'),
-                  onTap: onSend,
-                  customBorder: const CircleBorder(),
-                  child: const Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 20,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.md,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: AppSpacing.xs),
+            if (onPickPhoto != null)
+              _InteractivePressScale(
+                child: IconButton(
+                  key: const Key('chat_photo_button'),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  constraints: const BoxConstraints(),
+                  onPressed: canPickPhoto ? onPickPhoto : null,
+                  tooltip: locale.addPhotoCta,
+                  icon: isUploadingPhoto
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppSemanticColors.textSecondaryFor(
+                              theme.brightness,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          Icons.photo_outlined,
+                          color: canPickPhoto
+                              ? AppSemanticColors.textSecondaryFor(
+                                  theme.brightness,
+                                )
+                              : AppSemanticColors.textSecondaryFor(
+                                  theme.brightness,
+                                ).withValues(alpha: 0.4),
+                          size: 24,
+                        ),
+                ),
+              ),
+            _InteractivePressScale(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  0,
+                  0,
+                  AppSpacing.sm,
+                  AppSpacing.sm,
+                ),
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: Material(
+                    color: canSend
+                        ? AppSemanticColors.accent
+                        : AppSemanticColors.accent.withValues(alpha: 0.5),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      key: const Key('chat_send_button'),
+                      onTap: canSend ? onSend : null,
+                      customBorder: const CircleBorder(),
+                      child: isSending
+                          ? const Padding(
+                              padding: AppSpacing.edgeSm,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -115,8 +208,8 @@ class _InteractivePressScaleState extends State<_InteractivePressScale> {
       onPointerCancel: (_) => setState(() => _scale = 1.0),
       child: AnimatedScale(
         scale: _scale,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOutCubic,
+        duration: AppMotion.durationOrZero(context, AppMotion.buttonPress),
+        curve: AppMotion.easeOutCubic,
         child: widget.child,
       ),
     );

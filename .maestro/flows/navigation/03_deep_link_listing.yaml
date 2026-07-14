@@ -1,0 +1,27 @@
+# Deep links via URL schemes are not easily triggered in Maestro, so this
+# flow verifies the flat-details page is reachable by tapping a feed card.
+appId: com.the360ghar.flatmates360
+name: Navigation Deep Link Listing
+tags:
+  - navigation
+---
+- launchApp:
+    clearState: true
+
+- runFlow: ../_shared/login.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "discover_feed_card_0"
+    timeout: 10000
+
+- tapOn:
+    id: "discover_feed_card_0"
+
+- extendedWaitUntil:
+    visible:
+      id: "flat_contact_button"
+    timeout: 10000
+
+- assertVisible:
+    id: "flat_contact_button"

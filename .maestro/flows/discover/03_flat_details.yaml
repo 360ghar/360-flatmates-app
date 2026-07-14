@@ -1,0 +1,27 @@
+appId: com.the360ghar.flatmates360
+name: Flat Details - Open and Scroll
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: discover_feed_card_0
+    timeout: 10000
+- tapOn:
+    id: discover_feed_card_0
+- extendedWaitUntil:
+    visible:
+      id: flat_contact_button
+    timeout: 5000
+- assertVisible:
+    id: flat_shortlist_button
+- scroll DOWN
+- scroll DOWN
+- back
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000

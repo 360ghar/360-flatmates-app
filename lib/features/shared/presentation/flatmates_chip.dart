@@ -50,6 +50,17 @@ class FlatmatesChip extends StatelessWidget {
   /// card) where the semantic color drives the chrome.
   final Color? tint;
 
+  /// Leading glyph: optional [icon], or a check when selected for
+  /// filter/choice chips (clearer affordance without extra color).
+  IconData? get _leadingIcon {
+    if (selected &&
+        (variant == FlatmatesChipVariant.filter ||
+            variant == FlatmatesChipVariant.choice)) {
+      return Icons.check;
+    }
+    return icon;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -63,9 +74,11 @@ class FlatmatesChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: AppMotion.chipSelect,
         curve: AppMotion.easeOutCubic,
+        // Compact density (12×6) matches icebreaker pills and keeps more
+        // filter options on one row in the search sheet.
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl - AppSpacing.xs,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs + AppSpacing.xxs,
         ),
         decoration: BoxDecoration(
           color: colors.background,
@@ -80,9 +93,9 @@ class FlatmatesChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[
-                Icon(icon, size: 16, color: colors.foreground),
-                const SizedBox(width: AppSpacing.sm),
+              if (_leadingIcon != null) ...[
+                Icon(_leadingIcon, size: 14, color: colors.foreground),
+                const SizedBox(width: AppSpacing.xs),
               ],
               Flexible(
                 child: Text(
@@ -97,10 +110,10 @@ class FlatmatesChip extends StatelessWidget {
                 ),
               ),
               if (variant == FlatmatesChipVariant.removable) ...[
-                const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.xs),
                 GestureDetector(
                   onTap: onRemoved,
-                  child: Icon(Icons.close, size: 16, color: colors.foreground),
+                  child: Icon(Icons.close, size: 14, color: colors.foreground),
                 ),
               ],
             ],
@@ -115,11 +128,9 @@ class FlatmatesChip extends StatelessWidget {
 
     if (!enabled) {
       return _ChipColors(
-        background: isDark
-            ? AppSemanticColors.darkSurfaceElevated
-            : AppSemanticColors.paper4,
-        foreground: AppSemanticColors.ink3,
-        border: AppSemanticColors.line,
+        background: AppSemanticColors.disabledSurfaceFor(theme.brightness),
+        foreground: AppSemanticColors.textTertiaryFor(theme.brightness),
+        border: AppSemanticColors.hairlineFor(theme.brightness),
       );
     }
 

@@ -29,6 +29,9 @@ jobs:
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
+      - name: Banned architecture patterns
+        run: bash scripts/banned_patterns.sh
+
       - name: Analyze
         run: flutter analyze --fatal-infos
 

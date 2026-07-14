@@ -9,6 +9,9 @@ abstract final class FlatmatesEndpoints {
       '/users/me/onboarding?app=flatmates';
   static const deleteAccount = '/users/me';
   static const userLocation = '/users/location';
+  static const notificationSettings = '/users/notification-settings';
+  static const privacySettings = '/users/privacy-settings';
+  static const privacySettingsCompat = '/users/privacy';
 
   // -- Auth state-machine (Supabase-mirrored) --
   static const identifierStatus = '/auth/identifier-status';
@@ -52,6 +55,7 @@ abstract final class FlatmatesEndpoints {
   // -- Visits --
   static const visits = '/visits';
   static String visit(int id) => '/visits/$id';
+  static String visitReschedule(int id) => '/visits/$id/reschedule';
 
   // -- Notifications --
   static const notifications = '/flatmates/notifications';
@@ -69,6 +73,8 @@ abstract final class FlatmatesEndpoints {
   // -- Flatmates --
   static const flatmatesProfile = '/flatmates/profile';
   static const flatmatesProfiles = '/flatmates/profiles';
+  static String flatmatesPeerCompatibility(int userId) =>
+      '/flatmates/profiles/$userId/compatibility';
   static String societyTagVotes(int id) =>
       '/flatmates/listings/$id/society-tags/votes';
 

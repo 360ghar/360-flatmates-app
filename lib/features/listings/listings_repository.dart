@@ -30,6 +30,17 @@ class ListingCreateRequest {
     required this.societyAmenities,
     required this.societyVibeTags,
     this.videoTourUrl,
+    this.fullAddress,
+    this.floorNumber,
+    this.totalFloors,
+    this.ageMin,
+    this.ageMax,
+    this.nonNegotiables = const [],
+    this.electricityIncluded,
+    this.electricityEst,
+    this.cookCost,
+    this.maidCost,
+    this.setupCost,
   });
 
   final String title;
@@ -55,13 +66,33 @@ class ListingCreateRequest {
   final List<String> societyVibeTags;
   final String? videoTourUrl;
 
+  /// Street / full address collected in the form. Prefer over composed location.
+  final String? fullAddress;
+  final int? floorNumber;
+  final int? totalFloors;
+
+  /// Preferred roommate age range and hard filters — stored under
+  /// [listing_preferences] (backend `ListingPreferences` allows extra keys).
+  final int? ageMin;
+  final int? ageMax;
+  final List<String> nonNegotiables;
+  final String? electricityIncluded;
+  final double? electricityEst;
+  final double? cookCost;
+  final double? maidCost;
+  final double? setupCost;
+
   Map<String, dynamic> toJson() {
-    final fullAddress = [
+    final composedAddress = [
       if (subLocality != null && subLocality!.trim().isNotEmpty)
         subLocality!.trim(),
       if (locality != null && locality!.trim().isNotEmpty) locality!.trim(),
       if (city != null && city!.trim().isNotEmpty) city!.trim(),
     ].join(', ');
+    final street = fullAddress?.trim();
+    final resolvedAddress = (street != null && street.isNotEmpty)
+        ? street
+        : composedAddress;
 
     final preferences = <String, dynamic>{
       'gender_preference': genderPreference,
@@ -74,6 +105,35 @@ class ListingCreateRequest {
     if (videoTourUrl != null) {
       preferences['video_tour_url'] = videoTourUrl;
     }
+    if (ageMin != null) {
+      preferences['preferred_age_min'] = ageMin;
+    }
+    if (ageMax != null) {
+      preferences['preferred_age_max'] = ageMax;
+    }
+    if (nonNegotiables.isNotEmpty) {
+      preferences['non_negotiables'] = nonNegotiables;
+    }
+    if (electricityIncluded != null && electricityIncluded!.isNotEmpty) {
+      preferences['electricity_included'] = electricityIncluded;
+    }
+    if (electricityEst != null) {
+      preferences['electricity_est'] = electricityEst;
+    }
+    if (cookCost != null) {
+      preferences['cook_cost'] = cookCost;
+    }
+    if (maidCost != null) {
+      preferences['maid_cost'] = maidCost;
+    }
+    if (setupCost != null) {
+      preferences['setup_cost'] = setupCost;
+    }
+    // Keep street address in preferences too so edit restore can rehydrate
+    // the form field without losing the top-level Property.full_address.
+    if (street != null && street.isNotEmpty) {
+      preferences['full_address'] = street;
+    }
 
     return {
       'title': title,
@@ -85,10 +145,12 @@ class ListingCreateRequest {
       'city': city,
       'locality': locality,
       'sub_locality': subLocality,
-      'full_address': fullAddress.isEmpty ? null : fullAddress,
+      'full_address': resolvedAddress.isEmpty ? null : resolvedAddress,
       'area_sqft': areaSqft,
       'bedrooms': bedrooms,
       'bathrooms': bathrooms,
+      'floor_number': floorNumber,
+      'total_floors': totalFloors,
       'security_deposit': securityDeposit,
       'maintenance_charges': maintenanceCharges,
       'features': features.isEmpty ? null : features,

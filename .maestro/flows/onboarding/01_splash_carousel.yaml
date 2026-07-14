@@ -1,0 +1,19 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Splash Carousel
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_get_started"
+    timeout: 10000
+
+- tapOn:
+    id: "onboarding_skip"
+    optional: true
+
+- tapOn:
+    id: "onboarding_get_started"

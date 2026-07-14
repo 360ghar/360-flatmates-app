@@ -19,6 +19,33 @@ class WaitlistPage extends ConsumerStatefulWidget {
 
 class _WaitlistPageState extends ConsumerState<WaitlistPage> {
   bool _notified = false;
+  bool _submitting = false;
+
+  Future<void> _notify() async {
+    final locale = AppLocalizations.of(context);
+    setState(() => _submitting = true);
+    try {
+      await ref
+          .read(profileRepositoryProvider)
+          .updateProfile(
+            payload: {
+              'preferences': {
+                'waitlist_city': widget.city,
+                'waitlist_at': DateTime.now().toUtc().toIso8601String(),
+              },
+            },
+          );
+      if (!mounted) return;
+      setState(() => _notified = true);
+      FlatmatesToast.success(context, locale.waitlistConfirmed);
+    } catch (e, st) {
+      debugPrint('[WaitlistPage] notify error: $e\n$st');
+      if (!mounted) return;
+      FlatmatesToast.error(context, locale.errorUnknown);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +74,7 @@ class _WaitlistPageState extends ConsumerState<WaitlistPage> {
                 FlatmatesButton(
                   label: locale.waitlistNotifyCta,
                   fullWidth: true,
-                  onPressed: () async {
-                    try {
-                      await ref
-                          .read(profileRepositoryProvider)
-                          .updateProfile(
-                            payload: {'waitlist_city': widget.city},
-                          );
-                      if (mounted) setState(() => _notified = true);
-                    } catch (e, st) {
-                      debugPrint('[WaitlistPage] notify error: $e\n$st');
-                    }
-                  },
+                  onPressed: _submitting ? null : _notify,
                   icon: Icons.notifications_active_outlined,
                 ),
                 const SizedBox(height: AppSpacing.md),

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/compatibility/compatibility_engine.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
@@ -135,18 +136,20 @@ class ChatsRepository {
     return ConversationSummaryModel.fromJson(data);
   }
 
-  /// Fetches a single page of messages from a conversation using cursor
-  /// pagination. Pass the previous response's [MessageListResponse.nextCursor]
-  /// to fetch older messages; the backend wraps every list endpoint in
-  /// `{ items, next_cursor, has_more, limit }`.
+  /// Fetches a page of messages (newest first page when [beforeId] is null).
+  ///
+  /// Backend contract (not CursorPage):
+  /// `GET .../messages?limit=&before_id=` →
+  /// `{ messages, total, has_more }`. Pass the previous page's
+  /// [MessageListResponse.nextBeforeId] to load older history.
   Future<MessageListResponse> fetchMessages(
     int conversationId, {
-    String? cursor,
-    int limit = 30,
+    int? beforeId,
+    int limit = 50,
   }) async {
     final queryParameters = <String, dynamic>{'limit': limit};
-    if (cursor != null && cursor.isNotEmpty) {
-      queryParameters['cursor'] = cursor;
+    if (beforeId != null && beforeId > 0) {
+      queryParameters['before_id'] = beforeId;
     }
     final response = await _ref
         .read(apiClientProvider)
@@ -155,16 +158,21 @@ class ChatsRepository {
           queryParameters: queryParameters,
         );
     final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
-    final page = parsePagedEnvelope(
-      data,
+    final messages = safeJsonList(
+      data['messages'] as List?,
       ChatMessage.fromJson,
       label: 'messages',
     );
+    final hasMore = data['has_more'] as bool? ?? false;
+    // Chronological page: index 0 is oldest — use as next before_id.
+    final nextBeforeId = hasMore && messages.isNotEmpty
+        ? messages.first.id
+        : null;
     return MessageListResponse(
-      messages: page.items,
-      hasMore: page.hasMore,
-      nextCursor: page.nextCursor,
-      limit: (data['limit'] as num?)?.toInt() ?? limit,
+      messages: messages,
+      hasMore: hasMore,
+      nextBeforeId: nextBeforeId,
+      total: (data['total'] as num?)?.toInt(),
     );
   }
 
@@ -283,6 +291,60 @@ class ChatsRepository {
     }
   }
 
+  /// Fetches per-dimension compatibility data against a peer. Returns null
+  /// when the breakdown is unavailable (no dimensions, or HTTP error).
+  ///
+  /// The backend may emit `overall_percentage: null` when no dimensions are
+  /// comparable while still returning per-dimension "not enough data" rows.
+  /// We parse dimensions even in that case so the UI can show the breakdown
+  /// section. Dimensions with empty user/peer values are filtered out so
+  /// missing data is never misrepresented as a mismatch (0% bars).
+  Future<CompatibilityResult?> fetchPeerCompatibility(int userId) async {
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .get(FlatmatesEndpoints.flatmatesPeerCompatibility(userId));
+      final data = response.data;
+      if (data is! Map) return null;
+      final dims = data['dimensions'] as List?;
+      if (dims == null || dims.isEmpty) return null;
+      final overallPct = (data['overall_percentage'] as num?)?.toDouble();
+
+      final dimensions = dims
+          .whereType<Map>()
+          .map((d) {
+            final m = Map<String, dynamic>.from(d);
+            return CompatibilityDimension(
+              key: m['name'] as String? ?? '',
+              weight: (m['weight'] as num?)?.toDouble() ?? 0,
+              userValue: m['user_value'] as String? ?? '',
+              peerValue: m['peer_value'] as String? ?? '',
+              score: (m['score'] as num?)?.toDouble() ?? 0,
+              isMatch: m['match'] as bool? ?? false,
+              summary: m['summary'] as String? ?? '',
+            );
+          })
+          // Skip dimensions where either side has no data — the backend
+          // emits these with score=0 and summary "not enough data". Showing
+          // them as 0% bars would misrepresent missing data as mismatch.
+          .where((dim) => dim.userValue.isNotEmpty || dim.peerValue.isNotEmpty)
+          .toList();
+
+      if (dimensions.isEmpty) return null;
+
+      return CompatibilityResult(
+        percentage: overallPct ?? 0,
+        dimensions: dimensions,
+        topMatchChips:
+            (data['summary'] as List?)?.whereType<String>().toList() ??
+            const [],
+      );
+    } catch (e) {
+      debugPrint('ChatsRepository.fetchPeerCompatibility: $e');
+      return null;
+    }
+  }
+
   Future<void> markMessagesAsRead(int conversationId) async {
     await _ref
         .read(apiClientProvider)
@@ -380,3 +442,9 @@ final messagesStreamProvider = StreamProvider.family
 final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
   (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
 );
+
+final peerCompatibilityProvider =
+    FutureProvider.family<CompatibilityResult?, int>(
+      (ref, userId) =>
+          ref.watch(chatsRepositoryProvider).fetchPeerCompatibility(userId),
+    );

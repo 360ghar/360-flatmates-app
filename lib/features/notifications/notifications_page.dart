@@ -12,11 +12,14 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
 import '../shared/presentation/flatmates_async_view.dart';
+import '../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import 'application/notifications_actions_controller.dart';
+import 'notification_route_resolver.dart';
 import 'notifications_list_controller.dart';
 import 'notifications_repository.dart';
 
@@ -67,16 +70,21 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final notificationsState = ref.watch(notificationsListControllerProvider);
     final locale = AppLocalizations.of(context);
 
+    final theme = Theme.of(context);
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return Scaffold(
+      backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(
         title: locale.notificationsTitle,
         actions: [
-          IconButton(
+          FlatmatesChromeIconButton(
             key: const Key('notification_mark_all_read'),
             onPressed: () async {
               try {
-                await ref.read(notificationsRepositoryProvider).markAllAsRead();
-                ref.invalidate(notificationsListControllerProvider);
+                await ref
+                    .read(notificationsActionsControllerProvider)
+                    .markAllRead();
               } catch (e) {
                 if (context.mounted) {
                   final msg = e is AppFailure
@@ -86,7 +94,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 }
               }
             },
-            icon: const Icon(Icons.check_circle_outline),
+            icon: Icons.check_circle_outline,
             tooltip: locale.markAllRead,
           ),
         ],
@@ -117,7 +125,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       itemCount: state.items.length + (state.hasMore ? 1 : 0),
                       itemBuilder: (context, index) {
@@ -158,6 +166,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                           icon: _iconForType(notification.type),
                           iconBgColor: _iconBackgroundForType(
                             notification.type,
+                            Theme.of(context).brightness,
                           ),
                           iconColor: _iconColorForType(notification.type),
                           isRead: notification.isRead,
@@ -185,9 +194,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     if (!notification.isRead) {
       try {
         await ref
-            .read(notificationsRepositoryProvider)
-            .markAsRead(notification.id);
-        ref.invalidate(notificationsListControllerProvider);
+            .read(notificationsActionsControllerProvider)
+            .markRead(notification.id);
       } catch (e) {
         if (context.mounted) {
           final msg = e is AppFailure
@@ -200,7 +208,11 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
     if (!context.mounted) return;
 
-    final resolvedRoute = _resolveNotificationRoute(notification);
+    final resolvedRoute = resolveNotificationRoute(
+      route: notification.route,
+      type: notification.type,
+      referenceId: notification.referenceId,
+    );
 
     if (resolvedRoute != null) {
       if (resolvedRoute.startsWith('/chats/') ||
@@ -211,45 +223,6 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       }
     } else if (context.mounted) {
       FlatmatesToast.info(context, locale.notificationNoAction);
-    }
-  }
-
-  String? _resolveNotificationRoute(NotificationModel notification) {
-    final explicitRoute = notification.route;
-    if (explicitRoute != null && explicitRoute.startsWith('/')) {
-      final uri = Uri.tryParse(explicitRoute);
-      if (uri == null) return null;
-      final path = uri.path;
-      final query = uri.hasQuery ? '?${uri.query}' : '';
-      if (path == '/post') return '/post/new$query';
-      if (path == '/visits' || path.startsWith('/visits/')) {
-        return '/profile/visits$query';
-      }
-      return explicitRoute;
-    }
-
-    switch (notification.type) {
-      case 'new_match':
-      case 'flatmate_new_match':
-      case 'new_message':
-      case 'flatmate_new_message':
-        if (notification.referenceId != null) {
-          return '/chats/${notification.referenceId}';
-        }
-        return null;
-      case 'listing_approved':
-      case 'flatmate_listing_approved':
-        if (notification.referenceId != null) {
-          return '/flat-details/${notification.referenceId}';
-        }
-        return '/post/new';
-      case 'visit_scheduled':
-      case 'flatmate_visit_scheduled':
-      case 'visit_confirmed':
-      case 'flatmate_visit_confirmed':
-        return '/profile/visits';
-      default:
-        return null;
     }
   }
 
@@ -275,25 +248,25 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     }
   }
 
-  Color _iconBackgroundForType(String type) {
+  Color _iconBackgroundForType(String type, Brightness brightness) {
     switch (type) {
       case 'new_match':
       case 'flatmate_new_match':
-        return AppSemanticColors.pinkSoft;
+        return AppSemanticColors.pinkSoftFor(brightness);
       case 'new_message':
       case 'flatmate_new_message':
-        return AppSemanticColors.blueSoft;
+        return AppSemanticColors.blueSoftFor(brightness);
       case 'listing_approved':
       case 'flatmate_listing_approved':
-        return AppSemanticColors.greenSoft;
+        return AppSemanticColors.greenSoftFor(brightness);
       case 'visit_scheduled':
       case 'flatmate_visit_scheduled':
-        return AppSemanticColors.yellowSoft;
+        return AppSemanticColors.yellowSoftFor(brightness);
       case 'visit_confirmed':
       case 'flatmate_visit_confirmed':
-        return AppSemanticColors.tealSoft;
+        return AppSemanticColors.tealSoftFor(brightness);
       default:
-        return AppSemanticColors.coralSoft;
+        return AppSemanticColors.coralSoftFor(brightness);
     }
   }
 

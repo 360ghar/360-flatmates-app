@@ -22,14 +22,28 @@ final class GooglePlacesService {
 
   static const _baseUrl = 'https://maps.googleapis.com/maps/api/place';
 
+  /// Whether a Google Places API key is configured (dart-define or dotenv).
+  static bool get isConfigured {
+    const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
+    if (dartDefine.trim().isNotEmpty) return true;
+    try {
+      return (dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '').trim().isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  String get _apiKey {
+    const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
+    if (dartDefine.trim().isNotEmpty) return dartDefine.trim();
+    return (dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '').trim();
+  }
+
   Future<List<PlaceSuggestion>> getPlaceSuggestions(
     String query, {
     ({double latitude, double longitude})? currentLocation,
   }) async {
-    const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
-    final apiKey = dartDefine.trim().isNotEmpty
-        ? dartDefine
-        : (dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '');
+    final apiKey = _apiKey;
     if (apiKey.isEmpty || query.trim().length < 2) return const [];
 
     try {
@@ -93,10 +107,7 @@ final class GooglePlacesService {
     String placeId, {
     String? preferredName,
   }) async {
-    const dartDefine = String.fromEnvironment('GOOGLE_PLACES_API_KEY');
-    final apiKey = dartDefine.trim().isNotEmpty
-        ? dartDefine
-        : (dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '');
+    final apiKey = _apiKey;
     if (apiKey.isEmpty) return null;
 
     try {

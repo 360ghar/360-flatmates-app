@@ -9,8 +9,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 
-final _obscurePasswordProvider = StateProvider.autoDispose<bool>((ref) => true);
-
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({this.phone, this.email, super.key});
 
@@ -27,6 +25,7 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   late final TextEditingController _identifierController;
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   bool get _isEmail => widget.email != null && widget.email!.trim().isNotEmpty;
 
@@ -63,7 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   void _onForgotPassword() {
     final identifier = _identifierController.text.trim();
-    if (!_isEmail) ref.read(pendingPhoneProvider.notifier).state = identifier;
+    if (!_isEmail) ref.read(pendingPhoneProvider.notifier).set(identifier);
     final route = Uri(
       path: '/forgot-password',
       queryParameters: {_isEmail ? 'email' : 'phone': identifier},
@@ -78,7 +77,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
 
     return FlatmatesScreen(
-      appBar: AppBar(),
+      appBar: const FlatmatesHeader.backTitle(title: ''),
       scrollable: true,
       body: AutofillGroup(
         child: Column(
@@ -109,7 +108,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   TextField(
                     key: const Key('login_password_input'),
                     controller: _passwordController,
-                    obscureText: ref.watch(_obscurePasswordProvider),
+                    obscureText: _obscurePassword,
                     autofillHints: const [AutofillHints.password],
                     onSubmitted: (_) =>
                         auth.status == AuthStatus.submitting ? null : _submit(),
@@ -118,16 +117,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       suffixIcon: IconButton(
                         key: const Key('login_password_visibility_toggle'),
                         icon: Icon(
-                          ref.watch(_obscurePasswordProvider)
+                          _obscurePassword
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
                         ),
-                        onPressed: () {
-                          final notifier = ref.read(
-                            _obscurePasswordProvider.notifier,
-                          );
-                          notifier.state = !notifier.state;
-                        },
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                         tooltip: locale.togglePasswordVisibility,
                       ),
                     ),
@@ -167,7 +163,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   // the identifier first, then the mandatory set-password
                   // step creates the credential.
                   final identifier = _identifierController.text.trim();
-                  ref.read(pendingPhoneProvider.notifier).state = identifier;
+                  ref.read(pendingPhoneProvider.notifier).set(identifier);
                   context.go('/enter-phone');
                 },
               ),

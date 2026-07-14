@@ -1,0 +1,23 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Non Negotiables
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "non_neg_no_smoking"
+    timeout: 5000
+
+- tapOn:
+    id: "non_neg_no_smoking"
+
+- tapOn:
+    id: "non_neg_min_tidy"
+
+- tapOn:
+    id: "onboarding_non_neg_done"
+
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 15000

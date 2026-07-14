@@ -1,7 +1,8 @@
 {
   "@@locale": "en",
   "appName": "360 FlatMates",
-  "splashTagline": "Find. Connect. Live Together.",
+  "splashTaglineLine1": "Find. Connect.",
+  "splashTaglineLine2": "Live Together.",
   "splashSubtagline": "The smarter way to find your flat and flatmates.",
   "commonRetry": "Retry",
   "commonSave": "Save",
@@ -51,38 +52,10 @@
   },
   "discoverTitle": "Discover",
   "emptyListings": "No flatmate listings are available right now.",
-  "homeGreeting": "Good afternoon, {name}",
-  "@homeGreeting": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingMorning": "Good morning, {name}",
-  "@homeGreetingMorning": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingAfternoon": "Good afternoon, {name}",
-  "@homeGreetingAfternoon": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingEvening": "Good evening, {name}",
-  "@homeGreetingEvening": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "homeGreeting": "Afternoon",
+  "homeGreetingMorning": "Morning",
+  "homeGreetingAfternoon": "Afternoon",
+  "homeGreetingEvening": "Evening",
   "homeGuestName": "there",
   "homeSubtitle": "Find your next flatmate in {city}",
   "@homeSubtitle": {
@@ -112,6 +85,7 @@
   "homePickedSubtitle": "Top flats that match your preferences and vibe",
   "homeNoResults": "No listings match those filters.",
   "homeNoResultsSubtitle": "Try adjusting your filters or search for a different location.",
+  "homeBroadenedRadius": "No listings within your area — showing flats farther away.",
   "homeBedroomsChip": "{count} BHK",
   "@homeBedroomsChip": {
     "placeholders": {
@@ -198,6 +172,7 @@
   "emptyLikes": "No new likes yet.",
   "chatsTitle": "Chats",
   "callCta": "Call",
+  "messageCta": "Message",
   "listingDetails": "Listing details",
   "percentMatch": "{percent}% Match",
   "@percentMatch": {
@@ -258,6 +233,10 @@
   "profileMenuChats": "My Chats",
   "profileMenuDocuments": "Documents",
   "editProfileCta": "Edit profile",
+  "editProfileTabIdentity": "Identity",
+  "editProfileTabPreferences": "Preferences",
+  "editProfileTabLifestyle": "Lifestyle",
+  "editProfileTabAbout": "About",
   "themeModeTitle": "Theme mode",
   "themeSystem": "System",
   "themeLight": "Light",
@@ -444,6 +423,7 @@
   "blockConfirmMessage": "They won't be able to see your profile or contact you.",
   "blockCta": "Block",
   "userBlocked": "User has been blocked.",
+  "userUnmatched": "You have unmatched this person.",
   "reportTitle": "Report this person",
   "reportFakeProfile": "Fake profile",
   "reportSpam": "Spam",
@@ -879,6 +859,14 @@
       }
     }
   },
+  "budgetPresetAny": "Any",
+  "budgetPresetUnder15k": "Under ₹15k",
+  "budgetPreset15to25k": "₹15–25k",
+  "budgetPreset25to40k": "₹25–40k",
+  "budgetPreset40to60k": "₹40–60k",
+  "budgetPreset60kPlus": "₹60k+",
+  "lifestyleFiltersLabel": "Lifestyle",
+  "lifestyleFiltersSummaryAny": "No preference",
   "roomTypeFilterLabel": "Room Type",
   "roomTypeAny": "Any",
   "roomTypePrivate": "Private",
@@ -910,6 +898,8 @@
   "nearbyChipLabel": "Nearby",
   "budgetPlusChipLabel": "Budget+",
   "chatInputHint": "Type a message...",
+  "emojiCta": "Emoji",
+  "dismissCta": "Dismiss",
   "phoneNotAvailable": "Phone number not available",
   "emailNotAvailable": "Email not available",
   "emojiPickerComingSoon": "Emoji picker coming soon",
@@ -1039,6 +1029,8 @@
   "couldNotLoadListing": "Could not load listing",
   "startAConversation": "Start a conversation",
   "sayHelloOrIcebreaker": "Say hello or use an icebreaker",
+  "noMessagesYet": "No messages here yet...",
+  "noMessagesYetHint": "Send a message or tap the icebreakers below.",
   "messagesArePrivate": "Messages are private",
   "viewLabel": "View",
   "byOwnerLabel": "by {name}",
@@ -1225,6 +1217,14 @@
   "workStyleWfh": "WFH",
   "phoneVerifiedLabel": "Phone verified",
   "showResultsCta": "Show Results",
+  "showResultsWithFiltersCta": "Show Results · {count} filters",
+  "@showResultsWithFiltersCta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchFiltersTitle": "Search & Filters",
   "clearAllFilters": "Clear all",
   "errorNetwork": "No internet connection. Please check your network and try again.",
@@ -1537,6 +1537,44 @@
   "meetPotentialFlatmates": "Meet potential flatmates",
   "lifestyleSectionTitle": "Lifestyle",
   "dealBreakersSectionTitle": "Deal-breakers",
+  "dealBreakersSectionSubtitle": "Non-negotiables they set",
+  "matchToneGreat": "Great match",
+  "matchToneWorkable": "Workable",
+  "matchToneGaps": "Preference gaps",
+  "compatAlignedCount": "{count} aligned",
+  "@compatAlignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatWorkableCount": "{count} workable",
+  "@compatWorkableCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatGapCount": "{count} gaps",
+  "@compatGapCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lifestyleDimSleep": "Sleep",
+  "lifestyleDimCleanliness": "Cleanliness",
+  "lifestyleDimFood": "Food",
+  "lifestyleDimSmoking": "Smoking / Drinking",
+  "lifestyleDimGuests": "Guests",
+  "lifestyleDimWork": "Work",
+  "lifestyleDimParty": "Parties",
+  "societyVibesLabel": "Society vibes",
+  "roomFeaturesLabel": "Room features",
+  "availableFromLabel": "Available from",
+  "dealBreakersCountBadge": "{count} deal-breakers",
+  "@dealBreakersCountBadge": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "likeListingTooltip": "Add to your likes",
   "unlikeListingTooltip": "Remove from your likes",
   "togglePasswordVisibility": "Toggle password visibility",
@@ -1671,5 +1709,48 @@
   "noMoreNotificationsLabel": "You're all caught up.",
   "noMoreBlockedUsersLabel": "No more blocked users.",
 
-  "unverifiedAccountHint": "Your account isn't verified yet. Complete verification below or resend a code."
+  "unverifiedAccountHint": "Your account isn't verified yet. Complete verification below or resend a code.",
+
+  "profileCompletionTitle": "Let's set up your profile",
+  "profileCompletionSubtitle": "We need a few details to get you started.",
+  "profileCompletionContinue": "Continue",
+  "profileCompletionSaving": "Saving…",
+  "profileCompletionError": "Couldn't save your profile. Please try again.",
+  "dateOfBirthLabel": "Date of birth",
+  "dateOfBirthHelper": "You must be 18 or older",
+  "dateOfBirthPickerTitle": "Select your date of birth",
+
+  "onboardingBannerTitle": "Complete your profile to start matching",
+  "onboardingBannerCta": "Continue setup",
+  "onboardingStepsRemaining": "{count} steps left",
+  "@onboardingStepsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStepOf": "Step {current} of {total}",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStepMode": "Your role",
+  "onboardingStepLocation": "Location",
+  "onboardingStepBasicInfo": "Basic info",
+  "onboardingStepPhoto": "Profile photo",
+  "onboardingStepLifestyle": "Lifestyle",
+  "onboardingStepBudget": "Budget & timeline",
+  "onboardingStepPreferences": "Preferences",
+  "onboardingStepNonNegotiables": "Non-negotiables",
+  "onboardingWelcomeBack": "Welcome back! Pick up where you left off.",
+  "onboardingActionBlockedTitle": "Complete your profile first",
+  "onboardingActionBlockedMessage": "Finish setting up your profile to start matching with flatmates.",
+  "onboardingActionBlockedCta": "Continue setup"
 }

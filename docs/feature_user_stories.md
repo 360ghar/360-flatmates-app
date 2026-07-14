@@ -5,10 +5,9 @@ expected behavior (derived from code), test status, errors found, and fix notes.
 
 **Audit summary (post-fix)**
 - 76 user stories across 16 feature areas
-- 12 stories fixed (client-side code changes applied)
-- 7 stories verified clean (false positives from initial scan, no action needed)
-- 57 stories cataloged (no errors found in static review)
-- Quality gates: `flutter analyze` clean, `flutter test` 136/136 passed, `banned_patterns.sh` all passed, `dart format` clean
+- Full parallel UX audit + complete fix sweep (2026-07-10 → 2026-07-11): **no deferred backlog**
+- Wave 2a + backlog: visits contract, discover, society tags, push deep-nav, force-update host, listing payload, profile completion, soft gate `/tab2`, chat photo send, QnA unify, privacy/notif remote sync, swipe undo integrity, map like toggle, needsPassword durability, waitlist honesty, reduced motion, under-review live UI, and more — see `docs/ux_audit_backlog.md`
+- Quality gates: `banned_patterns.sh` pass, `flutter analyze` clean, `flutter test` 274/274 passed
 
 **Status legend**
 - `Cataloged` — story documented, static review found no errors

@@ -9,12 +9,6 @@ import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
 import '../shared/presentation/components.dart';
 
-/// Tracks whether the account deletion request is in flight.
-final _deletingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
-/// Tracks whether the user has typed the confirmation word ("DELETE").
-final _confirmedProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 class DeleteAccountPage extends ConsumerStatefulWidget {
   const DeleteAccountPage({super.key});
 
@@ -24,15 +18,8 @@ class DeleteAccountPage extends ConsumerStatefulWidget {
 
 class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
   final _confirmController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Reset the page-scoped flags so stale state from a prior visit (e.g. a
-    // confirmed-but-cancelled attempt) never leaks into a fresh visit.
-    ref.read(_confirmedProvider.notifier).state = false;
-    ref.read(_deletingProvider.notifier).state = false;
-  }
+  bool _isDeleting = false;
+  bool _isConfirmed = false;
 
   @override
   void dispose() {
@@ -44,14 +31,9 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isDeleting = ref.watch(_deletingProvider);
-    final isConfirmed = ref.watch(_confirmedProvider);
 
     return FlatmatesScreen(
-      appBar: FlatmatesHeader.backTitle(
-        title: locale.deleteAccountTitle,
-        centerTitle: true,
-      ),
+      appBar: FlatmatesHeader.backTitle(title: locale.deleteAccountTitle),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
@@ -88,12 +70,14 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
           TextField(
             key: const Key('delete_account_confirm_field'),
             controller: _confirmController,
-            enabled: !isDeleting,
+            enabled: !_isDeleting,
             autocorrect: false,
             textCapitalization: TextCapitalization.characters,
             onChanged: (value) {
               final confirmed = value.trim().toUpperCase() == 'DELETE';
-              ref.read(_confirmedProvider.notifier).state = confirmed;
+              if (confirmed != _isConfirmed) {
+                setState(() => _isConfirmed = confirmed);
+              }
             },
             decoration: InputDecoration(
               hintText: locale.deleteAccountConfirmHint,
@@ -103,7 +87,9 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: AppRadius.smBorder,
                 borderSide: BorderSide(
-                  color: AppSemanticColors.line.withValues(alpha: 0.35),
+                  color: AppSemanticColors.hairlineFor(
+                    theme.brightness,
+                  ).withValues(alpha: 0.35),
                 ),
               ),
               focusedBorder: const OutlineInputBorder(
@@ -115,11 +101,11 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
           const SizedBox(height: AppSpacing.xl),
           FlatmatesButton.secondary(
             key: const Key('delete_account_confirm_button'),
-            label: isDeleting
+            label: _isDeleting
                 ? locale.deleteAccountInProgress
                 : locale.deleteAccountButton,
             fullWidth: true,
-            onPressed: isConfirmed && !isDeleting ? _handleDelete : null,
+            onPressed: _isConfirmed && !_isDeleting ? _handleDelete : null,
             destructive: true,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -127,7 +113,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
             key: const Key('delete_account_cancel_button'),
             label: locale.cancelCta,
             fullWidth: true,
-            onPressed: isDeleting ? null : () => context.pop(),
+            onPressed: _isDeleting ? null : () => context.pop(),
           ),
         ],
       ),
@@ -136,7 +122,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
 
   Future<void> _handleDelete() async {
     final locale = AppLocalizations.of(context);
-    if (!ref.read(_confirmedProvider) || ref.read(_deletingProvider)) return;
+    if (!_isConfirmed || _isDeleting) return;
 
     // Final irreversible-action confirmation dialog.
     final confirmed = await showDialog<bool>(
@@ -163,7 +149,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
     );
 
     if (confirmed != true || !mounted) return;
-    ref.read(_deletingProvider.notifier).state = true;
+    setState(() => _isDeleting = true);
 
     final success = await ref
         .read(authControllerProvider.notifier)
@@ -174,7 +160,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
     if (success) {
       context.go('/enter-phone');
     } else {
-      ref.read(_deletingProvider.notifier).state = false;
+      setState(() => _isDeleting = false);
       // deleteAccount() returns a bool and never populates a per-call error
       // message; show the delete-failure copy directly. Reading auth.errorMessage
       // here would surface a stale key left by an unrelated prior auth attempt.

@@ -169,29 +169,32 @@ class ConversationSummaryModel with _$ConversationSummaryModel {
   }
 }
 
-/// Paginated message envelope returned by `GET /flatmates/conversations/{id}/messages`.
+/// Paginated message envelope returned by
+/// `GET /flatmates/conversations/{id}/messages`.
 ///
-/// The backend wraps all list endpoints in
-/// `{ items, next_cursor, has_more, limit }`. `limit` is the page size the
-/// server echoed back; callers use it to size UI pagination controls.
+/// Unlike conversations/likes (CursorPage with `items`/`next_cursor`), messages
+/// use keyset pagination:
+/// `{ messages: MessageOut[], total: int, has_more: bool }` with query
+/// `before_id` (oldest message id on the current page for the next older page).
 class MessageListResponse {
   const MessageListResponse({
     required this.messages,
     required this.hasMore,
-    this.nextCursor,
-    this.limit,
+    this.nextBeforeId,
+    this.total,
   });
 
   final List<ChatMessage> messages;
 
-  /// Whether more messages exist after [messages].
+  /// Whether older messages exist before [messages].
   final bool hasMore;
 
-  /// Opaque cursor for the next page; `null` when at the end of the thread.
-  final String? nextCursor;
+  /// Pass as `before_id` on the next page request; `null` when at the start
+  /// of the thread or when [messages] is empty.
+  final int? nextBeforeId;
 
-  /// Page size used by the server for this response, when present.
-  final int? limit;
+  /// Count of messages in this page (backend `total` field).
+  final int? total;
 }
 
 class IncomingLikeModel {

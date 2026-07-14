@@ -1,0 +1,20 @@
+appId: com.the360ghar.flatmates360
+name: Map View - Explore Tab
+tags:
+  - map
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_explore_tab
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Explore"
+    timeout: 5000
+    optional: true
+- scroll DOWN:
+    optional: true
+- tapOn:
+    id: nav_home_tab

@@ -1,0 +1,27 @@
+appId: com.the360ghar.flatmates360
+name: Flat Details - Share Button
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: discover_feed_card_0
+    timeout: 10000
+- tapOn:
+    id: discover_feed_card_0
+- extendedWaitUntil:
+    visible:
+      id: flat_contact_button
+    timeout: 5000
+- tapOn:
+    id: flat_share_button
+- back:
+    optional: true
+- back
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000

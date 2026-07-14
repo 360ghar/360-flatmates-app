@@ -24,16 +24,14 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
   String _foodHabits = 'no_preference';
   String _pets = 'no_preference';
   String _smoking = 'no';
-  String _moveInTimeline = 'flexible';
 
   @override
   void initState() {
     super.initState();
     // Restore previously-selected preferences so going back/forward or
     // resuming a saved draft retains the user's choices.
+    // Move-in timeline is owned by the budget step — not duplicated here.
     final saved = ref.read(onboardingControllerProvider).preferences;
-    final savedTimeline = ref.read(onboardingControllerProvider).moveInTimeline;
-    _moveInTimeline = savedTimeline ?? _moveInTimeline;
     if (saved.isEmpty) return;
     _preferredGender =
         saved['gender_preference']?.toString() ?? _preferredGender;
@@ -103,13 +101,6 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
     _PillOption(key: 'no_preference', label: ''),
   ];
 
-  static const _fallbackMoveInOptions = [
-    _PillOption(key: 'immediate', label: ''),
-    _PillOption(key: 'this_month', label: ''),
-    _PillOption(key: 'next_month', label: ''),
-    _PillOption(key: 'flexible', label: ''),
-  ];
-
   /// Get gender options: catalog first, then localized fallback.
   List<_PillOption> get _genderOptions {
     final catalog = _catalogPills(
@@ -168,21 +159,6 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
       _PillOption(key: 'no', label: locale.prefNo),
       _PillOption(key: 'yes', label: locale.prefYes),
       _PillOption(key: 'no_preference', label: locale.prefNoPreference),
-    ];
-  }
-
-  List<_PillOption> get _moveInOptions {
-    final catalog = _catalogPills(
-      'flatmates_move_in_timelines',
-      _fallbackMoveInOptions,
-    );
-    if (catalog.isNotEmpty && catalog.first.label.isNotEmpty) return catalog;
-    final locale = AppLocalizations.of(context);
-    return [
-      _PillOption(key: 'immediate', label: locale.timelineImmediate),
-      _PillOption(key: 'this_month', label: locale.timelineThisMonth),
-      _PillOption(key: 'next_month', label: locale.timelineNextMonth),
-      _PillOption(key: 'flexible', label: locale.timelineFlexible),
     ];
   }
 
@@ -281,19 +257,6 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
                 options: _smokingOptions,
                 selectedKey: _smoking,
                 onSelected: (v) => setState(() => _smoking = v),
-              ),
-            ],
-          ),
-
-          // 6. Move-in Timeline
-          _PreferenceSection(
-            icon: Icons.event_outlined,
-            title: locale.prefMoveInLabel,
-            children: [
-              _pillOptions(
-                options: _moveInOptions,
-                selectedKey: _moveInTimeline,
-                onSelected: (v) => setState(() => _moveInTimeline = v),
               ),
             ],
           ),

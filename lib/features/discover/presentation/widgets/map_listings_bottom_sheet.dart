@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/mutable_notifier.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -9,7 +10,12 @@ import '../../../shared/presentation/flatmates_empty_state.dart';
 import '../../discover_repository.dart';
 import 'discover_listing_card.dart';
 
-const _compactListingCardsHeight = 152.0;
+/// Map carousel card geometry — shared with [MapViewPage] scroll-to-selected.
+/// Sized so ~1.5–2 cards peek on a phone with balanced photo + readable text.
+const kMapCarouselCardWidth = 188.0;
+
+/// Image (16:10 @ 188 → ~118) + pad + rent/locality (~40).
+const kMapCarouselCardHeight = 168.0;
 
 /// Bottom draggable sheet that surfaces a horizontally-scrolling list of
 /// listings overlaid on the map view. Highlights the selected property
@@ -40,15 +46,17 @@ class MapListingsBottomSheet extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Exact height calculation to tightly wrap the content:
-        // Handle area (8 top + 4 line + 8 bottom) = 20
-        // Title area (0 top + roughly 20 text + 8 bottom) = 28
-        // Cards area = compact listing card height
-        // Bottom padding (AppSpacing.lg = 16) + safeArea
+        // Tight height so the sheet hugs content (no empty band under cards):
+        // Handle: sm top + 4 line + sm bottom = 20
+        // Title: ~20 line + sm bottom = 28
+        // Cards: kMapCarouselCardHeight
+        // Bottom: sm + safe area (tighter than lg)
         final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
-        final bottomPadding = AppSpacing.lg + safeAreaBottom;
+        final bottomPadding = AppSpacing.sm + safeAreaBottom;
+        const handleHeight = AppSpacing.sm * 2 + 4.0;
+        const titleHeight = 20.0 + AppSpacing.sm;
         final contentHeight =
-            20.0 + 28.0 + _compactListingCardsHeight + bottomPadding;
+            handleHeight + titleHeight + kMapCarouselCardHeight + bottomPadding;
         const collapsedHeight = 60.0;
 
         final maxFraction = (contentHeight / constraints.maxHeight).clamp(
@@ -119,11 +127,12 @@ class MapListingsBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       SizedBox(
-                        height: _compactListingCardsHeight,
+                        height: kMapCarouselCardHeight,
                         child: listings.isEmpty
                             ? FlatmatesEmptyState(
                                 title: locale.noListingsMatchFilters,
                                 icon: Icons.search_off_rounded,
+                                compact: true,
                               )
                             : _HorizontalCardList(
                                 listings: listings,
@@ -145,9 +154,10 @@ class MapListingsBottomSheet extends ConsumerWidget {
 }
 
 /// Tracks whether the list is scrolling due to a programmatic tap on the map.
-final mapProgrammaticScrollProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
+final mapProgrammaticScrollProvider =
+    NotifierProvider.autoDispose<AutoDisposeMutableNotifier<bool>, bool>(
+      () => AutoDisposeMutableNotifier(false),
+    );
 
 class _HorizontalCardList extends ConsumerWidget {
   const _HorizontalCardList({
@@ -174,7 +184,7 @@ class _HorizontalCardList extends ConsumerWidget {
 
           final offset = scrollController.offset;
           final viewportWidth = MediaQuery.sizeOf(context).width;
-          const itemWidth = 130.0;
+          const itemWidth = kMapCarouselCardWidth;
           const padding = AppSpacing.md;
           const spacing = AppSpacing.sm;
           const totalItemWidth = itemWidth + spacing;
@@ -187,7 +197,7 @@ class _HorizontalCardList extends ConsumerWidget {
           final visibleItem = listings[index];
           final currentSelected = ref.read(selectedPropertyProvider);
           if (currentSelected?.id != visibleItem.id) {
-            ref.read(selectedPropertyProvider.notifier).state = visibleItem;
+            ref.read(selectedPropertyProvider.notifier).set(visibleItem);
           }
         }
         return false;
@@ -202,18 +212,16 @@ class _HorizontalCardList extends ConsumerWidget {
           final selectedProperty = ref.watch(selectedPropertyProvider);
           return Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: 130,
-                child: DiscoverListingCard(
-                  cardKey: Key('map_sheet_card_${item.id}'),
-                  item: item,
-                  isSelected: item.id == selectedProperty?.id,
-                  compact: true,
-                  onTap: () => onTap(item),
-                  onLike: () => onLike(item),
-                ),
+            child: SizedBox(
+              width: kMapCarouselCardWidth,
+              height: kMapCarouselCardHeight,
+              child: DiscoverListingCard(
+                cardKey: Key('map_sheet_card_${item.id}'),
+                item: item,
+                isSelected: item.id == selectedProperty?.id,
+                compact: true,
+                onTap: () => onTap(item),
+                onLike: () => onLike(item),
               ),
             ),
           );

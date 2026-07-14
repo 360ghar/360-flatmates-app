@@ -37,31 +37,38 @@ class FlatmatesScreen extends StatefulWidget {
 
 class _FlatmatesScreenState extends State<FlatmatesScreen>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeIn;
+  AnimationController? _controller;
+  Animation<double>? _fadeIn;
+  bool _reduceMotion = false;
+  bool _motionResolved = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
+  void _resolveMotion(BuildContext context) {
+    if (_motionResolved) return;
+    _motionResolved = true;
+    _reduceMotion = AppMotion.reduceMotion(context);
+    if (_reduceMotion) return;
+
+    final controller = AnimationController(
       vsync: this,
       duration: AppMotion.fadeInEntry,
     );
+    _controller = controller;
     _fadeIn = CurvedAnimation(
-      parent: _controller,
+      parent: controller,
       curve: AppMotion.easeOutCubic,
     );
-    _controller.forward();
+    controller.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _resolveMotion(context);
     final effectivePadding = widget.padding ?? AppSpacing.horizontalScreen;
     final content = widget.scrollable
         ? LayoutBuilder(
@@ -85,16 +92,18 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
             child: widget.body,
           );
 
+    final body = widget.useSafeArea ? SafeArea(child: content) : content;
+    final fadeIn = _fadeIn;
+
     return Scaffold(
       appBar: widget.appBar,
       backgroundColor: widget.backgroundColor,
       bottomNavigationBar: widget.bottomNavigationBar,
       bottomSheet: widget.bottomSheet,
       floatingActionButton: widget.floatingActionButton,
-      body: FadeTransition(
-        opacity: _fadeIn,
-        child: widget.useSafeArea ? SafeArea(child: content) : content,
-      ),
+      body: _reduceMotion || fadeIn == null
+          ? body
+          : FadeTransition(opacity: fadeIn, child: body),
     );
   }
 }

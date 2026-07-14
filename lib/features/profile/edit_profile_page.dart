@@ -12,18 +12,16 @@ import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
 import 'presentation/widgets/edit_profile_options.dart';
-import 'presentation/widgets/edit_profile_sections.dart';
+import 'presentation/widgets/edit_profile_tabs.dart';
 import 'profile_repository.dart';
 
 // Local UI state via StateProviders (convention: no setState in ConsumerState).
 // These are .autoDispose so each edit session starts with fresh defaults and
 // seeded backend values never leak across visits.
-final _modeProvider = StateProvider.autoDispose<String>(
-  (ref) => 'open_to_both',
-);
-final _workStyleProvider = StateProvider.autoDispose<String>((ref) => 'hybrid');
 // Null until seeded from profile / user picks a catalog id — avoids overwriting
 // an unmapped server value with a silent default on save.
+final _modeProvider = StateProvider.autoDispose<String?>((ref) => null);
+final _workStyleProvider = StateProvider.autoDispose<String?>((ref) => null);
 final _moveInTimelineProvider = StateProvider.autoDispose<String?>(
   (ref) => null,
 );
@@ -45,6 +43,12 @@ final _photoUrlsProvider = StateProvider.autoDispose<List<String>>(
 final _savingProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _photoUploadingProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _dirtyProvider = StateProvider.autoDispose<bool>((ref) => false);
+
+/// Active edit-profile tab. Defaults to Identity so the most-edited fields
+/// (photo, contact, basics) are visible on open.
+final _editTabProvider = StateProvider.autoDispose<EditProfileTab>(
+  (ref) => EditProfileTab.identity,
+);
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -146,13 +150,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       locale: AppLocalizations.of(context),
       bootstrap: ref.read(bootstrapControllerProvider).valueOrNull,
     ).seedFromProfile(profile);
-    if (seed.mode != null) ref.read(_modeProvider.notifier).state = seed.mode!;
-    if (seed.workStyle != null) {
-      ref.read(_workStyleProvider.notifier).state = seed.workStyle!;
-    }
-    if (seed.moveInTimeline != null) {
-      ref.read(_moveInTimelineProvider.notifier).state = seed.moveInTimeline!;
-    }
+    // Always seed nullable providers from catalog match (null = unmapped / unset).
+    ref.read(_modeProvider.notifier).state = seed.mode;
+    ref.read(_workStyleProvider.notifier).state = seed.workStyle;
+    ref.read(_moveInTimelineProvider.notifier).state = seed.moveInTimeline;
     ref.read(_sleepScheduleProvider.notifier).state = seed.sleepSchedule;
     ref.read(_cleanlinessProvider.notifier).state = seed.cleanliness;
     ref.read(_foodHabitsProvider.notifier).state = seed.foodHabits;
@@ -254,6 +255,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     final saving = ref.watch(_savingProvider);
     final photoUploading = ref.watch(_photoUploadingProvider);
     final dirty = ref.watch(_dirtyProvider);
+    final tab = ref.watch(_editTabProvider);
     final options = EditProfileOptions(
       locale: locale,
       bootstrap: ref.watch(bootstrapControllerProvider).valueOrNull,
@@ -262,6 +264,59 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final value = controller.text.trim();
       return value.isEmpty ? null : value;
     }
+
+    final values = EditProfileTabValues(
+      photoUrls: ref.watch(_photoUrlsProvider),
+      photoUploading: photoUploading,
+      mode: ref.watch(_modeProvider),
+      moveInTimeline: ref.watch(_moveInTimelineProvider),
+      workStyle: ref.watch(_workStyleProvider),
+      sleepSchedule: ref.watch(_sleepScheduleProvider),
+      cleanliness: ref.watch(_cleanlinessProvider),
+      foodHabits: ref.watch(_foodHabitsProvider),
+      smokingDrinking: ref.watch(_smokingDrinkingProvider),
+      guestsPolicy: ref.watch(_guestsPolicyProvider),
+      nonNegotiables: ref.watch(_nonNegotiablesProvider),
+    );
+
+    final handlers = EditProfileTabHandlers(
+      onModeChanged: (value) {
+        ref.read(_modeProvider.notifier).state = value;
+        _markDirty();
+      },
+      onMoveInTimelineChanged: (value) {
+        ref.read(_moveInTimelineProvider.notifier).state = value;
+        _markDirty();
+      },
+      onWorkStyleChanged: (value) {
+        ref.read(_workStyleProvider.notifier).state = value;
+        _markDirty();
+      },
+      onSleepScheduleChanged: (value) {
+        ref.read(_sleepScheduleProvider.notifier).state = value;
+        _markDirty();
+      },
+      onCleanlinessChanged: (value) {
+        ref.read(_cleanlinessProvider.notifier).state = value;
+        _markDirty();
+      },
+      onFoodHabitsChanged: (value) {
+        ref.read(_foodHabitsProvider.notifier).state = value;
+        _markDirty();
+      },
+      onSmokingDrinkingChanged: (value) {
+        ref.read(_smokingDrinkingProvider.notifier).state = value;
+        _markDirty();
+      },
+      onGuestsPolicyChanged: (value) {
+        ref.read(_guestsPolicyProvider.notifier).state = value;
+        _markDirty();
+      },
+      onNonNegotiablesChanged: (value) {
+        ref.read(_nonNegotiablesProvider.notifier).state = value;
+        _markDirty();
+      },
+    );
 
     return PopScope(
       canPop: !dirty,
@@ -276,120 +331,58 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           onBack: _handlePop,
         ),
         body: SafeArea(
-          minimum: const EdgeInsets.all(AppSpacing.lg),
-          child: ListView(
+          minimum: const EdgeInsets.only(
+            top: AppSpacing.lg,
+            left: AppSpacing.screen,
+            right: AppSpacing.screen,
+          ),
+          child: Column(
             children: [
-              EditProfilePhotoSection(
-                locale: locale,
-                photoUrls: ref.watch(_photoUrlsProvider),
-                photoUploading: photoUploading,
-                onPickAndUploadPhoto: _pickAndUploadPhoto,
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: FlatmatesSegmentedControl<EditProfileTab>(
+                  segments: editProfileTabSegments(locale),
+                  selected: tab,
+                  onChanged: (value) =>
+                      ref.read(_editTabProvider.notifier).state = value,
+                  segmentKeys: const [
+                    Key('profile_tab_identity'),
+                    Key('profile_tab_preferences'),
+                    Key('profile_tab_lifestyle'),
+                    Key('profile_tab_about'),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              EditProfileContactInfoSection(
-                locale: locale,
-                emailController: _emailController,
-                phoneController: _phoneController,
-                hasEmail: _hasEmail,
-                hasPhone: _hasPhone,
+              Expanded(
+                child: buildEditProfileTabBody(
+                  tab: tab,
+                  locale: locale,
+                  options: options,
+                  values: values,
+                  handlers: handlers,
+                  emailController: _emailController,
+                  phoneController: _phoneController,
+                  nameController: _nameController,
+                  ageController: _ageController,
+                  professionController: _professionController,
+                  cityController: _cityController,
+                  localityController: _localityController,
+                  budgetMinController: _budgetMinController,
+                  budgetMaxController: _budgetMaxController,
+                  bioController: _bioController,
+                  hasEmail: _hasEmail,
+                  hasPhone: _hasPhone,
+                  onPickAndUploadPhoto: _pickAndUploadPhoto,
+                ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              EditProfileBasicInfoSection(
-                locale: locale,
-                nameController: _nameController,
-                ageController: _ageController,
-                professionController: _professionController,
-                cityController: _cityController,
-                localityController: _localityController,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              EditProfileModeSection(
-                locale: locale,
-                mode: ref.watch(_modeProvider),
-                items: options.modeItems(),
-                onChanged: (value) {
-                  ref.read(_modeProvider.notifier).state = value;
-                  _markDirty();
-                },
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              EditProfileBudgetTimelineSection(
-                locale: locale,
-                budgetMinController: _budgetMinController,
-                budgetMaxController: _budgetMaxController,
-                moveInTimeline: ref.watch(_moveInTimelineProvider),
-                workStyle: ref.watch(_workStyleProvider),
-                timelineItems: options.timelineItems(),
-                workStyleItems: options.workStyleItems(),
-                onMoveInTimelineChanged: (value) {
-                  ref.read(_moveInTimelineProvider.notifier).state = value;
-                  _markDirty();
-                },
-                onWorkStyleChanged: (value) {
-                  ref.read(_workStyleProvider.notifier).state = value;
-                  _markDirty();
-                },
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              EditProfileLifestyleSection(
-                locale: locale,
-                sleepSchedule: ref.watch(_sleepScheduleProvider),
-                cleanliness: ref.watch(_cleanlinessProvider),
-                foodHabits: ref.watch(_foodHabitsProvider),
-                smokingDrinking: ref.watch(_smokingDrinkingProvider),
-                guestsPolicy: ref.watch(_guestsPolicyProvider),
-                sleepItems: options.sleepItems(),
-                cleanlinessItems: options.cleanlinessItems(),
-                foodItems: options.foodItems(),
-                smokingItems: options.smokingItems(),
-                guestsItems: options.guestsItems(),
-                onSleepScheduleChanged: (value) {
-                  ref.read(_sleepScheduleProvider.notifier).state = value;
-                  _markDirty();
-                },
-                onCleanlinessChanged: (value) {
-                  ref.read(_cleanlinessProvider.notifier).state = value;
-                  _markDirty();
-                },
-                onFoodHabitsChanged: (value) {
-                  ref.read(_foodHabitsProvider.notifier).state = value;
-                  _markDirty();
-                },
-                onSmokingDrinkingChanged: (value) {
-                  ref.read(_smokingDrinkingProvider.notifier).state = value;
-                  _markDirty();
-                },
-                onGuestsPolicyChanged: (value) {
-                  ref.read(_guestsPolicyProvider.notifier).state = value;
-                  _markDirty();
-                },
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              EditProfileNonNegotiablesSection(
-                locale: locale,
-                options: options.nonNegotiableOptions(),
-                selectedIds: ref.watch(_nonNegotiablesProvider),
-                onSelectionChanged: (value) {
-                  ref.read(_nonNegotiablesProvider.notifier).state = value;
-                  _markDirty();
-                },
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              EditProfileBioSection(
-                locale: locale,
-                bioController: _bioController,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              FlatmatesButton(
-                key: const Key('profile_save_button'),
+              FlatmatesBottomActionBar(
                 label: saving ? locale.profileSaving : locale.commonSave,
                 icon: saving ? null : Icons.check,
-                fullWidth: true,
+                primaryButtonKey: const Key('profile_save_button'),
                 onPressed: (saving || photoUploading || !dirty)
                     ? null
                     : () => _save(nullableText),
               ),
-              const SizedBox(height: AppSpacing.xl),
             ],
           ),
         ),
@@ -402,18 +395,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     double? budgetMin,
     double? budgetMax,
   ) {
+    final mode = ref.read(_modeProvider);
+    final workStyle = ref.read(_workStyleProvider);
+    final moveInTimeline = ref.read(_moveInTimelineProvider);
     final payload = <String, dynamic>{
       'full_name': nullableText(_nameController),
       'age': int.tryParse(_ageController.text.trim()),
       'profession': nullableText(_professionController),
-      'mode': ref.read(_modeProvider),
+      'mode': ?mode,
       'city': nullableText(_cityController),
       'locality': nullableText(_localityController),
       'budget_min': budgetMin,
       'budget_max': budgetMax,
-      if (ref.read(_moveInTimelineProvider) != null)
-        'move_in_timeline': ref.read(_moveInTimelineProvider),
-      'work_style': ref.read(_workStyleProvider),
+      'move_in_timeline': ?moveInTimeline,
+      'work_style': ?workStyle,
       'bio': nullableText(_bioController),
       'sleep_schedule': ref.read(_sleepScheduleProvider),
       'cleanliness': ref.read(_cleanlinessProvider),

@@ -1,0 +1,17 @@
+appId: com.the360ghar.flatmates360
+name: Change Location - Location Chip
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000
+- tapOn:
+    text: "Change"
+    optional: true
+- back:
+    optional: true

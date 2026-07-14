@@ -104,11 +104,17 @@ abstract class AppLocalizations {
   /// **'360 FlatMates'**
   String get appName;
 
-  /// No description provided for @splashTagline.
+  /// No description provided for @splashTaglineLine1.
   ///
   /// In en, this message translates to:
-  /// **'Find. Connect. Live Together.'**
-  String get splashTagline;
+  /// **'Find. Connect.'**
+  String get splashTaglineLine1;
+
+  /// No description provided for @splashTaglineLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Together.'**
+  String get splashTaglineLine2;
 
   /// No description provided for @splashSubtagline.
   ///
@@ -323,26 +329,26 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Good afternoon, {name}'**
-  String homeGreeting(String name);
+  /// **'Afternoon'**
+  String get homeGreeting;
 
   /// No description provided for @homeGreetingMorning.
   ///
   /// In en, this message translates to:
-  /// **'Good morning, {name}'**
-  String homeGreetingMorning(String name);
+  /// **'Morning'**
+  String get homeGreetingMorning;
 
   /// No description provided for @homeGreetingAfternoon.
   ///
   /// In en, this message translates to:
-  /// **'Good afternoon, {name}'**
-  String homeGreetingAfternoon(String name);
+  /// **'Afternoon'**
+  String get homeGreetingAfternoon;
 
   /// No description provided for @homeGreetingEvening.
   ///
   /// In en, this message translates to:
-  /// **'Good evening, {name}'**
-  String homeGreetingEvening(String name);
+  /// **'Evening'**
+  String get homeGreetingEvening;
 
   /// No description provided for @homeGuestName.
   ///
@@ -433,6 +439,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try adjusting your filters or search for a different location.'**
   String get homeNoResultsSubtitle;
+
+  /// No description provided for @homeBroadenedRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'No listings within your area — showing flats farther away.'**
+  String get homeBroadenedRadius;
 
   /// No description provided for @homeBedroomsChip.
   ///
@@ -571,6 +583,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Call'**
   String get callCta;
+
+  /// No description provided for @messageCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messageCta;
 
   /// No description provided for @listingDetails.
   ///
@@ -805,6 +823,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit profile'**
   String get editProfileCta;
+
+  /// No description provided for @editProfileTabIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get editProfileTabIdentity;
+
+  /// No description provided for @editProfileTabPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get editProfileTabPreferences;
+
+  /// No description provided for @editProfileTabLifestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get editProfileTabLifestyle;
+
+  /// No description provided for @editProfileTabAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get editProfileTabAbout;
 
   /// No description provided for @themeModeTitle.
   ///
@@ -1861,6 +1903,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'User has been blocked.'**
   String get userBlocked;
+
+  /// No description provided for @userUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unmatched this person.'**
+  String get userUnmatched;
 
   /// No description provided for @reportTitle.
   ///
@@ -3878,6 +3926,54 @@ abstract class AppLocalizations {
   /// **'₹{min} – ₹{max}'**
   String budgetRangeLabel(String min, String max);
 
+  /// No description provided for @budgetPresetAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get budgetPresetAny;
+
+  /// No description provided for @budgetPresetUnder15k.
+  ///
+  /// In en, this message translates to:
+  /// **'Under ₹15k'**
+  String get budgetPresetUnder15k;
+
+  /// No description provided for @budgetPreset15to25k.
+  ///
+  /// In en, this message translates to:
+  /// **'₹15–25k'**
+  String get budgetPreset15to25k;
+
+  /// No description provided for @budgetPreset25to40k.
+  ///
+  /// In en, this message translates to:
+  /// **'₹25–40k'**
+  String get budgetPreset25to40k;
+
+  /// No description provided for @budgetPreset40to60k.
+  ///
+  /// In en, this message translates to:
+  /// **'₹40–60k'**
+  String get budgetPreset40to60k;
+
+  /// No description provided for @budgetPreset60kPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'₹60k+'**
+  String get budgetPreset60kPlus;
+
+  /// No description provided for @lifestyleFiltersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get lifestyleFiltersLabel;
+
+  /// No description provided for @lifestyleFiltersSummaryAny.
+  ///
+  /// In en, this message translates to:
+  /// **'No preference'**
+  String get lifestyleFiltersSummaryAny;
+
   /// No description provided for @roomTypeFilterLabel.
   ///
   /// In en, this message translates to:
@@ -4063,6 +4159,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a message...'**
   String get chatInputHint;
+
+  /// No description provided for @emojiCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get emojiCta;
+
+  /// No description provided for @dismissCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismissCta;
 
   /// No description provided for @phoneNotAvailable.
   ///
@@ -4628,6 +4736,18 @@ abstract class AppLocalizations {
   /// **'Say hello or use an icebreaker'**
   String get sayHelloOrIcebreaker;
 
+  /// No description provided for @noMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages here yet...'**
+  String get noMessagesYet;
+
+  /// No description provided for @noMessagesYetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a message or tap the icebreakers below.'**
+  String get noMessagesYetHint;
+
   /// No description provided for @messagesArePrivate.
   ///
   /// In en, this message translates to:
@@ -5155,6 +5275,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Results'**
   String get showResultsCta;
+
+  /// No description provided for @showResultsWithFiltersCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Results · {count} filters'**
+  String showResultsWithFiltersCta(int count);
 
   /// No description provided for @searchFiltersTitle.
   ///
@@ -6212,6 +6338,102 @@ abstract class AppLocalizations {
   /// **'Deal-breakers'**
   String get dealBreakersSectionTitle;
 
+  /// No description provided for @dealBreakersSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-negotiables they set'**
+  String get dealBreakersSectionSubtitle;
+
+  /// No description provided for @matchToneGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Great match'**
+  String get matchToneGreat;
+
+  /// No description provided for @matchToneWorkable.
+  ///
+  /// In en, this message translates to:
+  /// **'Workable'**
+  String get matchToneWorkable;
+
+  /// No description provided for @matchToneGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Preference gaps'**
+  String get matchToneGaps;
+
+  /// No description provided for @compatAlignedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} aligned'**
+  String compatAlignedCount(int count);
+
+  /// No description provided for @compatWorkableCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} workable'**
+  String compatWorkableCount(int count);
+
+  /// No description provided for @compatGapCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} gaps'**
+  String compatGapCount(int count);
+
+  /// No description provided for @lifestyleDimSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get lifestyleDimSleep;
+
+  /// No description provided for @lifestyleDimCleanliness.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleanliness'**
+  String get lifestyleDimCleanliness;
+
+  /// No description provided for @lifestyleDimFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get lifestyleDimFood;
+
+  /// No description provided for @lifestyleDimSmoking.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking / Drinking'**
+  String get lifestyleDimSmoking;
+
+  /// No description provided for @lifestyleDimGuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests'**
+  String get lifestyleDimGuests;
+
+  /// No description provided for @lifestyleDimWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get lifestyleDimWork;
+
+  /// No description provided for @lifestyleDimParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Parties'**
+  String get lifestyleDimParty;
+
+  /// No description provided for @societyVibesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Society vibes'**
+  String get societyVibesLabel;
+
+  /// No description provided for @dealBreakersCountBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} deal-breakers'**
+  String dealBreakersCountBadge(int count);
+
   /// No description provided for @likeListingTooltip.
   ///
   /// In en, this message translates to:
@@ -6577,6 +6799,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your account isn\'t verified yet. Complete verification below or resend a code.'**
   String get unverifiedAccountHint;
+
+  /// No description provided for @profileCompletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s set up your profile'**
+  String get profileCompletionTitle;
+
+  /// No description provided for @profileCompletionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We need a few details to get you started.'**
+  String get profileCompletionSubtitle;
+
+  /// No description provided for @profileCompletionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get profileCompletionContinue;
+
+  /// No description provided for @profileCompletionSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get profileCompletionSaving;
+
+  /// No description provided for @profileCompletionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your profile. Please try again.'**
+  String get profileCompletionError;
+
+  /// No description provided for @dateOfBirthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get dateOfBirthLabel;
+
+  /// No description provided for @dateOfBirthHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be 18 or older'**
+  String get dateOfBirthHelper;
+
+  /// No description provided for @dateOfBirthPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your date of birth'**
+  String get dateOfBirthPickerTitle;
+
+  /// No description provided for @onboardingBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile to start matching'**
+  String get onboardingBannerTitle;
+
+  /// No description provided for @onboardingBannerCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue setup'**
+  String get onboardingBannerCta;
+
+  /// No description provided for @onboardingStepsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} steps left'**
+  String onboardingStepsRemaining(int count);
+
+  /// No description provided for @onboardingStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String onboardingStepOf(int current, int total);
+
+  /// No description provided for @onboardingStepMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your role'**
+  String get onboardingStepMode;
+
+  /// No description provided for @onboardingStepLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get onboardingStepLocation;
+
+  /// No description provided for @onboardingStepBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic info'**
+  String get onboardingStepBasicInfo;
+
+  /// No description provided for @onboardingStepPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo'**
+  String get onboardingStepPhoto;
+
+  /// No description provided for @onboardingStepLifestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get onboardingStepLifestyle;
+
+  /// No description provided for @onboardingStepBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget & timeline'**
+  String get onboardingStepBudget;
+
+  /// No description provided for @onboardingStepPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get onboardingStepPreferences;
+
+  /// No description provided for @onboardingStepNonNegotiables.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-negotiables'**
+  String get onboardingStepNonNegotiables;
+
+  /// No description provided for @onboardingWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back! Pick up where you left off.'**
+  String get onboardingWelcomeBack;
+
+  /// No description provided for @onboardingActionBlockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile first'**
+  String get onboardingActionBlockedTitle;
+
+  /// No description provided for @onboardingActionBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish setting up your profile to start matching with flatmates.'**
+  String get onboardingActionBlockedMessage;
+
+  /// No description provided for @onboardingActionBlockedCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue setup'**
+  String get onboardingActionBlockedCta;
 }
 
 class _AppLocalizationsDelegate

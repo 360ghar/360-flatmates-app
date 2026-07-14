@@ -50,9 +50,20 @@ class ConversationCard extends StatelessWidget {
             locale.localeName,
           ).format(item.lastMessageAt!.toLocal());
 
+    final isUnread = item.unreadCount > 0;
+    final brightness = theme.brightness;
+
+    // White cards on the soft list-hub page; unread gets a light primary wash.
     return FlatmatesCard(
       key: cardKey,
       onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      backgroundColor: isUnread
+          ? AppSemanticColors.coralSoftFor(brightness)
+          : AppSemanticColors.surfaceFor(brightness),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -84,7 +95,7 @@ class ConversationCard extends StatelessWidget {
                 Row(
                   children: [
                     // Accent dot for unread threads — improves scannability.
-                    if (item.unreadCount > 0) ...[
+                    if (isUnread) ...[
                       Container(
                         width: 7,
                         height: 7,
@@ -99,20 +110,18 @@ class ConversationCard extends StatelessWidget {
                       child: Text(
                         item.peer.fullName,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: item.unreadCount > 0
+                          fontWeight: isUnread
                               ? FontWeight.w700
                               : FontWeight.w600,
-                          color: item.unreadCount > 0
-                              ? AppSemanticColors.textPrimaryFor(
-                                  theme.brightness,
-                                )
+                          color: isUnread
+                              ? AppSemanticColors.textPrimaryFor(brightness)
                               : null,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (item.unreadCount > 0)
+                    if (isUnread)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.sm,
@@ -125,7 +134,7 @@ class ConversationCard extends StatelessWidget {
                         child: Text(
                           '${item.unreadCount}',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
+                            color: AppSemanticColors.onPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 11,
                           ),
@@ -144,41 +153,57 @@ class ConversationCard extends StatelessWidget {
                     ],
                   ],
                 ),
-                if (item.peer.mode != null) ...[
-                  const SizedBox(height: _inlineGap),
-                  Text(
-                    localizedFlatmatesModeLabel(locale, item.peer.mode!),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                  ),
-                ],
-                if (location.isNotEmpty) ...[
+                if (item.peer.mode != null || location.isNotEmpty) ...[
                   const SizedBox(height: _inlineGap),
                   Row(
                     children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: _locationIconSize,
-                        color: AppSemanticColors.textSecondaryFor(
-                          theme.brightness,
+                      if (item.peer.mode != null)
+                        Flexible(
+                          child: Text(
+                            localizedFlatmatesModeLabel(
+                              locale,
+                              item.peer.mode!,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppSemanticColors.textSecondaryFor(
+                                theme.brightness,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: _inlineGap),
-                      Expanded(
-                        child: Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      if (item.peer.mode != null && location.isNotEmpty)
+                        Text(
+                          ' · ',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppSemanticColors.textSecondaryFor(
                               theme.brightness,
                             ),
                           ),
                         ),
-                      ),
+                      if (location.isNotEmpty) ...[
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: _locationIconSize,
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
+                        ),
+                        const SizedBox(width: _inlineGap),
+                        Expanded(
+                          child: Text(
+                            location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppSemanticColors.textSecondaryFor(
+                                theme.brightness,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],
@@ -280,7 +305,7 @@ class _PropertyPreviewFallback extends StatelessWidget {
         child: Text(
           initialsFromName(title),
           style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.white,
+            color: AppSemanticColors.onPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),

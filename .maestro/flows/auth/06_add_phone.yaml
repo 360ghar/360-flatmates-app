@@ -1,0 +1,17 @@
+# Post-social-auth add-phone screen cannot be reached via Maestro because
+# Google/Apple sign-in is not automatable. This flow logs in with phone/password
+# and verifies the app loads to the home tab.
+appId: com.the360ghar.flatmates360
+name: Add Phone (post-social placeholder)
+tags:
+  - auth
+---
+- launchApp:
+    clearState: true
+
+- runFlow: ../_shared/login.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "nav_home_tab"
+    timeout: 15000

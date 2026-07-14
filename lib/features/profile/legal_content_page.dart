@@ -7,6 +7,7 @@ import 'package:flatmates_app/core/theme/app_spacing.dart';
 
 import '../../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_async_view.dart';
+import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 
@@ -27,6 +28,7 @@ class LegalContentPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final content = ref.watch(_legalContentProvider(assetPath));
+    final locale = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: FlatmatesHeader.backTitle(title: title),
@@ -34,31 +36,11 @@ class LegalContentPage extends ConsumerWidget {
         child: FlatmatesAsyncView<String>(
           value: content,
           loading: const FlatmatesSkeleton.legalContent(),
-          error: (error, stack) => const _LegalContentError(),
-          data: (content) => _LegalMarkdownContent(content: content),
-        ),
-      ),
-    );
-  }
-}
-
-class _LegalContentError extends StatelessWidget {
-  const _LegalContentError();
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Text(
-          locale.couldNotLoadContent,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+          error: (error, stack) => FlatmatesErrorState(
+            message: locale.couldNotLoadContent,
+            onRetry: () => ref.invalidate(_legalContentProvider(assetPath)),
           ),
-          textAlign: TextAlign.center,
+          data: (content) => _LegalMarkdownContent(content: content),
         ),
       ),
     );

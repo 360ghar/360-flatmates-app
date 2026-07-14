@@ -9,18 +9,26 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/providers.dart';
+import '../../core/providers/mutable_notifier.dart';
+import '../../core/storage/app_preferences.dart';
 import 'data/auth_repository.dart';
 import 'domain/auth_state.dart';
 import 'last_auth_method.dart';
 
 export 'domain/auth_state.dart';
 
-final pendingPhoneProvider = StateProvider<String?>((ref) => null);
+/// Identifier held between auth steps (phone/email) while the user verifies OTP.
+final pendingPhoneProvider =
+    NotifierProvider<MutableNotifier<String?>, String?>(
+      () => MutableNotifier(null),
+    );
 
 /// One-shot signal that a freshly signed-in Google account has no phone yet,
 /// so the router should route into the skippable `/add-phone` step. Cleared
 /// when the user adds a phone or skips.
-final addPhonePromptProvider = StateProvider<bool>((ref) => false);
+final addPhonePromptProvider = NotifierProvider<MutableNotifier<bool>, bool>(
+  () => MutableNotifier(false),
+);
 
 class AuthController extends Notifier<AuthState> {
   StreamSubscription<String?>? _tokenSubscription;
@@ -41,6 +49,15 @@ class AuthController extends Notifier<AuthState> {
 
   AuthRepository get _repository => ref.read(authRepositoryProvider);
   LastAuthMethodStore get _lastMethod => ref.read(lastAuthMethodStoreProvider);
+  AppPreferences get _prefs => ref.read(appPreferencesProvider);
+
+  Future<void> _setPendingPasswordSetup(bool value) async {
+    if (value) {
+      await _prefs.setBool(PrefKeys.pendingPasswordSetup, true);
+    } else {
+      await _prefs.remove(PrefKeys.pendingPasswordSetup);
+    }
+  }
 
   void _watchTokenClears() {
     _tokenSubscription = ref
@@ -83,10 +100,12 @@ class AuthController extends Notifier<AuthState> {
         state = const AuthState(status: AuthStatus.unauthenticated);
         return;
       }
+      final needsPassword = _prefs.getBool(PrefKeys.pendingPasswordSetup);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
         sessionAuthenticated: true,
+        needsPassword: needsPassword,
       );
     } catch (e) {
       debugPrint('AuthController.checkSession failed: $e');
@@ -287,8 +306,9 @@ class AuthController extends Notifier<AuthState> {
     );
     // Passwordless: prompt for a phone after the required backend gates pass.
     if (!_repository.hasPhone) {
-      ref.read(addPhonePromptProvider.notifier).state = true;
+      ref.read(addPhonePromptProvider.notifier).set(true);
     }
+    await _setPendingPasswordSetup(false);
     state = AuthState(
       status: AuthStatus.authenticated,
       phone: _repository.currentPhone,
@@ -311,8 +331,9 @@ class AuthController extends Notifier<AuthState> {
       );
       // Passwordless: prompt for a phone after the required backend gates pass.
       if (!_repository.hasPhone) {
-        ref.read(addPhonePromptProvider.notifier).state = true;
+        ref.read(addPhonePromptProvider.notifier).set(true);
       }
+      await _setPendingPasswordSetup(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
@@ -370,6 +391,7 @@ class AuthController extends Notifier<AuthState> {
     try {
       await _repository.signInWithPassword(phone: phone, password: password);
       await _rememberMethod(AuthMethod.phonePassword, identifier: phone);
+      await _setPendingPasswordSetup(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: phone,
@@ -404,6 +426,7 @@ class AuthController extends Notifier<AuthState> {
         password: password,
       );
       await _rememberMethod(AuthMethod.emailPassword, identifier: email);
+      await _setPendingPasswordSetup(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
@@ -428,6 +451,8 @@ class AuthController extends Notifier<AuthState> {
       if (!_resolvedHasPassword) {
         // Requirement 6: passwordless OTP account must set a password before
         // entering the app. Defer last_auth_method until the password is set.
+        // Persist so a cold restart mid-gate still requires the step.
+        await _setPendingPasswordSetup(true);
         state = AuthState(
           status: AuthStatus.authenticated,
           phone: phone,
@@ -439,6 +464,7 @@ class AuthController extends Notifier<AuthState> {
         return true;
       }
       await _rememberMethod(AuthMethod.phoneOtp, identifier: phone);
+      await _setPendingPasswordSetup(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: phone,
@@ -501,6 +527,8 @@ class AuthController extends Notifier<AuthState> {
       if (!_resolvedHasPassword) {
         // Requirement 6: passwordless OTP account must set a password before
         // entering the app. Defer last_auth_method until the password is set.
+        // Persist so a cold restart mid-gate still requires the step.
+        await _setPendingPasswordSetup(true);
         state = AuthState(
           status: AuthStatus.authenticated,
           phone: _repository.currentPhone,
@@ -512,6 +540,7 @@ class AuthController extends Notifier<AuthState> {
         return true;
       }
       await _rememberMethod(AuthMethod.emailOtp, identifier: email);
+      await _setPendingPasswordSetup(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: _repository.currentPhone,
@@ -572,7 +601,7 @@ class AuthController extends Notifier<AuthState> {
     );
     try {
       await _repository.verifyAddPhoneOtp(phone: phone, otp: otp);
-      ref.read(addPhonePromptProvider.notifier).state = false;
+      ref.read(addPhonePromptProvider.notifier).set(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: phone,
@@ -591,7 +620,7 @@ class AuthController extends Notifier<AuthState> {
 
   /// Skips the post-Google add-phone step; keeps `last_auth_method = google`.
   void skipAddPhone() {
-    ref.read(addPhonePromptProvider.notifier).state = false;
+    ref.read(addPhonePromptProvider.notifier).set(false);
   }
 
   // ---------------------------------------------------------------------------
@@ -618,6 +647,7 @@ class AuthController extends Notifier<AuthState> {
           : AuthMethod.phonePassword;
       await _rememberMethod(method, identifier: identifier ?? phone);
       _resolvedHasPassword = true;
+      await _setPendingPasswordSetup(false);
       state = AuthState(
         status: AuthStatus.authenticated,
         phone: phone,
@@ -649,6 +679,7 @@ class AuthController extends Notifier<AuthState> {
         : AuthMethod.phonePassword;
     await _rememberMethod(method, identifier: identifier);
     _resolvedHasPassword = true;
+    await _setPendingPasswordSetup(false);
     state = AuthState(
       status: AuthStatus.authenticated,
       phone: _repository.currentPhone,
@@ -667,6 +698,13 @@ class AuthController extends Notifier<AuthState> {
     } catch (e) {
       debugPrint('AuthController.signOut: repository.signOut failed: $e');
     }
+    try {
+      await _setPendingPasswordSetup(false);
+    } catch (e) {
+      debugPrint(
+        'AuthController.signOut: clear pendingPasswordSetup failed: $e',
+      );
+    }
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
@@ -678,6 +716,13 @@ class AuthController extends Notifier<AuthState> {
     }
     try {
       await _repository.deleteAccount();
+      try {
+        await _setPendingPasswordSetup(false);
+      } catch (e) {
+        debugPrint(
+          'AuthController.deleteAccount: clear pendingPasswordSetup failed: $e',
+        );
+      }
       state = const AuthState(status: AuthStatus.unauthenticated);
       return true;
     } catch (e) {

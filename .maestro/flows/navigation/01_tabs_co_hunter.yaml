@@ -1,0 +1,50 @@
+appId: com.the360ghar.flatmates360
+name: Navigation Tabs Co Hunter
+tags:
+  - smoke
+  - navigation
+---
+- launchApp:
+    clearState: true
+
+- runFlow: ../_shared/login.yaml
+
+- assertVisible:
+    id: "nav_home_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "home_search_bar"
+    timeout: 10000
+
+- tapOn:
+    id: "nav_swipe_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "swipe_filter_tune"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_inbox_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "chats_chats_tab"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_me_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 5000
+
+- tapOn:
+    id: "nav_home_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "home_search_bar"
+    timeout: 5000

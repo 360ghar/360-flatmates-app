@@ -1,0 +1,40 @@
+appId: com.the360ghar.flatmates360
+name: Logout
+tags:
+  - smoke
+  - auth
+  - navigation
+---
+- launchApp:
+    clearState: true
+
+- runFlow: ../_shared/login.yaml
+
+- tapOn:
+    id: "nav_me_tab"
+
+- extendedWaitUntil:
+    visible:
+      id: "profile_edit_button"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "logout_button"
+    direction: DOWN
+
+- tapOn:
+    id: "logout_button"
+
+- extendedWaitUntil:
+    visible:
+      id: "logout_dialog_confirm"
+    timeout: 5000
+
+- tapOn:
+    id: "logout_dialog_confirm"
+
+- extendedWaitUntil:
+    visible:
+      id: "enter_phone_input"
+    timeout: 10000

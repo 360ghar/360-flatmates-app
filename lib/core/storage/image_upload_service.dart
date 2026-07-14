@@ -39,7 +39,12 @@ class ImageUploadService {
 
   Future<List<File>> pickImages({int limit = 10}) async {
     final picker = ImagePicker();
-    final images = await picker.pickMultiImage(imageQuality: 80, limit: limit);
+    final images = await picker.pickMultiImage(
+      imageQuality: 80,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      limit: limit,
+    );
     if (images.isEmpty) return [];
     return images.map((x) => File(x.path)).toList();
   }
@@ -49,6 +54,8 @@ class ImageUploadService {
     final photo = await picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 80,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
     if (photo == null) return null;
     return File(photo.path);

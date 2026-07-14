@@ -31,15 +31,15 @@ class PostHubPage extends ConsumerWidget {
     return FlatmatesScreen(
       appBar: FlatmatesHeader.logo(
         actions: [
-          IconButton(
+          FlatmatesChromeIconButton(
             key: const Key('post_notifications_button'),
             onPressed: () => context.push('/notifications'),
-            icon: const Icon(Icons.notifications_outlined),
+            icon: Icons.notifications_outlined,
             tooltip: locale.notificationsTooltip,
           ),
-          IconButton(
+          FlatmatesChromeIconButton(
             onPressed: () => context.go('/chats'),
-            icon: const Icon(Icons.chat_bubble_outline),
+            icon: Icons.chat_bubble_outline,
             tooltip: locale.chatTooltip,
           ),
         ],

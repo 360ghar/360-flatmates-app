@@ -19,7 +19,6 @@ import 'application/map_listings_controller.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/discover_map.dart';
 import 'presentation/widgets/filter_sheet.dart';
-import 'presentation/widgets/map_filter_bar.dart';
 import 'presentation/widgets/map_listing_sheets.dart';
 import 'presentation/widgets/map_listings_bottom_sheet.dart';
 import 'presentation/widgets/map_location_picker.dart';
@@ -45,7 +44,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   @override
   void initState() {
     super.initState();
-    ref.read(mapProgrammaticScrollProvider.notifier).state = false;
+    // Do not write providers here — Riverpod forbids modifications while the
+    // widget tree is building. [mapProgrammaticScrollProvider] is autoDispose
+    // and rebuilds to `false` on each mount, so no explicit reset is needed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ensureLocationData();
     });
@@ -234,10 +235,12 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: MapLocationChip(
+                              child: FlatmatesLocationChip(
                                 locationName: selectedDisplayText.isNotEmpty
                                     ? selectedDisplayText
                                     : null,
+                                placeholder: locale.selectLocationLabel,
+                                dense: true,
                                 onTap: () => _showLocationPicker(context),
                               ),
                             ),
@@ -248,19 +251,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                           // sheet (its top field) — so we expose a single
                           // filter affordance rather than two duplicate
                           // buttons. Kept on the right of the location chip.
-                          IconButton(
+                          FlatmatesChromeIconButton(
                             onPressed: () => _showFilterSheet(context),
-                            icon: const Icon(AppIcons.filter),
+                            icon: AppIcons.filter,
                             tooltip: locale.searchFiltersTitle,
-                            style: IconButton.styleFrom(
-                              backgroundColor:
-                                  theme.brightness == Brightness.dark
-                                  ? AppSemanticColors.darkSurfaceElevated
-                                  : AppSemanticColors.paper,
-                              foregroundColor: AppSemanticColors.textPrimaryFor(
-                                theme.brightness,
-                              ),
-                            ),
                           ),
                         ],
                       ),
@@ -297,19 +291,24 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   Future<void> _likeListing(PropertyListing item) async {
     final locale = AppLocalizations.of(context);
+    final wasLiked = item.liked ?? false;
     try {
       final conversationId = await ref
           .read(mapListingsProvider.notifier)
-          .setLiked(item.id, true);
+          .toggleLike(item.id);
       if (!mounted) return;
-      FlatmatesToast.success(
-        context,
-        conversationId == null
-            ? locale.contactRequestSent
-            : locale.contactRequestWithConversation(conversationId),
-      );
+      if (wasLiked) {
+        FlatmatesToast.success(context, locale.likeRemovedToast);
+      } else {
+        FlatmatesToast.success(
+          context,
+          conversationId == null
+              ? locale.contactRequestSent
+              : locale.contactRequestWithConversation(conversationId),
+        );
+      }
     } catch (e) {
-      debugPrint('MapViewPage._handleContact failed: $e');
+      debugPrint('MapViewPage._likeListing failed: $e');
       if (!mounted) return;
       final msg = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
@@ -342,19 +341,17 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           onListingTap: _handleListingTap,
           onClusterTap: _handleClusterTap,
         ),
-        if (!hasMarkers)
+        // Empty messaging lives in the bottom sheet only — avoid a second
+        // full-map empty state stacking on top of "0 listings".
+        if (!hasMarkers && filtered.isEmpty)
           Positioned.fill(
             child: IgnorePointer(
-              child: Container(
-                color: isDark
-                    ? AppSemanticColors.darkSurface.withValues(alpha: 0.7)
-                    : Colors.white.withValues(alpha: 0.7),
-                child: FlatmatesEmptyState(
-                  title: filtered.isEmpty
-                      ? locale.emptyListings
-                      : locale.noListingsMatchFilters,
-                  icon: Icons.map_outlined,
-                ),
+              child: ColoredBox(
+                color:
+                    (isDark
+                            ? AppSemanticColors.darkSurface
+                            : AppSemanticColors.canvas)
+                        .withValues(alpha: 0.35),
               ),
             ),
           ),
@@ -386,7 +383,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _handleListingTap(PropertyListing item) {
-    ref.read(selectedPropertyProvider.notifier).state = item;
+    ref.read(selectedPropertyProvider.notifier).set(item);
 
     if (item.latitude != null && item.longitude != null) {
       _mapController?.move(LatLng(item.latitude!, item.longitude!), 15.0);
@@ -395,7 +392,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     final index = _currentFiltered.indexWhere((e) => e.id == item.id);
     if (index >= 0 && _cardScrollController.hasClients) {
       final viewportWidth = MediaQuery.sizeOf(context).width;
-      const itemWidth = 130.0;
+      const itemWidth = kMapCarouselCardWidth;
       const padding = AppSpacing.md;
       const spacing = AppSpacing.sm;
       const totalItemWidth = itemWidth + spacing;
@@ -409,7 +406,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       targetOffset = targetOffset.clamp(minScroll, maxScroll);
 
       final gen = ++_scrollAnimGen;
-      ref.read(mapProgrammaticScrollProvider.notifier).state = true;
+      ref.read(mapProgrammaticScrollProvider.notifier).set(true);
       _cardScrollController
           .animateTo(
             targetOffset,
@@ -418,7 +415,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           )
           .whenComplete(() {
             if (mounted && _scrollAnimGen == gen) {
-              ref.read(mapProgrammaticScrollProvider.notifier).state = false;
+              ref.read(mapProgrammaticScrollProvider.notifier).set(false);
             }
           });
     }

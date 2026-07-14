@@ -1,43 +1,40 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../l10n/gen/app_localizations.dart';
-import '../../../shared/presentation/flatmates_trust_badge.dart';
 import 'chat_input_bar.dart';
 
 class ChatInputArea extends StatelessWidget {
   const ChatInputArea({
     required this.controller,
+    required this.focusNode,
+    required this.showEmoji,
+    required this.onToggleEmoji,
     required this.onSend,
-    required this.onAttachment,
+    this.onPickPhoto,
+    this.isSending = false,
+    this.isUploadingPhoto = false,
     super.key,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool showEmoji;
+  final VoidCallback onToggleEmoji;
   final VoidCallback onSend;
-  final VoidCallback onAttachment;
+  final VoidCallback? onPickPhoto;
+  final bool isSending;
+  final bool isUploadingPhoto;
 
   @override
   Widget build(BuildContext context) {
-    final locale = AppLocalizations.of(context);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: FlatmatesTrustBadge(
-            label: locale.messagesArePrivate,
-            variant: FlatmatesTrustBadgeVariant.privacy,
-            compact: true,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        ChatInputBar(
-          controller: controller,
-          onSend: onSend,
-          onAttachment: onAttachment,
-        ),
-      ],
+    return ChatInputBar(
+      controller: controller,
+      focusNode: focusNode,
+      showEmoji: showEmoji,
+      onToggleEmoji: onToggleEmoji,
+      onSend: onSend,
+      onPickPhoto: onPickPhoto,
+      isSending: isSending,
+      isUploadingPhoto: isUploadingPhoto,
     );
   }
 }

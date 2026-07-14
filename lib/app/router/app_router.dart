@@ -39,6 +39,7 @@ import '../../features/listings/post_hub_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_controller.dart';
 import '../../features/onboarding/onboarding_page.dart';
+import '../../features/onboarding/profile_completion_page.dart';
 import '../../features/onboarding/waitlist_page.dart';
 import '../../features/profile/edit_profile_page.dart';
 import '../../features/profile/help_safety_page.dart';
@@ -57,15 +58,18 @@ import '../../features/profile/legal_content_page.dart';
 import '../../features/visits/schedule_visit_page.dart';
 import '../../features/visits/visits_page.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+/// Root navigator key for [GoRouter]. Public so hosts above
+/// [MaterialApp.router] (e.g. force-update) can obtain a valid [Navigator].
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier();
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
     if (!next.isLoggedIn) {
-      ref.read(flatmatesOnboardingCompletedOverrideProvider.notifier).state =
-          false;
+      ref
+          .read(flatmatesOnboardingCompletedOverrideProvider.notifier)
+          .set(false);
       unawaited(
         ref
             .read(appPreferencesProvider)
@@ -105,7 +109,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
@@ -122,6 +126,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAddPhone = location == '/add-phone';
       final isSetPassword = location == '/set-password';
       final isOnboarding = location == '/onboarding';
+      final isCompleteProfile = location == '/complete-profile';
       final isDeepLink =
           location.startsWith('/chats/') ||
           location.startsWith('/flat-details/') ||
@@ -209,16 +214,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // ── PROFILE_COMPLETION gate ──────────────────────────────────────────
       // Enforced from the backend-computed auth stage. If mandatory profile
-      // fields are missing, route to the edit-profile page to collect them.
-      // Skip this gate while the user is already on the edit-profile page.
+      // fields are missing, route to the dedicated profile-completion page
+      // (a lightweight form collecting only the missing fields) instead of
+      // the full edit-profile page.
       final isProfileEdit = location == '/profile/edit';
-      if (auth.authStage == AuthStage.profileCompletion && !isProfileEdit) {
-        return '/profile/edit';
+      if (auth.authStage == AuthStage.profileCompletion &&
+          !isCompleteProfile &&
+          !isProfileEdit) {
+        return '/complete-profile';
       }
 
+      // ── APP_ONBOARDING soft gate ─────────────────────────────────────────
+      // Instead of hard-blocking all routes, only block core feature routes
+      // (Swipe, Post, Chats list). Allow Discover, Map, Profile, Settings,
+      // deep links, and auxiliary routes through so the user can preview the
+      // app while completing onboarding. A persistent banner in AppShell
+      // reminds them to finish setup.
       if (auth.authStage == AuthStage.appOnboarding &&
           !hasCompletedOnboardingLocally &&
-          !isOnboarding) {
+          !isOnboarding &&
+          _isOnboardingBlockedRoute(location)) {
         return '/onboarding';
       }
 
@@ -300,8 +315,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OnboardingPage(),
       ),
       GoRoute(
+        path: '/complete-profile',
+        builder: (context, state) => const ProfileCompletionPage(),
+      ),
+      GoRoute(
         path: '/waitlist',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final city = state.uri.queryParameters['city'] ?? '';
           return WaitlistPage(city: city);
@@ -309,7 +328,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/flat-details/:id',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null) {
@@ -321,13 +340,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/flatmates/listing/:id',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         redirect: (context, state) =>
             '/flat-details/${state.pathParameters['id']}',
       ),
       GoRoute(
         path: '/user-profile/:userId',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final userId = int.tryParse(state.pathParameters['userId'] ?? '');
           if (userId == null) {
@@ -344,37 +363,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/flatmates/chat/:id',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         redirect: (context, state) => '/chats/${state.pathParameters['id']}',
       ),
       GoRoute(
         path: '/notifications',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const NotificationsPage(),
       ),
       GoRoute(
         path: '/notification-settings',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const NotificationSettingsPage(),
       ),
       GoRoute(
         path: '/change-location',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ChangeLocationPage(),
       ),
       GoRoute(
         path: '/location-search',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const LocationSearchPage(),
       ),
       GoRoute(
         path: '/map',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const MapViewPage(),
       ),
       GoRoute(
         path: '/schedule-visit',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => ScheduleVisitPage(
           conversation: state.extra is ConversationSummaryModel
               ? state.extra as ConversationSummaryModel
@@ -386,7 +405,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/help-safety',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const HelpSafetyPage(),
         routes: [
           GoRoute(
@@ -430,43 +449,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/privacy-policy',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const LegalContentPage(
-          title: 'Privacy Policy',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => LegalContentPage(
+          title: AppLocalizations.of(context).privacyPolicy,
           assetPath: 'assets/legal/privacy_policy.md',
         ),
       ),
       GoRoute(
         path: '/terms-of-service',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const LegalContentPage(
-          title: 'Terms of Service',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => LegalContentPage(
+          title: AppLocalizations.of(context).termsOfService,
           assetPath: 'assets/legal/terms_of_service.md',
         ),
       ),
       GoRoute(
         path: '/privacy-security',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const PrivacySecurityPage(),
       ),
       GoRoute(
         path: '/change-password',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ChangePasswordPage(),
       ),
       GoRoute(
         path: '/delete-account',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const DeleteAccountPage(),
       ),
       GoRoute(
         path: '/blocked-users',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const BlockedUsersPage(),
       ),
       GoRoute(
         path: '/match-celebration',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final conversationId = extra?['conversationId'] as int?;
@@ -483,7 +502,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               context.pop();
               if (conversationId != null) {
                 context.push('/chats/$conversationId');
-                final rootContext = _rootNavigatorKey.currentContext;
+                final rootContext = rootNavigatorKey.currentContext;
                 if (rootContext != null) {
                   Future.delayed(AppMotion.matchCelebration, () {
                     if (rootContext.mounted) {
@@ -506,7 +525,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/listing-review/:id',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null) {
@@ -518,14 +537,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/post/new',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => CreateListingPage(
           listingId: int.tryParse(state.uri.queryParameters['listingId'] ?? ''),
         ),
       ),
       GoRoute(
         path: '/manage-listings',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const listings.ManageListingPage(),
       ),
       StatefulShellRoute.indexedStack(
@@ -654,18 +673,40 @@ String? authenticatedIdentifierVerificationRedirect({
   // has already issued a valid session, but /auth-state still reports
   // identifier_verification. Continue with local bootstrap gates instead of
   // bouncing the user back to login.
-  final isProfileEdit = location == '/profile/edit';
+  final isCompleteProfile = location == '/complete-profile';
   final isOnboarding = location == '/onboarding';
   if ((profile.fullName ?? '').trim().isEmpty) {
-    return isProfileEdit ? null : '/profile/edit';
+    return isCompleteProfile ? null : '/complete-profile';
   }
   if (!profile.onboardingCompleted && !hasCompletedOnboardingLocally) {
-    return isOnboarding ? null : '/onboarding';
+    if (isOnboarding) return null;
+    if (_isOnboardingBlockedRoute(location)) return '/onboarding';
   }
   if (isSplash || isAuthRoute || isOnboarding) {
     return '/discover';
   }
   return null;
+}
+
+/// Routes blocked by the soft onboarding gate. Core feature routes that
+/// require a complete profile to be useful are blocked; everything else
+/// (Discover, Map, Profile, Settings, deep links, auxiliary routes) is
+/// allowed through so the user can preview the app while completing setup.
+@visibleForTesting
+bool isOnboardingBlockedRoute(String location) =>
+    _isOnboardingBlockedRoute(location);
+
+bool _isOnboardingBlockedRoute(String location) {
+  // Swipe deck — requires a complete profile for matching.
+  if (location == '/swipe') return true;
+  // Listing creation — requires a complete profile to post.
+  if (location == '/post' || location == '/post/new') return true;
+  // Room-poster post hub (shell tab2) — same gate as /post while incomplete.
+  if (location == '/tab2') return true;
+  // Conversations list — requires a complete profile to match/chat.
+  // Individual chat threads (/chats/{id}) are deep links and allowed.
+  if (location == '/chats') return true;
+  return false;
 }
 
 /// Mode lookup for the `/tab2` shell branch.

@@ -1,0 +1,32 @@
+appId: com.the360ghar.flatmates360
+name: Profile - Edit Profile
+tags:
+  - profile
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scroll:
+    direction: UP
+- tap:
+    id: profile_edit_button
+- extendedWaitUntil:
+    visible:
+      id: profile_save_button
+    timeout: 5000
+- tap:
+    id: profile_bio_input
+- eraseText
+- inputText: "Updated bio from Maestro E2E test."
+- tap:
+    id: profile_save_button
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000

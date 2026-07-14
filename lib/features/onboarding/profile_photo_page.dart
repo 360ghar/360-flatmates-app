@@ -37,7 +37,20 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     try {
       for (final file in files) {
         final result = await service.uploadProfilePhoto(file);
-        if (result is UploadSuccess) _photoUrls.add(result.url);
+        if (result is UploadSuccess) {
+          _photoUrls.add(result.url);
+          if (mounted) setState(() {});
+        } else if (result is UploadFailure) {
+          debugPrint(
+            '[ProfilePhotoPage] _pickFromGallery upload failed: ${result.reason}',
+          );
+          if (mounted) {
+            FlatmatesToast.error(
+              context,
+              AppLocalizations.of(context).errorUpload,
+            );
+          }
+        }
       }
     } catch (e, st) {
       debugPrint('[ProfilePhotoPage] _pickFromGallery error: $e\n$st');
@@ -56,7 +69,20 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     setState(() => _uploading = true);
     try {
       final result = await service.uploadProfilePhoto(file);
-      if (result is UploadSuccess) _photoUrls.add(result.url);
+      if (result is UploadSuccess) {
+        _photoUrls.add(result.url);
+        if (mounted) setState(() {});
+      } else if (result is UploadFailure) {
+        debugPrint(
+          '[ProfilePhotoPage] _pickFromCamera upload failed: ${result.reason}',
+        );
+        if (mounted) {
+          FlatmatesToast.error(
+            context,
+            AppLocalizations.of(context).errorUpload,
+          );
+        }
+      }
     } catch (e, st) {
       debugPrint('[ProfilePhotoPage] _pickFromCamera error: $e\n$st');
       if (mounted) {
@@ -76,6 +102,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final state = ref.watch(onboardingControllerProvider);
+    final uploading = _uploading;
     final fullName = state.fullName;
     final displayUrl = _photoUrls.isEmpty ? null : _photoUrls.first;
 
@@ -135,7 +162,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
               ),
             ],
             const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
-            if (_uploading)
+            if (uploading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 child: Center(

@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/providers.dart';
+import '../core/storage/app_preferences.dart';
 import '../core/theme/app_semantic_colors.dart';
+import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
+import '../features/onboarding/onboarding_completion_banner.dart';
 import '../l10n/gen/app_localizations.dart';
 
 class AppShell extends ConsumerWidget {
@@ -30,10 +34,33 @@ class AppShell extends ConsumerWidget {
         : AppSemanticColors.canvas;
     final hairline = AppSemanticColors.hairlineFor(theme.brightness);
 
+    // Show the onboarding completion banner when the user's onboarding is
+    // incomplete. The soft gate allows access to Discover, Map, and Profile,
+    // so the banner reminds them to finish setup.
+    final authStage = ref.watch(
+      authControllerProvider.select((s) => s.authStage),
+    );
+    final profileId = ref.watch(
+      bootstrapControllerProvider.select((v) => v.valueOrNull?.profile.id),
+    );
+    final prefs = ref.watch(appPreferencesProvider);
+    final completedUserId = prefs.getString(
+      PrefKeys.flatmatesOnboardingCompletedUserId,
+    );
+    final hasCompletedOnboardingLocally =
+        completedUserId == profileId?.toString();
+    final showOnboardingBanner =
+        authStage == AuthStage.appOnboarding && !hasCompletedOnboardingLocally;
+
     final destinations = _buildDestinations(mode, locale);
 
     return Scaffold(
-      body: navigationShell,
+      body: Column(
+        children: [
+          if (showOnboardingBanner) const OnboardingCompletionBanner(),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: surface,

@@ -71,13 +71,14 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
           children: [
             // --- Back arrow (only when a back handler is provided) ---
             if (widget.onBack != null) ...[
-              IconButton(
-                key: const Key('mode_selection_back'),
-                onPressed: widget.onBack,
-                icon: const Icon(Icons.arrow_back),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                tooltip: locale.backCta,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FlatmatesChromeIconButton(
+                  key: const Key('mode_selection_back'),
+                  onPressed: widget.onBack,
+                  icon: Icons.arrow_back_rounded,
+                  tooltip: locale.backCta,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
             ],
@@ -197,7 +198,9 @@ class _ModeCardState extends State<_ModeCard> {
           onTap: widget.onTap,
           borderColor: widget.isSelected
               ? AppSemanticColors.accent
-              : AppSemanticColors.line.withValues(alpha: 0.4),
+              : AppSemanticColors.hairlineFor(
+                  theme.brightness,
+                ).withValues(alpha: 0.4),
           elevation: widget.isSelected ? 2 : 0.5,
           child: Row(
             children: [

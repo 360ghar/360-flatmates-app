@@ -62,4 +62,29 @@ class OnboardingState with _$OnboardingState {
 
     return ((completed / total) * 100).clamp(0, 100);
   }
+
+  /// 1-based index of the current step within the interactive flow
+  /// (excluding the splash carousel). Returns 0 for splash.
+  int get stepIndex {
+    return switch (step) {
+      OnboardingStep.splash => 0,
+      OnboardingStep.modeSelection => 1,
+      OnboardingStep.locationSelection => 2,
+      OnboardingStep.basicInfo => 3,
+      OnboardingStep.profilePhoto => 4,
+      OnboardingStep.lifestyleQuiz => 5,
+      OnboardingStep.budgetTimeline => 6,
+      OnboardingStep.preferences => 7,
+      OnboardingStep.nonNegotiables => 8,
+    };
+  }
+
+  /// Total number of interactive steps (excluding splash).
+  static const int totalInteractiveSteps = 8;
+
+  /// Number of interactive steps remaining, including the current one.
+  int get remainingSteps {
+    if (step == OnboardingStep.splash) return totalInteractiveSteps;
+    return totalInteractiveSteps - stepIndex + 1;
+  }
 }

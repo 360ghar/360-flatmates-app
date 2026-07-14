@@ -10,16 +10,16 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../swipe_repository.dart';
 import 'swipe_profile_card.dart';
 
-/// Renders up to three stacked profile cards (third / next / current).
+/// Renders the swipe deck: one interactive card plus up to two preloaded layers.
 ///
-/// Each visible profile is rendered by a [_SwipeCardLayer] keyed with a stable
-/// `ValueKey(profile.id)`. Because every layer shares the *same* widget
-/// structure (only parameters differ by depth), when the deck advances Flutter
-/// reconciles by key and **preserves the element** of the card that rises from
-/// `next` → `current` — including its already-decoded hero image and carousel
-/// state. This is what eliminates the stale-image / flicker that occurred when
-/// the previous implementation repurposed a single recycled element across
-/// different profiles every swipe.
+/// **At rest only the foreground card is visible.** Next/third profiles stay
+/// mounted (opacity 0) so Flutter can promote them by stable
+/// `ValueKey(profile.id)` without remounting — preserving decoded hero images
+/// and carousel state for a flicker-free advance.
+///
+/// During drag / fly-off, the next card fades in under the leaving foreground
+/// so the stack never blanks mid-swipe. The third layer stays invisible and is
+/// only for preload continuity.
 ///
 /// The Maestro selector `Key('swipe_card')` is owned by this widget (passed in
 /// from the page) rather than by the foreground gesture detector, so it never
@@ -105,12 +105,10 @@ class SwipeCardStack extends StatelessWidget {
 /// A single card in the swipe stack. The same widget structure is used for
 /// every depth so elements reconcile cleanly across promotions.
 ///
-/// Geometry (scale / opacity / insets) is depth-driven, and background cards
-/// (depth >= 1) "rise" one step toward the front as [progress] grows — so by
-/// the time the foreground card has flown off, the next card is already at the
-/// foreground's resting geometry. The subsequent index advance is therefore
-/// visually seamless: the rising card simply becomes interactive and gains the
-/// drag transforms, with its element (and decoded image) preserved.
+/// Background cards park at the foreground's resting geometry (full size) with
+/// opacity 0 so promotion has zero layout jump. Depth-1 fades in with
+/// [progress] under a dragging / flying foreground; depth-2 stays preloaded
+/// but invisible.
 class _SwipeCardLayer extends StatelessWidget {
   const _SwipeCardLayer({
     super.key,
@@ -143,93 +141,32 @@ class _SwipeCardLayer extends StatelessWidget {
 
   bool get isForeground => depth == 0;
 
-  static double _scaleForDepth(int d) {
-    switch (d) {
-      case 0:
-        return 1.0;
-      case 1:
-        return 0.94;
-      default:
-        return 0.88;
-    }
-  }
-
-  static double _opacityForDepth(int d) {
-    switch (d) {
-      case 0:
-        return 1.0;
-      case 1:
-        return 0.6;
-      default:
-        return 0.3;
-    }
-  }
-
-  /// Resting insets for a card at [d]. The foreground sits flush; background
-  /// cards are inset to suggest a stacked deck.
+  /// Foreground resting insets — also used for preloaded layers so promotion
+  /// does not animate scale/inset jumps.
   static ({double top, double left, double right, double bottom})
-  _insetsForDepth(int d) {
-    switch (d) {
-      case 0:
-        return (top: 0.0, left: 0.0, right: 0.0, bottom: AppSpacing.xs);
-      case 1:
-        return (
-          top: AppSpacing.xs + AppSpacing.xs / 2,
-          left: AppSpacing.md,
-          right: AppSpacing.md,
-          bottom: 0.0,
-        );
-      default:
-        return (
-          top: AppSpacing.md,
-          left: AppSpacing.screen,
-          right: AppSpacing.screen,
-          bottom: 0.0,
-        );
-    }
-  }
-
-  double _lerp(double a, double b) => a + (b - a) * progress;
+  get _foregroundInsets =>
+      (top: 0.0, left: 0.0, right: 0.0, bottom: AppSpacing.xs);
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final foreground = isForeground;
 
-    // Depth-driven geometry. Background cards interpolate toward the next-step
-    // geometry by `progress` so they arrive at the foreground's resting state
-    // exactly as the foreground flies off.
-    final double scale;
-    final double opacity;
-    final double top;
-    final double left;
-    final double right;
-    final double bottom;
-    if (foreground) {
-      scale = _scaleForDepth(0);
-      opacity = _opacityForDepth(0);
-      final i = _insetsForDepth(0);
-      top = i.top;
-      left = i.left;
-      right = i.right;
-      bottom = i.bottom;
-    } else {
-      scale = _lerp(_scaleForDepth(depth), _scaleForDepth(depth - 1));
-      opacity = _lerp(_opacityForDepth(depth), _opacityForDepth(depth - 1));
-      final cur = _insetsForDepth(depth);
-      final nxt = _insetsForDepth(depth - 1);
-      top = _lerp(cur.top, nxt.top);
-      left = _lerp(cur.left, nxt.left);
-      right = _lerp(cur.right, nxt.right);
-      bottom = _lerp(cur.bottom, nxt.bottom);
-    }
+    // Single visual card at rest; preloaded layers share full-size geometry.
+    const scale = 1.0;
+    final opacity = swipeLayerOpacity(depth: depth, progress: progress);
+    final insets = _foregroundInsets;
+    final top = insets.top;
+    final left = insets.left;
+    final right = insets.right;
+    final bottom = insets.bottom;
 
     // Foreground-only drag derived values.
     final Offset translate = foreground ? dragOffset : Offset.zero;
     final double angle = foreground ? rotation : 0.0;
 
-    // Shadow: the foreground "lifts" as it is dragged away; background cards
-    // keep a subtle resting elevation.
+    // Shadow: the foreground "lifts" as it is dragged away; preloaded cards
+    // keep a light elevation so they look ready when they fade in.
     final double shadowAlpha = foreground ? 0.08 + 0.15 * progress : 0.06;
     final double shadowBlur = foreground ? 12 + 20 * progress : 10;
     final double shadowSpread = foreground ? 2 + 6 * progress : 1;
@@ -434,4 +371,15 @@ double calculateRotation(Offset dragOffset, double screenWidth) {
 
 double calculateDragProgress(Offset dragOffset, double screenWidth) {
   return (dragOffset.dx.abs() / (screenWidth * 0.20)).clamp(0.0, 1.0);
+}
+
+/// Layer visibility for the single-card-at-rest deck.
+///
+/// - depth 0 (foreground): always fully visible
+/// - depth 1 (next): hidden at rest; fades in with [progress] during swipe
+/// - depth ≥ 2 (preload only): always hidden
+double swipeLayerOpacity({required int depth, required double progress}) {
+  if (depth <= 0) return 1.0;
+  if (depth == 1) return progress.clamp(0.0, 1.0);
+  return 0.0;
 }

@@ -22,6 +22,12 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Stub optional .env asset
+        run: |
+          if [ ! -f .env ]; then
+            printf 'APP_ENV=prod\n' > .env
+          fi
+
       - run: flutter pub get
 
       - name: Install CocoaPods
@@ -54,13 +60,35 @@ jobs:
       - name: Build IPA
         env:
           APP_STORE_ID: ${{ vars.APP_STORE_ID }}
-        run: flutter build ipa --release --dart-define=APP_STORE_ID="$APP_STORE_ID"
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+        run: |
+          flutter build ipa --release \
+            --obfuscate \
+            --split-debug-info=build/symbols \
+            --dart-define=APP_ENV=prod \
+            --dart-define=APP_STORE_ID="$APP_STORE_ID" \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
+            --dart-define=GOOGLE_WEB_CLIENT_ID="$GOOGLE_WEB_CLIENT_ID" \
+            --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
+            --dart-define=ENABLE_DEBUG_LOGS=false
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: app-release-ipa
           path: build/ios/ipa/*.ipa
+
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: app-release-symbols-ios
+          path: build/symbols
 
       - name: Set up fastlane
         run: bundle install

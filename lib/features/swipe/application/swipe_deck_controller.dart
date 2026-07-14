@@ -103,13 +103,22 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     ref.watch(discoverFiltersProvider);
     _filterVersion++;
     Future.microtask(() => _load());
-    return const SwipeDeckState(isLoading: true);
+    // Preserve hasSwiped across filter-driven rebuilds so the empty state
+    // still shows "end of deck" rather than "no profiles" after the user
+    // has already swiped this session.
+    return SwipeDeckState(
+      isLoading: true,
+      hasSwiped: _swipedUserIds.isNotEmpty,
+    );
   }
 
   Future<void> _load() async {
     if (_loadInFlight) return;
     _loadInFlight = true;
-    state = const SwipeDeckState(isLoading: true);
+    state = SwipeDeckState(
+      isLoading: true,
+      hasSwiped: _swipedUserIds.isNotEmpty,
+    );
     final myVersion = _filterVersion;
     try {
       final filters = ref.read(discoverFiltersProvider);
@@ -136,6 +145,7 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
           setNextCursorNull: page.nextCursor == null,
           hasMore: page.hasMore,
           isLoading: false,
+          hasSwiped: _swipedUserIds.isNotEmpty,
           clearError: true,
         );
       }
@@ -146,7 +156,11 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
         log('[SwipeDeck] ERROR loading profiles');
       }
       if (myVersion == _filterVersion) {
-        state = state.copyWith(isLoading: false, error: e);
+        state = state.copyWith(
+          isLoading: false,
+          error: e,
+          hasSwiped: _swipedUserIds.isNotEmpty,
+        );
       }
     } finally {
       _loadInFlight = false;
@@ -253,6 +267,14 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
         .read(swipeRepositoryProvider)
         .swipeProfile(targetUserId: profile.id, action: action);
     _syncSwipeSideEffects(profile: profile, action: action, result: result);
+    // Server already owns this swipe — hide Undo so we don't pretend a
+    // local-only reverse can undo a persisted decision.
+    if (state.lastSwipedProfile?.id == profile.id) {
+      state = state.copyWith(
+        clearLastSwipedProfile: true,
+        hasSwiped: _swipedUserIds.isNotEmpty,
+      );
+    }
     return result;
   }
 
@@ -261,13 +283,15 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     required String action,
     required SwipeResult result,
   }) {
+    // Incoming-likes bookkeeping only applies to likes (SWIPE-02). Passing
+    // on someone who liked you should not drop their like from the list.
+    if (action != 'like') return;
+
     ref
         .read(incomingLikesListControllerProvider.notifier)
         .removePeerOptimistically(profile.id);
     ref.invalidate(incomingLikesProvider);
     unawaited(ref.read(incomingLikesListControllerProvider.notifier).refresh());
-
-    if (action != 'like') return;
 
     ref
         .read(outgoingLikesListControllerProvider.notifier)

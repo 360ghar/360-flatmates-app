@@ -28,75 +28,81 @@ class FlatmatesErrorState extends StatefulWidget {
 
 class _FlatmatesErrorStateState extends State<FlatmatesErrorState>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeIn;
-  late final Animation<Offset> _slideUp;
+  AnimationController? _controller;
+  Animation<double>? _fadeIn;
+  Animation<Offset>? _slideUp;
+  bool _reduceMotion = false;
+  bool _motionResolved = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
+  void _resolveMotion(BuildContext context) {
+    if (_motionResolved) return;
+    _motionResolved = true;
+    _reduceMotion = AppMotion.reduceMotion(context);
+    if (_reduceMotion) return;
+
+    final controller = AnimationController(
       vsync: this,
       duration: AppMotion.fadeInEntry,
     );
+    _controller = controller;
     _fadeIn = CurvedAnimation(
-      parent: _controller,
+      parent: controller,
       curve: AppMotion.easeOutCubic,
     );
     _slideUp = Tween(begin: const Offset(0, 0.05), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: AppMotion.easeOutCubic),
+      CurvedAnimation(parent: controller, curve: AppMotion.easeOutCubic),
     );
-    _controller.forward();
+    controller.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _resolveMotion(context);
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
 
-    return Center(
-      child: FadeTransition(
-        opacity: _fadeIn,
-        child: SlideTransition(
-          position: _slideUp,
-          child: Padding(
-            padding: AppSpacing.horizontalScreen,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  widget.icon ?? Icons.cloud_off_rounded,
-                  size: 48,
-                  color: AppSemanticColors.error,
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                Text(
-                  widget.message,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.brightness == Brightness.dark
-                        ? AppSemanticColors.paper3
-                        : AppSemanticColors.ink2,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (widget.onRetry != null) ...[
-                  const SizedBox(height: AppSpacing.xl),
-                  FilledButton(
-                    onPressed: widget.onRetry,
-                    child: Text(widget.retryLabel ?? locale.commonRetry),
-                  ),
-                ],
-              ],
-            ),
+    final body = Padding(
+      padding: AppSpacing.horizontalScreen,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            widget.icon ?? Icons.cloud_off_rounded,
+            size: 48,
+            color: AppSemanticColors.error,
           ),
-        ),
+          const SizedBox(height: AppSpacing.xl),
+          Text(
+            widget.message,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (widget.onRetry != null) ...[
+            const SizedBox(height: AppSpacing.xl),
+            FilledButton(
+              onPressed: widget.onRetry,
+              child: Text(widget.retryLabel ?? locale.commonRetry),
+            ),
+          ],
+        ],
       ),
     );
+
+    final content = _reduceMotion || _fadeIn == null || _slideUp == null
+        ? body
+        : FadeTransition(
+            opacity: _fadeIn!,
+            child: SlideTransition(position: _slideUp!, child: body),
+          );
+
+    return Center(child: content);
   }
 }

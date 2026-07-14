@@ -35,8 +35,8 @@ class LocationSelectionPage extends ConsumerStatefulWidget {
 class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   final _searchController = TextEditingController();
   CatalogOption? _selectedCity;
-  bool _locating = false;
   bool _selectingPlace = false;
+  bool _locating = false;
 
   String get _typedCity => _searchController.text.trim();
 
@@ -218,7 +218,10 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
   }
 
   void _onCityTap(CatalogOption city) {
-    if (city.comingSoon) return;
+    if (city.comingSoon) {
+      context.push('/waitlist?city=${Uri.encodeComponent(city.label)}');
+      return;
+    }
     setState(() {
       _selectedCity = city;
       _searchController.text = city.label;
@@ -261,6 +264,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final searchState = ref.watch(locationSearchProvider);
+    final locating = _locating;
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
     final isPlacesLoading = searchState.isLoading || _selectingPlace;
     final typedCity = _typedCity;
@@ -284,12 +288,13 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IconButton(
-              onPressed: widget.onBack ?? () => context.pop(),
-              icon: const Icon(Icons.arrow_back),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: locale.backCta,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FlatmatesChromeIconButton(
+                onPressed: widget.onBack ?? () => context.pop(),
+                icon: Icons.arrow_back_rounded,
+                tooltip: locale.backCta,
+              ),
             ),
             const SizedBox(height: 28),
             const FlatmatesStepProgress.dots(currentStep: 1, totalSteps: 4),
@@ -314,14 +319,14 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
             const SizedBox(height: 18),
             LocationActionRow(
               icon: Icons.my_location_outlined,
-              title: _locating
+              title: locating
                   ? locale.detectingLocation
                   : locale.useCurrentLocation,
-              onTap: _locating ? null : _useCurrentLocation,
+              onTap: locating ? null : _useCurrentLocation,
               vertical: 10,
             ),
             const SizedBox(height: 18),
-            const Divider(color: AppSemanticColors.line),
+            Divider(color: AppSemanticColors.hairlineFor(theme.brightness)),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(

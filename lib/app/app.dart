@@ -17,6 +17,7 @@ import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
+import '../features/notifications/notification_route_resolver.dart';
 import '../features/onboarding/onboarding_controller.dart';
 import '../features/settings/settings_controller.dart';
 import '../l10n/gen/app_localizations.dart';
@@ -29,9 +30,8 @@ class App extends ConsumerStatefulWidget {
   ConsumerState<App> createState() => _AppState();
 }
 
-class _AppState extends ConsumerState<App> {
+class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   DeepLinkService? _deepLinkService;
-  bool _hasNavigatedFromNotification = false;
   bool _appConfigChecked = false;
 
   // Local notifications are initialized in bootstrap() before runApp().
@@ -40,6 +40,7 @@ class _AppState extends ConsumerState<App> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Deep link service is initialized after the first frame so that
     // GoRouter is available via the provider.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,8 +53,18 @@ class _AppState extends ConsumerState<App> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _deepLinkService?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
+    if (bootstrap == null) return;
+    final router = ref.read(appRouterProvider);
+    _navigateFromPendingNotification(router);
   }
 
   Future<void> _checkAppConfig() async {
@@ -84,14 +95,16 @@ class _AppState extends ConsumerState<App> {
           return;
         }
         unawaited(analytics.logForceUpdateShown());
-        unawaited(
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => ForceUpdatePage(updateUrl: downloadUrl),
+        _presentWithRootNavigator((navContext) {
+          unawaited(
+            Navigator.of(navContext).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (_) => ForceUpdatePage(updateUrl: downloadUrl),
+              ),
+              (_) => false,
             ),
-            (_) => false,
-          ),
-        );
+          );
+        });
       case AppUpdateStatus.optionalUpdate:
         final downloadUrl = result.downloadUrl;
         if (downloadUrl == null || downloadUrl.isEmpty) {
@@ -99,24 +112,50 @@ class _AppState extends ConsumerState<App> {
           return;
         }
         unawaited(analytics.logOptionalUpdateShown());
-        unawaited(
-          OptionalUpdateDialog.show(
-            context,
-            updateUrl: downloadUrl,
-            message: result.releaseNotes ?? '',
-            onDismiss: () {
-              final version = result.latestVersion;
-              if (version != null) {
-                configService.dismissOptionalUpdate(version);
-              }
-            },
-          ),
-        );
+        _presentWithRootNavigator((navContext) {
+          unawaited(
+            OptionalUpdateDialog.show(
+              navContext,
+              updateUrl: downloadUrl,
+              message: result.releaseNotes ?? '',
+              onDismiss: () {
+                final version = result.latestVersion;
+                if (version != null) {
+                  configService.dismissOptionalUpdate(version);
+                }
+              },
+            ),
+          );
+        });
       case AppUpdateStatus.upToDate:
         break;
     }
 
     _appConfigChecked = true;
+  }
+
+  /// _AppState sits above [MaterialApp.router] — use the GoRouter root
+  /// navigator so dialogs/pages have a valid [Navigator] ancestor.
+  void _presentWithRootNavigator(
+    void Function(BuildContext navContext) present,
+  ) {
+    void tryPresent([int attemptsLeft = 5]) {
+      if (!mounted) return;
+      final navContext = rootNavigatorKey.currentContext;
+      if (navContext != null) {
+        present(navContext);
+        return;
+      }
+      if (attemptsLeft <= 0) {
+        debugPrint('App._presentWithRootNavigator: root navigator unavailable');
+        return;
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        tryPresent(attemptsLeft - 1);
+      });
+    }
+
+    tryPresent();
   }
 
   @override
@@ -127,6 +166,18 @@ class _AppState extends ConsumerState<App> {
 
     // Activate Realtime event stream and provider invalidation router.
     ref.watch(flatmatesRealtimeEventRouterProvider);
+
+    // Gate Realtime on device connectivity so DNS/host-lookup failures while
+    // offline do not thrash reconnects (and resume cleanly when online).
+    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
+      final online = next.valueOrNull;
+      if (online == null) return;
+      final service = ref.read(flatmatesRealtimeServiceProvider);
+      service.setNetworkAvailable(online);
+      if (online && ref.read(authControllerProvider).isLoggedIn) {
+        _connectRealtimeIfReady();
+      }
+    });
 
     ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
       _,
@@ -149,12 +200,20 @@ class _AppState extends ConsumerState<App> {
       if (data != null && ref.read(authControllerProvider).isLoggedIn) {
         _connectRealtimeIfReady();
       }
+
+      // Cold-start / late push deep-link: consume pending route whenever
+      // bootstrap becomes ready (not a permanent one-shot).
+      if (data != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _navigateFromPendingNotification(router);
+        });
+      }
     });
 
-    // Handle notification deep links on bootstrap completion
-    if (bootstrapState is AsyncData &&
-        bootstrapState.value != null &&
-        !_hasNavigatedFromNotification) {
+    // Handle notification deep links once bootstrap data is present.
+    // Always attempt consume — no permanent one-shot flag so subsequent
+    // warm taps (when build re-runs) can still navigate.
+    if (bootstrapState is AsyncData && bootstrapState.value != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _navigateFromPendingNotification(router);
       });
@@ -194,8 +253,8 @@ class _AppState extends ConsumerState<App> {
       } else {
         ref.read(notificationServiceProvider).dispose();
         ref.read(flatmatesRealtimeServiceProvider).disconnect();
-        ref.read(pendingPhoneProvider.notifier).state = null;
-        ref.read(addPhonePromptProvider.notifier).state = false;
+        ref.read(pendingPhoneProvider.notifier).set(null);
+        ref.read(addPhonePromptProvider.notifier).set(false);
         unawaited(_clearOnboardingDraftThenInvalidate());
         ref.read(bootstrapControllerProvider.notifier).clear();
       }
@@ -283,15 +342,17 @@ class _AppState extends ConsumerState<App> {
           FlatmatesRealtimeConfig.fallbackForUser(profileId);
       if (realtime.channel.isEmpty) return;
 
+      final online = ref.read(connectivityProvider).valueOrNull ?? true;
+      final service = ref.read(flatmatesRealtimeServiceProvider);
+      service.setNetworkAvailable(online);
+
       final tokenProvider = ref.read(authTokenProviderProvider);
-      ref
-          .read(flatmatesRealtimeServiceProvider)
-          .connect(
-            channelName: realtime.channel,
-            tokenRefresher: () => tokenProvider.getAccessToken(),
-            privateChannel: realtime.privateChannel,
-            events: realtime.events.isNotEmpty ? realtime.events : null,
-          );
+      service.connect(
+        channelName: realtime.channel,
+        tokenRefresher: () => tokenProvider.getAccessToken(),
+        privateChannel: realtime.privateChannel,
+        events: realtime.events.isNotEmpty ? realtime.events : null,
+      );
     } catch (error) {
       debugPrint('App.login Realtime connect failed: $error');
     }
@@ -308,14 +369,16 @@ class _AppState extends ConsumerState<App> {
   }
 
   void _navigateFromPendingNotification(GoRouter router) {
-    final route = NotificationService.consumePendingRoute();
-    if (route != null && route.isNotEmpty) {
-      _hasNavigatedFromNotification = true;
-      final analytics = ref.read(analyticsServiceProvider);
-      analytics.logNotificationOpened();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        router.go(route);
-      });
-    }
+    final rawRoute = NotificationService.consumePendingRoute();
+    if (rawRoute == null || rawRoute.isEmpty) return;
+
+    final route = resolveNotificationDeepLink(rawRoute);
+    if (route == null || route.isEmpty) return;
+
+    final analytics = ref.read(analyticsServiceProvider);
+    analytics.logNotificationOpened();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      router.go(route);
+    });
   }
 }

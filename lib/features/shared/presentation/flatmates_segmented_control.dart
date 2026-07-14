@@ -29,22 +29,28 @@ class FlatmatesSegmentedControl<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final inactiveColor = theme.brightness == Brightness.dark
-        ? AppSemanticColors.paper3
-        : AppSemanticColors.ink2;
+    final brightness = theme.brightness;
+    final inactiveColor = AppSemanticColors.textSecondaryFor(brightness);
     final selectedIndex = segments.indexWhere((s) => s.$1 == selected);
+
+    if (segments.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
+        color: brightness == Brightness.dark
             ? AppSemanticColors.darkSurfaceElevated.withValues(alpha: 0.5)
-            : AppSemanticColors.paper2,
+            : AppSemanticColors.secondarySurfaceFor(brightness),
         borderRadius: AppRadius.pillBorder,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final segmentWidth = constraints.maxWidth / segments.length;
+          final maxWidth = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width;
+          final segmentWidth = maxWidth / segments.length;
 
           return Stack(
             children: [
@@ -81,30 +87,32 @@ class FlatmatesSegmentedControl<T> extends StatelessWidget {
                           ? segmentKeys![index]
                           : null,
                       onTap: () => onChanged(value),
+                      behavior: HitTestBehavior.opaque,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xxs,
                           vertical: AppSpacing.sm + AppSpacing.xs,
                         ),
                         child: Row(
-                          // max (default) so the row fills the segment width
-                          // and truly centers its label under the sliding pill
-                          // (which is positioned at exact segment boundaries).
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             if (icon != null) ...[
                               Icon(
                                 icon,
-                                size: 16,
+                                size: 14,
                                 color: isSelected
                                     ? Colors.white
                                     : inactiveColor,
                               ),
-                              const SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xxs),
                             ],
                             Flexible(
                               child: Text(
                                 label,
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
                                 style: theme.textTheme.labelLarge?.copyWith(
                                   color: isSelected
                                       ? Colors.white
@@ -112,6 +120,7 @@ class FlatmatesSegmentedControl<T> extends StatelessWidget {
                                   fontWeight: isSelected
                                       ? FontWeight.w700
                                       : FontWeight.w500,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),

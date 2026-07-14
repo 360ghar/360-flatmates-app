@@ -15,7 +15,10 @@ class MatchQnANudge extends ConsumerStatefulWidget {
   });
 
   final String peerName;
-  final void Function(Map<String, String> answers) onComplete;
+
+  /// Returns `true` when answers were saved and the sheet should dismiss.
+  /// On failure the parent should toast; this sheet stays open for retry.
+  final Future<bool> Function(Map<String, String> answers) onComplete;
 
   @override
   ConsumerState<MatchQnANudge> createState() => _MatchQnANudgeState();
@@ -25,6 +28,7 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
   final _q1Controller = TextEditingController();
   int _q2Value = 2; // 1-5 scale, default middle
   final _q3Controller = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -42,6 +46,23 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
       5 => locale.qnaVerySocial,
       _ => locale.qnaBalanced,
     };
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      // Q2 is the numeric scale "1".."5" (not a localized label).
+      final ok = await widget.onComplete({
+        'q1': _q1Controller.text.trim(),
+        'q2': _q2Value.toString(),
+        'q3': _q3Controller.text.trim(),
+      });
+      if (!mounted) return;
+      if (ok) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -93,7 +114,9 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                   max: 5,
                   divisions: 4,
                   label: _q2Label(locale),
-                  onChanged: (v) => setState(() => _q2Value = v.round()),
+                  onChanged: _isSubmitting
+                      ? null
+                      : (v) => setState(() => _q2Value = v.round()),
                 ),
               ],
             ),
@@ -108,6 +131,7 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                 TextField(
                   controller: _q3Controller,
                   maxLength: 60,
+                  enabled: !_isSubmitting,
                   decoration: InputDecoration(
                     hintText: locale.qnaQuestion3Hint,
                     counterStyle: theme.textTheme.bodySmall,
@@ -119,14 +143,7 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
           const SizedBox(height: AppSpacing.screen),
           FlatmatesButton(
             label: locale.qnaAnswerCta,
-            onPressed: () {
-              widget.onComplete({
-                'q1': _q1Controller.text.trim(),
-                'q2': _q2Value.toString(),
-                'q3': _q3Controller.text.trim(),
-              });
-              Navigator.pop(context);
-            },
+            onPressed: _isSubmitting ? null : _handleSubmit,
             icon: Icons.check_rounded,
             fullWidth: true,
           ),
@@ -134,7 +151,7 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
           Center(
             child: FlatmatesButton.tertiary(
               label: locale.qnaSkipCta,
-              onPressed: () => Navigator.pop(context),
+              onPressed: _isSubmitting ? null : () => Navigator.pop(context),
             ),
           ),
         ],

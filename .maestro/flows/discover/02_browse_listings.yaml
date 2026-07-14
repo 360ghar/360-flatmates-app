@@ -1,0 +1,34 @@
+appId: com.the360ghar.flatmates360
+name: Browse Listings - Search and Scroll
+tags:
+  - discover
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: home_picked_for_you_see_all
+    direction: UP
+- tapOn:
+    id: home_picked_for_you_see_all
+- extendedWaitUntil:
+    visible:
+      id: browse_search_open
+    timeout: 5000
+- tapOn:
+    id: browse_search_open
+- inputText: "test"
+- scroll DOWN
+- scroll UP
+- tapOn:
+    id: browse_search_close
+- back
+- extendedWaitUntil:
+    visible:
+      id: home_search_bar
+    timeout: 5000

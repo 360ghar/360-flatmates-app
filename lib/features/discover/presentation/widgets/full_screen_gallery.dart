@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 
 /// Full-screen, pinch-zoomable media viewer for property photos and
@@ -161,30 +163,18 @@ class _FullScreenGalleryState extends State<FullScreenGallery>
               ),
             ),
 
-            // Close button
+            // Close button — solid circular overlay chrome (matches listing carousel)
             Positioned(
               top: MediaQuery.of(context).padding.top + 4,
-              left: 16,
+              left: AppSpacing.base,
               child: _GalleryChrome(
                 visible: chromeVisible,
-                child: Semantics(
-                  button: true,
-                  label: MaterialLocalizations.of(context).closeButtonTooltip,
-                  child: GestureDetector(
-                    key: const Key('gallery_close_button'),
-                    onTap: () => Navigator.of(context).pop(),
-                    child: const _FrostedPill(
-                      child: SizedBox(
-                        width: 38,
-                        height: 38,
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
+                child: FlatmatesChromeIconButton(
+                  key: const Key('gallery_close_button'),
+                  icon: Icons.close_rounded,
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  style: FlatmatesChromeIconStyle.overlay,
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
             ),

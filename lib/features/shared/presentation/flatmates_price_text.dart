@@ -57,10 +57,7 @@ class FlatmatesPriceText extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final resolvedColor =
-        color ??
-        (theme.brightness == Brightness.dark
-            ? AppSemanticColors.paper
-            : AppSemanticColors.ink);
+        color ?? AppSemanticColors.textPrimaryFor(theme.brightness);
 
     final formatted = formatRupee(amount);
     final text = period != null ? '$formatted / $period' : formatted;

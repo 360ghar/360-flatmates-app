@@ -5,11 +5,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_semantic_colors.dart';
 import '../../l10n/gen/app_localizations.dart';
 
-final connectivityProvider = StreamProvider<bool>((ref) {
+/// Whether the device currently has a non-none network interface.
+///
+/// Seeds the **initial** connectivity state (not only change events), then
+/// continues to emit on [Connectivity.onConnectivityChanged].
+final connectivityProvider = StreamProvider<bool>((ref) async* {
   final connectivity = Connectivity();
-  return connectivity.onConnectivityChanged.map(
-    (results) => results.any((r) => r != ConnectivityResult.none),
-  );
+
+  bool isOnline(List<ConnectivityResult> results) =>
+      results.any((r) => r != ConnectivityResult.none);
+
+  // Initial snapshot so cold start / offline-at-launch is not treated as online
+  // by default (`valueOrNull ?? true`).
+  try {
+    yield isOnline(await connectivity.checkConnectivity());
+  } catch (_) {
+    // Plugin unavailable (tests / desktop) — assume online.
+    yield true;
+  }
+
+  yield* connectivity.onConnectivityChanged.map(isOnline);
 });
 
 class OfflineBanner extends ConsumerWidget {

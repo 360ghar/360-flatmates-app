@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
+import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
 import '../auth/auth_controller.dart';
 import 'domain/bootstrap_models.dart';
@@ -45,10 +46,13 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
 
   Future<BootstrapData?> _fetchBootstrapData() async {
     final client = ref.read(apiClientProvider);
+    // Fail fast on cold start: if the API/DB is wedged, splash should show
+    // retry within ~15s instead of sitting on the global 60s Dio timeout.
+    final critical = ApiClient.criticalPathOptions();
     // Fetch bootstrap + auth-state in parallel.
     final results = await Future.wait([
-      client.get(FlatmatesEndpoints.bootstrap),
-      client.get(FlatmatesEndpoints.authState),
+      client.get(FlatmatesEndpoints.bootstrap, options: critical),
+      client.get(FlatmatesEndpoints.authState, options: critical),
     ]);
     final bootstrapResponse = results[0];
     final authStateResponse = results[1];

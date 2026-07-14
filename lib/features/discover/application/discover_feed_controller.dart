@@ -19,6 +19,7 @@ class DiscoverFeedState {
     this.hasMore = true,
     this.error,
     this.filters = const DiscoverFilters(),
+    this.isBroadened = false,
   });
 
   final List<PropertyListing> listings;
@@ -29,6 +30,12 @@ class DiscoverFeedState {
   final bool hasMore;
   final Object? error;
   final DiscoverFilters filters;
+
+  /// True when the current page was fetched with a broader radius (or no geo
+  /// filter) than the user's selected location because the user's radius
+  /// returned zero listings. The UI shows a "showing listings beyond your
+  /// area" hint when this is true.
+  final bool isBroadened;
 
   bool get hasError => error != null;
   bool get isEmpty => listings.isEmpty && !isLoading;
@@ -44,6 +51,7 @@ class DiscoverFeedState {
     Object? error,
     bool clearError = false,
     DiscoverFilters? filters,
+    bool? isBroadened,
   }) {
     return DiscoverFeedState(
       listings: listings ?? this.listings,
@@ -54,6 +62,7 @@ class DiscoverFeedState {
       hasMore: hasMore ?? this.hasMore,
       error: clearError ? null : (error ?? this.error),
       filters: filters ?? this.filters,
+      isBroadened: isBroadened ?? this.isBroadened,
     );
   }
 }
@@ -61,11 +70,22 @@ class DiscoverFeedState {
 class DiscoverFeedController extends Notifier<DiscoverFeedState> {
   static const double defaultLocationRadiusKm = 10.0;
 
+  /// When an initial geo-filtered load returns zero listings, the controller
+  /// retries with progressively broader radii from this ladder before finally
+  /// falling back to no geo filter. This keeps the feed useful for users who
+  /// are not physically near any available listing.
+  static const List<double> _broadenRadiusLadder = [50.0, 100.0];
+
   // Monotonic version bumped each time filters change. A load that
   // observes a different version after its `await` is stale and
   // discards its result.
   int _filterVersion = 0;
   bool _isLoadingActive = false;
+
+  /// Filters actually used for the last successful first-page fetch when
+  /// radius was broadened (or geo dropped). Pagination must reuse these so
+  /// the cursor stays coherent with the page that produced it.
+  DiscoverFilters? _activeFetchFilters;
 
   @override
   DiscoverFeedState build() {
@@ -83,6 +103,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       // it; the in-flight load will observe the mismatch and reload.
       if (clearAll) {
         _filterVersion++;
+        _activeFetchFilters = null;
         state = state.copyWith(
           isLoading: true,
           isLoadingMore: false,
@@ -93,6 +114,9 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
     }
     _isLoadingActive = true;
     if (clearAll) {
+      // Fresh load starts from the user's selected filters; any prior
+      // broaden-session filters are invalid for the new first page.
+      _activeFetchFilters = null;
       state = state.copyWith(isLoading: true, clearError: true);
     } else {
       state = state.copyWith(isLoadingMore: true, clearError: true);
@@ -106,17 +130,52 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
       final cursor = clearAll ? null : state.nextCursor;
-      final page = await repo.fetchListingsPage(
+      // Pagination must reuse the filters that produced the cursor (which may
+      // be broadened). First-page loads always use the user's filters.
+      final fetchFilters = clearAll
+          ? state.filters
+          : (_activeFetchFilters ?? state.filters);
+      var page = await repo.fetchListingsPage(
         currentUser: profile,
-        filters: state.filters,
+        filters: fetchFilters,
         cursor: cursor,
       );
-      final newListings = page.items;
+      var newListings = page.items;
+      var broadened = false;
+      DiscoverFilters? effectiveFilters;
+
+      // Only broaden on a fresh, geo-filtered load that returned nothing.
+      // Store the effective filters so load-more reuses the same radius/geo.
+      if (clearAll &&
+          cursor == null &&
+          newListings.isEmpty &&
+          state.filters.hasGeoLocation &&
+          myVersion == _filterVersion) {
+        final broadenedResult = await _broadenAndFetch(
+          profile: profile,
+          repo: repo,
+          baseFilters: state.filters,
+          myVersion: myVersion,
+        );
+        if (broadenedResult != null) {
+          page = (
+            items: broadenedResult.items,
+            rawCount: broadenedResult.rawCount,
+            nextCursor: broadenedResult.nextCursor,
+          );
+          newListings = page.items;
+          broadened = true;
+          effectiveFilters = broadenedResult.filters;
+        }
+      }
 
       if (myVersion != _filterVersion) {
         // Stale result — filters changed during the request.
         // Skip applying it; the trailing reload below will re-fetch.
       } else {
+        if (clearAll) {
+          _activeFetchFilters = effectiveFilters;
+        }
         state = state.copyWith(
           listings: clearAll
               ? newListings
@@ -125,6 +184,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           isLoading: false,
           isLoadingMore: false,
           hasMore: page.nextCursor != null,
+          isBroadened: clearAll ? broadened : null,
         );
       }
     } catch (e) {
@@ -146,9 +206,78 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
     }
   }
 
+  /// Retries the first-page fetch with progressively broader radii (then no
+  /// geo filter) until a non-empty page is found. Returns `null` if every
+  /// attempt also returned zero listings (so the caller keeps the original
+  /// empty result). Aborts early if the filter version changes mid-flight.
+  ///
+  /// On success, [filters] is the effective filter set used for that page
+  /// (must be reused for subsequent cursor pagination).
+  Future<
+    ({
+      List<PropertyListing> items,
+      int rawCount,
+      String? nextCursor,
+      DiscoverFilters filters,
+    })?
+  >
+  _broadenAndFetch({
+    required FlatmatesProfileModel? profile,
+    required DiscoverRepository repo,
+    required DiscoverFilters baseFilters,
+    required int myVersion,
+  }) async {
+    for (final radius in _broadenRadiusLadder) {
+      if (myVersion != _filterVersion) return null;
+      final filters = baseFilters.copyWith(radiusKm: radius);
+      final page = await repo.fetchListingsPage(
+        currentUser: profile,
+        filters: filters,
+      );
+      if (page.items.isNotEmpty) {
+        return (
+          items: page.items,
+          rawCount: page.rawCount,
+          nextCursor: page.nextCursor,
+          filters: filters,
+        );
+      }
+    }
+    // Final fallback: drop the geo filter entirely.
+    if (myVersion != _filterVersion) return null;
+    final noGeoFilters = baseFilters.copyWith(
+      clearLatitude: true,
+      clearLongitude: true,
+      clearRadiusKm: true,
+    );
+    final page = await repo.fetchListingsPage(
+      currentUser: profile,
+      filters: noGeoFilters,
+    );
+    if (page.items.isEmpty) return null;
+    return (
+      items: page.items,
+      rawCount: page.rawCount,
+      nextCursor: page.nextCursor,
+      filters: noGeoFilters,
+    );
+  }
+
   Future<void> loadMore() async {
     if (state.isLoadingMore || !state.hasMore) return;
     await load(clearAll: false);
+  }
+
+  /// Updates the local liked flag for [id] without a network call.
+  ///
+  /// Used by map (and similar) surfaces that already persisted the like so
+  /// the feed heart stays in parity without a full reload.
+  void applyLikedLocally(int id, bool liked) {
+    final index = state.listings.indexWhere((listing) => listing.id == id);
+    if (index < 0) return;
+    final listings = [...state.listings];
+    listings[index] = listings[index].copyWith(liked: liked);
+    state = state.copyWith(listings: listings);
   }
 
   /// Optimistically toggles the liked state of a listing in the feed.
@@ -214,6 +343,7 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
     // discards its (now stale) result instead of racing this refresh and
     // appending duplicate / out-of-order pages.
     _filterVersion++;
+    _activeFetchFilters = null;
     state = state.copyWith(isRefreshing: true, clearError: true);
     try {
       final profile = ref
@@ -222,10 +352,31 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
       final myVersion = _filterVersion;
-      final page = await repo.fetchListingsPage(
+      var page = await repo.fetchListingsPage(
         currentUser: profile,
         filters: state.filters,
       );
+      var broadened = false;
+      DiscoverFilters? effectiveFilters;
+      if (page.items.isEmpty &&
+          state.filters.hasGeoLocation &&
+          myVersion == _filterVersion) {
+        final broadenedResult = await _broadenAndFetch(
+          profile: profile,
+          repo: repo,
+          baseFilters: state.filters,
+          myVersion: myVersion,
+        );
+        if (broadenedResult != null) {
+          page = (
+            items: broadenedResult.items,
+            rawCount: broadenedResult.rawCount,
+            nextCursor: broadenedResult.nextCursor,
+          );
+          broadened = true;
+          effectiveFilters = broadenedResult.filters;
+        }
+      }
       // A filter change during the refresh wins: discard this result and let
       // the filter-driven load() repopulate the feed. Clear the refreshing
       // flag so the UI doesn't stay stuck in the loading state.
@@ -233,11 +384,13 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
         state = state.copyWith(isRefreshing: false);
         return;
       }
+      _activeFetchFilters = effectiveFilters;
       state = state.copyWith(
         listings: page.items,
         nextCursor: page.nextCursor,
         isRefreshing: false,
         hasMore: page.nextCursor != null,
+        isBroadened: broadened,
       );
     } catch (e) {
       debugPrint('DiscoverFeedController.refresh failed: $e');
@@ -372,6 +525,10 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
 
   void _setFilters(DiscoverFilters filters, {bool restartListings = false}) {
     _filterVersion++;
+    // User-selected filters changed — discard any broaden-session filters so
+    // the next first-page load starts from the new selection, not a stale
+    // broadened radius / no-geo fallback.
+    _activeFetchFilters = null;
     state = state.copyWith(
       listings: restartListings ? const [] : null,
       setNextCursorNull: restartListings,
@@ -381,10 +538,11 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       hasMore: restartListings ? true : null,
       clearError: restartListings,
       filters: filters,
+      isBroadened: false,
     );
-    ref.read(discoverFiltersProvider.notifier).state = filters.isEmpty
-        ? null
-        : filters;
+    ref
+        .read(discoverFiltersProvider.notifier)
+        .set(filters.isEmpty ? null : filters);
   }
 }
 

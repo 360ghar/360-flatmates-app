@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
+import 'cloudinary_transform.dart';
 import 'flatmates_ui.dart';
 
 class FlatmatesNetworkImage extends ConsumerWidget {
@@ -29,7 +30,7 @@ class FlatmatesNetworkImage extends ConsumerWidget {
   final String? heroTag;
   final String? fallbackName;
 
-  String _resolveUrl(WidgetRef ref) {
+  String _resolveAbsoluteUrl(WidgetRef ref) {
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return imageUrl;
     }
@@ -49,35 +50,84 @@ class FlatmatesNetworkImage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resolvedUrl = _resolveUrl(ref);
+    final absoluteUrl = _resolveAbsoluteUrl(ref);
     final theme = Theme.of(context);
-    final placeholderColor = theme.brightness == Brightness.dark
-        ? AppSemanticColors.darkSurfaceElevated
-        : AppSemanticColors.paper2;
-
-    Widget child = _ResilientImage(
-      url: resolvedUrl,
-      width: width,
-      height: height,
-      fit: fit ?? BoxFit.cover,
-      borderRadius: borderRadius,
-      placeholderColor: placeholderColor,
-      fallbackName: fallbackName,
+    final placeholderColor = AppSemanticColors.secondarySurfaceFor(
+      theme.brightness,
     );
 
+    // Explicit dimensions: transform + decode at those sizes immediately.
+    if (width != null || height != null) {
+      return _wrapDecorations(
+        _ResilientImage(
+          url: applyCloudinaryTransform(
+            absoluteUrl,
+            width: width,
+            height: height,
+          ),
+          width: width,
+          height: height,
+          fit: fit ?? BoxFit.cover,
+          borderRadius: borderRadius,
+          placeholderColor: placeholderColor,
+          fallbackName: fallbackName,
+          memWidth: width,
+          memHeight: height,
+        ),
+      );
+    }
+
+    // Expand-to-parent case (AspectRatio, Positioned.fill, etc.): resolve
+    // layout size so we still request a size-capped Cloudinary delivery URL
+    // and decode only the pixels we need.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final layoutW =
+            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : null;
+        final layoutH =
+            constraints.maxHeight.isFinite && constraints.maxHeight > 0
+            ? constraints.maxHeight
+            : null;
+
+        return _wrapDecorations(
+          _ResilientImage(
+            url: applyCloudinaryTransform(
+              absoluteUrl,
+              width: layoutW,
+              height: layoutH,
+            ),
+            width: width,
+            height: height,
+            fit: fit ?? BoxFit.cover,
+            borderRadius: borderRadius,
+            placeholderColor: placeholderColor,
+            fallbackName: fallbackName,
+            memWidth: layoutW,
+            memHeight: layoutH,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _wrapDecorations(Widget child) {
+    var result = child;
+
     if (semanticLabel != null) {
-      child = Semantics(label: semanticLabel, child: child);
+      result = Semantics(label: semanticLabel, child: result);
     }
 
     if (heroTag != null) {
-      child = Hero(tag: heroTag!, child: child);
+      result = Hero(tag: heroTag!, child: result);
     }
 
     if (borderRadius != null) {
-      child = ClipRRect(borderRadius: borderRadius!, child: child);
+      result = ClipRRect(borderRadius: borderRadius!, child: result);
     }
 
-    return child;
+    return result;
   }
 }
 
@@ -92,6 +142,8 @@ class _ResilientImage extends StatefulWidget {
     this.borderRadius,
     this.placeholderColor,
     this.fallbackName,
+    this.memWidth,
+    this.memHeight,
   });
 
   final String url;
@@ -101,6 +153,8 @@ class _ResilientImage extends StatefulWidget {
   final BorderRadius? borderRadius;
   final Color? placeholderColor;
   final String? fallbackName;
+  final double? memWidth;
+  final double? memHeight;
 
   @override
   State<_ResilientImage> createState() => _ResilientImageState();
@@ -108,6 +162,11 @@ class _ResilientImage extends StatefulWidget {
 
 class _ResilientImageState extends State<_ResilientImage> {
   bool _useFallback = false;
+
+  int? _memCacheDim(double? raw) {
+    if (raw == null || !raw.isFinite || raw <= 0) return null;
+    return (raw * 2).toInt().clamp(1, 4096);
+  }
 
   @override
   void didUpdateWidget(_ResilientImage oldWidget) {
@@ -123,12 +182,17 @@ class _ResilientImageState extends State<_ResilientImage> {
 
   @override
   Widget build(BuildContext context) {
+    final memW = _memCacheDim(widget.memWidth ?? widget.width);
+    final memH = _memCacheDim(widget.memHeight ?? widget.height);
+
     if (_useFallback) {
       return Image.network(
         widget.url,
         width: widget.width,
         height: widget.height,
         fit: widget.fit,
+        cacheWidth: memW,
+        cacheHeight: memH,
         errorBuilder: (context, error, stackTrace) => _PhotoPendingFallback(
           width: widget.width,
           height: widget.height,
@@ -174,12 +238,8 @@ class _ResilientImageState extends State<_ResilientImage> {
         );
       },
       fadeInDuration: const Duration(milliseconds: 200),
-      memCacheWidth: widget.width != null && widget.width!.isFinite
-          ? (widget.width! * 2).toInt().clamp(1, 4096)
-          : null,
-      memCacheHeight: widget.height != null && widget.height!.isFinite
-          ? (widget.height! * 2).toInt().clamp(1, 4096)
-          : null,
+      memCacheWidth: memW,
+      memCacheHeight: memH,
     );
   }
 }
@@ -198,7 +258,9 @@ class _Placeholder extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: color ?? AppSemanticColors.paper2,
+        color:
+            color ??
+            AppSemanticColors.secondarySurfaceFor(Theme.of(context).brightness),
         borderRadius: borderRadius,
       ),
       child: const Center(

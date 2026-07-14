@@ -1,0 +1,32 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Preferences
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "pref_no_preference"
+    timeout: 5000
+
+- tapOn:
+    id: "pref_no_preference"
+
+- tapOn:
+    id: "pref_2"
+
+- tapOn:
+    id: "pref_no_preference"
+
+- tapOn:
+    id: "pref_no_preference"
+
+- tapOn:
+    id: "pref_no_preference"
+
+- tapOn:
+    id: "onboarding_preferences_next"
+
+- extendedWaitUntil:
+    visible:
+      id: "non_neg_no_smoking"
+    timeout: 5000

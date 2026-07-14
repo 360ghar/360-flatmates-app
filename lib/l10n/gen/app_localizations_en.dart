@@ -12,7 +12,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => '360 FlatMates';
 
   @override
-  String get splashTagline => 'Find. Connect. Live Together.';
+  String get splashTaglineLine1 => 'Find. Connect.';
+
+  @override
+  String get splashTaglineLine2 => 'Live Together.';
 
   @override
   String get splashSubtagline =>
@@ -128,24 +131,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyListings => 'No flatmate listings are available right now.';
 
   @override
-  String homeGreeting(String name) {
-    return 'Good afternoon, $name';
-  }
+  String get homeGreeting => 'Afternoon';
 
   @override
-  String homeGreetingMorning(String name) {
-    return 'Good morning, $name';
-  }
+  String get homeGreetingMorning => 'Morning';
 
   @override
-  String homeGreetingAfternoon(String name) {
-    return 'Good afternoon, $name';
-  }
+  String get homeGreetingAfternoon => 'Afternoon';
 
   @override
-  String homeGreetingEvening(String name) {
-    return 'Good evening, $name';
-  }
+  String get homeGreetingEvening => 'Evening';
 
   @override
   String get homeGuestName => 'there';
@@ -200,6 +195,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeNoResultsSubtitle =>
       'Try adjusting your filters or search for a different location.';
+
+  @override
+  String get homeBroadenedRadius =>
+      'No listings within your area — showing flats farther away.';
 
   @override
   String homeBedroomsChip(int count) {
@@ -288,6 +287,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get callCta => 'Call';
+
+  @override
+  String get messageCta => 'Message';
 
   @override
   String get listingDetails => 'Listing details';
@@ -413,6 +415,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editProfileCta => 'Edit profile';
+
+  @override
+  String get editProfileTabIdentity => 'Identity';
+
+  @override
+  String get editProfileTabPreferences => 'Preferences';
+
+  @override
+  String get editProfileTabLifestyle => 'Lifestyle';
+
+  @override
+  String get editProfileTabAbout => 'About';
 
   @override
   String get themeModeTitle => 'Theme mode';
@@ -959,6 +973,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userBlocked => 'User has been blocked.';
+
+  @override
+  String get userUnmatched => 'You have unmatched this person.';
 
   @override
   String get reportTitle => 'Report this person';
@@ -2032,6 +2049,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get budgetPresetAny => 'Any';
+
+  @override
+  String get budgetPresetUnder15k => 'Under ₹15k';
+
+  @override
+  String get budgetPreset15to25k => '₹15–25k';
+
+  @override
+  String get budgetPreset25to40k => '₹25–40k';
+
+  @override
+  String get budgetPreset40to60k => '₹40–60k';
+
+  @override
+  String get budgetPreset60kPlus => '₹60k+';
+
+  @override
+  String get lifestyleFiltersLabel => 'Lifestyle';
+
+  @override
+  String get lifestyleFiltersSummaryAny => 'No preference';
+
+  @override
   String get roomTypeFilterLabel => 'Room Type';
 
   @override
@@ -2123,6 +2164,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatInputHint => 'Type a message...';
+
+  @override
+  String get emojiCta => 'Emoji';
+
+  @override
+  String get dismissCta => 'Dismiss';
 
   @override
   String get phoneNotAvailable => 'Phone number not available';
@@ -2419,6 +2466,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sayHelloOrIcebreaker => 'Say hello or use an icebreaker';
+
+  @override
+  String get noMessagesYet => 'No messages here yet...';
+
+  @override
+  String get noMessagesYetHint =>
+      'Send a message or tap the icebreakers below.';
 
   @override
   String get messagesArePrivate => 'Messages are private';
@@ -2718,6 +2772,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showResultsCta => 'Show Results';
+
+  @override
+  String showResultsWithFiltersCta(int count) {
+    return 'Show Results · $count filters';
+  }
 
   @override
   String get searchFiltersTitle => 'Search & Filters';
@@ -3309,6 +3368,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dealBreakersSectionTitle => 'Deal-breakers';
 
   @override
+  String get dealBreakersSectionSubtitle => 'Non-negotiables they set';
+
+  @override
+  String get matchToneGreat => 'Great match';
+
+  @override
+  String get matchToneWorkable => 'Workable';
+
+  @override
+  String get matchToneGaps => 'Preference gaps';
+
+  @override
+  String compatAlignedCount(int count) {
+    return '$count aligned';
+  }
+
+  @override
+  String compatWorkableCount(int count) {
+    return '$count workable';
+  }
+
+  @override
+  String compatGapCount(int count) {
+    return '$count gaps';
+  }
+
+  @override
+  String get lifestyleDimSleep => 'Sleep';
+
+  @override
+  String get lifestyleDimCleanliness => 'Cleanliness';
+
+  @override
+  String get lifestyleDimFood => 'Food';
+
+  @override
+  String get lifestyleDimSmoking => 'Smoking / Drinking';
+
+  @override
+  String get lifestyleDimGuests => 'Guests';
+
+  @override
+  String get lifestyleDimWork => 'Work';
+
+  @override
+  String get lifestyleDimParty => 'Parties';
+
+  @override
+  String get societyVibesLabel => 'Society vibes';
+
+  @override
+  String dealBreakersCountBadge(int count) {
+    return '$count deal-breakers';
+  }
+
+  @override
   String get likeListingTooltip => 'Add to your likes';
 
   @override
@@ -3521,4 +3636,84 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unverifiedAccountHint =>
       'Your account isn\'t verified yet. Complete verification below or resend a code.';
+
+  @override
+  String get profileCompletionTitle => 'Let\'s set up your profile';
+
+  @override
+  String get profileCompletionSubtitle =>
+      'We need a few details to get you started.';
+
+  @override
+  String get profileCompletionContinue => 'Continue';
+
+  @override
+  String get profileCompletionSaving => 'Saving…';
+
+  @override
+  String get profileCompletionError =>
+      'Couldn\'t save your profile. Please try again.';
+
+  @override
+  String get dateOfBirthLabel => 'Date of birth';
+
+  @override
+  String get dateOfBirthHelper => 'You must be 18 or older';
+
+  @override
+  String get dateOfBirthPickerTitle => 'Select your date of birth';
+
+  @override
+  String get onboardingBannerTitle => 'Complete your profile to start matching';
+
+  @override
+  String get onboardingBannerCta => 'Continue setup';
+
+  @override
+  String onboardingStepsRemaining(int count) {
+    return '$count steps left';
+  }
+
+  @override
+  String onboardingStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get onboardingStepMode => 'Your role';
+
+  @override
+  String get onboardingStepLocation => 'Location';
+
+  @override
+  String get onboardingStepBasicInfo => 'Basic info';
+
+  @override
+  String get onboardingStepPhoto => 'Profile photo';
+
+  @override
+  String get onboardingStepLifestyle => 'Lifestyle';
+
+  @override
+  String get onboardingStepBudget => 'Budget & timeline';
+
+  @override
+  String get onboardingStepPreferences => 'Preferences';
+
+  @override
+  String get onboardingStepNonNegotiables => 'Non-negotiables';
+
+  @override
+  String get onboardingWelcomeBack =>
+      'Welcome back! Pick up where you left off.';
+
+  @override
+  String get onboardingActionBlockedTitle => 'Complete your profile first';
+
+  @override
+  String get onboardingActionBlockedMessage =>
+      'Finish setting up your profile to start matching with flatmates.';
+
+  @override
+  String get onboardingActionBlockedCta => 'Continue setup';
 }

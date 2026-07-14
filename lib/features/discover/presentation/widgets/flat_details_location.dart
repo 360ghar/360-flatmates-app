@@ -256,7 +256,8 @@ class FlatDetailsLocation extends StatelessWidget {
         final up = counts['up'] ?? 0;
         final netVotes = up - (counts['down'] ?? 0);
         final myVote = currentUserId != null
-            ? l.societyTagUserVotes[currentUserId.toString()]
+            ? (l.societyTagUserVotes['$currentUserId:$tag'] ??
+                  l.societyTagUserVotes[currentUserId.toString()])
             : null;
         final label = _displayTag(tag);
         return _SocietyTagChip(
@@ -325,7 +326,9 @@ class _SocietyTagChip extends StatelessWidget {
           border: Border.all(
             color: selected
                 ? AppSemanticColors.accent.withValues(alpha: 0.4)
-                : AppSemanticColors.line,
+                : AppSemanticColors.hairlineFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
           ),
         ),
         child: Row(

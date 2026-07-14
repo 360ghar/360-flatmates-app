@@ -82,9 +82,7 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
           ClipRRect(
             borderRadius: AppRadius.mdBorder,
             child: Material(
-              color: theme.brightness == Brightness.dark
-                  ? AppSemanticColors.darkSurfaceElevated
-                  : AppSemanticColors.paper2,
+              color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
               child: InkWell(
                 onTap: _ready ? _toggleAudio : null,
                 child: AspectRatio(
@@ -100,9 +98,11 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
                         Center(
                           child: _error == null
                               ? const CircularProgressIndicator()
-                              : const Icon(
+                              : Icon(
                                   Icons.videocam_off_outlined,
-                                  color: AppSemanticColors.ink3,
+                                  color: AppSemanticColors.textTertiaryFor(
+                                    theme.brightness,
+                                  ),
                                 ),
                         ),
                       if (_ready)

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
+import '../../core/providers/mutable_notifier.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../core/storage/onboarding_draft_storage.dart';
 import '../bootstrap/bootstrap_controller.dart';
@@ -11,14 +12,20 @@ import 'domain/onboarding_state.dart';
 
 export 'domain/onboarding_state.dart';
 
-final flatmatesOnboardingCompletedOverrideProvider = StateProvider<bool>(
-  (ref) => false,
-);
+/// In-memory gate so the router can admit the user immediately after onboarding
+/// completes, before bootstrap refresh lands.
+final flatmatesOnboardingCompletedOverrideProvider =
+    NotifierProvider<MutableNotifier<bool>, bool>(() => MutableNotifier(false));
 
 class OnboardingController extends Notifier<OnboardingState> {
+  /// True when [build] restored an incomplete draft from local storage.
+  /// Used to show the welcome-back affordance only on genuine draft resume.
+  bool resumedFromDraft = false;
+
   @override
   OnboardingState build() {
     final saved = _tryLoadSavedState();
+    resumedFromDraft = saved != null;
     return saved ?? const OnboardingState(isHydrated: true);
   }
 
@@ -234,8 +241,7 @@ class OnboardingController extends Notifier<OnboardingState> {
             PrefKeys.flatmatesOnboardingCompletedUserId,
             updatedProfile.id.toString(),
           );
-      ref.read(flatmatesOnboardingCompletedOverrideProvider.notifier).state =
-          true;
+      ref.read(flatmatesOnboardingCompletedOverrideProvider.notifier).set(true);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       state = state.copyWith(isSubmitting: false, isComplete: true);
       await _clearSavedState();

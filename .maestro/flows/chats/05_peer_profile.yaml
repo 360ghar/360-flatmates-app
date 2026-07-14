@@ -1,0 +1,31 @@
+appId: com.the360ghar.flatmates360
+name: Chats - Open peer profile
+tags:
+  - chats
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_inbox_tab
+- extendedWaitUntil:
+    visible:
+      id: chats_chats_tab
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: conversation_card_0
+    timeout: 10000
+- tapOn:
+    id: conversation_card_0
+- extendedWaitUntil:
+    visible:
+      id: chat_message_input
+    timeout: 5000
+- tapOn:
+    id: chat_peer_header
+- back
+- extendedWaitUntil:
+    visible:
+      id: chat_message_input
+    timeout: 5000

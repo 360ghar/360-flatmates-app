@@ -339,11 +339,9 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
               ),
               child: Row(
                 children: [
-                  IconButton(
+                  FlatmatesChromeIconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                    icon: Icons.arrow_back_rounded,
                     tooltip: locale.backCta,
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -383,9 +381,15 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
                 onTap: locating ? null : _useCurrentLocation,
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-              child: Divider(color: AppSemanticColors.line),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screen,
+              ),
+              child: Divider(
+                color: AppSemanticColors.hairlineFor(
+                  Theme.of(context).brightness,
+                ),
+              ),
             ),
             if (isPlacesLoading)
               const Padding(

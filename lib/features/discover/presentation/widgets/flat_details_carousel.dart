@@ -1,10 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
-import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
@@ -169,37 +168,41 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
                   ),
           ),
 
-          // Frosted glass icon buttons
+          // Airbnb-style solid circular overlay chrome
           Positioned(
             top: MediaQuery.of(context).padding.top + 4,
-            left: 16,
-            right: 16,
+            left: AppSpacing.base,
+            right: AppSpacing.base,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _FrostedIconButton(
+                FlatmatesChromeIconButton(
                   key: const Key('flat_back_button'),
                   icon: Icons.arrow_back_rounded,
                   tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: widget.onBack,
+                  style: FlatmatesChromeIconStyle.overlay,
+                  onPressed: widget.onBack,
                 ),
                 Row(
                   children: [
-                    _FrostedIconButton(
+                    FlatmatesChromeIconButton(
                       key: const Key('flat_share_button'),
                       icon: Icons.share_outlined,
                       tooltip: locale.shareListingCta,
-                      onTap: widget.onShare,
+                      style: FlatmatesChromeIconStyle.overlay,
+                      onPressed: widget.onShare,
                     ),
-                    const SizedBox(width: 10),
-                    _FrostedIconButton(
+                    FlatmatesChromeIconButton(
                       key: const Key('flat_header_shortlist_button'),
                       icon: widget.isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      iconColor: widget.isFavorite ? Colors.red : Colors.white,
+                      iconColor: widget.isFavorite
+                          ? AppSemanticColors.primary
+                          : AppSemanticColors.ink,
                       tooltip: locale.shortlistCta,
-                      onTap: widget.onFavorite,
+                      style: FlatmatesChromeIconStyle.overlay,
+                      onPressed: widget.onFavorite,
                     ),
                   ],
                 ),
@@ -264,50 +267,6 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _FrostedIconButton extends StatelessWidget {
-  const _FrostedIconButton({
-    required this.icon,
-    required this.onTap,
-    this.tooltip,
-    this.iconColor,
-    super.key,
-  });
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-  final Color? iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      button: true,
-      label: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: ClipRRect(
-          borderRadius: AppRadius.mdBorder,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              width: 38,
-              height: 38,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppSemanticColors.surfaceFor(
-                  theme.brightness,
-                ).withValues(alpha: 0.2),
-                borderRadius: AppRadius.mdBorder,
-              ),
-              child: Icon(icon, color: iconColor ?? Colors.white, size: 18),
-            ),
-          ),
-        ),
       ),
     );
   }

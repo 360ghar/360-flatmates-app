@@ -1,26 +1,15 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/errors/app_failure.dart';
-import '../../../core/errors/l10n_bridge.dart';
-import '../../../core/theme/app_motion.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_semantic_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/debouncer.dart';
 import '../../shared/presentation/components.dart';
 import '../../../l10n/gen/app_localizations.dart';
-import '../discover_repository.dart';
 import '../application/discover_feed_controller.dart';
+import 'widgets/broadened_radius_banner.dart';
+import 'widgets/browse_listings_card.dart';
 import 'widgets/filter_sheet.dart';
-
-final _isSearchActiveProvider = StateProvider<bool>((ref) => false);
-final _cardPressedProvider = StateProvider.family<bool, int>(
-  (ref, index) => false,
-);
 
 class BrowseListingsPage extends ConsumerStatefulWidget {
   const BrowseListingsPage({super.key});
@@ -30,20 +19,44 @@ class BrowseListingsPage extends ConsumerStatefulWidget {
 }
 
 class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
+  static const double _loadMoreThreshold = 500;
+
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
+  final _searchDebouncer = ActionDebouncer(
+    duration: const Duration(milliseconds: 400),
+  );
+  bool _isSearchActive = false;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     final filters = ref.read(discoverFeedControllerProvider).filters;
     _searchController.text = filters.query ?? '';
     if (_searchController.text.isNotEmpty) {
-      ref.read(_isSearchActiveProvider.notifier).state = true;
+      _isSearchActive = true;
     }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - _loadMoreThreshold) {
+      ref.read(discoverFeedControllerProvider.notifier).loadMore();
+    }
+  }
+
+  void _applySearchQuery(String? query) {
+    ref.read(discoverFeedControllerProvider.notifier).updateSearchQuery(query);
   }
 
   @override
   void dispose() {
+    _searchDebouncer.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -53,69 +66,64 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
     final locale = AppLocalizations.of(context);
     final feedState = ref.watch(discoverFeedControllerProvider);
     final filtered = ref.watch(filteredListingsProvider);
-    final isSearchActive = ref.watch(_isSearchActiveProvider);
+    final isSearchActive = _isSearchActive;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: locale.backCta,
-        ),
-        titleSpacing: 0,
-        title: isSearchActive
+      appBar: FlatmatesHeader.backTitle(
+        title: isSearchActive ? null : locale.homePickedForYou,
+        titleWidget: isSearchActive
             ? Padding(
                 padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: FlatmatesSearchBar(
                   controller: _searchController,
                   hint: locale.searchCityOrAreaHint,
                   onChanged: (query) {
-                    ref
-                        .read(discoverFeedControllerProvider.notifier)
-                        .updateSearchQuery(query.isEmpty ? null : query);
+                    _searchDebouncer.run(() {
+                      if (!mounted) return;
+                      _applySearchQuery(query.isEmpty ? null : query);
+                    });
                   },
                   trailingIcon: _searchController.text.isNotEmpty
                       ? Icons.close_rounded
                       : null,
                   onTrailingTap: () {
+                    // Cancel any pending debounced query so clear wins.
+                    _searchDebouncer.dispose();
                     _searchController.clear();
-                    ref
-                        .read(discoverFeedControllerProvider.notifier)
-                        .updateSearchQuery(null);
+                    _applySearchQuery(null);
                   },
                   autofocus: _searchController.text.isEmpty,
                 ),
               )
-            : Text(locale.homePickedForYou),
+            : null,
+        onBack: () => context.pop(),
         actions: [
           if (isSearchActive)
-            IconButton(
+            FlatmatesChromeIconButton(
               key: const Key('browse_search_close'),
               tooltip: locale.closeSearch,
               onPressed: () {
+                // Cancel any pending debounced query so clear wins.
+                _searchDebouncer.dispose();
                 _searchController.clear();
-                ref
-                    .read(discoverFeedControllerProvider.notifier)
-                    .updateSearchQuery(null);
-                ref.read(_isSearchActiveProvider.notifier).state = false;
+                _applySearchQuery(null);
+                setState(() => _isSearchActive = false);
               },
-              icon: const Icon(Icons.close_rounded),
+              icon: Icons.close_rounded,
             )
           else
-            IconButton(
+            FlatmatesChromeIconButton(
               key: const Key('browse_search_open'),
               tooltip: locale.searchCityOrAreaHint,
-              onPressed: () =>
-                  ref.read(_isSearchActiveProvider.notifier).state = true,
-              icon: const Icon(AppIcons.search),
+              onPressed: () => setState(() => _isSearchActive = true),
+              icon: AppIcons.search,
             ),
-          IconButton(
+          FlatmatesChromeIconButton(
             key: const Key('browse_filter_tune'),
             tooltip: locale.searchFiltersTitle,
             onPressed: () => showFiltersSheet(context),
-            icon: const Icon(AppIcons.filter),
+            icon: AppIcons.filter,
           ),
-          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       body: feedState.isLoading && filtered.isEmpty
@@ -132,294 +140,61 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
               subtitle: locale.homeNoResultsSubtitle,
               icon: Icons.search_off_rounded,
             )
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                120,
-              ),
-              itemCount: filtered.length,
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) {
-                return _BrowseListingsCard(item: filtered[index], index: index);
-              },
-            ),
-    );
-  }
-}
-
-class _BrowseListingsCard extends ConsumerStatefulWidget {
-  const _BrowseListingsCard({required this.item, required this.index});
-
-  final PropertyListing item;
-  final int index;
-
-  @override
-  ConsumerState<_BrowseListingsCard> createState() =>
-      _BrowseListingsCardState();
-}
-
-class _BrowseListingsCardState extends ConsumerState<_BrowseListingsCard> {
-  Future<void> _handleLike() async {
-    final locale = AppLocalizations.of(context);
-    final wasLiked = widget.item.liked ?? false;
-    try {
-      final conversationId = await ref
-          .read(discoverFeedControllerProvider.notifier)
-          .toggleLike(widget.item.id, property: widget.item);
-      if (!mounted) return;
-      if (wasLiked) {
-        FlatmatesToast.success(context, locale.likeRemovedToast);
-      } else {
-        FlatmatesToast.success(
-          context,
-          conversationId == null
-              ? locale.contactRequestSent
-              : locale.contactRequestWithConversation(conversationId),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      final msg = e is AppFailure
-          ? e.userMessage(locale.toUserMessageL10n())
-          : locale.actionFailedRetry;
-      FlatmatesToast.error(context, msg);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-    final item = widget.item;
-    final isDark = theme.brightness == Brightness.dark;
-
-    final titleLocation = [
-      if (item.locality != null && item.locality!.trim().isNotEmpty)
-        item.locality!.trim(),
-      if (item.subLocality != null && item.subLocality!.trim().isNotEmpty)
-        item.subLocality!.trim(),
-    ].join(', ');
-
-    final metaItems = <ListingMetaItem>[
-      if (item.bedrooms != null)
-        ListingMetaItem(
-          icon: Icons.bed_outlined,
-          label: locale.homeBedsValue(item.bedrooms!),
-        ),
-      if (item.bathrooms != null)
-        ListingMetaItem(
-          icon: Icons.bathtub_outlined,
-          label: locale.homeBathsValue(item.bathrooms!),
-        ),
-      if (item.areaSqft != null)
-        ListingMetaItem(
-          icon: Icons.square_foot_outlined,
-          label: locale.sqftLabel(item.areaSqft!.round()),
-        ),
-      ListingMetaItem(
-        icon: Icons.people_outline_rounded,
-        label: switch (item.genderPreference) {
-          'male' => locale.genderSuffixMaleOnly,
-          'female' => locale.genderSuffixFemaleOnly,
-          _ => locale.genderSuffixAny,
-        },
-      ),
-    ];
-    final distanceLabel = (item.distanceKm != null && item.distanceKm! > 0)
-        ? locale.distanceAway(item.distanceKm!.toStringAsFixed(1))
-        : null;
-
-    final hasImage =
-        item.effectiveMainImageUrl != null &&
-        item.effectiveMainImageUrl!.trim().isNotEmpty;
-    final pressed = ref.watch(_cardPressedProvider(widget.index));
-
-    return Listener(
-      onPointerDown: (_) =>
-          ref.read(_cardPressedProvider(widget.index).notifier).state = true,
-      onPointerUp: (_) =>
-          ref.read(_cardPressedProvider(widget.index).notifier).state = false,
-      onPointerCancel: (_) =>
-          ref.read(_cardPressedProvider(widget.index).notifier).state = false,
-      child: AnimatedContainer(
-        duration: AppMotion.fast,
-        curve: AppMotion.easeOutCubic,
-        // Content may grow past 110 (meta wrap / text scale); floor matches
-        // the prior design height and the browse skeleton.
-        constraints: const BoxConstraints(minHeight: 110),
-        decoration: BoxDecoration(
-          color: isDark
-              ? AppSemanticColors.darkSurface
-              : AppSemanticColors.card,
-          borderRadius: AppRadius.cardBorder,
-          boxShadow: [
-            AppShadows.cardFor(theme.brightness),
-            if (pressed) AppShadows.subtleGlowFor(theme.brightness),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: AppRadius.cardBorder,
-          child: InkWell(
-            onTap: () => context.push('/flat-details/${item.id}'),
-            borderRadius: AppRadius.cardBorder,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          : Column(
               children: [
-                SizedBox(
-                  width: 110,
-                  height: 110,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(AppRadius.card),
-                        ),
-                        child: hasImage
-                            ? FlatmatesNetworkImage(
-                                imageUrl: item.effectiveMainImageUrl!,
-                                width: 110,
-                                height: 110,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppSemanticColors.accent.withValues(
-                                        alpha: 0.85,
-                                      ),
-                                      AppSemanticColors.accent.withValues(
-                                        alpha: 0.45,
-                                      ),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.apartment_rounded,
-                                    color: Colors.white,
-                                    size: 28,
-                                  ),
-                                ),
-                              ),
-                      ),
-                      Positioned(
-                        top: AppSpacing.sm,
-                        right: AppSpacing.sm,
-                        child: FlatmatesLikeButton(
-                          key: Key('browse_like_${item.id}'),
-                          liked: item.liked ?? false,
-                          onTap: () => unawaited(_handleLike()),
-                          size: 40,
-                          backgroundColor: AppSemanticColors.accentSoft,
-                          unlikedColor: AppSemanticColors.accent,
-                        ),
-                      ),
-                    ],
+                if (feedState.isBroadened)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      0,
+                    ),
+                    child: BroadenedRadiusBanner(
+                      message: locale.homeBroadenedRadius,
+                    ),
                   ),
-                ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      120,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _formatRent(item.monthlyRent.round()),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppSemanticColors.textPrimaryFor(
-                              theme.brightness,
-                            ),
-                            height: 1.2,
+                    // +1 footer row when more pages may still load.
+                    itemCount: filtered.length + (feedState.hasMore ? 1 : 0),
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.md),
+                    itemBuilder: (context, index) {
+                      if (index >= filtered.length) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.lg,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          item.title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (titleLocation.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 12,
-                                color: AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
-                                ),
-                              ),
-                              const SizedBox(width: 2),
-                              Expanded(
-                                child: Text(
-                                  titleLocation,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 11,
-                                    color: AppSemanticColors.textSecondaryFor(
-                                      theme.brightness,
+                          child: Center(
+                            child: feedState.isLoadingMore
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
                                     ),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (distanceLabel != null) ...[
-                                const SizedBox(width: AppSpacing.xs),
-                                Text(
-                                  distanceLabel,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppSemanticColors.accent,
-                                  ),
-                                ),
-                              ],
-                            ],
+                                  )
+                                : const SizedBox(height: 24),
                           ),
-                        ],
-                        if (metaItems.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.xs),
-                          FlatmatesListingMetaChips(items: metaItems),
-                        ],
-                      ],
-                    ),
+                        );
+                      }
+                      return BrowseListingsCard(
+                        item: filtered[index],
+                        index: index,
+                      );
+                    },
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
     );
-  }
-
-  static String _formatRent(int amount) {
-    if (amount >= 100000) {
-      final lakhs = amount / 100000;
-      final value = lakhs.toStringAsFixed(lakhs >= 10 ? 1 : 2);
-      final compact = value.replaceAll(RegExp(r'\.?0+$'), '');
-      return '\u20b9${compact}L';
-    }
-    return FlatmatesPriceText.formatRupee(amount);
   }
 }

@@ -20,12 +20,26 @@ class _InteractivePressScaleState extends State<_InteractivePressScale> {
       onPointerCancel: (_) => setState(() => _scale = 1.0),
       child: AnimatedScale(
         scale: _scale,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOutCubic,
+        duration: AppMotion.buttonPress,
+        curve: AppMotion.easeOutCubic,
         child: widget.child,
       ),
     );
   }
+}
+
+/// Shared 2-column aspect ratio for Likes You / You Liked profile grid cards.
+///
+/// Meta is overlaid on the photo; only the Match CTA (when present) sits
+/// below — reserve ~52 logical px so the button does not crush the image.
+double _likesGridChildAspectRatio(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  // Match hub ListView horizontal gutter (AppSpacing.screen on each side).
+  const padding = AppSpacing.screen * 2;
+  const belowPhotoReserve = 52.0;
+  final gridWidth = screenWidth - padding;
+  final itemWidth = (gridWidth - AppSpacing.md) / 2;
+  return itemWidth / (itemWidth + belowPhotoReserve);
 }
 
 class _LikesTab extends StatelessWidget {
@@ -46,20 +60,19 @@ class _LikesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    const padding = AppSpacing.xl * 2;
-    final gridWidth = screenWidth - padding;
-    final itemWidth = (gridWidth - AppSpacing.md) / 2;
-    final childAspectRatio = itemWidth / (itemWidth + 116);
+    final childAspectRatio = _likesGridChildAspectRatio(context);
 
     return FlatmatesAsyncView<CursorListState<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
+      loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.grid),
       isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikesYet,
         subtitle: locale.keepSwipingToFindMatches,
         icon: Icons.favorite_border_rounded,
+        padHorizontally: false,
+        minHeight: 320,
       ),
       data: (state) => Column(
         children: [
@@ -83,7 +96,6 @@ class _LikesTab extends StatelessWidget {
                 profession: _professionForPeer(locale, item.peer),
                 matchPercentage: item.peer.matchPercentage,
                 imageUrl: item.peer.profileImageUrl,
-                blurImage: true,
                 matchButtonLabel: locale.matchAction,
                 onTap: () => FlatmateProfileSheet.show(
                   context: context,
@@ -112,76 +124,112 @@ class _LikedTab extends StatelessWidget {
     required this.likes,
     required this.onRetry,
     required this.onLoadMore,
-    required this.onPropertyLike,
   });
 
   final AsyncValue<CursorListState<OutgoingLikeModel>> likes;
   final VoidCallback onRetry;
   final VoidCallback onLoadMore;
-  final ValueChanged<OutgoingLikeModel> onPropertyLike;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    // Intrinsic-height list avoids fixed-aspect grid overflow when hosting
-    // full DiscoverListingCard (1:1 photo + multi-line meta).
+    final childAspectRatio = _likesGridChildAspectRatio(context);
+
     return FlatmatesAsyncView<CursorListState<OutgoingLikeModel>>(
       value: likes,
       onRetry: onRetry,
+      loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.grid),
       isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikedYet,
         subtitle: locale.keepSwipingToFindMatches,
         icon: Icons.favorite_rounded,
+        padHorizontally: false,
+        minHeight: 320,
       ),
-      data: (state) => Column(
-        children: [
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) {
-              final item = state.items[index];
-              if (item.targetType == 'property' && item.property != null) {
-                final property = item.property!;
-                return DiscoverListingCard(
-                  key: ValueKey('outgoing_like_property_${property.id}'),
-                  item: property,
-                  onLike: () => onPropertyLike(item),
-                  onTap: () => context.push('/flat-details/${property.id}'),
-                );
-              }
-              final peer = item.peer;
-              return FlatmatesProfileGridCard(
-                key: ValueKey('outgoing_like_${item.id}'),
-                name: peer?.fullName ?? locale.matchPeerFallbackName,
-                age: peer?.age,
-                location: peer != null ? _locationForPeer(peer) : '',
-                profession: peer != null
-                    ? _professionForPeer(locale, peer)
-                    : '',
-                matchPercentage: peer?.matchPercentage,
-                imageUrl: peer?.profileImageUrl,
+      data: (state) {
+        final cards = <Widget>[];
+        for (final item in state.items) {
+          if (item.targetType == 'property' && item.property != null) {
+            final property = item.property!;
+            final location = [
+              if (property.locality != null &&
+                  property.locality!.trim().isNotEmpty)
+                property.locality!.trim(),
+              if (property.city != null && property.city!.trim().isNotEmpty)
+                property.city!.trim(),
+            ].join(', ');
+            cards.add(
+              FlatmatesProfileGridCard(
+                key: ValueKey('outgoing_like_property_${property.id}'),
+                name: property.title,
+                location: location,
+                profession: locale.monthlyRentLabel(
+                  property.monthlyRent.toStringAsFixed(0),
+                ),
+                matchPercentage: null,
+                imageUrl: property.effectiveMainImageUrl,
                 matchButtonLabel: '',
-                onTap: peer != null
-                    ? () => FlatmateProfileSheet.show(
-                        context: context,
-                        userId: peer.id,
-                        nameFallback: peer.fullName,
-                      )
-                    : null,
+                onTap: () => context.push('/flat-details/${property.id}'),
                 onMatchTap: null,
-              );
-            },
-          ),
-          if (state.hasMore)
-            _LoadMoreFooter(
-              isLoadingMore: state.isLoadingMore,
-              onLoadMore: onLoadMore,
+              ),
+            );
+            continue;
+          }
+          final peer = item.peer;
+          if (peer == null) continue;
+          cards.add(
+            FlatmatesProfileGridCard(
+              key: ValueKey('outgoing_like_${item.id}'),
+              name: peer.fullName,
+              age: peer.age,
+              location: _locationForPeer(peer),
+              profession: _professionForPeer(locale, peer),
+              matchPercentage: peer.matchPercentage,
+              imageUrl: peer.profileImageUrl,
+              matchButtonLabel: '',
+              onTap: () => FlatmateProfileSheet.show(
+                context: context,
+                userId: peer.id,
+                nameFallback: peer.fullName,
+              ),
+              onMatchTap: null,
             ),
-        ],
-      ),
+          );
+        }
+
+        if (cards.isEmpty) {
+          return FlatmatesEmptyState(
+            title: locale.noLikedYet,
+            subtitle: locale.keepSwipingToFindMatches,
+            icon: Icons.favorite_rounded,
+            padHorizontally: false,
+            minHeight: 320,
+          );
+        }
+
+        return Column(
+          children: [
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: AppSpacing.md,
+                mainAxisSpacing: AppSpacing.md,
+                childAspectRatio: childAspectRatio,
+              ),
+              itemCount: cards.length,
+              itemBuilder: (context, index) => cards[index],
+            ),
+            if (state.hasMore)
+              _LoadMoreFooter(
+                isLoadingMore: state.isLoadingMore,
+                onLoadMore: onLoadMore,
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -211,13 +259,15 @@ class _ChatsTab extends StatelessWidget {
         title: locale.noConversations,
         subtitle: locale.startChatWithMatch,
         icon: Icons.chat_bubble_outline_rounded,
+        padHorizontally: false,
+        minHeight: 320,
       ),
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final (index, item) in state.items.indexed)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: ConversationCard(
                 cardKey: Key('conversation_card_$index'),
                 item: item,
@@ -266,6 +316,136 @@ class _LoadMoreFooter extends StatelessWidget {
           onPressed: onLoadMore,
           icon: const Icon(Icons.expand_more_rounded),
           label: Text(locale.loadMoreCta),
+        ),
+      ),
+    );
+  }
+}
+
+/// High-contrast loading chrome for soft list-hub pages (Inbox tabs).
+///
+/// Default [FlatmatesSkeleton.list] bones blend into `surfaceSoft` page bg;
+/// these white cards keep loading state obvious.
+enum _InboxHubLoadingVariant { list, grid }
+
+class _InboxHubLoading extends StatelessWidget {
+  const _InboxHubLoading({required this.variant});
+
+  final _InboxHubLoadingVariant variant;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final cardBg = AppSemanticColors.surfaceFor(brightness);
+    final bone = brightness == Brightness.dark
+        ? AppSemanticColors.darkHairline
+        : AppSemanticColors.hairline;
+
+    if (variant == _InboxHubLoadingVariant.grid) {
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        crossAxisSpacing: AppSpacing.md,
+        mainAxisSpacing: AppSpacing.md,
+        childAspectRatio: 0.72,
+        children: List.generate(
+          4,
+          (_) => FlatmatesCard(
+            backgroundColor: cardBg,
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: bone.withValues(alpha: 0.55),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.card),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 12,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: bone.withValues(alpha: 0.7),
+                          borderRadius: AppRadius.xsBorder,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Container(
+                        height: 10,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: bone.withValues(alpha: 0.5),
+                          borderRadius: AppRadius.xsBorder,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: List.generate(
+        4,
+        (index) => Padding(
+          padding: EdgeInsets.only(bottom: index == 3 ? 0 : AppSpacing.md),
+          child: FlatmatesCard(
+            backgroundColor: cardBg,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: bone.withValues(alpha: 0.55),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 12,
+                        width: 140,
+                        decoration: BoxDecoration(
+                          color: bone.withValues(alpha: 0.7),
+                          borderRadius: AppRadius.xsBorder,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Container(
+                        height: 10,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          color: bone.withValues(alpha: 0.5),
+                          borderRadius: AppRadius.xsBorder,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

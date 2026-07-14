@@ -5,13 +5,27 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../discover_repository.dart';
-import '../../../swipe/application/swipe_deck_controller.dart';
+import '../../../swipe/swipe_repository.dart';
 import 'flatmate_profile_sheet.dart';
+
+/// Lightweight home-rail profiles. Intentionally separate from
+/// [swipeDeckControllerProvider] so opening Discover does not prime the full
+/// swipe deck (and its 20-profile page load).
+final homeMeetProfilesProvider = FutureProvider.autoDispose<List<SwipeProfile>>(
+  (ref) async {
+    final filters = ref.watch(discoverFiltersProvider);
+    final page = await ref
+        .read(swipeRepositoryProvider)
+        .fetchSwipeProfilesPage(filters: filters, limit: 10);
+    return page.items;
+  },
+);
 
 class NewInCitySection extends StatelessWidget {
   const NewInCitySection({
@@ -40,8 +54,8 @@ class NewInCitySection extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(
-              color: AppSemanticColors.accentSoft,
+            decoration: BoxDecoration(
+              color: AppSemanticColors.coralSoftFor(theme.brightness),
               borderRadius: AppRadius.smBorder,
             ),
             child: const Icon(
@@ -92,6 +106,17 @@ class NewInCitySection extends StatelessWidget {
   }
 }
 
+/// Profiles whose available-from date falls within the next 7 days.
+List<PropertyListing> movingSoonItems(List<PropertyListing> items) {
+  final now = DateTime.now();
+  final sevenDaysFromNow = now.add(const Duration(days: 7));
+  return items.where((item) {
+    final date = item.availableFrom;
+    if (date == null) return false;
+    return date.isAfter(now) && date.isBefore(sevenDaysFromNow);
+  }).toList();
+}
+
 class MovingSoonSection extends StatelessWidget {
   const MovingSoonSection({required this.items, super.key});
 
@@ -99,18 +124,13 @@ class MovingSoonSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final sevenDaysFromNow = now.add(const Duration(days: 7));
-    final movingSoon = items.where((item) {
-      final date = item.availableFrom;
-      if (date == null) return false;
-      return date.isAfter(now) && date.isBefore(sevenDaysFromNow);
-    }).toList();
+    final movingSoon = movingSoonItems(items);
 
     if (movingSoon.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    final now = DateTime.now();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +138,7 @@ class MovingSoonSection extends StatelessWidget {
         Text(
           locale.homeMovingSoon,
           style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: AppSemanticColors.textPrimaryFor(theme.brightness),
           ),
           maxLines: 1,
@@ -142,6 +162,7 @@ class MovingSoonSection extends StatelessWidget {
                 child: FlatmatesCard(
                   onTap: () => context.push('/flat-details/${item.id}'),
                   padding: EdgeInsets.zero,
+                  bordered: false,
                   child: Stack(
                     children: [
                       if (item.effectiveMainImageUrl != null)
@@ -150,6 +171,8 @@ class MovingSoonSection extends StatelessWidget {
                             borderRadius: BorderRadius.circular(AppRadius.md),
                             child: FlatmatesNetworkImage(
                               imageUrl: item.effectiveMainImageUrl!,
+                              width: 120,
+                              height: 140,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -248,20 +271,20 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
         Text(
           locale.trendingNeighborhoodsIn(city),
           style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: AppSemanticColors.textPrimaryFor(theme.brightness),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 38,
+          height: 30,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: locations.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
             itemBuilder: (context, index) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 decoration: BoxDecoration(
                   borderRadius: AppRadius.pillBorder,
                   color: AppSemanticColors.accent.withValues(alpha: 0.08),
@@ -275,14 +298,16 @@ class TrendingNeighborhoodsSection extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.near_me_rounded,
-                      size: 14,
+                      size: 12,
                       color: AppSemanticColors.accent,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.xs),
                     Text(
                       locations[index],
-                      style: theme.textTheme.labelMedium?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
+                        fontSize: AppTypography.microLabelSize,
+                        height: AppTypography.microLabelHeight,
                         color: AppSemanticColors.textPrimaryFor(
                           theme.brightness,
                         ),
@@ -305,13 +330,10 @@ class MeetFlatmatesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final deckState = ref.watch(swipeDeckControllerProvider);
-    final profiles = deckState.profiles;
+    final profilesAsync = ref.watch(homeMeetProfilesProvider);
+    final displayProfiles = profilesAsync.valueOrNull ?? const <SwipeProfile>[];
 
-    if (profiles.isEmpty) return const SizedBox.shrink();
-
-    // Show up to 10 profiles on the home feed
-    final displayProfiles = profiles.take(10).toList();
+    if (displayProfiles.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,13 +341,13 @@ class MeetFlatmatesSection extends ConsumerWidget {
         Text(
           AppLocalizations.of(context).meetPotentialFlatmates,
           style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: AppSemanticColors.textPrimaryFor(theme.brightness),
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.md),
         SizedBox(
-          height: 96,
+          height: 112,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: displayProfiles.length,
@@ -340,7 +362,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
                       : null);
 
               return SizedBox(
-                width: 68,
+                width: 80,
                 child: FlatmatesCard(
                   onTap: () => FlatmateProfileSheet.show(
                     context: context,
@@ -353,6 +375,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
                   ),
                   borderRadius: BorderRadius.circular(12),
                   backgroundColor: Colors.transparent,
+                  bordered: false,
                   elevation: 0,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -360,16 +383,16 @@ class MeetFlatmatesSection extends ConsumerWidget {
                       FlatmatesAvatar(
                         name: profile.fullName ?? name,
                         imageUrl: imageUrl,
-                        size: 54,
+                        size: 68,
                         shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         name,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 10.0,
-                          fontWeight: FontWeight.w700,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w500,
                           color: AppSemanticColors.textPrimaryFor(
                             theme.brightness,
                           ),

@@ -1,0 +1,27 @@
+appId: com.the360ghar.flatmates360
+name: Visits - Open visits list from profile
+tags:
+  - visits
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: profile_visits_menu_item
+    direction: DOWN
+    optional: true
+- tapOn:
+    id: profile_visits_menu_item
+    optional: true
+- scroll:
+    direction: DOWN
+    optional: true
+- back:
+    optional: true

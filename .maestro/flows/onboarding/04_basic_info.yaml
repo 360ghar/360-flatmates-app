@@ -1,0 +1,37 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Basic Info
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_name"
+    timeout: 5000
+
+- tapOn:
+    id: "onboarding_name"
+- inputText: "Maestro User"
+
+- tapOn:
+    id: "onboarding_age"
+- inputText: "26"
+
+- tapOn:
+    id: "onboarding_profession"
+- inputText: "Software Engineer"
+
+- tapOn:
+    id: "onboarding_city"
+- inputText: "Bangalore"
+
+- tapOn:
+    id: "onboarding_locality"
+- inputText: "HSR Layout"
+
+- tapOn:
+    id: "onboarding_basic_info_next"
+
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_photo_skip"
+    timeout: 5000

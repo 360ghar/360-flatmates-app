@@ -7,7 +7,7 @@ class FeedbackController {
   FeedbackController(this._repository);
   final FeedbackRepository _repository;
 
-  Future<bool> submitBugReport({
+  Future<void> submitBugReport({
     required String title,
     required String description,
     required String bugType,
@@ -24,14 +24,13 @@ class FeedbackController {
         appVersion: appVersion,
         deviceInfo: deviceInfo,
       );
-      return true;
     } catch (e) {
       debugPrint('FeedbackController.submitBugReport: $e');
-      return false;
+      rethrow;
     }
   }
 
-  Future<bool> submitFeatureRequest({
+  Future<void> submitFeatureRequest({
     required String title,
     required String description,
     String severity = 'medium',
@@ -46,10 +45,9 @@ class FeedbackController {
         appVersion: appVersion,
         deviceInfo: deviceInfo,
       );
-      return true;
     } catch (e) {
       debugPrint('FeedbackController.submitFeatureRequest: $e');
-      return false;
+      rethrow;
     }
   }
 }

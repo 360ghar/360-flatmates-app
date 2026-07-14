@@ -176,7 +176,7 @@ class HomeSectionHeader extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: AppSemanticColors.textPrimaryFor(theme.brightness),
             ),
             maxLines: 1,
@@ -229,7 +229,7 @@ class HomeSearchBar extends StatelessWidget {
             color: AppSemanticColors.surfaceFor(theme.brightness),
             borderRadius: BorderRadius.circular(100),
             border: Border.all(
-              color: AppSemanticColors.line.withValues(alpha: 0.2),
+              color: AppSemanticColors.hairlineFor(theme.brightness),
             ),
             boxShadow: [
               BoxShadow(
@@ -257,8 +257,8 @@ class HomeSearchBar extends StatelessWidget {
               ),
               Container(
                 padding: AppSpacing.edgeXs,
-                decoration: const BoxDecoration(
-                  color: AppSemanticColors.accentSoft,
+                decoration: BoxDecoration(
+                  color: AppSemanticColors.coralSoftFor(theme.brightness),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -309,7 +309,9 @@ class QuickFiltersRow extends StatelessWidget {
             ),
             backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
             side: BorderSide(
-              color: AppSemanticColors.line.withValues(alpha: 0.2),
+              color: AppSemanticColors.hairlineFor(
+                theme.brightness,
+              ).withValues(alpha: 0.2),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(100),

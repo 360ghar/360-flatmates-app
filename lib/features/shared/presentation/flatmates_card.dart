@@ -6,9 +6,10 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 
-/// Standard card — flat by default, 14px radius, single elevation tier when floated.
+/// Standard card — flat by default, 14px radius, hairline border for scannability.
 ///
 /// Airbnb: most surfaces are flat; elevation is reserved for hover/float moments.
+/// List rows use a 1px hairline so white cards separate on white canvas.
 class FlatmatesCard extends StatefulWidget {
   const FlatmatesCard({
     required this.child,
@@ -19,6 +20,7 @@ class FlatmatesCard extends StatefulWidget {
     this.borderRadius,
     this.backgroundColor,
     this.borderColor,
+    this.bordered = true,
     this.margin,
     this.gradient,
   });
@@ -32,6 +34,7 @@ class FlatmatesCard extends StatefulWidget {
     this.borderRadius,
     this.backgroundColor,
     this.borderColor,
+    this.bordered = true,
     this.margin,
     this.gradient,
   }) : padding = const EdgeInsets.all(AppSpacing.md);
@@ -45,6 +48,7 @@ class FlatmatesCard extends StatefulWidget {
     this.borderRadius,
     this.backgroundColor,
     this.borderColor,
+    this.bordered = true,
     this.margin,
     this.gradient,
   }) : elevation = 1;
@@ -56,6 +60,10 @@ class FlatmatesCard extends StatefulWidget {
   final BorderRadius? borderRadius;
   final Color? backgroundColor;
   final Color? borderColor;
+
+  /// When true (default), draws a 1px hairline (or [borderColor] if set).
+  /// Set false for photo tiles / transparent chrome that must not stroke.
+  final bool bordered;
   final EdgeInsetsGeometry? margin;
 
   /// Optional gradient background (overrides [backgroundColor]).
@@ -88,9 +96,16 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
       shadows = AppShadows.none;
     }
 
-    final border = widget.borderColor != null
-        ? Border.all(color: widget.borderColor!)
-        : null;
+    final Border? border;
+    if (!widget.bordered) {
+      border = null;
+    } else {
+      border = Border.all(
+        color:
+            widget.borderColor ??
+            AppSemanticColors.hairlineFor(theme.brightness),
+      );
+    }
 
     return Listener(
       onPointerDown: isInteractive

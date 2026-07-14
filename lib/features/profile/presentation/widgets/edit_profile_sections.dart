@@ -242,7 +242,9 @@ class EditProfileModeSection extends StatelessWidget {
   });
 
   final AppLocalizations locale;
-  final String mode;
+
+  /// Null when unset or unmapped — never coerce to a silent default.
+  final String? mode;
   final List<DropdownMenuItem<String>> items;
   final ValueChanged<String> onChanged;
 
@@ -250,10 +252,7 @@ class EditProfileModeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlatmatesCard(
       child: DropdownButtonFormField<String>(
-        initialValue: dropdownValueOrFirst(
-          mode,
-          items.map((item) => item.value),
-        ),
+        initialValue: dropdownValueInIds(mode, items.map((item) => item.value)),
         decoration: InputDecoration(labelText: locale.modeTitle),
         items: items,
         onChanged: (value) {
@@ -284,7 +283,9 @@ class EditProfileBudgetTimelineSection extends StatelessWidget {
 
   /// Null when unset or unmapped — do not coerce to a default in the UI.
   final String? moveInTimeline;
-  final String workStyle;
+
+  /// Null when unset or unmapped — do not coerce to a default in the UI.
+  final String? workStyle;
   final List<DropdownMenuItem<String>> timelineItems;
   final List<DropdownMenuItem<String>> workStyleItems;
   final ValueChanged<String> onMoveInTimelineChanged;
@@ -298,7 +299,7 @@ class EditProfileBudgetTimelineSection extends StatelessWidget {
       resolveMoveInTimelineId(moveInTimeline, timelineIds),
       timelineIds,
     );
-    final safeWorkStyle = dropdownValueOrFirst(
+    final safeWorkStyle = dropdownValueInIds(
       workStyle,
       workStyleItems.map((item) => item.value),
     );

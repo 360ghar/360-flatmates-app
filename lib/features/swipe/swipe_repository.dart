@@ -30,6 +30,7 @@ class SwipeProfile {
     required this.guestsPolicy,
     required this.workStyle,
     required this.gender,
+    required this.genderPreference,
     required this.nonNegotiables,
     required this.hasPets,
     required this.partyHabit,
@@ -56,6 +57,7 @@ class SwipeProfile {
   final String? guestsPolicy;
   final String? workStyle;
   final String? gender;
+  final String? genderPreference;
   final List<String> nonNegotiables;
   final bool hasPets;
   final String? partyHabit;
@@ -131,6 +133,7 @@ class SwipeProfile {
       guestsPolicy: json['guests_policy'] as String?,
       workStyle: json['work_style'] as String?,
       gender: json['gender'] as String?,
+      genderPreference: json['gender_preference'] as String?,
       nonNegotiables:
           (json['non_negotiables'] as List?)
               ?.map((e) => e.toString())

@@ -166,6 +166,14 @@ class NotificationService {
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
+    if (!_shouldShowForegroundNotification(message)) {
+      debugPrint(
+        'NotificationService: suppressed foreground notification '
+        '(type=${message.data['type'] ?? message.data['type_key']})',
+      );
+      return;
+    }
+
     final notification = message.notification;
     String? title;
     String? body;
@@ -186,6 +194,47 @@ class NotificationService {
       body: body ?? '',
       payload: message.data['route'],
     );
+  }
+
+  /// Returns false when the user has opted out of this notification category
+  /// via local prefs (mirrors [SettingsController] notif* toggles).
+  bool _shouldShowForegroundNotification(RemoteMessage message) {
+    final prefs = _ref.read(appPreferencesProvider);
+    final type =
+        (message.data['type'] ??
+                message.data['type_key'] ??
+                message.data['notification_type'] ??
+                '')
+            .toString()
+            .toLowerCase();
+
+    if (type.isEmpty) return true;
+
+    final isMatch = type.contains('match');
+    final isMessage = type.contains('message');
+    final isVisit = type.contains('visit');
+    final isListing = type.contains('listing') || type.contains('property');
+    final isPromotion =
+        type.contains('promo') ||
+        type.contains('marketing') ||
+        type.contains('promotion');
+
+    if (isMatch) {
+      return prefs.getBoolOrDefault(PrefKeys.notifNewMatches, true);
+    }
+    if (isMessage) {
+      return prefs.getBoolOrDefault(PrefKeys.notifNewMessages, true);
+    }
+    if (isVisit) {
+      return prefs.getBoolOrDefault(PrefKeys.notifVisitReminders, true);
+    }
+    if (isListing) {
+      return prefs.getBoolOrDefault(PrefKeys.notifListingUpdates, true);
+    }
+    if (isPromotion) {
+      return prefs.getBoolOrDefault(PrefKeys.notifPromotions, false);
+    }
+    return true;
   }
 
   void _handleMessageTap(RemoteMessage message) {

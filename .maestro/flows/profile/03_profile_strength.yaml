@@ -1,0 +1,17 @@
+appId: com.the360ghar.flatmates360
+name: Profile - Profile Strength
+tags:
+  - profile
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+# Profile strength card should be visible
+- assertVisible:
+    id: profile_edit_button

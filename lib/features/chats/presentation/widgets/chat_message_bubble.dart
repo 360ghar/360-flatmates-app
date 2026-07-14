@@ -176,7 +176,8 @@ class _VisitRequestCard extends StatelessWidget {
     if (body.contains('cancelled') || body.contains('canceled')) {
       return 'cancelled';
     }
-    return 'scheduled';
+    // Backend wire default for a new visit request.
+    return 'requested';
   }
 
   Color _statusColor(String status) {
@@ -226,12 +227,14 @@ class _VisitRequestCard extends StatelessWidget {
             'd MMM, h:mm a',
             locale.localeName,
           ).format(scheduledDate.toLocal());
+    // Respond only while the visit still needs counterparty action.
+    // Wire values: requested | reschedule_suggested (not legacy scheduled/rescheduled).
     final canRespond =
         !isMine &&
         visit != null &&
         onConfirmVisit != null &&
         onRescheduleVisit != null &&
-        (status == 'scheduled' || status == 'rescheduled');
+        (status == 'requested' || status == 'reschedule_suggested');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -338,9 +341,12 @@ class _VisitRequestCard extends StatelessWidget {
                               ? locale.visitStatusConfirmed
                               : status == 'cancelled'
                               ? locale.visitStatusCancelled
-                              : status == 'scheduled' || status == 'rescheduled'
-                              ? locale.visitStatusScheduled
-                              : locale.visitStatusRequested,
+                              : status == 'completed'
+                              ? locale.visitStatusCompleted
+                              : status == 'requested' ||
+                                    status == 'reschedule_suggested'
+                              ? locale.visitStatusRequested
+                              : locale.visitStatusScheduled,
                           variant: _badgeVariant(status),
                           compact: true,
                         ),

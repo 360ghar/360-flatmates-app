@@ -1,0 +1,20 @@
+appId: com.the360ghar.flatmates360
+name: Onboarding Mode Selection
+tags:
+  - onboarding
+---
+- extendedWaitUntil:
+    visible:
+      id: "mode_co_hunter"
+    timeout: 10000
+
+- tapOn:
+    id: "mode_co_hunter"
+
+- tapOn:
+    id: "mode_continue"
+
+- extendedWaitUntil:
+    visible:
+      text: "Bangalore"
+    timeout: 5000

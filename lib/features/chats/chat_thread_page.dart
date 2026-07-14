@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/providers.dart';
-import '../../core/storage/image_upload_service.dart';
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../../core/utils/profanity_filter.dart';
@@ -22,12 +23,14 @@ import 'application/messages_controller.dart';
 import 'chats_repository.dart';
 import 'domain/chat_report_reason.dart';
 import 'match_qna_nudge.dart';
+import 'presentation/chat_photo_actions.dart';
 import 'presentation/chat_visit_actions.dart';
 import 'presentation/widgets/chat_app_bar.dart';
 import 'presentation/widgets/chat_dialogs.dart';
 import 'presentation/widgets/chat_input_area.dart';
 import 'presentation/widgets/chat_pre_message_area.dart';
 import 'presentation/widgets/message_list.dart';
+import 'presentation/widgets/mode_tooltip_controller.dart';
 import 'presentation/widgets/chat_qna_answers_card.dart';
 
 class ChatThreadPage extends ConsumerStatefulWidget {
@@ -46,11 +49,26 @@ class ChatThreadPage extends ConsumerStatefulWidget {
 
 class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   final _messageController = TextEditingController();
+  final _messageFocus = FocusNode();
   bool _showQnANudge = false;
   ConversationSummaryModel? _conversation;
+
+  /// Links the floating mode tooltip to the header avatar so the bubble is
+  /// anchored (with a tail) directly beneath the peer's avatar.
+  final LayerLink _avatarLink = LayerLink();
+  late final ModeTooltipController _modeTooltip = ModeTooltipController(
+    avatarLink: _avatarLink,
+  );
+
   final _sendDebouncer = ActionDebouncer(
     duration: const Duration(milliseconds: 300),
   );
+
+  /// Whether the emoji picker is visible above the input bar.
+  bool _showEmojiPicker = false;
+
+  /// Chat photo upload in flight (gallery pick → Cloudinary).
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -58,15 +76,18 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     _conversation = widget.conversation;
     _checkExistingMessages();
     _markMessagesAsRead();
+    _scheduleModeTooltip();
   }
 
   @override
   void didUpdateWidget(ChatThreadPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.conversationId != widget.conversationId) {
+      _modeTooltip.resetForConversationChange();
       _conversation = widget.conversation;
       _checkExistingMessages();
       _markMessagesAsRead();
+      _scheduleModeTooltip();
     }
   }
 
@@ -112,9 +133,27 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     _showQnANudge = isNewMatch && !alreadyDismissed;
   }
 
+  String _peerModeLabel() {
+    final asyncConv = ref.read(conversationProvider(widget.conversationId));
+    final conv = _conversation ?? asyncConv.valueOrNull;
+    final mode = conv?.peer.mode;
+    if (mode == null) return '';
+    return localizedFlatmatesModeLabel(AppLocalizations.of(context), mode);
+  }
+
+  void _scheduleModeTooltip() {
+    _modeTooltip.schedule(
+      isMounted: () => mounted,
+      peerModeLabel: _peerModeLabel,
+      context: () => context,
+    );
+  }
+
   @override
   void dispose() {
+    _modeTooltip.dispose();
     _messageController.dispose();
+    _messageFocus.dispose();
     _sendDebouncer.dispose();
     super.dispose();
   }
@@ -136,6 +175,14 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   Future<void> _sendMessage() async {
+    final messagesState = ref.read(
+      messagesControllerProvider(widget.conversationId),
+    );
+    // Gate double-tap / re-entry while a send or photo upload is in flight.
+    if (messagesState.isSending || _isUploadingPhoto) {
+      return;
+    }
+
     var body = _messageController.text.trim();
     if (body.isEmpty) return;
     body = ProfanityFilter.censor(body);
@@ -147,6 +194,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       await ref
           .read(messagesControllerProvider(widget.conversationId).notifier)
           .sendMessage(body: body);
+      _modeTooltip.remove();
     } catch (e) {
       debugPrint('ChatThreadPage._sendMessage failed: $e');
       _messageController.text = previousText;
@@ -155,34 +203,6 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
         final msg = e is AppFailure
             ? e.userMessage(locale.toUserMessageL10n())
             : locale.failedToSendMessage;
-        FlatmatesToast.error(context, msg);
-      }
-    }
-  }
-
-  Future<void> _sendPhoto() async {
-    final service = ref.read(imageUploadServiceProvider);
-    final locale = AppLocalizations.of(context);
-    final files = await service.pickImages(limit: 1);
-    if (files.isEmpty) return;
-
-    try {
-      final result = await service.uploadChatPhoto(files.first);
-      if (result is! UploadSuccess) {
-        if (mounted) {
-          FlatmatesToast.error(context, locale.failedToSendPhoto);
-        }
-        return;
-      }
-      await ref
-          .read(messagesControllerProvider(widget.conversationId).notifier)
-          .sendMessage(attachmentUrl: result.url, messageType: 'image');
-    } catch (e) {
-      debugPrint('ChatThreadPage._sendPhoto failed: $e');
-      if (mounted) {
-        final msg = e is AppFailure
-            ? e.userMessage(locale.toUserMessageL10n())
-            : locale.failedToSendPhoto;
         FlatmatesToast.error(context, msg);
       }
     }
@@ -220,28 +240,26 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     );
   }
 
-  Future<void> _submitQnA(Map<String, String> answers) async {
-    ConversationSummaryModel? updatedConversation;
-    try {
-      final repository = ref.read(chatsRepositoryProvider);
-      await repository.submitQnA(widget.conversationId, answers);
-      updatedConversation = await repository.fetchConversation(
-        widget.conversationId,
-      );
-    } catch (e) {
-      debugPrint(
-        'ChatThreadPage._submitQnA failed for conversation ${widget.conversationId}: $e',
-      );
+  Future<bool> _submitQnA(Map<String, String> answers) async {
+    final locale = AppLocalizations.of(context);
+    final updated = await ref
+        .read(chatActionsControllerProvider)
+        .submitQnA(widget.conversationId, answers);
+    if (updated == null) {
+      if (mounted) {
+        FlatmatesToast.error(context, locale.commonRetry);
+      }
+      // Keep the nudge open so the user can retry.
+      return false;
     }
     _markQnANudgeDismissed();
     if (mounted) {
       setState(() {
         _showQnANudge = false;
-        if (updatedConversation != null) {
-          _conversation = updatedConversation;
-        }
+        _conversation = updated;
       });
     }
+    return true;
   }
 
   void _markQnANudgeDismissed() {
@@ -277,6 +295,27 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     }
   }
 
+  void _toggleEmojiPicker() {
+    final showEmoji = _showEmojiPicker;
+    if (showEmoji) {
+      // Hide panel first so the scaffold is not both keyboard-inset and
+      // growing by the emoji panel height during the keyboard animation.
+      setState(() => _showEmojiPicker = false);
+      _messageFocus.requestFocus();
+      return;
+    }
+    _messageFocus.unfocus();
+    unawaited(
+      Future.delayed(AppMotion.standard, () {
+        if (!mounted) return;
+        // User may have toggled again while the keyboard was settling.
+        if (_showEmojiPicker) return;
+        if (_messageFocus.hasFocus) return;
+        setState(() => _showEmojiPicker = true);
+      }),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final messagesState = ref.watch(
@@ -296,6 +335,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     final hasSentFirstMessage = messagesState.displayMessages.any(
       (m) => m.senderId == currentUserId,
     );
+
+    final showEmoji = _showEmojiPicker;
+    final isUploadingPhoto = _isUploadingPhoto;
 
     if (_conversation == null && fetchedConversation != null) {
       if (fetchedConversation.isLoading) {
@@ -323,8 +365,8 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
 
     return FlatmatesScreen(
       appBar: ChatAppBar(
-        conversationId: widget.conversationId,
         conversation: conversation,
+        avatarLink: _avatarLink,
         reportReasons: _reportReasons,
         onBlock: _blockUser,
         onReport: _reportUser,
@@ -388,9 +430,31 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
             ),
           ChatInputArea(
             controller: _messageController,
+            focusNode: _messageFocus,
+            showEmoji: showEmoji,
+            onToggleEmoji: _toggleEmojiPicker,
             onSend: _sendMessage,
-            onAttachment: _sendPhoto,
+            onPickPhoto: () => sendPhotoFromChat(
+              context: context,
+              ref: ref,
+              conversationId: widget.conversationId,
+              isUploading: () => _isUploadingPhoto,
+              setUploading: (v) {
+                // sendPhotoFromChat may call this from a finally after the
+                // route has been popped — never setState on a disposed State.
+                if (!mounted) return;
+                setState(() => _isUploadingPhoto = v);
+              },
+              onSuccess: _modeTooltip.remove,
+            ),
+            isSending: messagesState.isSending,
+            isUploadingPhoto: isUploadingPhoto,
           ),
+          if (showEmoji)
+            SafeArea(
+              top: false,
+              child: EmojiPicker(textEditingController: _messageController),
+            ),
         ],
       ),
     );

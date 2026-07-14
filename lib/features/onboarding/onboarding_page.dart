@@ -147,13 +147,45 @@ class OnboardingPage extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
+                    // Welcome-back only when a local draft was restored.
+                    if (controller.resumedFromDraft &&
+                        state.completionPercentage > 0 &&
+                        state.step != OnboardingStep.modeSelection)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: Text(
+                          locale.onboardingWelcomeBack,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppSemanticColors.textSecondaryFor(
+                              theme.brightness,
+                            ),
+                          ),
+                        ),
+                      ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          locale.onboardingProgressTitle,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                locale.onboardingProgressTitle,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${_stepLabel(state.step, locale)} · ${locale.onboardingStepsRemaining(state.remainingSteps)}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppSemanticColors.textSecondaryFor(
+                                    theme.brightness,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Text(
@@ -193,4 +225,20 @@ class OnboardingPage extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Maps an [OnboardingStep] to a human-readable label using the app's
+/// localization strings.
+String _stepLabel(OnboardingStep step, AppLocalizations locale) {
+  return switch (step) {
+    OnboardingStep.splash => '',
+    OnboardingStep.modeSelection => locale.onboardingStepMode,
+    OnboardingStep.locationSelection => locale.onboardingStepLocation,
+    OnboardingStep.basicInfo => locale.onboardingStepBasicInfo,
+    OnboardingStep.profilePhoto => locale.onboardingStepPhoto,
+    OnboardingStep.lifestyleQuiz => locale.onboardingStepLifestyle,
+    OnboardingStep.budgetTimeline => locale.onboardingStepBudget,
+    OnboardingStep.preferences => locale.onboardingStepPreferences,
+    OnboardingStep.nonNegotiables => locale.onboardingStepNonNegotiables,
+  };
 }

@@ -1,0 +1,29 @@
+appId: com.the360ghar.flatmates360
+name: Swipe Deck - Action Buttons Like and Skip
+tags:
+  - swipe
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_swipe_tab
+- extendedWaitUntil:
+    visible:
+      id: swipe_card
+    timeout: 10000
+- tapOn:
+    id: swipe_action_like
+- tapOn:
+    id: match_keep_swiping
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: swipe_card
+    timeout: 5000
+- tapOn:
+    id: swipe_action_skip
+- extendedWaitUntil:
+    visible:
+      id: swipe_card
+    timeout: 5000

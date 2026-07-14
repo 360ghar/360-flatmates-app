@@ -12,7 +12,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get appName => '360 फ्लैटमेट्स';
 
   @override
-  String get splashTagline => 'ढूंढें। जुड़ें। साथ रहें।';
+  String get splashTaglineLine1 => 'ढूंढें। जुड़ें।';
+
+  @override
+  String get splashTaglineLine2 => 'साथ रहें।';
 
   @override
   String get splashSubtagline =>
@@ -129,24 +132,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get emptyListings => 'अभी कोई फ्लैटमेट लिस्टिंग उपलब्ध नहीं है।';
 
   @override
-  String homeGreeting(String name) {
-    return 'नमस्ते, $name';
-  }
+  String get homeGreeting => 'नमस्ते';
 
   @override
-  String homeGreetingMorning(String name) {
-    return 'सुप्रभात, $name';
-  }
+  String get homeGreetingMorning => 'सुप्रभात';
 
   @override
-  String homeGreetingAfternoon(String name) {
-    return 'नमस्कार, $name';
-  }
+  String get homeGreetingAfternoon => 'नमस्कार';
 
   @override
-  String homeGreetingEvening(String name) {
-    return 'शुभ संध्या, $name';
-  }
+  String get homeGreetingEvening => 'शुभ संध्या';
 
   @override
   String get homeGuestName => 'दोस्त';
@@ -200,6 +195,10 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get homeNoResultsSubtitle =>
       'अपने फ़िल्टर बदलकर देखें या किसी अन्य लोकेशन के लिए खोजें।';
+
+  @override
+  String get homeBroadenedRadius =>
+      'आपके क्षेत्र में कोई लिस्टिंग नहीं — दूर की फ्लैट्स दिखाई जा रही हैं।';
 
   @override
   String homeBedroomsChip(int count) {
@@ -288,6 +287,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get callCta => 'कॉल करें';
+
+  @override
+  String get messageCta => 'संदेश';
 
   @override
   String get listingDetails => 'लिस्टिंग विवरण';
@@ -413,6 +415,18 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get editProfileCta => 'प्रोफ़ाइल संपादित करें';
+
+  @override
+  String get editProfileTabIdentity => 'पहचान';
+
+  @override
+  String get editProfileTabPreferences => 'प्राथमिकताएँ';
+
+  @override
+  String get editProfileTabLifestyle => 'जीवनशैली';
+
+  @override
+  String get editProfileTabAbout => 'बारे में';
 
   @override
   String get themeModeTitle => 'थीम मोड';
@@ -571,7 +585,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get mainImageUrlLabel => 'मुख्य इमेज URL';
 
   @override
-  String get availableFromLabel => 'कब से उपलब्ध';
+  String get availableFromLabel => 'उपलब्धता';
 
   @override
   String get availableFromUnset => 'मूव-इन उपलब्धता चुनें';
@@ -962,6 +976,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get userBlocked => 'उपयोगकर्ता को ब्लॉक कर दिया गया है।';
 
   @override
+  String get userUnmatched => 'आपने इस व्यक्ति को अनमैच कर दिया है।';
+
+  @override
   String get reportTitle => 'इस व्यक्ति की रिपोर्ट करें';
 
   @override
@@ -1132,7 +1149,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get furnishingCurtains => 'पर्दे';
 
   @override
-  String get roomFeaturesLabel => 'कमरे की विशेषताएँ';
+  String get roomFeaturesLabel => 'कमरे की सुविधाएँ';
 
   @override
   String get roomFeatureBalcony => 'प्राइवेट बालकनी';
@@ -2035,6 +2052,30 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String get budgetPresetAny => 'कोई भी';
+
+  @override
+  String get budgetPresetUnder15k => '₹15k से कम';
+
+  @override
+  String get budgetPreset15to25k => '₹15–25k';
+
+  @override
+  String get budgetPreset25to40k => '₹25–40k';
+
+  @override
+  String get budgetPreset40to60k => '₹40–60k';
+
+  @override
+  String get budgetPreset60kPlus => '₹60k+';
+
+  @override
+  String get lifestyleFiltersLabel => 'लाइफ़स्टाइल';
+
+  @override
+  String get lifestyleFiltersSummaryAny => 'कोई प्राथमिकता नहीं';
+
+  @override
   String get roomTypeFilterLabel => 'कमरे का प्रकार';
 
   @override
@@ -2126,6 +2167,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get chatInputHint => 'संदेश टाइप करें...';
+
+  @override
+  String get emojiCta => 'इमोजी';
+
+  @override
+  String get dismissCta => 'बंद करें';
 
   @override
   String get phoneNotAvailable => 'फोन नंबर उपलब्ध नहीं है';
@@ -2423,6 +2470,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get sayHelloOrIcebreaker => 'नमस्ते कहें या आइसब्रेकर इस्तेमाल करें';
+
+  @override
+  String get noMessagesYet => 'अभी कोई संदेश नहीं...';
+
+  @override
+  String get noMessagesYetHint =>
+      'संदेश भेजें या नीचे दिए गए आइसब्रेकर्स पर टैप करें।';
 
   @override
   String get messagesArePrivate => 'संदेश निजी हैं';
@@ -2733,6 +2787,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get showResultsCta => 'परिणाम दिखाएं';
+
+  @override
+  String showResultsWithFiltersCta(int count) {
+    return 'परिणाम दिखाएं · $count फ़िल्टर';
+  }
 
   @override
   String get searchFiltersTitle => 'खोजें और फ़िल्टर';
@@ -3322,6 +3381,62 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dealBreakersSectionTitle => 'डील-ब्रेकर्स';
 
   @override
+  String get dealBreakersSectionSubtitle => 'उनकी गैर-समझौता शर्तें';
+
+  @override
+  String get matchToneGreat => 'बेहतरीन मैच';
+
+  @override
+  String get matchToneWorkable => 'ठीक-ठाक';
+
+  @override
+  String get matchToneGaps => 'प्राथमिकता अंतर';
+
+  @override
+  String compatAlignedCount(int count) {
+    return '$count मेल';
+  }
+
+  @override
+  String compatWorkableCount(int count) {
+    return '$count ठीक-ठाक';
+  }
+
+  @override
+  String compatGapCount(int count) {
+    return '$count अंतर';
+  }
+
+  @override
+  String get lifestyleDimSleep => 'नींद';
+
+  @override
+  String get lifestyleDimCleanliness => 'साफ़-सफ़ाई';
+
+  @override
+  String get lifestyleDimFood => 'खाना';
+
+  @override
+  String get lifestyleDimSmoking => 'धूम्रपान / पेय';
+
+  @override
+  String get lifestyleDimGuests => 'मेहमान';
+
+  @override
+  String get lifestyleDimWork => 'काम';
+
+  @override
+  String get lifestyleDimParty => 'पार्टियाँ';
+
+  @override
+  String get societyVibesLabel => 'सोसाइटी वाइब्स';
+
+  @override
+  String dealBreakersCountBadge(int count) {
+    return '$count डील-ब्रेकर्स';
+  }
+
+  @override
   String get likeListingTooltip => 'अपनी पसंद में जोड़ें';
 
   @override
@@ -3534,4 +3649,85 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get unverifiedAccountHint =>
       'आपका खाता अभी सत्यापित नहीं हुआ है। नीचे सत्यापन पूरा करें या कोड दोबारा भेजें।';
+
+  @override
+  String get profileCompletionTitle => 'अपनी प्रोफ़ाइल सेट करें';
+
+  @override
+  String get profileCompletionSubtitle =>
+      'शुरू करने के लिए हमें कुछ जानकारी चाहिए।';
+
+  @override
+  String get profileCompletionContinue => 'जारी रखें';
+
+  @override
+  String get profileCompletionSaving => 'सहेजा जा रहा है…';
+
+  @override
+  String get profileCompletionError =>
+      'प्रोफ़ाइल सहेजी नहीं जा सकी। कृपया दोबारा कोशिश करें।';
+
+  @override
+  String get dateOfBirthLabel => 'जन्म तिथि';
+
+  @override
+  String get dateOfBirthHelper => 'आपकी आयु 18 वर्ष या अधिक होनी चाहिए';
+
+  @override
+  String get dateOfBirthPickerTitle => 'अपनी जन्म तिथि चुनें';
+
+  @override
+  String get onboardingBannerTitle =>
+      'मैचिंग शुरू करने के लिए अपनी प्रोफ़ाइल पूरी करें';
+
+  @override
+  String get onboardingBannerCta => 'सेटअप जारी रखें';
+
+  @override
+  String onboardingStepsRemaining(int count) {
+    return '$count चरण शेष';
+  }
+
+  @override
+  String onboardingStepOf(int current, int total) {
+    return 'चरण $current / $total';
+  }
+
+  @override
+  String get onboardingStepMode => 'आपकी भूमिका';
+
+  @override
+  String get onboardingStepLocation => 'स्थान';
+
+  @override
+  String get onboardingStepBasicInfo => 'बुनियादी जानकारी';
+
+  @override
+  String get onboardingStepPhoto => 'प्रोफ़ाइल फ़ोटो';
+
+  @override
+  String get onboardingStepLifestyle => 'जीवनशैली';
+
+  @override
+  String get onboardingStepBudget => 'बजट और समयरेखा';
+
+  @override
+  String get onboardingStepPreferences => 'प्राथमिकताएँ';
+
+  @override
+  String get onboardingStepNonNegotiables => 'अनिवार्य शर्तें';
+
+  @override
+  String get onboardingWelcomeBack =>
+      'वापसी पर स्वागत है! जहाँ से छोड़ा था वहीं से शुरू करें।';
+
+  @override
+  String get onboardingActionBlockedTitle => 'पहले अपनी प्रोफ़ाइल पूरी करें';
+
+  @override
+  String get onboardingActionBlockedMessage =>
+      'फ्लैटमेट्स के साथ मैचिंग शुरू करने के लिए अपनी प्रोफ़ाइल सेटअप पूरा करें।';
+
+  @override
+  String get onboardingActionBlockedCta => 'सेटअप जारी रखें';
 }

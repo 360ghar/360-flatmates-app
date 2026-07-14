@@ -36,6 +36,17 @@ class ProfileRepository {
         .read(apiClientProvider)
         .post(FlatmatesEndpoints.completeFlatmatesOnboarding);
   }
+
+  /// Updates core user fields via `PUT /users/me` (the general user update
+  /// endpoint). Use this for fields that live on the `User` model itself —
+  /// notably `full_name` and `date_of_birth` — which the profile_completion
+  /// auth gate checks. The flatmates-specific [updateProfile] endpoint does
+  /// not support `date_of_birth`.
+  Future<void> updateUser({required Map<String, dynamic> payload}) async {
+    await _ref
+        .read(apiClientProvider)
+        .put(FlatmatesEndpoints.me, data: payload);
+  }
 }
 
 final profileRepositoryProvider = Provider<ProfileRepository>(

@@ -5,12 +5,10 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../discover/domain/property_listing.dart';
-import '../../../shared/presentation/flatmates_bottom_sheet.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
-import '../../../shared/presentation/flatmates_ui.dart';
 import 'manage_stats_widgets.dart';
 
 /// Property card with image, info row, owner info, and stats action grid.
@@ -69,6 +67,7 @@ class ManageListingCard extends StatelessWidget {
                   width: double.infinity,
                   child: FlatmatesNetworkImage(
                     imageUrl: listing.effectiveMainImageUrl!,
+                    height: 160,
                     fit: BoxFit.cover,
                   ),
                 )
@@ -206,9 +205,11 @@ class ManageListingCard extends StatelessWidget {
                     ),
                     Expanded(
                       child: StatActionItem(
-                        icon: Icons.rocket_launch_outlined,
-                        label: locale.boostAction,
-                        onTap: () => _showBoostSheet(context),
+                        icon: Icons.bar_chart_outlined,
+                        label: locale.viewStatsAction(
+                          _formatCount(listing.viewCount),
+                        ),
+                        onTap: onViewStats,
                         theme: theme,
                       ),
                     ),
@@ -218,16 +219,6 @@ class ManageListingCard extends StatelessWidget {
                 // Row 2
                 Row(
                   children: [
-                    Expanded(
-                      child: StatActionItem(
-                        icon: Icons.bar_chart_outlined,
-                        label: locale.viewStatsAction(
-                          _formatCount(listing.viewCount),
-                        ),
-                        onTap: onViewStats,
-                        theme: theme,
-                      ),
-                    ),
                     Expanded(
                       child: StatActionItem(
                         icon: _primaryStatusActionIcon,
@@ -244,12 +235,7 @@ class ManageListingCard extends StatelessWidget {
                         theme: theme,
                       ),
                     ),
-                  ],
-                ),
-                if (onCopyLink != null) ...[
-                  const SizedBox(height: AppSpacing.xs + AppSpacing.xs),
-                  Row(
-                    children: [
+                    if (onCopyLink != null)
                       Expanded(
                         child: StatActionItem(
                           icon: Icons.link,
@@ -257,10 +243,11 @@ class ManageListingCard extends StatelessWidget {
                           onTap: onCopyLink!,
                           theme: theme,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      )
+                    else
+                      const Expanded(child: SizedBox.shrink()),
+                  ],
+                ),
               ],
             ),
           ),
@@ -331,9 +318,10 @@ class ManageListingCard extends StatelessWidget {
     return Icons.pause_circle_outline;
   }
 
-  VoidCallback get _primaryStatusActionTap {
+  VoidCallback? get _primaryStatusActionTap {
     if (_isExpired) return onRenew;
     if (_isUnderReview) return onReview;
+    if (isPausing) return null;
     return () => onTogglePause(listing.id, _isPaused);
   }
 
@@ -351,33 +339,6 @@ class ManageListingCard extends StatelessWidget {
     if (days < 0) return locale.expiredStatus;
     if (days == 0) return locale.expiresToday;
     return locale.expiresInDays(days);
-  }
-
-  void _showBoostSheet(BuildContext context) {
-    FlatmatesBottomSheet.show(
-      context: context,
-      title: locale.boostListingTitle,
-      subtitle: locale.boostListingSubtitle,
-      builder: (sheetContext) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FlatmatesButton(
-              label: locale.boostNowCta,
-              onPressed: () {
-                Navigator.pop(sheetContext);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(locale.listingBoosted)));
-              },
-              icon: Icons.rocket_launch_outlined,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildPlaceholderImage({bool fullWidth = false}) {

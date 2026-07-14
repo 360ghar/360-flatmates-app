@@ -37,10 +37,19 @@ class PropertyListingDto {
       }
     });
 
+    // Backend shape: { "userId": { "tag": "up|down" } }. Flatten to
+    // "$userId:$tag" -> vote so UI can look up the current user's vote per tag.
     final rawUserVotes = preferences['society_tag_user_votes'] as Map? ?? {};
     final societyTagUserVotes = <String, String>{};
-    rawUserVotes.forEach((userId, vote) {
-      societyTagUserVotes[userId.toString()] = vote.toString();
+    rawUserVotes.forEach((userId, value) {
+      if (value is Map) {
+        value.forEach((tag, vote) {
+          societyTagUserVotes['$userId:$tag'] = vote.toString();
+        });
+      } else if (value != null) {
+        // Legacy flat shape { "userId": "up|down" } — keep a user-level key.
+        societyTagUserVotes[userId.toString()] = value.toString();
+      }
     });
 
     return PropertyListing(

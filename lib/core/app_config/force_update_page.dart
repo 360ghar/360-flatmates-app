@@ -14,6 +14,7 @@ class ForceUpdatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -32,8 +33,7 @@ class ForceUpdatePage extends StatelessWidget {
                   const SizedBox(height: 24),
                   Text(
                     locale.forceUpdateTitle,
-                    style: const TextStyle(
-                      fontSize: 22,
+                    style: textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                     textAlign: TextAlign.center,
@@ -41,8 +41,7 @@ class ForceUpdatePage extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     locale.forceUpdateMessage,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: textTheme.bodyMedium?.copyWith(
                       color: AppSemanticColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,

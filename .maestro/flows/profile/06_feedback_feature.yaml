@@ -1,0 +1,45 @@
+appId: com.the360ghar.flatmates360
+name: Profile - Feedback Feature Request
+tags:
+  - profile
+  - feedback
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: profile_help_safety_menu_item
+    direction: DOWN
+- tap:
+    id: profile_help_safety_menu_item
+- extendedWaitUntil:
+    visible:
+      id: help_faq_item
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      id: request_a_feature_menu_item
+    direction: DOWN
+- tap:
+    id: request_a_feature_menu_item
+- extendedWaitUntil:
+    visible:
+      id: feedback_title_field
+    timeout: 5000
+- tap:
+    id: feedback_title_field
+- inputText: "Test feature request"
+- tap:
+    id: feedback_description_field
+- inputText: "This is a test feature request for E2E testing"
+- tap:
+    id: feedback_submit_button
+- back:
+    optional: true

@@ -84,36 +84,39 @@ class _DiscoverMapState extends State<DiscoverMap> {
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _mapImpl,
-          options: MapOptions(
-            initialCenter: widget.initialCenter,
-            initialZoom: kDefaultInitialZoom,
-            minZoom: kDefaultMinZoom,
-            maxZoom: kDefaultMaxZoom,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        // Isolate map tile/marker paints from chrome overlays above.
+        RepaintBoundary(
+          child: FlutterMap(
+            mapController: _mapImpl,
+            options: MapOptions(
+              initialCenter: widget.initialCenter,
+              initialZoom: kDefaultInitialZoom,
+              minZoom: kDefaultMinZoom,
+              maxZoom: kDefaultMaxZoom,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
+              onMapReady: _onMapReady,
+              onPositionChanged: _onPositionChanged,
             ),
-            onMapReady: _onMapReady,
-            onPositionChanged: _onPositionChanged,
-          ),
-          children: [
-            TileLayerFactory.build(context),
-            MarkerLayer(markers: _buildMarkers(context)),
-            RichAttributionWidget(
-              attributions: [
-                TextSourceAttribution(
-                  TileLayerFactory.attribution,
-                  textStyle: TextStyle(
-                    fontSize: 10,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppSemanticColors.paper3
-                        : AppSemanticColors.ink2,
+            children: [
+              TileLayerFactory.build(context),
+              MarkerLayer(markers: _buildMarkers(context)),
+              RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution(
+                    TileLayerFactory.attributionFor(context),
+                    textStyle: TextStyle(
+                      fontSize: 10,
+                      color: AppSemanticColors.textSecondaryFor(
+                        Theme.of(context).brightness,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );

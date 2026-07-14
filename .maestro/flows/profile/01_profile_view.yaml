@@ -1,0 +1,34 @@
+appId: com.the360ghar.flatmates360
+name: Profile - Profile View
+tags:
+  - profile
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tap:
+    id: nav_me_tab
+- extendedWaitUntil:
+    visible:
+      id: profile_edit_button
+    timeout: 5000
+- assertVisible:
+    id: profile_name_text
+- scrollUntilVisible:
+    element:
+      id: profile_settings_menu_item
+    direction: DOWN
+- assertVisible:
+    id: profile_settings_menu_item
+- scrollUntilVisible:
+    element:
+      id: profile_help_safety_menu_item
+    direction: DOWN
+- assertVisible:
+    id: profile_help_safety_menu_item
+- scrollUntilVisible:
+    element:
+      id: logout_button
+    direction: DOWN
+- assertVisible:
+    id: logout_button

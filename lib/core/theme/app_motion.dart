@@ -30,6 +30,12 @@ abstract final class AppMotion {
   static const Duration staggerItem = Duration(milliseconds: 100);
   static const Duration breathing = Duration(seconds: 2);
 
+  /// Delay before the chat mode/intent tooltip appears after open.
+  static const Duration modeTooltipShowDelay = Duration(milliseconds: 450);
+
+  /// Auto-dismiss window for the chat mode/intent tooltip.
+  static const Duration modeTooltipAutoDismiss = Duration(seconds: 5);
+
   // Curves — ease-out only per DESIGN.md
   static const Curve easeOutCubic = Cubic(0.33, 0, 0.2, 1);
   static const Curve easeOutQuart = Cubic(0.25, 0, 0, 1);

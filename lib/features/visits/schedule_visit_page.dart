@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
@@ -86,8 +88,15 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       return;
     }
 
+    // Reject today + past morning (or any slot that has already passed).
+    final scheduledDate = _scheduledDate;
+    if (!scheduledDate.isAfter(DateTime.now())) {
+      FlatmatesToast.error(context, locale.visitTimeInPast);
+      return;
+    }
+
     ref.read(_submittingVisitProvider.notifier).state = true;
-    bool visitCreated = false;
+    var visitCreated = false;
     try {
       final timeSlotLabel = switch (ref.read(_selectedSlotProvider)) {
         'morning' => locale.timeSlotMorning,
@@ -100,7 +109,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
             propertyId: property.id,
             counterpartyUserId: conversation.peer.id,
             conversationId: conversation.id,
-            scheduledDate: _scheduledDate,
+            scheduledDate: scheduledDate,
             note: _noteController.text,
             timeSlotLabel: timeSlotLabel,
           );
@@ -109,12 +118,15 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       ref.invalidate(visitsProvider);
       ref.invalidate(messagesProvider(conversation.id));
       if (!mounted) return;
-      FlatmatesToast.success(context, locale.contactRequestSent);
+      FlatmatesToast.success(context, locale.visitRequestSent);
       context.pop();
-    } catch (error) {
+    } catch (e) {
+      debugPrint('ScheduleVisitPage._submit: $e');
       if (!mounted) return;
       final message = visitCreated
           ? locale.visitScheduledNotificationFailed
+          : e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
           : locale.visitRequestFailed;
       FlatmatesToast.error(context, message);
     } finally {

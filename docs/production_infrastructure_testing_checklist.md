@@ -153,15 +153,14 @@
 
 ## 12. Maintenance Mode
 
+> **Not implemented in the Flutter client (v1.0.x).** Force/optional update
+> screens cover version gating. A dedicated maintenance-mode screen requires a
+> backend flag + client screen — track as a follow-up before claiming this
+> checklist item. Leave unchecked until shipped.
+
 | Step | Expected | Android | iOS |
 |------|----------|---------|-----|
-| Set `maintenance_enabled = true` in `app_config` | — | [ ] | [ ] |
-| Launch app | Maintenance screen shown | [ ] | [ ] |
-| Normal app usage blocked | Cannot navigate | [ ] | [ ] |
-| "Check again" button re-fetches config | Retry works | [ ] | [ ] |
-| Custom maintenance message displays | If set | [ ] | [ ] |
-| Analytics `maintenance_screen_shown` fires | Firebase console | [ ] | [ ] |
-| Disable maintenance → "Check again" | App loads normally | [ ] | [ ] |
+| Maintenance mode screen | Deferred — not in app yet | N/A | N/A |
 
 ---
 

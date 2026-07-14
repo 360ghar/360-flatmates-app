@@ -139,7 +139,9 @@ class FlatDetailsHeader extends StatelessWidget {
                 FlatmatesPriceText.hero(
                   amount: l.monthlyRent.round(),
                   period: 'month',
-                  color: AppSemanticColors.ink,
+                  color: AppSemanticColors.textPrimaryFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
@@ -165,6 +167,11 @@ class FlatDetailsHeader extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: AppSpacing.md),
+
+                // Quick stat pills — scannable facts at-a-glance, inspired by
+                // the swipe card's quick-stat overlay.
+                _QuickStatPills(listing: l, locale: locale),
                 const SizedBox(height: AppSpacing.lg),
 
                 _OwnerCard(
@@ -298,5 +305,147 @@ class _OwnerCard extends StatelessWidget {
       default:
         return mode;
     }
+  }
+}
+
+/// Scannable quick-stat pills (gender, sharing type, available from, furnished)
+/// shown below the location row — inspired by the swipe card's quick-stat
+/// overlay. Uses brightness-aware soft pastel fills (not light paper2).
+class _QuickStatPills extends StatelessWidget {
+  const _QuickStatPills({required this.listing, required this.locale});
+
+  final PropertyListing listing;
+  final AppLocalizations locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = listing;
+    final pills = <_StatPill>[];
+
+    // Gender preference
+    final genderLabel = switch (l.genderPreference) {
+      'male' => locale.genderSuffixMaleOnly,
+      'female' => locale.genderSuffixFemaleOnly,
+      _ => locale.genderSuffixAny,
+    };
+    pills.add(
+      _StatPill(
+        icon: Icons.people_outline_rounded,
+        label: genderLabel,
+        palette: _StatPillPalette.orange,
+      ),
+    );
+
+    // Sharing type / room type
+    if (l.sharingType != null && l.sharingType!.isNotEmpty) {
+      pills.add(
+        _StatPill(
+          icon: Icons.meeting_room_outlined,
+          label: localizedFlatmatesSharingTypeLabel(locale, l.sharingType!),
+          palette: _StatPillPalette.purple,
+        ),
+      );
+    }
+
+    // Available from (schedule / move-in fact)
+    final availableLabel = l.availableFrom != null
+        ? DateFormat.yMMMd(locale.localeName).format(l.availableFrom!)
+        : locale.flexibleLabel;
+    pills.add(
+      _StatPill(
+        icon: Icons.event_available_outlined,
+        label: availableLabel,
+        palette: _StatPillPalette.blue,
+      ),
+    );
+
+    // Furnished
+    if (l.isFurnished) {
+      pills.add(
+        _StatPill(
+          icon: Icons.chair_outlined,
+          label: locale.featureFurnished,
+          palette: _StatPillPalette.green,
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: [for (final pill in pills) _StatPillChip(pill: pill)],
+    );
+  }
+}
+
+enum _StatPillPalette { orange, blue, purple, green }
+
+class _StatPill {
+  const _StatPill({
+    required this.icon,
+    required this.label,
+    required this.palette,
+  });
+  final IconData icon;
+  final String label;
+  final _StatPillPalette palette;
+}
+
+class _StatPillChip extends StatelessWidget {
+  const _StatPillChip({required this.pill});
+  final _StatPill pill;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final (bg, fg) = _resolve(pill.palette, isDark);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: AppRadius.pillBorder,
+        border: Border.all(color: fg.withValues(alpha: 0.25), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(pill.icon, size: 13, color: fg),
+          const SizedBox(width: 4),
+          Text(
+            pill.label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  (Color, Color) _resolve(_StatPillPalette palette, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    return switch (palette) {
+      _StatPillPalette.orange => (
+        AppSemanticColors.orangeSoftFor(brightness),
+        isDark ? AppSemanticColors.orangeMid : AppSemanticColors.orangeInk,
+      ),
+      _StatPillPalette.blue => (
+        AppSemanticColors.blueSoftFor(brightness),
+        isDark ? AppSemanticColors.blueMid : AppSemanticColors.blueInk,
+      ),
+      _StatPillPalette.purple => (
+        AppSemanticColors.purpleSoftFor(brightness),
+        isDark ? AppSemanticColors.purpleMid : AppSemanticColors.purpleInk,
+      ),
+      _StatPillPalette.green => (
+        AppSemanticColors.greenSoftFor(brightness),
+        AppSemanticColors.greenInkFor(brightness),
+      ),
+    };
   }
 }

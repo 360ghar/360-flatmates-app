@@ -25,6 +25,10 @@ abstract final class PrefKeys {
   /// backend auth-state mirror is stale.
   static const flatmatesOnboardingCompletedUserId =
       'flatmates_onboarding_completed_user_id';
+
+  /// Survives process death between OTP verify and set-password so the
+  /// mandatory password gate is restored on cold start with a live session.
+  static const pendingPasswordSetup = 'pending_password_setup';
 }
 
 final class AppPreferences {

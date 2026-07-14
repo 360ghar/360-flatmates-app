@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/compatibility/compatibility_engine.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_bottom_sheet.dart';
+import '../../../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../chats_repository.dart';
 import '../../domain/chat_report_reason.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatAppBar({
-    required this.conversationId,
     required this.conversation,
+    this.avatarLink,
     required this.reportReasons,
     required this.onBlock,
     required this.onReport,
@@ -26,8 +25,11 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
   });
 
-  final int conversationId;
   final ConversationSummaryModel? conversation;
+
+  /// Shared with the floating mode tooltip so its tail points at this avatar.
+  /// Optional — defaults to an unlinked [LayerLink] when no tooltip is used.
+  final LayerLink? avatarLink;
   final List<ChatReportReason> reportReasons;
   final VoidCallback onBlock;
   final VoidCallback onReport;
@@ -36,14 +38,10 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onScheduleVisit;
   final VoidCallback? onPeerTap;
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  static const double toolbarHeight = 64;
 
-  double? _computeCompatibilityScore() {
-    final peer = conversation?.peer;
-    if (peer == null) return null;
-    return peer.matchPercentage;
-  }
+  @override
+  Size get preferredSize => const Size.fromHeight(toolbarHeight);
 
   void _showChatMenu(BuildContext context) {
     final locale = AppLocalizations.of(context);
@@ -93,15 +91,21 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final score = _computeCompatibilityScore();
+    final brightness = theme.brightness;
+    final hairline = AppSemanticColors.hairlineFor(brightness);
 
     return AppBar(
+      toolbarHeight: toolbarHeight,
       titleSpacing: 0,
-      leadingWidth: 40,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, size: 22),
-        onPressed: () => context.pop(),
-        tooltip: 'Back',
+      leadingWidth: 56,
+      automaticallyImplyLeading: false,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: AppSpacing.sm),
+        child: FlatmatesChromeIconButton(
+          icon: Icons.arrow_back_rounded,
+          onPressed: () => context.pop(),
+          tooltip: locale.backCta,
+        ),
       ),
       title: GestureDetector(
         key: const Key('chat_peer_header'),
@@ -109,15 +113,19 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         onTap: onPeerTap,
         child: Row(
           children: [
-            FlatmatesAvatar(
-              name: conversation?.peer.fullName,
-              imageUrl: conversation?.peer.profileImageUrl,
-              size: 40,
+            CompositedTransformTarget(
+              link: avatarLink ?? LayerLink(),
+              child: FlatmatesAvatar(
+                name: conversation?.peer.fullName,
+                imageUrl: conversation?.peer.profileImageUrl,
+                size: 36,
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     children: [
@@ -125,51 +133,16 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                         child: Text(
                           conversation?.peer.fullName ?? locale.chatsTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
+                            fontSize: AppTypography.titleMdSize,
                             fontWeight: AppTypography.titleMdWeight,
+                            height: AppTypography.titleMdHeight,
                           ),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      if (score != null)
-                        Container(
-                          width: AppSpacing.sm,
-                          height: AppSpacing.sm,
-                          decoration: BoxDecoration(
-                            color: compatibilityScoreColor(score),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
                     ],
                   ),
-                  if (conversation?.peer.mode != null) ...[
-                    const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppSemanticColors.accent.withValues(
-                            alpha: 0.4,
-                          ),
-                        ),
-                        borderRadius: AppRadius.smBorder,
-                      ),
-                      child: Text(
-                        localizedFlatmatesModeLabel(
-                          locale,
-                          conversation?.peer.mode ?? '',
-                        ),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: AppTypography.captionSize,
-                          fontWeight: FontWeight.w600,
-                          color: AppSemanticColors.accent,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -177,38 +150,28 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        IconButton(
+        FlatmatesChromeIconButton(
           key: const Key('chat_call_button'),
           onPressed: onCall,
-          icon: Icon(
-            Icons.call_outlined,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
-            size: 20,
-          ),
-          tooltip: 'Call',
+          icon: Icons.call_outlined,
+          tooltip: locale.callCta,
         ),
         if (conversation?.contextProperty != null)
-          IconButton(
+          FlatmatesChromeIconButton(
             key: const Key('chat_schedule_visit_button'),
             onPressed: onScheduleVisit,
-            icon: Icon(
-              Icons.event_available_outlined,
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
-              size: 20,
-            ),
-            tooltip: 'Schedule visit',
+            icon: Icons.event_available_outlined,
+            tooltip: locale.scheduleVisitCta,
           ),
-        IconButton(
+        FlatmatesChromeIconButton(
           key: const Key('chat_more_button'),
           onPressed: () => _showChatMenu(context),
-          icon: Icon(
-            Icons.more_vert_rounded,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
-            size: 20,
-          ),
-          tooltip: 'More options',
+          icon: Icons.more_vert_rounded,
+          tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
         ),
+        const SizedBox(width: AppSpacing.sm),
       ],
+      shape: Border(bottom: BorderSide(color: hairline)),
     );
   }
 }

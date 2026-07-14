@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,7 @@ import '../location/presentation/location_picker_modal.dart';
 import '../shared/presentation/components.dart';
 import 'discover_repository.dart';
 import 'application/discover_feed_controller.dart';
+import 'presentation/widgets/broadened_radius_banner.dart';
 import 'presentation/widgets/discover_header.dart';
 import 'presentation/widgets/discover_listing_card.dart';
 import 'presentation/widgets/discover_support_sections.dart';
@@ -23,11 +25,11 @@ import 'presentation/widgets/filter_sheet.dart';
 import 'presentation/widgets/home_section_widgets.dart';
 import 'presentation/widgets/staggered_card_appear.dart';
 
-String _timeBasedGreeting(AppLocalizations locale, String name) {
+String _timeBasedGreetingLabel(AppLocalizations locale) {
   final hour = DateTime.now().hour;
-  if (hour < 12) return locale.homeGreetingMorning(name);
-  if (hour < 17) return locale.homeGreetingAfternoon(name);
-  return locale.homeGreetingEvening(name);
+  if (hour < 12) return locale.homeGreetingMorning;
+  if (hour < 17) return locale.homeGreetingAfternoon;
+  return locale.homeGreetingEvening;
 }
 
 class DiscoverPage extends ConsumerStatefulWidget {
@@ -38,17 +40,17 @@ class DiscoverPage extends ConsumerStatefulWidget {
 }
 
 class _DiscoverPageState extends ConsumerState<DiscoverPage> {
-  static const double _loadMoreThreshold = 500;
+  /// Home only previews this many "Picked for you" cards. Full feed lives on
+  /// `/discover/browse-listings` with a virtualized ListView.
+  static const int _homeFeedPreviewCount = 8;
   static const double _kBottomNavOffset = 120.0;
 
-  final _scrollController = ScrollController();
   final _likeDebouncer = ActionDebouncer();
   final _locationRadiusDebouncer = ActionDebouncer();
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoDetectLocation();
     });
@@ -106,13 +108,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
         );
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - _loadMoreThreshold) {
-      ref.read(discoverFeedControllerProvider.notifier).loadMore();
-    }
-  }
-
   /// Toggles the like for [item].
   ///
   /// The optimistic UI update, network call, and `conversationsProvider`
@@ -150,7 +145,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _likeDebouncer.dispose();
     _locationRadiusDebouncer.dispose();
     super.dispose();
@@ -242,103 +236,198 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     final mode = profile?.mode ?? 'co_hunter';
     final isSeeker = mode != 'room_poster';
 
+    // Responsive grid columns for the "Picked for you" preview: 2 on mobile,
+    // 3 on small tablet, 4 on large tablet/desktop (DESIGN.md breakpoints).
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final crossAxisCount = screenWidth < 600
+        ? 2
+        : screenWidth < 900
+        ? 3
+        : 4;
+
+    final preview = filtered.take(_homeFeedPreviewCount).toList();
+    final showSeeAll =
+        filtered.isNotEmpty && (filtered.length > 2 || feedState.hasMore);
+
+    final showMeet =
+        (ref.watch(homeMeetProfilesProvider).valueOrNull?.length ?? 0) > 0;
+    final hasMovingSoon = movingSoonItems(filtered).isNotEmpty;
+
     return FlatmatesScreen(
       body: feedState.isLoading && filtered.isEmpty
           ? const FlatmatesSkeleton.discoverFeed()
           : RefreshIndicator(
               onRefresh: () =>
                   ref.read(discoverFeedControllerProvider.notifier).refresh(),
-              child: ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl,
-                  AppSpacing.sm,
-                  AppSpacing.xl,
-                  _kBottomNavOffset,
-                ),
-                children: [
-                  DiscoverHeader(
-                    greeting: _timeBasedGreeting(locale, displayName),
-                    location: currentLocation,
-                    avatarUrl: profile?.profileImageUrl,
-                    userName: profile?.fullName,
-                    onAvatarTap: () => context.push('/profile'),
-                    onLocationTap: () => _showLocationPicker(
-                      context,
-                      currentLocation: currentLocation,
-                      currentRadiusKm: currentRadiusKm,
+              // CustomScrollView + slivers: header sections are adapters;
+              // listing cards are a lazy SliverList (no nested shrinkWrap).
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screen,
+                      AppSpacing.sm,
+                      AppSpacing.screen,
+                      0,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // Extra L/R inset on the first row only (greeting +
+                        // location + avatar); sections below keep screen gutter.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                          child: DiscoverHeader(
+                            greetingLabel: _timeBasedGreetingLabel(locale),
+                            name: displayName,
+                            location: currentLocation,
+                            avatarUrl: profile?.profileImageUrl,
+                            userName: profile?.fullName,
+                            onAvatarTap: () => context.push('/profile'),
+                            onLocationTap: () => _showLocationPicker(
+                              context,
+                              currentLocation: currentLocation,
+                              currentRadiusKm: currentRadiusKm,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.base),
+                        HomeSearchBar(onTap: () => showFiltersSheet(context)),
+                        if (!isSeeker) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          PostYourSpaceCard(
+                            onTap: () => context.push('/post/new'),
+                          ),
+                        ],
+                        if (city != null) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          TrendingNeighborhoodsSection(city: city),
+                        ],
+                        if (showMeet) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          const MeetFlatmatesSection(),
+                        ],
+                        if (hasMovingSoon) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          MovingSoonSection(items: filtered),
+                        ],
+                        if (feedState.isBroadened && filtered.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          BroadenedRadiusBanner(
+                            message: locale.homeBroadenedRadius,
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.lg),
+                        HomeSectionHeader(
+                          title: locale.homePickedForYou,
+                          actionLabel: showSeeAll ? locale.seeAllCta : null,
+                          actionKey: const Key('home_picked_for_you_see_all'),
+                          onActionTap: () =>
+                              context.push('/discover/browse-listings'),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        if (filtered.isEmpty && !feedState.isLoading)
+                          feedState.hasError
+                              ? FlatmatesErrorState(
+                                  message: locale.actionFailedRetry,
+                                  onRetry: () => ref
+                                      .read(
+                                        discoverFeedControllerProvider.notifier,
+                                      )
+                                      .refresh(),
+                                )
+                              : FlatmatesEmptyState(
+                                  title: locale.homeNoResults,
+                                  subtitle: locale.homeNoResultsSubtitle,
+                                  icon: Icons.search_off_rounded,
+                                  padHorizontally: false,
+                                  compact: true,
+                                ),
+                      ]),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  HomeSearchBar(onTap: () => showFiltersSheet(context)),
-                  const SizedBox(height: AppSpacing.sm),
-                  /*
-                  if (isSeeker && city != null) ...[
-                    HomeSectionHeader(title: locale.homeNewInCity(city)),
-                    const SizedBox(height: AppSpacing.sm),
-                    NewInCitySection(
-                      items: filtered,
-                      onExplore: () => context.go('/tab2'),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                  ] else */
-                  if (!isSeeker) ...[
-                    PostYourSpaceCard(onTap: () => context.push('/post/new')),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
-                  if (city != null) ...[
-                    TrendingNeighborhoodsSection(city: city),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
-                  const MeetFlatmatesSection(),
-                  const SizedBox(height: AppSpacing.sm),
-                  MovingSoonSection(items: filtered),
-                  const SizedBox(height: AppSpacing.sm),
-                  HomeSectionHeader(
-                    title: locale.homePickedForYou,
-                    actionLabel: filtered.length > 2 ? locale.seeAllCta : null,
-                    actionKey: const Key('home_picked_for_you_see_all'),
-                    onActionTap: () =>
-                        context.push('/discover/browse-listings'),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  if (filtered.isEmpty && !feedState.isLoading)
-                    FlatmatesEmptyState(
-                      title: locale.homeNoResults,
-                      subtitle: locale.homeNoResultsSubtitle,
-                      icon: Icons.search_off_rounded,
+                  if (preview.isNotEmpty)
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screen,
+                        0,
+                        AppSpacing.screen,
+                        _kBottomNavOffset,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            // Odd indices are row separators; even indices are
+                            // grid rows of [crossAxisCount] cards. Each card is
+                            // wrapped in Expanded so widths divide evenly and
+                            // stay consistent across full and partial rows.
+                            if (index.isOdd) {
+                              return const SizedBox(height: AppSpacing.md);
+                            }
+                            final rowIndex = index ~/ 2;
+                            final start = rowIndex * crossAxisCount;
+                            final end = min(
+                              start + crossAxisCount,
+                              preview.length,
+                            );
+                            final cells = <Widget>[];
+                            for (var i = start; i < end; i++) {
+                              final item = preview[i];
+                              final badgeLabel = switch (i) {
+                                0 => locale.badgeNew,
+                                1 => locale.badgePopular,
+                                _ => null,
+                              };
+                              cells.add(
+                                Expanded(
+                                  child: StaggeredCardAppear(
+                                    index: i,
+                                    child: DiscoverListingCard(
+                                      cardKey: i == 0
+                                          ? const Key('discover_feed_card_0')
+                                          : null,
+                                      item: item,
+                                      badgeLabel: badgeLabel,
+                                      onTap: () => context.push(
+                                        '/flat-details/${item.id}',
+                                      ),
+                                      onLike: () => _likeDebouncer.run(
+                                        () => _handleLike(item),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                              if (i < end - 1) {
+                                cells.add(const SizedBox(width: AppSpacing.md));
+                              }
+                            }
+                            // Pad the trailing partial row with empty Expanded
+                            // slots so card widths match full rows above.
+                            final missing = crossAxisCount - (end - start);
+                            for (var j = 0; j < missing; j++) {
+                              cells.add(const SizedBox(width: AppSpacing.md));
+                              cells.add(const Expanded(child: SizedBox()));
+                            }
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: cells,
+                            );
+                          },
+                          childCount:
+                              ((preview.length + crossAxisCount - 1) ~/
+                                      crossAxisCount) *
+                                  2 -
+                              1,
+                        ),
+                      ),
                     )
                   else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: AppSpacing.md),
-                      itemBuilder: (context, index) {
-                        final item = filtered[index];
-                        final badgeLabel = switch (index) {
-                          0 => locale.badgeNew,
-                          1 => locale.badgePopular,
-                          _ => null,
-                        };
-                        return StaggeredCardAppear(
-                          index: index,
-                          child: DiscoverListingCard(
-                            cardKey: index == 0
-                                ? const Key('discover_feed_card_0')
-                                : null,
-                            item: item,
-                            badgeLabel: badgeLabel,
-                            onTap: () =>
-                                context.push('/flat-details/${item.id}'),
-                            onLike: () =>
-                                _likeDebouncer.run(() => _handleLike(item)),
-                          ),
-                        );
-                      },
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: _kBottomNavOffset),
                     ),
-                  // The moved sections used to be here
                 ],
               ),
             ),

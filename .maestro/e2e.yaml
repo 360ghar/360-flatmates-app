@@ -1,5 +1,6 @@
-# 360 FlatMates — Full E2E Suite
-# Seeded room-poster login → smoke flows → logout
+# 360 FlatMates — Full E2E Smoke Suite (Sequential)
+#
+# Seeded room-poster login → smoke flows → logout.
 # Run: maestro test .maestro/e2e.yaml
 #
 # Prerequisites:
@@ -8,9 +9,10 @@
 #   - Completed onboarding for the seeded account
 #   - At least 3 discover listings in the backend
 #   - At least 1 existing conversation for chat/schedule testing
+#   - At least 1 visit in the backend for visit actions
 
 appId: com.the360ghar.flatmates360
-name: Full E2E
+name: Full E2E Smoke
 tags:
   - smoke
 ---
@@ -18,34 +20,39 @@ tags:
     clearState: true
 
 # Auth
-- runFlow: auth/login.yaml
+- runFlow: flows/auth/01_login_phone.yaml
 
 # Navigation
-- runFlow: navigation/tabs.yaml
+- runFlow: flows/navigation/01_tabs_co_hunter.yaml
 
 # Discover
-- runFlow: discover/feed.yaml
-- runFlow: discover/search_filters.yaml
-- runFlow: discover/flat_details.yaml
+- runFlow: flows/discover/01_home_feed.yaml
+- runFlow: flows/discover/06_search_filters.yaml
+- runFlow: flows/discover/03_flat_details.yaml
 
 # Swipe
-- runFlow: swipe/swipe.yaml
+- runFlow: flows/swipe/01_swipe_deck_load.yaml
+- runFlow: flows/swipe/02_swipe_like.yaml
 
 # Chats
-- runFlow: chats/chats.yaml
-- runFlow: chats/schedule_visit.yaml
+- runFlow: flows/chats/01_conversations_tabs.yaml
+- runFlow: flows/chats/02_open_chat.yaml
+- runFlow: flows/chats/03_send_message.yaml
+- runFlow: flows/chats/02_schedule_visit.yaml
 
 # Profile & Settings
-- runFlow: profile/profile.yaml
-- runFlow: profile/edit_profile.yaml
-- runFlow: profile/settings.yaml
-- runFlow: profile/help_safety.yaml
+- runFlow: flows/profile/01_profile_view.yaml
+- runFlow: flows/profile/02_edit_profile.yaml
+- runFlow: flows/settings/01_settings_page.yaml
+- runFlow: flows/settings/02_preferences_theme.yaml
+- runFlow: flows/profile/04_help_safety.yaml
 
 # Notifications
-- runFlow: notifications/notifications.yaml
+- runFlow: flows/notifications/01_notifications_list.yaml
 
 # Listings (room_poster mode)
-- runFlow: listings/create_listing.yaml
+- runFlow: flows/listings/01_post_hub.yaml
+- runFlow: flows/listings/02_create_listing_step0.yaml
 
 # Logout
-- runFlow: navigation/logout.yaml
+- runFlow: flows/auth/07_logout.yaml

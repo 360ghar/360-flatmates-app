@@ -53,7 +53,10 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
+
     return Scaffold(
+      backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(title: locale.scheduleTitle),
       body: FlatmatesAsyncView<CursorListState<VisitItem>>(
         value: visitsState,
@@ -69,27 +72,38 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
         data: (state) {
           // Organize into timeline sections. Every status must land in
           // exactly one bucket so no visit silently disappears from the list.
+          // Wire values: confirmed | requested | reschedule_suggested |
+          // completed | cancelled.
           final items = state.items;
-          final upcoming = items
-              .where((v) => v.status == 'scheduled' || v.status == 'confirmed')
-              .toList();
-          final requested = items
-              .where((v) => v.status == 'requested')
-              .toList();
-          const upcomingOrRequested = {'scheduled', 'confirmed', 'requested'};
-          // Cancelled / completed / unknown statuses -> a single "Past" bucket.
-          final past = items
-              .where((v) => !upcomingOrRequested.contains(v.status))
-              .toList();
+          final now = DateTime.now();
+          bool isPastDated(VisitItem v) =>
+              !v.scheduledDate.toLocal().isAfter(now);
+
+          final upcoming = <VisitItem>[];
+          final requested = <VisitItem>[];
+          final past = <VisitItem>[];
+          for (final v in items) {
+            if (v.status == 'confirmed' && !isPastDated(v)) {
+              upcoming.add(v);
+            } else if ((v.status == 'requested' ||
+                    v.status == 'reschedule_suggested') &&
+                !isPastDated(v)) {
+              // Both need counterparty confirm (or cancel).
+              requested.add(v);
+            } else {
+              // completed / cancelled / unknown / past-dated active statuses
+              past.add(v);
+            }
+          }
 
           return RefreshIndicator(
             onRefresh: () =>
                 ref.read(visitsListControllerProvider.notifier).refresh(),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
                 AppSpacing.screen,
-                AppSpacing.xl,
+                AppSpacing.screen,
+                AppSpacing.screen,
                 120,
               ),
               children: [

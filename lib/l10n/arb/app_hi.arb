@@ -1,7 +1,8 @@
 {
   "@@locale": "hi",
   "appName": "360 फ्लैटमेट्स",
-  "splashTagline": "ढूंढें। जुड़ें। साथ रहें।",
+  "splashTaglineLine1": "ढूंढें। जुड़ें।",
+  "splashTaglineLine2": "साथ रहें।",
   "splashSubtagline": "अपना फ्लैट और फ्लैटमेट ढूंढने का बेहतरीन तरीका।",
   "commonRetry": "फिर से प्रयास करें",
   "commonSave": "सहेजें",
@@ -51,38 +52,10 @@
   },
   "discoverTitle": "डिस्कवर",
   "emptyListings": "अभी कोई फ्लैटमेट लिस्टिंग उपलब्ध नहीं है।",
-  "homeGreeting": "नमस्ते, {name}",
-  "@homeGreeting": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingMorning": "सुप्रभात, {name}",
-  "@homeGreetingMorning": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingAfternoon": "नमस्कार, {name}",
-  "@homeGreetingAfternoon": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "homeGreetingEvening": "शुभ संध्या, {name}",
-  "@homeGreetingEvening": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "homeGreeting": "नमस्ते",
+  "homeGreetingMorning": "सुप्रभात",
+  "homeGreetingAfternoon": "नमस्कार",
+  "homeGreetingEvening": "शुभ संध्या",
   "homeGuestName": "दोस्त",
   "homeSubtitle": "{city} में अपना अगला फ्लैटमेट खोजें",
   "@homeSubtitle": {
@@ -112,6 +85,7 @@
   "homePickedSubtitle": "आपकी पसंद और वाइब से मेल खाने वाले फ्लैट्स",
   "homeNoResults": "इन फ़िल्टर्स से कोई लिस्टिंग नहीं मिली।",
   "homeNoResultsSubtitle": "अपने फ़िल्टर बदलकर देखें या किसी अन्य लोकेशन के लिए खोजें।",
+  "homeBroadenedRadius": "आपके क्षेत्र में कोई लिस्टिंग नहीं — दूर की फ्लैट्स दिखाई जा रही हैं।",
   "homeBedroomsChip": "{count} BHK",
   "@homeBedroomsChip": {
     "placeholders": {
@@ -198,6 +172,7 @@
   "emptyLikes": "अभी कोई नया लाइक नहीं है।",
   "chatsTitle": "चैट्स",
   "callCta": "कॉल करें",
+  "messageCta": "संदेश",
   "listingDetails": "लिस्टिंग विवरण",
   "percentMatch": "{percent}% मैच",
   "@percentMatch": {
@@ -258,6 +233,10 @@
   "profileMenuChats": "मेरी चैट",
   "profileMenuDocuments": "दस्तावेज़",
   "editProfileCta": "प्रोफ़ाइल संपादित करें",
+  "editProfileTabIdentity": "पहचान",
+  "editProfileTabPreferences": "प्राथमिकताएँ",
+  "editProfileTabLifestyle": "जीवनशैली",
+  "editProfileTabAbout": "बारे में",
   "themeModeTitle": "थीम मोड",
   "themeSystem": "सिस्टम",
   "themeLight": "लाइट",
@@ -444,6 +423,7 @@
   "blockConfirmMessage": "वे आपकी प्रोफ़ाइल नहीं देख पाएंगे या संपर्क नहीं कर पाएंगे।",
   "blockCta": "ब्लॉक करें",
   "userBlocked": "उपयोगकर्ता को ब्लॉक कर दिया गया है।",
+  "userUnmatched": "आपने इस व्यक्ति को अनमैच कर दिया है।",
   "reportTitle": "इस व्यक्ति की रिपोर्ट करें",
   "reportFakeProfile": "नकली प्रोफ़ाइल",
   "reportSpam": "स्पैम",
@@ -865,6 +845,14 @@
       }
     }
   },
+  "budgetPresetAny": "कोई भी",
+  "budgetPresetUnder15k": "₹15k से कम",
+  "budgetPreset15to25k": "₹15–25k",
+  "budgetPreset25to40k": "₹25–40k",
+  "budgetPreset40to60k": "₹40–60k",
+  "budgetPreset60kPlus": "₹60k+",
+  "lifestyleFiltersLabel": "लाइफ़स्टाइल",
+  "lifestyleFiltersSummaryAny": "कोई प्राथमिकता नहीं",
   "roomTypeFilterLabel": "कमरे का प्रकार",
   "roomTypeAny": "कोई भी",
   "roomTypePrivate": "प्राइवेट",
@@ -896,6 +884,8 @@
   "nearbyChipLabel": "निकटस्थ",
   "budgetPlusChipLabel": "बजट+",
   "chatInputHint": "संदेश टाइप करें...",
+  "emojiCta": "इमोजी",
+  "dismissCta": "बंद करें",
   "phoneNotAvailable": "फोन नंबर उपलब्ध नहीं है",
   "emailNotAvailable": "ईमेल उपलब्ध नहीं है",
   "emojiPickerComingSoon": "इमोजी पिकर जल्द आ रहा है",
@@ -1032,6 +1022,8 @@
   "couldNotLoadListing": "लिस्टिंग लोड नहीं हो सकी",
   "startAConversation": "बातचीत शुरू करें",
   "sayHelloOrIcebreaker": "नमस्ते कहें या आइसब्रेकर इस्तेमाल करें",
+  "noMessagesYet": "अभी कोई संदेश नहीं...",
+  "noMessagesYetHint": "संदेश भेजें या नीचे दिए गए आइसब्रेकर्स पर टैप करें।",
   "messagesArePrivate": "संदेश निजी हैं",
   "viewLabel": "देखें",
   "byOwnerLabel": "{name} द्वारा",
@@ -1218,6 +1210,14 @@
   "workStyleWfh": "वर्क फ्रॉम होम",
   "phoneVerifiedLabel": "फ़ोन सत्यापित",
   "showResultsCta": "परिणाम दिखाएं",
+  "showResultsWithFiltersCta": "परिणाम दिखाएं · {count} फ़िल्टर",
+  "@showResultsWithFiltersCta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchFiltersTitle": "खोजें और फ़िल्टर",
   "clearAllFilters": "सभी हटाएं",
   "errorNetwork": "कोई इंटरनेट कनेक्शन नहीं। कृपया अपना नेटवर्क जांचें और पुनः प्रयास करें।",
@@ -1520,6 +1520,44 @@
   "meetPotentialFlatmates": "संभावित फ्लैटमेट्स से मिलें",
   "lifestyleSectionTitle": "जीवनशैली",
   "dealBreakersSectionTitle": "डील-ब्रेकर्स",
+  "dealBreakersSectionSubtitle": "उनकी गैर-समझौता शर्तें",
+  "matchToneGreat": "बेहतरीन मैच",
+  "matchToneWorkable": "ठीक-ठाक",
+  "matchToneGaps": "प्राथमिकता अंतर",
+  "compatAlignedCount": "{count} मेल",
+  "@compatAlignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatWorkableCount": "{count} ठीक-ठाक",
+  "@compatWorkableCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compatGapCount": "{count} अंतर",
+  "@compatGapCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lifestyleDimSleep": "नींद",
+  "lifestyleDimCleanliness": "साफ़-सफ़ाई",
+  "lifestyleDimFood": "खाना",
+  "lifestyleDimSmoking": "धूम्रपान / पेय",
+  "lifestyleDimGuests": "मेहमान",
+  "lifestyleDimWork": "काम",
+  "lifestyleDimParty": "पार्टियाँ",
+  "societyVibesLabel": "सोसाइटी वाइब्स",
+  "roomFeaturesLabel": "कमरे की सुविधाएँ",
+  "availableFromLabel": "उपलब्धता",
+  "dealBreakersCountBadge": "{count} डील-ब्रेकर्स",
+  "@dealBreakersCountBadge": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "likeListingTooltip": "अपनी पसंद में जोड़ें",
   "unlikeListingTooltip": "अपनी पसंद से हटाएँ",
   "togglePasswordVisibility": "पासवर्ड दिखाएं या छिपाएं",
@@ -1646,5 +1684,48 @@
     }
   },
 
-  "unverifiedAccountHint": "आपका खाता अभी सत्यापित नहीं हुआ है। नीचे सत्यापन पूरा करें या कोड दोबारा भेजें।"
+  "unverifiedAccountHint": "आपका खाता अभी सत्यापित नहीं हुआ है। नीचे सत्यापन पूरा करें या कोड दोबारा भेजें।",
+
+  "profileCompletionTitle": "अपनी प्रोफ़ाइल सेट करें",
+  "profileCompletionSubtitle": "शुरू करने के लिए हमें कुछ जानकारी चाहिए।",
+  "profileCompletionContinue": "जारी रखें",
+  "profileCompletionSaving": "सहेजा जा रहा है…",
+  "profileCompletionError": "प्रोफ़ाइल सहेजी नहीं जा सकी। कृपया दोबारा कोशिश करें।",
+  "dateOfBirthLabel": "जन्म तिथि",
+  "dateOfBirthHelper": "आपकी आयु 18 वर्ष या अधिक होनी चाहिए",
+  "dateOfBirthPickerTitle": "अपनी जन्म तिथि चुनें",
+
+  "onboardingBannerTitle": "मैचिंग शुरू करने के लिए अपनी प्रोफ़ाइल पूरी करें",
+  "onboardingBannerCta": "सेटअप जारी रखें",
+  "onboardingStepsRemaining": "{count} चरण शेष",
+  "@onboardingStepsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStepOf": "चरण {current} / {total}",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStepMode": "आपकी भूमिका",
+  "onboardingStepLocation": "स्थान",
+  "onboardingStepBasicInfo": "बुनियादी जानकारी",
+  "onboardingStepPhoto": "प्रोफ़ाइल फ़ोटो",
+  "onboardingStepLifestyle": "जीवनशैली",
+  "onboardingStepBudget": "बजट और समयरेखा",
+  "onboardingStepPreferences": "प्राथमिकताएँ",
+  "onboardingStepNonNegotiables": "अनिवार्य शर्तें",
+  "onboardingWelcomeBack": "वापसी पर स्वागत है! जहाँ से छोड़ा था वहीं से शुरू करें।",
+  "onboardingActionBlockedTitle": "पहले अपनी प्रोफ़ाइल पूरी करें",
+  "onboardingActionBlockedMessage": "फ्लैटमेट्स के साथ मैचिंग शुरू करने के लिए अपनी प्रोफ़ाइल सेटअप पूरा करें।",
+  "onboardingActionBlockedCta": "सेटअप जारी रखें"
 }

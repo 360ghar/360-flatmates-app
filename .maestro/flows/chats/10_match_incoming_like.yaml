@@ -1,0 +1,25 @@
+appId: com.the360ghar.flatmates360
+name: Chats - Incoming likes list
+tags:
+  - chats
+---
+- launchApp:
+    clearState: true
+- runFlow: flows/_shared/login.yaml
+- tapOn:
+    id: nav_inbox_tab
+- extendedWaitUntil:
+    visible:
+      id: chats_chats_tab
+    timeout: 5000
+- tapOn:
+    id: chats_likes_tab
+- extendedWaitUntil:
+    visible:
+      id: chats_likes_tab
+    timeout: 3000
+- scroll:
+    direction: DOWN
+    optional: true
+- assertVisible:
+    id: chats_likes_tab

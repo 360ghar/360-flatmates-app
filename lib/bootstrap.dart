@@ -42,6 +42,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Bound decoded image memory so long feed/swipe sessions do not grow
+  // without limit on mid-range devices. Disk cache is still handled by
+  // cached_network_image; this only caps the in-memory ImageCache.
+  final imageCache = PaintingBinding.instance.imageCache;
+  imageCache.maximumSize = 100;
+  imageCache.maximumSizeBytes = 80 << 20; // 80 MB
+
   await EnvLoader.load();
   await initializeDateFormatting();
 
