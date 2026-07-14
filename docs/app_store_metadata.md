@@ -160,7 +160,7 @@ https://360ghar.com/flatmates
 | SKU | `360flatmates` |
 | Primary language | English |
 | Copyright | © 2026 YORD LLC. All rights reserved. |
-| Version | 1.0.3 (Build 7) |
+| Version | 1.0.6 (Build 14) |
 
 ## Play Console Details
 

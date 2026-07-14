@@ -16,7 +16,7 @@ Codebase statistics for 360 FlatMates as of June 2026.
 | **Total commits** | 74 |
 | **First commit** | 2026-04-24 |
 | **Latest commit** | 2026-06-19 |
-| **App version** | 1.0.4+10 |
+| **App version** | 1.0.6+14 |
 | **Flutter SDK** | 3.41.9 |
 | **Dart SDK** | ^3.9.0 |
 

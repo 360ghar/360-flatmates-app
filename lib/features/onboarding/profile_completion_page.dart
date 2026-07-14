@@ -89,89 +89,86 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     final isDobValid = _dob != null && _isAtLeast18(_dob!);
     final isValid = (!needsName || isNameValid) && (!needsDob || isDobValid);
 
-    return Scaffold(
-      appBar: FlatmatesHeader.backTitle(
-        title: locale.profileCompletionTitle,
-        onBack: () {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/discover');
-          }
-        },
-      ),
-      body: SafeArea(
-        minimum: AppSpacing.horizontalScreen,
-        child: ListView(
-          children: [
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              locale.profileCompletionSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppSemanticColors.textSecondaryFor(theme.brightness),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            if (needsName) ...[
-              TextField(
-                key: const Key('profile_completion_name'),
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: locale.fullNameLabel,
-                  prefixIcon: const Icon(Icons.person_outline),
-                ),
-                onChanged: (v) => setState(() => _name = v),
-              ),
+    // Mandatory gate — same pattern as SetPasswordPage: system back cannot
+    // dismiss, and there is no AppBar back that would loop via the hard
+    // profile_completion redirect.
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: FlatmatesHeader.titleOnly(title: locale.profileCompletionTitle),
+        body: SafeArea(
+          minimum: AppSpacing.horizontalScreen,
+          child: ListView(
+            children: [
               const SizedBox(height: AppSpacing.xl),
-            ],
-            if (needsDob) ...[
-              _DateOfBirthField(
-                selectedDate: _dob,
-                onTap: () => _pickDateOfBirth(context, locale),
+              Text(
+                locale.profileCompletionSubtitle,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            if (_hasError) ...[
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline_rounded,
-                    size: 18,
-                    color: AppSemanticColors.error,
+              const SizedBox(height: AppSpacing.xxl),
+              if (needsName) ...[
+                TextField(
+                  key: const Key('profile_completion_name'),
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: locale.fullNameLabel,
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      locale.profileCompletionError,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppSemanticColors.error,
+                  onChanged: (v) => setState(() => _name = v),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+              if (needsDob) ...[
+                _DateOfBirthField(
+                  selectedDate: _dob,
+                  onTap: () => _pickDateOfBirth(context, locale),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
+              if (_hasError) ...[
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      size: 18,
+                      color: AppSemanticColors.error,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        locale.profileCompletionError,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.error,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ],
+              const SizedBox(height: AppSpacing.xxl),
+              FlatmatesButton(
+                key: const Key('profile_completion_submit'),
+                label: _saving
+                    ? locale.profileCompletionSaving
+                    : locale.profileCompletionContinue,
+                fullWidth: true,
+                onPressed: (isValid && !_saving)
+                    ? () => _submit(
+                        context,
+                        locale,
+                        needsName: needsName,
+                        needsDob: needsDob,
+                      )
+                    : null,
+                icon: _saving ? null : Icons.arrow_forward_rounded,
               ),
+              const SizedBox(height: AppSpacing.xxl),
             ],
-            const SizedBox(height: AppSpacing.xxl),
-            FlatmatesButton(
-              key: const Key('profile_completion_submit'),
-              label: _saving
-                  ? locale.profileCompletionSaving
-                  : locale.profileCompletionContinue,
-              fullWidth: true,
-              onPressed: (isValid && !_saving)
-                  ? () => _submit(
-                      context,
-                      locale,
-                      needsName: needsName,
-                      needsDob: needsDob,
-                    )
-                  : null,
-              icon: _saving ? null : Icons.arrow_forward_rounded,
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-          ],
+          ),
         ),
       ),
     );
@@ -237,6 +234,22 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
       // Refresh bootstrap so auth-state re-evaluates and the router advances
       // past the profile_completion gate.
       await ref.read(bootstrapControllerProvider.notifier).refresh();
+      // refresh() uses AsyncValue.guard and does not throw on failure.
+      // Only leave when we are no longer hard-gated on profile_completion.
+      // For app_onboarding/active the router also exits; for
+      // identifier_verification (name just saved) we must navigate so the
+      // fallback redirect chain can place the user (router exit intentionally
+      // does not kick identifier_verification off this route).
+      if (!context.mounted) return;
+      final stage = ref.read(authControllerProvider).authStage;
+      if (stage == AuthStage.profileCompletion) {
+        // PUT returned OK but gate still incomplete — show error instead of
+        // a silent no-op.
+        setState(() => _hasError = true);
+        FlatmatesToast.error(context, locale.profileCompletionError);
+      } else {
+        context.go('/splash');
+      }
     } catch (e) {
       debugPrint('ProfileCompletionPage._submit error: $e');
       if (context.mounted) {

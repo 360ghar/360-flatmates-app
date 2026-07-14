@@ -162,6 +162,96 @@ void main() {
     );
   });
 
+  group('profileCompletionGateRedirect', () {
+    test('forces complete-profile when stage is profileCompletion', () {
+      expect(
+        profileCompletionGateRedirect(
+          authStage: AuthStage.profileCompletion,
+          isCompleteProfile: false,
+          isProfileEdit: false,
+        ),
+        '/complete-profile',
+      );
+    });
+
+    test('stays on complete-profile while stage is profileCompletion', () {
+      expect(
+        profileCompletionGateRedirect(
+          authStage: AuthStage.profileCompletion,
+          isCompleteProfile: true,
+          isProfileEdit: false,
+        ),
+        isNull,
+      );
+    });
+
+    test('allows profile edit while stage is profileCompletion', () {
+      expect(
+        profileCompletionGateRedirect(
+          authStage: AuthStage.profileCompletion,
+          isCompleteProfile: false,
+          isProfileEdit: true,
+        ),
+        isNull,
+      );
+    });
+
+    test(
+      'exits complete-profile via splash when stage advances to appOnboarding',
+      () {
+        expect(
+          profileCompletionGateRedirect(
+            authStage: AuthStage.appOnboarding,
+            isCompleteProfile: true,
+            isProfileEdit: false,
+          ),
+          '/splash',
+        );
+      },
+    );
+
+    test('exits complete-profile via splash when stage advances to active', () {
+      expect(
+        profileCompletionGateRedirect(
+          authStage: AuthStage.active,
+          isCompleteProfile: true,
+          isProfileEdit: false,
+        ),
+        '/splash',
+      );
+    });
+
+    test(
+      'does not exit complete-profile for identifierVerification fallback',
+      () {
+        // identifier_verification also uses /complete-profile when full_name
+        // is missing. A broad exit would loop complete-profile ↔ splash.
+        expect(
+          profileCompletionGateRedirect(
+            authStage: AuthStage.identifierVerification,
+            isCompleteProfile: true,
+            isProfileEdit: false,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'does not redirect unrelated routes when stage is not profileCompletion',
+      () {
+        expect(
+          profileCompletionGateRedirect(
+            authStage: AuthStage.active,
+            isCompleteProfile: false,
+            isProfileEdit: false,
+          ),
+          isNull,
+        );
+      },
+    );
+  });
+
   group('isOnboardingBlockedRoute', () {
     test('blocks conversations list', () {
       expect(isOnboardingBlockedRoute('/chats'), isTrue);

@@ -216,12 +216,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Enforced from the backend-computed auth stage. If mandatory profile
       // fields are missing, route to the dedicated profile-completion page
       // (a lightweight form collecting only the missing fields) instead of
-      // the full edit-profile page.
+      // the full edit-profile page. When the stage advances while the user
+      // is still on /complete-profile, exit via /splash so the redirect
+      // chain can continue (same pattern as set-password).
       final isProfileEdit = location == '/profile/edit';
-      if (auth.authStage == AuthStage.profileCompletion &&
-          !isCompleteProfile &&
-          !isProfileEdit) {
-        return '/complete-profile';
+      final profileCompletionRedirect = profileCompletionGateRedirect(
+        authStage: auth.authStage,
+        isCompleteProfile: isCompleteProfile,
+        isProfileEdit: isProfileEdit,
+      );
+      if (profileCompletionRedirect != null) {
+        return profileCompletionRedirect;
       }
 
       // ── APP_ONBOARDING soft gate ─────────────────────────────────────────
@@ -659,6 +664,38 @@ bool authenticatedAppReady({
   required bool hasCompletedOnboardingLocally,
 }) {
   return authStage == AuthStage.active || hasCompletedOnboardingLocally;
+}
+
+/// PROFILE_COMPLETION hard-gate redirect decision.
+///
+/// - Stage is [AuthStage.profileCompletion] and user is not on an allowed
+///   completion surface → force `/complete-profile`.
+/// - Stage has advanced **past** profile completion ([AuthStage.appOnboarding]
+///   or [AuthStage.active]) but the location is still `/complete-profile` →
+///   leave via `/splash` so the full redirect chain can place the user
+///   (mirrors set-password exit).
+/// - Must **not** exit for earlier stages such as
+///   [AuthStage.identifierVerification]: that fallback also uses
+///   `/complete-profile` for missing `full_name`, and a broad exit would
+///   bounce complete-profile ↔ splash forever.
+/// - Otherwise → no redirect from this gate (`null`).
+@visibleForTesting
+String? profileCompletionGateRedirect({
+  required AuthStage authStage,
+  required bool isCompleteProfile,
+  required bool isProfileEdit,
+}) {
+  if (authStage == AuthStage.profileCompletion) {
+    if (!isCompleteProfile && !isProfileEdit) {
+      return '/complete-profile';
+    }
+    return null;
+  }
+  if (isCompleteProfile &&
+      (authStage == AuthStage.appOnboarding || authStage == AuthStage.active)) {
+    return '/splash';
+  }
+  return null;
 }
 
 @visibleForTesting
