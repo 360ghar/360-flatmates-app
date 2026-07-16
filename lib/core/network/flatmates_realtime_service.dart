@@ -66,9 +66,7 @@ int nextRealtimeReconnectDelaySeconds({
   required int currentDelaySeconds,
   required bool isNetworkError,
 }) {
-  final floor = isNetworkError
-      ? kRealtimeNetworkErrorMinDelaySeconds
-      : 1;
+  final floor = isNetworkError ? kRealtimeNetworkErrorMinDelaySeconds : 1;
   final base = currentDelaySeconds < floor ? floor : currentDelaySeconds;
   return (base * 2).clamp(floor, kRealtimeMaxReconnectDelaySeconds);
 }
@@ -79,9 +77,7 @@ int realtimeReconnectWaitSeconds({
   required int currentDelaySeconds,
   required bool isNetworkError,
 }) {
-  final floor = isNetworkError
-      ? kRealtimeNetworkErrorMinDelaySeconds
-      : 1;
+  final floor = isNetworkError ? kRealtimeNetworkErrorMinDelaySeconds : 1;
   return currentDelaySeconds < floor ? floor : currentDelaySeconds;
 }
 
@@ -278,12 +274,8 @@ class FlatmatesRealtimeService {
         })
         .catchError((Object e) {
           _connecting = false;
-          _logThrottled(
-            'FlatmatesRealtimeService: token refresh failed: $e',
-          );
-          if (!_disposed &&
-              !_intentionalDisconnect &&
-              _networkAvailable) {
+          _logThrottled('FlatmatesRealtimeService: token refresh failed: $e');
+          if (!_disposed && !_intentionalDisconnect && _networkAvailable) {
             _scheduleReconnect(
               isNetworkError: isFlatmatesRealtimeNetworkError(e),
             );

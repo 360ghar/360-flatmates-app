@@ -13,9 +13,8 @@ void main() {
 
   group('ModeSelectionPage', () {
     testWidgets('renders exactly three mode options', (tester) async {
-      String? selectedMode;
       final widget = await testableWidgetAsync(
-        child: ModeSelectionPage(onModeSelected: (mode) => selectedMode = mode),
+        child: ModeSelectionPage(onModeSelected: (_) {}),
       );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
