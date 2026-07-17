@@ -292,30 +292,31 @@ class DiscoverListingCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.end,
-                              spacing: 4,
-                              runSpacing: 2,
-                              children: [
-                                Text(
-                                  _formatRent(item.monthlyRent.round()),
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: ink,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.25,
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: _formatRent(item.monthlyRent.round()),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: ink,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.25,
+                                        ),
                                   ),
-                                ),
-                                Text(
-                                  locale.perMonthSuffix,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: body,
+                                  const TextSpan(text: ' '),
+                                  TextSpan(
+                                    text: locale.perMonthSuffix,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: body,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             if (item.securityDeposit != null &&
                                 item.securityDeposit! > 0) ...[
-                              const SizedBox(height: 2),
+                              const SizedBox(height: AppSpacing.xxs),
                               Text(
                                 locale.moveInCostLabel(
                                   FlatmatesPriceText.formatRupee(moveInTotal),
@@ -323,8 +324,6 @@ class DiscoverListingCard extends StatelessWidget {
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: muted,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ],
