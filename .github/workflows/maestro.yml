@@ -57,6 +57,13 @@ jobs:
 
       - run: flutter pub get
 
+      # .env is gitignored; listed as optional dotenv asset for local dev.
+      - name: Stub optional .env asset
+        run: |
+          if [ ! -f .env ]; then
+            printf 'APP_ENV=ci\n' > .env
+          fi
+
       - name: Build debug APK
         run: flutter build apk --debug
 
