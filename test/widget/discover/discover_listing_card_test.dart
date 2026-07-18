@@ -9,6 +9,8 @@ PropertyListing _listing({
   int id = 1,
   bool compact = false,
   String? mainImageUrl,
+  double monthlyRent = 24000,
+  double? securityDeposit,
 }) => PropertyListing(
   id: id,
   ownerId: 100,
@@ -21,7 +23,7 @@ PropertyListing _listing({
   subLocality: '5th Block',
   latitude: 12.9352,
   longitude: 77.6245,
-  monthlyRent: 24000,
+  monthlyRent: monthlyRent,
   mainImageUrl: mainImageUrl,
   imageUrls: const [],
   areaSqft: 1200,
@@ -37,6 +39,7 @@ PropertyListing _listing({
   viewCount: 3800,
   likeCount: 24,
   isAvailable: true,
+  securityDeposit: securityDeposit,
 );
 
 void main() {
@@ -100,5 +103,50 @@ void main() {
       );
       expect(aspectRatio.aspectRatio, 1.0);
     });
+
+    testWidgets(
+      'feed card shows full rent and move-in without mid-price ellipsis at half width',
+      (tester) async {
+        // Home grid is 2 columns (~160–180px). Old Row+Flexible layout
+        // truncated rent mid-number (e.g. ₹68,7…). Assert full amount.
+        FlutterErrorDetails? overflowError;
+        final previousOnError = FlutterError.onError;
+        FlutterError.onError = (details) {
+          if (details.toString().contains('overflowed')) {
+            overflowError = details;
+          }
+          previousOnError?.call(details);
+        };
+        addTearDown(() => FlutterError.onError = previousOnError);
+
+        await tester.pumpWidget(
+          wrap(
+            SizedBox(
+              width: 160,
+              child: DiscoverListingCard(
+                item: _listing(monthlyRent: 68700, securityDeposit: 100000),
+                onLike: () {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Rent uses Text.rich; findRichText required. Move-in is plain Text.
+        expect(
+          find.textContaining('₹68,700', findRichText: true),
+          findsWidgets,
+        );
+        expect(
+          find.textContaining('/month', findRichText: true),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Move-in'), findsOneWidget);
+        expect(find.textContaining('1,68,700'), findsOneWidget);
+        // Ellipsis character must not appear on the price block.
+        expect(find.textContaining('\u2026', findRichText: true), findsNothing);
+        expect(overflowError, isNull);
+      },
+    );
   });
 }
