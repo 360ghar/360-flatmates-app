@@ -36,6 +36,7 @@ import '../../features/listings/create_listing_page.dart';
 import '../../features/listings/listing_under_review_page.dart';
 import '../../features/listings/manage_listing_page.dart' as listings;
 import '../../features/listings/post_hub_page.dart';
+import '../../features/discover/domain/property_listing.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/onboarding/onboarding_controller.dart';
 import '../../features/onboarding/onboarding_page.dart';
@@ -168,15 +169,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/splash';
       }
 
-      if (bootstrap.isLoading) {
+      // Only cold-start (or hard failure with no cached bootstrap) should
+      // trap on splash. Soft reloads use AsyncLoading/Error.copyWithPrevious —
+      // [valueOrNull] stays non-null so post-create, pull-to-refresh, and
+      // auth-stage sync never restart the whole app from splash.
+      if (shouldForceSplashForBootstrap(bootstrap)) {
         return isSplash ? null : '/splash';
       }
-
-      if (bootstrap.hasError || bootstrap.valueOrNull == null) {
-        return isSplash ? null : '/splash';
-      }
-
       final bootstrapData = bootstrap.valueOrNull!;
+
       final profile = bootstrapData.profile;
       final completedOverrideUserId = ref
           .read(appPreferencesProvider)
@@ -340,7 +341,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             final locale = AppLocalizations.of(context);
             return Scaffold(body: Center(child: Text(locale.invalidListingId)));
           }
-          return FlatDetailsPage(listingId: id);
+          final seededListing = state.extra is PropertyListing
+              ? state.extra as PropertyListing
+              : null;
+          return FlatDetailsPage(listingId: id, seededListing: seededListing);
         },
       ),
       GoRoute(
@@ -537,7 +541,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             final locale = AppLocalizations.of(context);
             return Scaffold(body: Center(child: Text(locale.invalidListingId)));
           }
-          return ListingUnderReviewPage(listingId: id);
+          final seededListing = state.extra is PropertyListing
+              ? state.extra as PropertyListing
+              : null;
+          return ListingUnderReviewPage(
+            listingId: id,
+            seededListing: seededListing,
+          );
         },
       ),
       GoRoute(
@@ -664,6 +674,16 @@ bool authenticatedAppReady({
   required bool hasCompletedOnboardingLocally,
 }) {
   return authStage == AuthStage.active || hasCompletedOnboardingLocally;
+}
+
+/// Whether the redirect chain should force `/splash` for bootstrap state.
+///
+/// Returns true only when there is **no usable cached bootstrap**. Soft
+/// reloads (`isLoading`/`hasError` with a previous value) must return false
+/// so feature routes (e.g. listing-review after create) are not restarted.
+@visibleForTesting
+bool shouldForceSplashForBootstrap(AsyncValue<Object?> bootstrap) {
+  return bootstrap.valueOrNull == null;
 }
 
 /// PROFILE_COMPLETION hard-gate redirect decision.

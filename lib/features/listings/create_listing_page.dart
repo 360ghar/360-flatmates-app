@@ -296,6 +296,9 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
                           data: _formData,
                           catalog: _catalog,
                           catalogLabel: _catalogLabel,
+                          showSocietyValidation: validation.society,
+                          showCityValidation: validation.city,
+                          showLocalityValidation: validation.locality,
                           showRentValidation: validation.rent,
                           showDepositValidation: validation.deposit,
                           showMaintenanceValidation: validation.maintenance,
@@ -336,7 +339,6 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
               : (step < totalSteps - 1
                     ? (canAdvance
                           ? () {
-                              _showInlineValidation(step);
                               ref
                                       .read(_createListingStepProvider.notifier)
                                       .state =

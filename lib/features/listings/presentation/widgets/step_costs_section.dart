@@ -130,32 +130,30 @@ class StepCostsSection extends StatelessWidget {
                   onChanged: (_) => onChanged(),
                 ),
               ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      locale.electricityLabel,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 6),
-                    SegmentedButton<String>(
-                      segments: [
-                        ButtonSegment(
-                          value: 'included',
-                          label: Text(locale.includedLabel),
-                        ),
-                        ButtonSegment(
-                          value: 'separate',
-                          label: Text(locale.separateLabel),
-                        ),
-                      ],
-                      selected: {electricityIncluded},
-                      onSelectionChanged: (v) => onElectricityChanged(v.first),
-                    ),
-                  ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                locale.electricityLabel,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              FlatmatesSegmentedControl<String>(
+                segments: [
+                  ('included', locale.includedLabel, Icons.bolt_rounded),
+                  (
+                    'separate',
+                    locale.separateLabel,
+                    Icons.receipt_long_rounded,
+                  ),
+                ],
+                selected: electricityIncluded,
+                onChanged: onElectricityChanged,
               ),
             ],
           ),
@@ -231,38 +229,31 @@ class StepCostsSection extends StatelessWidget {
                 borderRadius: AppRadius.mdBorder,
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        locale.totalMonthlyOutflow(
-                          '₹${totalMonthlyOutflow.toStringAsFixed(0)}',
-                        ),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: AppSemanticColors.accent,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                  Text(
+                    locale.totalMonthlyOutflow(
+                      '₹${totalMonthlyOutflow.toStringAsFixed(0)}',
+                    ),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: AppSemanticColors.accent,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   if (totalFlatmates > 1) ...[
                     const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${locale.perPersonCostLabel} ₹${(totalMonthlyOutflow / totalFlatmates).toStringAsFixed(0)}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppSemanticColors.accent.withValues(
-                              alpha: 0.8,
-                            ),
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                    Text(
+                      '${locale.perPersonCostLabel} ₹${(totalMonthlyOutflow / totalFlatmates).toStringAsFixed(0)}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppSemanticColors.accent.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ],
                 ],

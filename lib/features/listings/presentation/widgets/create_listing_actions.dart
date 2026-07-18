@@ -78,6 +78,7 @@ Future<void> submitListingForm({
   if (!formData.canPublish) {
     if (!formData.canProceed(0)) {
       setStep(0);
+      setValidation(computeStepValidation(formData, 0));
     } else if (!formData.canProceed(3)) {
       setStep(3);
       setValidation(computeStepValidation(formData, 3));
@@ -91,7 +92,7 @@ Future<void> submitListingForm({
 
   setSubmitting(true);
   try {
-    final listingId = await ref
+    final result = await ref
         .read(createListingControllerProvider)
         .submit(request: formData.toRequest(), editingId: editingId);
     if (!context.mounted || !isMounted()) return;
@@ -102,8 +103,8 @@ Future<void> submitListingForm({
           ? locale.listingUpdatedToast
           : locale.postListingSuccess,
     );
-    if (listingId != null) {
-      context.go('/listing-review/$listingId');
+    if (result.id != null) {
+      context.go('/listing-review/${result.id}', extra: result.listing);
     } else {
       context.go('/discover');
     }

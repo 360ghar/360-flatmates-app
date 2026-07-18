@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/l10n_bridge.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -204,24 +205,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     loading: () => const _SplashProgress(),
                     error: (error, _) {
                       final message = error is AppFailure
-                          ? error.userMessage(
-                              UserMessageL10n(
-                                errorNetwork: locale.errorNetwork,
-                                errorAuthExpired: locale.errorAuthExpired,
-                                errorAuth: locale.errorAuth,
-                                errorServer: locale.errorServer,
-                                errorPermission: locale.errorPermission,
-                                errorNotFound: locale.errorNotFound,
-                                errorValidation: locale.errorValidation,
-                                errorRateLimit: locale.errorRateLimit,
-                                errorConflict: locale.errorConflict,
-                                errorUpload: locale.errorUpload,
-                                errorOtpInvalid: locale.errorOtpInvalid,
-                                errorAuthSessionMissing:
-                                    locale.errorAuthSessionMissing,
-                                errorUnknown: locale.errorUnknown,
-                              ),
-                            )
+                          ? error.userMessage(locale.toUserMessageL10n())
                           : locale.errorUnknown;
                       return _SplashRetry(
                         message: message,

@@ -39,9 +39,20 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
     }
     // Retain the previous value while reloading so widgets watching
     // `valueOrNull` (e.g. the Discover page's profile/city) don't flicker to
-    // null mid-refresh. `isLoading` stays true for any spinner that needs it.
-    state = const AsyncLoading<BootstrapData?>().copyWithPrevious(state);
-    state = await AsyncValue.guard(() => _fetchBootstrapData());
+    // null mid-refresh — and so the router does not bounce to /splash.
+    final previous = state;
+    state = const AsyncLoading<BootstrapData?>().copyWithPrevious(previous);
+    final next = await AsyncValue.guard(() => _fetchBootstrapData());
+    if (next.hasError && previous.valueOrNull != null) {
+      // Soft-refresh failure: keep last good bootstrap so the user stays in
+      // the app (post-create, pull-to-refresh, etc.).
+      state = AsyncError<BootstrapData?>(
+        next.error!,
+        next.stackTrace ?? StackTrace.current,
+      ).copyWithPrevious(previous);
+      return;
+    }
+    state = next;
   }
 
   Future<BootstrapData?> _fetchBootstrapData() async {

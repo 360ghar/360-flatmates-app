@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,7 +38,9 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(myListingsListControllerProvider.notifier).load();
+      // Always refresh from network+cache on open so a listing created seconds
+      // earlier is not stuck behind a stale empty controller snapshot.
+      unawaited(ref.read(myListingsListControllerProvider.notifier).refresh());
     });
   }
 
@@ -256,8 +260,14 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
                               ),
                               onViewStats: () =>
                                   _showStatsBottomSheet(context, listing),
-                              onReview: () =>
-                                  context.push('/listing-review/${listing.id}'),
+                              onReview: () {
+                                // Pass the listing as seed so under-review
+                                // doesn't depend on GET for pending posts.
+                                context.push(
+                                  '/listing-review/${listing.id}',
+                                  extra: listing,
+                                );
+                              },
                               onRenew: () => context.push(
                                 '/post/new?listingId=${listing.id}',
                               ),

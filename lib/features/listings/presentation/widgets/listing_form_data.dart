@@ -6,6 +6,9 @@ import '../../listings_repository.dart';
 
 /// Inline validation flags surfaced on the current step.
 typedef ListingStepValidation = ({
+  bool society,
+  bool city,
+  bool locality,
   bool rent,
   bool deposit,
   bool maintenance,
@@ -15,6 +18,9 @@ typedef ListingStepValidation = ({
 });
 
 const ListingStepValidation kNoListingValidation = (
+  society: false,
+  city: false,
+  locality: false,
   rent: false,
   deposit: false,
   maintenance: false,
@@ -28,12 +34,28 @@ const ListingStepValidation kNoListingValidation = (
 /// missing. Pure so it is unit-testable and keeps the page widget small.
 ListingStepValidation computeStepValidation(ListingFormData data, int step) {
   bool invalidNumber(String v) => v.isNotEmpty && double.tryParse(v) == null;
+  if (step == 0) {
+    return (
+      society: data.society.isEmpty,
+      city: data.city.isEmpty,
+      locality: data.locality.isEmpty,
+      rent: false,
+      deposit: false,
+      maintenance: false,
+      cost: false,
+      electricity: false,
+      photos: false,
+    );
+  }
   if (step == 3) {
     return (kNoListingValidation).copyWithPhotos(data.roomPhotoUrls.length < 2);
   }
   if (step != 5) return kNoListingValidation;
   final estText = data.electricityEstController.text.trim();
   return (
+    society: false,
+    city: false,
+    locality: false,
     rent: data.rent.isEmpty || double.tryParse(data.rent) == null,
     deposit: invalidNumber(data.deposit),
     maintenance: invalidNumber(data.maintenance),
@@ -49,6 +71,9 @@ ListingStepValidation computeStepValidation(ListingFormData data, int step) {
 
 extension on ListingStepValidation {
   ListingStepValidation copyWithPhotos(bool value) => (
+    society: society,
+    city: city,
+    locality: locality,
     rent: rent,
     deposit: deposit,
     maintenance: maintenance,

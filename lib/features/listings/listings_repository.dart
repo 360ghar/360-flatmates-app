@@ -1,10 +1,15 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
+import '../bootstrap/bootstrap_controller.dart';
 import '../discover/data/property_listing_dto.dart';
 import '../discover/discover_repository.dart';
+import '../discover/domain/property_listing.dart';
 
 class ListingCreateRequest {
   const ListingCreateRequest({
@@ -168,21 +173,21 @@ class ListingsRepository {
 
   final Ref _ref;
 
-  Future<int?> createListing(ListingCreateRequest request) async {
+  /// Disk key always written so cold start works even before bootstrap resolves.
+  static const _latestCacheKey = 'my_listings_cache_latest_v1';
+
+  Future<({int? id, PropertyListing? listing})> createListing(
+    ListingCreateRequest request,
+  ) async {
     final response = await _ref
         .watch(apiClientProvider)
         .post(FlatmatesEndpoints.properties, data: request.toJson());
-    final rawData = response.data;
-    final data = Map<String, dynamic>.from(rawData is Map ? rawData : const {});
-    return (data['id'] as num?)?.toInt();
+    return _parseListingMutationResponse(response.data, fallbackId: null);
   }
 
   /// Updates an existing listing in place (PUT) so editing never creates a
-  /// duplicate. Returns the listing id on success.
-  ///
-  /// The PUT body keeps editable `listing_preferences` and strips null fields
-  /// so the edit only touches values the form owns.
-  Future<int?> updateListing(
+  /// duplicate. Returns the listing id and parsed body when available.
+  Future<({int? id, PropertyListing? listing})> updateListing(
     int listingId,
     ListingCreateRequest request,
   ) async {
@@ -191,58 +196,284 @@ class ListingsRepository {
     final response = await _ref
         .watch(apiClientProvider)
         .put(FlatmatesEndpoints.property(listingId), data: body);
-    final rawData = response.data;
-    final data = Map<String, dynamic>.from(rawData is Map ? rawData : const {});
-    return (data['id'] as num?)?.toInt() ?? listingId;
+    return _parseListingMutationResponse(response.data, fallbackId: listingId);
+  }
+
+  /// Confirms a created listing via GET /properties/{id} (owner can read
+  /// pending_review). Falls back to [fallback] if GET fails.
+  Future<PropertyListing> confirmListing(
+    int listingId, {
+    PropertyListing? fallback,
+  }) async {
+    try {
+      final response = await _ref
+          .watch(apiClientProvider)
+          .get(FlatmatesEndpoints.property(listingId));
+      final data = _asResponseMap(response.data);
+      if (data.isEmpty) {
+        if (fallback != null) return fallback;
+        throw StateError('Empty property payload for $listingId');
+      }
+      final payload = Map<String, dynamic>.from(data)..['id'] = listingId;
+      return PropertyListingDto.fromJson(payload);
+    } catch (e) {
+      debugPrint('ListingsRepository.confirmListing($listingId): $e');
+      if (fallback != null) return fallback;
+      rethrow;
+    }
+  }
+
+  ({int? id, PropertyListing? listing}) _parseListingMutationResponse(
+    dynamic rawData, {
+    required int? fallbackId,
+  }) {
+    final data = _asResponseMap(rawData);
+    final id = _parseId(data['id']) ?? fallbackId;
+    PropertyListing? listing;
+    if (id != null && data.isNotEmpty) {
+      try {
+        final payload = Map<String, dynamic>.from(data);
+        payload['id'] = id;
+        listing = PropertyListingDto.fromJson(payload);
+      } catch (e) {
+        debugPrint(
+          'ListingsRepository._parseListingMutationResponse: could not parse listing: $e',
+        );
+      }
+    }
+    return (id: id, listing: listing);
+  }
+
+  Map<String, dynamic> _asResponseMap(dynamic rawData) {
+    if (rawData is! Map) return const {};
+    final root = Map<String, dynamic>.from(rawData);
+    final nested = root['data'];
+    if (nested is Map && root['id'] == null) {
+      return Map<String, dynamic>.from(nested);
+    }
+    return root;
+  }
+
+  int? _parseId(dynamic raw) {
+    if (raw is num) return raw.toInt();
+    if (raw is String) return int.tryParse(raw.trim());
+    return null;
   }
 
   /// Fetches a single page of the user's listings using cursor pagination.
   ///
-  /// The backend wraps all list endpoints in
-  /// `{ items, next_cursor, has_more, limit }`.
+  /// First page is **merged** with the durable owner cache so:
+  /// - just-created pending listings never disappear if the server page lags
+  /// - cold start still shows recently created rows when bootstrap is slow
   Future<({List<PropertyListing> items, String? nextCursor, bool hasMore})>
   fetchMyListingsPage({String? cursor, int limit = 20}) async {
     final queryParameters = <String, dynamic>{'limit': limit};
     if (cursor != null && cursor.isNotEmpty) {
       queryParameters['cursor'] = cursor;
     }
-    final response = await _ref
-        .watch(apiClientProvider)
-        .get(FlatmatesEndpoints.myProperties, queryParameters: queryParameters);
-    final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
-    final page = parsePagedEnvelope(
-      data,
-      PropertyListingDto.fromJson,
-      label: 'myListings',
-    );
-    final filtered = page.items
-        .where((listing) {
-          final type = listing.propertyType;
-          return type == null || type == 'flatmate' || type == 'pg';
-        })
-        .toList(growable: false);
-    return (
-      items: filtered,
-      nextCursor: page.nextCursor,
-      hasMore: page.hasMore,
-    );
+
+    try {
+      final response = await _ref
+          .watch(apiClientProvider)
+          .get(
+            FlatmatesEndpoints.myProperties,
+            queryParameters: queryParameters,
+          );
+      final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
+      final page = parsePagedEnvelope(
+        data,
+        PropertyListingDto.fromJson,
+        label: 'myListings',
+      );
+
+      final isFirstPage = cursor == null || cursor.isEmpty;
+      if (!isFirstPage) {
+        return (
+          items: page.items,
+          nextCursor: page.nextCursor,
+          hasMore: page.hasMore,
+        );
+      }
+
+      final cached = _readListingsCache();
+      final merged = _mergeServerAndCache(page.items, cached);
+      // Always persist the merge so create-time rows survive restarts even if
+      // this page temporarily omitted them.
+      await _writeListingsCache(merged);
+
+      debugPrint(
+        'ListingsRepository.fetchMyListingsPage: server=${page.items.length} '
+        'cache=${cached.length} merged=${merged.length}',
+      );
+
+      return (
+        items: merged,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      );
+    } catch (e, st) {
+      debugPrint('ListingsRepository.fetchMyListingsPage network failed: $e');
+      // Offline / 5xx: still surface durable cache so Manage is not empty.
+      if (cursor == null || cursor.isEmpty) {
+        final cached = _readListingsCache();
+        if (cached.isNotEmpty) {
+          debugPrint(
+            'ListingsRepository.fetchMyListingsPage: network error, '
+            'serving ${cached.length} cached listing(s)',
+          );
+          return (items: cached, nextCursor: null, hasMore: false);
+        }
+      }
+      Error.throwWithStackTrace(e, st);
+    }
   }
 
   /// Backwards-compatible helper aggregating all pages into a single list.
   Future<List<PropertyListing>> fetchMyListings({int limit = 20}) async {
     final allItems = <PropertyListing>[];
     String? cursor;
+    var pageIndex = 0;
     while (true) {
       final page = await fetchMyListingsPage(cursor: cursor, limit: limit);
-      allItems.addAll(page.items);
+      if (pageIndex == 0) {
+        // First page already merged with cache.
+        allItems.addAll(page.items);
+      } else {
+        // Later pages: append only new ids.
+        for (final item in page.items) {
+          if (!allItems.any((existing) => existing.id == item.id)) {
+            allItems.add(item);
+          }
+        }
+      }
       if (!page.hasMore ||
           page.nextCursor == null ||
           page.nextCursor!.isEmpty) {
         break;
       }
       cursor = page.nextCursor;
+      pageIndex++;
+    }
+    if (allItems.isNotEmpty) {
+      await _writeListingsCache(allItems);
     }
     return allItems;
+  }
+
+  /// Upserts a listing into the durable owner cache (used right after create).
+  ///
+  /// **Must be awaited** before list refresh so a concurrent empty server page
+  /// cannot race past an unfinished write.
+  Future<void> cacheOwnerListing(PropertyListing listing) async {
+    if (listing.id <= 0) return;
+    final existing = _readListingsCache();
+    final next = _mergeServerAndCache([listing], existing);
+    await _writeListingsCache(next);
+    debugPrint(
+      'ListingsRepository.cacheOwnerListing: cached id=${listing.id} '
+      'total=${next.length}',
+    );
+  }
+
+  /// Server rows win on id collision. Cache-only rows are kept only while they
+  /// are still under review / rejected — that is the create lag window. Other
+  /// cache-only rows are dropped so deleted listings cannot resurrect forever.
+  List<PropertyListing> _mergeServerAndCache(
+    List<PropertyListing> server,
+    List<PropertyListing> cache,
+  ) {
+    final serverIds = <int>{
+      for (final item in server)
+        if (item.id > 0) item.id,
+    };
+    final extras = <PropertyListing>[
+      for (final item in cache)
+        if (item.id > 0 &&
+            !serverIds.contains(item.id) &&
+            (item.isUnderReview || item.isRejected))
+          item,
+    ]..sort((a, b) => b.id.compareTo(a.id));
+    // Pending creates first, then server order (API is newest-first).
+    return [...extras, ...server];
+  }
+
+  /// Clears durable owner-listing cache (call on sign-out / account switch).
+  Future<void> clearOwnerListingsCache() async {
+    try {
+      final prefs = _ref.read(appPreferencesProvider);
+      // Wipe latest + any user-scoped keys still known from bootstrap.
+      for (final key in _cacheKeys()) {
+        await prefs.remove(key);
+      }
+      // Bootstrap may already be gone at sign-out; still wipe the latest key.
+      await prefs.remove(_latestCacheKey);
+    } catch (e) {
+      debugPrint('ListingsRepository.clearOwnerListingsCache: $e');
+    }
+  }
+
+  int? get _cacheUserId {
+    try {
+      final id = _ref.read(bootstrapControllerProvider).valueOrNull?.profile.id;
+      if (id == null || id <= 0) return null;
+      return id;
+    } catch (e) {
+      debugPrint('ListingsRepository._cacheUserId: $e');
+      return null;
+    }
+  }
+
+  List<String> _cacheKeys() {
+    final keys = <String>[_latestCacheKey];
+    final userId = _cacheUserId;
+    if (userId != null) {
+      keys.add('my_listings_cache_v1_$userId');
+    }
+    return keys;
+  }
+
+  List<PropertyListing> _readListingsCache() {
+    try {
+      final prefs = _ref.read(appPreferencesProvider);
+      // Prefer user-scoped key, then latest (covers cold start before bootstrap).
+      final userId = _cacheUserId;
+      final orderedKeys = <String>[
+        if (userId != null && userId > 0) 'my_listings_cache_v1_$userId',
+        _latestCacheKey,
+      ];
+      for (final key in orderedKeys) {
+        final raw = prefs.getString(key);
+        if (raw == null || raw.isEmpty) continue;
+        try {
+          final decoded = jsonDecode(raw);
+          if (decoded is! List) continue;
+          final items = PropertyListingDto.fromJsonList(decoded);
+          if (items.isNotEmpty) return items;
+        } catch (e) {
+          debugPrint('ListingsRepository._readListingsCache($key): $e');
+        }
+      }
+    } catch (e) {
+      // Tests / early bootstrap without AppPreferences override.
+      debugPrint('ListingsRepository._readListingsCache unavailable: $e');
+    }
+    return const [];
+  }
+
+  Future<void> _writeListingsCache(List<PropertyListing> listings) async {
+    try {
+      final prefs = _ref.read(appPreferencesProvider);
+      final payload = listings
+          .where((item) => item.id > 0)
+          .map(PropertyListingDto.toCacheJson)
+          .toList(growable: false);
+      final encoded = jsonEncode(payload);
+      for (final key in _cacheKeys()) {
+        await prefs.setString(key, encoded);
+      }
+    } catch (e) {
+      debugPrint('ListingsRepository._writeListingsCache: $e');
+    }
   }
 
   Future<void> togglePause(int listingId, {required bool paused}) async {

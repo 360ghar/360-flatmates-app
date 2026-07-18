@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flatmates_app/core/theme/theme.dart';
 
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../discover/application/property_listing_seed_store.dart';
 import '../../../discover/domain/property_listing.dart';
 import '../../../shared/presentation/components.dart';
 
 /// Body content for [ListingUnderReviewPage], branched by live / rejected /
 /// under-review status.
-class ListingReviewBody extends StatelessWidget {
+class ListingReviewBody extends ConsumerWidget {
   const ListingReviewBody({
     required this.listing,
     required this.listingId,
@@ -25,8 +27,15 @@ class ListingReviewBody extends StatelessWidget {
     return trimmed.isEmpty ? null : trimmed;
   }
 
+  void _openListing(BuildContext context, WidgetRef ref) {
+    // Keep seed durable before push so GoRouter rebuilds / lost `extra` still
+    // render the under-review preview instead of a 404 error screen.
+    ref.read(propertyListingSeedStoreProvider.notifier).put(listing);
+    context.push('/flat-details/$listingId', extra: listing);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isLive = listing.isLive;
@@ -119,7 +128,7 @@ class ListingReviewBody extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xl),
                 FlatmatesButton.secondary(
                   label: isLive ? locale.viewListing : locale.reviewListingCta,
-                  onPressed: () => context.push('/flat-details/$listingId'),
+                  onPressed: () => _openListing(context, ref),
                   icon: Icons.visibility_outlined,
                   fullWidth: true,
                 ),
@@ -159,6 +168,7 @@ class ListingReviewBody extends StatelessWidget {
                 listingId: listingId,
                 isLive: isLive,
                 isRejected: isRejected,
+                onOpenListing: () => _openListing(context, ref),
               ),
             ],
           ),
@@ -486,11 +496,13 @@ class _ReviewCtas extends StatelessWidget {
     required this.listingId,
     required this.isLive,
     required this.isRejected,
+    required this.onOpenListing,
   });
 
   final int listingId;
   final bool isLive;
   final bool isRejected;
+  final VoidCallback onOpenListing;
 
   @override
   Widget build(BuildContext context) {
@@ -507,7 +519,7 @@ class _ReviewCtas extends StatelessWidget {
         children: [
           FlatmatesButton(
             label: locale.viewListing,
-            onPressed: () => context.push('/flat-details/$listingId'),
+            onPressed: onOpenListing,
             icon: Icons.visibility_outlined,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -529,7 +541,7 @@ class _ReviewCtas extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         FlatmatesButton.secondary(
           label: locale.viewListing,
-          onPressed: () => context.push('/flat-details/$listingId'),
+          onPressed: onOpenListing,
           fullWidth: true,
         ),
       ],

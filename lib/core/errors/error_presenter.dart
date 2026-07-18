@@ -32,13 +32,11 @@ final class ErrorPresenter {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
       DioExceptionType.receiveTimeout => NetworkFailure(
+        kind: NetworkFailureKind.timeout,
         underlyingError: e,
         stackTrace: st,
       ),
-      DioExceptionType.connectionError => NetworkFailure(
-        underlyingError: e,
-        stackTrace: st,
-      ),
+      DioExceptionType.connectionError => _fromConnectionError(e, st),
       DioExceptionType.badResponse => _fromStatusCode(
         e.response?.statusCode,
         e,
@@ -48,7 +46,9 @@ final class ErrorPresenter {
         underlyingError: e,
         stackTrace: st,
       ),
+      // Certificate/TLS problems are not "no internet" — device is online.
       DioExceptionType.badCertificate => NetworkFailure(
+        kind: NetworkFailureKind.unreachable,
         underlyingError: e,
         stackTrace: st,
       ),
@@ -218,19 +218,68 @@ final class ErrorPresenter {
     return 'detail_$fallbackIndex';
   }
 
+  static AppFailure _fromConnectionError(DioException e, StackTrace? st) {
+    final message = _combinedMessage(e);
+    final kind = _classifyTransportMessage(message);
+    return NetworkFailure(kind: kind, underlyingError: e, stackTrace: st);
+  }
+
   static AppFailure _fromUnknown(DioException e, StackTrace? st) {
     final error = e.error;
     if (error is SocketException ||
         error is HandshakeException ||
         error is HttpException) {
-      return NetworkFailure(underlyingError: e, stackTrace: st);
+      final message = _combinedMessage(e);
+      return NetworkFailure(
+        kind: _classifyTransportMessage(message),
+        underlyingError: e,
+        stackTrace: st,
+      );
     }
 
-    final message = '${e.message ?? ''} ${error ?? ''}'.toLowerCase();
+    final message = _combinedMessage(e);
     if (_looksLikeNetworkFailure(message)) {
-      return NetworkFailure(underlyingError: e, stackTrace: st);
+      return NetworkFailure(
+        kind: _classifyTransportMessage(message),
+        underlyingError: e,
+        stackTrace: st,
+      );
     }
     return UnknownFailure(underlyingError: e, stackTrace: st);
+  }
+
+  static String _combinedMessage(DioException e) =>
+      '${e.message ?? ''} ${e.error ?? ''}'.toLowerCase();
+
+  /// Prefer precise copy over always saying "no internet".
+  ///
+  /// Timeouts and "host unreachable / connection refused" commonly happen with
+  /// Wi‑Fi still up (slow API, bad base URL, server restart). Only mark true
+  /// offline when the OS reports the link as unreachable.
+  static NetworkFailureKind _classifyTransportMessage(String message) {
+    if (_looksLikeTimeout(message)) {
+      return NetworkFailureKind.timeout;
+    }
+    if (_looksLikeOffline(message)) {
+      return NetworkFailureKind.offline;
+    }
+    // Default for connectionError / DNS / refused / TLS: not "no internet".
+    return NetworkFailureKind.unreachable;
+  }
+
+  static bool _looksLikeTimeout(String message) {
+    return message.contains('timed out') ||
+        message.contains('timeout') ||
+        message.contains('timeoutexception');
+  }
+
+  static bool _looksLikeOffline(String message) {
+    return message.contains('network is unreachable') ||
+        message.contains('no address associated with hostname') ||
+        message.contains('nodename nor servname provided') ||
+        message.contains('offline') ||
+        // Android often surfaces airplane mode this way.
+        message.contains('software caused connection abort');
   }
 
   static bool _looksLikeNetworkFailure(String message) {
@@ -249,6 +298,7 @@ final class ErrorPresenter {
       'app transport security',
       'operation timed out',
       'timed out',
+      'timeout',
       'certificate',
       'tls',
       'ssl',

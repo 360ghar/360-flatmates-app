@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +11,9 @@ import '../../l10n/gen/app_localizations.dart';
 ///
 /// Seeds the **initial** connectivity state (not only change events), then
 /// continues to emit on [Connectivity.onConnectivityChanged].
+///
+/// Offline transitions are debounced (~1.5s) so brief VPN/Wi‑Fi flaps on
+/// Android/Windows do not flash the offline banner or pause realtime.
 final connectivityProvider = StreamProvider<bool>((ref) async* {
   final connectivity = Connectivity();
 
@@ -17,14 +22,43 @@ final connectivityProvider = StreamProvider<bool>((ref) async* {
 
   // Initial snapshot so cold start / offline-at-launch is not treated as online
   // by default (`valueOrNull ?? true`).
+  var current = true;
   try {
-    yield isOnline(await connectivity.checkConnectivity());
-  } catch (_) {
+    current = isOnline(await connectivity.checkConnectivity());
+  } catch (e) {
     // Plugin unavailable (tests / desktop) — assume online.
-    yield true;
+    debugPrint('connectivityProvider.initial: $e');
+    current = true;
   }
+  yield current;
 
-  yield* connectivity.onConnectivityChanged.map(isOnline);
+  await for (final results in connectivity.onConnectivityChanged) {
+    final online = isOnline(results);
+    if (online) {
+      // Coming back online: publish immediately.
+      if (!current) {
+        current = true;
+        yield true;
+      }
+      continue;
+    }
+
+    // Going offline: re-check after a short debounce to ignore blips.
+    if (!current) continue;
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    List<ConnectivityResult> recheck;
+    try {
+      recheck = await connectivity.checkConnectivity();
+    } catch (e) {
+      // If the plugin fails mid-flight, keep previous "online" state.
+      debugPrint('connectivityProvider.recheck: $e');
+      continue;
+    }
+    if (!isOnline(recheck)) {
+      current = false;
+      yield false;
+    }
+  }
 });
 
 class OfflineBanner extends ConsumerWidget {

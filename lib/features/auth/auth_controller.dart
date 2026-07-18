@@ -11,6 +11,8 @@ import '../../core/notifications/notification_service.dart';
 import '../../core/providers.dart';
 import '../../core/providers/mutable_notifier.dart';
 import '../../core/storage/app_preferences.dart';
+import '../discover/application/property_listing_seed_store.dart';
+import '../listings/listings_repository.dart';
 import 'data/auth_repository.dart';
 import 'domain/auth_state.dart';
 import 'last_auth_method.dart';
@@ -705,6 +707,13 @@ class AuthController extends Notifier<AuthState> {
         'AuthController.signOut: clear pendingPasswordSetup failed: $e',
       );
     }
+    // Drop owner listing seeds/cache so a later account never reuses them.
+    ref.read(propertyListingSeedStoreProvider.notifier).clear();
+    try {
+      await ref.read(listingsRepositoryProvider).clearOwnerListingsCache();
+    } catch (e) {
+      debugPrint('AuthController.signOut: clearOwnerListingsCache failed: $e');
+    }
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
@@ -721,6 +730,14 @@ class AuthController extends Notifier<AuthState> {
       } catch (e) {
         debugPrint(
           'AuthController.deleteAccount: clear pendingPasswordSetup failed: $e',
+        );
+      }
+      ref.read(propertyListingSeedStoreProvider.notifier).clear();
+      try {
+        await ref.read(listingsRepositoryProvider).clearOwnerListingsCache();
+      } catch (e) {
+        debugPrint(
+          'AuthController.deleteAccount: clearOwnerListingsCache failed: $e',
         );
       }
       state = const AuthState(status: AuthStatus.unauthenticated);
