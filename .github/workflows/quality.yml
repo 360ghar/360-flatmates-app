@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # `.env` is gitignored but listed as an optional asset for local dotenv.
+      # Create an empty placeholder so `flutter analyze` does not fail CI with
+      # asset_does_not_exist (secrets stay out of the repo / CI artifacts).
+      - name: Create placeholder .env for asset analysis
+        run: touch .env
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
