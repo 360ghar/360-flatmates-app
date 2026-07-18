@@ -284,41 +284,45 @@ class DiscoverListingCard extends StatelessWidget {
                           FlatmatesListingMetaChips(items: metaItems),
                         ],
                         const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                        // Price block: rent + /month on the first line, with
+                        // /month flowing to a new line if the card is narrow.
+                        // Move-in cost goes on its own line below. The full
+                        // price string must always render — never ellipsized.
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Flexible(
-                              child: Text(
-                                _formatRent(item.monthlyRent.round()),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: ink,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.25,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              locale.perMonthSuffix,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: body,
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: _formatRent(item.monthlyRent.round()),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: ink,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.25,
+                                        ),
+                                  ),
+                                  const TextSpan(text: ' '),
+                                  TextSpan(
+                                    text: locale.perMonthSuffix,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: body,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             if (item.securityDeposit != null &&
                                 item.securityDeposit! > 0) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              Flexible(
-                                child: Text(
-                                  locale.moveInCostLabel(
-                                    FlatmatesPriceText.formatRupee(moveInTotal),
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: muted,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              const SizedBox(height: AppSpacing.xxs),
+                              Text(
+                                locale.moveInCostLabel(
+                                  FlatmatesPriceText.formatRupee(moveInTotal),
+                                ),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: muted,
                                 ),
                               ),
                             ],
