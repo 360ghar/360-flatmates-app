@@ -186,18 +186,6 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     );
   }
 
-  bool _isAtLeast18(DateTime dob) {
-    final today = DateTime.now();
-    final age =
-        today.year -
-        dob.year -
-        ((today.month < dob.month ||
-                (today.month == dob.month && today.day < dob.day))
-            ? 1
-            : 0);
-    return age >= 18;
-  }
-
   int _ageFromDob(DateTime dob) {
     final today = DateTime.now();
     return today.year -
@@ -207,6 +195,8 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
             ? 1
             : 0);
   }
+
+  bool _isAtLeast18(DateTime dob) => _ageFromDob(dob) >= 18;
 
   String _isoDate(DateTime dob) =>
       '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
@@ -248,12 +238,14 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
       final dob = _dob;
       final repo = ref.read(profileRepositoryProvider);
 
+      // Only write fields the gate currently requires — do not resubmit
+      // bootstrap-cached name on DOB-only completion (can overwrite newer data).
       // ── 1) Durable name write via flatmates profile (server commits) ──
       // Production `PUT /users/me` has been observed to roll back; the
       // flatmates profile endpoint calls `await db.commit()` itself.
-      if (trimmedName.length >= 2) {
+      if (needsName && trimmedName.length >= 2) {
         final flatmatesPayload = <String, dynamic>{'full_name': trimmedName};
-        if (dob != null) {
+        if (needsDob && dob != null) {
           flatmatesPayload['age'] = _ageFromDob(dob);
         }
         try {
@@ -265,46 +257,58 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
           );
           // Continue — still try /users/me below.
         }
+      } else if (needsDob && dob != null) {
+        // DOB-only: still push derived age on the durable profile path.
+        try {
+          await repo.updateProfile(payload: {'age': _ageFromDob(dob)});
+        } catch (e) {
+          debugPrint('ProfileCompletionPage: flatmates age save failed: $e');
+        }
       }
 
       // ── 2) Gate fields on User via PUT /users/me ─────────────────────
       final userPayload = <String, dynamic>{};
-      if (trimmedName.length >= 2) {
+      if (needsName && trimmedName.length >= 2) {
         userPayload['full_name'] = trimmedName;
       }
-      if (dob != null) {
+      if (needsDob && dob != null) {
         userPayload['date_of_birth'] = _isoDate(dob);
+      }
+
+      bool responseMatchesPayload(
+        Map<String, dynamic> payload,
+        Map<String, dynamic> response,
+      ) {
+        final nameOk =
+            !payload.containsKey('full_name') ||
+            ((response['full_name']?.toString().trim() ?? '').isNotEmpty);
+        final dobOk =
+            !payload.containsKey('date_of_birth') ||
+            ((response['date_of_birth']?.toString().trim() ?? '').isNotEmpty);
+        return nameOk && dobOk;
       }
 
       var putLooksOk = false;
       if (userPayload.isNotEmpty) {
         final updated = await repo.updateUser(payload: userPayload);
-        final responseName = updated['full_name']?.toString();
-        final responseDob = updated['date_of_birth']?.toString();
         debugPrint(
           'ProfileCompletionPage._submit PUT /users/me '
-          'responseDob=$responseDob responseName=$responseName',
+          'responseDob=${updated['date_of_birth']} '
+          'responseName=${updated['full_name']}',
         );
-        putLooksOk =
-            (!userPayload.containsKey('full_name') ||
-                (responseName != null && responseName.trim().isNotEmpty)) &&
-            (!userPayload.containsKey('date_of_birth') ||
-                (responseDob != null && responseDob.trim().isNotEmpty));
+        putLooksOk = responseMatchesPayload(userPayload, updated);
 
         // Second attempt with ISO datetime if date-only body looked empty.
-        if (!putLooksOk && dob != null) {
+        if (!putLooksOk && needsDob && dob != null) {
           final retryPayload = Map<String, dynamic>.from(userPayload);
           retryPayload['date_of_birth'] = '${_isoDate(dob)}T00:00:00.000Z';
           final retried = await repo.updateUser(payload: retryPayload);
-          final retryDob = retried['date_of_birth']?.toString();
-          final retryName = retried['full_name']?.toString();
           debugPrint(
             'ProfileCompletionPage._submit PUT retry datetime '
-            'responseDob=$retryDob responseName=$retryName',
+            'responseDob=${retried['date_of_birth']} '
+            'responseName=${retried['full_name']}',
           );
-          putLooksOk =
-              (retryName != null && retryName.trim().isNotEmpty) &&
-              (retryDob != null && retryDob.trim().isNotEmpty);
+          putLooksOk = responseMatchesPayload(retryPayload, retried);
         }
       }
 
@@ -367,12 +371,15 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
             ?.profile
             .id
             .toString();
+        final nameSatisfied =
+            !needsName || trimmedName.length >= 2 || serverHasName;
+        final dobSatisfied = !needsDob || dob != null || serverHasDob;
         final canOverride =
             profileId != null &&
             profileId.isNotEmpty &&
-            trimmedName.length >= 2 &&
-            dob != null &&
-            (putLooksOk || serverHasName);
+            nameSatisfied &&
+            dobSatisfied &&
+            (putLooksOk || serverHasName || serverHasDob || !needsName);
 
         if (canOverride) {
           debugPrint(

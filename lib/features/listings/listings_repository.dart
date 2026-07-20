@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
+import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
 import '../bootstrap/bootstrap_controller.dart';
@@ -169,12 +171,28 @@ class ListingCreateRequest {
 }
 
 class ListingsRepository {
-  const ListingsRepository(this._ref);
+  ListingsRepository(this._ref);
 
   final Ref _ref;
 
+  /// Serializes durable cache read/merge/write so a first-page fetch cannot
+  /// finish after [cacheOwnerListing] and clobber a newly seeded row.
+  Future<void> _cacheChain = Future<void>.value();
+
   /// Disk key always written so cold start works even before bootstrap resolves.
   static const _latestCacheKey = 'my_listings_cache_latest_v1';
+
+  Future<T> _withCacheLock<T>(Future<T> Function() action) {
+    final done = Completer<T>();
+    _cacheChain = _cacheChain.catchError((Object _) {}).then((_) async {
+      try {
+        done.complete(await action());
+      } catch (e, st) {
+        done.completeError(e, st);
+      }
+    });
+    return done.future;
+  }
 
   Future<({int? id, PropertyListing? listing})> createListing(
     ListingCreateRequest request,
@@ -295,15 +313,21 @@ class ListingsRepository {
         );
       }
 
-      final cached = _readListingsCache();
-      final merged = _mergeServerAndCache(page.items, cached);
-      // Always persist the merge so create-time rows survive restarts even if
-      // this page temporarily omitted them.
-      await _writeListingsCache(merged);
+      // First page is partial — non-destructive upsert into disk cache.
+      final merged = await _withCacheLock(() async {
+        final cached = _readListingsCache();
+        final next = _mergeServerAndCache(
+          page.items,
+          cached,
+          preserveAllCacheOnly: true,
+        );
+        await _writeListingsCache(next);
+        return next;
+      });
 
       debugPrint(
         'ListingsRepository.fetchMyListingsPage: server=${page.items.length} '
-        'cache=${cached.length} merged=${merged.length}',
+        'merged=${merged.length}',
       );
 
       return (
@@ -313,12 +337,14 @@ class ListingsRepository {
       );
     } catch (e, st) {
       debugPrint('ListingsRepository.fetchMyListingsPage network failed: $e');
-      // Offline / 5xx: still surface durable cache so Manage is not empty.
-      if (cursor == null || cursor.isEmpty) {
+      // Only serve cache for transient transport / server failures so auth
+      // expiry and programming errors still propagate.
+      if (_isTransientListingsFailure(e) &&
+          (cursor == null || cursor.isEmpty)) {
         final cached = _readListingsCache();
         if (cached.isNotEmpty) {
           debugPrint(
-            'ListingsRepository.fetchMyListingsPage: network error, '
+            'ListingsRepository.fetchMyListingsPage: transient error, '
             'serving ${cached.length} cached listing(s)',
           );
           return (items: cached, nextCursor: null, hasMore: false);
@@ -326,6 +352,13 @@ class ListingsRepository {
       }
       Error.throwWithStackTrace(e, st);
     }
+  }
+
+  static bool _isTransientListingsFailure(Object e) {
+    if (e is NetworkFailure) return true;
+    if (e is ServerFailure) return true;
+    if (e is RateLimitFailure) return true;
+    return false;
   }
 
   /// Backwards-compatible helper aggregating all pages into a single list.
@@ -355,7 +388,8 @@ class ListingsRepository {
       pageIndex++;
     }
     if (allItems.isNotEmpty) {
-      await _writeListingsCache(allItems);
+      // Full reconciliation: server order is authoritative; drop orphans.
+      await _withCacheLock(() => _writeListingsCache(allItems));
     }
     return allItems;
   }
@@ -366,22 +400,32 @@ class ListingsRepository {
   /// cannot race past an unfinished write.
   Future<void> cacheOwnerListing(PropertyListing listing) async {
     if (listing.id <= 0) return;
-    final existing = _readListingsCache();
-    final next = _mergeServerAndCache([listing], existing);
-    await _writeListingsCache(next);
-    debugPrint(
-      'ListingsRepository.cacheOwnerListing: cached id=${listing.id} '
-      'total=${next.length}',
-    );
+    await _withCacheLock(() async {
+      final existing = _readListingsCache();
+      final next = _mergeServerAndCache(
+        [listing],
+        existing,
+        preserveAllCacheOnly: true,
+      );
+      await _writeListingsCache(next);
+      debugPrint(
+        'ListingsRepository.cacheOwnerListing: cached id=${listing.id} '
+        'total=${next.length}',
+      );
+    });
   }
 
-  /// Server rows win on id collision. Cache-only rows are kept only while they
-  /// are still under review / rejected — that is the create lag window. Other
-  /// cache-only rows are dropped so deleted listings cannot resurrect forever.
+  /// Server rows win on id collision.
+  ///
+  /// When [preserveAllCacheOnly] is true (partial first-page merges and
+  /// create-time upserts), every cache-only row is kept so active listings
+  /// omitted from page 1 are not pruned from disk. Callers that fully
+  /// reconcile the owner set should write the complete list without this flag.
   List<PropertyListing> _mergeServerAndCache(
     List<PropertyListing> server,
-    List<PropertyListing> cache,
-  ) {
+    List<PropertyListing> cache, {
+    bool preserveAllCacheOnly = false,
+  }) {
     final serverIds = <int>{
       for (final item in server)
         if (item.id > 0) item.id,
@@ -390,7 +434,7 @@ class ListingsRepository {
       for (final item in cache)
         if (item.id > 0 &&
             !serverIds.contains(item.id) &&
-            (item.isUnderReview || item.isRejected))
+            (preserveAllCacheOnly || item.isUnderReview || item.isRejected))
           item,
     ]..sort((a, b) => b.id.compareTo(a.id));
     // Pending creates first, then server order (API is newest-first).

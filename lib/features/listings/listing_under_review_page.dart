@@ -103,7 +103,10 @@ class _ListingUnderReviewPageState
     if (live != null) {
       _listenForStatusChanges();
       return FlatmatesScreen(
-        body: ListingReviewBody(listing: live, listingId: widget.listingId),
+        body: RefreshIndicator(
+          onRefresh: _refreshAfterStatusChange,
+          child: ListingReviewBody(listing: live, listingId: widget.listingId),
+        ),
       );
     }
 
@@ -113,8 +116,13 @@ class _ListingUnderReviewPageState
 
     return FlatmatesScreen(
       body: listingAsync.when(
-        data: (listing) =>
-            ListingReviewBody(listing: listing, listingId: widget.listingId),
+        data: (listing) => RefreshIndicator(
+          onRefresh: _refreshAfterStatusChange,
+          child: ListingReviewBody(
+            listing: listing,
+            listingId: widget.listingId,
+          ),
+        ),
         loading: () => const FlatmatesSkeleton.feed(itemCount: 2),
         error: (e, _) => FlatmatesErrorState(
           message: AppLocalizations.of(context).couldNotLoadReviewStatus,
@@ -129,10 +137,10 @@ class _ListingUnderReviewPageState
     ref.listen(flatmatesRealtimeEventProvider, (previous, next) {
       final event = next.valueOrNull;
       if (event?.type == 'listing_status_changed') {
-        final listingId =
-            event!.data['listing_id'] as int? ??
-            (event.data['listing_id'] as num?)?.toInt() ??
-            (event.data['property_id'] as num?)?.toInt();
+        final rawId = event!.data['listing_id'] ?? event.data['property_id'];
+        final listingId = rawId is num
+            ? rawId.toInt()
+            : int.tryParse(rawId?.toString() ?? '');
         if (listingId == widget.listingId) {
           unawaited(_refreshAfterStatusChange());
         }

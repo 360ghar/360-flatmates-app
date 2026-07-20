@@ -380,11 +380,13 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       // Mirror the optimistic like state back into the local listing so the
       // heart icon flips without needing to clear the seed.
       if (_localListing != null && mounted) {
-        final newLiked = !(listing.liked ?? false);
+        // Use current local state, not the stale parameter from the first tap.
+        final current = _localListing!;
+        final newLiked = !(current.liked ?? false);
         setState(() {
-          _localListing = _localListing!.copyWith(
+          _localListing = current.copyWith(
             liked: newLiked,
-            likeCount: _localListing!.likeCount + (newLiked ? 1 : -1),
+            likeCount: current.likeCount + (newLiked ? 1 : -1),
           );
         });
       }

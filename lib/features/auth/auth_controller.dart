@@ -79,12 +79,14 @@ class AuthController extends Notifier<AuthState> {
                 state.isLoggedIn &&
                 state.status != AuthStatus.submitting &&
                 _repository.currentSession == null) {
+              unawaited(_clearOwnerScopedData());
               state = const AuthState(status: AuthStatus.unauthenticated);
             }
           },
           onError: (error) {
             if (state.status != AuthStatus.submitting &&
                 _repository.currentSession == null) {
+              unawaited(_clearOwnerScopedData());
               state = const AuthState(status: AuthStatus.unauthenticated);
             }
           },
@@ -689,14 +691,31 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
-  Future<void> signOut() async {
+  /// Drops per-owner seeds, listing disk cache, and profile-completion override.
+  ///
+  /// Invoked from explicit sign-out/delete and from token-driven logout so a
+  /// subsequent account never inherits the previous owner's local data.
+  Future<void> _clearOwnerScopedData() async {
     try {
       await _prefs.remove(PrefKeys.profileCompletionLocalUserId);
     } catch (e) {
       debugPrint(
-        'AuthController.signOut: clear profileCompletionLocalUserId failed: $e',
+        'AuthController._clearOwnerScopedData: profileCompletionLocalUserId: $e',
       );
     }
+    ref.read(propertyListingSeedStoreProvider.notifier).clear();
+    try {
+      await ref.read(listingsRepositoryProvider).clearOwnerListingsCache();
+    } catch (e) {
+      debugPrint(
+        'AuthController._clearOwnerScopedData: clearOwnerListingsCache: $e',
+      );
+    }
+  }
+
+  Future<void> signOut() async {
+    // Clear owner-scoped cache while bootstrap may still hold the profile id.
+    await _clearOwnerScopedData();
     try {
       await ref.read(notificationServiceProvider).clearToken();
     } catch (e) {
@@ -713,13 +732,6 @@ class AuthController extends Notifier<AuthState> {
       debugPrint(
         'AuthController.signOut: clear pendingPasswordSetup failed: $e',
       );
-    }
-    // Drop owner listing seeds/cache so a later account never reuses them.
-    ref.read(propertyListingSeedStoreProvider.notifier).clear();
-    try {
-      await ref.read(listingsRepositoryProvider).clearOwnerListingsCache();
-    } catch (e) {
-      debugPrint('AuthController.signOut: clearOwnerListingsCache failed: $e');
     }
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
@@ -739,14 +751,7 @@ class AuthController extends Notifier<AuthState> {
           'AuthController.deleteAccount: clear pendingPasswordSetup failed: $e',
         );
       }
-      ref.read(propertyListingSeedStoreProvider.notifier).clear();
-      try {
-        await ref.read(listingsRepositoryProvider).clearOwnerListingsCache();
-      } catch (e) {
-        debugPrint(
-          'AuthController.deleteAccount: clearOwnerListingsCache failed: $e',
-        );
-      }
+      await _clearOwnerScopedData();
       state = const AuthState(status: AuthStatus.unauthenticated);
       return true;
     } catch (e) {

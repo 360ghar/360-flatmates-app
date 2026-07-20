@@ -216,12 +216,27 @@ class PropertyListingDto {
   static List<String> _parseFallbackImageUrls(Map<String, dynamic> json) {
     final raw = json['image_urls'];
     if (raw is List && raw.isNotEmpty) {
-      final strings = raw
-          .map((item) => item?.toString() ?? '')
-          .where(
-            (url) => url.startsWith('http://') || url.startsWith('https://'),
-          )
-          .toList();
+      final strings = <String>[];
+      for (final item in raw) {
+        if (item is String) {
+          final url = item.trim();
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            strings.add(url);
+          }
+          continue;
+        }
+        if (item is Map) {
+          final url =
+              item['image_url']?.toString() ??
+              item['url']?.toString() ??
+              item['src']?.toString();
+          if (url != null &&
+              url.isNotEmpty &&
+              (url.startsWith('http://') || url.startsWith('https://'))) {
+            strings.add(url);
+          }
+        }
+      }
       if (strings.isNotEmpty) return strings;
     }
     final imageRows = json['images'];
@@ -271,7 +286,7 @@ class PropertyListingDto {
           return Map<String, dynamic>.from(decoded);
         }
       } catch (e) {
-        debugPrint('PropertyListingDto: listing_preferences string decode: $e');
+        debugPrint('PropertyListingDto._asStringKeyMap: $e');
       }
     }
     return <String, dynamic>{};

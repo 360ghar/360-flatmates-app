@@ -27,8 +27,24 @@ import 'safe_json_list.dart';
   final rawNext = data['next_cursor'] ?? data['nextCursor'];
   final nextCursor = rawNext?.toString();
   final hasMore =
-      data['has_more'] as bool? ??
-      data['hasMore'] as bool? ??
+      _asBool(data['has_more']) ??
+      _asBool(data['hasMore']) ??
       (nextCursor != null && nextCursor.isNotEmpty);
   return (items: items, nextCursor: nextCursor, hasMore: hasMore);
+}
+
+/// Coerces gateway bool-ish values (`true`/`false`, `0`/`1`, `"true"`/`"false"`).
+bool? _asBool(Object? raw) {
+  if (raw is bool) return raw;
+  if (raw is num) return raw != 0;
+  if (raw is String) {
+    final normalized = raw.trim().toLowerCase();
+    if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+      return true;
+    }
+    if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+      return false;
+    }
+  }
+  return null;
 }

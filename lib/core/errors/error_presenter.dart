@@ -274,12 +274,12 @@ final class ErrorPresenter {
   }
 
   static bool _looksLikeOffline(String message) {
+    // Reserve "offline" for link-down signals only. DNS / hostname resolution
+    // and connection-abort can happen while Wi‑Fi is up (bad host, flaky DNS)
+    // — those fall through to `unreachable` in `_classifyTransportMessage`.
     return message.contains('network is unreachable') ||
-        message.contains('no address associated with hostname') ||
-        message.contains('nodename nor servname provided') ||
-        message.contains('offline') ||
-        // Android often surfaces airplane mode this way.
-        message.contains('software caused connection abort');
+        message.contains('no route to host') ||
+        message.contains('offline');
   }
 
   static bool _looksLikeNetworkFailure(String message) {

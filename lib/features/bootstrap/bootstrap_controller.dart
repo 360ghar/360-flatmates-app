@@ -44,6 +44,12 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
     final previous = state;
     state = const AsyncLoading<BootstrapData?>().copyWithPrevious(previous);
     final next = await AsyncValue.guard(() => _fetchBootstrapData());
+    // Sign-out can win the race while this refresh was in flight — never
+    // restore the previous account's bootstrap after clear().
+    if (!ref.read(authControllerProvider).isLoggedIn) {
+      state = const AsyncValue.data(null);
+      return;
+    }
     if (next.hasError && previous.valueOrNull != null) {
       // Soft-refresh failure: keep last good bootstrap so the user stays in
       // the app (post-create, pull-to-refresh, etc.).

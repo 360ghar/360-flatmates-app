@@ -93,18 +93,43 @@ class CreateListingController {
         availableFrom: request.availableFrom,
         genderPreference: request.genderPreference,
         sharingType: request.sharingType,
+        videoTourUrl: request.videoTourUrl,
+        securityDeposit: request.securityDeposit,
+        maintenanceCharges: request.maintenanceCharges,
+        floorNumber: request.floorNumber,
+        totalFloors: request.totalFloors,
         interestCount: 0,
         viewCount: 0,
         likeCount: 0,
         isAvailable: false,
         createdAt: DateTime.now().toUtc(),
         status: 'pending_review',
-        preferences: const {'moderation_status': 'pending_review'},
+        preferences: {
+          'moderation_status': 'pending_review',
+          if (request.electricityIncluded != null)
+            'electricity_included': request.electricityIncluded,
+          if (request.electricityEst != null)
+            'electricity_est': request.electricityEst,
+          if (request.cookCost != null) 'cook_cost': request.cookCost,
+          if (request.maidCost != null) 'maid_cost': request.maidCost,
+          if (request.setupCost != null) 'setup_cost': request.setupCost,
+          if (request.ageMin != null) 'age_min': request.ageMin,
+          if (request.ageMax != null) 'age_max': request.ageMax,
+          if (request.nonNegotiables.isNotEmpty)
+            'non_negotiables': request.nonNegotiables,
+        },
       );
     }
 
     if (listing != null) {
-      if (!listing.isUnderReview && !listing.isRejected && !listing.isLive) {
+      // Only fill a missing moderation status — never rewrite live/available
+      // lifecycle rows to pending_review after edit/confirm.
+      final statusMissing =
+          listing.status == null || listing.status!.trim().isEmpty;
+      if (statusMissing &&
+          !listing.isUnderReview &&
+          !listing.isRejected &&
+          !listing.isLive) {
         listing = listing.copyWith(
           status: 'pending_review',
           preferences: {
