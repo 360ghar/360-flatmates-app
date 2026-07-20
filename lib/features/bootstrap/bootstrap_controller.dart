@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
+import '../../core/storage/app_preferences.dart';
 import '../auth/auth_controller.dart';
 import 'domain/bootstrap_models.dart';
 
@@ -55,6 +56,46 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
     state = next;
   }
 
+  /// Re-fetches only `/users/me/auth-state` and updates the auth gate stage.
+  ///
+  /// Used after profile-completion saves when a full [refresh] may soft-fail
+  /// (keeping the previous stage) even though the PUT succeeded. Throws on
+  /// network/API failure so the caller can surface a real error.
+  Future<void> refreshAuthStage() async {
+    if (!ref.read(authControllerProvider).isLoggedIn) return;
+    final client = ref.read(apiClientProvider);
+    final critical = ApiClient.criticalPathOptions();
+    final response = await client.get(
+      FlatmatesEndpoints.authState,
+      options: critical,
+    );
+    final authStateData = response.data;
+    if (authStateData is! Map) {
+      throw StateError('auth-state response was not a JSON object');
+    }
+    final stageMap = Map<String, dynamic>.from(authStateData);
+    final stage = AuthStage.fromWire(stageMap['stage'] as String?);
+    final profileId = ref
+        .read(bootstrapControllerProvider)
+        .valueOrNull
+        ?.profile
+        .id
+        .toString();
+    ref
+        .read(authControllerProvider.notifier)
+        .updateGateStage(
+          _applyLocalProfileCompletionOverride(
+            stage: stage,
+            profileId: profileId,
+          ),
+          missingFields:
+              (stageMap['missing_fields'] as List?)
+                  ?.map((e) => e.toString())
+                  .toList() ??
+              const [],
+        );
+  }
+
   Future<BootstrapData?> _fetchBootstrapData() async {
     final client = ref.read(apiClientProvider);
     // Fail fast on cold start: if the API/DB is wedged, splash should show
@@ -75,18 +116,51 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
     final authStateData = authStateResponse.data;
     if (authStateData is Map) {
       final stageMap = Map<String, dynamic>.from(authStateData);
+      final stage = AuthStage.fromWire(stageMap['stage'] as String?);
+      final missingFields =
+          (stageMap['missing_fields'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const <String>[];
       final authController = ref.read(authControllerProvider.notifier);
       authController.updateGateStage(
-        AuthStage.fromWire(stageMap['stage'] as String?),
-        missingFields:
-            (stageMap['missing_fields'] as List?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            [],
+        _applyLocalProfileCompletionOverride(
+          stage: stage,
+          profileId: _profileIdFromBootstrap(data),
+        ),
+        missingFields: missingFields,
       );
     }
 
     return BootstrapData.fromJson(Map<String, dynamic>.from(data));
+  }
+
+  /// Production `PUT /users/me` has been observed to return 200 with name/DOB
+  /// in the body while never committing them. The profile-completion form
+  /// records a per-user local override so the app is not hard-stuck on
+  /// `/complete-profile` until the backend is fixed.
+  AuthStage _applyLocalProfileCompletionOverride({
+    required AuthStage stage,
+    required String? profileId,
+  }) {
+    if (stage != AuthStage.profileCompletion) return stage;
+    if (profileId == null || profileId.isEmpty) return stage;
+    final localUserId = ref
+        .read(appPreferencesProvider)
+        .getString(PrefKeys.profileCompletionLocalUserId);
+    if (localUserId == profileId) {
+      return AuthStage.appOnboarding;
+    }
+    return stage;
+  }
+
+  static String? _profileIdFromBootstrap(Object data) {
+    if (data is! Map) return null;
+    final profile = data['profile'];
+    if (profile is! Map) return null;
+    final id = profile['id'];
+    if (id == null) return null;
+    return id.toString();
   }
 
   void clear() {

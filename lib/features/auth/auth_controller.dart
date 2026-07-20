@@ -691,6 +691,13 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> signOut() async {
     try {
+      await _prefs.remove(PrefKeys.profileCompletionLocalUserId);
+    } catch (e) {
+      debugPrint(
+        'AuthController.signOut: clear profileCompletionLocalUserId failed: $e',
+      );
+    }
+    try {
       await ref.read(notificationServiceProvider).clearToken();
     } catch (e) {
       debugPrint('AuthController.signOut: clearToken failed: $e');

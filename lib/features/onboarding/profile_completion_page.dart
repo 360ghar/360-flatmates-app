@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/errors/app_failure.dart';
+import '../../core/errors/l10n_bridge.dart';
+import '../../core/providers.dart';
+import '../../core/storage/app_preferences.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -15,10 +21,16 @@ import '../shared/presentation/components.dart';
 /// (typically `full_name` and `date_of_birth`).
 ///
 /// Unlike the full [EditProfilePage], this page shows a minimal form with
-/// clear context about why the user is here and what happens next. On submit
-/// it calls `PUT /users/me` (the general user update endpoint) which properly
-/// sets `date_of_birth` on the User model — the flatmates profile endpoint
-/// does not support this field.
+/// clear context about why the user is here and what happens next.
+///
+/// Persistence strategy (production-safe without backend deploy rights):
+/// 1. `PUT /flatmates/profile` for `full_name` (+ derived `age`) — that
+///    endpoint **explicitly commits** on the server.
+/// 2. `PUT /users/me` for `full_name` + `date_of_birth` (gate fields on User).
+/// 3. If auth-state still reports profile_completion after retries (known
+///    production bug: `/users/me` returns 200 with fields that never commit),
+///    record a per-user local override and advance the client gate so the
+///    user is not permanently stuck.
 class ProfileCompletionPage extends ConsumerStatefulWidget {
   const ProfileCompletionPage({super.key});
 
@@ -186,6 +198,19 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     return age >= 18;
   }
 
+  int _ageFromDob(DateTime dob) {
+    final today = DateTime.now();
+    return today.year -
+        dob.year -
+        ((today.month < dob.month ||
+                (today.month == dob.month && today.day < dob.day))
+            ? 1
+            : 0);
+  }
+
+  String _isoDate(DateTime dob) =>
+      '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
+
   Future<void> _pickDateOfBirth(
     BuildContext context,
     AppLocalizations locale,
@@ -211,7 +236,7 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
   }) async {
     if (_saving) return;
     if (needsName && _name.trim().length < 2) return;
-    if (needsDob && _dob == null) return;
+    if (needsDob && (_dob == null || !_isAtLeast18(_dob!))) return;
 
     setState(() {
       _saving = true;
@@ -219,32 +244,161 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     });
 
     try {
-      final payload = <String, dynamic>{};
-      if (needsName) {
-        payload['full_name'] = _name.trim();
-      }
-      if (needsDob && _dob != null) {
-        final dob = _dob!;
-        payload['date_of_birth'] =
-            '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
-      }
-      if (payload.isEmpty) return;
+      final trimmedName = _name.trim();
+      final dob = _dob;
+      final repo = ref.read(profileRepositoryProvider);
 
-      await ref.read(profileRepositoryProvider).updateUser(payload: payload);
-      // Refresh bootstrap so auth-state re-evaluates and the router advances
-      // past the profile_completion gate.
-      await ref.read(bootstrapControllerProvider.notifier).refresh();
-      // refresh() uses AsyncValue.guard and does not throw on failure.
-      // Only leave when we are no longer hard-gated on profile_completion.
-      // For app_onboarding/active the router also exits; for
-      // identifier_verification (name just saved) we must navigate so the
-      // fallback redirect chain can place the user (router exit intentionally
-      // does not kick identifier_verification off this route).
-      if (!context.mounted) return;
-      final stage = ref.read(authControllerProvider).authStage;
+      // ── 1) Durable name write via flatmates profile (server commits) ──
+      // Production `PUT /users/me` has been observed to roll back; the
+      // flatmates profile endpoint calls `await db.commit()` itself.
+      if (trimmedName.length >= 2) {
+        final flatmatesPayload = <String, dynamic>{'full_name': trimmedName};
+        if (dob != null) {
+          flatmatesPayload['age'] = _ageFromDob(dob);
+        }
+        try {
+          await repo.updateProfile(payload: flatmatesPayload);
+          debugPrint('ProfileCompletionPage: flatmates profile saved name/age');
+        } catch (e) {
+          debugPrint(
+            'ProfileCompletionPage: flatmates profile save failed: $e',
+          );
+          // Continue — still try /users/me below.
+        }
+      }
+
+      // ── 2) Gate fields on User via PUT /users/me ─────────────────────
+      final userPayload = <String, dynamic>{};
+      if (trimmedName.length >= 2) {
+        userPayload['full_name'] = trimmedName;
+      }
+      if (dob != null) {
+        userPayload['date_of_birth'] = _isoDate(dob);
+      }
+
+      var putLooksOk = false;
+      if (userPayload.isNotEmpty) {
+        final updated = await repo.updateUser(payload: userPayload);
+        final responseName = updated['full_name']?.toString();
+        final responseDob = updated['date_of_birth']?.toString();
+        debugPrint(
+          'ProfileCompletionPage._submit PUT /users/me '
+          'responseDob=$responseDob responseName=$responseName',
+        );
+        putLooksOk =
+            (!userPayload.containsKey('full_name') ||
+                (responseName != null && responseName.trim().isNotEmpty)) &&
+            (!userPayload.containsKey('date_of_birth') ||
+                (responseDob != null && responseDob.trim().isNotEmpty));
+
+        // Second attempt with ISO datetime if date-only body looked empty.
+        if (!putLooksOk && dob != null) {
+          final retryPayload = Map<String, dynamic>.from(userPayload);
+          retryPayload['date_of_birth'] = '${_isoDate(dob)}T00:00:00.000Z';
+          final retried = await repo.updateUser(payload: retryPayload);
+          final retryDob = retried['date_of_birth']?.toString();
+          final retryName = retried['full_name']?.toString();
+          debugPrint(
+            'ProfileCompletionPage._submit PUT retry datetime '
+            'responseDob=$retryDob responseName=$retryName',
+          );
+          putLooksOk =
+              (retryName != null && retryName.trim().isNotEmpty) &&
+              (retryDob != null && retryDob.trim().isNotEmpty);
+        }
+      }
+
+      // ── 3) Re-read auth-state with retries ───────────────────────────
+      var stage = AuthStage.profileCompletion;
+      List<String> missing = const [];
+      Object? lastAuthError;
+      for (var attempt = 0; attempt < 4; attempt++) {
+        if (attempt > 0) {
+          await Future<void>.delayed(Duration(milliseconds: 300 * attempt));
+        }
+        try {
+          await ref
+              .read(bootstrapControllerProvider.notifier)
+              .refreshAuthStage();
+          lastAuthError = null;
+        } catch (e) {
+          lastAuthError = e;
+          debugPrint(
+            'ProfileCompletionPage.refreshAuthStage attempt=$attempt failed: $e',
+          );
+          continue;
+        }
+        if (!context.mounted) return;
+        final auth = ref.read(authControllerProvider);
+        stage = auth.authStage;
+        missing = auth.missingProfileFields;
+        debugPrint(
+          'ProfileCompletionPage._submit auth attempt=$attempt '
+          'stage=$stage missing=$missing',
+        );
+        if (stage != AuthStage.profileCompletion) break;
+      }
+
+      // ── 4) Verify durable server state (GET, not PUT response) ───────
+      Map<String, dynamic> verified = const {};
+      try {
+        verified = await repo.fetchUser();
+        debugPrint(
+          'ProfileCompletionPage GET /users/me '
+          'name=${verified['full_name']} dob=${verified['date_of_birth']}',
+        );
+      } catch (e) {
+        debugPrint('ProfileCompletionPage.fetchUser failed: $e');
+      }
+
+      final verifiedName = verified['full_name']?.toString().trim() ?? '';
+      final verifiedDob = verified['date_of_birth']?.toString().trim() ?? '';
+      final serverHasName = verifiedName.isNotEmpty;
+      final serverHasDob = verifiedDob.isNotEmpty;
+
+      // ── 5) Local override when server gate is stuck after a good form ─
+      // If GET still lacks DOB (production /users/me commit bug) but the
+      // user filled a valid form and name was saved (or PUT looked ok),
+      // advance the client gate so signup is not a dead end.
       if (stage == AuthStage.profileCompletion) {
-        // PUT returned OK but gate still incomplete — show error instead of
-        // a silent no-op.
+        final profileId = ref
+            .read(bootstrapControllerProvider)
+            .valueOrNull
+            ?.profile
+            .id
+            .toString();
+        final canOverride =
+            profileId != null &&
+            profileId.isNotEmpty &&
+            trimmedName.length >= 2 &&
+            dob != null &&
+            (putLooksOk || serverHasName);
+
+        if (canOverride) {
+          debugPrint(
+            'ProfileCompletionPage: applying local gate override for '
+            'user=$profileId serverHasName=$serverHasName '
+            'serverHasDob=$serverHasDob putLooksOk=$putLooksOk '
+            'missing=$missing lastAuthError=$lastAuthError',
+          );
+          await ref
+              .read(appPreferencesProvider)
+              .setString(PrefKeys.profileCompletionLocalUserId, profileId);
+          ref
+              .read(authControllerProvider.notifier)
+              .updateGateStage(AuthStage.appOnboarding);
+          stage = AuthStage.appOnboarding;
+        }
+      }
+
+      unawaited(ref.read(bootstrapControllerProvider.notifier).refresh());
+
+      if (!context.mounted) return;
+      if (stage == AuthStage.profileCompletion) {
+        debugPrint(
+          'ProfileCompletionPage._submit gate stuck; '
+          'missing=$missing lastAuthError=$lastAuthError',
+        );
         setState(() => _hasError = true);
         FlatmatesToast.error(context, locale.profileCompletionError);
       } else {
@@ -252,10 +406,12 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
       }
     } catch (e) {
       debugPrint('ProfileCompletionPage._submit error: $e');
-      if (context.mounted) {
-        setState(() => _hasError = true);
-        FlatmatesToast.error(context, locale.profileCompletionError);
-      }
+      if (!context.mounted) return;
+      setState(() => _hasError = true);
+      final message = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.profileCompletionError;
+      FlatmatesToast.error(context, message);
     } finally {
       if (context.mounted) setState(() => _saving = false);
     }
