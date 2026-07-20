@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
@@ -10,6 +11,7 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../location/application/location_controller.dart';
 import 'application/discover_feed_controller.dart';
 import 'application/move_in_filter.dart';
+import 'application/property_listing_seed_store.dart';
 import 'data/property_listing_dto.dart';
 import 'domain/property_listing.dart';
 import '../chats/application/cursor_list_controller.dart';
@@ -453,8 +455,52 @@ final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
 class PropertyListingController
     extends FamilyAsyncNotifier<PropertyListing, int> {
   @override
-  FutureOr<PropertyListing> build(int arg) {
-    return ref.watch(discoverRepositoryProvider).fetchListing(arg);
+  FutureOr<PropertyListing> build(int arg) async {
+    final seeded = ref.read(propertyListingSeedStoreProvider.notifier).get(arg);
+
+    // Under-review / rejected seeds: show immediately. A blocking GET can hang
+    // (timeout → false "no internet") or 404 for non-owners; reconcile in the
+    // background when the owner is authenticated.
+    if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
+      unawaited(_reconcileInBackground(arg));
+      return seeded;
+    }
+
+    try {
+      final fresh = await ref
+          .watch(discoverRepositoryProvider)
+          .fetchListing(arg);
+      // Keep seed warm for later router rebuilds / owner preview.
+      ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+      return fresh;
+    } catch (e) {
+      // Pending listings 404 for non-owners (and optional-auth races). Serve
+      // the durable seed so View Listing after create still works.
+      if (seeded != null) return seeded;
+      rethrow;
+    }
+  }
+
+  Future<void> _reconcileInBackground(int listingId) async {
+    try {
+      final fresh = await ref
+          .read(discoverRepositoryProvider)
+          .fetchListing(listingId);
+      ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+      // Only update if this family instance is still alive.
+      state = AsyncData(fresh);
+    } catch (e) {
+      // Keep seed — expected for non-owners / flaky transport.
+      debugPrint('PropertyListingController._reconcileInBackground: $e');
+    }
+  }
+
+  /// Seeds the provider with a pre-loaded listing (e.g. from the POST response
+  /// right after creation). GET is still attempted on build; seed is the
+  /// fallback when the public endpoint hides pending listings.
+  void seed(PropertyListing listing) {
+    ref.read(propertyListingSeedStoreProvider.notifier).put(listing);
+    state = AsyncData(listing);
   }
 
   /// Toggles the like state optimistically. Returns the conversation_id (or

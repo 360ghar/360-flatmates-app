@@ -5174,6 +5174,12 @@ abstract class AppLocalizations {
   /// **'Almost there! Review everything before going live'**
   String get listingHelperReview;
 
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
+
   /// No description provided for @listingRentRequired.
   ///
   /// In en, this message translates to:
@@ -5299,6 +5305,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No internet connection. Please check your network and try again.'**
   String get errorNetwork;
+
+  /// No description provided for @errorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The request timed out. Please try again.'**
+  String get errorTimeout;
+
+  /// No description provided for @errorCannotReachServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the server. Please try again in a moment.'**
+  String get errorCannotReachServer;
 
   /// No description provided for @errorAuthExpired.
   ///

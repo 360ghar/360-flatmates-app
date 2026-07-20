@@ -23,13 +23,15 @@ class _FakeListingsRepository implements ListingsRepository {
   }
 
   @override
-  Future<int?> createListing(ListingCreateRequest request) async => 1;
+  Future<({int? id, PropertyListing? listing})> createListing(
+    ListingCreateRequest request,
+  ) async => (id: 1, listing: null);
 
   @override
-  Future<int?> updateListing(
+  Future<({int? id, PropertyListing? listing})> updateListing(
     int listingId,
     ListingCreateRequest request,
-  ) async => listingId;
+  ) async => (id: listingId, listing: null);
 
   @override
   Future<({List<PropertyListing> items, String? nextCursor, bool hasMore})>
@@ -40,6 +42,49 @@ class _FakeListingsRepository implements ListingsRepository {
   @override
   Future<List<PropertyListing>> fetchMyListings({int limit = 20}) async =>
       <PropertyListing>[];
+
+  @override
+  Future<void> cacheOwnerListing(PropertyListing listing) async {}
+
+  @override
+  Future<void> clearOwnerListingsCache() async {}
+
+  @override
+  Future<PropertyListing> confirmListing(
+    int listingId, {
+    PropertyListing? fallback,
+  }) async {
+    return fallback ??
+        PropertyListing(
+          id: listingId,
+          ownerId: 1,
+          propertyType: 'flatmate',
+          title: 'Confirmed',
+          description: null,
+          city: null,
+          state: null,
+          locality: null,
+          subLocality: null,
+          latitude: null,
+          longitude: null,
+          monthlyRent: 0,
+          mainImageUrl: null,
+          imageUrls: const [],
+          areaSqft: null,
+          bedrooms: null,
+          bathrooms: null,
+          features: const [],
+          tags: const [],
+          ownerName: null,
+          availableFrom: null,
+          genderPreference: null,
+          sharingType: null,
+          interestCount: 0,
+          viewCount: 0,
+          likeCount: 0,
+          isAvailable: false,
+        );
+  }
 }
 
 void main() {

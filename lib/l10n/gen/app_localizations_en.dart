@@ -2709,6 +2709,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Almost there! Review everything before going live';
 
   @override
+  String get fieldRequired => 'This field is required';
+
+  @override
   String get listingRentRequired => 'Monthly rent is required';
 
   @override
@@ -2787,6 +2790,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorNetwork =>
       'No internet connection. Please check your network and try again.';
+
+  @override
+  String get errorTimeout => 'The request timed out. Please try again.';
+
+  @override
+  String get errorCannotReachServer =>
+      'Couldn\'t reach the server. Please try again in a moment.';
 
   @override
   String get errorAuthExpired => 'Session expired. Please sign in again.';

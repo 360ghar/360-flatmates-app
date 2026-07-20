@@ -55,53 +55,56 @@ ProviderContainer _containerWithAdapter(
 
 void main() {
   group('ListingsRepository.fetchMyListings', () {
-    test('returns flatmate/pg listings from cursor envelope', () async {
-      final container = _containerWithAdapter((options) {
-        return Response<dynamic>(
-          data: {
-            'items': [
-              {
-                'id': 1,
-                'title': 'Flatmate listing',
-                'property_type': 'flatmate',
-                'monthly_rent': 15000,
-                'is_available': true,
-                'status': 'live',
-              },
-              {
-                'id': 2,
-                'title': 'PG listing',
-                'property_type': 'pg',
-                'monthly_rent': 8000,
-                'is_available': true,
-                'status': 'live',
-              },
-              {
-                'id': 3,
-                'title': 'Other listing',
-                'property_type': 'apartment',
-                'monthly_rent': 30000,
-                'is_available': true,
-                'status': 'live',
-              },
-            ],
-            'next_cursor': null,
-            'has_more': false,
-          },
-          statusCode: 200,
-          requestOptions: options,
-        );
-      });
+    test(
+      'returns all listings from cursor envelope regardless of property_type',
+      () async {
+        final container = _containerWithAdapter((options) {
+          return Response<dynamic>(
+            data: {
+              'items': [
+                {
+                  'id': 1,
+                  'title': 'Flatmate listing',
+                  'property_type': 'flatmate',
+                  'monthly_rent': 15000,
+                  'is_available': true,
+                  'status': 'live',
+                },
+                {
+                  'id': 2,
+                  'title': 'PG listing',
+                  'property_type': 'pg',
+                  'monthly_rent': 8000,
+                  'is_available': true,
+                  'status': 'live',
+                },
+                {
+                  'id': 3,
+                  'title': 'Other listing',
+                  'property_type': 'apartment',
+                  'monthly_rent': 30000,
+                  'is_available': true,
+                  'status': 'live',
+                },
+              ],
+              'next_cursor': null,
+              'has_more': false,
+            },
+            statusCode: 200,
+            requestOptions: options,
+          );
+        });
 
-      final repo = container.read(listingsRepositoryProvider);
-      final listings = await repo.fetchMyListings();
+        final repo = container.read(listingsRepositoryProvider);
+        final listings = await repo.fetchMyListings();
 
-      expect(listings.length, 2);
-      expect(listings[0].id, 1);
-      expect(listings[0].propertyType, 'flatmate');
-      expect(listings[1].id, 2);
-      expect(listings[1].propertyType, 'pg');
-    });
+        // All three listings are returned — the owner sees all their own listings.
+        expect(listings.length, 3);
+        expect(listings[0].id, 1);
+        expect(listings[1].id, 2);
+        expect(listings[2].id, 3);
+      },
+    );
 
     test('aggregates multiple pages until has_more is false', () async {
       var callCount = 0;
@@ -229,7 +232,7 @@ void main() {
       });
 
       final repo = container.read(listingsRepositoryProvider);
-      final id = await repo.createListing(
+      final result = await repo.createListing(
         const ListingCreateRequest(
           title: 'Test Listing',
           description: 'A test description',
@@ -257,7 +260,7 @@ void main() {
 
       expect(method, 'POST');
       expect(path, '/properties');
-      expect(id, 42);
+      expect(result.id, 42);
       expect(sentData!['title'], 'Test Listing');
       expect(sentData!['property_type'], 'flatmate');
       expect(sentData!['purpose'], 'rent');
@@ -301,7 +304,7 @@ void main() {
       });
 
       final repo = container.read(listingsRepositoryProvider);
-      final id = await repo.updateListing(
+      final result = await repo.updateListing(
         99,
         const ListingCreateRequest(
           title: 'Updated Listing',
@@ -330,7 +333,7 @@ void main() {
 
       expect(method, 'PUT');
       expect(path, '/properties/99');
-      expect(id, 99);
+      expect(result.id, 99);
       expect(sentData!['title'], 'Updated Listing');
       expect(sentData!['monthly_rent'], 18000);
       // Null fields should be stripped by updateListing.

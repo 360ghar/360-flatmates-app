@@ -26,6 +26,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # .env is gitignored; listed as optional dotenv asset for local dev.
+      - name: Stub optional .env asset
+        run: |
+          if [ ! -f .env ]; then
+            printf 'APP_ENV=ci\n' > .env
+          fi
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 

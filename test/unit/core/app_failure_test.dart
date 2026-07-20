@@ -8,6 +8,8 @@ import 'package:flatmates_app/core/errors/error_presenter.dart';
 /// so we can assert which message was returned.
 const _testL10n = UserMessageL10n(
   errorNetwork: 'Network error',
+  errorTimeout: 'Timeout error',
+  errorCannotReachServer: 'Unreachable error',
   errorAuthExpired: 'Auth expired',
   errorAuth: 'Auth error',
   errorServer: 'Server error',
@@ -28,6 +30,18 @@ void main() {
       const failure = NetworkFailure();
       expect(failure.label, 'network');
       expect(failure.userMessage(_testL10n), 'Network error');
+    });
+
+    test('NetworkFailure timeout kind uses timeout message', () {
+      const failure = NetworkFailure(kind: NetworkFailureKind.timeout);
+      expect(failure.label, 'network_timeout');
+      expect(failure.userMessage(_testL10n), 'Timeout error');
+    });
+
+    test('NetworkFailure unreachable kind uses unreachable message', () {
+      const failure = NetworkFailure(kind: NetworkFailureKind.unreachable);
+      expect(failure.label, 'network_unreachable');
+      expect(failure.userMessage(_testL10n), 'Unreachable error');
     });
 
     test('AuthExpiredFailure has correct label and userMessage', () {
@@ -118,40 +132,59 @@ void main() {
   });
 
   group('ErrorPresenter.fromDio', () {
-    test('connectionTimeout maps to NetworkFailure', () {
+    test('connectionTimeout maps to NetworkFailure.timeout', () {
       final exception = DioException(
         type: DioExceptionType.connectionTimeout,
         requestOptions: RequestOptions(path: '/test'),
       );
       final failure = ErrorPresenter.fromDio(exception);
       expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).kind, NetworkFailureKind.timeout);
+      expect(failure.userMessage(_testL10n), 'Timeout error');
     });
 
-    test('sendTimeout maps to NetworkFailure', () {
+    test('sendTimeout maps to NetworkFailure.timeout', () {
       final exception = DioException(
         type: DioExceptionType.sendTimeout,
         requestOptions: RequestOptions(path: '/test'),
       );
       final failure = ErrorPresenter.fromDio(exception);
       expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).kind, NetworkFailureKind.timeout);
     });
 
-    test('receiveTimeout maps to NetworkFailure', () {
+    test('receiveTimeout maps to NetworkFailure.timeout', () {
       final exception = DioException(
         type: DioExceptionType.receiveTimeout,
         requestOptions: RequestOptions(path: '/test'),
       );
       final failure = ErrorPresenter.fromDio(exception);
       expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).kind, NetworkFailureKind.timeout);
     });
 
-    test('connectionError maps to NetworkFailure', () {
+    test('connectionError defaults to unreachable not offline', () {
       final exception = DioException(
         type: DioExceptionType.connectionError,
         requestOptions: RequestOptions(path: '/test'),
+        message: 'Connection refused',
       );
       final failure = ErrorPresenter.fromDio(exception);
       expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).kind, NetworkFailureKind.unreachable);
+      expect(failure.userMessage(_testL10n), 'Unreachable error');
+    });
+
+    test('connectionError with offline marker maps to offline', () {
+      final exception = DioException(
+        type: DioExceptionType.connectionError,
+        requestOptions: RequestOptions(path: '/test'),
+        message: 'Network is unreachable',
+      );
+      final failure = ErrorPresenter.fromDio(exception);
+      expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).kind, NetworkFailureKind.offline);
+      expect(failure.userMessage(_testL10n), 'Network error');
     });
 
     test('401 badResponse maps to AuthExpiredFailure', () {
