@@ -313,13 +313,15 @@ class ListingsRepository {
         );
       }
 
-      // First page is partial — non-destructive upsert into disk cache.
+      // First page merge: keep cache-only rows when more pages exist.
+      // When hasMore is false the first page is the full owner set, so prune
+      // stale active cache-only rows (pending/rejected extras still kept).
       final merged = await _withCacheLock(() async {
         final cached = _readListingsCache();
         final next = _mergeServerAndCache(
           page.items,
           cached,
-          preserveAllCacheOnly: true,
+          preserveAllCacheOnly: page.hasMore,
         );
         await _writeListingsCache(next);
         return next;
@@ -442,18 +444,24 @@ class ListingsRepository {
   }
 
   /// Clears durable owner-listing cache (call on sign-out / account switch).
+  ///
+  /// Serialized through [_withCacheLock] so an in-flight first-page merge or
+  /// [cacheOwnerListing] cannot finish after the wipe and repopulate disk with
+  /// the previous owner's listings.
   Future<void> clearOwnerListingsCache() async {
-    try {
-      final prefs = _ref.read(appPreferencesProvider);
-      // Wipe latest + any user-scoped keys still known from bootstrap.
-      for (final key in _cacheKeys()) {
-        await prefs.remove(key);
+    await _withCacheLock(() async {
+      try {
+        final prefs = _ref.read(appPreferencesProvider);
+        // Wipe latest + any user-scoped keys still known from bootstrap.
+        for (final key in _cacheKeys()) {
+          await prefs.remove(key);
+        }
+        // Bootstrap may already be gone at sign-out; still wipe the latest key.
+        await prefs.remove(_latestCacheKey);
+      } catch (e) {
+        debugPrint('ListingsRepository.clearOwnerListingsCache: $e');
       }
-      // Bootstrap may already be gone at sign-out; still wipe the latest key.
-      await prefs.remove(_latestCacheKey);
-    } catch (e) {
-      debugPrint('ListingsRepository.clearOwnerListingsCache: $e');
-    }
+    });
   }
 
   int? get _cacheUserId {

@@ -113,8 +113,8 @@ class CreateListingController {
           if (request.cookCost != null) 'cook_cost': request.cookCost,
           if (request.maidCost != null) 'maid_cost': request.maidCost,
           if (request.setupCost != null) 'setup_cost': request.setupCost,
-          if (request.ageMin != null) 'age_min': request.ageMin,
-          if (request.ageMax != null) 'age_max': request.ageMax,
+          if (request.ageMin != null) 'preferred_age_min': request.ageMin,
+          if (request.ageMax != null) 'preferred_age_max': request.ageMax,
           if (request.nonNegotiables.isNotEmpty)
             'non_negotiables': request.nonNegotiables,
         },

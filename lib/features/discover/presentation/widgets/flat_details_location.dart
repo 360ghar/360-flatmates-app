@@ -101,7 +101,7 @@ class FlatDetailsLocation extends StatelessWidget {
               onTap: () => _openInMaps(
                 l.latitude!,
                 l.longitude!,
-                label: l.locality ?? l.city ?? 'Property',
+                label: l.locality ?? l.city ?? locale.propertyFallbackLabel,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -115,7 +115,10 @@ class FlatDetailsLocation extends StatelessWidget {
                       onPressed: () => _openInMaps(
                         l.latitude!,
                         l.longitude!,
-                        label: l.locality ?? l.city ?? 'Property',
+                        label:
+                            l.locality ??
+                            l.city ??
+                            locale.propertyFallbackLabel,
                       ),
                       icon: const Icon(Icons.place_outlined, size: 18),
                       label: Text(
