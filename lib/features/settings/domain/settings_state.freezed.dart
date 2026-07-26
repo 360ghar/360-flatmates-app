@@ -20,6 +20,10 @@ mixin _$SettingsState {
   ThemeMode get themeMode => throw _privateConstructorUsedError;
   Locale? get locale => throw _privateConstructorUsedError;
   bool get loaded => throw _privateConstructorUsedError;
+
+  /// Set when the initial load throws, so pages can render an error state
+  /// with retry instead of staying stuck on the loading skeleton forever.
+  bool get loadFailed => throw _privateConstructorUsedError;
   bool get hideLastName => throw _privateConstructorUsedError;
   bool get hideExactLocation => throw _privateConstructorUsedError;
   bool get notifNewMessages => throw _privateConstructorUsedError;
@@ -46,6 +50,7 @@ abstract class $SettingsStateCopyWith<$Res> {
     ThemeMode themeMode,
     Locale? locale,
     bool loaded,
+    bool loadFailed,
     bool hideLastName,
     bool hideExactLocation,
     bool notifNewMessages,
@@ -74,6 +79,7 @@ class _$SettingsStateCopyWithImpl<$Res, $Val extends SettingsState>
     Object? themeMode = null,
     Object? locale = freezed,
     Object? loaded = null,
+    Object? loadFailed = null,
     Object? hideLastName = null,
     Object? hideExactLocation = null,
     Object? notifNewMessages = null,
@@ -95,6 +101,10 @@ class _$SettingsStateCopyWithImpl<$Res, $Val extends SettingsState>
             loaded: null == loaded
                 ? _value.loaded
                 : loaded // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            loadFailed: null == loadFailed
+                ? _value.loadFailed
+                : loadFailed // ignore: cast_nullable_to_non_nullable
                       as bool,
             hideLastName: null == hideLastName
                 ? _value.hideLastName
@@ -143,6 +153,7 @@ abstract class _$$SettingsStateImplCopyWith<$Res>
     ThemeMode themeMode,
     Locale? locale,
     bool loaded,
+    bool loadFailed,
     bool hideLastName,
     bool hideExactLocation,
     bool notifNewMessages,
@@ -170,6 +181,7 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
     Object? themeMode = null,
     Object? locale = freezed,
     Object? loaded = null,
+    Object? loadFailed = null,
     Object? hideLastName = null,
     Object? hideExactLocation = null,
     Object? notifNewMessages = null,
@@ -191,6 +203,10 @@ class __$$SettingsStateImplCopyWithImpl<$Res>
         loaded: null == loaded
             ? _value.loaded
             : loaded // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        loadFailed: null == loadFailed
+            ? _value.loadFailed
+            : loadFailed // ignore: cast_nullable_to_non_nullable
                   as bool,
         hideLastName: null == hideLastName
             ? _value.hideLastName
@@ -232,6 +248,7 @@ class _$SettingsStateImpl extends _SettingsState {
     this.themeMode = ThemeMode.light,
     this.locale = const Locale('en'),
     this.loaded = false,
+    this.loadFailed = false,
     this.hideLastName = false,
     this.hideExactLocation = false,
     this.notifNewMessages = true,
@@ -250,6 +267,12 @@ class _$SettingsStateImpl extends _SettingsState {
   @override
   @JsonKey()
   final bool loaded;
+
+  /// Set when the initial load throws, so pages can render an error state
+  /// with retry instead of staying stuck on the loading skeleton forever.
+  @override
+  @JsonKey()
+  final bool loadFailed;
   @override
   @JsonKey()
   final bool hideLastName;
@@ -274,7 +297,7 @@ class _$SettingsStateImpl extends _SettingsState {
 
   @override
   String toString() {
-    return 'SettingsState(themeMode: $themeMode, locale: $locale, loaded: $loaded, hideLastName: $hideLastName, hideExactLocation: $hideExactLocation, notifNewMessages: $notifNewMessages, notifVisitReminders: $notifVisitReminders, notifNewMatches: $notifNewMatches, notifListingUpdates: $notifListingUpdates, notifPromotions: $notifPromotions)';
+    return 'SettingsState(themeMode: $themeMode, locale: $locale, loaded: $loaded, loadFailed: $loadFailed, hideLastName: $hideLastName, hideExactLocation: $hideExactLocation, notifNewMessages: $notifNewMessages, notifVisitReminders: $notifVisitReminders, notifNewMatches: $notifNewMatches, notifListingUpdates: $notifListingUpdates, notifPromotions: $notifPromotions)';
   }
 
   @override
@@ -286,6 +309,8 @@ class _$SettingsStateImpl extends _SettingsState {
                 other.themeMode == themeMode) &&
             (identical(other.locale, locale) || other.locale == locale) &&
             (identical(other.loaded, loaded) || other.loaded == loaded) &&
+            (identical(other.loadFailed, loadFailed) ||
+                other.loadFailed == loadFailed) &&
             (identical(other.hideLastName, hideLastName) ||
                 other.hideLastName == hideLastName) &&
             (identical(other.hideExactLocation, hideExactLocation) ||
@@ -308,6 +333,7 @@ class _$SettingsStateImpl extends _SettingsState {
     themeMode,
     locale,
     loaded,
+    loadFailed,
     hideLastName,
     hideExactLocation,
     notifNewMessages,
@@ -331,6 +357,7 @@ abstract class _SettingsState extends SettingsState {
     final ThemeMode themeMode,
     final Locale? locale,
     final bool loaded,
+    final bool loadFailed,
     final bool hideLastName,
     final bool hideExactLocation,
     final bool notifNewMessages,
@@ -347,6 +374,11 @@ abstract class _SettingsState extends SettingsState {
   Locale? get locale;
   @override
   bool get loaded;
+
+  /// Set when the initial load throws, so pages can render an error state
+  /// with retry instead of staying stuck on the loading skeleton forever.
+  @override
+  bool get loadFailed;
   @override
   bool get hideLastName;
   @override

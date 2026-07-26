@@ -14,6 +14,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
 import 'application/discover_feed_controller.dart';
+import 'application/map_listings_controller.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/flat_details_actions.dart';
 import 'presentation/widgets/full_screen_gallery.dart';
@@ -275,6 +276,9 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     // cursor controllers for Chats and Likes.
     ref.invalidate(conversationsListControllerProvider);
     ref.invalidate(incomingLikesListControllerProvider);
+    // A details like never reached the map pins — invalidate so they refetch the
+    // server state instead of keeping the old heart.
+    ref.invalidate(mapListingsProvider);
   }
 
   Future<void> _handleShortlist(PropertyListing listing) async {

@@ -117,13 +117,17 @@ class VisitCard extends StatelessWidget {
                 color: AppSemanticColors.textTertiaryFor(theme.brightness),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Text(
-                item.visitContext == 'flatmate_meet'
-                    ? locale.flatmateMeetLabel
-                    : locale.propertyTourLabel,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: AppTypography.badgeSize,
-                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
+              Flexible(
+                child: Text(
+                  item.visitContext == 'flatmate_meet'
+                      ? locale.flatmateMeetLabel
+                      : locale.propertyTourLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: AppTypography.badgeSize,
+                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -133,14 +137,18 @@ class VisitCard extends StatelessWidget {
                 color: AppSemanticColors.textTertiaryFor(theme.brightness),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Text(
-                DateFormat(
-                  'EEEE',
-                  locale.localeName,
-                ).format(item.scheduledDate.toLocal()),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: AppTypography.badgeSize,
-                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
+              Flexible(
+                child: Text(
+                  DateFormat(
+                    'EEEE',
+                    locale.localeName,
+                  ).format(item.scheduledDate.toLocal()),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: AppTypography.badgeSize,
+                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                  ),
                 ),
               ),
             ],

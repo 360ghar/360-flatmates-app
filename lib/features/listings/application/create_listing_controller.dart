@@ -7,6 +7,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/storage/image_upload_service.dart' as uploads;
 import '../../bootstrap/bootstrap_controller.dart';
 import '../../discover/application/discover_feed_controller.dart';
+import '../../discover/application/map_listings_controller.dart';
 import '../../discover/discover_repository.dart';
 import '../listings_repository.dart';
 import '../my_listings_controller.dart';
@@ -57,6 +58,11 @@ class CreateListingController {
         : await _listingsRepo.createListing(request);
 
     unawaited(_ref.read(discoverFeedControllerProvider.notifier).refresh());
+    // A new/edited listing must also show up (or update) on the map pins —
+    // invalidate the map-listings provider so it refetches. Container-level
+    // invalidation stays lazy for an unwatched map (e.g. in isolated unit
+    // tests) while refreshing it when it is on screen. (#16)
+    _ref.container.invalidate(mapListingsProvider);
     _ref.invalidate(myListingsProvider);
     _ref.invalidate(myListingsListControllerProvider);
     await _ref.read(bootstrapControllerProvider.notifier).refresh();

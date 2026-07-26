@@ -270,14 +270,6 @@ class LocationController extends Notifier<LocationState> {
     }
   }
 
-  String formatDistance(double km) {
-    if (km < 1) {
-      final meters = (km * 1000).round();
-      return '${meters}m';
-    }
-    return '${km.toStringAsFixed(1)}km';
-  }
-
   Future<void> openLocationSettings() async {
     await Geolocator.openLocationSettings();
   }

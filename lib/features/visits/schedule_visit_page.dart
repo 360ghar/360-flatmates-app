@@ -80,6 +80,10 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   }
 
   Future<void> _submit() async {
+    // Guard against a same-frame double-tap firing two POSTs → two visit rows.
+    // The button is disabled while submitting, but a rapid tap can land both
+    // taps before the rebuild disables it. (#24)
+    if (ref.read(_submittingVisitProvider)) return;
     final locale = AppLocalizations.of(context);
     final conversation = widget.conversation ?? ref.read(_conversationProvider);
     final property = conversation?.contextProperty;

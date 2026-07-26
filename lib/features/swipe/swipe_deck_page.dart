@@ -13,6 +13,7 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../discover/discover_repository.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
+import '../shared/presentation/flatmates_toast.dart';
 import 'application/profile_compatibility.dart';
 import 'application/profile_view_tracker.dart';
 import 'application/swipe_deck_controller.dart';
@@ -244,7 +245,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       final message = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.actionFailedRetry;
-      _showSnack(message);
+      FlatmatesToast.info(context, message);
       _resetAfterSwipe();
       return;
     }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/location/location_data.dart';
+import '../../core/location/location_detection.dart';
 import '../../core/location/location_helpers.dart';
 import '../../core/location/place_suggestion.dart';
 import '../../core/theme/app_semantic_colors.dart';
@@ -66,77 +66,17 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
           bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
-      final detection = await detectCurrentLocation(
+      final detection = await detectAndReportLocation(
+        context,
         catalogCities: catalogCities,
       );
 
       if (!mounted) return;
 
-      switch (detection.result) {
-        case LocationDetectResult.success:
-          ref.read(_selectedCityProvider.notifier).state = detection.city;
-          final city = detection.city;
-          if (city != null) _searchController.text = city.label;
-        case LocationDetectResult.serviceDisabled:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationServicesDisabled,
-              ),
-              action: SnackBarAction(
-                label: AppLocalizations.of(
-                  context,
-                ).locationServicesDisabledAction,
-                onPressed: () => Geolocator.openLocationSettings(),
-              ),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        case LocationDetectResult.permissionDenied:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationPermissionRequired,
-              ),
-            ),
-          );
-        case LocationDetectResult.permissionDeniedForever:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationPermissionDeniedForever,
-              ),
-              action: SnackBarAction(
-                label: AppLocalizations.of(context).locationOpenAppSettings,
-                onPressed: () => Geolocator.openAppSettings(),
-              ),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        case LocationDetectResult.noMatch:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context).locationNoMatchFound),
-            ),
-          );
-        case LocationDetectResult.error:
-          debugPrint('LocationDetection error: ${detection.errorDetail}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationDetectionFailed,
-              ),
-            ),
-          );
-      }
-    } catch (e) {
-      debugPrint('LocationDetection unhandled: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).locationDetectionFailed),
-          ),
-        );
+      if (detection.result == LocationDetectResult.success) {
+        ref.read(_selectedCityProvider.notifier).state = detection.city;
+        final city = detection.city;
+        if (city != null) _searchController.text = city.label;
       }
     } finally {
       if (mounted) ref.read(_locatingProvider.notifier).state = false;

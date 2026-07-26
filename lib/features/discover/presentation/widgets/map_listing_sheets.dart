@@ -194,9 +194,7 @@ void showListingSheet(
                     CircleAvatar(
                       radius: 14,
                       child: Text(
-                        item.owner!.fullName.isNotEmpty
-                            ? item.owner!.fullName[0].toUpperCase()
-                            : '?',
+                        initialsFromName(item.owner?.fullName),
                         style: theme.textTheme.bodySmall,
                       ),
                     ),

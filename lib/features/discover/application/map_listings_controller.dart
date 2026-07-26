@@ -148,6 +148,10 @@ class MapListingsController extends Notifier<MapListingsState> {
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.
       ref.invalidate(conversationsListControllerProvider);
+      // A map-side like never reached the flat-details page — invalidate its
+      // per-listing provider so its heart / likeCount refetch instead of going
+      // stale.
+      ref.invalidate(propertyListingProvider(propertyId));
 
       // Keep the Liked tab in sync when a property is liked from the map.
       if (index >= 0) {

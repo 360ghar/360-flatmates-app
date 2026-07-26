@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
+import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
@@ -26,7 +27,15 @@ class NotificationSettingsPage extends ConsumerWidget {
         appBar: FlatmatesHeader.backTitle(
           title: locale.notificationSettingsTitle,
         ),
-        body: const FlatmatesSkeleton.settingsList(),
+        // settingsControllerProvider is not an AsyncValue, so a failed load
+        // would otherwise leave this page stuck on the skeleton forever.
+        body: settings.loadFailed
+            ? FlatmatesErrorState(
+                message: locale.couldNotLoadContent,
+                onRetry: () =>
+                    ref.read(settingsControllerProvider.notifier).load(),
+              )
+            : const FlatmatesSkeleton.settingsList(),
       );
     }
 

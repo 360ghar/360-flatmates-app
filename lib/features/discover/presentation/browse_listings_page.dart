@@ -155,42 +155,50 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                     ),
                   ),
                 Expanded(
-                  child: ListView.separated(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                      AppSpacing.lg,
-                      120,
-                    ),
-                    // +1 footer row when more pages may still load.
-                    itemCount: filtered.length + (feedState.hasMore ? 1 : 0),
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.md),
-                    itemBuilder: (context, index) {
-                      if (index >= filtered.length) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.lg,
-                          ),
-                          child: Center(
-                            child: feedState.isLoadingMore
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const SizedBox(height: 24),
-                          ),
+                  child: RefreshIndicator(
+                    onRefresh: () => ref
+                        .read(discoverFeedControllerProvider.notifier)
+                        .refresh(),
+                    child: ListView.separated(
+                      controller: _scrollController,
+                      // Always scrollable so pull-to-refresh works even when the
+                      // result set is shorter than the viewport.
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.md,
+                        AppSpacing.lg,
+                        120,
+                      ),
+                      // +1 footer row when more pages may still load.
+                      itemCount: filtered.length + (feedState.hasMore ? 1 : 0),
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.md),
+                      itemBuilder: (context, index) {
+                        if (index >= filtered.length) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.lg,
+                            ),
+                            child: Center(
+                              child: feedState.isLoadingMore
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const SizedBox(height: 24),
+                            ),
+                          );
+                        }
+                        return BrowseListingsCard(
+                          item: filtered[index],
+                          index: index,
                         );
-                      }
-                      return BrowseListingsCard(
-                        item: filtered[index],
-                        index: index,
-                      );
-                    },
+                      },
+                    ),
                   ),
                 ),
               ],

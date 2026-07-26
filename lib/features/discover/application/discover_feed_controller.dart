@@ -7,6 +7,7 @@ import '../../bootstrap/bootstrap_controller.dart';
 import '../../chats/application/cursor_list_controller.dart';
 import '../../chats/chats_repository.dart';
 import '../discover_repository.dart';
+import 'map_listings_controller.dart';
 import 'move_in_filter.dart';
 
 class DiscoverFeedState {
@@ -314,6 +315,10 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.
       ref.invalidate(conversationsListControllerProvider);
+      // A feed like never reached the map pins — invalidate so they refetch the
+      // server state instead of keeping the old heart. (Map→feed sync already
+      // exists via applyLikedLocally in MapListingsController.setLiked.)
+      ref.invalidate(mapListingsProvider);
 
       // Keep the Liked tab in sync optimistically (no full refresh — avoids
       // flicker + extra network). Map's setLiked path is aligned.

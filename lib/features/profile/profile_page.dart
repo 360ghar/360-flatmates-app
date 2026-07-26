@@ -293,8 +293,11 @@ class ProfilePage extends ConsumerWidget {
           );
         },
         loading: () => const FlatmatesSkeleton.profile(),
-        error: (error, _) =>
-            FlatmatesErrorState(message: locale.couldNotLoadProfile),
+        error: (error, _) => FlatmatesErrorState(
+          message: locale.couldNotLoadProfile,
+          onRetry: () =>
+              ref.read(bootstrapControllerProvider.notifier).refresh(),
+        ),
       ),
     );
   }

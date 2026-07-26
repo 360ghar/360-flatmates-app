@@ -259,7 +259,7 @@ class FlatDetailsLocation extends StatelessWidget {
             ? (l.societyTagUserVotes['$currentUserId:$tag'] ??
                   l.societyTagUserVotes[currentUserId.toString()])
             : null;
-        final label = _displayTag(tag);
+        final label = humanizeFlatmatesToken(tag);
         return _SocietyTagChip(
           tag: tag,
           label: label,
@@ -270,13 +270,6 @@ class FlatDetailsLocation extends StatelessWidget {
         );
       }).toList(),
     );
-  }
-
-  String _displayTag(String tag) {
-    return tag
-        .split('_')
-        .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
-        .join(' ');
   }
 
   String _compactCount(int count) {

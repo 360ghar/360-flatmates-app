@@ -38,6 +38,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   }
 
   Future<void> _submit() async {
+    // Same-frame double-tap guard: the disabled-while-saving UI state alone
+    // does not block two taps landing before the first setState rebuilds.
+    if (_saving) return;
     final locale = AppLocalizations.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);

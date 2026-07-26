@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/components.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
+import '../../../shared/presentation/profile_sections.dart';
 import '../../domain/property_listing.dart';
 
 class FlatDetailsAbout extends StatefulWidget {
@@ -35,7 +36,7 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionHeader(label: locale.aboutThisFlatSection),
+          SectionHeader(label: locale.aboutThisFlatSection),
           const SizedBox(height: AppSpacing.sm),
           if (desc != null && desc.isNotEmpty)
             Column(
@@ -122,38 +123,6 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
   }
 }
 
-/// Accent-bar + label section header, matching the swipe card's `SectionHeader`.
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Container(
-          width: 3,
-          height: 16,
-          decoration: const BoxDecoration(
-            color: AppSemanticColors.accent,
-            borderRadius: AppRadius.smBorder,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 /// Costs breakdown with an accentSoft total card + line items.
 ///
 /// Shows the estimated monthly total (rent + maintenance) in a prominent
@@ -185,7 +154,7 @@ class _CostsBreakdown extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionHeader(label: locale.costsBreakdownSectionTitle),
+        SectionHeader(label: locale.costsBreakdownSectionTitle),
         const SizedBox(height: AppSpacing.sm),
 
         // Total/month — accentSoft card with large accent-coloured amount.
@@ -256,11 +225,15 @@ class _CostLineItem extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 13,
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+          // Flexible so a long localized label (e.g. Hindi "सिक्योरिटी डिपॉज़िट")
+          // wraps instead of overflowing against an intrinsic 7-digit value.
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 13,
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
             ),
           ),
           Text(

@@ -199,7 +199,12 @@ class _MessageListState extends ConsumerState<MessageList>
       return const FlatmatesSkeleton.chatMessages();
     }
     if (messagesState.hasError && messagesState.displayMessages.isEmpty) {
-      return FlatmatesErrorState(message: locale.couldNotLoadMessages);
+      return FlatmatesErrorState(
+        message: locale.couldNotLoadMessages,
+        onRetry: () => ref
+            .read(messagesControllerProvider(widget.conversationId).notifier)
+            .refetchLatest(),
+      );
     }
 
     final items = messagesState.displayMessages;

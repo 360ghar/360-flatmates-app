@@ -127,9 +127,22 @@ class DiscoverFilters {
 }
 
 class DiscoverRepository {
-  const DiscoverRepository(this._ref);
+  DiscoverRepository(this._ref);
 
   final Ref _ref;
+
+  /// Listing ids with a like-toggle POST currently in flight. Rapid re-taps on
+  /// the same listing are dropped while its toggle is pending, so the optimistic
+  /// heart and the server cannot diverge and `likeCount` cannot drift ±1/tap.
+  final Set<int> _pendingLikeIds = <int>{};
+
+  /// Reserves the like-toggle slot for [propertyId]. Returns false if a toggle
+  /// for this id is already in flight, in which case the caller must drop the
+  /// tap (before touching any optimistic state).
+  bool reserveLikeToggle(int propertyId) => _pendingLikeIds.add(propertyId);
+
+  /// Releases the like-toggle slot once the POST has settled (success or error).
+  void releaseLikeToggle(int propertyId) => _pendingLikeIds.remove(propertyId);
 
   Future<List<PropertyListing>> fetchListings({
     String? cursor,
@@ -480,6 +493,14 @@ class PropertyListingController
   }
 
   Future<int?> _applyLiked(PropertyListing current, bool newLiked) async {
+    final repo = ref.read(discoverRepositoryProvider);
+    // Drop a tap that lands while a toggle for this listing is already in
+    // flight. The guard sits BEFORE the optimistic mutation so a dropped tap
+    // never flips the heart or bumps `likeCount` — that is what keeps the
+    // client and server from diverging under rapid re-toggles.
+    if (!repo.reserveLikeToggle(current.id)) {
+      return null;
+    }
     // Apply optimistic state immediately so the heart responds instantly.
     // `likeCount` here is a client-side estimate reflecting the viewer's own
     // action; it reconciles with the authoritative server count on the next
@@ -493,9 +514,7 @@ class PropertyListingController
       ),
     );
     try {
-      final cid = await ref
-          .read(discoverRepositoryProvider)
-          .setLiked(current.id, newLiked);
+      final cid = await repo.setLiked(current.id, newLiked);
 
       final outgoing = ref.read(outgoingLikesListControllerProvider.notifier);
       if (newLiked) {
@@ -512,6 +531,8 @@ class PropertyListingController
       // Rollback on failure.
       state = AsyncData(current);
       rethrow;
+    } finally {
+      repo.releaseLikeToggle(current.id);
     }
   }
 }

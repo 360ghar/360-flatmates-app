@@ -14,7 +14,8 @@ class ForceUpdatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -41,8 +42,12 @@ class ForceUpdatePage extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     locale.forceUpdateMessage,
+                    // Brightness-aware token: this screen is non-dismissible,
+                    // so the body copy must stay legible in dark mode too.
                     style: textTheme.bodyMedium?.copyWith(
-                      color: AppSemanticColors.textSecondary,
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ),

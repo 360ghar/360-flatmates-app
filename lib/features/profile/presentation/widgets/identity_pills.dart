@@ -150,42 +150,64 @@ class StaggeredMenuGroup extends StatefulWidget {
 
 class _StaggeredMenuGroupState extends State<StaggeredMenuGroup>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeIn;
-  late final Animation<Offset> _slideUp;
+  AnimationController? _controller;
+  Animation<double>? _fadeIn;
+  Animation<Offset>? _slideUp;
+  var _skipAnimation = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: AppMotion.slow);
+    // Reduce-Motion decision deferred to first build so MediaQuery is
+    // readable; content must never be gated behind the stagger.
+  }
+
+  void _ensureController(BuildContext context) {
+    if (_controller != null || _skipAnimation) return;
+
+    if (AppMotion.reduceMotion(context)) {
+      _skipAnimation = true;
+      return;
+    }
+
+    final controller = AnimationController(
+      vsync: this,
+      duration: AppMotion.slow,
+    );
+    _controller = controller;
     _fadeIn = CurvedAnimation(
-      parent: _controller,
+      parent: controller,
       curve: AppMotion.easeOutCubic,
     );
     _slideUp = Tween(begin: const Offset(0, 0.04), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: AppMotion.easeOutCubic),
+      CurvedAnimation(parent: controller, curve: AppMotion.easeOutCubic),
     );
-
     final delay = Duration(
       milliseconds:
           300 + widget.delayIndex * AppMotion.staggerItem.inMilliseconds,
     );
     Future.delayed(delay, () {
-      if (mounted) _controller.forward();
+      if (mounted) controller.forward();
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _ensureController(context);
+
+    if (_skipAnimation || _controller == null) {
+      return widget.child;
+    }
+
     return FadeTransition(
-      opacity: _fadeIn,
-      child: SlideTransition(position: _slideUp, child: widget.child),
+      opacity: _fadeIn!,
+      child: SlideTransition(position: _slideUp!, child: widget.child),
     );
   }
 }

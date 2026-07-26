@@ -313,21 +313,21 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
             StatDialogRow(
               icon: Icons.visibility_outlined,
               label: locale.viewsStatLabel,
-              value: _formatCount(listing.viewCount),
+              value: compactCount(listing.viewCount),
               theme: theme,
             ),
             const SizedBox(height: AppSpacing.md),
             StatDialogRow(
               icon: Icons.favorite_outline,
               label: locale.likesStatLabel,
-              value: _formatCount(listing.likeCount),
+              value: compactCount(listing.likeCount),
               theme: theme,
             ),
             const SizedBox(height: AppSpacing.md),
             StatDialogRow(
               icon: Icons.handshake_outlined,
               label: locale.matchesStatLabel,
-              value: _formatCount(listing.interestCount),
+              value: compactCount(listing.interestCount),
               theme: theme,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -340,12 +340,6 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
         ),
       ),
     );
-  }
-
-  static String _formatCount(int count) {
-    if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
-    if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
-    return count.toString();
   }
 
   Future<void> _togglePause(

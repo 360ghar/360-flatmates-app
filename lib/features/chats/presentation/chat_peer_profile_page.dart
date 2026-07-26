@@ -87,6 +87,22 @@ class ChatPeerProfilePage extends ConsumerWidget {
     final compatResult = compatAsync.valueOrNull;
     final peer = conversation?.peer;
 
+    // Recoverable error, not a silent blank page, when the fetch fails with
+    // no profile and no conversation peer to fall back on.
+    if (profile == null &&
+        peer == null &&
+        (profileAsync.hasError || compatAsync.hasError)) {
+      return FlatmatesScreen(
+        body: FlatmatesErrorState(
+          message: locale.couldNotLoadProfile,
+          onRetry: () {
+            ref.invalidate(peerProfileProvider(userId));
+            ref.invalidate(peerCompatibilityProvider(userId));
+          },
+        ),
+      );
+    }
+
     final name =
         profile?['full_name'] as String? ?? peer?.fullName ?? locale.chatsTitle;
     final imageUrl =
@@ -164,7 +180,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
               AppSpacing.xl,
             ),
             children: [
-              // -- Avatar with progress ring --
               PeerProfileAvatarRing(
                 name: name,
                 imageUrl: imageUrl,
@@ -172,7 +187,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 matchColor: matchColor,
               ),
               const SizedBox(height: AppSpacing.sm),
-              // -- Name --
               Text(
                 name,
                 textAlign: TextAlign.center,
@@ -180,7 +194,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              // -- Age · Profession --
               if (ageProfessionParts.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
@@ -191,7 +204,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                   ),
                 ),
               ],
-              // -- Location --
               if (locationParts.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xxs),
                 Row(
@@ -212,7 +224,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                   ],
                 ),
               ],
-              // -- Action buttons (icon-over-label) --
               if (actionButtons.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Row(
@@ -231,7 +242,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 ),
               ],
 
-              // -- Listing details --
               if (contextProperty != null && conversation != null) ...[
                 const SizedBox(height: AppSpacing.lg),
                 SectionHeader(label: locale.listingDetails),
@@ -243,7 +253,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 ),
               ],
 
-              // -- About --
               if (bio != null && bio.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
                 SectionHeader(label: locale.aboutLabel),
@@ -259,13 +268,10 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 ),
               ],
 
-              // -- Lifestyle --
               ..._lifestyleSection(locale, profile),
 
-              // -- Preferences (only when profile is loaded) --
               if (profile != null) ...[..._preferencesSection(locale, profile)],
 
-              // -- Compatibility breakdown --
               if (compatResult != null) ...[
                 const SizedBox(height: AppSpacing.lg),
                 SectionHeader(label: locale.compatibilityBreakdown),
@@ -273,7 +279,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
                 CompatBreakdownSection(result: compatResult),
               ],
 
-              // -- Loading skeleton --
               if (profileAsync.isLoading && profile == null) ...[
                 const SizedBox(height: AppSpacing.xl),
                 const FlatmatesSkeleton.list(itemCount: 3),
@@ -281,7 +286,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
             ],
           ),
 
-          // -- Floating back button --
           Positioned(
             top: 0,
             left: 0,
@@ -296,7 +300,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
             ),
           ),
 
-          // -- Match % top-right --
           if (matchPercentage != null)
             Positioned(
               top: 0,
@@ -374,13 +377,13 @@ class ChatPeerProfilePage extends ConsumerWidget {
       'early_bird' => l.quizEarlyBird,
       'flexible' => l.quizFlexible,
       'night_owl' => l.quizNightOwl,
-      _ => _humanize(raw),
+      _ => humanizeFlatmatesToken(raw),
     },
     'cleanliness' => switch (raw) {
       'minimal' => l.quizCleanMinimal,
       'tidy' => l.quizCleanTidy,
       'spotless' => l.quizCleanSpotless,
-      _ => _humanize(raw),
+      _ => humanizeFlatmatesToken(raw),
     },
     'food_habits' => switch (raw) {
       'vegetarian' => l.quizVegetarian,
@@ -388,28 +391,28 @@ class ChatPeerProfilePage extends ConsumerWidget {
       'non_vegetarian' => l.quizNonVegetarian,
       'eggetarian' => l.quizEggetarian,
       'no_preference' => l.quizNoFoodPref,
-      _ => _humanize(raw),
+      _ => humanizeFlatmatesToken(raw),
     },
     'smoking_drinking' => switch (raw) {
       'neither' => l.quizNeither,
       'smoke_outside' => l.quizSmokeOutside,
       'drink_occasionally' => l.quizDrinkOccasionally,
       'both_fine' => l.quizBothFine,
-      _ => _humanize(raw),
+      _ => humanizeFlatmatesToken(raw),
     },
     'guests_policy' => switch (raw) {
       'no_overnight_guests' => l.quizNoGuests,
       'occasional_ok' => l.quizOccasionalGuests,
       'open_house' => l.quizOpenHouse,
-      _ => _humanize(raw),
+      _ => humanizeFlatmatesToken(raw),
     },
     'work_style' => switch (raw) {
       'wfh' => l.quizWfh,
       'office' => l.quizOffice,
       'hybrid' => l.quizHybrid,
-      _ => _humanize(raw),
+      _ => humanizeFlatmatesToken(raw),
     },
-    _ => _humanize(raw),
+    _ => humanizeFlatmatesToken(raw),
   };
 
   List<Widget> _preferencesSection(
@@ -477,14 +480,8 @@ class ChatPeerProfilePage extends ConsumerWidget {
       case 'work_style':
         return locale.lifestyleDimWork;
       default:
-        return _humanize(key);
+        return humanizeFlatmatesToken(key);
     }
-  }
-
-  static String _humanize(String value) {
-    final words = value.replaceAll('_', ' ').trim();
-    if (words.isEmpty) return words;
-    return words[0].toUpperCase() + words.substring(1);
   }
 
   Color _matchColor(Brightness brightness, double pct) {

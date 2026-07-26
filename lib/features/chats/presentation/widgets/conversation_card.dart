@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -45,10 +44,7 @@ class ConversationCard extends StatelessWidget {
     ].join(', ');
     final timestamp = item.lastMessageAt == null
         ? ''
-        : DateFormat(
-            'd MMM, h:mm a',
-            locale.localeName,
-          ).format(item.lastMessageAt!.toLocal());
+        : messageTimestamp(locale, item.lastMessageAt!);
 
     final isUnread = item.unreadCount > 0;
     final brightness = theme.brightness;

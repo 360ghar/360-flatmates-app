@@ -21,37 +21,38 @@ class StatActionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
+    // Disabled tiles use the brightness-aware muted token instead of the
+    // light-only `textTertiary` + `Opacity(0.5)`, which collapsed to ~1.8:1 on
+    // the dark surface and made the Views/Likes tiles vanish. The muted token
+    // already reads as dimmed, so no extra opacity layer is needed. (#33)
     final color = enabled
         ? AppSemanticColors.accent
-        : AppSemanticColors.textTertiary;
+        : AppSemanticColors.textTertiaryFor(theme.brightness);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Opacity(
-        opacity: enabled ? 1 : 0.5,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.sm - AppSpacing.xs,
-            horizontal: AppSpacing.xs,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 18, color: color),
-              const SizedBox(height: AppSpacing.xs - 1),
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: enabled ? null : color,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm - AppSpacing.xs,
+          horizontal: AppSpacing.xs,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(height: AppSpacing.xs - 1),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: enabled ? null : color,
               ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
