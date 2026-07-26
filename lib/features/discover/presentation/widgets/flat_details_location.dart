@@ -126,7 +126,7 @@ class FlatDetailsLocation extends StatelessWidget {
               if (l.viewCount > 0) ...[
                 _StatItem(
                   icon: Icons.visibility_outlined,
-                  value: _compactCount(l.viewCount),
+                  value: compactCount(l.viewCount),
                   label: locale.viewsLabel,
                   isDark: isDark,
                 ),
@@ -135,7 +135,7 @@ class FlatDetailsLocation extends StatelessWidget {
               if (l.interestCount > 0) ...[
                 _StatItem(
                   icon: Icons.person_outline,
-                  value: _compactCount(l.interestCount),
+                  value: compactCount(l.interestCount),
                   label: locale.interestedLabel,
                   isDark: isDark,
                 ),
@@ -144,7 +144,7 @@ class FlatDetailsLocation extends StatelessWidget {
               if (l.likeCount > 0)
                 _StatItem(
                   icon: Icons.favorite_border,
-                  value: _compactCount(l.likeCount),
+                  value: compactCount(l.likeCount),
                   label: locale.likesLabel,
                   isDark: isDark,
                 ),
@@ -270,14 +270,6 @@ class FlatDetailsLocation extends StatelessWidget {
         );
       }).toList(),
     );
-  }
-
-  String _compactCount(int count) {
-    if (count >= 1000) {
-      final k = count / 1000;
-      return '${k.toStringAsFixed(k.truncateToDouble() == k ? 0 : 1)}k';
-    }
-    return count.toString();
   }
 }
 
