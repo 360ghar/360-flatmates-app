@@ -2724,6 +2724,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'लगभग हो गया! लाइव होने से पहले सब कुछ जांचें';
 
   @override
+  String get fieldRequired => 'यह फ़ील्ड ज़रूरी है';
+
+  @override
   String get listingRentRequired => 'मासिक किराया ज़रूरी है';
 
   @override
@@ -2802,6 +2805,14 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get errorNetwork =>
       'कोई इंटरनेट कनेक्शन नहीं। कृपया अपना नेटवर्क जांचें और पुनः प्रयास करें।';
+
+  @override
+  String get errorTimeout =>
+      'अनुरोध का समय समाप्त हो गया। कृपया पुनः प्रयास करें।';
+
+  @override
+  String get errorCannotReachServer =>
+      'सर्वर से कनेक्ट नहीं हो सका। कृपया थोड़ी देर बाद पुनः प्रयास करें।';
 
   @override
   String get errorAuthExpired => 'सत्र समाप्त हो गया। कृपया पुनः साइन इन करें।';

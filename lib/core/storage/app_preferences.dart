@@ -26,6 +26,13 @@ abstract final class PrefKeys {
   static const flatmatesOnboardingCompletedUserId =
       'flatmates_onboarding_completed_user_id';
 
+  /// Local fallback when production `PUT /users/me` returns 200 with
+  /// full_name/DOB in the body but never commits them (auth-state stays on
+  /// profile_completion). Scoped to the user id that completed the form.
+  /// Remove once the backend commits user updates before responding.
+  static const profileCompletionLocalUserId =
+      'profile_completion_local_user_id';
+
   /// Survives process death between OTP verify and set-password so the
   /// mandatory password gate is restored on cold start with a live session.
   static const pendingPasswordSetup = 'pending_password_setup';

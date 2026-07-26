@@ -64,6 +64,9 @@ class ListingStepView extends StatelessWidget {
     required this.data,
     required this.catalog,
     required this.catalogLabel,
+    required this.showSocietyValidation,
+    required this.showCityValidation,
+    required this.showLocalityValidation,
     required this.showRentValidation,
     required this.showDepositValidation,
     required this.showMaintenanceValidation,
@@ -78,6 +81,9 @@ class ListingStepView extends StatelessWidget {
   final ListingFormData data;
   final List<CatalogOption> Function(String key) catalog;
   final String Function(String key, String id) catalogLabel;
+  final bool showSocietyValidation;
+  final bool showCityValidation;
+  final bool showLocalityValidation;
   final bool showRentValidation;
   final bool showDepositValidation;
   final bool showMaintenanceValidation;
@@ -94,6 +100,9 @@ class ListingStepView extends StatelessWidget {
         addressController: data.addressController,
         cityController: data.cityController,
         localityController: data.localityController,
+        showSocietyValidation: showSocietyValidation,
+        showCityValidation: showCityValidation,
+        showLocalityValidation: showLocalityValidation,
         onChanged: callbacks.onFieldChanged,
       ),
       1 => StepSocietySection(

@@ -12,6 +12,9 @@ class StepLocationSection extends StatelessWidget {
     required this.cityController,
     required this.localityController,
     required this.onChanged,
+    this.showSocietyValidation = false,
+    this.showCityValidation = false,
+    this.showLocalityValidation = false,
     super.key,
   });
 
@@ -20,6 +23,9 @@ class StepLocationSection extends StatelessWidget {
   final TextEditingController cityController;
   final TextEditingController localityController;
   final VoidCallback onChanged;
+  final bool showSocietyValidation;
+  final bool showCityValidation;
+  final bool showLocalityValidation;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +41,7 @@ class StepLocationSection extends StatelessWidget {
               labelText: locale.societyBuildingLabel,
               hintText: locale.societyBuildingHint,
               prefixIcon: const Icon(Icons.apartment_outlined),
+              errorText: showSocietyValidation ? locale.fieldRequired : null,
             ),
             onChanged: (_) => onChanged(),
           ),
@@ -56,7 +63,10 @@ class StepLocationSection extends StatelessWidget {
                 child: TextFormField(
                   key: const Key('listing_city_input'),
                   controller: cityController,
-                  decoration: InputDecoration(labelText: locale.cityLabel),
+                  decoration: InputDecoration(
+                    labelText: locale.cityLabel,
+                    errorText: showCityValidation ? locale.fieldRequired : null,
+                  ),
                   onChanged: (_) => onChanged(),
                 ),
               ),
@@ -65,7 +75,12 @@ class StepLocationSection extends StatelessWidget {
                 child: TextFormField(
                   key: const Key('listing_locality_input'),
                   controller: localityController,
-                  decoration: InputDecoration(labelText: locale.localityLabel),
+                  decoration: InputDecoration(
+                    labelText: locale.localityLabel,
+                    errorText: showLocalityValidation
+                        ? locale.fieldRequired
+                        : null,
+                  ),
                   onChanged: (_) => onChanged(),
                 ),
               ),

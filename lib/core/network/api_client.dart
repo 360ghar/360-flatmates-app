@@ -15,7 +15,11 @@ final class ApiClient {
           connectTimeout: const Duration(seconds: 20),
           receiveTimeout: const Duration(seconds: 30),
           sendTimeout: const Duration(seconds: 60),
+          // Explicit JSON content-type so PUT/POST body maps are never sent
+          // as empty form data (which would soft-succeed profile updates).
+          // Per-request Options (e.g. multipart uploads) override this.
           headers: const {'Accept': 'application/json'},
+          contentType: Headers.jsonContentType,
         ),
       ) {
     _dio.interceptors.add(
@@ -25,7 +29,10 @@ final class ApiClient {
       _dio.interceptors.add(
         LogInterceptor(
           requestHeader: false,
-          responseHeader: false,
+          // Log bodies + status so profile-completion / gate failures are
+          // diagnosable (statusCode is only printed when responseHeader is on).
+          requestBody: true,
+          responseBody: true,
           logPrint: (obj) => debugPrint('🌐 $obj'),
         ),
       );

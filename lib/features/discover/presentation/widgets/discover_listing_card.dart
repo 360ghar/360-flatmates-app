@@ -286,13 +286,14 @@ class DiscoverListingCard extends StatelessWidget {
                           FlatmatesListingMetaChips(items: metaItems),
                         ],
                         const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                FlatmatesPriceText.formatCompact(
+                        // Full rent must never be mid-truncated by competing
+                        // flex siblings. Soft-wrap may break before /month;
+                        // move-in is a second line when a deposit exists.
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: FlatmatesPriceText.formatCompact(
                                   item.monthlyRent.round(),
                                 ),
                                 style: theme.textTheme.titleMedium?.copyWith(
@@ -300,34 +301,33 @@ class DiscoverListingCard extends StatelessWidget {
                                   fontWeight: FontWeight.w700,
                                   height: 1.25,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            Text(
-                              locale.perMonthSuffix,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: body,
-                              ),
-                            ),
-                            if (item.securityDeposit != null &&
-                                item.securityDeposit! > 0) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              Flexible(
-                                child: Text(
-                                  locale.moveInCostLabel(
-                                    FlatmatesPriceText.formatRupee(moveInTotal),
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: muted,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              const TextSpan(text: ' '),
+                              TextSpan(
+                                text: locale.perMonthSuffix,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: body,
                                 ),
                               ),
                             ],
-                          ],
+                          ),
+                          softWrap: true,
+                          maxLines: 2,
                         ),
+                        if (item.securityDeposit != null &&
+                            item.securityDeposit! > 0) ...[
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            locale.moveInCostLabel(
+                              FlatmatesPriceText.formatRupee(moveInTotal),
+                            ),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: muted,
+                            ),
+                            softWrap: true,
+                            maxLines: 2,
+                          ),
+                        ],
                       ],
                     ),
             ),

@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flatmates_app/app/router/app_router.dart';
@@ -5,6 +6,48 @@ import 'package:flatmates_app/features/auth/domain/auth_state.dart';
 import 'package:flatmates_app/features/bootstrap/domain/bootstrap_models.dart';
 
 void main() {
+  group('shouldForceSplashForBootstrap', () {
+    test('forces splash when bootstrap has no value', () {
+      expect(
+        shouldForceSplashForBootstrap(const AsyncValue<Object?>.loading()),
+        isTrue,
+      );
+      expect(
+        shouldForceSplashForBootstrap(
+          AsyncValue<Object?>.error(Exception('x'), StackTrace.current),
+        ),
+        isTrue,
+      );
+      expect(
+        shouldForceSplashForBootstrap(const AsyncValue<Object?>.data(null)),
+        isTrue,
+      );
+    });
+
+    test(
+      'does not force splash when previous data is retained while loading',
+      () {
+        const previous = AsyncValue<Object?>.data('bootstrap');
+        final reloading = const AsyncLoading<Object?>().copyWithPrevious(
+          previous,
+        );
+        expect(shouldForceSplashForBootstrap(reloading), isFalse);
+        expect(reloading.isLoading, isTrue);
+        expect(reloading.valueOrNull, 'bootstrap');
+      },
+    );
+
+    test('does not force splash when previous data is retained on error', () {
+      const previous = AsyncValue<Object?>.data('bootstrap');
+      final failed = AsyncError<Object?>(
+        Exception('refresh failed'),
+        StackTrace.current,
+      ).copyWithPrevious(previous);
+      expect(shouldForceSplashForBootstrap(failed), isFalse);
+      expect(failed.valueOrNull, 'bootstrap');
+    });
+  });
+
   group('authenticatedAppReady', () {
     test('treats active backend stage as ready', () {
       expect(

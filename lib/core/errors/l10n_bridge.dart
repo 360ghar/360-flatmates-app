@@ -11,6 +11,8 @@ import '../errors/app_failure.dart';
 extension AppLocalizationsX on AppLocalizations {
   UserMessageL10n toUserMessageL10n() => UserMessageL10n(
     errorNetwork: errorNetwork,
+    errorTimeout: errorTimeout,
+    errorCannotReachServer: errorCannotReachServer,
     errorAuthExpired: errorAuthExpired,
     errorAuth: errorAuth,
     errorServer: errorServer,
@@ -49,6 +51,8 @@ String resolveAuthError(String? errorMessage, AppLocalizations l10n) {
   }
   return switch (key) {
     'network' => l10n.errorNetwork,
+    'network_timeout' => l10n.errorTimeout,
+    'network_unreachable' => l10n.errorCannotReachServer,
     'auth_expired' => l10n.errorAuthExpired,
     'auth' => l10n.errorAuth,
     'permission' => l10n.errorPermission,

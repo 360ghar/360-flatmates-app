@@ -22,15 +22,44 @@ sealed class AppFailure {
   String userMessage(UserMessageL10n l10n);
 }
 
-/// Network connectivity / timeout issues.
+/// Why a network request failed — used for accurate user messaging.
+///
+/// Historically every transport error was labeled "No internet connection",
+/// which is wrong for timeouts and "server unreachable while Wi‑Fi is fine".
+enum NetworkFailureKind {
+  /// Device has no usable network interface / offline.
+  offline,
+
+  /// Connect/send/receive timed out (server slow or packet loss).
+  timeout,
+
+  /// DNS/TLS/connection refused while the device may still be online.
+  unreachable,
+}
+
+/// Network connectivity / timeout / reachability issues.
 final class NetworkFailure extends AppFailure {
-  const NetworkFailure({super.underlyingError, super.stackTrace});
+  const NetworkFailure({
+    this.kind = NetworkFailureKind.offline,
+    super.underlyingError,
+    super.stackTrace,
+  });
+
+  final NetworkFailureKind kind;
 
   @override
-  String get label => 'network';
+  String get label => switch (kind) {
+    NetworkFailureKind.offline => 'network',
+    NetworkFailureKind.timeout => 'network_timeout',
+    NetworkFailureKind.unreachable => 'network_unreachable',
+  };
 
   @override
-  String userMessage(UserMessageL10n l10n) => l10n.errorNetwork;
+  String userMessage(UserMessageL10n l10n) => switch (kind) {
+    NetworkFailureKind.offline => l10n.errorNetwork,
+    NetworkFailureKind.timeout => l10n.errorTimeout,
+    NetworkFailureKind.unreachable => l10n.errorCannotReachServer,
+  };
 }
 
 /// Auth token expired or invalid. User must sign in again.
@@ -224,6 +253,8 @@ final class UnknownFailure extends AppFailure {
 class UserMessageL10n {
   const UserMessageL10n({
     required this.errorNetwork,
+    required this.errorTimeout,
+    required this.errorCannotReachServer,
     required this.errorAuthExpired,
     required this.errorAuth,
     required this.errorServer,
@@ -239,6 +270,8 @@ class UserMessageL10n {
   });
 
   final String errorNetwork;
+  final String errorTimeout;
+  final String errorCannotReachServer;
   final String errorAuthExpired;
   final String errorAuth;
   final String errorServer;

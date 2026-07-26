@@ -96,6 +96,21 @@ void main() {
       final listing = _listing(status: 'under_review');
       expect(listingStatus(listing), 'pending_review');
     });
+
+    test(
+      'property lifecycle "available" without moderation maps to active',
+      () {
+        // DTO falls back to Property.status=available when moderation_status is
+        // missing; those rows must not vanish from every manage tab.
+        final listing = _listing(status: 'available');
+        expect(listingStatus(listing), 'active');
+      },
+    );
+
+    test('empty status maps to active', () {
+      final listing = _listing(status: '');
+      expect(listingStatus(listing), 'active');
+    });
   });
 
   group('listingMatchesTab', () {
@@ -132,6 +147,13 @@ void main() {
     test('active tab does not match expired listing', () {
       final listing = _listing(status: 'expired');
       expect(listingMatchesTab(listing, 'active'), isFalse);
+    });
+
+    test('active tab matches lifecycle "available" fallback status', () {
+      final listing = _listing(status: 'available');
+      expect(listingMatchesTab(listing, 'active'), isTrue);
+      expect(listingMatchesTab(listing, 'draft'), isFalse);
+      expect(listingMatchesTab(listing, 'expired'), isFalse);
     });
   });
 }

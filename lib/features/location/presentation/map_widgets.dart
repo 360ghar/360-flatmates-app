@@ -39,40 +39,49 @@ class MiniMapView extends StatelessWidget {
   Widget build(BuildContext context) {
     final center = LatLng(latitude, longitude);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isTappable = onTap != null;
+
+    // flutter_map still participates in hit-testing even with
+    // InteractiveFlag.none, which swallows parent InkWell / GestureDetector
+    // taps. When the mini-map is meant to open external maps, ignore pointer
+    // events on the map surface so the full Stack (including the "Open in
+    // Maps" badge) is tappable.
+    final mapLayer = FlutterMap(
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: 15,
+        minZoom: kDefaultMinZoom,
+        maxZoom: kDefaultMaxZoom,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.none,
+        ),
+      ),
+      children: [
+        TileLayerFactory.build(context),
+        RichAttributionWidget(
+          attributions: [
+            TextSourceAttribution(
+              TileLayerFactory.attributionFor(context),
+              textStyle: TextStyle(
+                fontSize: 8,
+                color: AppSemanticColors.textSecondaryFor(
+                  isDark ? Brightness.dark : Brightness.light,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
 
     final mapContent = SizedBox(
       height: height,
+      width: double.infinity,
       child: Stack(
+        fit: StackFit.expand,
         alignment: Alignment.center,
         children: [
-          FlutterMap(
-            options: MapOptions(
-              initialCenter: center,
-              initialZoom: 15,
-              minZoom: kDefaultMinZoom,
-              maxZoom: kDefaultMaxZoom,
-              // Fully non-interactive single-pin map.
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.none,
-              ),
-            ),
-            children: [
-              TileLayerFactory.build(context),
-              RichAttributionWidget(
-                attributions: [
-                  TextSourceAttribution(
-                    TileLayerFactory.attributionFor(context),
-                    textStyle: TextStyle(
-                      fontSize: 8,
-                      color: AppSemanticColors.textSecondaryFor(
-                        isDark ? Brightness.dark : Brightness.light,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          if (isTappable) IgnorePointer(child: mapLayer) else mapLayer,
           // The pin: map is locked on `center`, so screen-center == `center`.
           const IgnorePointer(
             child: Padding(
@@ -85,18 +94,31 @@ class MiniMapView extends StatelessWidget {
               ),
             ),
           ),
-          // Attribution overlay
+          // Attribution overlay (decorative on tappable mini-maps).
           Positioned(
             bottom: AppSpacing.xs,
             left: AppSpacing.xs,
-            child: _AttributionWidget(isDark: isDark),
+            child: IgnorePointer(child: _AttributionWidget(isDark: isDark)),
           ),
-          // "Tap to open" affordance — only shown when the map is tappable.
-          if (onTap != null)
+          // "Open in Maps" affordance — visual only; taps go to the InkWell.
+          if (isTappable)
             Positioned(
               top: AppSpacing.xs,
               right: AppSpacing.xs,
               child: IgnorePointer(child: _OpenInMapsHint(isDark: isDark)),
+            ),
+          // Explicit full-surface hit target so both the badge and the map
+          // body reliably open external maps (sector button is separate).
+          if (isTappable)
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  key: const Key('flat_map_open'),
+                  onTap: onTap,
+                  child: const SizedBox.expand(),
+                ),
+              ),
             ),
         ],
       ),
@@ -107,24 +129,14 @@ class MiniMapView extends StatelessWidget {
       child: mapContent,
     );
 
-    if (onTap == null) {
+    if (!isTappable) {
       return clipped;
     }
 
     return Semantics(
       button: true,
       label: AppLocalizations.of(context).openInMapsLabel,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: AppRadius.mdBorder,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          key: const Key('flat_map_open'),
-          onTap: onTap,
-          borderRadius: AppRadius.mdBorder,
-          child: mapContent,
-        ),
-      ),
+      child: clipped,
     );
   }
 }
