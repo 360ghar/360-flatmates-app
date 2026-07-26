@@ -16,8 +16,6 @@ class ChatActionsController {
     // so refresh the lists the user returns to after blocking.
     await invalidateChatListControllers(_ref);
     _ref.invalidate(conversationsProvider);
-    _ref.invalidate(incomingLikesProvider);
-    _ref.invalidate(outgoingLikesProvider);
   }
 
   Future<void> reportUser(int peerId, String reason) async {
@@ -29,8 +27,6 @@ class ChatActionsController {
     // Unmatching drops the conversation; refresh so the stale row disappears.
     await invalidateChatListControllers(_ref);
     _ref.invalidate(conversationsProvider);
-    _ref.invalidate(incomingLikesProvider);
-    _ref.invalidate(outgoingLikesProvider);
   }
 
   /// Submits QnA answers and returns the refreshed conversation, or null
@@ -60,7 +56,6 @@ class ChatActionsController {
       contextPropertyId: contextPropertyId,
     );
     await invalidateChatListControllers(_ref);
-    _ref.invalidate(incomingLikesProvider);
     _ref.invalidate(conversationsProvider);
     return conversationId;
   }

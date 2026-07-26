@@ -556,26 +556,6 @@ final discoverFeedControllerProvider =
       DiscoverFeedController.new,
     );
 
-final bedroomOptionsProvider = Provider<List<int>>((ref) {
-  final listings = ref.watch(
-    discoverFeedControllerProvider.select((s) => s.listings),
-  );
-  return listings.map((item) => item.bedrooms).whereType<int>().toSet().toList()
-    ..sort();
-});
-
-final featureOptionsProvider = Provider<List<String>>((ref) {
-  final listings = ref.watch(
-    discoverFeedControllerProvider.select((s) => s.listings),
-  );
-  return listings
-      .expand((item) => item.features)
-      .where((feature) => feature.isNotEmpty)
-      .toSet()
-      .toList()
-    ..sort();
-});
-
 final filteredListingsProvider = Provider<List<PropertyListing>>((ref) {
   final feedState = ref.watch(
     discoverFeedControllerProvider.select((s) => (s.listings, s.filters)),

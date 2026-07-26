@@ -237,7 +237,7 @@ void main() {
   group('Catalogs contract', () {
     test('parses catalogs.json fixture as a list of mode items', () {
       final json = loadFixture('catalogs.json');
-      final items = json['items'] as List;
+      final items = (json['items'] as List).cast<Map<String, dynamic>>();
 
       expect(items, hasLength(3));
       final coHunter = items.firstWhere((i) => i['id'] == 'co_hunter');
