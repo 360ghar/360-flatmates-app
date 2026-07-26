@@ -253,6 +253,19 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               context: context,
                               listing: listing,
                               onContact: () => _handleContact(listing),
+                              onScheduleVisit: () {
+                                scheduleVisitFromDetails(
+                                  ref: ref,
+                                  context: context,
+                                  listing: listing,
+                                  listingId: widget.listingId,
+                                  conversationId: _conversationId,
+                                  onConversationId: (cid) =>
+                                      _conversationId = cid,
+                                  onLikeSynced: _syncLikeAcrossViews,
+                                  setScheduling: (_) {},
+                                );
+                              },
                             )
                           : null,
                       onImageTap: listing.imageUrls.isNotEmpty
@@ -411,7 +424,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       final hasLiked = listing.liked ?? false;
       final cid = await ref
           .read(propertyListingProvider(widget.listingId).notifier)
-          .ensureLiked();
+          .ensureLiked(listing);
       if (cid != null) _conversationId = cid;
       if (!hasLiked) {
         _syncLikeAcrossViews();

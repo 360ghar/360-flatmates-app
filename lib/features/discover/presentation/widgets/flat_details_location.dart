@@ -105,49 +105,35 @@ class FlatDetailsLocation extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            // Locality/sector chip + directions — both open the external maps app.
-            Row(
-              children: [
-                if ((l.locality ?? l.city)?.trim().isNotEmpty ?? false) ...[
-                  Flexible(
-                    child: OutlinedButton.icon(
-                      key: const Key('flat_map_locality_open'),
-                      onPressed: () => _openInMaps(
-                        l.latitude!,
-                        l.longitude!,
-                        label:
-                            l.locality ??
-                            l.city ??
-                            locale.propertyFallbackLabel,
-                      ),
-                      icon: const Icon(Icons.place_outlined, size: 18),
-                      label: Text(
-                        (l.locality ?? l.city)!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppSemanticColors.accent,
-                        side: const BorderSide(color: AppSemanticColors.accent),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: AppRadius.smBorder,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                          vertical: AppSpacing.md,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                GetDirectionsButton(
-                  latitude: l.latitude!,
-                  longitude: l.longitude!,
-                  // Keep directions label as the action, not the sector name.
-                ),
-              ],
-            ),
+            // Sector button (commented out — kept for reference)
+            // if ((l.locality ?? l.city)?.trim().isNotEmpty ?? false)
+            //   Flexible(
+            //     child: OutlinedButton.icon(
+            //       key: Key('flat_map_locality_open'),
+            //       onPressed: () => _openInMaps(
+            //         l.latitude!,
+            //         l.longitude!,
+            //         label:
+            //             l.locality ??
+            //             l.city ??
+            //             locale.propertyFallbackLabel,
+            //       ),
+            //       icon: Icon(Icons.place_outlined, size: 18),
+            //       label: Text((l.locality ?? l.city)!),
+            //       style: OutlinedButton.styleFrom(
+            //         foregroundColor: AppSemanticColors.accent,
+            //         side: BorderSide(color: AppSemanticColors.accent),
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: AppRadius.smBorder,
+            //         ),
+            //         padding: EdgeInsets.symmetric(
+            //           horizontal: AppSpacing.lg,
+            //           vertical: AppSpacing.md,
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            GetDirectionsButton(latitude: l.latitude!, longitude: l.longitude!),
             const SizedBox(height: AppSpacing.screen),
           ],
 

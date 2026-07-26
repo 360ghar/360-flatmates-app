@@ -515,8 +515,8 @@ class PropertyListingController
   /// Ensures the listing is liked (used by contact / schedule-visit flows that
   /// imply a like). Optimistically likes if not already liked. Always returns
   /// the conversation_id from the backend (or null).
-  Future<int?> ensureLiked() async {
-    final current = state.valueOrNull;
+  Future<int?> ensureLiked([PropertyListing? listing]) async {
+    final current = listing ?? state.valueOrNull;
     if (current == null) return null;
     if (current.liked ?? false) {
       // Already liked; still hit the backend to obtain a conversation_id.

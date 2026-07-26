@@ -86,6 +86,7 @@ void handleOwnerTap({
   required BuildContext context,
   required PropertyListing listing,
   required VoidCallback onContact,
+  VoidCallback? onScheduleVisit,
 }) {
   final ownerId = listing.owner?.id ?? listing.ownerId;
   if (ownerId == null) {
@@ -121,6 +122,10 @@ void handleOwnerTap({
     onSendMessage: () {
       Navigator.of(context).pop();
       onContact();
+    },
+    onScheduleVisit: () {
+      Navigator.of(context).pop();
+      onScheduleVisit?.call();
     },
   );
 }
@@ -182,7 +187,7 @@ Future<void> scheduleVisitFromDetails({
       try {
         result = await ref
             .read(propertyListingProvider(listingId).notifier)
-            .ensureLiked();
+            .ensureLiked(listing);
       } catch (e) {
         debugPrint('FlatDetailsActions.scheduleVisit.ensureLiked: $e');
         if (context.mounted) {
