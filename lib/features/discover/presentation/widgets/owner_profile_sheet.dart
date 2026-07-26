@@ -208,7 +208,7 @@ class _OwnerProfileBody extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              '${matchPercentage.round()}% Match',
+              locale.percentMatch(matchPercentage.round()),
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: _matchColor(matchPercentage),

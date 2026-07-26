@@ -1727,5 +1727,43 @@
   "onboardingWelcomeBack": "वापसी पर स्वागत है! जहाँ से छोड़ा था वहीं से शुरू करें।",
   "onboardingActionBlockedTitle": "पहले अपनी प्रोफ़ाइल पूरी करें",
   "onboardingActionBlockedMessage": "फ्लैटमेट्स के साथ मैचिंग शुरू करने के लिए अपनी प्रोफ़ाइल सेटअप पूरा करें।",
-  "onboardingActionBlockedCta": "सेटअप जारी रखें"
+  "onboardingActionBlockedCta": "सेटअप जारी रखें",
+  "compatSleepHabits": "नींद की आदतें",
+  "compatCleanliness": "सफ़ाई",
+  "compatFlexibleFood": "लचीली खान-पान पसंद",
+  "compatFoodMatch": "खान-पान पसंद",
+  "compatFoodDiffer": "अलग खान-पान पसंद",
+  "compatFlexibleLifestyle": "लचीली जीवनशैली",
+  "compatLifestyleAligned": "मिलती-जुलती जीवनशैली",
+  "compatLifestyleMixed": "मिश्रित जीवनशैली",
+  "compatLifestyleDiffer": "जीवनशैली में अंतर",
+  "compatGuestPolicy": "मेहमान नीति",
+  "compatWorkStyle": "कार्य शैली",
+  "compatWorkDiffer": "अलग कार्य शैलियाँ",
+  "notifChannelMessagesName": "संदेश और मैच",
+  "notifChannelMessagesDesc": "नए संदेशों, मैच और विज़िट की सूचनाएँ",
+  "noFilterOptions": "कोई विकल्प उपलब्ध नहीं",
+  "timeSlotMorningTime": "सुबह 10:00",
+  "timeSlotAfternoonTime": "दोपहर 3:00",
+  "timeSlotEveningTime": "शाम 6:00",
+  "loadingLabel": "लोड हो रहा है",
+  "floorLevelLabel": "मंज़िल {floor} / {total}",
+  "@floorLevelLabel": {
+    "placeholders": {
+      "floor": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "visitRequestedFor": "{when} के लिए विज़िट का अनुरोध",
+  "@visitRequestedFor": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  }
 }

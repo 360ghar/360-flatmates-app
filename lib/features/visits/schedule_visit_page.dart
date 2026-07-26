@@ -114,6 +114,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
             counterpartyUserId: conversation.peer.id,
             conversationId: conversation.id,
             scheduledDate: scheduledDate,
+            locale: locale,
             note: _noteController.text,
             timeSlotLabel: timeSlotLabel,
           );

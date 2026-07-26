@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../l10n/gen/app_localizations.dart';
 import '../config/endpoints.dart';
 import '../providers.dart';
 import '../storage/app_preferences.dart';
@@ -26,7 +29,7 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  static Future<void> initializeLocalNotifications() async {
+  static Future<void> initializeLocalNotifications({Locale? locale}) async {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -41,18 +44,46 @@ class NotificationService {
     );
 
     if (Platform.isAndroid) {
+      // Android freezes a channel's user-facing name/description the first
+      // time it is created; later calls cannot rename it. Localize from the
+      // persisted app locale (or the explicit [locale]) so the very first
+      // launch records it in the user's language.
+      final l10n = await _l10nFor(locale ?? await _savedLocale());
       final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >();
       await androidPlugin?.createNotificationChannel(
-        const AndroidNotificationChannel(
+        AndroidNotificationChannel(
           'flatmates_messages',
-          'Messages & Matches',
-          description: 'Notifications for new messages, matches, and visits',
+          l10n.notifChannelMessagesName,
+          description: l10n.notifChannelMessagesDesc,
           importance: Importance.high,
         ),
       );
+    }
+  }
+
+  /// Loads [AppLocalizations] for [locale], falling back to English.
+  static Future<AppLocalizations> _l10nFor(Locale locale) async {
+    try {
+      return await AppLocalizations.delegate.load(locale);
+    } catch (e) {
+      debugPrint('NotificationService._l10nFor: $e');
+      return AppLocalizations.delegate.load(const Locale('en'));
+    }
+  }
+
+  /// Best-effort read of the persisted app locale; defaults to English.
+  static Future<Locale> _savedLocale() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final languageCode = prefs.getString(PrefKeys.localeLanguageCode);
+      if (languageCode == null) return const Locale('en');
+      return Locale(languageCode, prefs.getString(PrefKeys.localeCountryCode));
+    } catch (e) {
+      debugPrint('NotificationService._savedLocale: $e');
+      return const Locale('en');
     }
   }
 

@@ -3730,4 +3730,71 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get onboardingActionBlockedCta => 'सेटअप जारी रखें';
+
+  @override
+  String get compatSleepHabits => 'नींद की आदतें';
+
+  @override
+  String get compatCleanliness => 'सफ़ाई';
+
+  @override
+  String get compatFlexibleFood => 'लचीली खान-पान पसंद';
+
+  @override
+  String get compatFoodMatch => 'खान-पान पसंद';
+
+  @override
+  String get compatFoodDiffer => 'अलग खान-पान पसंद';
+
+  @override
+  String get compatFlexibleLifestyle => 'लचीली जीवनशैली';
+
+  @override
+  String get compatLifestyleAligned => 'मिलती-जुलती जीवनशैली';
+
+  @override
+  String get compatLifestyleMixed => 'मिश्रित जीवनशैली';
+
+  @override
+  String get compatLifestyleDiffer => 'जीवनशैली में अंतर';
+
+  @override
+  String get compatGuestPolicy => 'मेहमान नीति';
+
+  @override
+  String get compatWorkStyle => 'कार्य शैली';
+
+  @override
+  String get compatWorkDiffer => 'अलग कार्य शैलियाँ';
+
+  @override
+  String get notifChannelMessagesName => 'संदेश और मैच';
+
+  @override
+  String get notifChannelMessagesDesc => 'नए संदेशों, मैच और विज़िट की सूचनाएँ';
+
+  @override
+  String get noFilterOptions => 'कोई विकल्प उपलब्ध नहीं';
+
+  @override
+  String get timeSlotMorningTime => 'सुबह 10:00';
+
+  @override
+  String get timeSlotAfternoonTime => 'दोपहर 3:00';
+
+  @override
+  String get timeSlotEveningTime => 'शाम 6:00';
+
+  @override
+  String get loadingLabel => 'लोड हो रहा है';
+
+  @override
+  String floorLevelLabel(String floor, String total) {
+    return 'मंज़िल $floor / $total';
+  }
+
+  @override
+  String visitRequestedFor(String when) {
+    return '$when के लिए विज़िट का अनुरोध';
+  }
 }

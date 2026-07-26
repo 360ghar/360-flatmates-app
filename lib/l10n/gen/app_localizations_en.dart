@@ -3716,4 +3716,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingActionBlockedCta => 'Continue setup';
+
+  @override
+  String get compatSleepHabits => 'Sleep habits';
+
+  @override
+  String get compatCleanliness => 'Cleanliness';
+
+  @override
+  String get compatFlexibleFood => 'Flexible food preferences';
+
+  @override
+  String get compatFoodMatch => 'Food preferences';
+
+  @override
+  String get compatFoodDiffer => 'Different food preferences';
+
+  @override
+  String get compatFlexibleLifestyle => 'Flexible lifestyle habits';
+
+  @override
+  String get compatLifestyleAligned => 'Aligned lifestyle';
+
+  @override
+  String get compatLifestyleMixed => 'Mixed lifestyle';
+
+  @override
+  String get compatLifestyleDiffer => 'Lifestyle differences';
+
+  @override
+  String get compatGuestPolicy => 'Guest policy';
+
+  @override
+  String get compatWorkStyle => 'Work style';
+
+  @override
+  String get compatWorkDiffer => 'Different work styles';
+
+  @override
+  String get notifChannelMessagesName => 'Messages & Matches';
+
+  @override
+  String get notifChannelMessagesDesc =>
+      'Notifications for new messages, matches, and visits';
+
+  @override
+  String get noFilterOptions => 'No options available';
+
+  @override
+  String get timeSlotMorningTime => '10:00 AM';
+
+  @override
+  String get timeSlotAfternoonTime => '3:00 PM';
+
+  @override
+  String get timeSlotEveningTime => '6:00 PM';
+
+  @override
+  String get loadingLabel => 'Loading';
+
+  @override
+  String floorLevelLabel(String floor, String total) {
+    return 'Floor $floor / $total';
+  }
+
+  @override
+  String visitRequestedFor(String when) {
+    return 'Visit requested for $when';
+  }
 }

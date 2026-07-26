@@ -461,6 +461,7 @@ class _ListingPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
     return FlatmatesCard(
       child: Row(
         children: [
@@ -494,7 +495,7 @@ class _ListingPreviewCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '\u{20B9}${listing.monthlyRent.toStringAsFixed(0)}/mo',
+                  '${FlatmatesPriceText.formatRupee(listing.monthlyRent.round())}${locale.perMonthSuffix}',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: AppSemanticColors.accent,
                     fontWeight: FontWeight.w700,

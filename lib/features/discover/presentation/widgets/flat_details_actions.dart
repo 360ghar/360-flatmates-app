@@ -23,21 +23,21 @@ Future<TimeOfDay?> showFlatDetailsTimeSlotPicker(BuildContext context) async {
         children: [
           ListTile(
             title: Text(locale.timeSlotMorning),
-            subtitle: const Text('10:00 AM'),
+            subtitle: Text(locale.timeSlotMorningTime),
             leading: const Icon(Icons.wb_sunny_outlined),
             onTap: () =>
                 Navigator.of(ctx).pop(const TimeOfDay(hour: 10, minute: 0)),
           ),
           ListTile(
             title: Text(locale.timeSlotAfternoon),
-            subtitle: const Text('3:00 PM'),
+            subtitle: Text(locale.timeSlotAfternoonTime),
             leading: const Icon(Icons.wb_cloudy_outlined),
             onTap: () =>
                 Navigator.of(ctx).pop(const TimeOfDay(hour: 15, minute: 0)),
           ),
           ListTile(
             title: Text(locale.timeSlotEvening),
-            subtitle: const Text('6:00 PM'),
+            subtitle: Text(locale.timeSlotEveningTime),
             leading: const Icon(Icons.nights_stay_outlined),
             onTap: () =>
                 Navigator.of(ctx).pop(const TimeOfDay(hour: 18, minute: 0)),
@@ -211,6 +211,7 @@ Future<void> scheduleVisitFromDetails({
           counterpartyUserId: ownerId,
           conversationId: cid,
           scheduledDate: scheduledDate,
+          locale: locale,
           note: locale.visitFromDetailPageNote,
           timeSlotLabel: flatDetailsTimeSlotLabel(locale, timeSlot),
         );

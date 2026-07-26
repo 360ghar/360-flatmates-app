@@ -789,6 +789,7 @@ class AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
     final hasBio = bio != null && bio!.isNotEmpty;
     final hasVideo = videoTourUrl != null && videoTourUrl!.isNotEmpty;
     final chips = compatibility.topMatchChips.take(3).toList();
@@ -817,7 +818,11 @@ class AboutSection extends StatelessWidget {
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
-            children: chips.map((c) => CompactMatchChip(label: c)).toList(),
+            children: chips
+                .map(
+                  (c) => CompactMatchChip(label: compatSummaryLabel(locale, c)),
+                )
+                .toList(),
           ),
         ],
       ],

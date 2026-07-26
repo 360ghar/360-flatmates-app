@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' show Locale;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/visits/visits_repository.dart';
+import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../helpers/test_helpers.dart';
@@ -85,11 +87,13 @@ void main() {
         });
 
         final repo = container.read(visitsRepositoryProvider);
+        final locale = await AppLocalizations.delegate.load(const Locale('en'));
         final visitId = await repo.scheduleVisitAndNotify(
           propertyId: 42,
           counterpartyUserId: 2,
           conversationId: 10,
           scheduledDate: DateTime.utc(2025, 5, 20, 15),
+          locale: locale,
           note: 'Excited to see it',
           timeSlotLabel: 'Afternoon',
         );

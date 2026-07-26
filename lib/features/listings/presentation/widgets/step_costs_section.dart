@@ -237,7 +237,9 @@ class StepCostsSection extends StatelessWidget {
                     children: [
                       Text(
                         locale.totalMonthlyOutflow(
-                          '₹${totalMonthlyOutflow.toStringAsFixed(0)}',
+                          FlatmatesPriceText.formatRupee(
+                            totalMonthlyOutflow.round(),
+                          ),
                         ),
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: AppSemanticColors.accent,
@@ -253,7 +255,7 @@ class StepCostsSection extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '${locale.perPersonCostLabel} ₹${(totalMonthlyOutflow / totalFlatmates).toStringAsFixed(0)}',
+                          '${locale.perPersonCostLabel} ${FlatmatesPriceText.formatRupee((totalMonthlyOutflow / totalFlatmates).round())}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: AppSemanticColors.accent.withValues(
                               alpha: 0.8,
