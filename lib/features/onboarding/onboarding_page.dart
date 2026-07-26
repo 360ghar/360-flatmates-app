@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/errors/l10n_bridge.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -214,7 +215,18 @@ class OnboardingPage extends ConsumerWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    // Setup is a *soft* gate: leaving is allowed. The AppShell
+                    // banner keeps reminding the user, and the router still
+                    // gates Swipe / Post / Chats until setup is finished.
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: FlatmatesButton.tertiary(
+                        key: const Key('onboarding_exit_cta'),
+                        label: locale.skipCta,
+                        onPressed: () => context.go('/discover'),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                   ],
                 ),
               ),

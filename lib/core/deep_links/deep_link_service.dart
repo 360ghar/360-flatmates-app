@@ -25,6 +25,15 @@ class DeepLinkService {
     return path;
   }
 
+  /// Drops a captured-but-unconsumed deep link.
+  ///
+  /// The pending path is static and outlives a session, so it must be cleared
+  /// on logout: otherwise a link tapped before an abandoned login replays for
+  /// whichever account signs in next on this device.
+  static void clearPendingDeepLink() {
+    _pendingDeepLinkPath = null;
+  }
+
   void init() {
     if (kIsWeb) return;
 

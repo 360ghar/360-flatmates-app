@@ -10,6 +10,7 @@ import 'package:smart_auth/smart_auth.dart';
 
 import '../auth_controller.dart';
 import '../data/auth_repository.dart' show IdentifierNextStep;
+import '../identifier.dart';
 import '../last_auth_method.dart';
 import '../../../core/errors/l10n_bridge.dart';
 import '../../../core/theme/app_semantic_colors.dart';
@@ -44,7 +45,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   final _smartAuth = SmartAuth.instance;
   bool _phoneHintShown = false;
 
-  bool get _looksLikeEmail => _controller.text.contains('@');
+  bool get _looksLikeEmail => looksLikeEmail(_controller.text);
 
   @override
   void initState() {
@@ -98,23 +99,9 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
 
   Future<void> _onContinue() async {
     if (ref.read(_isSubmittingProvider)) return;
-    String identifier = _controller.text.trim();
+    // Phone numbers are normalized to E.164 by the shared identifier rules.
+    final identifier = normalizeIdentifier(_controller.text);
     if (identifier.isEmpty) return;
-
-    // Normalize phone numbers to include the country code
-    if (!identifier.contains('@')) {
-      String digits = identifier.replaceAll(RegExp(r'\D'), '');
-      if (digits.length == 11 && digits.startsWith('0')) {
-        digits = digits.substring(1);
-      } else if (digits.startsWith('0')) {
-        digits = digits.replaceFirst(RegExp(r'^0+'), '');
-      }
-      if (digits.length == 10) {
-        identifier = '+91$digits';
-      } else if (digits.length == 12 && digits.startsWith('91')) {
-        identifier = '+$digits';
-      }
-    }
 
     ref.read(_isSubmittingProvider.notifier).state = true;
     try {

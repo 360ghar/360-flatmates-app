@@ -7,6 +7,7 @@ import '../../core/errors/app_failure.dart';
 import '../../core/errors/error_presenter.dart';
 import 'auth_controller.dart';
 import 'data/auth_repository.dart';
+import 'identifier.dart';
 
 enum PasswordResetStep { idle, sendingOtp, otpSent, verifying, success, error }
 
@@ -73,31 +74,11 @@ class PasswordResetController extends Notifier<PasswordResetState> {
     );
   }
 
-  /// Normalizes phone identifiers to E.164 (+91…) before hitting the backend.
-  String _normalizeIdentifier(String raw) {
-    final identifier = raw.trim();
-    if (identifier.isEmpty || identifier.contains('@')) return identifier;
-
-    var digits = identifier.replaceAll(RegExp(r'\D'), '');
-    if (digits.length == 11 && digits.startsWith('0')) {
-      digits = digits.substring(1);
-    } else if (digits.startsWith('0')) {
-      digits = digits.replaceFirst(RegExp(r'^0+'), '');
-    }
-    if (digits.length == 10) {
-      return '+91$digits';
-    }
-    if (digits.length == 12 && digits.startsWith('91')) {
-      return '+$digits';
-    }
-    return identifier;
-  }
-
-  /// Sends a reset OTP. Auto-detects the channel from the identifier (an `@`
-  /// means email; otherwise phone) — decision 1: OTP for both channels.
+  /// Sends a reset OTP. Auto-detects the channel from the identifier (an email
+  /// shape means email; otherwise phone) — decision 1: OTP for both channels.
   Future<void> sendOtp(String identifier) async {
-    final normalized = _normalizeIdentifier(identifier);
-    final channel = normalized.contains('@')
+    final normalized = normalizeIdentifier(identifier);
+    final channel = looksLikeEmail(normalized)
         ? AuthChannel.email
         : AuthChannel.phone;
     state = PasswordResetState(

@@ -4,6 +4,24 @@ import '../../../core/errors/app_failure.dart';
 
 part 'onboarding_state.freezed.dart';
 
+/// Minimum age for a 360 FlatMates account. Single source for every age gate
+/// (onboarding basic info, the profile-completion form, the date picker bounds).
+const int kMinimumAge = 18;
+
+/// Whether [dob] means the person is at least [kMinimumAge] today.
+///
+/// Month/day aware on purpose: a birthday still to come this year does not
+/// count yet, so this must not be simplified to a year subtraction.
+bool isAdult(DateTime dob) {
+  final today = DateTime.now();
+  var age = today.year - dob.year;
+  if (today.month < dob.month ||
+      (today.month == dob.month && today.day < dob.day)) {
+    age--;
+  }
+  return age >= kMinimumAge;
+}
+
 enum OnboardingStep {
   splash,
   modeSelection,
@@ -48,7 +66,7 @@ class OnboardingState with _$OnboardingState {
 
     if (mode != null && mode!.isNotEmpty) completed++;
     if (fullName != null && fullName!.isNotEmpty) completed++;
-    if (age != null && age! >= 18) completed++;
+    if (age != null && age! >= kMinimumAge) completed++;
     if (city != null && city!.isNotEmpty) completed++;
     if (photoUrls.isNotEmpty) completed++;
     // The quiz page only advances once every question is answered, and the

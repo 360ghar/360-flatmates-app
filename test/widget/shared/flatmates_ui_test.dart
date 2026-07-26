@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 void main() {
+  setUpAll(initializeDateFormatting);
+
   group('initialsFromName', () {
     test('returns FM for null', () {
       expect(initialsFromName(null), 'FM');
@@ -477,17 +481,28 @@ void main() {
       expect(find.byType(TextButton), findsOneWidget);
     });
 
-    testWidgets('icon variant renders icon', (tester) async {
+    testWidgets('icon variant renders icon and an accessible tooltip', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: FlatmatesButton.icon(icon: Icons.add, onPressed: () {}),
+            body: FlatmatesButton.icon(
+              icon: Icons.add,
+              tooltip: 'Add listing',
+              onPressed: () {},
+            ),
           ),
         ),
       );
 
       expect(find.byIcon(Icons.add), findsOneWidget);
       expect(find.byType(IconButton), findsOneWidget);
+      // The icon carries no label, so the tooltip is the only accessible name.
+      expect(
+        tester.widget<IconButton>(find.byType(IconButton)).tooltip,
+        'Add listing',
+      );
     });
 
     testWidgets('primary with icon renders both icon and label', (
@@ -823,6 +838,110 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tapped, isTrue);
+    });
+  });
+
+  group('compactCount', () {
+    test('leaves counts below a thousand alone', () {
+      expect(compactCount(0), '0');
+      expect(compactCount(999), '999');
+    });
+
+    test('drops the fraction for a whole thousand', () {
+      expect(compactCount(1000), '1k');
+      expect(compactCount(12000), '12k');
+    });
+
+    test('keeps one decimal for a partial thousand', () {
+      expect(compactCount(1500), '1.5k');
+      expect(compactCount(999999), '1000.0k');
+    });
+
+    test('compacts millions with an uppercase M', () {
+      expect(compactCount(1000000), '1M');
+      expect(compactCount(2500000), '2.5M');
+    });
+  });
+
+  group('shortMoney', () {
+    test('leaves amounts below a thousand as whole rupees', () {
+      expect(shortMoney(0), '0');
+      expect(shortMoney(999.6), '1000');
+    });
+
+    test('rounds thousands to a whole k', () {
+      expect(shortMoney(15000), '15k');
+      expect(shortMoney(15500), '16k');
+    });
+
+    test('keeps one decimal for lakhs', () {
+      expect(shortMoney(100000), '1.0L');
+      expect(shortMoney(150000), '1.5L');
+    });
+  });
+
+  group('budgetRangeText', () {
+    final locale = lookupAppLocalizations(const Locale('en'));
+
+    test('returns empty when both bounds are null', () {
+      expect(budgetRangeText(locale, null, null), '');
+    });
+
+    test('uses the ARB range label and per-month suffix for two bounds', () {
+      expect(
+        budgetRangeText(locale, 15000, 20000),
+        '${locale.budgetRangeLabel('15k', '20k')}${locale.perMonthSuffix}',
+      );
+    });
+
+    test('localizes the suffix rather than hardcoding /mo', () {
+      final hi = lookupAppLocalizations(const Locale('hi'));
+      expect(budgetRangeText(hi, 15000, 20000), contains(hi.perMonthSuffix));
+      expect(budgetRangeText(hi, 15000, 20000), isNot(contains('/mo\$')));
+    });
+
+    test('appends a plus for a min-only budget', () {
+      expect(
+        budgetRangeText(locale, 15000, null),
+        '₹15k${locale.perMonthSuffix}+',
+      );
+    });
+
+    test('prefixes a max-only budget', () {
+      expect(
+        budgetRangeText(locale, null, 20000),
+        'Up to ₹20k${locale.perMonthSuffix}',
+      );
+    });
+  });
+
+  group('messageTimestamp', () {
+    final locale = lookupAppLocalizations(const Locale('en'));
+
+    test('renders time only for a timestamp from today', () {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day, 15, 4);
+      expect(messageTimestamp(locale, today), '3:04 PM');
+    });
+
+    test('renders date and time for any other day', () {
+      expect(
+        messageTimestamp(locale, DateTime(2024, 3, 12, 15, 4)),
+        '12 Mar, 3:04 PM',
+      );
+    });
+
+    test('formats with the active locale, not en by default', () {
+      final hi = lookupAppLocalizations(const Locale('hi'));
+      final formatted = messageTimestamp(hi, DateTime(2024, 3, 12, 15, 4));
+      expect(
+        formatted,
+        DateFormat(
+          'd MMM, h:mm a',
+          hi.localeName,
+        ).format(DateTime(2024, 3, 12, 15, 4)),
+      );
+      expect(formatted, isNot('12 Mar, 3:04 PM'));
     });
   });
 }

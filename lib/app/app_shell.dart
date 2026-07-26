@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/domain/enums.dart';
 import '../core/providers.dart';
 import '../core/storage/app_preferences.dart';
 import '../core/theme/app_semantic_colors.dart';
@@ -9,6 +10,14 @@ import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../features/onboarding/onboarding_completion_banner.dart';
 import '../l10n/gen/app_localizations.dart';
+
+/// Canonical room-poster check for the backend `profile.mode` string.
+///
+/// The bottom-nav label ([AppShell]), the `/tab2` body (`ModeTab2Switcher`) and
+/// the onboarding soft gate all resolve the mode through [UserMode.fromApi], so
+/// they can never disagree about what tab 2 is.
+bool isRoomPosterMode(String? mode) =>
+    mode != null && UserMode.fromApi(mode) == UserMode.roomPoster;
 
 class AppShell extends ConsumerWidget {
   const AppShell({required this.navigationShell, super.key});
@@ -95,7 +104,7 @@ class AppShell extends ConsumerWidget {
     String mode,
     AppLocalizations locale,
   ) {
-    final isRoomPoster = mode.trim().toLowerCase() == 'room_poster';
+    final isRoomPoster = isRoomPosterMode(mode);
 
     return [
       NavigationDestination(

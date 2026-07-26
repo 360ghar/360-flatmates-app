@@ -41,7 +41,12 @@ class BootstrapController extends AsyncNotifier<BootstrapData?> {
     // `valueOrNull` (e.g. the Discover page's profile/city) don't flicker to
     // null mid-refresh. `isLoading` stays true for any spinner that needs it.
     state = const AsyncLoading<BootstrapData?>().copyWithPrevious(state);
-    state = await AsyncValue.guard(() => _fetchBootstrapData());
+    // Keep the retained value on failure too: a bare AsyncError would drop the
+    // profile, which nulls `tab2ModeProvider` and silently relabels a room
+    // poster's Post tab to Explore until the next successful refresh.
+    state = (await AsyncValue.guard(
+      () => _fetchBootstrapData(),
+    )).copyWithPrevious(state);
   }
 
   Future<BootstrapData?> _fetchBootstrapData() async {

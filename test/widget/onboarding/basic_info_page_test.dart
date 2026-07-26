@@ -13,17 +13,6 @@ void main() {
   });
 
   group('BasicInfoPage', () {
-    Future<void> scrollToButton(WidgetTester tester) async {
-      // The FlatmatesButton may be off-screen in the ListView.
-      // Scroll down until it becomes visible.
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('onboarding_basic_info_next')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-    }
-
     testWidgets('next button is disabled when fields are empty', (
       tester,
     ) async {

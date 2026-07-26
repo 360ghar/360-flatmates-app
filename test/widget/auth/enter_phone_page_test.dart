@@ -24,37 +24,38 @@ void main() {
       expect(find.byKey(const Key('enter_phone_continue_cta')), findsOneWidget);
     });
 
-    testWidgets('terms checkbox is accepted by default and gates continue CTA', (
-      tester,
-    ) async {
-      final widget = await testableWidgetAsync(child: const EnterPhonePage());
-      await tester.pumpWidget(widget);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'terms checkbox is accepted by default and gates continue CTA',
+      (tester) async {
+        final widget = await testableWidgetAsync(child: const EnterPhonePage());
+        await tester.pumpWidget(widget);
+        await tester.pumpAndSettle();
 
-      final checkbox = tester.widget<Checkbox>(
-        find.byKey(const Key('terms_checkbox')),
-      );
-      expect(checkbox.value, isTrue);
+        final checkbox = tester.widget<Checkbox>(
+          find.byKey(const Key('terms_checkbox')),
+        );
+        expect(checkbox.value, isTrue);
 
-      // FlatmatesButton wraps a FilledButton; terms accepted → CTA enabled.
-      final filledButton = find.descendant(
-        of: find.byKey(const Key('enter_phone_continue_cta')),
-        matching: find.byType(FilledButton),
-      );
-      final button = tester.widget<FilledButton>(filledButton);
-      expect(button.onPressed, isNotNull);
+        // FlatmatesButton wraps a FilledButton; terms accepted → CTA enabled.
+        final filledButton = find.descendant(
+          of: find.byKey(const Key('enter_phone_continue_cta')),
+          matching: find.byType(FilledButton),
+        );
+        final button = tester.widget<FilledButton>(filledButton);
+        expect(button.onPressed, isNotNull);
 
-      // Uncheck → CTA disabled.
-      await tester.tap(find.byKey(const Key('terms_checkbox')));
-      await tester.pumpAndSettle();
-      final disabledButton = tester.widget<FilledButton>(filledButton);
-      expect(disabledButton.onPressed, isNull);
+        // Uncheck → CTA disabled.
+        await tester.tap(find.byKey(const Key('terms_checkbox')));
+        await tester.pumpAndSettle();
+        final disabledButton = tester.widget<FilledButton>(filledButton);
+        expect(disabledButton.onPressed, isNull);
 
-      // Recheck → CTA enabled again.
-      await tester.tap(find.byKey(const Key('terms_checkbox')));
-      await tester.pumpAndSettle();
-      final enabledButton = tester.widget<FilledButton>(filledButton);
-      expect(enabledButton.onPressed, isNotNull);
-    });
+        // Recheck → CTA enabled again.
+        await tester.tap(find.byKey(const Key('terms_checkbox')));
+        await tester.pumpAndSettle();
+        final enabledButton = tester.widget<FilledButton>(filledButton);
+        expect(enabledButton.onPressed, isNotNull);
+      },
+    );
   });
 }

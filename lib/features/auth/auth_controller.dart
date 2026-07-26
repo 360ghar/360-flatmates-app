@@ -59,6 +59,18 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Whether Supabase still holds a *usable* session.
+  ///
+  /// An already-expired session does not count. `AuthTokenProvider` clears
+  /// token storage (which emits `null` on the stream below) when a refresh is
+  /// rejected, and Supabase does not reliably drop `currentSession` in that
+  /// case — treating the dead session as live would strand the user on
+  /// `authenticated` with no route back to login.
+  bool get _hasLiveSession {
+    final session = _repository.currentSession;
+    return session != null && !session.isExpired;
+  }
+
   void _watchTokenClears() {
     _tokenSubscription = ref
         .read(authTokenStorageProvider)
@@ -69,20 +81,20 @@ class AuthController extends Notifier<AuthState> {
             // no live session. A stale/async null can be buffered on this
             // broadcast stream (e.g. from an unauthenticated startup request
             // that cleared the session) and delivered AFTER a fresh login has
-            // set `authenticated` — without the currentSession guard it would
-            // clobber the just-authenticated state and bounce the user back to
-            // login. A genuine sign-out clears the Supabase session first, so
-            // currentSession is null there and the reset still proceeds.
+            // set `authenticated` — without the session guard it would clobber
+            // the just-authenticated state and bounce the user back to login.
+            // A fresh login's session is not expired, so the guard still
+            // protects it.
             if (token == null &&
                 state.isLoggedIn &&
                 state.status != AuthStatus.submitting &&
-                _repository.currentSession == null) {
+                !_hasLiveSession) {
               state = const AuthState(status: AuthStatus.unauthenticated);
             }
           },
           onError: (error) {
-            if (state.status != AuthStatus.submitting &&
-                _repository.currentSession == null) {
+            debugPrint('AuthController._watchTokenClears stream error: $error');
+            if (state.status != AuthStatus.submitting && !_hasLiveSession) {
               state = const AuthState(status: AuthStatus.unauthenticated);
             }
           },

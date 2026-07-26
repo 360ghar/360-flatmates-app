@@ -98,4 +98,22 @@ class FlatmatesPriceText extends StatelessWidget {
 
     return buffer.toString();
   }
+
+  /// Compact rupee for tight surfaces: ₹1.5L, ₹10L.
+  ///
+  /// At or above a lakh the amount always compacts to `L`. Below a lakh the
+  /// default is the full grouped form from [formatRupee] (₹24,000); pass
+  /// [thousands] to compact those to `K` instead (₹24K) — map markers need
+  /// that, listing cards do not.
+  static String formatCompact(int amount, {bool thousands = false}) {
+    if (amount >= 100000) {
+      final lakhs = amount / 100000;
+      final value = lakhs.toStringAsFixed(lakhs >= 10 ? 1 : 2);
+      final compact = value.replaceAll(RegExp(r'\.?0+$'), '');
+      return '₹${compact}L';
+    }
+    if (!thousands) return formatRupee(amount);
+    final k = amount / 1000;
+    return '₹${k.toStringAsFixed(k == k.roundToDouble() ? 0 : 1)}K';
+  }
 }

@@ -146,6 +146,40 @@ void main() {
       },
     );
 
+    test('leaves tab2 (Explore) reachable for a co-hunter mid-onboarding', () {
+      // Regression: /tab2 was blocked unconditionally, so tapping Explore
+      // forced a co-hunter onto /onboarding — a page with no way back.
+      const profile = FlatmatesProfileModel(
+        id: 1,
+        fullName: 'Test User',
+        mode: 'co_hunter',
+      );
+      final redirect = authenticatedIdentifierVerificationRedirect(
+        location: '/tab2',
+        isAuthRoute: false,
+        isSplash: false,
+        profile: profile,
+        hasCompletedOnboardingLocally: false,
+      );
+      expect(redirect, isNull);
+    });
+
+    test('still blocks tab2 (post hub) for a room poster mid-onboarding', () {
+      const profile = FlatmatesProfileModel(
+        id: 1,
+        fullName: 'Test User',
+        mode: 'room_poster',
+      );
+      final redirect = authenticatedIdentifierVerificationRedirect(
+        location: '/tab2',
+        isAuthRoute: false,
+        isSplash: false,
+        profile: profile,
+        hasCompletedOnboardingLocally: false,
+      );
+      expect(redirect, '/onboarding');
+    });
+
     test(
       'returns null when on onboarding page and onboarding not completed',
       () {
@@ -273,8 +307,12 @@ void main() {
       expect(isOnboardingBlockedRoute('/post'), isTrue);
     });
 
-    test('blocks tab2 (room-poster post hub)', () {
-      expect(isOnboardingBlockedRoute('/tab2'), isTrue);
+    test('blocks tab2 for a room poster (it is the post hub)', () {
+      expect(isOnboardingBlockedRoute('/tab2', isRoomPoster: true), isTrue);
+    });
+
+    test('does not block tab2 for a non-poster (it is Explore/Map)', () {
+      expect(isOnboardingBlockedRoute('/tab2'), isFalse);
     });
 
     test('does not block discover', () {
