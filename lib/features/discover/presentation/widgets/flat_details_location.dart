@@ -133,7 +133,11 @@ class FlatDetailsLocation extends StatelessWidget {
             //       ),
             //     ),
             //   ),
-            GetDirectionsButton(latitude: l.latitude!, longitude: l.longitude!),
+            GetDirectionsButton(
+              key: const ValueKey('flat_details_get_directions'),
+              latitude: l.latitude!,
+              longitude: l.longitude!,
+            ),
             const SizedBox(height: AppSpacing.screen),
           ],
 

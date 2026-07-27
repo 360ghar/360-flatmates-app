@@ -529,7 +529,9 @@ class PropertyListingController
   /// imply a like). Optimistically likes if not already liked. Always returns
   /// the conversation_id from the backend (or null).
   Future<int?> ensureLiked([PropertyListing? listing]) async {
-    final current = listing ?? state.valueOrNull;
+    // Prefer authoritative provider state; the argument covers seed-only
+    // callers where the family has no value yet.
+    final current = state.valueOrNull ?? listing;
     if (current == null) return null;
     if (current.liked ?? false) {
       // Already liked; still hit the backend to obtain a conversation_id.

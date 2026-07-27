@@ -255,16 +255,34 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               listing: listing,
                               onContact: () => _handleContact(listing),
                               onScheduleVisit: () {
-                                scheduleVisitFromDetails(
-                                  ref: ref,
-                                  context: context,
-                                  listing: listing,
-                                  listingId: widget.listingId,
-                                  conversationId: _conversationId,
-                                  onConversationId: (cid) =>
-                                      _conversationId = cid,
-                                  onLikeSynced: _syncLikeAcrossViews,
-                                  setScheduling: (_) {},
+                                if (ref.read(
+                                  _schedulingProvider(widget.listingId),
+                                )) {
+                                  return;
+                                }
+                                unawaited(
+                                  scheduleVisitFromDetails(
+                                    ref: ref,
+                                    context: context,
+                                    listing: listing,
+                                    listingId: widget.listingId,
+                                    conversationId: _conversationId,
+                                    onConversationId: (cid) =>
+                                        _conversationId = cid,
+                                    onLikeSynced: _syncLikeAcrossViews,
+                                    setScheduling: (v) {
+                                      if (mounted) {
+                                        ref
+                                                .read(
+                                                  _schedulingProvider(
+                                                    widget.listingId,
+                                                  ).notifier,
+                                                )
+                                                .state =
+                                            v;
+                                      }
+                                    },
+                                  ),
                                 );
                               },
                             )
@@ -427,10 +445,15 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     ref.read(_contactingProvider(widget.listingId).notifier).state = true;
 
     try {
-      final hasLiked = listing.liked ?? false;
+      // Prefer live provider state over the build-time capture so a heart
+      // toggle between render and contact does not double-like / skew count.
+      final current =
+          ref.read(propertyListingProvider(widget.listingId)).valueOrNull ??
+          listing;
+      final hasLiked = current.liked ?? false;
       final cid = await ref
           .read(propertyListingProvider(widget.listingId).notifier)
-          .ensureLiked(listing);
+          .ensureLiked(current);
       if (cid != null) _conversationId = cid;
       if (!hasLiked) {
         _syncLikeAcrossViews();

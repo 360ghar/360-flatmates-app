@@ -269,6 +269,30 @@ class _OwnerCard extends StatelessWidget {
                 )
               else
                 FlatmatesAvatar(name: name, imageUrl: ownerImageUrl, size: 40),
+              // Match pill sits under the ring, matching owner profile layout.
+              if (matchPercentage != null && matchPercentage! > 0) ...[
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: compatibilityScoreColor(
+                      matchPercentage!,
+                    ).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    locale.percentMatch(matchPercentage!.round()),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: compatibilityScoreColor(matchPercentage!),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(width: AppSpacing.md),
@@ -288,30 +312,6 @@ class _OwnerCard extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(
                         theme.brightness,
-                      ),
-                    ),
-                  ),
-                if (matchPercentage != null && matchPercentage! > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: compatibilityScoreColor(
-                          matchPercentage!,
-                        ).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${matchPercentage!.round()}% Match',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: compatibilityScoreColor(matchPercentage!),
-                        ),
                       ),
                     ),
                   ),

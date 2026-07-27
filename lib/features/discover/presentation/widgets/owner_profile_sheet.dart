@@ -70,6 +70,7 @@ class OwnerProfileSheet extends ConsumerWidget {
                 )
                 .toList()
           : ChatReportReason.defaults();
+      if (!context.mounted) return;
       await ChatDialogs.showReportDialog(
         context: context,
         peerId: ownerId,
@@ -156,11 +157,12 @@ class _OwnerProfileBody extends StatelessWidget {
     final locationParts = [?peerData?['locality']?.toString(), ?city];
 
     // Quick-stat chips (budget range, move-in timeline) — only with peer data.
+    final budgetLabel = budgetRangeText(locale, budgetMin, budgetMax);
     final quickStats = <Widget>[
-      if (peerData != null && _budgetText(budgetMin, budgetMax).isNotEmpty)
+      if (peerData != null && budgetLabel.isNotEmpty)
         FlatmatesChip(
           key: const ValueKey('budget_chip'),
-          label: _budgetText(budgetMin, budgetMax),
+          label: budgetLabel,
           variant: FlatmatesChipVariant.info,
         ),
       if (moveIn != null && moveIn.trim().isNotEmpty)
@@ -288,7 +290,7 @@ class _OwnerProfileBody extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${matchPercentage.round()}% Match',
+                        locale.percentMatch(matchPercentage.round()),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -296,26 +298,8 @@ class _OwnerProfileBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          // Compatibility ring — only meaningful when we have peer data.
-          if (!showError) ...[
-            const SizedBox(height: AppSpacing.lg),
-            CompatibilityRing(
-              percentage: matchPercentage,
-              size: 88,
-              strokeWidth: 6,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              locale.percentMatch(matchPercentage.round()),
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: _matchColor(matchPercentage),
+                  ],
+                ],
               ),
               const SizedBox(width: AppSpacing.lg),
               // RIGHT: Name + role badge, age, location.
@@ -521,8 +505,13 @@ class _OwnerProfileBody extends StatelessWidget {
   Future<void> _launchCall(String phone) async {
     final uri = Uri.parse('tel:$phone');
     try {
-      await launchUrl(uri);
-    } catch (_) {}
+      final launched = await launchUrl(uri);
+      if (!launched) {
+        debugPrint('OwnerProfileSheet._launchCall: launchUrl returned false');
+      }
+    } catch (e) {
+      debugPrint('OwnerProfileSheet._launchCall: $e');
+    }
   }
 
   List<Widget> _preferencesSection(
@@ -673,19 +662,4 @@ class _ModeBadge extends StatelessWidget {
   }
 }
 
-/// Compact budget range, e.g. "₹13k–₹47k". Mirrors the swipe card formatting.
-/// ₹ is embedded in the text (no separate icon) so the chip reads cleanly.
-String _budgetText(double? min, double? max) {
-  if (min != null && max != null) {
-    return '₹${_shortMoney(min)}–${_shortMoney(max)}/mon';
-  }
-  if (min != null) return '₹${_shortMoney(min)}+/mon';
-  if (max != null) return 'Up to ₹${_shortMoney(max)}/mon';
-  return '';
-}
 
-String _shortMoney(double v) {
-  if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-  if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}k';
-  return v.toStringAsFixed(0);
-}
