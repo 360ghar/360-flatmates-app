@@ -64,10 +64,8 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     // Refresh only the active tab — matches lazy watch policy below.
     if (tab == 'likes') {
       await ref.read(incomingLikesListControllerProvider.notifier).refresh();
-      ref.invalidate(incomingLikesProvider);
     } else if (tab == 'liked') {
       await ref.read(outgoingLikesListControllerProvider.notifier).refresh();
-      ref.invalidate(outgoingLikesProvider);
     } else {
       await ref.read(conversationsListControllerProvider.notifier).refresh();
       ref.invalidate(conversationsProvider);

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../chats/chats_repository.dart'
-    show conversationsProvider, incomingLikesProvider, peerProfileProvider;
+    show conversationsProvider, peerProfileProvider;
 import '../chats/application/cursor_list_controller.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
@@ -14,6 +14,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../shared/presentation/components.dart';
 import 'application/discover_feed_controller.dart';
+import 'application/map_listings_controller.dart';
 import 'application/property_listing_seed_store.dart';
 import 'discover_repository.dart';
 import 'presentation/widgets/flat_details_actions.dart';
@@ -377,9 +378,14 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     ref.read(discoverFeedControllerProvider.notifier).refresh();
     ref.invalidate(discoverListingsProvider);
     ref.invalidate(conversationsProvider);
-    ref.invalidate(incomingLikesProvider);
+    // The Liked tab cursor is updated by PropertyListingController. The legacy
+    // FutureProviders above are not watched by any tab, so refresh only the
+    // cursor controllers for Chats and Likes.
     ref.invalidate(conversationsListControllerProvider);
     ref.invalidate(incomingLikesListControllerProvider);
+    // A details like never reached the map pins — invalidate so they refetch the
+    // server state instead of keeping the old heart.
+    ref.invalidate(mapListingsProvider);
   }
 
   Future<void> _handleShortlist(PropertyListing listing) async {

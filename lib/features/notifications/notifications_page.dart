@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
@@ -32,6 +31,11 @@ class NotificationsPage extends ConsumerStatefulWidget {
 
 class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   final _scrollController = ScrollController();
+
+  /// Notification ids whose tap action (markRead → navigate) is in flight.
+  /// Guards against double navigation on a fast double-tap: markRead is
+  /// awaited before the push, leaving a window for a second tap.
+  final _pendingTapIds = <String>{};
 
   @override
   void initState() {
@@ -162,7 +166,10 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                         return FlatmatesNotificationCard(
                           title: notification.title,
                           body: notification.body,
-                          time: _formatTime(notification.createdAt, locale),
+                          time: messageTimestamp(
+                            locale,
+                            notification.createdAt,
+                          ),
                           icon: _iconForType(notification.type),
                           iconBgColor: _iconBackgroundForType(
                             notification.type,
@@ -190,39 +197,44 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     WidgetRef ref,
     NotificationModel notification,
   ) async {
-    final locale = AppLocalizations.of(context);
-    if (!notification.isRead) {
-      try {
-        await ref
-            .read(notificationsActionsControllerProvider)
-            .markRead(notification.id);
-      } catch (e) {
-        if (context.mounted) {
-          final msg = e is AppFailure
-              ? e.userMessage(locale.toUserMessageL10n())
-              : locale.errorUnknown;
-          FlatmatesToast.error(context, msg);
+    if (!_pendingTapIds.add(notification.id)) return;
+    try {
+      final locale = AppLocalizations.of(context);
+      if (!notification.isRead) {
+        try {
+          await ref
+              .read(notificationsActionsControllerProvider)
+              .markRead(notification.id);
+        } catch (e) {
+          if (context.mounted) {
+            final msg = e is AppFailure
+                ? e.userMessage(locale.toUserMessageL10n())
+                : locale.errorUnknown;
+            FlatmatesToast.error(context, msg);
+          }
         }
       }
-    }
 
-    if (!context.mounted) return;
+      if (!context.mounted) return;
 
-    final resolvedRoute = resolveNotificationRoute(
-      route: notification.route,
-      type: notification.type,
-      referenceId: notification.referenceId,
-    );
+      final resolvedRoute = resolveNotificationRoute(
+        route: notification.route,
+        type: notification.type,
+        referenceId: notification.referenceId,
+      );
 
-    if (resolvedRoute != null) {
-      if (resolvedRoute.startsWith('/chats/') ||
-          resolvedRoute.startsWith('/flat-details/')) {
-        unawaited(context.push(resolvedRoute));
-      } else {
-        context.go(resolvedRoute);
+      if (resolvedRoute != null) {
+        if (resolvedRoute.startsWith('/chats/') ||
+            resolvedRoute.startsWith('/flat-details/')) {
+          unawaited(context.push(resolvedRoute));
+        } else {
+          context.go(resolvedRoute);
+        }
+      } else if (context.mounted) {
+        FlatmatesToast.info(context, locale.notificationNoAction);
       }
-    } else if (context.mounted) {
-      FlatmatesToast.info(context, locale.notificationNoAction);
+    } finally {
+      _pendingTapIds.remove(notification.id);
     }
   }
 
@@ -289,21 +301,6 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         return AppSemanticColors.tealMid;
       default:
         return AppSemanticColors.accent;
-    }
-  }
-
-  String _formatTime(DateTime dateTime, AppLocalizations locale) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inDays == 0) {
-      return DateFormat.jm().format(dateTime);
-    } else if (diff.inDays == 1) {
-      return locale.yesterdayLabel;
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays} ${locale.daysAgoLabel}';
-    } else {
-      return DateFormat.MMMd().format(dateTime);
     }
   }
 }

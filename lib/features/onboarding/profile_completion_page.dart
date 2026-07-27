@@ -15,6 +15,7 @@ import '../auth/auth_controller.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../profile/profile_repository.dart';
 import '../shared/presentation/components.dart';
+import 'domain/onboarding_state.dart';
 
 /// A focused, onboarding-style page that collects only the mandatory profile
 /// fields reported missing by the backend `profile_completion` auth gate
@@ -44,6 +45,7 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
   bool _saving = false;
   bool _hasError = false;
   bool _initialized = false;
+  bool _handedOffToEditor = false;
   DateTime? _dob;
   String _name = '';
 
@@ -87,6 +89,16 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
         missingFields.isEmpty || missingFields.contains('full_name');
     final needsDob =
         missingFields.isEmpty || missingFields.contains('date_of_birth');
+
+    // The backend reported mandatory fields this form cannot collect (it only
+    // knows full_name / date_of_birth). Rendering anyway showed an empty form
+    // with an enabled Continue that silently no-oped, and PopScope + the
+    // router gate left no way out. Hand off to the full editor instead, which
+    // the profile-completion gate explicitly allows.
+    if (!needsName && !needsDob) {
+      _handOffToProfileEditor();
+      return const FlatmatesScreen(body: FlatmatesSkeleton.form());
+    }
 
     // If bootstrap arrives after first frame, prefill when it becomes ready.
     ref.listen(bootstrapControllerProvider, (previous, next) {
@@ -186,6 +198,16 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
     );
   }
 
+  /// Leaves this page for the full profile editor after the current frame —
+  /// navigating during `build` is not allowed.
+  void _handOffToProfileEditor() {
+    if (_handedOffToEditor) return;
+    _handedOffToEditor = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.go('/profile/edit');
+    });
+  }
+
   int _ageFromDob(DateTime dob) {
     final today = DateTime.now();
     return today.year -
@@ -210,7 +232,7 @@ class _ProfileCompletionPageState extends ConsumerState<ProfileCompletionPage> {
       context: context,
       initialDate: DateTime(now.year - 25),
       firstDate: DateTime(now.year - 100),
-      lastDate: DateTime(now.year - 18, now.month, now.day),
+      lastDate: DateTime(now.year - kMinimumAge, now.month, now.day),
       helpText: locale.dateOfBirthPickerTitle,
     );
     if (picked != null && mounted) {

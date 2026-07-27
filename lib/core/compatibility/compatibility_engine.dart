@@ -1,7 +1,65 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/gen/app_localizations.dart';
 import '../theme/app_semantic_colors.dart';
+
+/// Stable localization keys stored in [CompatibilityDimension.summary].
+///
+/// The engine has no [BuildContext], so it records a key rather than display
+/// text. Render sites resolve the key via [compatSummaryLabel], which has a
+/// locale. Server-provided compatibility (chats) carries free-text summaries
+/// instead; those are not keys and fall through untranslated.
+abstract final class CompatSummaryKey {
+  static const sleepHabits = 'compat.sleepHabits';
+  static const cleanliness = 'compat.cleanliness';
+  static const flexibleFood = 'compat.flexibleFood';
+  static const foodMatch = 'compat.foodMatch';
+  static const foodDiffer = 'compat.foodDiffer';
+  static const flexibleLifestyle = 'compat.flexibleLifestyle';
+  static const lifestyleAligned = 'compat.lifestyleAligned';
+  static const lifestyleMixed = 'compat.lifestyleMixed';
+  static const lifestyleDiffer = 'compat.lifestyleDiffer';
+  static const guestPolicy = 'compat.guestPolicy';
+  static const workStyle = 'compat.workStyle';
+  static const workDiffer = 'compat.workDiffer';
+}
+
+/// Resolves a [CompatibilityDimension.summary] to a localized label.
+///
+/// Engine-produced summaries are [CompatSummaryKey] values and get translated.
+/// Anything unrecognized (e.g. a server free-text summary) passes through
+/// unchanged so backend-driven breakdowns still render their own text.
+String compatSummaryLabel(AppLocalizations locale, String summary) {
+  switch (summary) {
+    case CompatSummaryKey.sleepHabits:
+      return locale.compatSleepHabits;
+    case CompatSummaryKey.cleanliness:
+      return locale.compatCleanliness;
+    case CompatSummaryKey.flexibleFood:
+      return locale.compatFlexibleFood;
+    case CompatSummaryKey.foodMatch:
+      return locale.compatFoodMatch;
+    case CompatSummaryKey.foodDiffer:
+      return locale.compatFoodDiffer;
+    case CompatSummaryKey.flexibleLifestyle:
+      return locale.compatFlexibleLifestyle;
+    case CompatSummaryKey.lifestyleAligned:
+      return locale.compatLifestyleAligned;
+    case CompatSummaryKey.lifestyleMixed:
+      return locale.compatLifestyleMixed;
+    case CompatSummaryKey.lifestyleDiffer:
+      return locale.compatLifestyleDiffer;
+    case CompatSummaryKey.guestPolicy:
+      return locale.compatGuestPolicy;
+    case CompatSummaryKey.workStyle:
+      return locale.compatWorkStyle;
+    case CompatSummaryKey.workDiffer:
+      return locale.compatWorkDiffer;
+    default:
+      return summary;
+  }
+}
 
 Color compatibilityScoreColor(double percentage) {
   if (percentage >= 70) return AppSemanticColors.compatHigh;
@@ -141,7 +199,7 @@ class CompatibilityEngine {
         peerValue: b,
         score: 0,
         isMatch: false,
-        summary: 'Sleep habits',
+        summary: CompatSummaryKey.sleepHabits,
       );
     }
     double score;
@@ -159,7 +217,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: score >= 50,
-      summary: 'Sleep habits',
+      summary: CompatSummaryKey.sleepHabits,
     );
   }
 
@@ -176,7 +234,7 @@ class CompatibilityEngine {
         peerValue: b,
         score: 0,
         isMatch: false,
-        summary: 'Cleanliness',
+        summary: CompatSummaryKey.cleanliness,
       );
     }
     final gap = (ai - bi).abs();
@@ -192,7 +250,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: gap <= 1,
-      summary: 'Cleanliness',
+      summary: CompatSummaryKey.cleanliness,
     );
   }
 
@@ -206,7 +264,7 @@ class CompatibilityEngine {
         peerValue: b,
         score: 100,
         isMatch: true,
-        summary: 'Flexible food preferences',
+        summary: CompatSummaryKey.flexibleFood,
       );
     }
 
@@ -231,7 +289,9 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: score >= 50,
-      summary: score == 100 ? 'Food preferences' : 'Different food preferences',
+      summary: score == 100
+          ? CompatSummaryKey.foodMatch
+          : CompatSummaryKey.foodDiffer,
     );
   }
 
@@ -245,7 +305,7 @@ class CompatibilityEngine {
         peerValue: b,
         score: 100,
         isMatch: true,
-        summary: 'Flexible lifestyle habits',
+        summary: CompatSummaryKey.flexibleLifestyle,
       );
     }
 
@@ -281,10 +341,10 @@ class CompatibilityEngine {
       score: score,
       isMatch: score >= 50,
       summary: score >= 80
-          ? 'Aligned lifestyle'
+          ? CompatSummaryKey.lifestyleAligned
           : score >= 50
-          ? 'Mixed lifestyle'
-          : 'Lifestyle differences',
+          ? CompatSummaryKey.lifestyleMixed
+          : CompatSummaryKey.lifestyleDiffer,
     );
   }
 
@@ -301,7 +361,7 @@ class CompatibilityEngine {
         peerValue: b,
         score: 0,
         isMatch: false,
-        summary: 'Guest policy',
+        summary: CompatSummaryKey.guestPolicy,
       );
     }
     final gap = (ai - bi).abs();
@@ -317,7 +377,7 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: gap <= 1,
-      summary: 'Guest policy',
+      summary: CompatSummaryKey.guestPolicy,
     );
   }
 
@@ -350,7 +410,9 @@ class CompatibilityEngine {
       peerValue: b,
       score: score,
       isMatch: score >= 50,
-      summary: score == 100 ? 'Work style' : 'Different work styles',
+      summary: score == 100
+          ? CompatSummaryKey.workStyle
+          : CompatSummaryKey.workDiffer,
     );
   }
 }

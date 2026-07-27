@@ -133,13 +133,13 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '₹${_budgetMin.toStringAsFixed(0)}',
+                        FlatmatesPriceText.formatRupee(_budgetMin.round()),
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: AppSemanticColors.accent,
                         ),
                       ),
                       Text(
-                        '₹${_budgetMax.toStringAsFixed(0)}',
+                        FlatmatesPriceText.formatRupee(_budgetMax.round()),
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: AppSemanticColors.accent,
                         ),
@@ -153,8 +153,8 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                     max: 100000,
                     divisions: 19,
                     labels: RangeLabels(
-                      '₹${_budgetMin.toStringAsFixed(0)}',
-                      '₹${_budgetMax.toStringAsFixed(0)}',
+                      FlatmatesPriceText.formatRupee(_budgetMin.round()),
+                      FlatmatesPriceText.formatRupee(_budgetMax.round()),
                     ),
                     onChanged: (values) {
                       setState(() {

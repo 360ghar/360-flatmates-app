@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -35,10 +34,7 @@ class ChatMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final time = DateFormat(
-      'h:mm a',
-      locale.localeName,
-    ).format(message.createdAt.toLocal());
+    final time = messageTimestamp(locale, message.createdAt);
 
     if (message.messageType == 'visit_request') {
       return _VisitRequestCard(
@@ -191,14 +187,19 @@ class _VisitRequestCard extends StatelessWidget {
     }
   }
 
-  Color _statusBgColor(String status) {
+  Color _statusBgColor(String status, Brightness brightness) {
+    // Dark-aware semantic soft backgrounds so the strip clears a real value
+    // gap against textPrimaryFor(brightness) in BOTH themes. The legacy
+    // light-only tokens (warningBg #F7F7F7, errorBg #FFD1DA, greenSoft) sat
+    // light in dark mode while the text flipped to darkInk #F7F7F7 — the
+    // requested/reschedule date rendered byte-identical (1:1 contrast).
     switch (status) {
       case 'confirmed':
-        return AppSemanticColors.greenSoft;
+        return AppSemanticColors.greenSoftFor(brightness);
       case 'cancelled':
-        return AppSemanticColors.errorBg;
+        return AppSemanticColors.errorSoftFor(brightness);
       default:
-        return AppSemanticColors.warningBg;
+        return AppSemanticColors.warningSoftFor(brightness);
     }
   }
 
@@ -219,14 +220,11 @@ class _VisitRequestCard extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final status = _status;
     final statusColor = _statusColor(status);
-    final statusBg = _statusBgColor(status);
+    final statusBg = _statusBgColor(status, theme.brightness);
     final scheduledDate = visit?.scheduledDate ?? message.visitScheduledDate;
     final scheduleText = scheduledDate == null
         ? message.body ?? locale.visitRequested
-        : DateFormat(
-            'd MMM, h:mm a',
-            locale.localeName,
-          ).format(scheduledDate.toLocal());
+        : messageTimestamp(locale, scheduledDate);
     // Respond only while the visit still needs counterparty action.
     // Wire values: requested | reschedule_suggested (not legacy scheduled/rescheduled).
     final canRespond =

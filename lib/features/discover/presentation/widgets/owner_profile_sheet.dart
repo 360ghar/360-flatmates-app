@@ -296,8 +296,26 @@ class _OwnerProfileBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ],
-                ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // Compatibility ring — only meaningful when we have peer data.
+          if (!showError) ...[
+            const SizedBox(height: AppSpacing.lg),
+            CompatibilityRing(
+              percentage: matchPercentage,
+              size: 88,
+              strokeWidth: 6,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              locale.percentMatch(matchPercentage.round()),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: _matchColor(matchPercentage),
               ),
               const SizedBox(width: AppSpacing.lg),
               // RIGHT: Name + role badge, age, location.

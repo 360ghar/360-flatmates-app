@@ -11,6 +11,10 @@ class SettingsState with _$SettingsState {
     @Default(ThemeMode.light) ThemeMode themeMode,
     @Default(Locale('en')) Locale? locale,
     @Default(false) bool loaded,
+
+    /// Set when the initial load throws, so pages can render an error state
+    /// with retry instead of staying stuck on the loading skeleton forever.
+    @Default(false) bool loadFailed,
     @Default(false) bool hideLastName,
     @Default(false) bool hideExactLocation,
     @Default(true) bool notifNewMessages,

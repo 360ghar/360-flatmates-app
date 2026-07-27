@@ -9,6 +9,7 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
+import '../../../shared/presentation/flatmates_ui.dart';
 import 'manage_stats_widgets.dart';
 
 /// Property card with image, info row, owner info, and stats action grid.
@@ -43,12 +44,6 @@ class ManageListingCard extends StatelessWidget {
   final VoidCallback onRenew;
   final ThemeData theme;
   final AppLocalizations locale;
-
-  static String _formatCount(int count) {
-    if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
-    if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
-    return count.toString();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +145,7 @@ class ManageListingCard extends StatelessWidget {
                   child: _PerfStat(
                     icon: Icons.visibility_outlined,
                     value: locale.perfViewsLabel(
-                      _formatCount(listing.viewCount),
+                      compactCount(listing.viewCount),
                     ),
                     theme: theme,
                   ),
@@ -159,7 +154,7 @@ class ManageListingCard extends StatelessWidget {
                   child: _PerfStat(
                     icon: Icons.favorite_outline_rounded,
                     value: locale.perfInterestLabel(
-                      _formatCount(listing.interestCount),
+                      compactCount(listing.interestCount),
                     ),
                     theme: theme,
                   ),
@@ -207,7 +202,7 @@ class ManageListingCard extends StatelessWidget {
                       child: StatActionItem(
                         icon: Icons.bar_chart_outlined,
                         label: locale.viewStatsAction(
-                          _formatCount(listing.viewCount),
+                          compactCount(listing.viewCount),
                         ),
                         onTap: onViewStats,
                         theme: theme,
@@ -285,14 +280,19 @@ class ManageListingCard extends StatelessWidget {
   }
 
   /// Semantic colour for the status — surfaces urgency at a glance.
+  ///
+  /// Neutral statuses (paused/draft) use the brightness-aware text tokens so
+  /// the chip clears contrast in dark mode; the light-only `textSecondary` /
+  /// `textTertiary` constants render at ~1.2:1 over the dark card. (#32)
   Color get _statusColor {
-    if (_isPaused) return AppSemanticColors.textSecondary;
+    final brightness = theme.brightness;
+    if (_isPaused) return AppSemanticColors.textSecondaryFor(brightness);
     return switch (status) {
       'active' || 'live' || 'approved' => AppSemanticColors.success,
-      'draft' => AppSemanticColors.textTertiary,
+      'draft' => AppSemanticColors.textTertiaryFor(brightness),
       'expired' => AppSemanticColors.error,
       'pending_review' || 'under_review' => AppSemanticColors.warning,
-      'paused' => AppSemanticColors.textSecondary,
+      'paused' => AppSemanticColors.textSecondaryFor(brightness),
       _ => AppSemanticColors.info,
     };
   }

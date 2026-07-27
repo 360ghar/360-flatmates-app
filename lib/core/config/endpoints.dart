@@ -8,7 +8,6 @@ abstract final class FlatmatesEndpoints {
   static const completeFlatmatesOnboarding =
       '/users/me/onboarding?app=flatmates';
   static const deleteAccount = '/users/me';
-  static const userLocation = '/users/location';
   static const notificationSettings = '/users/notification-settings';
   static const privacySettings = '/users/privacy-settings';
   static const privacySettingsCompat = '/users/privacy';
@@ -16,14 +15,9 @@ abstract final class FlatmatesEndpoints {
   // -- Auth state-machine (Supabase-mirrored) --
   static const identifierStatus = '/auth/identifier-status';
   static const lastMethod = '/auth/last-method';
-  static const authConfig = '/auth/config';
 
   // -- Bootstrap & Profile --
   static const bootstrap = '/flatmates/bootstrap';
-  static const profile = '/flatmates/profile';
-
-  // -- Catalogs --
-  static const catalogs = '/flatmates/catalogs';
 
   // -- Blocks --
   static const blocks = '/flatmates/blocks';

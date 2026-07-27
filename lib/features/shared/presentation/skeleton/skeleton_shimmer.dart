@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_motion.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import 'skeleton_tokens.dart';
 
 /// Sweeps a highlight gradient over [child] skeleton bones.
@@ -51,7 +52,7 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
     final highlight = SkeletonTokens.shimmerHighlight(brightness);
 
     final labeled = Semantics(
-      label: 'Loading',
+      label: AppLocalizations.of(context).loadingLabel,
       container: true,
       child: widget.child,
     );

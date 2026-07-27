@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/location/location_detection.dart';
 import '../../core/location/location_helpers.dart';
 import '../../core/location/place_suggestion.dart';
 import '../../core/theme/app_spacing.dart';
@@ -64,75 +64,15 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
           bootstrap?.catalogOptions('flatmates_popular_cities') ?? const [];
-      final detection = await detectCurrentLocation(
+      final detection = await detectAndReportLocation(
+        context,
         catalogCities: catalogCities,
       );
 
       if (!mounted) return;
 
-      switch (detection.result) {
-        case LocationDetectResult.success:
-          setState(() => _selectedCity = detection.city);
-        case LocationDetectResult.serviceDisabled:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationServicesDisabled,
-              ),
-              action: SnackBarAction(
-                label: AppLocalizations.of(
-                  context,
-                ).locationServicesDisabledAction,
-                onPressed: () => Geolocator.openLocationSettings(),
-              ),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        case LocationDetectResult.permissionDenied:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationPermissionRequired,
-              ),
-            ),
-          );
-        case LocationDetectResult.permissionDeniedForever:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationPermissionDeniedForever,
-              ),
-              action: SnackBarAction(
-                label: AppLocalizations.of(context).locationOpenAppSettings,
-                onPressed: () => Geolocator.openAppSettings(),
-              ),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        case LocationDetectResult.noMatch:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context).locationNoMatchFound),
-            ),
-          );
-        case LocationDetectResult.error:
-          debugPrint('LocationDetection error: ${detection.errorDetail}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationDetectionFailed,
-              ),
-            ),
-          );
-      }
-    } catch (e) {
-      debugPrint('LocationDetection unhandled: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).locationDetectionFailed),
-          ),
-        );
+      if (detection.result == LocationDetectResult.success) {
+        setState(() => _selectedCity = detection.city);
       }
     } finally {
       if (mounted) setState(() => _locating = false);
@@ -147,12 +87,9 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
           .resolveSuggestion(suggestion);
       if (details == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationDetectionFailed,
-              ),
-            ),
+          FlatmatesToast.error(
+            context,
+            AppLocalizations.of(context).locationDetectionFailed,
           );
         }
         return;
@@ -199,10 +136,9 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
     } catch (e) {
       debugPrint('selectPlace error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).locationDetectionFailed),
-          ),
+        FlatmatesToast.error(
+          context,
+          AppLocalizations.of(context).locationDetectionFailed,
         );
       }
     } finally {

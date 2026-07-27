@@ -107,7 +107,7 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
       ),
     ];
     final distanceLabel = (item.distanceKm != null && item.distanceKm! > 0)
-        ? locale.distanceAway(item.distanceKm!.toStringAsFixed(1))
+        ? formatDistanceText(locale, item.distanceKm)
         : null;
 
     final hasImage =
@@ -220,7 +220,9 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _formatRent(item.monthlyRent.round()),
+                          FlatmatesPriceText.formatCompact(
+                            item.monthlyRent.round(),
+                          ),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -295,15 +297,5 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
         ),
       ),
     );
-  }
-
-  static String _formatRent(int amount) {
-    if (amount >= 100000) {
-      final lakhs = amount / 100000;
-      final value = lakhs.toStringAsFixed(lakhs >= 10 ? 1 : 2);
-      final compact = value.replaceAll(RegExp(r'\.?0+$'), '');
-      return '\u20b9${compact}L';
-    }
-    return FlatmatesPriceText.formatRupee(amount);
   }
 }

@@ -18,22 +18,33 @@ class ChatDialogs {
     required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
+    // Per-dialog pending flag: nullify the confirm button on first tap so a
+    // rapid double-tap cannot fire Navigator.pop twice (which would also pop
+    // the underlying chat route) or submit the action twice.
+    var pending = false;
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(locale.blockConfirmTitle),
-        content: Text(locale.blockConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(locale.cancelCta),
-          ),
-          FlatmatesButton(
-            label: locale.blockCta,
-            onPressed: () => Navigator.pop(ctx, true),
-          ),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(locale.blockConfirmTitle),
+          content: Text(locale.blockConfirmMessage),
+          actions: [
+            TextButton(
+              onPressed: pending ? null : () => Navigator.pop(ctx, false),
+              child: Text(locale.cancelCta),
+            ),
+            FlatmatesButton(
+              label: locale.blockCta,
+              onPressed: pending
+                  ? null
+                  : () {
+                      setDialogState(() => pending = true);
+                      Navigator.pop(ctx, true);
+                    },
+            ),
+          ],
+        ),
       ),
     );
     if (confirmed != true || !context.mounted) return;
@@ -68,6 +79,7 @@ class ChatDialogs {
   }) async {
     final locale = AppLocalizations.of(context);
     String? selectedReason;
+    var pending = false;
     final reasonLabels = reasons.map((r) => r.resolvedLabel(locale)).toList();
 
     final confirmed = await showDialog<String>(
@@ -93,13 +105,16 @@ class ChatDialogs {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: pending ? null : () => Navigator.pop(ctx),
               child: Text(locale.cancelCta),
             ),
             FlatmatesButton(
               label: locale.reportCta,
-              onPressed: selectedReason != null
-                  ? () => Navigator.pop(ctx, selectedReason)
+              onPressed: selectedReason != null && !pending
+                  ? () {
+                      setDialogState(() => pending = true);
+                      Navigator.pop(ctx, selectedReason);
+                    }
                   : null,
             ),
           ],
@@ -134,22 +149,30 @@ class ChatDialogs {
     required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
+    var pending = false;
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(locale.unmatchConfirmTitle),
-        content: Text(locale.unmatchConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(locale.cancelCta),
-          ),
-          FlatmatesButton(
-            label: locale.unmatchCta,
-            onPressed: () => Navigator.pop(ctx, true),
-          ),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(locale.unmatchConfirmTitle),
+          content: Text(locale.unmatchConfirmMessage),
+          actions: [
+            TextButton(
+              onPressed: pending ? null : () => Navigator.pop(ctx, false),
+              child: Text(locale.cancelCta),
+            ),
+            FlatmatesButton(
+              label: locale.unmatchCta,
+              onPressed: pending
+                  ? null
+                  : () {
+                      setDialogState(() => pending = true);
+                      Navigator.pop(ctx, true);
+                    },
+            ),
+          ],
+        ),
       ),
     );
     if (confirmed != true || !context.mounted) return;

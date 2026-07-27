@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/config/endpoints.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
 
 class VisitItem {
@@ -120,6 +121,7 @@ class VisitsRepository {
     required int counterpartyUserId,
     required int conversationId,
     required DateTime scheduledDate,
+    required AppLocalizations locale,
     String? note,
     String? timeSlotLabel,
   }) async {
@@ -137,8 +139,16 @@ class VisitsRepository {
       await chatsRepo.sendMessage(
         conversationId: conversationId,
         messageType: 'visit_request',
-        body:
-            'Visit requested for ${timeSlotLabel ?? DateFormat('d MMM, h:mm a').format(scheduledDate.toLocal())}',
+        // Persisted server-side and shown verbatim to the recipient, so format
+        // with the sender's locale and localize the prefix. Only messages
+        // created after this change carry the localized form.
+        body: locale.visitRequestedFor(
+          timeSlotLabel ??
+              DateFormat(
+                'd MMM, h:mm a',
+                locale.localeName,
+              ).format(scheduledDate.toLocal()),
+        ),
         metadata: {
           'visit_id': visitId,
           'status': 'requested',

@@ -218,7 +218,9 @@ class DiscoverListingCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _formatRent(item.monthlyRent.round()),
+                          FlatmatesPriceText.formatCompact(
+                            item.monthlyRent.round(),
+                          ),
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: ink,
                             fontWeight: FontWeight.w700,
@@ -291,7 +293,9 @@ class DiscoverListingCard extends StatelessWidget {
                           TextSpan(
                             children: [
                               TextSpan(
-                                text: _formatRent(item.monthlyRent.round()),
+                                text: FlatmatesPriceText.formatCompact(
+                                  item.monthlyRent.round(),
+                                ),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   color: ink,
                                   fontWeight: FontWeight.w700,
@@ -332,16 +336,6 @@ class DiscoverListingCard extends StatelessWidget {
       ),
     );
   }
-
-  static String _formatRent(int amount) {
-    if (amount >= 100000) {
-      final lakhs = amount / 100000;
-      final value = lakhs.toStringAsFixed(lakhs >= 10 ? 1 : 2);
-      final compact = value.replaceAll(RegExp(r'\.?0+$'), '');
-      return '\u20b9${compact}L';
-    }
-    return FlatmatesPriceText.formatRupee(amount);
-  }
 }
 
 class _CardImageFallback extends StatelessWidget {
@@ -353,8 +347,9 @@ class _CardImageFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
     return Container(
-      color: AppSemanticColors.surfaceStrong,
+      color: AppSemanticColors.disabledSurfaceFor(brightness),
       padding: EdgeInsets.fromLTRB(
         compact ? AppSpacing.sm : AppSpacing.md,
         compact ? AppSpacing.xs : AppSpacing.sm,
@@ -367,7 +362,7 @@ class _CardImageFallback extends StatelessWidget {
         children: [
           Icon(
             Icons.apartment_rounded,
-            color: AppSemanticColors.muted,
+            color: AppSemanticColors.textTertiaryFor(brightness),
             size: compact ? 16 : 22,
           ),
           SizedBox(height: compact ? 2 : AppSpacing.xs),
@@ -376,7 +371,7 @@ class _CardImageFallback extends StatelessWidget {
             maxLines: compact ? 1 : 2,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: AppSemanticColors.ink,
+              color: AppSemanticColors.textPrimaryFor(brightness),
             ),
           ),
         ],

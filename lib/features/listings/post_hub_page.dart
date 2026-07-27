@@ -28,6 +28,45 @@ class PostHubPage extends ConsumerWidget {
         ?.where((l) => listingMatchesTab(l, 'draft'))
         .length;
 
+    // Counts for the Manage card. Prefer real data whenever it exists (even
+    // during a failed background refresh); otherwise a load failure must be
+    // visible and recoverable, not a silent disappearance of the chips.
+    Widget? manageCounts;
+    if (activeCount != null && draftCount != null) {
+      manageCounts = Wrap(
+        spacing: AppSpacing.xs,
+        runSpacing: AppSpacing.xs,
+        children: [
+          FlatmatesChip(
+            label: locale.postHubActiveCount(activeCount),
+            variant: FlatmatesChipVariant.info,
+          ),
+          FlatmatesChip(
+            label: locale.postHubDraftCount(draftCount),
+            variant: FlatmatesChipVariant.info,
+          ),
+        ],
+      );
+    } else if (listings.hasError) {
+      manageCounts = Wrap(
+        spacing: AppSpacing.xs,
+        runSpacing: AppSpacing.xs,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            locale.couldNotLoadListings,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppSemanticColors.textTertiaryFor(theme.brightness),
+            ),
+          ),
+          TextButton(
+            onPressed: () => ref.invalidate(myListingsProvider),
+            child: Text(locale.commonRetry),
+          ),
+        ],
+      );
+    }
+
     return FlatmatesScreen(
       appBar: FlatmatesHeader.logo(
         actions: [
@@ -73,22 +112,7 @@ class PostHubPage extends ConsumerWidget {
                   icon: Icons.dashboard_customize_outlined,
                   title: locale.manageListingsTitle,
                   subtitle: locale.postHubManageSubtitle,
-                  counts: (activeCount != null && draftCount != null)
-                      ? Wrap(
-                          spacing: AppSpacing.xs,
-                          runSpacing: AppSpacing.xs,
-                          children: [
-                            FlatmatesChip(
-                              label: locale.postHubActiveCount(activeCount),
-                              variant: FlatmatesChipVariant.info,
-                            ),
-                            FlatmatesChip(
-                              label: locale.postHubDraftCount(draftCount),
-                              variant: FlatmatesChipVariant.info,
-                            ),
-                          ],
-                        )
-                      : null,
+                  counts: manageCounts,
                   onTap: () => context.push('/manage-listings'),
                 ),
               ],

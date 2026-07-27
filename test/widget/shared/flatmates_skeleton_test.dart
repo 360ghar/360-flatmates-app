@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flatmates_app/features/shared/presentation/flatmates_skeleton.dart';
+import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 void main() {
   group('FlatmatesSkeleton', () {
@@ -9,7 +10,11 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesSkeleton.list())),
+        const MaterialApp(
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: Scaffold(body: FlatmatesSkeleton.list()),
+        ),
       );
       // Use pump() instead of pumpAndSettle() because the skeleton has a
       // repeating shimmer animation that never settles.
@@ -49,6 +54,8 @@ void main() {
         // and doesn't indicate a real bug.
         await tester.pumpWidget(
           MaterialApp(
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
             home: Scaffold(body: SizedBox(height: 2000, child: variant)),
           ),
         );
@@ -62,6 +69,8 @@ void main() {
     testWidgets('reduced motion keeps skeleton static', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           home: MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: Scaffold(body: FlatmatesSkeleton.list()),

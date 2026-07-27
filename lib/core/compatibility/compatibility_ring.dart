@@ -3,6 +3,7 @@ import 'dart:math' as math show pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/gen/app_localizations.dart';
 import '../compatibility/compatibility_engine.dart';
 import '../theme/app_semantic_colors.dart';
 
@@ -166,6 +167,7 @@ class CompatibilityBreakdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -184,7 +186,7 @@ class CompatibilityBreakdown extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  dim.summary,
+                  compatSummaryLabel(locale, dim.summary),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

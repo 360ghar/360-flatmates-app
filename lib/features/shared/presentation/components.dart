@@ -24,7 +24,6 @@ export 'flatmates_location_chip.dart';
 export 'flatmates_network_image.dart';
 export 'flatmates_otp_input.dart';
 export 'flatmates_price_text.dart';
-export 'flatmates_profile_mini_card.dart';
 export 'flatmates_screen.dart';
 export 'flatmates_search_bar.dart';
 export 'flatmates_segmented_control.dart';

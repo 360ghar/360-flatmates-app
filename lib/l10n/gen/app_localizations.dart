@@ -6961,6 +6961,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue setup'**
   String get onboardingActionBlockedCta;
+
+  /// No description provided for @compatSleepHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep habits'**
+  String get compatSleepHabits;
+
+  /// No description provided for @compatCleanliness.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleanliness'**
+  String get compatCleanliness;
+
+  /// No description provided for @compatFlexibleFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible food preferences'**
+  String get compatFlexibleFood;
+
+  /// No description provided for @compatFoodMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Food preferences'**
+  String get compatFoodMatch;
+
+  /// No description provided for @compatFoodDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Different food preferences'**
+  String get compatFoodDiffer;
+
+  /// No description provided for @compatFlexibleLifestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible lifestyle habits'**
+  String get compatFlexibleLifestyle;
+
+  /// No description provided for @compatLifestyleAligned.
+  ///
+  /// In en, this message translates to:
+  /// **'Aligned lifestyle'**
+  String get compatLifestyleAligned;
+
+  /// No description provided for @compatLifestyleMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed lifestyle'**
+  String get compatLifestyleMixed;
+
+  /// No description provided for @compatLifestyleDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle differences'**
+  String get compatLifestyleDiffer;
+
+  /// No description provided for @compatGuestPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest policy'**
+  String get compatGuestPolicy;
+
+  /// No description provided for @compatWorkStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work style'**
+  String get compatWorkStyle;
+
+  /// No description provided for @compatWorkDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Different work styles'**
+  String get compatWorkDiffer;
+
+  /// No description provided for @notifChannelMessagesName.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages & Matches'**
+  String get notifChannelMessagesName;
+
+  /// No description provided for @notifChannelMessagesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications for new messages, matches, and visits'**
+  String get notifChannelMessagesDesc;
+
+  /// No description provided for @noFilterOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'No options available'**
+  String get noFilterOptions;
+
+  /// No description provided for @timeSlotMorningTime.
+  ///
+  /// In en, this message translates to:
+  /// **'10:00 AM'**
+  String get timeSlotMorningTime;
+
+  /// No description provided for @timeSlotAfternoonTime.
+  ///
+  /// In en, this message translates to:
+  /// **'3:00 PM'**
+  String get timeSlotAfternoonTime;
+
+  /// No description provided for @timeSlotEveningTime.
+  ///
+  /// In en, this message translates to:
+  /// **'6:00 PM'**
+  String get timeSlotEveningTime;
+
+  /// No description provided for @loadingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get loadingLabel;
+
+  /// No description provided for @floorLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {floor} / {total}'**
+  String floorLevelLabel(String floor, String total);
+
+  /// No description provided for @visitRequestedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit requested for {when}'**
+  String visitRequestedFor(String when);
 }
 
 class _AppLocalizationsDelegate

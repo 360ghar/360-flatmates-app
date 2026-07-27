@@ -290,7 +290,6 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
     ref
         .read(incomingLikesListControllerProvider.notifier)
         .removePeerOptimistically(profile.id);
-    ref.invalidate(incomingLikesProvider);
     unawaited(ref.read(incomingLikesListControllerProvider.notifier).refresh());
 
     ref

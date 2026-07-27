@@ -27,42 +27,54 @@ class SettingsController extends Notifier<SettingsState> {
   SettingsRepository get _repo => ref.read(settingsRepositoryProvider);
 
   Future<void> load() async {
-    final themeRaw = _prefs.getString(PrefKeys.themeMode);
-    final languageCode = _prefs.getString(PrefKeys.localeLanguageCode);
-    final countryCode = _prefs.getString(PrefKeys.localeCountryCode);
+    try {
+      final themeRaw = _prefs.getString(PrefKeys.themeMode);
+      final languageCode = _prefs.getString(PrefKeys.localeLanguageCode);
+      final countryCode = _prefs.getString(PrefKeys.localeCountryCode);
 
-    state = state.copyWith(
-      themeMode: switch (themeRaw) {
-        'light' => ThemeMode.light,
-        'dark' => ThemeMode.dark,
-        'system' => ThemeMode.system,
-        _ => ThemeMode.light,
-      },
-      locale: languageCode == null
-          ? const Locale('en')
-          : Locale(languageCode, countryCode),
-      hideLastName: _prefs.getBool(PrefKeys.hideLastName),
-      hideExactLocation: _prefs.getBool(PrefKeys.hideExactLocation),
-      notifNewMessages: _prefs.getBoolOrDefault(
-        PrefKeys.notifNewMessages,
-        true,
-      ),
-      notifVisitReminders: _prefs.getBoolOrDefault(
-        PrefKeys.notifVisitReminders,
-        true,
-      ),
-      notifNewMatches: _prefs.getBoolOrDefault(PrefKeys.notifNewMatches, true),
-      notifListingUpdates: _prefs.getBoolOrDefault(
-        PrefKeys.notifListingUpdates,
-        true,
-      ),
-      notifPromotions: _prefs.getBoolOrDefault(PrefKeys.notifPromotions, false),
-      loaded: true,
-    );
+      state = state.copyWith(
+        themeMode: switch (themeRaw) {
+          'light' => ThemeMode.light,
+          'dark' => ThemeMode.dark,
+          'system' => ThemeMode.system,
+          _ => ThemeMode.light,
+        },
+        locale: languageCode == null
+            ? const Locale('en')
+            : Locale(languageCode, countryCode),
+        hideLastName: _prefs.getBool(PrefKeys.hideLastName),
+        hideExactLocation: _prefs.getBool(PrefKeys.hideExactLocation),
+        notifNewMessages: _prefs.getBoolOrDefault(
+          PrefKeys.notifNewMessages,
+          true,
+        ),
+        notifVisitReminders: _prefs.getBoolOrDefault(
+          PrefKeys.notifVisitReminders,
+          true,
+        ),
+        notifNewMatches: _prefs.getBoolOrDefault(
+          PrefKeys.notifNewMatches,
+          true,
+        ),
+        notifListingUpdates: _prefs.getBoolOrDefault(
+          PrefKeys.notifListingUpdates,
+          true,
+        ),
+        notifPromotions: _prefs.getBoolOrDefault(
+          PrefKeys.notifPromotions,
+          false,
+        ),
+        loaded: true,
+        loadFailed: false,
+      );
 
-    // Best-effort remote merge — local prefs already applied above.
-    await _mergeRemoteNotificationSettings();
-    await _mergeRemotePrivacySettings();
+      // Best-effort remote merge — local prefs already applied above.
+      await _mergeRemoteNotificationSettings();
+      await _mergeRemotePrivacySettings();
+    } catch (e) {
+      debugPrint('SettingsController.load: $e');
+      state = state.copyWith(loadFailed: true);
+    }
   }
 
   Future<void> _mergeRemoteNotificationSettings() async {

@@ -9,6 +9,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
+import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../../shared/presentation/flatmates_video_tour_player.dart';
 import '../../../shared/presentation/profile_sections.dart';
@@ -634,7 +635,7 @@ List<QuickStatPill> buildQuickStatPills({
     pills.add(
       QuickStatPill(
         icon: Icons.currency_rupee_rounded,
-        label: _budgetText(item.budgetMin, item.budgetMax),
+        label: budgetRangeText(locale, item.budgetMin, item.budgetMax),
       ),
     );
   }
@@ -733,21 +734,6 @@ class QuickStatPill {
   final String label;
 }
 
-String _budgetText(double? min, double? max) {
-  if (min != null && max != null) {
-    return '₹${_shortMoney(min)}-₹${_shortMoney(max)}/mo';
-  }
-  if (min != null) return '₹${_shortMoney(min)}/mo+';
-  if (max != null) return 'Up to ₹${_shortMoney(max)}/mo';
-  return '';
-}
-
-String _shortMoney(double v) {
-  if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-  if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}k';
-  return v.toStringAsFixed(0);
-}
-
 class CompactPill extends StatelessWidget {
   const CompactPill({super.key, required this.icon, required this.label});
 
@@ -803,6 +789,7 @@ class AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
     final hasBio = bio != null && bio!.isNotEmpty;
     final hasVideo = videoTourUrl != null && videoTourUrl!.isNotEmpty;
     final chips = compatibility.topMatchChips.take(3).toList();
@@ -831,7 +818,11 @@ class AboutSection extends StatelessWidget {
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
-            children: chips.map((c) => CompactMatchChip(label: c)).toList(),
+            children: chips
+                .map(
+                  (c) => CompactMatchChip(label: compatSummaryLabel(locale, c)),
+                )
+                .toList(),
           ),
         ],
       ],
@@ -1385,7 +1376,7 @@ class CostsSection extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                '₹${total.toStringAsFixed(0)}',
+                FlatmatesPriceText.formatRupee(total.round()),
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -1398,17 +1389,17 @@ class CostsSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         CostLineItem(
           label: locale.monthlyRentRow,
-          value: '₹${monthlyRent.toStringAsFixed(0)}',
+          value: FlatmatesPriceText.formatRupee(monthlyRent.round()),
         ),
         if (securityDeposit != null)
           CostLineItem(
             label: locale.securityDepositRow,
-            value: '₹${securityDeposit!.toStringAsFixed(0)}',
+            value: FlatmatesPriceText.formatRupee(securityDeposit!.round()),
           ),
         if (maintenance != null)
           CostLineItem(
             label: locale.maintenanceRow,
-            value: '₹${maintenance!.toStringAsFixed(0)}',
+            value: FlatmatesPriceText.formatRupee(maintenance!.round()),
           ),
       ],
     );
@@ -1431,13 +1422,18 @@ class CostLineItem extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 13,
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 13,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 value,
                 style: theme.textTheme.bodySmall?.copyWith(

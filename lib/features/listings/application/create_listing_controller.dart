@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/storage/image_upload_service.dart' as uploads;
 import '../../discover/application/discover_feed_controller.dart';
+import '../../discover/application/map_listings_controller.dart';
 import '../../discover/application/property_listing_seed_store.dart';
 import '../../discover/discover_repository.dart';
 import '../listings_repository.dart';
@@ -157,6 +158,10 @@ class CreateListingController {
   Future<void> _refreshAfterSubmit() async {
     try {
       unawaited(_ref.read(discoverFeedControllerProvider.notifier).refresh());
+      // A new/edited listing must also show up (or update) on the map pins —
+      // invalidate mapListingsProvider so it refetches (#16). Container-level
+      // so it stays lazy when the map is unwatched (e.g. isolated unit tests).
+      _ref.container.invalidate(mapListingsProvider);
       _ref.invalidate(myListingsProvider);
       await _ref.read(myListingsListControllerProvider.notifier).refresh();
     } catch (e) {

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../discover/application/discover_feed_controller.dart';
+import '../../discover/application/map_listings_controller.dart';
 import '../listings_repository.dart';
 import '../my_listings_controller.dart';
 
@@ -69,6 +71,17 @@ class ManageListingsActionsController
           .togglePause(listingId, paused: currentlyPaused);
       ref.invalidate(myListingsListControllerProvider);
       ref.invalidate(myListingsProvider);
+      // A paused listing must drop out of the discover feed and the map pins;
+      // a resumed one must reappear. Invalidate both so the change propagates
+      // everywhere instead of lingering until a manual pull-to-refresh. (#17)
+      //
+      // Invalidate via the container (not `ref.invalidate`): the element-level
+      // API runs a debug-only dependency assertion that force-mounts the target
+      // provider, which in isolated unit tests builds the map/feed controllers
+      // without their required overrides. Container invalidation stays lazy for
+      // providers that aren't currently watched and is identical for active ones.
+      ref.container.invalidate(discoverFeedControllerProvider);
+      ref.container.invalidate(mapListingsProvider);
       // Drop the optimistic override after a successful mutate so the refreshed
       // list is the source of truth.
       final clearedOptimistic = Map<int, bool>.of(state.optimisticPaused)

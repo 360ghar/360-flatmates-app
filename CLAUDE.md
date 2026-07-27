@@ -75,7 +75,7 @@ lib/
     theme/                      → Material 3 theme (Airbnb Rausch), design token constants
     compatibility/              → client-side matching algorithm (6 weighted dimensions)
     deep_links/                 → DeepLinkService (app_links, cold+warm start)
-    domain/                     → PagedState<T>, OptimisticUpdate, typed enums
+    domain/                     → typed enums
     errors/                     → AppFailure sealed class, ErrorPresenter, l10n bridge
     analytics/                  → AnalyticsEvents + AnalyticsProps constants
     utils/                      → ActionDebouncer, etc.
@@ -105,7 +105,6 @@ lib/
 - `Provider` for repositories and services (injected via `ref.watch`)
 - `FutureProvider` / `FutureProvider.family` for one-shot async data
 - `StreamProvider` for streams (`connectivityProvider`)
-- `PagedState<T>` for paginated data; `OptimisticUpdate.perform<T>()` for optimistic writes with rollback
 - Three providers overridden at `ProviderScope` root: `appConfigProvider`, `appPreferencesProvider`, `secureStoreProvider`
 - After write operations, **invalidate** the relevant provider rather than manually syncing widget state
 

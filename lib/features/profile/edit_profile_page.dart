@@ -10,16 +10,15 @@ import '../../core/storage/image_upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
+import '../discover/application/discover_feed_controller.dart';
 import '../shared/presentation/components.dart';
+import '../swipe/application/swipe_deck_controller.dart';
 import 'presentation/widgets/edit_profile_options.dart';
 import 'presentation/widgets/edit_profile_tabs.dart';
 import 'profile_repository.dart';
 
-// Local UI state via StateProviders (convention: no setState in ConsumerState).
-// These are .autoDispose so each edit session starts with fresh defaults and
-// seeded backend values never leak across visits.
-// Null until seeded from profile / user picks a catalog id — avoids overwriting
-// an unmapped server value with a silent default on save.
+// Local UI state via autoDispose StateProviders (convention: no setState here).
+// Nullable until seeded/chosen so unmapped server values aren't blanked on save.
 final _modeProvider = StateProvider.autoDispose<String?>((ref) => null);
 final _workStyleProvider = StateProvider.autoDispose<String?>((ref) => null);
 final _moveInTimelineProvider = StateProvider.autoDispose<String?>(
@@ -44,8 +43,7 @@ final _savingProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _photoUploadingProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _dirtyProvider = StateProvider.autoDispose<bool>((ref) => false);
 
-/// Active edit-profile tab. Defaults to Identity so the most-edited fields
-/// (photo, contact, basics) are visible on open.
+/// Active edit-profile tab; defaults to Identity (the most-edited fields).
 final _editTabProvider = StateProvider.autoDispose<EditProfileTab>(
   (ref) => EditProfileTab.identity,
 );
@@ -113,18 +111,23 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialized) return;
     final profile = ref.read(bootstrapControllerProvider).valueOrNull?.profile;
     if (profile == null) return;
+    _initializeFromProfile(profile);
+  }
+
+  /// Seeds controllers + option providers once: from [didChangeDependencies]
+  /// normally, and post-frame from [build] after an error-state retry.
+  void _initializeFromProfile(FlatmatesProfileModel profile) {
+    if (_initialized) return;
+    _initialized = true;
     _seedControllers(profile);
     _hasEmail = profile.email?.isNotEmpty == true;
     _hasPhone = profile.phone?.isNotEmpty == true;
-    final snapshot = profile;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _seedProviders(snapshot);
+      _seedProviders(profile);
     });
-    _initialized = true;
   }
 
   void _seedControllers(FlatmatesProfileModel profile) {
@@ -252,13 +255,38 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
+    final bootstrap = ref.watch(bootstrapControllerProvider);
+    final profile = bootstrap.valueOrNull?.profile;
+
+    // Never render the form without real prefills: a bootstrap failure would
+    // leave Save armed to overwrite name/bio/preferences with blanks.
+    if (profile == null) {
+      return Scaffold(
+        appBar: FlatmatesHeader.backTitle(title: locale.editProfileCta),
+        body: bootstrap.hasError
+            ? FlatmatesErrorState(
+                message: locale.couldNotLoadProfile,
+                onRetry: () =>
+                    ref.read(bootstrapControllerProvider.notifier).refresh(),
+              )
+            : const Center(child: FlatmatesSkeleton.profile()),
+      );
+    }
+
+    if (!_initialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _initializeFromProfile(profile);
+      });
+    }
+
     final saving = ref.watch(_savingProvider);
     final photoUploading = ref.watch(_photoUploadingProvider);
     final dirty = ref.watch(_dirtyProvider);
     final tab = ref.watch(_editTabProvider);
     final options = EditProfileOptions(
       locale: locale,
-      bootstrap: ref.watch(bootstrapControllerProvider).valueOrNull,
+      bootstrap: bootstrap.valueOrNull,
     );
     String? nullableText(TextEditingController controller) {
       final value = controller.text.trim();
@@ -451,6 +479,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final payload = _buildSavePayload(nullableText, budgetMin, budgetMax);
       await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
+      // Feed/deck read the profile via ref.read — invalidate to drop stale results.
+      ref.invalidate(discoverFeedControllerProvider);
+      ref.invalidate(swipeDeckControllerProvider);
       if (!mounted) return;
       ref.read(_dirtyProvider.notifier).state = false;
       FlatmatesToast.success(context, locale.profileUpdated);

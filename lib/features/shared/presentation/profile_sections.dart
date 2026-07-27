@@ -399,7 +399,7 @@ class CompatBreakdownSection extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
-                          dim.summary,
+                          compatSummaryLabel(locale, dim.summary),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelSmall?.copyWith(

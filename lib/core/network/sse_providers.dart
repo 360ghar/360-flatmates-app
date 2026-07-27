@@ -7,7 +7,6 @@ import '../../features/chats/application/cursor_list_controller.dart';
 import '../../features/chats/application/messages_controller.dart';
 import '../../features/chats/chats_repository.dart';
 import '../../features/notifications/notifications_list_controller.dart';
-import '../../features/notifications/notifications_repository.dart';
 import '../../features/visits/application/visits_list_controller.dart';
 import '../../features/visits/visits_repository.dart';
 import 'flatmates_realtime_service.dart';
@@ -81,7 +80,6 @@ void routeFlatmatesRealtimeEvent(Ref ref, FlatmatesRealtimeEvent event) {
 }
 
 void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
-  ref.invalidate(notificationsProvider);
   ref.invalidate(notificationsListControllerProvider);
 
   final typeKey =
@@ -138,8 +136,6 @@ void _refreshConversationThread(Ref ref, int conversationId) {
 }
 
 void _invalidateLikeState(Ref ref) {
-  ref.invalidate(incomingLikesProvider);
-  ref.invalidate(outgoingLikesProvider);
   ref.invalidate(incomingLikesListControllerProvider);
   ref.invalidate(outgoingLikesListControllerProvider);
 }

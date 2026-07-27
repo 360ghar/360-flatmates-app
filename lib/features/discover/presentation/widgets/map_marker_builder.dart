@@ -6,18 +6,8 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../discover_repository.dart';
-
-String _formatCompactPrice(int amount) {
-  if (amount >= 100000) {
-    final lakhs = amount / 100000;
-    final value = lakhs.toStringAsFixed(lakhs >= 10 ? 1 : 2);
-    final compact = value.replaceAll(RegExp(r'\.?0+$'), '');
-    return '₹${compact}L';
-  }
-  final thousands = amount / 1000;
-  return '₹${thousands.toStringAsFixed(thousands == thousands.roundToDouble() ? 0 : 1)}K';
-}
 
 /// A map marker described as data: a geographic [point] plus the Flutter widget
 /// that should be drawn at that point. The map page projects [point] to screen
@@ -135,7 +125,7 @@ class _ListingMarkerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceText = _formatCompactPrice(price);
+    final priceText = FlatmatesPriceText.formatCompact(price, thousands: true);
 
     String? bhkLabel;
     if (bedrooms != null) {
@@ -276,8 +266,8 @@ class _ClusterMarkerWidget extends StatelessWidget {
     final minRent = rents.first;
     final maxRent = rents.last;
     final rangeText = minRent == maxRent
-        ? _formatCompactPrice(minRent)
-        : '${_formatCompactPrice(minRent)}-${_formatCompactPrice(maxRent)}';
+        ? FlatmatesPriceText.formatCompact(minRent, thousands: true)
+        : '${FlatmatesPriceText.formatCompact(minRent, thousands: true)}-${FlatmatesPriceText.formatCompact(maxRent, thousands: true)}';
 
     return GestureDetector(
       onTap: onTap,

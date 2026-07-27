@@ -1,11 +1,53 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
+import 'package:flatmates_app/core/config/endpoints.dart';
+import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/auth/auth_controller.dart';
 import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
+
+/// Serves a scripted status code for every request so a refresh can be made to
+/// fail on demand.
+class _ScriptedAdapter implements HttpClientAdapter {
+  _ScriptedAdapter(this.handler);
+  final Response<dynamic> Function(RequestOptions) handler;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final response = handler(options);
+    return ResponseBody.fromString(
+      jsonEncode(response.data),
+      response.statusCode ?? 200,
+      headers: {
+        'content-type': ['application/json'],
+      },
+    );
+  }
+}
+
+/// A logged-in [AuthController] so the real [BootstrapController] actually
+/// fetches instead of short-circuiting to `null`.
+class _LoggedInAuthController extends FakeAuthController {
+  @override
+  AuthState build() => const AuthState(
+    status: AuthStatus.authenticated,
+    sessionAuthenticated: true,
+  );
+}
 
 void main() {
   setUp(() {
@@ -89,6 +131,67 @@ void main() {
       final notifier = container.read(bootstrapControllerProvider.notifier);
       await notifier.refresh();
       expect(container.read(bootstrapControllerProvider).hasError, isFalse);
+    });
+
+    test('a failed refresh keeps the previously loaded profile', () async {
+      var failNext = false;
+      final container = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(fakeAppConfig()),
+          authTokenProviderProvider.overrideWithValue(FakeAuthTokenProvider()),
+          authControllerProvider.overrideWith(() => _LoggedInAuthController()),
+          apiClientProvider.overrideWithValue(
+            ApiClient(
+                baseUrl: 'https://api.test.example.com',
+                tokenProvider: FakeAuthTokenProvider(),
+              )
+              ..dio.httpClientAdapter = _ScriptedAdapter((options) {
+                if (failNext) {
+                  return Response<dynamic>(
+                    data: {'detail': 'boom'},
+                    statusCode: 500,
+                    requestOptions: options,
+                  );
+                }
+                if (options.path == FlatmatesEndpoints.authState) {
+                  return Response<dynamic>(
+                    data: {'stage': 'active', 'missing_fields': <String>[]},
+                    statusCode: 200,
+                    requestOptions: options,
+                  );
+                }
+                return Response<dynamic>(
+                  data: {
+                    'profile': {
+                      'id': 7,
+                      'full_name': 'Room Poster',
+                      'mode': 'room_poster',
+                      'onboarding_completed': true,
+                    },
+                  },
+                  statusCode: 200,
+                  requestOptions: options,
+                );
+              }),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(bootstrapControllerProvider.future);
+      expect(
+        container.read(bootstrapControllerProvider).valueOrNull?.profile.mode,
+        'room_poster',
+      );
+
+      failNext = true;
+      await container.read(bootstrapControllerProvider.notifier).refresh();
+
+      final state = container.read(bootstrapControllerProvider);
+      expect(state.hasError, isTrue);
+      // The retained value is what keeps tab2ModeProvider from nulling out and
+      // silently relabelling a room poster's Post tab to Explore.
+      expect(state.valueOrNull?.profile.mode, 'room_poster');
     });
   });
 

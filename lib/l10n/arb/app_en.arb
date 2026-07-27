@@ -1755,5 +1755,43 @@
   "onboardingWelcomeBack": "Welcome back! Pick up where you left off.",
   "onboardingActionBlockedTitle": "Complete your profile first",
   "onboardingActionBlockedMessage": "Finish setting up your profile to start matching with flatmates.",
-  "onboardingActionBlockedCta": "Continue setup"
+  "onboardingActionBlockedCta": "Continue setup",
+  "compatSleepHabits": "Sleep habits",
+  "compatCleanliness": "Cleanliness",
+  "compatFlexibleFood": "Flexible food preferences",
+  "compatFoodMatch": "Food preferences",
+  "compatFoodDiffer": "Different food preferences",
+  "compatFlexibleLifestyle": "Flexible lifestyle habits",
+  "compatLifestyleAligned": "Aligned lifestyle",
+  "compatLifestyleMixed": "Mixed lifestyle",
+  "compatLifestyleDiffer": "Lifestyle differences",
+  "compatGuestPolicy": "Guest policy",
+  "compatWorkStyle": "Work style",
+  "compatWorkDiffer": "Different work styles",
+  "notifChannelMessagesName": "Messages & Matches",
+  "notifChannelMessagesDesc": "Notifications for new messages, matches, and visits",
+  "noFilterOptions": "No options available",
+  "timeSlotMorningTime": "10:00 AM",
+  "timeSlotAfternoonTime": "3:00 PM",
+  "timeSlotEveningTime": "6:00 PM",
+  "loadingLabel": "Loading",
+  "floorLevelLabel": "Floor {floor} / {total}",
+  "@floorLevelLabel": {
+    "placeholders": {
+      "floor": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "visitRequestedFor": "Visit requested for {when}",
+  "@visitRequestedFor": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  }
 }

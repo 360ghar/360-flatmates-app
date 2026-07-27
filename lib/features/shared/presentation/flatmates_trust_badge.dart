@@ -49,12 +49,20 @@ class FlatmatesTrustBadge extends StatelessWidget {
         children: [
           Icon(variant.icon, size: compact ? 14 : 16, color: color),
           SizedBox(width: compact ? AppSpacing.xs : AppSpacing.sm),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: compact ? 11 : 12,
+          // Flexible + ellipsis so a long label (or a large text scale) shrinks
+          // inside the available width instead of overflowing the pill. Loose
+          // fit inside a MainAxisSize.min Row is safe under unbounded width —
+          // the label simply falls back to its intrinsic size there.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: compact ? 11 : 12,
+              ),
             ),
           ),
         ],

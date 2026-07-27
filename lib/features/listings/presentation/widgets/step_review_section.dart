@@ -202,7 +202,10 @@ class StepReviewSection extends StatelessWidget {
             if (d.floorController.text.trim().isNotEmpty ||
                 d.totalFloorsController.text.trim().isNotEmpty)
               Text(
-                'Floor ${d.floorController.text.trim()} / ${d.totalFloorsController.text.trim()}',
+                locale.floorLevelLabel(
+                  d.floorController.text.trim(),
+                  d.totalFloorsController.text.trim(),
+                ),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),
@@ -259,7 +262,7 @@ class StepReviewSection extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   locale.totalMonthlyOutflow(
-                    '₹${totalMonthlyOutflow.toStringAsFixed(0)}',
+                    FlatmatesPriceText.formatRupee(totalMonthlyOutflow.round()),
                   ),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: AppSemanticColors.accent,

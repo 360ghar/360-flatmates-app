@@ -198,7 +198,9 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'Move-in: ${l.availableFrom!.toLocal().day}/${l.availableFrom!.toLocal().month}',
+                        locale.homeMoveInValue(
+                          '${l.availableFrom!.toLocal().day}/${l.availableFrom!.toLocal().month}',
+                        ),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -338,7 +340,9 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
       final l = widget.listing;
       final text = StringBuffer();
       text.writeln(l.title);
-      text.writeln('Rs ${l.monthlyRent.toStringAsFixed(0)}/month');
+      text.writeln(
+        '${FlatmatesPriceText.formatRupee(l.monthlyRent.round())}${locale.perMonthSuffix}',
+      );
       if (l.locality != null) {
         text.writeln(l.locality);
       }
@@ -355,7 +359,9 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
     final locale = AppLocalizations.of(context);
     final text = StringBuffer();
     text.writeln(l.title);
-    text.writeln('Rs ${l.monthlyRent.toStringAsFixed(0)}/month');
+    text.writeln(
+      '${FlatmatesPriceText.formatRupee(l.monthlyRent.round())}${locale.perMonthSuffix}',
+    );
     if (l.locality != null) text.writeln(l.locality);
     text.writeln();
     text.writeln(locale.findYourFlatmateShare);

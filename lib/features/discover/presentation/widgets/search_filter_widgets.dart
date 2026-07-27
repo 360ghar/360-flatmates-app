@@ -3,6 +3,7 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
@@ -165,7 +166,7 @@ class FilterChipWrap extends StatelessWidget {
   Widget build(BuildContext context) {
     if (values.isEmpty) {
       return Text(
-        'No options available',
+        AppLocalizations.of(context).noFilterOptions,
         style: Theme.of(context).textTheme.bodyMedium,
       );
     }
@@ -208,7 +209,7 @@ class CatalogFilterChips extends StatelessWidget {
   Widget build(BuildContext context) {
     if (options.isEmpty) {
       return Text(
-        'No options available',
+        AppLocalizations.of(context).noFilterOptions,
         style: Theme.of(context).textTheme.bodyMedium,
       );
     }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 
 import '../../../core/location/location_data.dart';
+import '../../../core/location/location_detection.dart';
 import '../../../core/location/location_helpers.dart';
 import '../../../core/location/place_suggestion.dart';
 import '../../../core/theme/app_motion.dart';
@@ -87,95 +86,23 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
           ),
         );
         Navigator.of(context).pop();
-      } else {
-        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!mounted) return;
-        if (!serviceEnabled) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(locale.locationServicesDisabled),
-              duration: const Duration(seconds: 3),
-              action: SnackBarAction(
-                label: locale.locationServicesDisabledAction,
-                onPressed: Geolocator.openLocationSettings,
-              ),
-            ),
-          );
-          return;
-        }
-        var permission = await Geolocator.checkPermission();
-        if (!mounted) return;
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (!mounted) return;
-        }
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(locale.locationPermissionRequired)),
-          );
-          return;
-        }
-        if (permission == LocationPermission.deniedForever) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(locale.locationPermissionDeniedForever),
-              action: SnackBarAction(
-                label: locale.locationOpenAppSettings,
-                onPressed: Geolocator.openAppSettings,
-              ),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-          return;
-        }
-        final position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.low,
-            timeLimit: Duration(seconds: 20),
-          ),
-        );
-        if (mounted) {
-          String locationName = locale.currentLocationLabel;
-          try {
-            final placemarks = await placemarkFromCoordinates(
-              position.latitude,
-              position.longitude,
-            );
-            if (placemarks.isNotEmpty) {
-              final place = placemarks.first;
-              final parts = <String>[
-                if (place.locality != null && place.locality!.isNotEmpty)
-                  place.locality!,
-                if (place.administrativeArea != null &&
-                    place.administrativeArea!.isNotEmpty)
-                  place.administrativeArea!,
-              ];
-              if (parts.isNotEmpty) {
-                locationName = parts.join(', ');
-              }
-            }
-          } catch (e) {
-            debugPrint(
-              'LocationPickerModal._useCurrentLocation: geocoding failed: $e',
-            );
-          }
-          if (!mounted) return;
-          widget.onLocationSelected(
-            LocationData(
-              name: locationName,
-              latitude: position.latitude,
-              longitude: position.longitude,
-            ),
-          );
-          Navigator.of(context).pop();
-        }
+        return;
+      }
+
+      // No catalog-city match (or a transient detection failure). The map
+      // picker accepts an arbitrary lat/lng, so fall back to the raw current
+      // position. resolveRawPosition owns the Geolocator permission/service
+      // ladder and reports any failure to the user.
+      final raw = await resolveRawPosition(context);
+      if (!mounted) return;
+      if (raw != null) {
+        widget.onLocationSelected(raw);
+        Navigator.of(context).pop();
       }
     } catch (e) {
       debugPrint('LocationPickerModal._useCurrentLocation failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.locationDetectionFailed)));
+        FlatmatesToast.error(context, locale.locationDetectionFailed);
       }
     } finally {
       if (mounted) setState(() => _isDetectingLocation = false);
@@ -194,9 +121,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
           .resolveLocationName(location);
       if (!mounted) return;
       if (resolved == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.locationDetailsFailed)));
+        FlatmatesToast.error(context, locale.locationDetailsFailed);
         return;
       }
 
@@ -251,9 +176,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
         }
         Navigator.of(context).pop();
       } else if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.locationDetailsFailed)));
+        FlatmatesToast.error(context, locale.locationDetailsFailed);
       }
     } catch (e) {
       debugPrint('LocationPickerModal._onSuggestionTap failed: $e');
@@ -568,33 +491,36 @@ class _CurrentLocationIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: isLoading ? null : onTap,
-      borderRadius: AppRadius.smBorder,
-      child: Container(
-        height: 48,
-        width: 48,
-        decoration: BoxDecoration(
-          color: theme.brightness == Brightness.dark
-              ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
-              : AppSemanticColors.card,
-          borderRadius: AppRadius.smBorder,
-          border: Border.all(
-            color: AppSemanticColors.hairlineFor(theme.brightness),
+    return Tooltip(
+      message: AppLocalizations.of(context).useCurrentLocation,
+      child: InkWell(
+        onTap: isLoading ? null : onTap,
+        borderRadius: AppRadius.smBorder,
+        child: Container(
+          height: 48,
+          width: 48,
+          decoration: BoxDecoration(
+            color: theme.brightness == Brightness.dark
+                ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
+                : AppSemanticColors.card,
+            borderRadius: AppRadius.smBorder,
+            border: Border.all(
+              color: AppSemanticColors.hairlineFor(theme.brightness),
+            ),
           ),
-        ),
-        child: Center(
-          child: isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(
-                  Icons.gps_fixed_rounded,
-                  size: 20,
-                  color: AppSemanticColors.accent,
-                ),
+          child: Center(
+            child: isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(
+                    Icons.gps_fixed_rounded,
+                    size: 20,
+                    color: AppSemanticColors.accent,
+                  ),
+          ),
         ),
       ),
     );
@@ -617,12 +543,16 @@ class _RadiusSlider extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              locale.searchRadiusLabel,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                locale.searchRadiusLabel,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               locale.distanceKmLabel(radius.round()),
               style: theme.textTheme.bodyMedium?.copyWith(

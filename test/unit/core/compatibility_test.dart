@@ -211,7 +211,10 @@ void main() {
         peer: {'sleep_schedule': 'night_owl'},
       );
       // Sleep doesn't match, so it should not be in chips.
-      expect(result.topMatchChips, isNot(contains('Sleep habits')));
+      expect(
+        result.topMatchChips,
+        isNot(contains(CompatSummaryKey.sleepHabits)),
+      );
     });
 
     test('cleanliness one-step gap yields 50 score', () {

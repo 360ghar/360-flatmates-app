@@ -68,6 +68,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   ref.onDispose(refreshNotifier.dispose);
   ref.listen<AuthState>(authControllerProvider, (previous, next) {
     if (!next.isLoggedIn) {
+      // A deep link captured before/during login must not survive the session
+      // it was captured in, or it replays for the next account on this device.
+      DeepLinkService.clearPendingDeepLink();
       ref
           .read(flatmatesOnboardingCompletedOverrideProvider.notifier)
           .set(false);
@@ -85,11 +88,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     }
   });
   ref.listen<AsyncValue<BootstrapData?>>(bootstrapControllerProvider, (
-    previous,
+    _,
     next,
   ) {
-    final nextData = next.valueOrNull;
-    if (nextData != null && next.hasValue && !next.isLoading) {
+    if (next.isLoading) return;
+    // Refresh on a settled *error* too. Without it the redirect gate below can
+    // never re-run after a failed bootstrap, so the /splash retry UI is
+    // unreachable. Re-evaluating the gate is idempotent (it returns null once
+    // the user is already on /splash), so this cannot loop.
+    if (next.hasError || next.valueOrNull != null) {
       refreshNotifier.refresh();
     }
   });
@@ -239,7 +246,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (auth.authStage == AuthStage.appOnboarding &&
           !hasCompletedOnboardingLocally &&
           !isOnboarding &&
-          _isOnboardingBlockedRoute(location)) {
+          _isOnboardingBlockedRoute(
+            location,
+            isRoomPoster: isRoomPosterMode(profile.mode),
+          )) {
         return '/onboarding';
       }
 
@@ -737,7 +747,12 @@ String? authenticatedIdentifierVerificationRedirect({
   }
   if (!profile.onboardingCompleted && !hasCompletedOnboardingLocally) {
     if (isOnboarding) return null;
-    if (_isOnboardingBlockedRoute(location)) return '/onboarding';
+    if (_isOnboardingBlockedRoute(
+      location,
+      isRoomPoster: isRoomPosterMode(profile.mode),
+    )) {
+      return '/onboarding';
+    }
   }
   if (isSplash || isAuthRoute || isOnboarding) {
     return '/discover';
@@ -749,17 +764,22 @@ String? authenticatedIdentifierVerificationRedirect({
 /// require a complete profile to be useful are blocked; everything else
 /// (Discover, Map, Profile, Settings, deep links, auxiliary routes) is
 /// allowed through so the user can preview the app while completing setup.
+///
+/// [isRoomPoster] decides what shell tab 2 is: the Post hub (blocked) for a
+/// room poster, Explore/Map (allowed) for everyone else.
 @visibleForTesting
-bool isOnboardingBlockedRoute(String location) =>
-    _isOnboardingBlockedRoute(location);
+bool isOnboardingBlockedRoute(String location, {bool isRoomPoster = false}) =>
+    _isOnboardingBlockedRoute(location, isRoomPoster: isRoomPoster);
 
-bool _isOnboardingBlockedRoute(String location) {
+bool _isOnboardingBlockedRoute(String location, {required bool isRoomPoster}) {
   // Swipe deck — requires a complete profile for matching.
   if (location == '/swipe') return true;
   // Listing creation — requires a complete profile to post.
   if (location == '/post' || location == '/post/new') return true;
-  // Room-poster post hub (shell tab2) — same gate as /post while incomplete.
-  if (location == '/tab2') return true;
+  // Shell tab2 is the post hub only for room posters; for co-hunters/seekers it
+  // is Explore/Map, which the soft gate must keep reachable — blocking it there
+  // forced the user onto /onboarding with no way back.
+  if (location == '/tab2') return isRoomPoster;
   // Conversations list — requires a complete profile to match/chat.
   // Individual chat threads (/chats/{id}) are deep links and allowed.
   if (location == '/chats') return true;
@@ -801,7 +821,7 @@ class _ModeTab2SwitcherState extends ConsumerState<ModeTab2Switcher> {
   @override
   Widget build(BuildContext context) {
     final mode = ref.watch(tab2ModeProvider);
-    if (mode == 'room_poster') {
+    if (isRoomPosterMode(mode)) {
       return const PostHubPage();
     }
     return const MapViewPage();

@@ -1,6 +1,6 @@
 # UX Audit Backlog — cleared 2026-07-11
 
-All items from the 12-lane audit and deferred list are **fixed**. Nothing intentionally left open.
+All items from the 12-lane audit and deferred list were marked **fixed** and "nothing intentionally left open." That claim proved optimistic: the Wave 3 defect sweep (`fix/defect-sweep-deslop`, 2026-07-27) found and fixed real remaining gaps — dead files, providers, endpoints and dependencies, no-op invalidations, a clipped dead widget, and the analyzer's baseline test issues. Treat the "all fixed" framing below as the state after Wave 2, not the final word.
 
 ## Fixed in Wave 2a + full backlog sweep
 

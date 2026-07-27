@@ -54,7 +54,3 @@ class BlockedUsersRepository {
 final blockedUsersRepositoryProvider = Provider<BlockedUsersRepository>(
   (ref) => BlockedUsersRepository(apiClient: ref.watch(apiClientProvider)),
 );
-
-final blockedUsersProvider = FutureProvider<List<BlockedUser>>((ref) {
-  return ref.watch(blockedUsersRepositoryProvider).getBlockedUsers();
-});
