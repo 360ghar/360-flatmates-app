@@ -31,7 +31,8 @@ final class ErrorPresenter {
     return switch (e.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout => NetworkFailure(
+      DioExceptionType.receiveTimeout ||
+      DioExceptionType.transformTimeout => NetworkFailure(
         kind: NetworkFailureKind.timeout,
         underlyingError: e,
         stackTrace: st,
