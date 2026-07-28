@@ -38,7 +38,7 @@ tags:
 - runFlow: flows/chats/01_conversations_tabs.yaml
 - runFlow: flows/chats/02_open_chat.yaml
 - runFlow: flows/chats/03_send_message.yaml
-- runFlow: flows/chats/02_schedule_visit.yaml
+- runFlow: flows/visits/02_schedule_visit.yaml
 
 # Profile & Settings
 - runFlow: flows/profile/01_profile_view.yaml

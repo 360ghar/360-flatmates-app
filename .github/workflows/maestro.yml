@@ -75,7 +75,7 @@ jobs:
         with:
           api-level: 33
           target: google_apis
-          arch: x86_64
+          arch: arm64-v8a
           profile: pixel_6
           script: |
             adb shell settings put global window_animation_scale 0.0
