@@ -67,6 +67,16 @@ deliverables/
 # Windows artifacts
 nul
 
+# Platform scaffolding (not shipping desktop/web)
+/linux/
+/macos/
+/web/
+/windows/
+
+# Android build artifacts
+/android/build/
+/android/app/src/main/kotlin/com/the360ghar/flatmates_app/
+
 # Android signing credentials (NEVER commit)
 /android/app/key.properties
 *.jks

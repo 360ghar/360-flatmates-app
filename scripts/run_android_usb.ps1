@@ -80,8 +80,15 @@ function Test-BackendHealth {
 
   try {
     $payload = $response.Content | ConvertFrom-Json
-    if ($payload.status -and $payload.status -ne 'healthy') {
-      Fail "Backend health status is '$($payload.status)' (expected 'healthy'). Start the backend and retry."
+    # The backend returns "healthy" or "degraded" (when startup_degraded is set,
+    # i.e. an optional startup task did not finish). Both mean the server is
+    # reachable and serving traffic, so accept either. Any other value is a real
+    # problem worth blocking the launch for.
+    if ($payload.status -and $payload.status -notin @('healthy', 'degraded')) {
+      Fail "Backend health status is '$($payload.status)' (expected 'healthy' or 'degraded'). Start the backend and retry."
+    }
+    if ($payload.status -eq 'degraded') {
+      Write-Warning "Backend health status is 'degraded' (startup_degraded). Server is reachable; continuing."
     }
   } catch {
     Write-Warning "Backend health endpoint is reachable, but the response was not JSON."
