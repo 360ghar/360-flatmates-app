@@ -8,7 +8,7 @@ on:
 jobs:
   maestro_test:
     name: Run Maestro Flows (Android)
-    runs-on: macos-14
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
     steps:
@@ -75,8 +75,13 @@ jobs:
         with:
           api-level: 33
           target: google_apis
-          arch: arm64-v8a
+          arch: x86_64
           profile: pixel_6
+          # Linux runner with KVM: x86_64 emulator is hardware-accelerated and
+          # boots in ~1-2 min. (macos-14/arm64-v8a timed out — the emulator
+          # process never registered with adb under software GPU rendering.)
+          enable-kvm: true
+          emulator-boot-timeout: 900
           script: |
             adb shell settings put global window_animation_scale 0.0
             adb shell settings put global transition_animation_scale 0.0
