@@ -834,7 +834,7 @@
   "step3Text": "लाइव हों और कनेक्ट करना शुरू करें!",
   "yourListingLabel": "आपकी लिस्टिंग",
   "budgetFilterLabel": "बजट",
-  "budgetRangeLabel": "₹{min} – ₹{max}",
+  "budgetRangeLabel": "{min} – {max}",
   "@budgetRangeLabel": {
     "placeholders": {
       "min": {

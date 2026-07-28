@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/compatibility/compatibility_engine.dart';
 import '../../../../core/compatibility/compatibility_ring.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
@@ -247,21 +248,54 @@ class _OwnerCard extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          FlatmatesAvatar(
-            name: name,
-            imageUrl: ownerImageUrl,
-            size: matchPercentage != null ? 36 : 44,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (matchPercentage != null && matchPercentage! > 0)
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CompatibilityRing(
+                      percentage: matchPercentage!,
+                      size: 52,
+                      strokeWidth: 3,
+                    ),
+                    FlatmatesAvatar(
+                      name: name,
+                      imageUrl: ownerImageUrl,
+                      size: 40,
+                    ),
+                  ],
+                )
+              else
+                FlatmatesAvatar(name: name, imageUrl: ownerImageUrl, size: 40),
+              // Match pill sits under the ring, matching owner profile layout.
+              if (matchPercentage != null && matchPercentage! > 0) ...[
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: compatibilityScoreColor(
+                      matchPercentage!,
+                    ).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    locale.percentMatch(matchPercentage!.round()),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: compatibilityScoreColor(matchPercentage!),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-          if (matchPercentage != null) ...[
-            const SizedBox(width: AppSpacing.sm),
-            CompatibilityRing(
-              percentage: matchPercentage!,
-              size: 52,
-              strokeWidth: 4,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-          ] else
-            const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

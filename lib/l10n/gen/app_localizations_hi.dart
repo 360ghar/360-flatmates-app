@@ -2048,7 +2048,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String budgetRangeLabel(String min, String max) {
-    return '₹$min – ₹$max';
+    return '$min – $max';
   }
 
   @override

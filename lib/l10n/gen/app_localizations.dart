@@ -3923,7 +3923,7 @@ abstract class AppLocalizations {
   /// No description provided for @budgetRangeLabel.
   ///
   /// In en, this message translates to:
-  /// **'₹{min} – ₹{max}'**
+  /// **'{min} – {max}'**
   String budgetRangeLabel(String min, String max);
 
   /// No description provided for @budgetPresetAny.

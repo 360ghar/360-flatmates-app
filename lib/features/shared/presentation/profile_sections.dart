@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/compatibility/compatibility_engine.dart';
+import '../../../core/compatibility/compatibility_ring.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
@@ -323,23 +324,10 @@ class CompatBreakdownSection extends StatelessWidget {
           // Summary strip
           Row(
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: overallColor, width: 3),
-                  color: overallColor.withValues(alpha: 0.08),
-                ),
-                child: Text(
-                  '${result.percentage.round()}%',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: overallColor,
-                  ),
-                ),
+              CompatibilityRing(
+                percentage: result.percentage,
+                size: 52,
+                strokeWidth: 3,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(

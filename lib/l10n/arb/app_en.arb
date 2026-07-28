@@ -848,7 +848,7 @@
   "step3Text": "Go live and start connecting!",
   "yourListingLabel": "Your listing",
   "budgetFilterLabel": "Budget",
-  "budgetRangeLabel": "₹{min} – ₹{max}",
+  "budgetRangeLabel": "{min} – {max}",
   "@budgetRangeLabel": {
     "placeholders": {
       "min": {
