@@ -661,5 +661,3 @@ class _ModeBadge extends StatelessWidget {
     );
   }
 }
-
-
