@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -17,7 +17,7 @@ tags:
       id: profile_notification_settings_menu_item
     direction: DOWN
     optional: true
-- tap:
+- tapOn:
     id: profile_notification_settings_menu_item
     optional: true
 - extendedWaitUntil:
@@ -25,10 +25,10 @@ tags:
       id: notif_enable_all
     timeout: 5000
     optional: true
-- tap:
+- tapOn:
     id: notif_disable_all
     optional: true
-- tap:
+- tapOn:
     id: notif_enable_all
     optional: true
 - back:

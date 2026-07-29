@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -14,17 +14,17 @@ tags:
     timeout: 5000
 - scroll:
     direction: UP
-- tap:
+- tapOn:
     id: profile_edit_button
 - extendedWaitUntil:
     visible:
       id: profile_save_button
     timeout: 5000
-- tap:
+- tapOn:
     id: profile_bio_input
 - eraseText
 - inputText: "Updated bio from Maestro E2E test."
-- tap:
+- tapOn:
     id: profile_save_button
 - extendedWaitUntil:
     visible:

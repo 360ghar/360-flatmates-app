@@ -6,27 +6,27 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_post_tab
 - extendedWaitUntil:
     visible:
       id: post_hub_post_card
     timeout: 5000
-- tap:
+- tapOn:
     id: post_hub_post_card
 - extendedWaitUntil:
     visible:
       id: listing_society_input
     timeout: 5000
-- tap:
+- tapOn:
     id: listing_next_button
 - extendedWaitUntil:
     visible:
       id: listing_back_button
     timeout: 5000
-- tap:
+- tapOn:
     id: listing_next_button
-- tap:
+- tapOn:
     id: listing_next_button
 - extendedWaitUntil:
     visible:

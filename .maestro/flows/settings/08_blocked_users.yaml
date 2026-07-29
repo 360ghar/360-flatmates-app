@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -16,19 +16,19 @@ tags:
     element:
       id: profile_settings_menu_item
     direction: DOWN
-- tap:
+- tapOn:
     id: profile_settings_menu_item
 - extendedWaitUntil:
     visible:
       id: settings_privacy_security_item
     timeout: 5000
-- tap:
+- tapOn:
     id: settings_privacy_security_item
 - extendedWaitUntil:
     visible:
       id: privacy_blocked_users_item
     timeout: 3000
-- tap:
+- tapOn:
     id: privacy_blocked_users_item
 # Blocked users page
 - back

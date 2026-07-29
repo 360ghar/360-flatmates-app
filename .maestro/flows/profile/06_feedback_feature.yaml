@@ -7,7 +7,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -17,7 +17,7 @@ tags:
     element:
       id: profile_help_safety_menu_item
     direction: DOWN
-- tap:
+- tapOn:
     id: profile_help_safety_menu_item
 - extendedWaitUntil:
     visible:
@@ -27,19 +27,19 @@ tags:
     element:
       id: request_a_feature_menu_item
     direction: DOWN
-- tap:
+- tapOn:
     id: request_a_feature_menu_item
 - extendedWaitUntil:
     visible:
       id: feedback_title_field
     timeout: 5000
-- tap:
+- tapOn:
     id: feedback_title_field
 - inputText: "Test feature request"
-- tap:
+- tapOn:
     id: feedback_description_field
 - inputText: "This is a test feature request for E2E testing"
-- tap:
+- tapOn:
     id: feedback_submit_button
 - back:
     optional: true

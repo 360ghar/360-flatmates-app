@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -16,13 +16,13 @@ tags:
     element:
       id: profile_settings_menu_item
     direction: DOWN
-- tap:
+- tapOn:
     id: profile_settings_menu_item
 - extendedWaitUntil:
     visible:
       id: settings_privacy_security_item
     timeout: 5000
-- tap:
+- tapOn:
     id: settings_privacy_security_item
 - extendedWaitUntil:
     visible:
@@ -32,13 +32,13 @@ tags:
     element:
       id: privacy_delete_account_item
     direction: DOWN
-- tap:
+- tapOn:
     id: privacy_delete_account_item
 - extendedWaitUntil:
     visible:
       id: delete_account_confirm_field
     timeout: 5000
-- tap:
+- tapOn:
     id: delete_account_cancel_button
 - extendedWaitUntil:
     visible:

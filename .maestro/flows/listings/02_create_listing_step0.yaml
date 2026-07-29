@@ -6,36 +6,36 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_post_tab
 - extendedWaitUntil:
     visible:
       id: post_hub_post_card
     timeout: 5000
-- tap:
+- tapOn:
     id: post_hub_post_card
 - extendedWaitUntil:
     visible:
       id: listing_society_input
     timeout: 5000
-- tap:
+- tapOn:
     id: listing_society_input
 - inputText: "Test Society"
-- tap:
+- tapOn:
     id: listing_city_input
 - inputText: "Bangalore"
-- tap:
+- tapOn:
     id: listing_locality_input
 - inputText: "Koramangala"
-- tap:
+- tapOn:
     id: listing_next_button
 - extendedWaitUntil:
     visible:
       id: listing_back_button
     timeout: 5000
-- tap:
+- tapOn:
     id: listing_next_button
-- tap:
+- tapOn:
     id: listing_next_button
 - extendedWaitUntil:
     visible:

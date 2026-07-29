@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -16,7 +16,7 @@ tags:
     element:
       id: profile_help_safety_menu_item
     direction: DOWN
-- tap:
+- tapOn:
     id: profile_help_safety_menu_item
 - extendedWaitUntil:
     visible:

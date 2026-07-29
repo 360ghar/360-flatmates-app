@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
 - runFlow: ../_shared/login.yaml
-- tap:
+- tapOn:
     id: nav_me_tab
 - extendedWaitUntil:
     visible:
@@ -16,18 +16,18 @@ tags:
     element:
       id: preferences_menu_item
     direction: DOWN
-- tap:
+- tapOn:
     id: preferences_menu_item
 - extendedWaitUntil:
     visible:
       id: language_hindi_option
     timeout: 5000
-- tap:
+- tapOn:
     id: language_hindi_option
 - extendedWaitUntil:
     visible:
       id: language_english_option
     timeout: 3000
-- tap:
+- tapOn:
     id: language_english_option
 - back
