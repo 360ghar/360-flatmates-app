@@ -23,8 +23,7 @@ tags:
     timeout: 5000
 - tapOn:
     id: notification_mark_all_read
-- scroll:
-    direction: DOWN
+- scroll
 - back
 - extendedWaitUntil:
     visible:

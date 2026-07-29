@@ -19,8 +19,7 @@ tags:
       id: manage_new_listing_button
     timeout: 5000
     optional: true
-- scroll:
-    direction: DOWN
+- scroll
     optional: true
 - back:
     optional: true

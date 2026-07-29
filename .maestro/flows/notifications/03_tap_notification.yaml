@@ -21,8 +21,7 @@ tags:
     visible:
       id: notification_mark_all_read
     timeout: 5000
-- scroll:
-    direction: DOWN
+- scroll
     optional: true
 - back:
     optional: true

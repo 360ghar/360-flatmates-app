@@ -12,8 +12,8 @@ tags:
     visible:
       id: profile_edit_button
     timeout: 5000
-- scroll:
-    direction: UP
+- swipe:
+    direction: DOWN
 - tapOn:
     id: profile_edit_button
 - extendedWaitUntil:

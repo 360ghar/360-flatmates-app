@@ -18,8 +18,7 @@ tags:
     visible:
       id: chats_likes_tab
     timeout: 3000
-- scroll:
-    direction: DOWN
+- scroll
     optional: true
 - assertVisible:
     id: chats_likes_tab

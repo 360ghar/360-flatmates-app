@@ -20,8 +20,7 @@ tags:
 - tapOn:
     id: profile_visits_menu_item
     optional: true
-- scroll:
-    direction: DOWN
+- scroll
     optional: true
 - back:
     optional: true
