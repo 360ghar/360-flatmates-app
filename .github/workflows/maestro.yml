@@ -8,7 +8,7 @@ on:
 jobs:
   maestro_test:
     name: Run Maestro Flows (Android)
-    runs-on: macos-13
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
     steps:
@@ -67,6 +67,16 @@ jobs:
       - name: Build debug APK
         run: flutter build apk --debug
 
+      # Grant the runner user access to /dev/kvm so the emulator boots under
+      # KVM hardware acceleration (without this the action probes KVM, finds
+      # no permission, and falls back to ~19-min software emulation).
+      - name: Enable KVM permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+
       - name: Run tests on emulator
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
         env:
@@ -77,10 +87,10 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
-          # Intel macOS runner + x86_64 uses HVF hardware acceleration: the
-          # emulator boots in ~1-2 min. (macos-14/arm64-v8a never registered
-          # with adb; ubuntu-22.04/x86_64 took ~19 min under software GPU
-          # rendering and the APK install then failed.)
+          # ubuntu-22.04 + x86_64 + KVM (enabled above): hardware-accelerated
+          # boot in ~1-2 min. macos-14/arm64-v8a never registered with adb;
+          # without the KVM step above, ubuntu fell back to ~19-min software
+          # emulation and the APK install then failed.
           emulator-boot-timeout: 900
           script: |
             adb shell settings put global window_animation_scale 0.0
