@@ -6,7 +6,7 @@ tags:
 ---
 - launchApp:
     clearState: true
-- runFlow: flows/_shared/login.yaml
+- runFlow: ../_shared/login.yaml
 - assertVisible:
     id: nav_home_tab
 - extendedWaitUntil:

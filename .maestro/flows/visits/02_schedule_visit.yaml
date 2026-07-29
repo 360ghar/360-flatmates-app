@@ -6,7 +6,7 @@ tags:
 ---
 - launchApp:
     clearState: true
-- runFlow: flows/_shared/login.yaml
+- runFlow: ../_shared/login.yaml
 - tapOn:
     id: nav_inbox_tab
 - extendedWaitUntil:
