@@ -18,8 +18,8 @@ tags:
     timeout: 5000
 - assertVisible:
     id: flat_shortlist_button
-- scroll DOWN
-- scroll DOWN
+- scroll
+- scroll
 - back
 - extendedWaitUntil:
     visible:

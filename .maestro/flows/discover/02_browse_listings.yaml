@@ -23,8 +23,9 @@ tags:
 - tapOn:
     id: browse_search_open
 - inputText: "test"
-- scroll DOWN
-- scroll UP
+- scroll
+- swipe:
+    direction: DOWN
 - tapOn:
     id: browse_search_close
 - back

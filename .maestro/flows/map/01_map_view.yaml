@@ -14,7 +14,6 @@ tags:
       text: "Explore"
     timeout: 5000
     optional: true
-- scroll DOWN:
-    optional: true
+- scroll
 - tapOn:
     id: nav_home_tab

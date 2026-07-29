@@ -17,9 +17,10 @@ tags:
     visible:
       id: discover_feed_card_0
     timeout: 10000
-- scroll DOWN
-- scroll DOWN
-- scroll UP
+- scroll
+- scroll
+- swipe:
+    direction: DOWN
 - scrollUntilVisible:
     element:
       id: discover_feed_card_0
