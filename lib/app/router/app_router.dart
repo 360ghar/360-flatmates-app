@@ -518,21 +518,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             peerName: peerName,
             peerImageUrl: peerImageUrl,
             onOpenChat: () {
-              context.pop();
               if (conversationId != null) {
-                context.push('/chats/$conversationId');
+                // Match celebration is also a root-navigator page. Go to the
+                // existing shell branch instead of pushing a second shell.
+                context.go('/chats/$conversationId');
                 final rootContext = rootNavigatorKey.currentContext;
                 if (rootContext != null) {
-                  Future.delayed(AppMotion.matchCelebration, () {
-                    if (rootContext.mounted) {
-                      FlatmatesBottomSheet.show(
-                        context: rootContext,
-                        isScrollControlled: true,
-                        builder: (_) =>
-                            MatchQnANudgeSheet(conversationId: conversationId),
-                      );
-                    }
-                  });
+                  unawaited(
+                    Future<void>.delayed(AppMotion.matchCelebration, () {
+                      if (rootContext.mounted) {
+                        FlatmatesBottomSheet.show(
+                          context: rootContext,
+                          isScrollControlled: true,
+                          builder: (_) => MatchQnANudgeSheet(
+                            conversationId: conversationId,
+                          ),
+                        );
+                      }
+                    }),
+                  );
                 }
               } else {
                 context.go('/chats');

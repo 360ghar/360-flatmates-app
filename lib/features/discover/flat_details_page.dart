@@ -460,7 +460,10 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       }
 
       if (mounted && cid != null) {
-        unawaited(context.push('/chats/$cid'));
+        // Flat details is a root-navigator overlay above the stateful shell.
+        // Replace it while activating the existing Chats branch; pushing a
+        // second shell can reserve duplicate page keys and lock navigation.
+        context.go('/chats/$cid');
       } else if (mounted) {
         FlatmatesToast.info(
           context,
