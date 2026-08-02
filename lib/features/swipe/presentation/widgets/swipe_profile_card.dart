@@ -103,15 +103,21 @@ class SwipeProfileCard extends StatelessWidget {
 /// Layout: hero carousel → quick stats pills → about → compatibility →
 /// the place → people → costs. Renders a [ListView] so it scrolls natively
 /// wherever it is hosted. Does **not** host swipe action controls.
+///
+/// When [trailing] is set, it renders below the profile sections (e.g. a
+/// Contact CTA button).
 class SwipeProfileDetailBody extends StatelessWidget {
   const SwipeProfileDetailBody({
     required this.item,
     required this.compatibility,
+    this.trailing,
     super.key,
   });
 
   final SwipeProfile item;
   final CompatibilityResult compatibility;
+
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +126,14 @@ class SwipeProfileDetailBody extends StatelessWidget {
       padding: EdgeInsets.zero,
       children: [
         _SwipeProfileSections(item: item, compatibility: compatibility),
+        if (trailing != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: trailing,
+          ),
+          const SizedBox(height: AppSpacing.xl),
+        ],
       ],
     );
   }

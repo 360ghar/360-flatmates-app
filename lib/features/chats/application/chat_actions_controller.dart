@@ -59,6 +59,22 @@ class ChatActionsController {
     _ref.invalidate(conversationsProvider);
     return conversationId;
   }
+
+  /// Starts a direct conversation with a peer. Returns the conversation ID.
+  /// Unlike [matchIncomingLike], this creates a conversation immediately
+  /// without requiring a mutual like.
+  Future<int> startConversation({
+    required int peerId,
+    String? initialMessage,
+  }) async {
+    final conversationId = await _repository.startConversation(
+      peerId: peerId,
+      initialMessage: initialMessage,
+    );
+    await invalidateChatListControllers(_ref);
+    _ref.invalidate(conversationsProvider);
+    return conversationId;
+  }
 }
 
 final chatActionsControllerProvider = Provider<ChatActionsController>(

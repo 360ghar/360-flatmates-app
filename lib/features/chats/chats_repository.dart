@@ -126,6 +126,25 @@ class ChatsRepository {
     return (data['conversation_id'] as num?)?.toInt();
   }
 
+  /// Starts a direct conversation with a peer user. Returns the conversation
+  /// ID. Unlike [matchIncomingLike], this creates a conversation immediately
+  /// without requiring a mutual like.
+  Future<int> startConversation({
+    required int peerId,
+    String? initialMessage,
+  }) async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .post(
+          FlatmatesEndpoints.conversations,
+          data: {'peer_user_id': peerId, 'initial_message': ?initialMessage},
+        );
+    final data = response.data is Map
+        ? Map<String, dynamic>.from(response.data as Map)
+        : <String, dynamic>{};
+    return (data['id'] as num).toInt();
+  }
+
   Future<ConversationSummaryModel> fetchConversation(int conversationId) async {
     final response = await _ref
         .read(apiClientProvider)
