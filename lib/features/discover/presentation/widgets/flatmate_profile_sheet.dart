@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/error_presenter.dart';
+import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -21,8 +26,8 @@ import '../../../swipe/swipe_repository.dart';
 /// stats, about, compatibility breakdown, the place, people, costs).
 ///
 /// A full-width Contact button at the bottom initiates a conversation with
-/// the flatmate via [ChatActionsController.matchIncomingLike].
-class FlatmateProfileSheet extends ConsumerWidget {
+/// the flatmate via [ChatActionsController.startConversation].
+class FlatmateProfileSheet extends ConsumerStatefulWidget {
   const FlatmateProfileSheet({
     required this.userId,
     this.nameFallback,
@@ -45,42 +50,59 @@ class FlatmateProfileSheet extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleContact(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations locale,
-  ) async {
+  @override
+  ConsumerState<FlatmateProfileSheet> createState() =>
+      _FlatmateProfileSheetState();
+}
+
+class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
+  bool _isContacting = false;
+
+  Future<void> _handleContact(AppLocalizations locale) async {
+    if (_isContacting) return;
+    setState(() => _isContacting = true);
+
     final controller = ref.read(chatActionsControllerProvider);
     try {
-      final conversationId = await controller.startConversation(peerId: userId);
-      if (!context.mounted) return;
+      final conversationId = await controller.startConversation(
+        peerId: widget.userId,
+      );
+      if (!mounted) return;
+      if (conversationId == null) {
+        FlatmatesToast.error(context, locale.matchCreateFailed);
+        return;
+      }
+      final router = GoRouter.of(context);
       Navigator.of(context).pop();
-      context.go('/chats/$conversationId');
-    } catch (e) {
+      router.go('/chats/$conversationId');
+    } catch (e, st) {
       debugPrint('FlatmateProfileSheet._handleContact: $e');
-      if (!context.mounted) return;
-      FlatmatesToast.error(context, locale.errorUnknown);
+      if (!mounted) return;
+      final failure = e is DioException ? ErrorPresenter.fromDio(e, st) : null;
+      final message = failure != null
+          ? failure.userMessage(locale.toUserMessageL10n())
+          : locale.errorUnknown;
+      FlatmatesToast.error(context, message);
+    } finally {
+      if (mounted) setState(() => _isContacting = false);
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(peerProfileProvider(userId));
+  Widget build(BuildContext context) {
+    final profileAsync = ref.watch(peerProfileProvider(widget.userId));
     final locale = AppLocalizations.of(context);
     final currentUserId = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
     );
-    final isSelf = currentUserId == userId;
+    final isSelf = currentUserId != null && currentUserId == widget.userId;
 
     return profileAsync.when(
       loading: () => const FlatmatesSkeleton.peerProfileSheet(),
-      // A null payload is the actual failure path (fetchPeerProfile catches
-      // errors and returns null rather than throwing), so treat null + error
-      // alike: show the "couldn't load" hint.
-      error: (_, _) => _LoadError(name: nameFallback ?? 'Flatmate'),
+      error: (_, _) => _LoadError(name: widget.nameFallback ?? 'Flatmate'),
       data: (peerData) {
         if (peerData == null) {
-          return _LoadError(name: nameFallback ?? 'Flatmate');
+          return _LoadError(name: widget.nameFallback ?? 'Flatmate');
         }
         final peer = SwipeProfile.fromJson(peerData);
         final currentUser = ref.watch(
@@ -89,13 +111,15 @@ class FlatmateProfileSheet extends ConsumerWidget {
         final compatibility = calculateProfileCompatibility(currentUser, peer);
 
         Widget? trailing;
-        if (!isSelf) {
+        if (currentUserId != null && !isSelf) {
           trailing = SizedBox(
             width: double.infinity,
             child: FlatmatesButton(
               key: const ValueKey('flatmate_contact_cta'),
               label: locale.contactCta,
-              onPressed: () => _handleContact(context, ref, locale),
+              onPressed: _isContacting
+                  ? null
+                  : () => unawaited(_handleContact(locale)),
               icon: Icons.send_rounded,
             ),
           );

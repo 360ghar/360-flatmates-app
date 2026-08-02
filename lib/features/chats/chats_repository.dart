@@ -127,9 +127,9 @@ class ChatsRepository {
   }
 
   /// Starts a direct conversation with a peer user. Returns the conversation
-  /// ID. Unlike [matchIncomingLike], this creates a conversation immediately
-  /// without requiring a mutual like.
-  Future<int> startConversation({
+  /// ID, or null if the backend did not return one. Unlike [matchIncomingLike],
+  /// this creates a conversation immediately without requiring a mutual like.
+  Future<int?> startConversation({
     required int peerId,
     String? initialMessage,
   }) async {
@@ -142,7 +142,7 @@ class ChatsRepository {
     final data = response.data is Map
         ? Map<String, dynamic>.from(response.data as Map)
         : <String, dynamic>{};
-    return (data['id'] as num).toInt();
+    return (data['id'] as num?)?.toInt();
   }
 
   Future<ConversationSummaryModel> fetchConversation(int conversationId) async {

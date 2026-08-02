@@ -60,10 +60,10 @@ class ChatActionsController {
     return conversationId;
   }
 
-  /// Starts a direct conversation with a peer. Returns the conversation ID.
-  /// Unlike [matchIncomingLike], this creates a conversation immediately
-  /// without requiring a mutual like.
-  Future<int> startConversation({
+  /// Starts a direct conversation with a peer. Returns the conversation ID,
+  /// or null if the backend did not create one. Unlike [matchIncomingLike],
+  /// this creates a conversation immediately without requiring a mutual like.
+  Future<int?> startConversation({
     required int peerId,
     String? initialMessage,
   }) async {
