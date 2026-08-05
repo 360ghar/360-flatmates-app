@@ -807,19 +807,19 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizNoFoodPref => 'कोई प्राथमिकता नहीं';
 
   @override
-  String get quizSmokingDrinking => 'धूम्रपान और शराब की प्राथमिकता?';
+  String get quizSmoking => 'क्या आप धूम्रपान करते हैं?';
 
   @override
-  String get quizNeither => 'न धूम्रपान, न शराब';
+  String get quizDrinking => 'क्या आप शराब पीते हैं?';
 
   @override
-  String get quizSmokeOutside => 'बाहर ही धूम्रपान';
+  String get lifestyleValueNever => 'कभी नहीं';
 
   @override
-  String get quizDrinkOccasionally => 'कभी-कभी शराब';
+  String get lifestyleValueOccasionally => 'कभी-कभी';
 
   @override
-  String get quizBothFine => 'दोनों ठीक हैं';
+  String get lifestyleValueRegularly => 'नियमित रूप से';
 
   @override
   String get quizGuestsPolicy => 'मेहमानों के बारे में आपका क्या विचार है?';
@@ -883,13 +883,22 @@ class AppLocalizationsHi extends AppLocalizations {
   String get moveInTimelineLabel => 'मूव-इन टाइमलाइन';
 
   @override
-  String get timelineImmediate => 'तुरंत';
+  String get timelineImmediately => 'तुरंत';
 
   @override
-  String get timelineThisMonth => 'इस महीने';
+  String get timelineWithin1Week => '1 सप्ताह के भीतर';
 
   @override
-  String get timelineNextMonth => 'अगले महीने';
+  String get timelineWithin2Weeks => '2 सप्ताह के भीतर';
+
+  @override
+  String get timelineWithin1Month => '1 महीने के भीतर';
+
+  @override
+  String get timelineWithin2Months => '2 महीनों के भीतर';
+
+  @override
+  String get timelineWithin3Months => '3 महीनों के भीतर';
 
   @override
   String get timelineFlexible => 'लचीला';
@@ -1197,6 +1206,39 @@ class AppLocalizationsHi extends AppLocalizations {
   String get amenityKitchenEquipped => 'किचन लैग्ज़';
 
   @override
+  String get kitchenTypeLabel => 'किचन प्रकार';
+
+  @override
+  String get kitchenTypeVegetarian => 'शाकाहारी';
+
+  @override
+  String get kitchenTypeNonVegetarian => 'मांसाहारी';
+
+  @override
+  String get kitchenTypeEggetarian => 'एगेटेरियन';
+
+  @override
+  String get kitchenTypeAny => 'कोई भी';
+
+  @override
+  String get ventilationTypeLabel => 'हवा (वेंटिलेशन)';
+
+  @override
+  String get ventilationGood => 'अच्छी';
+
+  @override
+  String get ventilationAverage => 'औसत';
+
+  @override
+  String get ventilationPoor => 'खराब';
+
+  @override
+  String get windowsCountLabel => 'खिड़कियाँ';
+
+  @override
+  String get ventilationShaftsLabel => 'वेंटिलेशन शाफ्ट';
+
+  @override
   String get electricityLabel => 'बिजली';
 
   @override
@@ -1216,6 +1258,49 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get setupCostLabel => 'वन-टाइम सेटअप खर्चा';
+
+  @override
+  String get otherChargesLabel => 'अन्य खर्चे / महीना';
+
+  @override
+  String get otherChargesHint => 'जैसे पार्किंग, वाई-फाई';
+
+  @override
+  String get otherChargesDescriptionLabel => 'अन्य खर्चे किस चीज़ के हैं?';
+
+  @override
+  String get otherChargesDescriptionHint =>
+      'जैसे वाई-फाई, पार्किंग, साझा किराना';
+
+  @override
+  String reviewKitchenTypeAmount(String type) {
+    return 'किचन: $type';
+  }
+
+  @override
+  String reviewVentilationAmount(String type) {
+    return 'वेंटिलेशन: $type';
+  }
+
+  @override
+  String reviewWindowsAmount(String count) {
+    return '$count खिड़कियाँ';
+  }
+
+  @override
+  String reviewVentilationShaftsAmount(String count) {
+    return '$count वेंटिलेशन शाफ्ट';
+  }
+
+  @override
+  String reviewOtherChargesAmount(String amount) {
+    return 'अन्य खर्चे: ₹$amount';
+  }
+
+  @override
+  String reviewSetupCostAmount(String amount) {
+    return 'सेटअप खर्च: ₹$amount';
+  }
 
   @override
   String totalMonthlyOutflow(String amount) {
@@ -2160,6 +2245,32 @@ class AppLocalizationsHi extends AppLocalizations {
   String get smokingNoPreference => 'कोई प्राथमिकता नहीं';
 
   @override
+  String get drinkingLabel => 'शराब';
+
+  @override
+  String get drinkingNo => 'नहीं';
+
+  @override
+  String get drinkingYes => 'हाँ';
+
+  @override
+  String get drinkingNoPreference => 'कोई प्राथमिकता नहीं';
+
+  @override
+  String get searchAmenitiesFilterLabel => 'सुविधाएँ';
+
+  @override
+  String get searchHasLiftLabel => 'लिफ्ट है';
+
+  @override
+  String get searchWindowsMinLabel => 'खिड़कियाँ (न्यूनतम)';
+
+  @override
+  String searchWindowsMinOption(int count) {
+    return '$count+';
+  }
+
+  @override
   String get nearbyChipLabel => 'निकटस्थ';
 
   @override
@@ -2204,6 +2315,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get prefSmokingLabel => 'धूम्रपान';
+
+  @override
+  String get prefDrinkingLabel => 'शराब';
 
   @override
   String get prefMoveInLabel => 'मूव-इन टाइमलाइन';
@@ -3102,6 +3216,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get optionalUpdateLater => 'बाद में';
 
   @override
+  String get patchReadyMessage =>
+      'एक अपडेट तैयार है। यह अगली बार ऐप खोलने पर लागू होगा।';
+
+  @override
+  String patchLabel(int number) {
+    return 'पैच $number';
+  }
+
+  @override
   String get maintenanceTitle => 'मेंटेनेंस चल रहा है';
 
   @override
@@ -3428,7 +3551,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get lifestyleDimFood => 'खाना';
 
   @override
-  String get lifestyleDimSmoking => 'धूम्रपान / पेय';
+  String get lifestyleDimSmoking => 'धूम्रपान';
+
+  @override
+  String get lifestyleDimDrinking => 'शराब';
 
   @override
   String get lifestyleDimGuests => 'मेहमान';
@@ -3808,4 +3934,57 @@ class AppLocalizationsHi extends AppLocalizations {
   String visitRequestedFor(String when) {
     return '$when के लिए विज़िट का अनुरोध';
   }
+
+  @override
+  String get onboardingPhaseOneTitle => 'आवश्यक जानकारी';
+
+  @override
+  String get onboardingPhaseTwoTitle => 'जीवनशैली और पसंद';
+
+  @override
+  String get onboardingTransitionTitle => 'लगभग हो गया - बस एक सेक्शन बाकी है';
+
+  @override
+  String get onboardingTransitionBody =>
+      'अब आपकी जीवनशैली, बजट और पसंद के बारे में जानते हैं, ताकि हम आपका सबसे अच्छा फ्लैटमेट ढूंढ सकें।';
+
+  @override
+  String get onboardingTransitionCta => 'आगे बढ़ें';
+
+  @override
+  String get nativePlaceLabel => 'गृहनगर';
+
+  @override
+  String get nativePlaceHint => 'आप मूल रूप से कहाँ से हैं?';
+
+  @override
+  String get nativePlaceTooLongError => 'गृहनगर 120 अक्षरों से कम होना चाहिए';
+
+  @override
+  String get linkedinLabel => 'LinkedIn प्रोफ़ाइल';
+
+  @override
+  String get linkedinHint =>
+      'अपना LinkedIn प्रोफ़ाइल URL पेस्ट करें (वैकल्पिक)';
+
+  @override
+  String get linkedinInvalidError => 'मान्य LinkedIn प्रोफ़ाइल URL दर्ज करें';
+
+  @override
+  String get ageBucket18_24 => '18-24';
+
+  @override
+  String get ageBucket25_30 => '25-30';
+
+  @override
+  String get ageBucket31_35 => '31-35';
+
+  @override
+  String get ageBucket36_40 => '36-40';
+
+  @override
+  String get ageBucket41_45 => '41-45';
+
+  @override
+  String get ageBucket46Plus => '46+';
 }

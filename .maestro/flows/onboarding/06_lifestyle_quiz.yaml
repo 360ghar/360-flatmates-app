@@ -18,7 +18,10 @@ tags:
     id: "quiz_food_habits_vegetarian"
 
 - tapOn:
-    id: "quiz_smoking_drinking_neither"
+    id: "quiz_smoking_never"
+
+- tapOn:
+    id: "quiz_drinking_never"
 
 - tapOn:
     id: "quiz_guests_policy_occasional_ok"

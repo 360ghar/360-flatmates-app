@@ -28,11 +28,20 @@ class DiscoverFilters {
     this.sharingType,
     this.genderPreference,
     this.features = const [],
+    this.furnishing = const [],
+    this.kitchenType = const [],
+    this.ventilationType = const [],
+    this.amenities = const [],
+    this.windowsMin,
+    this.hasLift,
     this.bedrooms,
     this.pets,
     this.smoking,
+    this.drinking,
     this.vibe,
     this.moveInTimeline,
+    this.ageMin,
+    this.ageMax,
     this.latitude,
     this.longitude,
     this.radiusKm,
@@ -45,11 +54,20 @@ class DiscoverFilters {
   final String? sharingType;
   final String? genderPreference;
   final List<String> features;
+  final List<String> furnishing;
+  final List<String> kitchenType;
+  final List<String> ventilationType;
+  final List<String> amenities;
+  final int? windowsMin;
+  final bool? hasLift;
   final int? bedrooms;
   final String? pets;
   final String? smoking;
+  final String? drinking;
   final String? vibe;
   final String? moveInTimeline;
+  final int? ageMin;
+  final int? ageMax;
   final double? latitude;
   final double? longitude;
   final double? radiusKm;
@@ -64,10 +82,19 @@ class DiscoverFilters {
       sharingType == null &&
       genderPreference == null &&
       features.isEmpty &&
+      furnishing.isEmpty &&
+      kitchenType.isEmpty &&
+      ventilationType.isEmpty &&
+      amenities.isEmpty &&
+      windowsMin == null &&
+      hasLift == null &&
       bedrooms == null &&
       pets == null &&
       smoking == null &&
+      drinking == null &&
       vibe == null &&
+      ageMin == null &&
+      ageMax == null &&
       normalizeMoveInFilter(moveInTimeline) == null &&
       latitude == null &&
       longitude == null &&
@@ -81,11 +108,20 @@ class DiscoverFilters {
     String? sharingType,
     String? genderPreference,
     List<String>? features,
+    List<String>? furnishing,
+    List<String>? kitchenType,
+    List<String>? ventilationType,
+    List<String>? amenities,
+    int? windowsMin,
+    bool? hasLift,
     int? bedrooms,
     String? pets,
     String? smoking,
+    String? drinking,
     String? vibe,
     String? moveInTimeline,
+    int? ageMin,
+    int? ageMax,
     double? latitude,
     double? longitude,
     double? radiusKm,
@@ -98,11 +134,16 @@ class DiscoverFilters {
     bool clearGenderPreference = false,
     bool clearPets = false,
     bool clearSmoking = false,
+    bool clearDrinking = false,
     bool clearVibe = false,
     bool clearMoveInTimeline = false,
     bool clearLatitude = false,
     bool clearLongitude = false,
     bool clearRadiusKm = false,
+    bool clearWindowsMin = false,
+    bool clearHasLift = false,
+    bool clearAgeMin = false,
+    bool clearAgeMax = false,
   }) {
     return DiscoverFilters(
       query: clearQuery ? null : (query ?? this.query),
@@ -114,13 +155,22 @@ class DiscoverFilters {
           ? null
           : (genderPreference ?? this.genderPreference),
       features: features ?? this.features,
+      furnishing: furnishing ?? this.furnishing,
+      kitchenType: kitchenType ?? this.kitchenType,
+      ventilationType: ventilationType ?? this.ventilationType,
+      amenities: amenities ?? this.amenities,
+      windowsMin: clearWindowsMin ? null : (windowsMin ?? this.windowsMin),
+      hasLift: clearHasLift ? null : (hasLift ?? this.hasLift),
       bedrooms: clearBedrooms ? null : (bedrooms ?? this.bedrooms),
       pets: clearPets ? null : (pets ?? this.pets),
       smoking: clearSmoking ? null : (smoking ?? this.smoking),
+      drinking: clearDrinking ? null : (drinking ?? this.drinking),
       vibe: clearVibe ? null : (vibe ?? this.vibe),
       moveInTimeline: clearMoveInTimeline
           ? null
           : (moveInTimeline ?? this.moveInTimeline),
+      ageMin: clearAgeMin ? null : (ageMin ?? this.ageMin),
+      ageMax: clearAgeMax ? null : (ageMax ?? this.ageMax),
       latitude: clearLatitude ? null : (latitude ?? this.latitude),
       longitude: clearLongitude ? null : (longitude ?? this.longitude),
       radiusKm: clearRadiusKm ? null : (radiusKm ?? this.radiusKm),
@@ -213,6 +263,24 @@ class DiscoverRepository {
       }
       if (filters.features.isNotEmpty) {
         queryParameters['features'] = filters.features;
+      }
+      if (filters.furnishing.isNotEmpty) {
+        queryParameters['furnishing'] = filters.furnishing;
+      }
+      if (filters.kitchenType.isNotEmpty) {
+        queryParameters['kitchen_type'] = filters.kitchenType;
+      }
+      if (filters.ventilationType.isNotEmpty) {
+        queryParameters['ventilation_type'] = filters.ventilationType;
+      }
+      if (filters.amenities.isNotEmpty) {
+        queryParameters['amenities'] = filters.amenities;
+      }
+      if (filters.windowsMin != null) {
+        queryParameters['windows_min'] = filters.windowsMin;
+      }
+      if (filters.hasLift != null) {
+        queryParameters['has_lift'] = filters.hasLift;
       }
       final moveIn = moveInFilterQueryValue(filters.moveInTimeline);
       if (moveIn != null) {
@@ -346,6 +414,32 @@ class DiscoverRepository {
     return const [];
   }
 
+  /// Resolves a listing's smoking value, preferring the split field and
+  /// falling back to the legacy combined [smoking_drinking] value.
+  String? _listingSmoking(Map<String, dynamic>? preferences) {
+    final direct = preferences?['smoking'];
+    if (direct is String && direct.trim().isNotEmpty) return direct.trim();
+    return switch (preferences?['smoking_drinking']) {
+      'smoke_outside' || 'both_fine' => 'regularly',
+      _ => null,
+    };
+  }
+
+  /// Resolves a listing's drinking value, preferring the split field and
+  /// falling back to the legacy combined [smoking_drinking] value.
+  String? _listingDrinking(Map<String, dynamic>? preferences) {
+    final direct = preferences?['drinking'];
+    if (direct is String && direct.trim().isNotEmpty) return direct.trim();
+    return switch (preferences?['smoking_drinking']) {
+      'drink_occasionally' => 'occasionally',
+      // 'both_fine' resolves to occasional drinking, matching the web
+      // onboarding-store migration (smoking 'regularly' + drinking
+      // 'occasionally') so both surfaces agree on the legacy value.
+      'both_fine' => 'occasionally',
+      _ => null,
+    };
+  }
+
   List<PropertyListing> _applyDealBreakerFilter(
     List<PropertyListing> listings,
     List<String> userNonNegotiables,
@@ -365,16 +459,16 @@ class DiscoverRepository {
             }
             break;
           case 'no_smoking':
-            final listingSD =
-                listing.preferences?['smoking_drinking'] ?? 'neither';
-            if (listingSD == 'smoke_outside' || listingSD == 'both_fine') {
+            final listingSmoking = _listingSmoking(listing.preferences);
+            if (listingSmoking == 'occasionally' ||
+                listingSmoking == 'regularly') {
               return false;
             }
             break;
           case 'no_drinking':
-            final listingSD =
-                listing.preferences?['smoking_drinking'] ?? 'neither';
-            if (listingSD == 'drink_occasionally' || listingSD == 'both_fine') {
+            final listingDrinking = _listingDrinking(listing.preferences);
+            if (listingDrinking == 'occasionally' ||
+                listingDrinking == 'regularly') {
               return false;
             }
             break;

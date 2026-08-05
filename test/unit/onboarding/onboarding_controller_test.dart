@@ -43,10 +43,17 @@ void main() {
       );
     });
 
-    test('lifestyleQuiz maps to profilePhoto', () {
+    test('transition maps to profilePhoto', () {
+      expect(
+        OnboardingController.previousStep(OnboardingStep.transition),
+        OnboardingStep.profilePhoto,
+      );
+    });
+
+    test('lifestyleQuiz maps to transition', () {
       expect(
         OnboardingController.previousStep(OnboardingStep.lifestyleQuiz),
-        OnboardingStep.profilePhoto,
+        OnboardingStep.transition,
       );
     });
 
@@ -98,24 +105,29 @@ void main() {
       expect(state.stepIndex, 4);
     });
 
-    test('returns 5 for lifestyleQuiz', () {
-      const state = OnboardingState(step: OnboardingStep.lifestyleQuiz);
+    test('returns 5 for transition', () {
+      const state = OnboardingState(step: OnboardingStep.transition);
       expect(state.stepIndex, 5);
     });
 
-    test('returns 6 for budgetTimeline', () {
-      const state = OnboardingState(step: OnboardingStep.budgetTimeline);
+    test('returns 6 for lifestyleQuiz', () {
+      const state = OnboardingState(step: OnboardingStep.lifestyleQuiz);
       expect(state.stepIndex, 6);
     });
 
-    test('returns 7 for preferences', () {
-      const state = OnboardingState(step: OnboardingStep.preferences);
+    test('returns 7 for budgetTimeline', () {
+      const state = OnboardingState(step: OnboardingStep.budgetTimeline);
       expect(state.stepIndex, 7);
     });
 
-    test('returns 8 for nonNegotiables', () {
-      const state = OnboardingState(step: OnboardingStep.nonNegotiables);
+    test('returns 8 for preferences', () {
+      const state = OnboardingState(step: OnboardingStep.preferences);
       expect(state.stepIndex, 8);
+    });
+
+    test('returns 9 for nonNegotiables', () {
+      const state = OnboardingState(step: OnboardingStep.nonNegotiables);
+      expect(state.stepIndex, 9);
     });
   });
 
@@ -126,10 +138,10 @@ void main() {
     });
 
     test(
-      'returns 8 for modeSelection (all steps remaining including current)',
+      'returns 9 for modeSelection (all steps remaining including current)',
       () {
         const state = OnboardingState(step: OnboardingStep.modeSelection);
-        expect(state.remainingSteps, 8);
+        expect(state.remainingSteps, 9);
       },
     );
 
@@ -140,8 +152,8 @@ void main() {
 
     test('counts correctly for a mid-flow step', () {
       const state = OnboardingState(step: OnboardingStep.basicInfo);
-      // stepIndex 3, total 8, remaining = 8 - 3 + 1 = 6
-      expect(state.remainingSteps, 6);
+      // stepIndex 3, total 9, remaining = 9 - 3 + 1 = 7
+      expect(state.remainingSteps, 7);
     });
   });
 

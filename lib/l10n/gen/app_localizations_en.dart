@@ -806,19 +806,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizNoFoodPref => 'No preference';
 
   @override
-  String get quizSmokingDrinking => 'Smoking & drinking preferences?';
+  String get quizSmoking => 'Do you smoke?';
 
   @override
-  String get quizNeither => 'Neither';
+  String get quizDrinking => 'Do you drink?';
 
   @override
-  String get quizSmokeOutside => 'Smoke outside only';
+  String get lifestyleValueNever => 'Never';
 
   @override
-  String get quizDrinkOccasionally => 'Drink occasionally';
+  String get lifestyleValueOccasionally => 'Occasionally';
 
   @override
-  String get quizBothFine => 'Both are fine';
+  String get lifestyleValueRegularly => 'Regularly';
 
   @override
   String get quizGuestsPolicy => 'How do you feel about guests?';
@@ -882,13 +882,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moveInTimelineLabel => 'Move-in timeline';
 
   @override
-  String get timelineImmediate => 'Immediate';
+  String get timelineImmediately => 'Immediately';
 
   @override
-  String get timelineThisMonth => 'This month';
+  String get timelineWithin1Week => 'Within 1 week';
 
   @override
-  String get timelineNextMonth => 'Next month';
+  String get timelineWithin2Weeks => 'Within 2 weeks';
+
+  @override
+  String get timelineWithin1Month => 'Within 1 month';
+
+  @override
+  String get timelineWithin2Months => 'Within 2 months';
+
+  @override
+  String get timelineWithin3Months => 'Within 3 months';
 
   @override
   String get timelineFlexible => 'Flexible';
@@ -1195,6 +1204,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get amenityKitchenEquipped => 'Kitchen equipped';
 
   @override
+  String get kitchenTypeLabel => 'Kitchen type';
+
+  @override
+  String get kitchenTypeVegetarian => 'Vegetarian';
+
+  @override
+  String get kitchenTypeNonVegetarian => 'Non-veg';
+
+  @override
+  String get kitchenTypeEggetarian => 'Eggetarian';
+
+  @override
+  String get kitchenTypeAny => 'Any';
+
+  @override
+  String get ventilationTypeLabel => 'Ventilation';
+
+  @override
+  String get ventilationGood => 'Good';
+
+  @override
+  String get ventilationAverage => 'Average';
+
+  @override
+  String get ventilationPoor => 'Poor';
+
+  @override
+  String get windowsCountLabel => 'Windows';
+
+  @override
+  String get ventilationShaftsLabel => 'Ventilation shafts';
+
+  @override
   String get electricityLabel => 'Electricity';
 
   @override
@@ -1214,6 +1256,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupCostLabel => 'One-time setup cost';
+
+  @override
+  String get otherChargesLabel => 'Other charges / month';
+
+  @override
+  String get otherChargesHint => 'e.g. parking, wifi';
+
+  @override
+  String get otherChargesDescriptionLabel => 'What do the other charges cover?';
+
+  @override
+  String get otherChargesDescriptionHint =>
+      'e.g. wifi, parking, shared groceries';
+
+  @override
+  String reviewKitchenTypeAmount(String type) {
+    return 'Kitchen: $type';
+  }
+
+  @override
+  String reviewVentilationAmount(String type) {
+    return 'Ventilation: $type';
+  }
+
+  @override
+  String reviewWindowsAmount(String count) {
+    return '$count windows';
+  }
+
+  @override
+  String reviewVentilationShaftsAmount(String count) {
+    return '$count ventilation shafts';
+  }
+
+  @override
+  String reviewOtherChargesAmount(String amount) {
+    return 'Other charges: ₹$amount';
+  }
+
+  @override
+  String reviewSetupCostAmount(String amount) {
+    return 'Setup cost: ₹$amount';
+  }
 
   @override
   String totalMonthlyOutflow(String amount) {
@@ -2157,6 +2242,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get smokingNoPreference => 'No Preference';
 
   @override
+  String get drinkingLabel => 'Drinking';
+
+  @override
+  String get drinkingNo => 'No';
+
+  @override
+  String get drinkingYes => 'Yes';
+
+  @override
+  String get drinkingNoPreference => 'No Preference';
+
+  @override
+  String get searchAmenitiesFilterLabel => 'Amenities';
+
+  @override
+  String get searchHasLiftLabel => 'Has lift';
+
+  @override
+  String get searchWindowsMinLabel => 'Windows (min)';
+
+  @override
+  String searchWindowsMinOption(int count) {
+    return '$count+';
+  }
+
+  @override
   String get nearbyChipLabel => 'Nearby';
 
   @override
@@ -2201,6 +2312,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prefSmokingLabel => 'Smoking';
+
+  @override
+  String get prefDrinkingLabel => 'Drinking';
 
   @override
   String get prefMoveInLabel => 'Move-in Timeline';
@@ -3087,6 +3201,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get optionalUpdateLater => 'Later';
 
   @override
+  String get patchReadyMessage =>
+      'An update is ready. It will apply the next time you open the app.';
+
+  @override
+  String patchLabel(int number) {
+    return 'patch $number';
+  }
+
+  @override
   String get maintenanceTitle => 'Under maintenance';
 
   @override
@@ -3414,7 +3537,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lifestyleDimFood => 'Food';
 
   @override
-  String get lifestyleDimSmoking => 'Smoking / Drinking';
+  String get lifestyleDimSmoking => 'Smoking';
+
+  @override
+  String get lifestyleDimDrinking => 'Drinking';
 
   @override
   String get lifestyleDimGuests => 'Guests';
@@ -3794,4 +3920,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String visitRequestedFor(String when) {
     return 'Visit requested for $when';
   }
+
+  @override
+  String get onboardingPhaseOneTitle => 'Essentials';
+
+  @override
+  String get onboardingPhaseTwoTitle => 'Lifestyle & preferences';
+
+  @override
+  String get onboardingTransitionTitle => 'Almost there - one section left';
+
+  @override
+  String get onboardingTransitionBody =>
+      'Now let\'s capture your lifestyle, budget and preferences so we can find your best flatmate match.';
+
+  @override
+  String get onboardingTransitionCta => 'Continue';
+
+  @override
+  String get nativePlaceLabel => 'Native place';
+
+  @override
+  String get nativePlaceHint => 'Where are you from originally?';
+
+  @override
+  String get nativePlaceTooLongError =>
+      'Native place must be 120 characters or fewer';
+
+  @override
+  String get linkedinLabel => 'LinkedIn profile';
+
+  @override
+  String get linkedinHint => 'Paste your LinkedIn profile URL (optional)';
+
+  @override
+  String get linkedinInvalidError => 'Enter a valid LinkedIn profile URL';
+
+  @override
+  String get ageBucket18_24 => '18-24';
+
+  @override
+  String get ageBucket25_30 => '25-30';
+
+  @override
+  String get ageBucket31_35 => '31-35';
+
+  @override
+  String get ageBucket36_40 => '36-40';
+
+  @override
+  String get ageBucket41_45 => '41-45';
+
+  @override
+  String get ageBucket46Plus => '46+';
 }

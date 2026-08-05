@@ -115,9 +115,9 @@ class CompatibilityEngine {
         if (val == 'veg') return 'vegetarian';
         if (val == 'non_veg') return 'non_vegetarian';
       }
-      if (key == 'smoking_drinking' || key == 'smoking') {
-        if (val == 'no') return 'neither';
-        if (val == 'yes') return 'smoke_outside';
+      if (key == 'smoking' || key == 'drinking') {
+        if (val == 'no') return 'never';
+        if (val == 'yes') return 'regularly';
       }
       return val;
     }
@@ -141,9 +141,15 @@ class CompatibilityEngine {
       ),
     );
     dimensions.add(
-      _smokingDrinking(
-        getVal(user, 'smoking_drinking', 'neither'),
-        getVal(peer, 'smoking_drinking', 'neither'),
+      _smoking(
+        getVal(user, 'smoking', 'never'),
+        getVal(peer, 'smoking', 'never'),
+      ),
+    );
+    dimensions.add(
+      _drinking(
+        getVal(user, 'drinking', 'never'),
+        getVal(peer, 'drinking', 'never'),
       ),
     );
     dimensions.add(
@@ -295,12 +301,28 @@ class CompatibilityEngine {
     );
   }
 
-  static CompatibilityDimension _smokingDrinking(String a, String b) {
-    // Handle no_preference cases
+  /// Shared scoring for the smoking / drinking lifestyle dimensions.
+  ///
+  /// Values are ordered never < occasionally < regularly. Same value scores
+  /// 100, adjacent values 70, and the extreme pair (never vs regularly) 40,
+  /// mirroring the backend's split scoring. Either side reporting
+  /// `no_preference` (legacy value) is treated as fully flexible.
+  static CompatibilityDimension _smoking(String a, String b) =>
+      _lifestyleHabit('smoking', 0.10, a, b);
+
+  static CompatibilityDimension _drinking(String a, String b) =>
+      _lifestyleHabit('drinking', 0.10, a, b);
+
+  static CompatibilityDimension _lifestyleHabit(
+    String key,
+    double weight,
+    String a,
+    String b,
+  ) {
     if (a == 'no_preference' || b == 'no_preference') {
       return CompatibilityDimension(
-        key: 'smoking_drinking',
-        weight: 0.20,
+        key: key,
+        weight: weight,
         userValue: a,
         peerValue: b,
         score: 100,
@@ -309,37 +331,34 @@ class CompatibilityEngine {
       );
     }
 
-    const nonSmoker = {'neither', 'drink_occasionally'};
-    const smoker = {'smoke_outside'};
-    const drinker = {'drink_occasionally', 'both_fine'};
-
-    double score;
-    if (a == b) {
-      score = 100;
-    } else if (nonSmoker.contains(a) && nonSmoker.contains(b)) {
-      // Both non-smokers (one or both may drink)
-      score = 80;
-    } else if (smoker.contains(a) && smoker.contains(b)) {
-      // Both smoke - compatible
-      score = 100;
-    } else if ((smoker.contains(a) && !smoker.contains(b)) ||
-        (!smoker.contains(a) && smoker.contains(b))) {
-      // One smokes, other doesn't
-      score = 30;
-    } else if (drinker.contains(a) && drinker.contains(b)) {
-      // Both okay with drinking
-      score = 80;
-    } else {
-      // Mixed preferences
-      score = 50;
+    const values = ['never', 'occasionally', 'regularly'];
+    final ai = values.indexOf(a);
+    final bi = values.indexOf(b);
+    if (ai < 0 || bi < 0) {
+      _warnUnknownEnum(key, a, b, values);
+      return CompatibilityDimension(
+        key: key,
+        weight: weight,
+        userValue: a,
+        peerValue: b,
+        score: 0,
+        isMatch: false,
+        summary: CompatSummaryKey.lifestyleDiffer,
+      );
     }
+    final gap = (ai - bi).abs();
+    final score = switch (gap) {
+      0 => 100.0,
+      1 => 70.0,
+      _ => 40.0,
+    };
     return CompatibilityDimension(
-      key: 'smoking_drinking',
-      weight: 0.20,
+      key: key,
+      weight: weight,
       userValue: a,
       peerValue: b,
       score: score,
-      isMatch: score >= 50,
+      isMatch: score >= 70,
       summary: score >= 80
           ? CompatSummaryKey.lifestyleAligned
           : score >= 50

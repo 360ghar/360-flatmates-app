@@ -48,11 +48,15 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
     String? sleepSchedule,
     String? cleanliness,
     String? foodHabits,
-    String? smokingDrinking,
+    String? smoking,
+    String? drinking,
     String? guestsPolicy,
     String? workStyle,
     String? gender,
     String? genderPreference,
+    String? nativePlace,
+    String? linkedInUrl,
+    String? ageBucket,
     @Default({}) Map<String, dynamic> preferences,
   }) = _FlatmatesProfileModel;
 
@@ -82,11 +86,15 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
       sleepSchedule: json['sleep_schedule'] as String?,
       cleanliness: json['cleanliness'] as String?,
       foodHabits: json['food_habits'] as String?,
-      smokingDrinking: json['smoking_drinking'] as String?,
+      smoking: json['smoking'] as String?,
+      drinking: json['drinking'] as String?,
       guestsPolicy: json['guests_policy'] as String?,
       workStyle: json['work_style'] as String?,
       gender: json['gender'] as String?,
       genderPreference: json['gender_preference'] as String?,
+      nativePlace: json['native_place'] as String?,
+      linkedInUrl: json['linkedin_url'] as String?,
+      ageBucket: json['age_bucket'] as String?,
       preferences: preferences,
     );
   }

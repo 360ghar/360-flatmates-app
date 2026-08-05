@@ -7,22 +7,26 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import 'search_filter_widgets.dart';
 
-/// Pets + smoking preferences under a collapsible "Lifestyle" header so
-/// primary filters stay above the fold.
+/// Pets + smoking + drinking preferences under a collapsible "Lifestyle"
+/// header so primary filters stay above the fold.
 class MoreFiltersCard extends StatefulWidget {
   const MoreFiltersCard({
     required this.selectedPets,
     required this.selectedSmoking,
+    required this.selectedDrinking,
     required this.onPetsChanged,
     required this.onSmokingChanged,
+    required this.onDrinkingChanged,
     required this.catalogOrFallback,
     super.key,
   });
 
   final String? selectedPets;
   final String? selectedSmoking;
+  final String? selectedDrinking;
   final void Function(String?) onPetsChanged;
   final void Function(String?) onSmokingChanged;
+  final void Function(String?) onDrinkingChanged;
   final List<({String id, String label})> Function(String, List<String>)
   catalogOrFallback;
 
@@ -37,7 +41,10 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
   void initState() {
     super.initState();
     // Auto-expand when a lifestyle filter is already active.
-    _expanded = widget.selectedPets != null || widget.selectedSmoking != null;
+    _expanded =
+        widget.selectedPets != null ||
+        widget.selectedSmoking != null ||
+        widget.selectedDrinking != null;
   }
 
   String _petsSubtitle(AppLocalizations locale) {
@@ -50,21 +57,33 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
 
   String _smokingSubtitle(AppLocalizations locale) {
     return switch (widget.selectedSmoking) {
-      'yes' => locale.smokingYes,
-      'no' => locale.smokingNo,
+      'never' => locale.lifestyleValueNever,
+      'occasionally' => locale.lifestyleValueOccasionally,
+      'regularly' => locale.lifestyleValueRegularly,
       _ => locale.smokingNoPreference,
+    };
+  }
+
+  String _drinkingSubtitle(AppLocalizations locale) {
+    return switch (widget.selectedDrinking) {
+      'never' => locale.lifestyleValueNever,
+      'occasionally' => locale.lifestyleValueOccasionally,
+      'regularly' => locale.lifestyleValueRegularly,
+      _ => locale.drinkingNoPreference,
     };
   }
 
   String _collapsedSummary(AppLocalizations locale) {
     final hasPets = widget.selectedPets != null;
     final hasSmoking = widget.selectedSmoking != null;
-    if (!hasPets && !hasSmoking) {
+    final hasDrinking = widget.selectedDrinking != null;
+    if (!hasPets && !hasSmoking && !hasDrinking) {
       return locale.lifestyleFiltersSummaryAny;
     }
     final parts = <String>[
       if (hasPets) '${locale.petsLabel}: ${_petsSubtitle(locale)}',
       if (hasSmoking) '${locale.smokingLabel}: ${_smokingSubtitle(locale)}',
+      if (hasDrinking) '${locale.drinkingLabel}: ${_drinkingSubtitle(locale)}',
     ];
     return parts.join(' · ');
   }
@@ -184,12 +203,40 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
                         child: CatalogFilterChips(
                           options: widget.catalogOrFallback(
                             'flatmates_smoking_options',
-                            ['no_preference', 'no', 'yes'],
+                            [
+                              'no_preference',
+                              'never',
+                              'occasionally',
+                              'regularly',
+                            ],
                           ),
                           selectedId: widget.selectedSmoking ?? 'no_preference',
                           anyKey: 'no_preference',
                           iconForId: smokingFilterOptionIcon,
                           onSelected: (id) => widget.onSmokingChanged(
+                            id == 'no_preference' ? null : id,
+                          ),
+                        ),
+                      ),
+                      CompactFilterSection(
+                        title: locale.drinkingLabel,
+                        icon: Icons.local_bar_outlined,
+                        iconColor: AppSemanticColors.tealMid,
+                        iconBgColor: AppSemanticColors.tealSoft,
+                        child: CatalogFilterChips(
+                          options: widget.catalogOrFallback(
+                            'flatmates_drinking_options',
+                            [
+                              'no_preference',
+                              'never',
+                              'occasionally',
+                              'regularly',
+                            ],
+                          ),
+                          selectedId:
+                              widget.selectedDrinking ?? 'no_preference',
+                          anyKey: 'no_preference',
+                          onSelected: (id) => widget.onDrinkingChanged(
                             id == 'no_preference' ? null : id,
                           ),
                         ),

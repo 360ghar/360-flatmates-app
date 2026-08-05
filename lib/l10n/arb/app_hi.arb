@@ -368,11 +368,11 @@
   "quizNonVegetarian": "मांसाहारी",
   "quizEggetarian": "एगेटेरियन",
   "quizNoFoodPref": "कोई प्राथमिकता नहीं",
-  "quizSmokingDrinking": "धूम्रपान और शराब की प्राथमिकता?",
-  "quizNeither": "न धूम्रपान, न शराब",
-  "quizSmokeOutside": "बाहर ही धूम्रपान",
-  "quizDrinkOccasionally": "कभी-कभी शराब",
-  "quizBothFine": "दोनों ठीक हैं",
+  "quizSmoking": "क्या आप धूम्रपान करते हैं?",
+  "quizDrinking": "क्या आप शराब पीते हैं?",
+  "lifestyleValueNever": "कभी नहीं",
+  "lifestyleValueOccasionally": "कभी-कभी",
+  "lifestyleValueRegularly": "नियमित रूप से",
   "quizGuestsPolicy": "मेहमानों के बारे में आपका क्या विचार है?",
   "quizNoGuests": "रात को मेहमान नहीं",
   "quizOccasionalGuests": "कभी-कभी मेहमान ठीक हैं",
@@ -393,9 +393,12 @@
   "budgetTimelineSubtitle": "अपनी बजट रेंज सेट करें और कब शिफ्ट होना चाहते हैं।",
   "monthlyBudgetLabel": "मासिक बजट",
   "moveInTimelineLabel": "मूव-इन टाइमलाइन",
-  "timelineImmediate": "तुरंत",
-  "timelineThisMonth": "इस महीने",
-  "timelineNextMonth": "अगले महीने",
+  "timelineImmediately": "तुरंत",
+  "timelineWithin1Week": "1 सप्ताह के भीतर",
+  "timelineWithin2Weeks": "2 सप्ताह के भीतर",
+  "timelineWithin1Month": "1 महीने के भीतर",
+  "timelineWithin2Months": "2 महीनों के भीतर",
+  "timelineWithin3Months": "3 महीनों के भीतर",
   "timelineFlexible": "लचीला",
   "nonNegotiablesTitle": "आपकी डील-ब्रेकर्स",
   "nonNegotiablesSubtitle": "3 चीज़ें चुनें जो आपके लिए बिल्कुल ज़रूरी हैं।",
@@ -496,6 +499,17 @@
   "amenityDiningTable": "डाइनिंग टेबल",
   "amenitySofa": "सोफ़ा",
   "amenityKitchenEquipped": "किचन लैग्ज़",
+  "kitchenTypeLabel": "किचन प्रकार",
+  "kitchenTypeVegetarian": "शाकाहारी",
+  "kitchenTypeNonVegetarian": "मांसाहारी",
+  "kitchenTypeEggetarian": "एगेटेरियन",
+  "kitchenTypeAny": "कोई भी",
+  "ventilationTypeLabel": "हवा (वेंटिलेशन)",
+  "ventilationGood": "अच्छी",
+  "ventilationAverage": "औसत",
+  "ventilationPoor": "खराब",
+  "windowsCountLabel": "खिड़कियाँ",
+  "ventilationShaftsLabel": "वेंटिलेशन शाफ्ट",
   "electricityLabel": "बिजली",
   "includedLabel": "शामिल",
   "separateLabel": "अलग",
@@ -503,6 +517,58 @@
   "cookCostLabel": "कुक खर्चा / महीना",
   "maidCostLabel": "मेड खर्चा / महीना",
   "setupCostLabel": "वन-टाइम सेटअप खर्चा",
+  "otherChargesLabel": "अन्य खर्चे / महीना",
+  "otherChargesHint": "जैसे पार्किंग, वाई-फाई",
+  "otherChargesDescriptionLabel": "अन्य खर्चे किस चीज़ के हैं?",
+  "otherChargesDescriptionHint": "जैसे वाई-फाई, पार्किंग, साझा किराना",
+  "reviewKitchenTypeAmount": "किचन: {type}",
+  "@reviewKitchenTypeAmount": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewVentilationAmount": "वेंटिलेशन: {type}",
+  "@reviewVentilationAmount": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewWindowsAmount": "{count} खिड़कियाँ",
+  "@reviewWindowsAmount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewVentilationShaftsAmount": "{count} वेंटिलेशन शाफ्ट",
+  "@reviewVentilationShaftsAmount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewOtherChargesAmount": "अन्य खर्चे: ₹{amount}",
+  "@reviewOtherChargesAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewSetupCostAmount": "सेटअप खर्च: ₹{amount}",
+  "@reviewSetupCostAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "totalMonthlyOutflow": "आपका अनुमानित मासिक खर्चा: {amount}",
   "@totalMonthlyOutflow": {
     "placeholders": {
@@ -881,6 +947,21 @@
   "smokingNo": "नहीं",
   "smokingYes": "हाँ",
   "smokingNoPreference": "कोई प्राथमिकता नहीं",
+  "drinkingLabel": "शराब",
+  "drinkingNo": "नहीं",
+  "drinkingYes": "हाँ",
+  "drinkingNoPreference": "कोई प्राथमिकता नहीं",
+  "searchAmenitiesFilterLabel": "सुविधाएँ",
+  "searchHasLiftLabel": "लिफ्ट है",
+  "searchWindowsMinLabel": "खिड़कियाँ (न्यूनतम)",
+  "searchWindowsMinOption": "{count}+",
+  "@searchWindowsMinOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "nearbyChipLabel": "निकटस्थ",
   "budgetPlusChipLabel": "बजट+",
   "chatInputHint": "संदेश टाइप करें...",
@@ -896,6 +977,7 @@
   "prefFoodLabel": "खान-पान की आदतें",
   "prefPetsLabel": "पालतू जानवर",
   "prefSmokingLabel": "धूम्रपान",
+  "prefDrinkingLabel": "शराब",
   "prefMoveInLabel": "मूव-इन टाइमलाइन",
   "prefNoPreference": "कोई प्राथमिकता नहीं",
   "prefMaleOnly": "केवल पुरुष",
@@ -1405,6 +1487,8 @@
   "optionalUpdateMessage": "360 फ्लैटमेट्स का एक नया वर्शन सुधार और बग फिक्स के साथ उपलब्ध है।",
   "optionalUpdateCta": "अभी अपडेट करें",
   "optionalUpdateLater": "बाद में",
+  "patchReadyMessage": "एक अपडेट तैयार है। यह अगली बार ऐप खोलने पर लागू होगा।",
+  "patchLabel": "पैच {number}",
   "maintenanceTitle": "मेंटेनेंस चल रहा है",
   "maintenanceMessage": "हम चीज़ें बेहतर बना रहे हैं। कृपया कुछ देर बाद दोबारा देखें।",
   "maintenanceRetry": "फिर से जांचें",
@@ -1548,7 +1632,8 @@
   "lifestyleDimSleep": "नींद",
   "lifestyleDimCleanliness": "साफ़-सफ़ाई",
   "lifestyleDimFood": "खाना",
-  "lifestyleDimSmoking": "धूम्रपान / पेय",
+  "lifestyleDimSmoking": "धूम्रपान",
+  "lifestyleDimDrinking": "शराब",
   "lifestyleDimGuests": "मेहमान",
   "lifestyleDimWork": "काम",
   "lifestyleDimParty": "पार्टियाँ",
@@ -1768,5 +1853,22 @@
         "type": "String"
       }
     }
-  }
+  },
+  "onboardingPhaseOneTitle": "आवश्यक जानकारी",
+  "onboardingPhaseTwoTitle": "जीवनशैली और पसंद",
+  "onboardingTransitionTitle": "लगभग हो गया - बस एक सेक्शन बाकी है",
+  "onboardingTransitionBody": "अब आपकी जीवनशैली, बजट और पसंद के बारे में जानते हैं, ताकि हम आपका सबसे अच्छा फ्लैटमेट ढूंढ सकें।",
+  "onboardingTransitionCta": "आगे बढ़ें",
+  "nativePlaceLabel": "गृहनगर",
+  "nativePlaceHint": "आप मूल रूप से कहाँ से हैं?",
+  "nativePlaceTooLongError": "गृहनगर 120 अक्षरों से कम होना चाहिए",
+  "linkedinLabel": "LinkedIn प्रोफ़ाइल",
+  "linkedinHint": "अपना LinkedIn प्रोफ़ाइल URL पेस्ट करें (वैकल्पिक)",
+  "linkedinInvalidError": "मान्य LinkedIn प्रोफ़ाइल URL दर्ज करें",
+  "ageBucket18_24": "18-24",
+  "ageBucket25_30": "25-30",
+  "ageBucket31_35": "31-35",
+  "ageBucket36_40": "36-40",
+  "ageBucket41_45": "41-45",
+  "ageBucket46Plus": "46+"
 }

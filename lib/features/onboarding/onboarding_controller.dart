@@ -42,8 +42,27 @@ class OnboardingController extends Notifier<OnboardingState> {
       orElse: () => OnboardingStep.splash,
     );
 
+    final lifestyleAnswers = Map<String, String>.from(
+      savedData['lifestyle_answers'] as Map? ?? const {},
+    );
+    // Drafts saved before the smoking/drinking split carry a legacy
+    // `smoking_drinking` key (or predate both split keys entirely). Resuming
+    // would submit with smoking/drinking null, so send the user back to the
+    // lifestyle quiz to answer the split questions. Only applies once the
+    // quiz has actually been reached (never rewinds an earlier draft that
+    // simply has no answers yet).
+    final legacyLifestyleAnswers =
+        lifestyleAnswers.containsKey('smoking_drinking') ||
+        (!lifestyleAnswers.containsKey('smoking') &&
+            !lifestyleAnswers.containsKey('drinking'));
+    final step =
+        legacyLifestyleAnswers &&
+            savedStep.index >= OnboardingStep.lifestyleQuiz.index
+        ? OnboardingStep.lifestyleQuiz
+        : savedStep;
+
     return OnboardingState(
-      step: savedStep,
+      step: step,
       mode: savedData['mode'] as String?,
       fullName: savedData['full_name'] as String?,
       age: savedData['age'] as int?,
@@ -51,9 +70,7 @@ class OnboardingController extends Notifier<OnboardingState> {
       city: savedData['city'] as String?,
       locality: savedData['locality'] as String?,
       photoUrls: (savedData['photo_urls'] as List?)?.cast<String>() ?? const [],
-      lifestyleAnswers: Map<String, String>.from(
-        savedData['lifestyle_answers'] as Map? ?? const {},
-      ),
+      lifestyleAnswers: lifestyleAnswers,
       budgetMin: (savedData['budget_min'] as num?)?.toDouble(),
       budgetMax: (savedData['budget_max'] as num?)?.toDouble(),
       moveInTimeline: savedData['move_in_timeline'] as String?,
@@ -110,7 +127,8 @@ class OnboardingController extends Notifier<OnboardingState> {
       OnboardingStep.locationSelection => OnboardingStep.modeSelection,
       OnboardingStep.basicInfo => OnboardingStep.locationSelection,
       OnboardingStep.profilePhoto => OnboardingStep.basicInfo,
-      OnboardingStep.lifestyleQuiz => OnboardingStep.profilePhoto,
+      OnboardingStep.transition => OnboardingStep.profilePhoto,
+      OnboardingStep.lifestyleQuiz => OnboardingStep.transition,
       OnboardingStep.budgetTimeline => OnboardingStep.lifestyleQuiz,
       OnboardingStep.preferences => OnboardingStep.budgetTimeline,
       OnboardingStep.nonNegotiables => OnboardingStep.preferences,
@@ -155,7 +173,15 @@ class OnboardingController extends Notifier<OnboardingState> {
   }
 
   Future<void> setPhotoUrls(List<String> urls) async {
-    state = state.copyWith(photoUrls: urls, step: OnboardingStep.lifestyleQuiz);
+    state = state.copyWith(photoUrls: urls, step: OnboardingStep.transition);
+    await _saveState();
+  }
+
+  /// Advances past the phase-1 → phase-2 transition screen. No-op anywhere
+  /// else in the flow.
+  Future<void> continueFromTransition() async {
+    if (state.step != OnboardingStep.transition) return;
+    state = state.copyWith(step: OnboardingStep.lifestyleQuiz);
     await _saveState();
   }
 
@@ -201,7 +227,8 @@ class OnboardingController extends Notifier<OnboardingState> {
     await _saveState();
 
     try {
-      final lifestyleAnswers = state.lifestyleAnswers;
+      final lifestyleAnswers = Map<String, String>.from(state.lifestyleAnswers)
+        ..remove('smoking_drinking');
       final preferences = state.preferences;
       final normalizedPreferences = _normalizePreferences(preferences);
       final profileLifestyleAnswers = _profileLifestyleAnswers(
@@ -294,9 +321,18 @@ class OnboardingController extends Notifier<OnboardingState> {
     if (normalized.containsKey('smoking')) {
       final val = normalized['smoking']?.toString().toLowerCase();
       if (val == 'yes' || val == 'true') {
-        normalized['smoking'] = 'yes';
+        normalized['smoking'] = 'regularly';
       } else if (val == 'no' || val == 'false') {
-        normalized['smoking'] = 'no';
+        normalized['smoking'] = 'never';
+      }
+    }
+
+    if (normalized.containsKey('drinking')) {
+      final val = normalized['drinking']?.toString().toLowerCase();
+      if (val == 'yes' || val == 'true') {
+        normalized['drinking'] = 'regularly';
+      } else if (val == 'no' || val == 'false') {
+        normalized['drinking'] = 'never';
       }
     }
 
@@ -343,12 +379,8 @@ class OnboardingController extends Notifier<OnboardingState> {
       'eggetarian',
       'no_preference',
     },
-    'smoking_drinking': {
-      'neither',
-      'smoke_outside',
-      'drink_occasionally',
-      'both_fine',
-    },
+    'smoking': {'never', 'occasionally', 'regularly'},
+    'drinking': {'never', 'occasionally', 'regularly'},
     'guests_policy': {'no_overnight_guests', 'occasional_ok', 'open_house'},
     'work_style': {'wfh', 'office', 'hybrid'},
   };
@@ -364,11 +396,27 @@ class OnboardingController extends Notifier<OnboardingState> {
       'non_veg': 'non_vegetarian',
       'any': 'no_preference',
     },
-    'smoking_drinking': {
-      'none': 'neither',
-      'no': 'neither',
-      'smoking': 'smoke_outside',
-      'drinking': 'drink_occasionally',
+    'smoking': {
+      'none': 'never',
+      'no': 'never',
+      'false': 'never',
+      'neither': 'never',
+      // A legacy 'smoke_outside' smoker is treated as a regular smoker to
+      // match the web onboarding-store migration (smoking 'regularly' +
+      // drinking 'never'), so both surfaces resolve the same legacy value to
+      // the same level.
+      'smoke_outside': 'regularly',
+      'yes': 'regularly',
+      'true': 'regularly',
+    },
+    'drinking': {
+      'none': 'never',
+      'no': 'never',
+      'false': 'never',
+      'neither': 'never',
+      'drink_occasionally': 'occasionally',
+      'yes': 'regularly',
+      'true': 'regularly',
     },
     'guests_policy': {
       'occasionally': 'occasional_ok',

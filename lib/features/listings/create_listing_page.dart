@@ -6,11 +6,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 import 'application/create_listing_controller.dart';
 import 'presentation/widgets/create_listing_actions.dart';
+import 'presentation/widgets/listing_catalog_options.dart';
 import 'presentation/widgets/listing_form_data.dart';
 import 'presentation/widgets/listing_step_header.dart';
 import 'presentation/widgets/listing_step_view.dart';
@@ -57,6 +57,10 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   final _floorController = TextEditingController();
   final _totalFloorsController = TextEditingController();
   final _flatAmenities = <String>{};
+  String? _kitchenType;
+  String? _ventilationType;
+  final _windowsController = TextEditingController();
+  final _ventilationShaftsController = TextEditingController();
   final _rentController = TextEditingController();
   final _depositController = TextEditingController();
   final _maintenanceController = TextEditingController();
@@ -65,6 +69,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   final _cookCostController = TextEditingController();
   final _maidCostController = TextEditingController();
   final _setupCostController = TextEditingController();
+  final _otherChargesController = TextEditingController();
+  final _otherChargesDescriptionController = TextEditingController();
   final _typicalDayController = TextEditingController();
   String _genderPreference = 'any';
   double _ageMin = 18;
@@ -114,6 +120,14 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         typicalDay: _typicalDayController,
         floor: _floorController,
         totalFloors: _totalFloorsController,
+        electricityEst: _electricityEstController,
+        cookCost: _cookCostController,
+        maidCost: _maidCostController,
+        setupCost: _setupCostController,
+        otherCharges: _otherChargesController,
+        otherChargesDescription: _otherChargesDescriptionController,
+        windowsCount: _windowsController,
+        ventilationShafts: _ventilationShaftsController,
         roomFeatures: _roomFeatures,
         societyAmenities: _societyAmenities,
         societyVibeTags: _societyVibeTags,
@@ -127,6 +141,9 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         _societyType = scalars.societyType;
         _genderPreference = scalars.genderPreference;
         _flatConfig = scalars.flatConfig;
+        _kitchenType = scalars.kitchenType;
+        _ventilationType = scalars.ventilationType;
+        _electricityIncluded = scalars.electricityIncluded;
         _videoTourUrl = scalars.videoTourUrl;
         _availableFrom = scalars.availableFrom;
       });
@@ -141,23 +158,13 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     }
   }
 
-  List<CatalogOption> _catalog(String key) {
-    return ref
-            .watch(bootstrapControllerProvider)
-            .valueOrNull
-            ?.catalogOptions(key) ??
-        const [];
-  }
+  // Thin adapters over listing_catalog_options.dart so the tear-offs passed to
+  // ListingStepView keep their existing signatures.
+  List<CatalogOption> _catalog(String key) =>
+      listingCatalog(ref, AppLocalizations.of(context), key);
 
-  String _catalogLabel(String key, String id) {
-    return _catalog(key)
-        .firstWhere(
-          (o) => o.id == id,
-          orElse: () =>
-              CatalogOption(id: id, label: humanizeFlatmatesToken(id)),
-        )
-        .label;
-  }
+  String _catalogLabel(String key, String id) =>
+      listingCatalogLabel(ref, AppLocalizations.of(context), key, id);
 
   @override
   void dispose() {
@@ -168,6 +175,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
       _localityController,
       _floorController,
       _totalFloorsController,
+      _windowsController,
+      _ventilationShaftsController,
       _rentController,
       _depositController,
       _maintenanceController,
@@ -175,6 +184,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
       _cookCostController,
       _maidCostController,
       _setupCostController,
+      _otherChargesController,
+      _otherChargesDescriptionController,
       _typicalDayController,
     ]) {
       c.dispose();
@@ -386,6 +397,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     onVideoTourUrlChanged: (u) => _updateString(() => _videoTourUrl = u),
     onVideoUploadingChanged: (v) => setState(() => _videoUploading = v),
     onFlatConfigChanged: (v) => _updateString(() => _flatConfig = v),
+    onKitchenTypeChanged: (v) => _updateString(() => _kitchenType = v),
+    onVentilationTypeChanged: (v) => _updateString(() => _ventilationType = v),
     onFlatAmenityToggled: _toggleSet(_flatAmenities),
     onElectricityChanged: (v) => _updateString(() => _electricityIncluded = v),
     onGenderChanged: (v) => _updateString(() => _genderPreference = v),
@@ -419,6 +432,10 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     floorController: _floorController,
     totalFloorsController: _totalFloorsController,
     flatAmenities: _flatAmenities,
+    kitchenType: _kitchenType,
+    ventilationType: _ventilationType,
+    windowsController: _windowsController,
+    ventilationShaftsController: _ventilationShaftsController,
     rentController: _rentController,
     depositController: _depositController,
     maintenanceController: _maintenanceController,
@@ -427,6 +444,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     cookCostController: _cookCostController,
     maidCostController: _maidCostController,
     setupCostController: _setupCostController,
+    otherChargesController: _otherChargesController,
+    otherChargesDescriptionController: _otherChargesDescriptionController,
     typicalDayController: _typicalDayController,
     genderPreference: _genderPreference,
     ageMin: _ageMin,

@@ -48,6 +48,15 @@ class PropertyListing {
     this.totalFloors,
     this.parkingSpaces,
     this.ageOfProperty,
+    this.kitchenType,
+    this.ventilationType,
+    this.windowsCount,
+    this.ventilationShafts,
+    this.setupCost,
+    this.otherCharges,
+    this.otherChargesDescription,
+    this.furnishingLevel,
+    this.hasLift,
     this.images = const [],
     this.amenities = const [],
     this.societyTagVoteCounts = const {},
@@ -102,6 +111,15 @@ class PropertyListing {
   final int? totalFloors;
   final int? parkingSpaces;
   final int? ageOfProperty;
+  final String? kitchenType;
+  final String? ventilationType;
+  final int? windowsCount;
+  final int? ventilationShafts;
+  final double? setupCost;
+  final double? otherCharges;
+  final String? otherChargesDescription;
+  final String? furnishingLevel;
+  final bool? hasLift;
   final List<PropertyImageInfo> images;
   final List<PropertyAmenityInfo> amenities;
   final Map<String, Map<String, int>> societyTagVoteCounts;
@@ -156,6 +174,15 @@ class PropertyListing {
     int? totalFloors,
     int? parkingSpaces,
     int? ageOfProperty,
+    String? kitchenType,
+    String? ventilationType,
+    int? windowsCount,
+    int? ventilationShafts,
+    double? setupCost,
+    double? otherCharges,
+    String? otherChargesDescription,
+    String? furnishingLevel,
+    bool? hasLift,
     List<PropertyImageInfo>? images,
     List<PropertyAmenityInfo>? amenities,
     Map<String, Map<String, int>>? societyTagVoteCounts,
@@ -211,6 +238,16 @@ class PropertyListing {
       totalFloors: totalFloors ?? this.totalFloors,
       parkingSpaces: parkingSpaces ?? this.parkingSpaces,
       ageOfProperty: ageOfProperty ?? this.ageOfProperty,
+      kitchenType: kitchenType ?? this.kitchenType,
+      ventilationType: ventilationType ?? this.ventilationType,
+      windowsCount: windowsCount ?? this.windowsCount,
+      ventilationShafts: ventilationShafts ?? this.ventilationShafts,
+      setupCost: setupCost ?? this.setupCost,
+      otherCharges: otherCharges ?? this.otherCharges,
+      otherChargesDescription:
+          otherChargesDescription ?? this.otherChargesDescription,
+      furnishingLevel: furnishingLevel ?? this.furnishingLevel,
+      hasLift: hasLift ?? this.hasLift,
       images: images ?? this.images,
       amenities: amenities ?? this.amenities,
       societyTagVoteCounts: societyTagVoteCounts ?? this.societyTagVoteCounts,

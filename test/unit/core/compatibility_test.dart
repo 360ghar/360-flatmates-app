@@ -9,13 +9,14 @@ void main() {
         'sleep_schedule': 'flexible',
         'cleanliness': 'tidy',
         'food_habits': 'vegetarian',
-        'smoking_drinking': 'neither',
+        'smoking': 'never',
+        'drinking': 'never',
         'guests_policy': 'occasional_ok',
         'work_style': 'hybrid',
       };
       final result = CompatibilityEngine.calculate(user: user, peer: user);
       expect(result.percentage, 100.0);
-      expect(result.dimensions, hasLength(6));
+      expect(result.dimensions, hasLength(7));
       for (final dim in result.dimensions) {
         expect(dim.score, 100.0);
         expect(dim.isMatch, isTrue);
@@ -30,7 +31,8 @@ void main() {
         'sleep_schedule': 'early_bird',
         'cleanliness': 'tidy',
         'food_habits': 'vegetarian',
-        'smoking_drinking': 'neither',
+        'smoking': 'never',
+        'drinking': 'never',
         'guests_policy': 'occasional_ok',
         'work_style': 'hybrid',
       };
@@ -39,14 +41,15 @@ void main() {
         'sleep_schedule': 'night_owl',
         'cleanliness': 'tidy',
         'food_habits': 'vegetarian',
-        'smoking_drinking': 'neither',
+        'smoking': 'never',
+        'drinking': 'never',
         'guests_policy': 'occasional_ok',
         'work_style': 'hybrid',
       };
 
       final result = CompatibilityEngine.calculate(user: user, peer: peer);
 
-      // sleep=0 (w=0.20); remaining five dimensions at 100 → weighted avg = 80.
+      // sleep=0 (w=0.20); remaining six dimensions at 100 → weighted avg = 80.
       expect(result.percentage, closeTo(80.0, 0.001));
       expect(result.percentage, greaterThan(0));
       expect(result.percentage, lessThan(100));
@@ -138,7 +141,8 @@ void main() {
           'sleep_schedule': 'flexible',
           'cleanliness': 'tidy',
           'food_habits': 'vegetarian',
-          'smoking_drinking': 'neither',
+          'smoking': 'never',
+          'drinking': 'never',
           'guests_policy': 'occasional_ok',
           'work_style': 'hybrid',
         },
@@ -146,14 +150,15 @@ void main() {
           'sleep_schedule': 'flexible',
           'cleanliness': 'tidy',
           'food_habits': 'vegetarian',
-          'smoking_drinking': 'neither',
+          'smoking': 'never',
+          'drinking': 'never',
           'guests_policy': 'occasional_ok',
           'work_style': 'hybrid',
         },
       );
       expect(fullMatch.percentage, 100.0);
 
-      // Verify weight totals: 0.20 + 0.20 + 0.15 + 0.20 + 0.15 + 0.10 = 1.0
+      // 0.20 + 0.20 + 0.15 + 0.10 + 0.10 + 0.15 + 0.10 = 1.0
       final totalWeight = fullMatch.dimensions.fold<double>(
         0.0,
         (sum, dim) => sum + dim.weight,
@@ -166,7 +171,7 @@ void main() {
         user: <String, String>{},
         peer: <String, String>{},
       );
-      // With defaults (flexible, tidy, no_preference, neither,
+      // With defaults (flexible, tidy, no_preference, never, never,
       // occasional_ok, hybrid), both user and peer match → 100%.
       expect(result.percentage, 100.0);
     });
@@ -189,7 +194,8 @@ void main() {
           'sleep_schedule': 'flexible',
           'cleanliness': 'tidy',
           'food_habits': 'vegetarian',
-          'smoking_drinking': 'neither',
+          'smoking': 'never',
+          'drinking': 'never',
           'guests_policy': 'occasional_ok',
           'work_style': 'hybrid',
         },
@@ -197,7 +203,8 @@ void main() {
           'sleep_schedule': 'flexible',
           'cleanliness': 'tidy',
           'food_habits': 'vegetarian',
-          'smoking_drinking': 'neither',
+          'smoking': 'never',
+          'drinking': 'never',
           'guests_policy': 'occasional_ok',
           'work_style': 'hybrid',
         },
@@ -234,6 +241,54 @@ void main() {
       );
       final dim = result.dimensions.firstWhere((d) => d.key == 'guests_policy');
       expect(dim.score, 60.0);
+    });
+
+    test('smoking and drinking score as separate dimensions', () {
+      final result = CompatibilityEngine.calculate(
+        user: {'smoking': 'never', 'drinking': 'regularly'},
+        peer: {'smoking': 'never', 'drinking': 'regularly'},
+      );
+      final smokingDim = result.dimensions.firstWhere(
+        (d) => d.key == 'smoking',
+      );
+      final drinkingDim = result.dimensions.firstWhere(
+        (d) => d.key == 'drinking',
+      );
+      expect(smokingDim.score, 100.0);
+      expect(drinkingDim.score, 100.0);
+      expect(smokingDim.weight, 0.10);
+      expect(drinkingDim.weight, 0.10);
+    });
+
+    test('smoking adjacent values yield 70 and extremes yield 40', () {
+      final adjacent = CompatibilityEngine.calculate(
+        user: {'smoking': 'never'},
+        peer: {'smoking': 'occasionally'},
+      );
+      final adjacentDim = adjacent.dimensions.firstWhere(
+        (d) => d.key == 'smoking',
+      );
+      expect(adjacentDim.score, 70.0);
+
+      final extreme = CompatibilityEngine.calculate(
+        user: {'smoking': 'never'},
+        peer: {'smoking': 'regularly'},
+      );
+      final extremeDim = extreme.dimensions.firstWhere(
+        (d) => d.key == 'smoking',
+      );
+      expect(extremeDim.score, 40.0);
+    });
+
+    test('legacy no/yes smoking values normalize to never/regularly', () {
+      final result = CompatibilityEngine.calculate(
+        user: {'smoking': 'no'},
+        peer: {'smoking': 'yes'},
+      );
+      final dim = result.dimensions.firstWhere((d) => d.key == 'smoking');
+      expect(dim.userValue, 'never');
+      expect(dim.peerValue, 'regularly');
+      expect(dim.score, 40.0);
     });
 
     test('percentage is clamped between 0 and 100', () {

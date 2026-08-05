@@ -121,9 +121,14 @@ IconData? filterOptionIcon(String id) {
     'unfurnished' => Icons.event_seat_outlined,
     'male' || 'male_only' => Icons.man_outlined,
     'female' || 'female_only' => Icons.woman_outlined,
-    'immediate' => Icons.bolt_outlined,
-    'this_month' => Icons.calendar_today_outlined,
+    'immediate' || 'immediately' => Icons.bolt_outlined,
+    'within_1_week' => Icons.weekend_outlined,
+    'within_2_weeks' => Icons.calendar_month_outlined,
+    'this_month' || 'within_1_month' => Icons.calendar_today_outlined,
     'next_month' => Icons.date_range_outlined,
+    'within_2_months' => Icons.calendar_view_month_outlined,
+    'within_3_months' => Icons.event_note_outlined,
+    'flexible' => Icons.more_time_outlined,
     'yes' => Icons.check_circle_outline,
     'no' => Icons.block_outlined,
     _ => null,
@@ -144,8 +149,9 @@ IconData? petsFilterOptionIcon(String id) {
 IconData? smokingFilterOptionIcon(String id) {
   return switch (id) {
     'no_preference' => Icons.tune,
-    'no' => Icons.smoke_free_outlined,
-    'yes' => Icons.smoking_rooms_outlined,
+    'never' => Icons.smoke_free_outlined,
+    'occasionally' => Icons.smoking_rooms_outlined,
+    'regularly' => Icons.local_fire_department_outlined,
     _ => filterOptionIcon(id),
   };
 }
@@ -188,9 +194,11 @@ class FilterChipWrap extends StatelessWidget {
 class CatalogFilterChips extends StatelessWidget {
   const CatalogFilterChips({
     required this.options,
-    required this.selectedId,
+    this.selectedId = '',
     required this.anyKey,
     required this.onSelected,
+    this.selectedIds,
+    this.multiSelect = false,
     this.keyPrefix,
     this.iconForId = filterOptionIcon,
     super.key,
@@ -198,6 +206,11 @@ class CatalogFilterChips extends StatelessWidget {
 
   final List<({String id, String label})> options;
   final String selectedId;
+
+  /// When [multiSelect] is true, the set of selected ids; [selectedId] is
+  /// ignored for highlight purposes.
+  final List<String>? selectedIds;
+  final bool multiSelect;
   final String anyKey;
   final ValueChanged<String> onSelected;
   final String? keyPrefix;
@@ -219,12 +232,15 @@ class CatalogFilterChips extends StatelessWidget {
       runSpacing: AppSpacing.xs,
       children: List.generate(options.length, (i) {
         final opt = options[i];
+        final isSelected = multiSelect
+            ? selectedIds?.contains(opt.id) ?? false
+            : selectedId == opt.id;
         return FlatmatesChip(
           key: chipKeys[i],
           label: opt.label,
           icon: iconForId(opt.id),
           variant: FlatmatesChipVariant.choice,
-          selected: selectedId == opt.id,
+          selected: isSelected,
           onSelected: (_) => onSelected(opt.id),
         );
       }),

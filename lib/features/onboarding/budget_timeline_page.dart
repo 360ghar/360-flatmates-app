@@ -48,12 +48,18 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
 
   /// Hardcoded fallback timeline options used when the backend catalog is unavailable.
   static const _fallbackTimelineOptions = [
-    _TimelineOption(key: 'immediate', icon: Icons.flash_on_rounded),
+    _TimelineOption(key: 'immediately', icon: Icons.flash_on_rounded),
+    _TimelineOption(key: 'within_1_week', icon: Icons.calendar_today_outlined),
     _TimelineOption(
-      key: 'this_month',
+      key: 'within_2_weeks',
+      icon: Icons.calendar_view_week_outlined,
+    ),
+    _TimelineOption(
+      key: 'within_1_month',
       icon: Icons.calendar_view_month_outlined,
     ),
-    _TimelineOption(key: 'next_month', icon: Icons.event_outlined),
+    _TimelineOption(key: 'within_2_months', icon: Icons.date_range_outlined),
+    _TimelineOption(key: 'within_3_months', icon: Icons.event_outlined),
     _TimelineOption(key: 'flexible', icon: Icons.all_inclusive_rounded),
   ];
 
@@ -83,7 +89,10 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
   IconData _iconFromName(String name) {
     return switch (name) {
       'flash_on_rounded' => Icons.flash_on_rounded,
+      'calendar_today_outlined' => Icons.calendar_today_outlined,
+      'calendar_view_week_outlined' => Icons.calendar_view_week_outlined,
       'calendar_view_month_outlined' => Icons.calendar_view_month_outlined,
+      'date_range_outlined' => Icons.date_range_outlined,
       'event_outlined' => Icons.event_outlined,
       'all_inclusive_rounded' => Icons.all_inclusive_rounded,
       _ => Icons.schedule_outlined,
@@ -246,14 +255,19 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
     switch (key) {
       case 'immediate':
       case 'immediately':
-        return locale.timelineImmediate;
+        return locale.timelineImmediately;
+      case 'within_1_week':
+        return locale.timelineWithin1Week;
       case 'this_month':
-      case 'within_1_month':
-        return locale.timelineThisMonth;
-      case 'next_month':
-        return locale.timelineNextMonth;
       case 'within_2_weeks':
-        return locale.timelineThisMonth;
+        return locale.timelineWithin2Weeks;
+      case 'next_month':
+      case 'within_1_month':
+        return locale.timelineWithin1Month;
+      case 'within_2_months':
+        return locale.timelineWithin2Months;
+      case 'within_3_months':
+        return locale.timelineWithin3Months;
       case 'just_exploring':
       case 'flexible':
       default:

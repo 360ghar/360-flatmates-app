@@ -22,12 +22,21 @@ bool isAdult(DateTime dob) {
   return age >= kMinimumAge;
 }
 
+enum OnboardingPhase {
+  /// Identity and location basics: mode, location, basic info, photo.
+  essentials,
+
+  /// Matching inputs: lifestyle quiz, budget, preferences, non-negotiables.
+  lifestyle,
+}
+
 enum OnboardingStep {
   splash,
   modeSelection,
   locationSelection,
   basicInfo,
   profilePhoto,
+  transition,
   lifestyleQuiz,
   budgetTimeline,
   preferences,
@@ -90,15 +99,35 @@ class OnboardingState with _$OnboardingState {
       OnboardingStep.locationSelection => 2,
       OnboardingStep.basicInfo => 3,
       OnboardingStep.profilePhoto => 4,
-      OnboardingStep.lifestyleQuiz => 5,
-      OnboardingStep.budgetTimeline => 6,
-      OnboardingStep.preferences => 7,
-      OnboardingStep.nonNegotiables => 8,
+      OnboardingStep.transition => 5,
+      OnboardingStep.lifestyleQuiz => 6,
+      OnboardingStep.budgetTimeline => 7,
+      OnboardingStep.preferences => 8,
+      OnboardingStep.nonNegotiables => 9,
     };
   }
 
   /// Total number of interactive steps (excluding splash).
-  static const int totalInteractiveSteps = 8;
+  static const int totalInteractiveSteps = 9;
+
+  /// Which half of onboarding the current step belongs to. The transition
+  /// step belongs to the incoming (lifestyle) phase.
+  OnboardingPhase get phase => phaseOf(step);
+
+  static OnboardingPhase phaseOf(OnboardingStep step) {
+    return switch (step) {
+      OnboardingStep.splash ||
+      OnboardingStep.modeSelection ||
+      OnboardingStep.locationSelection ||
+      OnboardingStep.basicInfo ||
+      OnboardingStep.profilePhoto => OnboardingPhase.essentials,
+      OnboardingStep.transition ||
+      OnboardingStep.lifestyleQuiz ||
+      OnboardingStep.budgetTimeline ||
+      OnboardingStep.preferences ||
+      OnboardingStep.nonNegotiables => OnboardingPhase.lifestyle,
+    };
+  }
 
   /// Number of interactive steps remaining, including the current one.
   int get remainingSteps {

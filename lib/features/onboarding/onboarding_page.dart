@@ -15,6 +15,7 @@ import 'mode_selection_page.dart';
 import 'non_negotiables_page.dart';
 import 'onboarding_controller.dart';
 import 'onboarding_splash_pages.dart';
+import 'onboarding_transition_page.dart';
 import 'preferences_page.dart';
 import 'profile_photo_page.dart';
 import 'basic_info_page.dart';
@@ -111,6 +112,9 @@ class OnboardingPage extends ConsumerWidget {
       OnboardingStep.profilePhoto => ProfilePhotoPage(
         onComplete: controller.setPhotoUrls,
       ),
+      OnboardingStep.transition => OnboardingTransitionPage(
+        onContinue: () => unawaited(controller.continueFromTransition()),
+      ),
       OnboardingStep.lifestyleQuiz => LifestyleQuizPage(
         onComplete: controller.setLifestyleAnswers,
       ),
@@ -148,6 +152,21 @@ class OnboardingPage extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
+                    // Phase label (Essentials / Lifestyle & preferences).
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        state.phase == OnboardingPhase.essentials
+                            ? locale.onboardingPhaseOneTitle
+                            : locale.onboardingPhaseTwoTitle,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppSemanticColors.accent,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
                     // Welcome-back only when a local draft was restored.
                     if (controller.resumedFromDraft &&
                         state.completionPercentage > 0 &&
@@ -179,7 +198,12 @@ class OnboardingPage extends ConsumerWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${_stepLabel(state.step, locale)} · ${locale.onboardingStepsRemaining(state.remainingSteps)}',
+                                _stepLabel(state.step, locale).isEmpty
+                                    ? locale.onboardingStepsRemaining(
+                                        state.remainingSteps,
+                                      )
+                                    : '${_stepLabel(state.step, locale)} · '
+                                          '${locale.onboardingStepsRemaining(state.remainingSteps)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: AppSemanticColors.textSecondaryFor(
                                     theme.brightness,
@@ -240,7 +264,8 @@ class OnboardingPage extends ConsumerWidget {
 }
 
 /// Maps an [OnboardingStep] to a human-readable label using the app's
-/// localization strings.
+/// localization strings. The transition step has no label of its own — the
+/// phase label above it carries that meaning.
 String _stepLabel(OnboardingStep step, AppLocalizations locale) {
   return switch (step) {
     OnboardingStep.splash => '',
@@ -248,6 +273,7 @@ String _stepLabel(OnboardingStep step, AppLocalizations locale) {
     OnboardingStep.locationSelection => locale.onboardingStepLocation,
     OnboardingStep.basicInfo => locale.onboardingStepBasicInfo,
     OnboardingStep.profilePhoto => locale.onboardingStepPhoto,
+    OnboardingStep.transition => '',
     OnboardingStep.lifestyleQuiz => locale.onboardingStepLifestyle,
     OnboardingStep.budgetTimeline => locale.onboardingStepBudget,
     OnboardingStep.preferences => locale.onboardingStepPreferences,

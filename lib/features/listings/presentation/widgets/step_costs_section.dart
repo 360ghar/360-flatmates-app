@@ -18,6 +18,8 @@ class StepCostsSection extends StatelessWidget {
     required this.cookCostController,
     required this.maidCostController,
     required this.setupCostController,
+    required this.otherChargesController,
+    required this.otherChargesDescriptionController,
     required this.showRentValidation,
     this.showDepositValidation = false,
     this.showMaintenanceValidation = false,
@@ -38,6 +40,8 @@ class StepCostsSection extends StatelessWidget {
   final TextEditingController cookCostController;
   final TextEditingController maidCostController;
   final TextEditingController setupCostController;
+  final TextEditingController otherChargesController;
+  final TextEditingController otherChargesDescriptionController;
   final bool showRentValidation;
   final bool showDepositValidation;
   final bool showMaintenanceValidation;
@@ -218,8 +222,31 @@ class StepCostsSection extends StatelessWidget {
               hintText: locale.setupCostHint,
               prefixIcon: const Icon(Icons.currency_rupee_rounded),
             ),
+            onChanged: (_) => onChanged(),
           ),
           const SizedBox(height: AppSpacing.xl),
+          TextFormField(
+            controller: otherChargesController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: locale.otherChargesLabel,
+              hintText: locale.otherChargesHint,
+              prefixIcon: const Icon(Icons.currency_rupee_rounded),
+            ),
+            onChanged: (_) => onChanged(),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextFormField(
+            controller: otherChargesDescriptionController,
+            maxLength: 300,
+            maxLines: 2,
+            decoration: InputDecoration(
+              labelText: locale.otherChargesDescriptionLabel,
+              hintText: locale.otherChargesDescriptionHint,
+            ),
+            onChanged: (_) => onChanged(),
+          ),
+          const SizedBox(height: AppSpacing.xl - AppSpacing.md),
           if (totalMonthlyOutflow > 0)
             Container(
               width: double.infinity,

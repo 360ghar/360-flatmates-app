@@ -27,6 +27,8 @@ class ListingStepCallbacks {
     required this.onVideoTourUrlChanged,
     required this.onVideoUploadingChanged,
     required this.onFlatConfigChanged,
+    required this.onKitchenTypeChanged,
+    required this.onVentilationTypeChanged,
     required this.onFlatAmenityToggled,
     required this.onElectricityChanged,
     required this.onGenderChanged,
@@ -48,6 +50,8 @@ class ListingStepCallbacks {
   final void Function(String? url) onVideoTourUrlChanged;
   final void Function(bool uploading) onVideoUploadingChanged;
   final ValueChanged<String> onFlatConfigChanged;
+  final ValueChanged<String> onKitchenTypeChanged;
+  final ValueChanged<String> onVentilationTypeChanged;
   final void Function(String key, bool selected) onFlatAmenityToggled;
   final ValueChanged<String> onElectricityChanged;
   final ValueChanged<String> onGenderChanged;
@@ -139,10 +143,17 @@ class ListingStepView extends StatelessWidget {
         floorController: data.floorController,
         totalFloorsController: data.totalFloorsController,
         flatAmenities: data.flatAmenities,
+        kitchenType: data.kitchenType,
+        ventilationType: data.ventilationType,
+        windowsController: data.windowsController,
+        ventilationShaftsController: data.ventilationShaftsController,
         catalog: catalog,
         iconForOption: listingIconForOption,
         onFlatConfigChanged: callbacks.onFlatConfigChanged,
+        onKitchenTypeChanged: callbacks.onKitchenTypeChanged,
+        onVentilationTypeChanged: callbacks.onVentilationTypeChanged,
         onAmenityToggled: callbacks.onFlatAmenityToggled,
+        onChanged: callbacks.onFieldChanged,
       ),
       5 => StepCostsSection(
         rentController: data.rentController,
@@ -153,6 +164,9 @@ class ListingStepView extends StatelessWidget {
         cookCostController: data.cookCostController,
         maidCostController: data.maidCostController,
         setupCostController: data.setupCostController,
+        otherChargesController: data.otherChargesController,
+        otherChargesDescriptionController:
+            data.otherChargesDescriptionController,
         showRentValidation: showRentValidation,
         showDepositValidation: showDepositValidation,
         showMaintenanceValidation: showMaintenanceValidation,

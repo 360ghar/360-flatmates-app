@@ -234,6 +234,10 @@ IconData compatDimensionIcon(String key) {
       return Icons.cleaning_services_outlined;
     case 'food_habits':
       return Icons.restaurant_outlined;
+    case 'smoking':
+      return Icons.smoking_rooms_outlined;
+    case 'drinking':
+      return Icons.local_bar_outlined;
     case 'smoking_drinking':
       return Icons.local_bar_outlined;
     case 'guests_policy':

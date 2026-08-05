@@ -1625,6 +1625,26 @@ String localizedFlatmatesGenderLabel(AppLocalizations locale, String value) {
   }
 }
 
+String localizedFlatmatesAgeBucket(AppLocalizations locale, String? bucket) {
+  if (bucket == null) return '';
+  switch (bucket.trim()) {
+    case '18-24':
+      return locale.ageBucket18_24;
+    case '25-30':
+      return locale.ageBucket25_30;
+    case '31-35':
+      return locale.ageBucket31_35;
+    case '36-40':
+      return locale.ageBucket36_40;
+    case '41-45':
+      return locale.ageBucket41_45;
+    case '46+':
+      return locale.ageBucket46Plus;
+    default:
+      return humanizeFlatmatesToken(bucket);
+  }
+}
+
 String localizedFlatmatesSharingTypeLabel(
   AppLocalizations locale,
   String value,

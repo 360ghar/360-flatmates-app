@@ -227,6 +227,43 @@ class StepReviewSection extends StatelessWidget {
                     )
                     .toList(),
               ),
+            if (d.kitchenType != null)
+              Text(
+                locale.reviewKitchenTypeAmount(
+                  catalogLabel('flatmates_kitchen_types', d.kitchenType!),
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            if (d.ventilationType != null)
+              Text(
+                locale.reviewVentilationAmount(
+                  catalogLabel(
+                    'flatmates_ventilation_options',
+                    d.ventilationType!,
+                  ),
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            if (d.windowsController.text.trim().isNotEmpty)
+              Text(
+                locale.reviewWindowsAmount(d.windowsController.text.trim()),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            if (d.ventilationShaftsController.text.trim().isNotEmpty)
+              Text(
+                locale.reviewVentilationShaftsAmount(
+                  d.ventilationShaftsController.text.trim(),
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -253,6 +290,29 @@ class StepReviewSection extends StatelessWidget {
                 locale.reviewMaintenanceAmount(
                   d.maintenanceController.text.trim(),
                 ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            if (d.setupCostController.text.trim().isNotEmpty)
+              Text(
+                locale.reviewSetupCostAmount(d.setupCostController.text.trim()),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            if (d.otherChargesController.text.trim().isNotEmpty)
+              Text(
+                locale.reviewOtherChargesAmount(
+                  d.otherChargesController.text.trim(),
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                ),
+              ),
+            if (d.otherChargesDescriptionController.text.trim().isNotEmpty)
+              Text(
+                d.otherChargesDescriptionController.text.trim(),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),

@@ -368,11 +368,11 @@
   "quizNonVegetarian": "Non-vegetarian",
   "quizEggetarian": "Eggetarian",
   "quizNoFoodPref": "No preference",
-  "quizSmokingDrinking": "Smoking & drinking preferences?",
-  "quizNeither": "Neither",
-  "quizSmokeOutside": "Smoke outside only",
-  "quizDrinkOccasionally": "Drink occasionally",
-  "quizBothFine": "Both are fine",
+  "quizSmoking": "Do you smoke?",
+  "quizDrinking": "Do you drink?",
+  "lifestyleValueNever": "Never",
+  "lifestyleValueOccasionally": "Occasionally",
+  "lifestyleValueRegularly": "Regularly",
   "quizGuestsPolicy": "How do you feel about guests?",
   "quizNoGuests": "No overnight guests",
   "quizOccasionalGuests": "Occasional guests are ok",
@@ -393,9 +393,12 @@
   "budgetTimelineSubtitle": "Set your budget range and when you're looking to move.",
   "monthlyBudgetLabel": "Monthly budget",
   "moveInTimelineLabel": "Move-in timeline",
-  "timelineImmediate": "Immediate",
-  "timelineThisMonth": "This month",
-  "timelineNextMonth": "Next month",
+  "timelineImmediately": "Immediately",
+  "timelineWithin1Week": "Within 1 week",
+  "timelineWithin2Weeks": "Within 2 weeks",
+  "timelineWithin1Month": "Within 1 month",
+  "timelineWithin2Months": "Within 2 months",
+  "timelineWithin3Months": "Within 3 months",
   "timelineFlexible": "Flexible",
   "nonNegotiablesTitle": "Your deal-breakers",
   "nonNegotiablesSubtitle": "Pick up to 3 things that are non-negotiable for you.",
@@ -496,6 +499,17 @@
   "amenityDiningTable": "Dining table",
   "amenitySofa": "Sofa",
   "amenityKitchenEquipped": "Kitchen equipped",
+  "kitchenTypeLabel": "Kitchen type",
+  "kitchenTypeVegetarian": "Vegetarian",
+  "kitchenTypeNonVegetarian": "Non-veg",
+  "kitchenTypeEggetarian": "Eggetarian",
+  "kitchenTypeAny": "Any",
+  "ventilationTypeLabel": "Ventilation",
+  "ventilationGood": "Good",
+  "ventilationAverage": "Average",
+  "ventilationPoor": "Poor",
+  "windowsCountLabel": "Windows",
+  "ventilationShaftsLabel": "Ventilation shafts",
   "electricityLabel": "Electricity",
   "includedLabel": "Included",
   "separateLabel": "Separate",
@@ -503,6 +517,58 @@
   "cookCostLabel": "Cook cost / month",
   "maidCostLabel": "Maid cost / month",
   "setupCostLabel": "One-time setup cost",
+  "otherChargesLabel": "Other charges / month",
+  "otherChargesHint": "e.g. parking, wifi",
+  "otherChargesDescriptionLabel": "What do the other charges cover?",
+  "otherChargesDescriptionHint": "e.g. wifi, parking, shared groceries",
+  "reviewKitchenTypeAmount": "Kitchen: {type}",
+  "@reviewKitchenTypeAmount": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewVentilationAmount": "Ventilation: {type}",
+  "@reviewVentilationAmount": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewWindowsAmount": "{count} windows",
+  "@reviewWindowsAmount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewVentilationShaftsAmount": "{count} ventilation shafts",
+  "@reviewVentilationShaftsAmount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewOtherChargesAmount": "Other charges: ₹{amount}",
+  "@reviewOtherChargesAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewSetupCostAmount": "Setup cost: ₹{amount}",
+  "@reviewSetupCostAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "totalMonthlyOutflow": "Your estimated monthly cost: {amount}",
   "@totalMonthlyOutflow": {
     "placeholders": {
@@ -895,6 +961,21 @@
   "smokingNo": "No",
   "smokingYes": "Yes",
   "smokingNoPreference": "No Preference",
+  "drinkingLabel": "Drinking",
+  "drinkingNo": "No",
+  "drinkingYes": "Yes",
+  "drinkingNoPreference": "No Preference",
+  "searchAmenitiesFilterLabel": "Amenities",
+  "searchHasLiftLabel": "Has lift",
+  "searchWindowsMinLabel": "Windows (min)",
+  "searchWindowsMinOption": "{count}+",
+  "@searchWindowsMinOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "nearbyChipLabel": "Nearby",
   "budgetPlusChipLabel": "Budget+",
   "chatInputHint": "Type a message...",
@@ -910,6 +991,7 @@
   "prefFoodLabel": "Food Habits",
   "prefPetsLabel": "Pets",
   "prefSmokingLabel": "Smoking",
+  "prefDrinkingLabel": "Drinking",
   "prefMoveInLabel": "Move-in Timeline",
   "prefNoPreference": "No Preference",
   "prefMaleOnly": "Male Only",
@@ -1412,6 +1494,15 @@
   "optionalUpdateMessage": "A newer version of 360 FlatMates is available with improvements and bug fixes.",
   "optionalUpdateCta": "Update now",
   "optionalUpdateLater": "Later",
+  "patchReadyMessage": "An update is ready. It will apply the next time you open the app.",
+  "patchLabel": "patch {number}",
+  "@patchLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "maintenanceTitle": "Under maintenance",
   "maintenanceMessage": "We're making things better. Please check back in a little while.",
   "maintenanceRetry": "Check again",
@@ -1565,7 +1656,8 @@
   "lifestyleDimSleep": "Sleep",
   "lifestyleDimCleanliness": "Cleanliness",
   "lifestyleDimFood": "Food",
-  "lifestyleDimSmoking": "Smoking / Drinking",
+  "lifestyleDimSmoking": "Smoking",
+  "lifestyleDimDrinking": "Drinking",
   "lifestyleDimGuests": "Guests",
   "lifestyleDimWork": "Work",
   "lifestyleDimParty": "Parties",
@@ -1793,5 +1885,22 @@
         "type": "String"
       }
     }
-  }
+  },
+  "onboardingPhaseOneTitle": "Essentials",
+  "onboardingPhaseTwoTitle": "Lifestyle & preferences",
+  "onboardingTransitionTitle": "Almost there - one section left",
+  "onboardingTransitionBody": "Now let's capture your lifestyle, budget and preferences so we can find your best flatmate match.",
+  "onboardingTransitionCta": "Continue",
+  "nativePlaceLabel": "Native place",
+  "nativePlaceHint": "Where are you from originally?",
+  "nativePlaceTooLongError": "Native place must be 120 characters or fewer",
+  "linkedinLabel": "LinkedIn profile",
+  "linkedinHint": "Paste your LinkedIn profile URL (optional)",
+  "linkedinInvalidError": "Enter a valid LinkedIn profile URL",
+  "ageBucket18_24": "18-24",
+  "ageBucket25_30": "25-30",
+  "ageBucket31_35": "31-35",
+  "ageBucket36_40": "36-40",
+  "ageBucket41_45": "41-45",
+  "ageBucket46Plus": "46+"
 }

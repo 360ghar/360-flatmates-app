@@ -515,8 +515,20 @@ class HeroInfoOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
     final name = item.fullName ?? '';
-    final nameWithAge = item.age != null ? '$name, ${item.age}' : name;
+    // Backend omits exact age on peer payloads; fall back to the
+    // privacy-bucketed range so the hero line still shows an age.
+    final ageLabel =
+        item.age?.toString() ??
+        (item.ageBucket != null && item.ageBucket!.trim().isNotEmpty
+            ? localizedFlatmatesAgeBucket(locale, item.ageBucket)
+            : null);
+    final nameWithAge = ageLabel == null
+        ? name
+        : name.isEmpty
+        ? ageLabel
+        : '$name, $ageLabel';
     final location = [
       item.locality,
       item.city,
@@ -859,11 +871,17 @@ class LifestylePreferencesSection extends StatelessWidget {
           dim: locale.lifestyleDimFood,
           value: humanizeFlatmatesToken(item.foodHabits!),
         ),
-      if (_nonEmpty(item.smokingDrinking))
+      if (_nonEmpty(item.smoking))
+        (
+          icon: Icons.smoking_rooms_outlined,
+          dim: locale.smokingLabel,
+          value: humanizeFlatmatesToken(item.smoking!),
+        ),
+      if (_nonEmpty(item.drinking))
         (
           icon: Icons.local_bar_outlined,
-          dim: locale.lifestyleDimSmoking,
-          value: humanizeFlatmatesToken(item.smokingDrinking!),
+          dim: locale.drinkingLabel,
+          value: humanizeFlatmatesToken(item.drinking!),
         ),
       if (_nonEmpty(item.guestsPolicy))
         (
@@ -1507,11 +1525,21 @@ class CompactMatchChip extends StatelessWidget {
 String localizedFlatmatesMoveInTimeline(AppLocalizations locale, String value) {
   switch (value.trim().toLowerCase()) {
     case 'immediate':
-      return locale.timelineImmediate;
+    case 'immediately':
+      return locale.timelineImmediately;
+    case 'within_1_week':
+      return locale.timelineWithin1Week;
+    case 'within_2_weeks':
+      return locale.timelineWithin2Weeks;
     case 'this_month':
-      return locale.timelineThisMonth;
+    case 'within_1_month':
+      return locale.timelineWithin1Month;
     case 'next_month':
-      return locale.timelineNextMonth;
+    case 'within_3_months':
+      return locale.timelineWithin3Months;
+    case 'within_2_months':
+      return locale.timelineWithin2Months;
+    case 'just_exploring':
     case 'flexible':
       return locale.timelineFlexible;
     default:

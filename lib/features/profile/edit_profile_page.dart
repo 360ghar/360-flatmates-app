@@ -13,40 +13,10 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../discover/application/discover_feed_controller.dart';
 import '../shared/presentation/components.dart';
 import '../swipe/application/swipe_deck_controller.dart';
+import 'presentation/widgets/edit_profile_form_state.dart';
 import 'presentation/widgets/edit_profile_options.dart';
 import 'presentation/widgets/edit_profile_tabs.dart';
 import 'profile_repository.dart';
-
-// Local UI state via autoDispose StateProviders (convention: no setState here).
-// Nullable until seeded/chosen so unmapped server values aren't blanked on save.
-final _modeProvider = StateProvider.autoDispose<String?>((ref) => null);
-final _workStyleProvider = StateProvider.autoDispose<String?>((ref) => null);
-final _moveInTimelineProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-final _sleepScheduleProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-final _cleanlinessProvider = StateProvider.autoDispose<String?>((ref) => null);
-final _foodHabitsProvider = StateProvider.autoDispose<String?>((ref) => null);
-final _smokingDrinkingProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-final _guestsPolicyProvider = StateProvider.autoDispose<String?>((ref) => null);
-final _nonNegotiablesProvider = StateProvider.autoDispose<List<String>>(
-  (ref) => const [],
-);
-final _photoUrlsProvider = StateProvider.autoDispose<List<String>>(
-  (ref) => const [],
-);
-final _savingProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _photoUploadingProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _dirtyProvider = StateProvider.autoDispose<bool>((ref) => false);
-
-/// Active edit-profile tab; defaults to Identity (the most-edited fields).
-final _editTabProvider = StateProvider.autoDispose<EditProfileTab>(
-  (ref) => EditProfileTab.identity,
-);
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -66,6 +36,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _bioController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _nativePlaceController = TextEditingController();
+  final _linkedInController = TextEditingController();
 
   bool _initialized = false;
   bool _hasEmail = false;
@@ -76,9 +48,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   void _markDirty() {
     if (_seeding) return;
-    if (!ref.read(_dirtyProvider)) {
-      ref.read(_dirtyProvider.notifier).state = true;
+    if (!ref.read(editProfileDirtyProvider)) {
+      ref.read(editProfileDirtyProvider.notifier).state = true;
     }
+  }
+
+  void _handleTextChanged(TextEditingController controller) {
+    if (_seeding) return;
+    if (controller == _linkedInController) {
+      ref.read(editProfileLinkedInErrorProvider.notifier).state = null;
+    }
+    if (controller == _nativePlaceController) {
+      ref.read(editProfileNativePlaceErrorProvider.notifier).state = null;
+    }
+    _markDirty();
   }
 
   List<TextEditingController> get _textControllers => [
@@ -92,6 +75,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _bioController,
     _emailController,
     _phoneController,
+    _nativePlaceController,
+    _linkedInController,
   ];
 
   @override
@@ -99,12 +84,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(_savingProvider.notifier).state = false;
-      ref.read(_photoUploadingProvider.notifier).state = false;
-      ref.read(_dirtyProvider.notifier).state = false;
+      ref.read(editProfileSavingProvider.notifier).state = false;
+      ref.read(editProfilePhotoUploadingProvider.notifier).state = false;
+      ref.read(editProfileDirtyProvider.notifier).state = false;
     });
     for (final controller in _textControllers) {
-      controller.addListener(_markDirty);
+      controller.addListener(() => _handleTextChanged(controller));
     }
   }
 
@@ -126,7 +111,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _hasPhone = profile.phone?.isNotEmpty == true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _seedProviders(profile);
+      editProfileSeedProviders(profile);
     });
   }
 
@@ -143,28 +128,46 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       _bioController.text = profile.bio ?? '';
       _emailController.text = profile.email ?? '';
       _phoneController.text = profile.phone ?? '';
+      _nativePlaceController.text = profile.nativePlace ?? '';
+      _linkedInController.text = profile.linkedInUrl ?? '';
     } finally {
       _seeding = false;
     }
   }
 
-  void _seedProviders(FlatmatesProfileModel profile) {
+  void editProfileSeedProviders(FlatmatesProfileModel profile) {
     final seed = EditProfileOptions(
       locale: AppLocalizations.of(context),
       bootstrap: ref.read(bootstrapControllerProvider).valueOrNull,
     ).seedFromProfile(profile);
     // Always seed nullable providers from catalog match (null = unmapped / unset).
-    ref.read(_modeProvider.notifier).state = seed.mode;
-    ref.read(_workStyleProvider.notifier).state = seed.workStyle;
-    ref.read(_moveInTimelineProvider.notifier).state = seed.moveInTimeline;
-    ref.read(_sleepScheduleProvider.notifier).state = seed.sleepSchedule;
-    ref.read(_cleanlinessProvider.notifier).state = seed.cleanliness;
-    ref.read(_foodHabitsProvider.notifier).state = seed.foodHabits;
-    ref.read(_smokingDrinkingProvider.notifier).state = seed.smokingDrinking;
-    ref.read(_guestsPolicyProvider.notifier).state = seed.guestsPolicy;
-    ref.read(_nonNegotiablesProvider.notifier).state = seed.nonNegotiables;
-    ref.read(_photoUrlsProvider.notifier).state = seed.photoUrls;
-    ref.read(_dirtyProvider.notifier).state = false;
+    ref.read(editProfileModeProvider.notifier).state = seed.mode;
+    ref.read(editProfileWorkStyleProvider.notifier).state = seed.workStyle;
+    ref.read(editProfileMoveInTimelineProvider.notifier).state =
+        seed.moveInTimeline;
+    ref.read(editProfileSleepScheduleProvider.notifier).state =
+        seed.sleepSchedule;
+    ref.read(editProfileCleanlinessProvider.notifier).state = seed.cleanliness;
+    ref.read(editProfileFoodHabitsProvider.notifier).state = seed.foodHabits;
+    ref.read(editProfileSmokingProvider.notifier).state = seed.smoking;
+    ref.read(editProfileDrinkingProvider.notifier).state = seed.drinking;
+    ref.read(editProfileGuestsPolicyProvider.notifier).state =
+        seed.guestsPolicy;
+    ref.read(editProfileNonNegotiablesProvider.notifier).state =
+        seed.nonNegotiables;
+    ref.read(editProfilePhotoUrlsProvider.notifier).state = seed.photoUrls;
+    ref.read(editProfileDirtyProvider.notifier).state = false;
+  }
+
+  /// Validates a LinkedIn URL: empty/whitespace is allowed (field optional);
+  /// otherwise must parse as an http(s) URL with a host.
+  static bool isValidLinkedInUrl(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return true;
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null) return false;
+    return (uri.isScheme('http') || uri.isScheme('https')) &&
+        uri.host.isNotEmpty;
   }
 
   @override
@@ -177,9 +180,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Future<void> _pickAndUploadPhoto() async {
-    if (ref.read(_photoUploadingProvider)) return;
+    if (ref.read(editProfilePhotoUploadingProvider)) return;
     final locale = AppLocalizations.of(context);
-    ref.read(_photoUploadingProvider.notifier).state = true;
+    ref.read(editProfilePhotoUploadingProvider.notifier).state = true;
     try {
       final uploadService = ref.read(imageUploadServiceProvider);
       final files = await uploadService.pickImages(limit: 1);
@@ -188,14 +191,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (!mounted) return;
       switch (result) {
         case UploadSuccess(:final url):
-          final current = List<String>.of(ref.read(_photoUrlsProvider));
+          final current = List<String>.of(
+            ref.read(editProfilePhotoUrlsProvider),
+          );
           if (current.isEmpty) {
-            ref.read(_photoUrlsProvider.notifier).state = [url];
+            ref.read(editProfilePhotoUrlsProvider.notifier).state = [url];
           } else {
             current[0] = url;
-            ref.read(_photoUrlsProvider.notifier).state = current;
+            ref.read(editProfilePhotoUrlsProvider.notifier).state = current;
           }
-          ref.read(_dirtyProvider.notifier).state = true;
+          ref.read(editProfileDirtyProvider.notifier).state = true;
         case UploadFailure(:final reason, :final underlyingError):
           debugPrint(
             'EditProfilePage._pickAndUploadPhoto failed: $reason '
@@ -208,12 +213,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (!mounted) return;
       FlatmatesToast.error(context, locale.profilePhotoUploadFailed);
     } finally {
-      if (mounted) ref.read(_photoUploadingProvider.notifier).state = false;
+      if (mounted) {
+        ref.read(editProfilePhotoUploadingProvider.notifier).state = false;
+      }
     }
   }
 
   Future<bool> _confirmDiscard() async {
-    if (!ref.read(_dirtyProvider)) return true;
+    if (!ref.read(editProfileDirtyProvider)) return true;
     final locale = AppLocalizations.of(context);
     final discard = await showDialog<bool>(
       context: context,
@@ -248,7 +255,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Future<void> _handlePop() async {
     final shouldPop = await _confirmDiscard();
     if (!mounted || !shouldPop) return;
-    ref.read(_dirtyProvider.notifier).state = false;
+    ref.read(editProfileDirtyProvider.notifier).state = false;
     _leaveEditPage();
   }
 
@@ -280,10 +287,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       });
     }
 
-    final saving = ref.watch(_savingProvider);
-    final photoUploading = ref.watch(_photoUploadingProvider);
-    final dirty = ref.watch(_dirtyProvider);
-    final tab = ref.watch(_editTabProvider);
+    final saving = ref.watch(editProfileSavingProvider);
+    final photoUploading = ref.watch(editProfilePhotoUploadingProvider);
+    final dirty = ref.watch(editProfileDirtyProvider);
+    final tab = ref.watch(editProfileTabProvider);
     final options = EditProfileOptions(
       locale: locale,
       bootstrap: bootstrap.valueOrNull,
@@ -294,57 +301,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     final values = EditProfileTabValues(
-      photoUrls: ref.watch(_photoUrlsProvider),
+      photoUrls: ref.watch(editProfilePhotoUrlsProvider),
       photoUploading: photoUploading,
-      mode: ref.watch(_modeProvider),
-      moveInTimeline: ref.watch(_moveInTimelineProvider),
-      workStyle: ref.watch(_workStyleProvider),
-      sleepSchedule: ref.watch(_sleepScheduleProvider),
-      cleanliness: ref.watch(_cleanlinessProvider),
-      foodHabits: ref.watch(_foodHabitsProvider),
-      smokingDrinking: ref.watch(_smokingDrinkingProvider),
-      guestsPolicy: ref.watch(_guestsPolicyProvider),
-      nonNegotiables: ref.watch(_nonNegotiablesProvider),
+      mode: ref.watch(editProfileModeProvider),
+      moveInTimeline: ref.watch(editProfileMoveInTimelineProvider),
+      workStyle: ref.watch(editProfileWorkStyleProvider),
+      sleepSchedule: ref.watch(editProfileSleepScheduleProvider),
+      cleanliness: ref.watch(editProfileCleanlinessProvider),
+      foodHabits: ref.watch(editProfileFoodHabitsProvider),
+      smoking: ref.watch(editProfileSmokingProvider),
+      drinking: ref.watch(editProfileDrinkingProvider),
+      guestsPolicy: ref.watch(editProfileGuestsPolicyProvider),
+      nonNegotiables: ref.watch(editProfileNonNegotiablesProvider),
     );
 
-    final handlers = EditProfileTabHandlers(
-      onModeChanged: (value) {
-        ref.read(_modeProvider.notifier).state = value;
-        _markDirty();
-      },
-      onMoveInTimelineChanged: (value) {
-        ref.read(_moveInTimelineProvider.notifier).state = value;
-        _markDirty();
-      },
-      onWorkStyleChanged: (value) {
-        ref.read(_workStyleProvider.notifier).state = value;
-        _markDirty();
-      },
-      onSleepScheduleChanged: (value) {
-        ref.read(_sleepScheduleProvider.notifier).state = value;
-        _markDirty();
-      },
-      onCleanlinessChanged: (value) {
-        ref.read(_cleanlinessProvider.notifier).state = value;
-        _markDirty();
-      },
-      onFoodHabitsChanged: (value) {
-        ref.read(_foodHabitsProvider.notifier).state = value;
-        _markDirty();
-      },
-      onSmokingDrinkingChanged: (value) {
-        ref.read(_smokingDrinkingProvider.notifier).state = value;
-        _markDirty();
-      },
-      onGuestsPolicyChanged: (value) {
-        ref.read(_guestsPolicyProvider.notifier).state = value;
-        _markDirty();
-      },
-      onNonNegotiablesChanged: (value) {
-        ref.read(_nonNegotiablesProvider.notifier).state = value;
-        _markDirty();
-      },
-    );
+    final handlers = buildEditProfileTabHandlers(ref, _markDirty);
 
     return PopScope(
       canPop: !dirty,
@@ -372,7 +343,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   segments: editProfileTabSegments(locale),
                   selected: tab,
                   onChanged: (value) =>
-                      ref.read(_editTabProvider.notifier).state = value,
+                      ref.read(editProfileTabProvider.notifier).state = value,
                   segmentKeys: const [
                     Key('profile_tab_identity'),
                     Key('profile_tab_preferences'),
@@ -398,6 +369,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   budgetMinController: _budgetMinController,
                   budgetMaxController: _budgetMaxController,
                   bioController: _bioController,
+                  nativePlaceController: _nativePlaceController,
+                  linkedInController: _linkedInController,
+                  nativePlaceError: ref.watch(
+                    editProfileNativePlaceErrorProvider,
+                  ),
+                  linkedInError: ref.watch(editProfileLinkedInErrorProvider),
                   hasEmail: _hasEmail,
                   hasPhone: _hasPhone,
                   onPickAndUploadPhoto: _pickAndUploadPhoto,
@@ -418,51 +395,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
-  Map<String, dynamic> _buildSavePayload(
-    String? Function(TextEditingController) nullableText,
-    double? budgetMin,
-    double? budgetMax,
-  ) {
-    final mode = ref.read(_modeProvider);
-    final workStyle = ref.read(_workStyleProvider);
-    final moveInTimeline = ref.read(_moveInTimelineProvider);
-    final payload = <String, dynamic>{
-      'full_name': nullableText(_nameController),
-      'age': int.tryParse(_ageController.text.trim()),
-      'profession': nullableText(_professionController),
-      'mode': ?mode,
-      'city': nullableText(_cityController),
-      'locality': nullableText(_localityController),
-      'budget_min': budgetMin,
-      'budget_max': budgetMax,
-      'move_in_timeline': ?moveInTimeline,
-      'work_style': ?workStyle,
-      'bio': nullableText(_bioController),
-      'sleep_schedule': ref.read(_sleepScheduleProvider),
-      'cleanliness': ref.read(_cleanlinessProvider),
-      'food_habits': ref.read(_foodHabitsProvider),
-      'smoking_drinking': ref.read(_smokingDrinkingProvider),
-      'guests_policy': ref.read(_guestsPolicyProvider),
-      'preferences': {
-        ...?ref
-            .read(bootstrapControllerProvider)
-            .valueOrNull
-            ?.profile
-            .preferences,
-        'non_negotiables': ref.read(_nonNegotiablesProvider),
-      },
-    };
-    final photoUrls = ref.read(_photoUrlsProvider);
-    if (photoUrls.isNotEmpty) {
-      payload['profile_image_url'] = photoUrls.first;
-    }
-    final newEmail = _emailController.text.trim();
-    final newPhone = _phoneController.text.trim();
-    if (!_hasEmail && newEmail.isNotEmpty) payload['email'] = newEmail;
-    if (!_hasPhone && newPhone.isNotEmpty) payload['phone'] = newPhone;
-    return payload;
-  }
-
   Future<void> _save(
     String? Function(TextEditingController) nullableText,
   ) async {
@@ -474,16 +406,53 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       return;
     }
 
-    ref.read(_savingProvider.notifier).state = true;
+    final nativePlace = nullableText(_nativePlaceController);
+    if (nativePlace != null && nativePlace.length > 120) {
+      ref.read(editProfileNativePlaceErrorProvider.notifier).state =
+          locale.nativePlaceTooLongError;
+      return;
+    }
+    final linkedIn = nullableText(_linkedInController);
+    if (linkedIn != null && !isValidLinkedInUrl(linkedIn)) {
+      ref.read(editProfileLinkedInErrorProvider.notifier).state =
+          locale.linkedinInvalidError;
+      return;
+    }
+
+    ref.read(editProfileSavingProvider.notifier).state = true;
     try {
-      final payload = _buildSavePayload(nullableText, budgetMin, budgetMax);
+      final payload = buildEditProfileSavePayload(
+        ref: ref,
+        nullableText: nullableText,
+        budgetMin: budgetMin,
+        budgetMax: budgetMax,
+        nameController: _nameController,
+        ageController: _ageController,
+        professionController: _professionController,
+        cityController: _cityController,
+        localityController: _localityController,
+        bioController: _bioController,
+        emailController: _emailController,
+        phoneController: _phoneController,
+        nativePlaceController: _nativePlaceController,
+        linkedInController: _linkedInController,
+        existingPreferences:
+            ref
+                .read(bootstrapControllerProvider)
+                .valueOrNull
+                ?.profile
+                .preferences ??
+            const {},
+        hasEmail: _hasEmail,
+        hasPhone: _hasPhone,
+      );
       await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       // Feed/deck read the profile via ref.read — invalidate to drop stale results.
       ref.invalidate(discoverFeedControllerProvider);
       ref.invalidate(swipeDeckControllerProvider);
       if (!mounted) return;
-      ref.read(_dirtyProvider.notifier).state = false;
+      ref.read(editProfileDirtyProvider.notifier).state = false;
       FlatmatesToast.success(context, locale.profileUpdated);
       _leaveEditPage();
     } catch (e) {
@@ -494,7 +463,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           : locale.errorUnknown;
       FlatmatesToast.error(context, message);
     } finally {
-      if (mounted) ref.read(_savingProvider.notifier).state = false;
+      if (mounted) ref.read(editProfileSavingProvider.notifier).state = false;
     }
   }
 }

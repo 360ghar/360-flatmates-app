@@ -348,7 +348,8 @@ bool _hasLifestyle(SwipeProfile item) {
   return nonEmpty(item.sleepSchedule) ||
       nonEmpty(item.cleanliness) ||
       nonEmpty(item.foodHabits) ||
-      nonEmpty(item.smokingDrinking) ||
+      nonEmpty(item.smoking) ||
+      nonEmpty(item.drinking) ||
       nonEmpty(item.guestsPolicy) ||
       nonEmpty(item.workStyle) ||
       nonEmpty(item.partyHabit);

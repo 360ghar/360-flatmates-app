@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/app_config/patch_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
@@ -110,7 +111,7 @@ class SettingsPage extends ConsumerWidget {
                       FlatmatesMenuItem(
                         icon: Icons.info_outline,
                         label: locale.aboutLabel,
-                        onTap: () => _showAboutDialog(context),
+                        onTap: () => _showAboutDialog(context, ref),
                       ),
                       const Divider(
                         height: 1,
@@ -145,14 +146,21 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _showAboutDialog(BuildContext context) async {
+  Future<void> _showAboutDialog(BuildContext context, WidgetRef ref) async {
     final locale = AppLocalizations.of(context);
     final packageInfo = await PackageInfo.fromPlatform();
+    // Null on the base release and on any non-Shorebird build.
+    final patchNumber = await ref
+        .read(patchServiceProvider)
+        .currentPatchNumber();
     if (!context.mounted) return;
+    final version = '${packageInfo.version}+${packageInfo.buildNumber}';
     showAboutDialog(
       context: context,
       applicationName: locale.appName,
-      applicationVersion: '${packageInfo.version}+${packageInfo.buildNumber}',
+      applicationVersion: patchNumber == null
+          ? version
+          : '$version (${locale.patchLabel(patchNumber)})',
       applicationIcon: const FlutterLogo(size: 32),
     );
   }

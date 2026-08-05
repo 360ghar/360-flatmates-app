@@ -61,7 +61,9 @@ ListingStepValidation computeStepValidation(ListingFormData data, int step) {
     maintenance: invalidNumber(data.maintenance),
     cost:
         invalidNumber(data.cookCostController.text.trim()) ||
-        invalidNumber(data.maidCostController.text.trim()),
+        invalidNumber(data.maidCostController.text.trim()) ||
+        invalidNumber(data.setupCostController.text.trim()) ||
+        invalidNumber(data.otherChargesController.text.trim()),
     electricity:
         data.electricityIncluded == 'separate' &&
         (estText.isEmpty || double.tryParse(estText) == null),
@@ -91,6 +93,9 @@ typedef ListingEditScalars = ({
   String flatConfig,
   String? videoTourUrl,
   DateTime? availableFrom,
+  String? kitchenType,
+  String? ventilationType,
+  String electricityIncluded,
 });
 
 /// Populates [controllers] and the mutable [sets] in place from [listing] for
@@ -108,6 +113,14 @@ ListingEditScalars populateListingControllers({
   required TextEditingController typicalDay,
   required TextEditingController floor,
   required TextEditingController totalFloors,
+  required TextEditingController electricityEst,
+  required TextEditingController cookCost,
+  required TextEditingController maidCost,
+  required TextEditingController setupCost,
+  required TextEditingController otherCharges,
+  required TextEditingController otherChargesDescription,
+  required TextEditingController windowsCount,
+  required TextEditingController ventilationShafts,
   required Set<String> roomFeatures,
   required Set<String> societyAmenities,
   required Set<String> societyVibeTags,
@@ -129,6 +142,31 @@ ListingEditScalars populateListingControllers({
   if (listing.floorNumber != null) floor.text = '${listing.floorNumber}';
   if (listing.totalFloors != null) {
     totalFloors.text = '${listing.totalFloors}';
+  }
+  if (listing.setupCost != null) {
+    setupCost.text = listing.setupCost!.toStringAsFixed(0);
+  }
+  if (listing.otherCharges != null) {
+    otherCharges.text = listing.otherCharges!.toStringAsFixed(0);
+  }
+  otherChargesDescription.text = listing.otherChargesDescription ?? '';
+  if (listing.windowsCount != null) {
+    windowsCount.text = '${listing.windowsCount}';
+  }
+  if (listing.ventilationShafts != null) {
+    ventilationShafts.text = '${listing.ventilationShafts}';
+  }
+  final electricityIncluded = prefs['electricity_included'] as String? ?? '';
+  if (prefs['electricity_est'] is num) {
+    electricityEst.text = (prefs['electricity_est'] as num)
+        .toDouble()
+        .toStringAsFixed(0);
+  }
+  if (prefs['cook_cost'] is num) {
+    cookCost.text = (prefs['cook_cost'] as num).toDouble().toStringAsFixed(0);
+  }
+  if (prefs['maid_cost'] is num) {
+    maidCost.text = (prefs['maid_cost'] as num).toDouble().toStringAsFixed(0);
   }
   roomFeatures
     ..clear()
@@ -154,6 +192,11 @@ ListingEditScalars populateListingControllers({
     },
     videoTourUrl: listing.videoTourUrl,
     availableFrom: listing.availableFrom,
+    kitchenType: listing.kitchenType,
+    ventilationType: listing.ventilationType,
+    electricityIncluded: electricityIncluded.isEmpty
+        ? 'separate'
+        : electricityIncluded,
   );
 }
 
@@ -188,6 +231,10 @@ class ListingFormData {
     required this.floorController,
     required this.totalFloorsController,
     required this.flatAmenities,
+    required this.kitchenType,
+    required this.ventilationType,
+    required this.windowsController,
+    required this.ventilationShaftsController,
     // Costs
     required this.rentController,
     required this.depositController,
@@ -197,6 +244,8 @@ class ListingFormData {
     required this.cookCostController,
     required this.maidCostController,
     required this.setupCostController,
+    required this.otherChargesController,
+    required this.otherChargesDescriptionController,
     // About
     required this.typicalDayController,
     required this.genderPreference,
@@ -227,6 +276,10 @@ class ListingFormData {
   final TextEditingController floorController;
   final TextEditingController totalFloorsController;
   final Set<String> flatAmenities;
+  final String? kitchenType;
+  final String? ventilationType;
+  final TextEditingController windowsController;
+  final TextEditingController ventilationShaftsController;
   // Costs
   final TextEditingController rentController;
   final TextEditingController depositController;
@@ -236,6 +289,8 @@ class ListingFormData {
   final TextEditingController cookCostController;
   final TextEditingController maidCostController;
   final TextEditingController setupCostController;
+  final TextEditingController otherChargesController;
+  final TextEditingController otherChargesDescriptionController;
   // About
   final TextEditingController typicalDayController;
   final String genderPreference;
@@ -255,6 +310,11 @@ class ListingFormData {
   String get typicalDay => typicalDayController.text.trim();
   String get floor => floorController.text.trim();
   String get totalFloors => totalFloorsController.text.trim();
+  String get windows => windowsController.text.trim();
+  String get ventilationShafts => ventilationShaftsController.text.trim();
+  String get otherCharges => otherChargesController.text.trim();
+  String get otherChargesDescription =>
+      otherChargesDescriptionController.text.trim();
 
   int get bedrooms => flatConfig.contains('1')
       ? 1
@@ -273,7 +333,13 @@ class ListingFormData {
         : 0;
     final cook = double.tryParse(cookCostController.text.trim()) ?? 0;
     final maid = double.tryParse(maidCostController.text.trim()) ?? 0;
-    return rentValue + maintenanceValue + electricityValue + cook + maid;
+    final other = double.tryParse(otherChargesController.text.trim()) ?? 0;
+    return rentValue +
+        maintenanceValue +
+        electricityValue +
+        cook +
+        maid +
+        other;
   }
 
   /// Whether the given [step] has the minimum required input to advance.
@@ -344,7 +410,25 @@ class ListingFormData {
       cookCost: double.tryParse(cookCostController.text.trim()),
       maidCost: double.tryParse(maidCostController.text.trim()),
       setupCost: double.tryParse(setupCostController.text.trim()),
+      kitchenType: kitchenType,
+      ventilationType: ventilationType,
+      windowsCount: _clampInt(windowsController.text.trim(), 0, 100),
+      ventilationShafts: _clampInt(
+        ventilationShaftsController.text.trim(),
+        0,
+        50,
+      ),
+      otherCharges: double.tryParse(otherChargesController.text.trim()),
+      otherChargesDescription: otherChargesDescription.isEmpty
+          ? null
+          : otherChargesDescription,
     );
+  }
+
+  static int? _clampInt(String value, int min, int max) {
+    final parsed = int.tryParse(value);
+    if (parsed == null) return null;
+    return parsed.clamp(min, max);
   }
 
   /// Returns a brief summary of data for the step just completed.

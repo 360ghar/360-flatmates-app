@@ -14,6 +14,7 @@ import '../../../chats/application/chat_actions_controller.dart';
 import '../../../chats/chats_repository.dart';
 import '../../../chats/domain/chat_report_reason.dart';
 import '../../../chats/presentation/widgets/chat_dialogs.dart';
+import '../../../shared/presentation/lifestyle_labels.dart';
 import '../../../chats/presentation/widgets/peer_profile_action_button.dart';
 import '../../../shared/presentation/components.dart';
 import '../../../shared/presentation/profile_sections.dart';
@@ -182,11 +183,8 @@ class _OwnerProfileBody extends StatelessWidget {
           Icons.restaurant_outlined,
           'food_habits',
         ),
-        (
-          peerData?['smoking_drinking'] as String?,
-          Icons.local_bar_outlined,
-          'smoking_drinking',
-        ),
+        (_resolvedSmoking(peerData), Icons.smoking_rooms_outlined, 'smoking'),
+        (_resolvedDrinking(peerData), Icons.local_bar_outlined, 'drinking'),
         (
           peerData?['guests_policy'] as String?,
           Icons.groups_outlined,
@@ -211,8 +209,8 @@ class _OwnerProfileBody extends StatelessWidget {
         if (entry.$1 != null && entry.$1!.trim().isNotEmpty)
           (
             icon: entry.$2,
-            dim: _dimLabel(locale, entry.$3),
-            value: _lifestyleValueLabel(locale, entry.$3, entry.$1!),
+            dim: lifestyleDimLabel(locale, entry.$3),
+            value: lifestyleValueLabel(locale, entry.$3, entry.$1!),
           ),
     ];
 
@@ -551,76 +549,30 @@ class _OwnerProfileBody extends StatelessWidget {
     ];
   }
 
-  static String _dimLabel(AppLocalizations locale, String key) {
-    switch (key) {
-      case 'sleep_schedule':
-        return locale.lifestyleDimSleep;
-      case 'cleanliness':
-        return locale.lifestyleDimCleanliness;
-      case 'food_habits':
-        return locale.lifestyleDimFood;
-      case 'smoking_drinking':
-        return locale.lifestyleDimSmoking;
-      case 'guests_policy':
-        return locale.lifestyleDimGuests;
-      case 'work_style':
-        return locale.lifestyleDimWork;
-      default:
-        return _humanize(key);
-    }
+  /// Split smoking value with legacy `smoking_drinking` fallback. The legacy
+  /// `neither` value resolves to null (no cell rendered).
+  static String? _resolvedSmoking(Map<String, dynamic>? peerData) {
+    final direct = peerData?['smoking'] as String?;
+    if (direct != null && direct.trim().isNotEmpty) return direct.trim();
+    return switch (peerData?['smoking_drinking']) {
+      'smoke_outside' || 'both_fine' => 'regularly',
+      _ => null,
+    };
   }
 
-  static String _lifestyleValueLabel(
-    AppLocalizations l,
-    String key,
-    String raw,
-  ) => switch (key) {
-    'sleep_schedule' => switch (raw) {
-      'early_bird' => l.quizEarlyBird,
-      'flexible' => l.quizFlexible,
-      'night_owl' => l.quizNightOwl,
-      _ => _humanize(raw),
-    },
-    'cleanliness' => switch (raw) {
-      'minimal' => l.quizCleanMinimal,
-      'tidy' => l.quizCleanTidy,
-      'spotless' => l.quizCleanSpotless,
-      _ => _humanize(raw),
-    },
-    'food_habits' => switch (raw) {
-      'vegetarian' => l.quizVegetarian,
-      'vegan' => l.quizVegan,
-      'non_vegetarian' => l.quizNonVegetarian,
-      'eggetarian' => l.quizEggetarian,
-      'no_preference' => l.quizNoFoodPref,
-      _ => _humanize(raw),
-    },
-    'smoking_drinking' => switch (raw) {
-      'neither' => l.quizNeither,
-      'smoke_outside' => l.quizSmokeOutside,
-      'drink_occasionally' => l.quizDrinkOccasionally,
-      'both_fine' => l.quizBothFine,
-      _ => _humanize(raw),
-    },
-    'guests_policy' => switch (raw) {
-      'no_overnight_guests' => l.quizNoGuests,
-      'occasional_ok' => l.quizOccasionalGuests,
-      'open_house' => l.quizOpenHouse,
-      _ => _humanize(raw),
-    },
-    'work_style' => switch (raw) {
-      'wfh' => l.quizWfh,
-      'office' => l.quizOffice,
-      'hybrid' => l.quizHybrid,
-      _ => _humanize(raw),
-    },
-    _ => _humanize(raw),
-  };
-
-  static String _humanize(String value) {
-    final words = value.replaceAll('_', ' ').trim();
-    if (words.isEmpty) return words;
-    return words[0].toUpperCase() + words.substring(1);
+  /// Split drinking value with legacy `smoking_drinking` fallback. The legacy
+  /// `neither` value resolves to null (no cell rendered).
+  static String? _resolvedDrinking(Map<String, dynamic>? peerData) {
+    final direct = peerData?['drinking'] as String?;
+    if (direct != null && direct.trim().isNotEmpty) return direct.trim();
+    return switch (peerData?['smoking_drinking']) {
+      'drink_occasionally' => 'occasionally',
+      // 'both_fine' resolves to occasional drinking, matching the web
+      // onboarding-store migration (smoking 'regularly' + drinking
+      // 'occasionally') so both surfaces agree on the legacy value.
+      'both_fine' => 'occasionally',
+      _ => null,
+    };
   }
 
   Color _matchColor(double pct) {

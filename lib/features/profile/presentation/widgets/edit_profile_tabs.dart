@@ -37,7 +37,8 @@ class EditProfileTabValues {
     required this.sleepSchedule,
     required this.cleanliness,
     required this.foodHabits,
-    required this.smokingDrinking,
+    required this.smoking,
+    required this.drinking,
     required this.guestsPolicy,
     required this.nonNegotiables,
   });
@@ -54,7 +55,8 @@ class EditProfileTabValues {
   final String? sleepSchedule;
   final String? cleanliness;
   final String? foodHabits;
-  final String? smokingDrinking;
+  final String? smoking;
+  final String? drinking;
   final String? guestsPolicy;
   final List<String> nonNegotiables;
 }
@@ -68,7 +70,8 @@ class EditProfileTabHandlers {
     required this.onSleepScheduleChanged,
     required this.onCleanlinessChanged,
     required this.onFoodHabitsChanged,
-    required this.onSmokingDrinkingChanged,
+    required this.onSmokingChanged,
+    required this.onDrinkingChanged,
     required this.onGuestsPolicyChanged,
     required this.onNonNegotiablesChanged,
   });
@@ -79,7 +82,8 @@ class EditProfileTabHandlers {
   final ValueChanged<String?> onSleepScheduleChanged;
   final ValueChanged<String?> onCleanlinessChanged;
   final ValueChanged<String?> onFoodHabitsChanged;
-  final ValueChanged<String?> onSmokingDrinkingChanged;
+  final ValueChanged<String?> onSmokingChanged;
+  final ValueChanged<String?> onDrinkingChanged;
   final ValueChanged<String?> onGuestsPolicyChanged;
   final ValueChanged<List<String>> onNonNegotiablesChanged;
 }
@@ -100,6 +104,10 @@ Widget buildEditProfileTabBody({
   required TextEditingController budgetMinController,
   required TextEditingController budgetMaxController,
   required TextEditingController bioController,
+  required TextEditingController nativePlaceController,
+  required TextEditingController linkedInController,
+  String? nativePlaceError,
+  String? linkedInError,
   required bool hasEmail,
   required bool hasPhone,
   required VoidCallback onPickAndUploadPhoto,
@@ -130,6 +138,10 @@ Widget buildEditProfileTabBody({
             professionController: professionController,
             cityController: cityController,
             localityController: localityController,
+            nativePlaceController: nativePlaceController,
+            linkedInController: linkedInController,
+            nativePlaceError: nativePlaceError,
+            linkedInError: linkedInError,
           ),
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -166,17 +178,20 @@ Widget buildEditProfileTabBody({
             sleepSchedule: values.sleepSchedule,
             cleanliness: values.cleanliness,
             foodHabits: values.foodHabits,
-            smokingDrinking: values.smokingDrinking,
+            smoking: values.smoking,
+            drinking: values.drinking,
             guestsPolicy: values.guestsPolicy,
             sleepItems: options.sleepItems(),
             cleanlinessItems: options.cleanlinessItems(),
             foodItems: options.foodItems(),
             smokingItems: options.smokingItems(),
+            drinkingItems: options.drinkingItems(),
             guestsItems: options.guestsItems(),
             onSleepScheduleChanged: handlers.onSleepScheduleChanged,
             onCleanlinessChanged: handlers.onCleanlinessChanged,
             onFoodHabitsChanged: handlers.onFoodHabitsChanged,
-            onSmokingDrinkingChanged: handlers.onSmokingDrinkingChanged,
+            onSmokingChanged: handlers.onSmokingChanged,
+            onDrinkingChanged: handlers.onDrinkingChanged,
             onGuestsPolicyChanged: handlers.onGuestsPolicyChanged,
           ),
           const SizedBox(height: AppSpacing.xl),

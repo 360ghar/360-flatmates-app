@@ -48,6 +48,12 @@ class ListingCreateRequest {
     this.cookCost,
     this.maidCost,
     this.setupCost,
+    this.kitchenType,
+    this.ventilationType,
+    this.windowsCount,
+    this.ventilationShafts,
+    this.otherCharges,
+    this.otherChargesDescription,
   });
 
   final String title;
@@ -87,7 +93,16 @@ class ListingCreateRequest {
   final double? electricityEst;
   final double? cookCost;
   final double? maidCost;
+
+  /// One-time setup cost. Sent TOP-LEVEL per the backend contract
+  /// (`setup_cost`); older rows also carry it under listing_preferences.
   final double? setupCost;
+  final String? kitchenType;
+  final String? ventilationType;
+  final int? windowsCount;
+  final int? ventilationShafts;
+  final double? otherCharges;
+  final String? otherChargesDescription;
 
   Map<String, dynamic> toJson() {
     final composedAddress = [
@@ -133,9 +148,8 @@ class ListingCreateRequest {
     if (maidCost != null) {
       preferences['maid_cost'] = maidCost;
     }
-    if (setupCost != null) {
-      preferences['setup_cost'] = setupCost;
-    }
+    // setup_cost is a top-level contract field now; kept out of
+    // listing_preferences so create/update payloads stay canonical.
     // Keep street address in preferences too so edit restore can rehydrate
     // the form field without losing the top-level Property.full_address.
     if (street != null && street.isNotEmpty) {
@@ -165,6 +179,13 @@ class ListingCreateRequest {
       'main_image_url': mainImageUrl,
       'image_urls': imageUrls.isEmpty ? null : imageUrls,
       'available_from': availableFrom?.toUtc().toIso8601String(),
+      'kitchen_type': kitchenType,
+      'ventilation_type': ventilationType,
+      'windows_count': windowsCount,
+      'ventilation_shafts': ventilationShafts,
+      'setup_cost': setupCost,
+      'other_charges': otherCharges,
+      'other_charges_description': otherChargesDescription,
       'listing_preferences': preferences,
     };
   }

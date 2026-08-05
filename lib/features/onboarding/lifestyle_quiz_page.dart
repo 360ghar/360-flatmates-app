@@ -20,6 +20,7 @@ class LifestyleQuizPage extends ConsumerStatefulWidget {
 
 class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
   final _answers = <String, String>{};
+  bool _pruned = false;
 
   @override
   void initState() {
@@ -63,17 +64,29 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
       ],
     ),
     _QuizQuestion(
-      key: 'smoking_drinking',
+      key: 'smoking',
       emoji: '🚬',
-      title: (l) => l.quizSmokingDrinking,
+      title: (l) => l.quizSmoking,
       options: [
-        _QuizOption(key: 'neither', label: (l) => l.quizNeither),
-        _QuizOption(key: 'smoke_outside', label: (l) => l.quizSmokeOutside),
+        _QuizOption(key: 'never', label: (l) => l.lifestyleValueNever),
         _QuizOption(
-          key: 'drink_occasionally',
-          label: (l) => l.quizDrinkOccasionally,
+          key: 'occasionally',
+          label: (l) => l.lifestyleValueOccasionally,
         ),
-        _QuizOption(key: 'both_fine', label: (l) => l.quizBothFine),
+        _QuizOption(key: 'regularly', label: (l) => l.lifestyleValueRegularly),
+      ],
+    ),
+    _QuizQuestion(
+      key: 'drinking',
+      emoji: '🍺',
+      title: (l) => l.quizDrinking,
+      options: [
+        _QuizOption(key: 'never', label: (l) => l.lifestyleValueNever),
+        _QuizOption(
+          key: 'occasionally',
+          label: (l) => l.lifestyleValueOccasionally,
+        ),
+        _QuizOption(key: 'regularly', label: (l) => l.lifestyleValueRegularly),
       ],
     ),
     _QuizQuestion(
@@ -229,7 +242,15 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final questions = _questions;
-    final answeredCount = _answers.length;
+    // Drop stale keys (e.g. legacy `smoking_drinking` from before the
+    // smoking/drinking split) so they never block the Next gate below.
+    if (!_pruned) {
+      _pruned = true;
+      _answers.removeWhere((k, _) => !questions.any((q) => q.key == k));
+    }
+    final answeredCount = questions
+        .where((q) => _answers.containsKey(q.key))
+        .length;
     final totalQuestions = questions.length;
     final controllerState = ref.watch(onboardingControllerProvider);
     final completionPct = controllerState.completionPercentage;

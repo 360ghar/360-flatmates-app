@@ -16,7 +16,8 @@ class EditProfileSeedValues {
     this.sleepSchedule,
     this.cleanliness,
     this.foodHabits,
-    this.smokingDrinking,
+    this.smoking,
+    this.drinking,
     this.guestsPolicy,
     this.nonNegotiables = const [],
     this.photoUrls = const [],
@@ -28,7 +29,8 @@ class EditProfileSeedValues {
   final String? sleepSchedule;
   final String? cleanliness;
   final String? foodHabits;
-  final String? smokingDrinking;
+  final String? smoking;
+  final String? drinking;
   final String? guestsPolicy;
   final List<String> nonNegotiables;
   final List<String> photoUrls;
@@ -78,7 +80,8 @@ class EditProfileOptions {
       sleepSchedule: exact(profile.sleepSchedule, sleepItems()),
       cleanliness: exact(profile.cleanliness, cleanlinessItems()),
       foodHabits: exact(profile.foodHabits, foodItems()),
-      smokingDrinking: exact(profile.smokingDrinking, smokingItems()),
+      smoking: exact(profile.smoking, smokingItems()),
+      drinking: exact(profile.drinking, drinkingItems()),
       guestsPolicy: exact(profile.guestsPolicy, guestsItems()),
       nonNegotiables: nonNeg,
       photoUrls: profile.profileImageUrl != null
@@ -130,20 +133,29 @@ class EditProfileOptions {
     return _resolve('flatmates_move_in_timelines', [
       DropdownMenuItem(
         value: 'immediately',
-        child: Text(locale.moveInImmediate),
+        child: Text(locale.timelineImmediately),
+      ),
+      DropdownMenuItem(
+        value: 'within_1_week',
+        child: Text(locale.timelineWithin1Week),
       ),
       DropdownMenuItem(
         value: 'within_2_weeks',
-        child: Text(locale.moveInWithin2Weeks),
+        child: Text(locale.timelineWithin2Weeks),
       ),
       DropdownMenuItem(
         value: 'within_1_month',
-        child: Text(locale.moveInThisMonth),
+        child: Text(locale.timelineWithin1Month),
       ),
       DropdownMenuItem(
-        value: 'just_exploring',
-        child: Text(locale.moveInJustExploring),
+        value: 'within_2_months',
+        child: Text(locale.timelineWithin2Months),
       ),
+      DropdownMenuItem(
+        value: 'within_3_months',
+        child: Text(locale.timelineWithin3Months),
+      ),
+      DropdownMenuItem(value: 'flexible', child: Text(locale.timelineFlexible)),
     ]);
   }
 
@@ -182,17 +194,30 @@ class EditProfileOptions {
   }
 
   List<DropdownMenuItem<String>> smokingItems() {
-    return _resolve('flatmates_lifestyle_smoking', [
-      DropdownMenuItem(value: 'neither', child: Text(locale.quizNeither)),
+    return _resolve('flatmates_smoking_options', [
+      DropdownMenuItem(value: 'never', child: Text(locale.lifestyleValueNever)),
       DropdownMenuItem(
-        value: 'smoke_outside',
-        child: Text(locale.quizSmokeOutside),
+        value: 'occasionally',
+        child: Text(locale.lifestyleValueOccasionally),
       ),
       DropdownMenuItem(
-        value: 'drink_occasionally',
-        child: Text(locale.quizDrinkOccasionally),
+        value: 'regularly',
+        child: Text(locale.lifestyleValueRegularly),
       ),
-      DropdownMenuItem(value: 'both_fine', child: Text(locale.quizBothFine)),
+    ]);
+  }
+
+  List<DropdownMenuItem<String>> drinkingItems() {
+    return _resolve('flatmates_drinking_options', [
+      DropdownMenuItem(value: 'never', child: Text(locale.lifestyleValueNever)),
+      DropdownMenuItem(
+        value: 'occasionally',
+        child: Text(locale.lifestyleValueOccasionally),
+      ),
+      DropdownMenuItem(
+        value: 'regularly',
+        child: Text(locale.lifestyleValueRegularly),
+      ),
     ]);
   }
 

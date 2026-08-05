@@ -10,6 +10,7 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/bootstrap_controller.dart';
 import '../../bootstrap/catalog_helpers.dart';
 import '../../shared/presentation/components.dart';
+import '../../shared/presentation/lifestyle_labels.dart';
 import '../../shared/presentation/profile_sections.dart';
 import '../application/chat_actions_controller.dart';
 import '../chats_repository.dart';
@@ -108,6 +109,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
     final imageUrl =
         profile?['profile_image_url'] as String? ?? peer?.profileImageUrl;
     final age = (profile?['age'] as num?)?.toInt() ?? peer?.age;
+    final ageBucket = profile?['age_bucket'] as String? ?? peer?.ageBucket;
     final profession = profile?['profession'] as String? ?? peer?.profession;
     final city = profile?['city'] as String? ?? peer?.city;
     final localityValue = profile?['locality'] as String? ?? peer?.locality;
@@ -129,7 +131,10 @@ class ChatPeerProfilePage extends ConsumerWidget {
       if (city != null && city.trim().isNotEmpty) city.trim(),
     ];
     final ageProfessionParts = [
-      if (age != null) locale.yearsOldLabel(age),
+      if (age != null)
+        locale.yearsOldLabel(age)
+      else if (ageBucket != null && ageBucket.trim().isNotEmpty)
+        localizedFlatmatesAgeBucket(locale, ageBucket),
       if (profession != null && profession.trim().isNotEmpty) profession.trim(),
     ];
 
@@ -332,26 +337,19 @@ class ChatPeerProfilePage extends ConsumerWidget {
     );
   }
 
-  static const _lifestyleGroups = <String, List<String>>{
-    'Routine': ['sleep_schedule', 'cleanliness'],
-    'Diet': ['food_habits'],
-    'Habits': ['smoking_drinking', 'guests_policy'],
-    'Work': ['work_style'],
-  };
-
   List<Widget> _lifestyleSection(
     AppLocalizations locale,
     Map<String, dynamic>? profile,
   ) {
     final cells = <LifestyleCell>[];
-    for (final group in _lifestyleGroups.entries) {
+    for (final group in lifestyleGroups.entries) {
       for (final key in group.value) {
         final raw = profile?[key] as String?;
         if (raw != null && raw.isNotEmpty) {
           cells.add((
-            icon: _fieldIcons[key] ?? Icons.circle_outlined,
-            dim: _dimLabel(locale, key),
-            value: _lifestyleValueLabel(locale, key, raw),
+            icon: lifestyleFieldIcons[key] ?? Icons.circle_outlined,
+            dim: lifestyleDimLabel(locale, key),
+            value: lifestyleValueLabel(locale, key, raw),
           ));
         }
       }
@@ -365,55 +363,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
       LifestyleGrid(cells: cells),
     ];
   }
-
-  /// Maps a lifestyle field key + raw value to a localized display label
-  /// using the existing quiz ARB keys.
-  static String _lifestyleValueLabel(
-    AppLocalizations l,
-    String key,
-    String raw,
-  ) => switch (key) {
-    'sleep_schedule' => switch (raw) {
-      'early_bird' => l.quizEarlyBird,
-      'flexible' => l.quizFlexible,
-      'night_owl' => l.quizNightOwl,
-      _ => humanizeFlatmatesToken(raw),
-    },
-    'cleanliness' => switch (raw) {
-      'minimal' => l.quizCleanMinimal,
-      'tidy' => l.quizCleanTidy,
-      'spotless' => l.quizCleanSpotless,
-      _ => humanizeFlatmatesToken(raw),
-    },
-    'food_habits' => switch (raw) {
-      'vegetarian' => l.quizVegetarian,
-      'vegan' => l.quizVegan,
-      'non_vegetarian' => l.quizNonVegetarian,
-      'eggetarian' => l.quizEggetarian,
-      'no_preference' => l.quizNoFoodPref,
-      _ => humanizeFlatmatesToken(raw),
-    },
-    'smoking_drinking' => switch (raw) {
-      'neither' => l.quizNeither,
-      'smoke_outside' => l.quizSmokeOutside,
-      'drink_occasionally' => l.quizDrinkOccasionally,
-      'both_fine' => l.quizBothFine,
-      _ => humanizeFlatmatesToken(raw),
-    },
-    'guests_policy' => switch (raw) {
-      'no_overnight_guests' => l.quizNoGuests,
-      'occasional_ok' => l.quizOccasionalGuests,
-      'open_house' => l.quizOpenHouse,
-      _ => humanizeFlatmatesToken(raw),
-    },
-    'work_style' => switch (raw) {
-      'wfh' => l.quizWfh,
-      'office' => l.quizOffice,
-      'hybrid' => l.quizHybrid,
-      _ => humanizeFlatmatesToken(raw),
-    },
-    _ => humanizeFlatmatesToken(raw),
-  };
 
   List<Widget> _preferencesSection(
     AppLocalizations locale,
@@ -454,34 +403,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
         rows: rows.map((r) => (icon: r.$1, label: r.$2, value: r.$3)).toList(),
       ),
     ];
-  }
-
-  static const _fieldIcons = <String, IconData>{
-    'sleep_schedule': Icons.bedtime_outlined,
-    'cleanliness': Icons.cleaning_services_outlined,
-    'food_habits': Icons.restaurant_outlined,
-    'smoking_drinking': Icons.local_bar_outlined,
-    'guests_policy': Icons.groups_outlined,
-    'work_style': Icons.work_outline_rounded,
-  };
-
-  static String _dimLabel(AppLocalizations locale, String key) {
-    switch (key) {
-      case 'sleep_schedule':
-        return locale.lifestyleDimSleep;
-      case 'cleanliness':
-        return locale.lifestyleDimCleanliness;
-      case 'food_habits':
-        return locale.lifestyleDimFood;
-      case 'smoking_drinking':
-        return locale.lifestyleDimSmoking;
-      case 'guests_policy':
-        return locale.lifestyleDimGuests;
-      case 'work_style':
-        return locale.lifestyleDimWork;
-      default:
-        return humanizeFlatmatesToken(key);
-    }
   }
 
   Color _matchColor(Brightness brightness, double pct) {

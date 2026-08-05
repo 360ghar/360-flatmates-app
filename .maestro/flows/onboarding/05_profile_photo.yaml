@@ -11,6 +11,11 @@ tags:
 - tapOn:
     id: "onboarding_photo_skip"
 
+# The phase-1 → phase-2 transition screen sits between profile photo and the
+# lifestyle quiz; tap through it before waiting for the quiz page.
+- tapOn:
+    id: "onboarding_transition_next"
+
 - extendedWaitUntil:
     visible:
       id: "quiz_sleep_schedule_early_bird"

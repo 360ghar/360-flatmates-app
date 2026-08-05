@@ -173,6 +173,10 @@ class EditProfileBasicInfoSection extends StatelessWidget {
     required this.professionController,
     required this.cityController,
     required this.localityController,
+    required this.nativePlaceController,
+    required this.linkedInController,
+    this.nativePlaceError,
+    this.linkedInError,
     super.key,
   });
 
@@ -182,6 +186,10 @@ class EditProfileBasicInfoSection extends StatelessWidget {
   final TextEditingController professionController;
   final TextEditingController cityController;
   final TextEditingController localityController;
+  final TextEditingController nativePlaceController;
+  final TextEditingController linkedInController;
+  final String? nativePlaceError;
+  final String? linkedInError;
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +233,30 @@ class EditProfileBasicInfoSection extends StatelessWidget {
             key: const Key('profile_locality_input'),
             controller: localityController,
             decoration: InputDecoration(labelText: locale.localityLabel),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextField(
+            key: const Key('profile_native_place_input'),
+            controller: nativePlaceController,
+            maxLength: 120,
+            decoration: InputDecoration(
+              labelText: locale.nativePlaceLabel,
+              hintText: locale.nativePlaceHint,
+              errorText: nativePlaceError,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            key: const Key('profile_linkedin_input'),
+            controller: linkedInController,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            decoration: InputDecoration(
+              labelText: locale.linkedinLabel,
+              hintText: locale.linkedinHint,
+              errorText: linkedInError,
+              prefixIcon: const Icon(Icons.link_outlined, size: 20),
+            ),
           ),
         ],
       ),
@@ -364,17 +396,20 @@ class EditProfileLifestyleSection extends StatelessWidget {
     required this.sleepSchedule,
     required this.cleanliness,
     required this.foodHabits,
-    required this.smokingDrinking,
+    required this.smoking,
+    required this.drinking,
     required this.guestsPolicy,
     required this.sleepItems,
     required this.cleanlinessItems,
     required this.foodItems,
     required this.smokingItems,
+    required this.drinkingItems,
     required this.guestsItems,
     required this.onSleepScheduleChanged,
     required this.onCleanlinessChanged,
     required this.onFoodHabitsChanged,
-    required this.onSmokingDrinkingChanged,
+    required this.onSmokingChanged,
+    required this.onDrinkingChanged,
     required this.onGuestsPolicyChanged,
     super.key,
   });
@@ -383,17 +418,20 @@ class EditProfileLifestyleSection extends StatelessWidget {
   final String? sleepSchedule;
   final String? cleanliness;
   final String? foodHabits;
-  final String? smokingDrinking;
+  final String? smoking;
+  final String? drinking;
   final String? guestsPolicy;
   final List<DropdownMenuItem<String>> sleepItems;
   final List<DropdownMenuItem<String>> cleanlinessItems;
   final List<DropdownMenuItem<String>> foodItems;
   final List<DropdownMenuItem<String>> smokingItems;
+  final List<DropdownMenuItem<String>> drinkingItems;
   final List<DropdownMenuItem<String>> guestsItems;
   final ValueChanged<String?> onSleepScheduleChanged;
   final ValueChanged<String?> onCleanlinessChanged;
   final ValueChanged<String?> onFoodHabitsChanged;
-  final ValueChanged<String?> onSmokingDrinkingChanged;
+  final ValueChanged<String?> onSmokingChanged;
+  final ValueChanged<String?> onDrinkingChanged;
   final ValueChanged<String?> onGuestsPolicyChanged;
 
   @override
@@ -439,12 +477,22 @@ class EditProfileLifestyleSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
             initialValue: dropdownValueInIds(
-              smokingDrinking,
+              smoking,
               smokingItems.map((item) => item.value),
             ),
-            decoration: InputDecoration(labelText: locale.quizSmokingDrinking),
+            decoration: InputDecoration(labelText: locale.quizSmoking),
             items: smokingItems,
-            onChanged: onSmokingDrinkingChanged,
+            onChanged: onSmokingChanged,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          DropdownButtonFormField<String>(
+            initialValue: dropdownValueInIds(
+              drinking,
+              drinkingItems.map((item) => item.value),
+            ),
+            decoration: InputDecoration(labelText: locale.quizDrinking),
+            items: drinkingItems,
+            onChanged: onDrinkingChanged,
           ),
           const SizedBox(height: AppSpacing.lg),
           DropdownButtonFormField<String>(
@@ -551,4 +599,16 @@ class NonNegotiableOption {
   final String id;
   final String label;
   final IconData icon;
+}
+
+/// True when [raw] is a plausible public LinkedIn profile URL, e.g.
+/// `https://www.linkedin.com/in/<handle>`.
+bool isValidLinkedInUrl(String raw) {
+  final uri = Uri.tryParse(raw.trim());
+  if (uri == null || !(uri.scheme == 'https' || uri.scheme == 'http')) {
+    return false;
+  }
+  final host = uri.host.toLowerCase();
+  if (host != 'www.linkedin.com' && host != 'linkedin.com') return false;
+  return uri.path.startsWith('/in/');
 }

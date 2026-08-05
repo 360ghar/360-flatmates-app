@@ -26,7 +26,6 @@ class SwipeProfile {
     required this.sleepSchedule,
     required this.cleanliness,
     required this.foodHabits,
-    required this.smokingDrinking,
     required this.guestsPolicy,
     required this.workStyle,
     required this.gender,
@@ -36,7 +35,10 @@ class SwipeProfile {
     required this.partyHabit,
     required this.listingDetails,
     this.age,
+    this.ageBucket,
     this.profession,
+    this.smoking,
+    this.drinking,
   });
 
   final int id;
@@ -53,7 +55,6 @@ class SwipeProfile {
   final String? sleepSchedule;
   final String? cleanliness;
   final String? foodHabits;
-  final String? smokingDrinking;
   final String? guestsPolicy;
   final String? workStyle;
   final String? gender;
@@ -63,6 +64,16 @@ class SwipeProfile {
   final String? partyHabit;
   final int? age;
   final String? profession;
+
+  /// Privacy-bucketed age range sent by the backend on peer payloads
+  /// (`age_bucket`, e.g. "18-24"); exact `age` may be omitted.
+  final String? ageBucket;
+
+  /// Split lifestyle values (F1 profile split). Derived from the legacy
+  /// combined `smoking_drinking` value in [fromJson] when the split fields
+  /// are absent so pre-split rows still filter correctly.
+  final String? smoking;
+  final String? drinking;
 
   /// Extra listing detail fields from the API response.
   /// Expected keys:
@@ -101,6 +112,14 @@ class SwipeProfile {
       'monthly_rent',
       'security_deposit',
       'maintenance',
+      'kitchen_type',
+      'ventilation_type',
+      'windows_count',
+      'ventilation_shafts',
+      'setup_cost',
+      'other_charges',
+      'other_charges_description',
+      'furnishing_level',
       'existing_flatmates',
       'available_from',
       'video_tour_url',
@@ -129,7 +148,6 @@ class SwipeProfile {
       sleepSchedule: json['sleep_schedule'] as String?,
       cleanliness: json['cleanliness'] as String?,
       foodHabits: json['food_habits'] as String?,
-      smokingDrinking: json['smoking_drinking'] as String?,
       guestsPolicy: json['guests_policy'] as String?,
       workStyle: json['work_style'] as String?,
       gender: json['gender'] as String?,
@@ -143,8 +161,37 @@ class SwipeProfile {
       partyHabit: json['party_habit'] as String?,
       listingDetails: details,
       age: (json['age'] as num?)?.toInt(),
+      ageBucket: json['age_bucket'] as String?,
       profession: json['profession'] as String?,
+      smoking: _smokingValue(
+        json['smoking'] as String?,
+        json['smoking_drinking'] as String?,
+      ),
+      drinking: _drinkingValue(
+        json['drinking'] as String?,
+        json['smoking_drinking'] as String?,
+      ),
     );
+  }
+
+  static String? _smokingValue(String? split, String? combined) {
+    if (split != null && split.trim().isNotEmpty) return split.trim();
+    return switch (combined) {
+      'smoke_outside' || 'both_fine' => 'regularly',
+      _ => null,
+    };
+  }
+
+  static String? _drinkingValue(String? split, String? combined) {
+    if (split != null && split.trim().isNotEmpty) return split.trim();
+    return switch (combined) {
+      'drink_occasionally' => 'occasionally',
+      // 'both_fine' resolves to occasional drinking, matching the web
+      // onboarding-store migration (smoking 'regularly' + drinking
+      // 'occasionally') so both surfaces agree on the legacy value.
+      'both_fine' => 'occasionally',
+      _ => null,
+    };
   }
 
   static List<String> _parseImageUrls(dynamic raw) {
@@ -204,6 +251,12 @@ class SwipeRepository {
       if (moveIn != null) {
         queryParams['move_in'] = moveIn;
       }
+      if (filters?.ageMin != null) {
+        queryParams['age_min'] = filters!.ageMin;
+      }
+      if (filters?.ageMax != null) {
+        queryParams['age_max'] = filters!.ageMax;
+      }
       if (filters?.hasGeoLocation ?? false) {
         final f = filters!;
         queryParams['lat'] = f.latitude!.toStringAsFixed(6);
@@ -249,8 +302,9 @@ class SwipeRepository {
         '[SwipeRepo] Response status: ${response.statusCode}, '
         'rows: ${moveInFiltered.length}, hasMore: ${page.hasMore}',
       );
+      final lifestyleFiltered = _applyLifestyleFilters(moveInFiltered, filters);
       final filtered = _applyDealBreakerFilter(
-        moveInFiltered,
+        lifestyleFiltered,
         userNonNegotiables,
         userProfile,
       );
@@ -276,6 +330,43 @@ class SwipeRepository {
   }) async {
     final page = await fetchSwipeProfilesPage(filters: filters);
     return page.items;
+  }
+
+  /// Applies the explicit smoking / drinking lifestyle filters to peer
+  /// profiles (client-side, defensive against the F1 profile split: values
+  /// never / occasionally / regularly).
+  List<SwipeProfile> _applyLifestyleFilters(
+    List<SwipeProfile> profiles,
+    DiscoverFilters? filters,
+  ) {
+    if (filters == null) return profiles;
+    final smoking = filters.smoking;
+    final drinking = filters.drinking;
+    if ((smoking == null || smoking == 'no_preference') &&
+        (drinking == null || drinking == 'no_preference')) {
+      return profiles;
+    }
+    return profiles
+        .where((peer) {
+          final matchesSmoking = switch (smoking) {
+            null || 'no_preference' => true,
+            'never' =>
+              peer.smoking != 'occasionally' && peer.smoking != 'regularly',
+            'occasionally' => peer.smoking != 'regularly',
+            'regularly' => true,
+            _ => true,
+          };
+          final matchesDrinking = switch (drinking) {
+            null || 'no_preference' => true,
+            'never' =>
+              peer.drinking != 'occasionally' && peer.drinking != 'regularly',
+            'occasionally' => peer.drinking != 'regularly',
+            'regularly' => true,
+            _ => true,
+          };
+          return matchesSmoking && matchesDrinking;
+        })
+        .toList(growable: false);
   }
 
   bool _profileMatchesMoveIn(SwipeProfile profile, String? moveInTimeline) {
@@ -334,15 +425,15 @@ class SwipeRepository {
             break;
           // Smoking: user requires non-smoker, peer smokes
           case 'no_smoking':
-            final peerSD = peer.smokingDrinking ?? 'neither';
-            if (peerSD == 'smoke_outside' || peerSD == 'both_fine') {
+            final peerSmoking = peer.smoking;
+            if (peerSmoking == 'occasionally' || peerSmoking == 'regularly') {
               return false;
             }
             break;
           // Drinking: user requires no alcohol, peer drinks
           case 'no_drinking':
-            final peerSD = peer.smokingDrinking ?? 'neither';
-            if (peerSD == 'drink_occasionally' || peerSD == 'both_fine') {
+            final peerDrinking = peer.drinking;
+            if (peerDrinking == 'occasionally' || peerDrinking == 'regularly') {
               return false;
             }
             break;

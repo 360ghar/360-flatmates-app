@@ -55,10 +55,13 @@ List<IdentityStat> buildIdentityPills(
       IdentityStat(
         icon: Icons.event_available_rounded,
         label: switch (profile.moveInTimeline) {
-          'immediate' => locale.timelineImmediate,
-          'this_month' => locale.timelineThisMonth,
-          'next_month' => locale.timelineNextMonth,
-          'flexible' => locale.timelineFlexible,
+          'immediate' || 'immediately' => locale.timelineImmediately,
+          'within_1_week' => locale.timelineWithin1Week,
+          'within_2_weeks' => locale.timelineWithin2Weeks,
+          'this_month' || 'within_1_month' => locale.timelineWithin1Month,
+          'next_month' || 'within_3_months' => locale.timelineWithin3Months,
+          'within_2_months' => locale.timelineWithin2Months,
+          'just_exploring' || 'flexible' => locale.timelineFlexible,
           _ => profile.moveInTimeline!,
         },
       ),

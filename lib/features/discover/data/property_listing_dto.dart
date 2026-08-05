@@ -134,6 +134,24 @@ class PropertyListingDto {
       totalFloors: _asInt(json['total_floors']),
       parkingSpaces: _asInt(json['parking_spaces']),
       ageOfProperty: _asInt(json['age_of_property']),
+      kitchenType: _asString(json['kitchen_type']),
+      ventilationType: _asString(json['ventilation_type']),
+      windowsCount: _asInt(json['windows_count']),
+      ventilationShafts: _asInt(json['ventilation_shafts']),
+      // setup_cost was historically written under listing_preferences; keep
+      // the preference fallback so pre-contract listings still restore it.
+      setupCost:
+          _asDouble(json['setup_cost']) ?? _asDouble(preferences['setup_cost']),
+      otherCharges: _asDouble(json['other_charges']),
+      otherChargesDescription: _asString(json['other_charges_description']),
+      furnishingLevel: _asString(json['furnishing_level']),
+      hasLift:
+          _asBool(json['has_lift']) ??
+          (features.any(
+            (f) =>
+                f.toLowerCase().contains('lift') ||
+                f.toLowerCase().contains('elevator'),
+          )),
       images: parsedImages,
       amenities: parsedAmenities,
       societyTagVoteCounts: societyTagVoteCounts,
@@ -184,6 +202,15 @@ class PropertyListingDto {
       'expires_at': listing.expiresAt?.toUtc().toIso8601String(),
       'floor_number': listing.floorNumber,
       'total_floors': listing.totalFloors,
+      'kitchen_type': listing.kitchenType,
+      'ventilation_type': listing.ventilationType,
+      'windows_count': listing.windowsCount,
+      'ventilation_shafts': listing.ventilationShafts,
+      'setup_cost': listing.setupCost,
+      'other_charges': listing.otherCharges,
+      'other_charges_description': listing.otherChargesDescription,
+      'furnishing_level': listing.furnishingLevel,
+      'has_lift': listing.hasLift,
     };
   }
 

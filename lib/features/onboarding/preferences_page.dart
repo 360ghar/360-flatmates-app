@@ -23,7 +23,8 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
   String _allowedFlatmates = '1';
   String _foodHabits = 'no_preference';
   String _pets = 'no_preference';
-  String _smoking = 'no';
+  String _smoking = 'no_preference';
+  String _drinking = 'no_preference';
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
     _foodHabits = saved['food_habits']?.toString() ?? _foodHabits;
     _pets = saved['pets']?.toString() ?? _pets;
     _smoking = saved['smoking']?.toString() ?? _smoking;
+    _drinking = saved['drinking']?.toString() ?? _drinking;
   }
 
   /// Resolve pill options from a catalog key, falling back to hardcoded values.
@@ -95,10 +97,11 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
     _PillOption(key: 'no_preference', label: ''),
   ];
 
-  static const _fallbackSmokingOptions = [
-    _PillOption(key: 'no', label: ''),
-    _PillOption(key: 'yes', label: ''),
-    _PillOption(key: 'no_preference', label: ''),
+  static const _fallbackHabitOptions = [
+    _PillOption(key: 'no_preference', label: ''), // resolved via locale
+    _PillOption(key: 'never', label: ''),
+    _PillOption(key: 'occasionally', label: ''),
+    _PillOption(key: 'regularly', label: ''),
   ];
 
   /// Get gender options: catalog first, then localized fallback.
@@ -151,14 +154,36 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
   List<_PillOption> get _smokingOptions {
     final catalog = _catalogPills(
       'flatmates_smoking_options',
-      _fallbackSmokingOptions,
+      _fallbackHabitOptions,
     );
     if (catalog.isNotEmpty && catalog.first.label.isNotEmpty) return catalog;
     final locale = AppLocalizations.of(context);
     return [
-      _PillOption(key: 'no', label: locale.prefNo),
-      _PillOption(key: 'yes', label: locale.prefYes),
       _PillOption(key: 'no_preference', label: locale.prefNoPreference),
+      _PillOption(key: 'never', label: locale.lifestyleValueNever),
+      _PillOption(
+        key: 'occasionally',
+        label: locale.lifestyleValueOccasionally,
+      ),
+      _PillOption(key: 'regularly', label: locale.lifestyleValueRegularly),
+    ];
+  }
+
+  List<_PillOption> get _drinkingOptions {
+    final catalog = _catalogPills(
+      'flatmates_drinking_options',
+      _fallbackHabitOptions,
+    );
+    if (catalog.isNotEmpty && catalog.first.label.isNotEmpty) return catalog;
+    final locale = AppLocalizations.of(context);
+    return [
+      _PillOption(key: 'no_preference', label: locale.prefNoPreference),
+      _PillOption(key: 'never', label: locale.lifestyleValueNever),
+      _PillOption(
+        key: 'occasionally',
+        label: locale.lifestyleValueOccasionally,
+      ),
+      _PillOption(key: 'regularly', label: locale.lifestyleValueRegularly),
     ];
   }
 
@@ -261,6 +286,19 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
             ],
           ),
 
+          // 6. Drinking
+          _PreferenceSection(
+            icon: Icons.local_bar_outlined,
+            title: locale.prefDrinkingLabel,
+            children: [
+              _pillOptions(
+                options: _drinkingOptions,
+                selectedKey: _drinking,
+                onSelected: (v) => setState(() => _drinking = v),
+              ),
+            ],
+          ),
+
           const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
           FlatmatesButton(
             key: const Key('onboarding_preferences_next'),
@@ -272,6 +310,7 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
               'food_habits': _foodHabits,
               'pets': _pets,
               'smoking': _smoking,
+              'drinking': _drinking,
             }),
             icon: Icons.arrow_forward_rounded,
           ),

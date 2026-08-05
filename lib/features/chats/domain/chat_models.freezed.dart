@@ -24,6 +24,7 @@ mixin _$ChatPeer {
   String? get city => throw _privateConstructorUsedError;
   String? get locality => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
+  String? get ageBucket => throw _privateConstructorUsedError;
   String? get profession => throw _privateConstructorUsedError;
   double? get matchPercentage => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
@@ -48,6 +49,7 @@ abstract class $ChatPeerCopyWith<$Res> {
     String? city,
     String? locality,
     int? age,
+    String? ageBucket,
     String? profession,
     double? matchPercentage,
     String? phoneNumber,
@@ -76,6 +78,7 @@ class _$ChatPeerCopyWithImpl<$Res, $Val extends ChatPeer>
     Object? city = freezed,
     Object? locality = freezed,
     Object? age = freezed,
+    Object? ageBucket = freezed,
     Object? profession = freezed,
     Object? matchPercentage = freezed,
     Object? phoneNumber = freezed,
@@ -110,6 +113,10 @@ class _$ChatPeerCopyWithImpl<$Res, $Val extends ChatPeer>
                 ? _value.age
                 : age // ignore: cast_nullable_to_non_nullable
                       as int?,
+            ageBucket: freezed == ageBucket
+                ? _value.ageBucket
+                : ageBucket // ignore: cast_nullable_to_non_nullable
+                      as String?,
             profession: freezed == profession
                 ? _value.profession
                 : profession // ignore: cast_nullable_to_non_nullable
@@ -145,6 +152,7 @@ abstract class _$$ChatPeerImplCopyWith<$Res>
     String? city,
     String? locality,
     int? age,
+    String? ageBucket,
     String? profession,
     double? matchPercentage,
     String? phoneNumber,
@@ -172,6 +180,7 @@ class __$$ChatPeerImplCopyWithImpl<$Res>
     Object? city = freezed,
     Object? locality = freezed,
     Object? age = freezed,
+    Object? ageBucket = freezed,
     Object? profession = freezed,
     Object? matchPercentage = freezed,
     Object? phoneNumber = freezed,
@@ -206,6 +215,10 @@ class __$$ChatPeerImplCopyWithImpl<$Res>
             ? _value.age
             : age // ignore: cast_nullable_to_non_nullable
                   as int?,
+        ageBucket: freezed == ageBucket
+            ? _value.ageBucket
+            : ageBucket // ignore: cast_nullable_to_non_nullable
+                  as String?,
         profession: freezed == profession
             ? _value.profession
             : profession // ignore: cast_nullable_to_non_nullable
@@ -234,6 +247,7 @@ class _$ChatPeerImpl extends _ChatPeer {
     this.city,
     this.locality,
     this.age,
+    this.ageBucket,
     this.profession,
     this.matchPercentage,
     this.phoneNumber,
@@ -255,6 +269,8 @@ class _$ChatPeerImpl extends _ChatPeer {
   @override
   final int? age;
   @override
+  final String? ageBucket;
+  @override
   final String? profession;
   @override
   final double? matchPercentage;
@@ -263,7 +279,7 @@ class _$ChatPeerImpl extends _ChatPeer {
 
   @override
   String toString() {
-    return 'ChatPeer(id: $id, fullName: $fullName, profileImageUrl: $profileImageUrl, mode: $mode, city: $city, locality: $locality, age: $age, profession: $profession, matchPercentage: $matchPercentage, phoneNumber: $phoneNumber)';
+    return 'ChatPeer(id: $id, fullName: $fullName, profileImageUrl: $profileImageUrl, mode: $mode, city: $city, locality: $locality, age: $age, ageBucket: $ageBucket, profession: $profession, matchPercentage: $matchPercentage, phoneNumber: $phoneNumber)';
   }
 
   @override
@@ -281,6 +297,8 @@ class _$ChatPeerImpl extends _ChatPeer {
             (identical(other.locality, locality) ||
                 other.locality == locality) &&
             (identical(other.age, age) || other.age == age) &&
+            (identical(other.ageBucket, ageBucket) ||
+                other.ageBucket == ageBucket) &&
             (identical(other.profession, profession) ||
                 other.profession == profession) &&
             (identical(other.matchPercentage, matchPercentage) ||
@@ -299,6 +317,7 @@ class _$ChatPeerImpl extends _ChatPeer {
     city,
     locality,
     age,
+    ageBucket,
     profession,
     matchPercentage,
     phoneNumber,
@@ -322,6 +341,7 @@ abstract class _ChatPeer extends ChatPeer {
     final String? city,
     final String? locality,
     final int? age,
+    final String? ageBucket,
     final String? profession,
     final double? matchPercentage,
     final String? phoneNumber,
@@ -342,6 +362,8 @@ abstract class _ChatPeer extends ChatPeer {
   String? get locality;
   @override
   int? get age;
+  @override
+  String? get ageBucket;
   @override
   String? get profession;
   @override

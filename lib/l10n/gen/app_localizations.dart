@@ -1574,35 +1574,35 @@ abstract class AppLocalizations {
   /// **'No preference'**
   String get quizNoFoodPref;
 
-  /// No description provided for @quizSmokingDrinking.
+  /// No description provided for @quizSmoking.
   ///
   /// In en, this message translates to:
-  /// **'Smoking & drinking preferences?'**
-  String get quizSmokingDrinking;
+  /// **'Do you smoke?'**
+  String get quizSmoking;
 
-  /// No description provided for @quizNeither.
+  /// No description provided for @quizDrinking.
   ///
   /// In en, this message translates to:
-  /// **'Neither'**
-  String get quizNeither;
+  /// **'Do you drink?'**
+  String get quizDrinking;
 
-  /// No description provided for @quizSmokeOutside.
+  /// No description provided for @lifestyleValueNever.
   ///
   /// In en, this message translates to:
-  /// **'Smoke outside only'**
-  String get quizSmokeOutside;
+  /// **'Never'**
+  String get lifestyleValueNever;
 
-  /// No description provided for @quizDrinkOccasionally.
+  /// No description provided for @lifestyleValueOccasionally.
   ///
   /// In en, this message translates to:
-  /// **'Drink occasionally'**
-  String get quizDrinkOccasionally;
+  /// **'Occasionally'**
+  String get lifestyleValueOccasionally;
 
-  /// No description provided for @quizBothFine.
+  /// No description provided for @lifestyleValueRegularly.
   ///
   /// In en, this message translates to:
-  /// **'Both are fine'**
-  String get quizBothFine;
+  /// **'Regularly'**
+  String get lifestyleValueRegularly;
 
   /// No description provided for @quizGuestsPolicy.
   ///
@@ -1724,23 +1724,41 @@ abstract class AppLocalizations {
   /// **'Move-in timeline'**
   String get moveInTimelineLabel;
 
-  /// No description provided for @timelineImmediate.
+  /// No description provided for @timelineImmediately.
   ///
   /// In en, this message translates to:
-  /// **'Immediate'**
-  String get timelineImmediate;
+  /// **'Immediately'**
+  String get timelineImmediately;
 
-  /// No description provided for @timelineThisMonth.
+  /// No description provided for @timelineWithin1Week.
   ///
   /// In en, this message translates to:
-  /// **'This month'**
-  String get timelineThisMonth;
+  /// **'Within 1 week'**
+  String get timelineWithin1Week;
 
-  /// No description provided for @timelineNextMonth.
+  /// No description provided for @timelineWithin2Weeks.
   ///
   /// In en, this message translates to:
-  /// **'Next month'**
-  String get timelineNextMonth;
+  /// **'Within 2 weeks'**
+  String get timelineWithin2Weeks;
+
+  /// No description provided for @timelineWithin1Month.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 1 month'**
+  String get timelineWithin1Month;
+
+  /// No description provided for @timelineWithin2Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 2 months'**
+  String get timelineWithin2Months;
+
+  /// No description provided for @timelineWithin3Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 3 months'**
+  String get timelineWithin3Months;
 
   /// No description provided for @timelineFlexible.
   ///
@@ -2342,6 +2360,72 @@ abstract class AppLocalizations {
   /// **'Kitchen equipped'**
   String get amenityKitchenEquipped;
 
+  /// No description provided for @kitchenTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen type'**
+  String get kitchenTypeLabel;
+
+  /// No description provided for @kitchenTypeVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetarian'**
+  String get kitchenTypeVegetarian;
+
+  /// No description provided for @kitchenTypeNonVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-veg'**
+  String get kitchenTypeNonVegetarian;
+
+  /// No description provided for @kitchenTypeEggetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggetarian'**
+  String get kitchenTypeEggetarian;
+
+  /// No description provided for @kitchenTypeAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get kitchenTypeAny;
+
+  /// No description provided for @ventilationTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ventilation'**
+  String get ventilationTypeLabel;
+
+  /// No description provided for @ventilationGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get ventilationGood;
+
+  /// No description provided for @ventilationAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get ventilationAverage;
+
+  /// No description provided for @ventilationPoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor'**
+  String get ventilationPoor;
+
+  /// No description provided for @windowsCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows'**
+  String get windowsCountLabel;
+
+  /// No description provided for @ventilationShaftsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ventilation shafts'**
+  String get ventilationShaftsLabel;
+
   /// No description provided for @electricityLabel.
   ///
   /// In en, this message translates to:
@@ -2383,6 +2467,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One-time setup cost'**
   String get setupCostLabel;
+
+  /// No description provided for @otherChargesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Other charges / month'**
+  String get otherChargesLabel;
+
+  /// No description provided for @otherChargesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. parking, wifi'**
+  String get otherChargesHint;
+
+  /// No description provided for @otherChargesDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What do the other charges cover?'**
+  String get otherChargesDescriptionLabel;
+
+  /// No description provided for @otherChargesDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. wifi, parking, shared groceries'**
+  String get otherChargesDescriptionHint;
+
+  /// No description provided for @reviewKitchenTypeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen: {type}'**
+  String reviewKitchenTypeAmount(String type);
+
+  /// No description provided for @reviewVentilationAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Ventilation: {type}'**
+  String reviewVentilationAmount(String type);
+
+  /// No description provided for @reviewWindowsAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} windows'**
+  String reviewWindowsAmount(String count);
+
+  /// No description provided for @reviewVentilationShaftsAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} ventilation shafts'**
+  String reviewVentilationShaftsAmount(String count);
+
+  /// No description provided for @reviewOtherChargesAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Other charges: ₹{amount}'**
+  String reviewOtherChargesAmount(String amount);
+
+  /// No description provided for @reviewSetupCostAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup cost: ₹{amount}'**
+  String reviewSetupCostAmount(String amount);
 
   /// No description provided for @totalMonthlyOutflow.
   ///
@@ -4142,6 +4286,54 @@ abstract class AppLocalizations {
   /// **'No Preference'**
   String get smokingNoPreference;
 
+  /// No description provided for @drinkingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinking'**
+  String get drinkingLabel;
+
+  /// No description provided for @drinkingNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get drinkingNo;
+
+  /// No description provided for @drinkingYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get drinkingYes;
+
+  /// No description provided for @drinkingNoPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'No Preference'**
+  String get drinkingNoPreference;
+
+  /// No description provided for @searchAmenitiesFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amenities'**
+  String get searchAmenitiesFilterLabel;
+
+  /// No description provided for @searchHasLiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Has lift'**
+  String get searchHasLiftLabel;
+
+  /// No description provided for @searchWindowsMinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows (min)'**
+  String get searchWindowsMinLabel;
+
+  /// No description provided for @searchWindowsMinOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}+'**
+  String searchWindowsMinOption(int count);
+
   /// No description provided for @nearbyChipLabel.
   ///
   /// In en, this message translates to:
@@ -4231,6 +4423,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Smoking'**
   String get prefSmokingLabel;
+
+  /// No description provided for @prefDrinkingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinking'**
+  String get prefDrinkingLabel;
 
   /// No description provided for @prefMoveInLabel.
   ///
@@ -5816,6 +6014,18 @@ abstract class AppLocalizations {
   /// **'Later'**
   String get optionalUpdateLater;
 
+  /// No description provided for @patchReadyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'An update is ready. It will apply the next time you open the app.'**
+  String get patchReadyMessage;
+
+  /// No description provided for @patchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'patch {number}'**
+  String patchLabel(int number);
+
   /// No description provided for @maintenanceTitle.
   ///
   /// In en, this message translates to:
@@ -6419,8 +6629,14 @@ abstract class AppLocalizations {
   /// No description provided for @lifestyleDimSmoking.
   ///
   /// In en, this message translates to:
-  /// **'Smoking / Drinking'**
+  /// **'Smoking'**
   String get lifestyleDimSmoking;
+
+  /// No description provided for @lifestyleDimDrinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinking'**
+  String get lifestyleDimDrinking;
 
   /// No description provided for @lifestyleDimGuests.
   ///
@@ -7087,6 +7303,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visit requested for {when}'**
   String visitRequestedFor(String when);
+
+  /// No description provided for @onboardingPhaseOneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Essentials'**
+  String get onboardingPhaseOneTitle;
+
+  /// No description provided for @onboardingPhaseTwoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle & preferences'**
+  String get onboardingPhaseTwoTitle;
+
+  /// No description provided for @onboardingTransitionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there - one section left'**
+  String get onboardingTransitionTitle;
+
+  /// No description provided for @onboardingTransitionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Now let\'s capture your lifestyle, budget and preferences so we can find your best flatmate match.'**
+  String get onboardingTransitionBody;
+
+  /// No description provided for @onboardingTransitionCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onboardingTransitionCta;
+
+  /// No description provided for @nativePlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Native place'**
+  String get nativePlaceLabel;
+
+  /// No description provided for @nativePlaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you from originally?'**
+  String get nativePlaceHint;
+
+  /// No description provided for @nativePlaceTooLongError.
+  ///
+  /// In en, this message translates to:
+  /// **'Native place must be 120 characters or fewer'**
+  String get nativePlaceTooLongError;
+
+  /// No description provided for @linkedinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LinkedIn profile'**
+  String get linkedinLabel;
+
+  /// No description provided for @linkedinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your LinkedIn profile URL (optional)'**
+  String get linkedinHint;
+
+  /// No description provided for @linkedinInvalidError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid LinkedIn profile URL'**
+  String get linkedinInvalidError;
+
+  /// No description provided for @ageBucket18_24.
+  ///
+  /// In en, this message translates to:
+  /// **'18-24'**
+  String get ageBucket18_24;
+
+  /// No description provided for @ageBucket25_30.
+  ///
+  /// In en, this message translates to:
+  /// **'25-30'**
+  String get ageBucket25_30;
+
+  /// No description provided for @ageBucket31_35.
+  ///
+  /// In en, this message translates to:
+  /// **'31-35'**
+  String get ageBucket31_35;
+
+  /// No description provided for @ageBucket36_40.
+  ///
+  /// In en, this message translates to:
+  /// **'36-40'**
+  String get ageBucket36_40;
+
+  /// No description provided for @ageBucket41_45.
+  ///
+  /// In en, this message translates to:
+  /// **'41-45'**
+  String get ageBucket41_45;
+
+  /// No description provided for @ageBucket46Plus.
+  ///
+  /// In en, this message translates to:
+  /// **'46+'**
+  String get ageBucket46Plus;
 }
 
 class _AppLocalizationsDelegate

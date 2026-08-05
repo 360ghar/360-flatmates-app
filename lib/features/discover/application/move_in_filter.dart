@@ -11,9 +11,13 @@ String? normalizeMoveInFilter(String? value) {
   }
   return switch (normalized) {
     'immediate' || 'immediately' || 'now' => 'immediate',
-    'this_month' || 'within_1_month' || 'within_a_month' => 'this_month',
-    'next_month' => 'next_month',
+    'within_1_week' || 'one_week' || 'within_a_week' => 'within_1_week',
     'within_2_weeks' || 'two_weeks' => 'within_2_weeks',
+    'this_month' => 'this_month',
+    'within_1_month' || 'within_a_month' => 'within_1_month',
+    'next_month' => 'next_month',
+    'within_2_months' || 'two_months' => 'within_2_months',
+    'within_3_months' || 'three_months' => 'within_3_months',
     _ => null,
   };
 }
@@ -37,11 +41,15 @@ bool listingMatchesMoveInFilter(
 
   return switch (normalized) {
     'immediate' => before(today.add(const Duration(days: 8))),
+    'within_1_week' => before(today.add(const Duration(days: 8))),
     'within_2_weeks' => before(today.add(const Duration(days: 15))),
     'this_month' => before(DateTime(today.year, today.month + 1)),
     'next_month' =>
       !availableDay.isBefore(DateTime(today.year, today.month + 1)) &&
           before(DateTime(today.year, today.month + 2)),
+    'within_1_month' => before(today.add(const Duration(days: 30))),
+    'within_2_months' => before(today.add(const Duration(days: 60))),
+    'within_3_months' => before(today.add(const Duration(days: 90))),
     _ => true,
   };
 }

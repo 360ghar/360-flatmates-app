@@ -502,11 +502,20 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
       sharingType: filters.sharingType,
       genderPreference: filters.genderPreference,
       features: filters.features,
+      furnishing: filters.furnishing,
+      kitchenType: filters.kitchenType,
+      ventilationType: filters.ventilationType,
+      amenities: filters.amenities,
+      windowsMin: filters.windowsMin,
+      hasLift: filters.hasLift,
       bedrooms: filters.bedrooms,
       pets: filters.pets,
       smoking: filters.smoking,
+      drinking: filters.drinking,
       vibe: filters.vibe,
       moveInTimeline: filters.moveInTimeline,
+      ageMin: filters.ageMin,
+      ageMax: filters.ageMax,
     );
   }
 
@@ -591,12 +600,13 @@ List<PropertyListing> applyDiscoverListingFilters({
     final matchesBedrooms =
         filters.bedrooms == null || item.bedrooms == filters.bedrooms;
 
-    final smokingValue =
-        (item.preferences?['smoking_drinking'] as String? ?? '').trim();
-    final petsValue = (item.preferences?['pets'] as String? ?? '').trim();
+    final prefs = item.preferences ?? const <String, dynamic>{};
+    final smokingValue = _smokingValue(prefs);
+    final drinkingValue = _drinkingValue(prefs);
+    final petsValue = (prefs['pets'] as String? ?? '').trim();
     final hasPets =
-        item.preferences?['has_pets'] == true ||
-        item.preferences?['pets'] == true ||
+        prefs['has_pets'] == true ||
+        prefs['pets'] == true ||
         petsValue == 'have_pets' ||
         petsValue == 'pet_friendly';
 
@@ -609,17 +619,58 @@ List<PropertyListing> applyDiscoverListingFilters({
 
     final matchesSmoking = switch (filters.smoking) {
       null || 'no_preference' => true,
-      'yes' => smokingValue == 'smoke_outside' || smokingValue == 'both_fine',
-      'no' =>
-        smokingValue.isEmpty ||
-            smokingValue == 'neither' ||
-            smokingValue == 'drink_occasionally',
+      'never' => smokingValue != 'occasionally' && smokingValue != 'regularly',
+      'occasionally' => smokingValue != 'regularly',
+      'regularly' => true,
+      _ => true,
+    };
+
+    final matchesDrinking = switch (filters.drinking) {
+      null || 'no_preference' => true,
+      'never' =>
+        drinkingValue != 'occasionally' && drinkingValue != 'regularly',
+      'occasionally' => drinkingValue != 'regularly',
+      'regularly' => true,
       _ => true,
     };
 
     final matchesFeature =
         filters.features.isEmpty ||
         filters.features.every((fKey) => item.features.contains(fKey));
+
+    final matchesFurnishing = _matchesFurnishing(item, filters.furnishing);
+    final matchesKitchen =
+        filters.kitchenType.isEmpty ||
+        (item.kitchenType != null &&
+            filters.kitchenType.contains(item.kitchenType));
+    final matchesVentilation =
+        filters.ventilationType.isEmpty ||
+        (item.ventilationType != null &&
+            filters.ventilationType.contains(item.ventilationType));
+    final matchesAmenities =
+        filters.amenities.isEmpty ||
+        filters.amenities.every((a) => item.features.contains(a));
+    final matchesWindows =
+        filters.windowsMin == null ||
+        (item.windowsCount ?? 0) >= filters.windowsMin!;
+    final matchesLift = switch (filters.hasLift) {
+      null => true,
+      true =>
+        item.hasLift ??
+            item.features.any(
+              (f) =>
+                  f.toLowerCase().contains('lift') ||
+                  f.toLowerCase().contains('elevator'),
+            ),
+      false =>
+        item.hasLift == false ||
+            (item.hasLift == null &&
+                !item.features.any(
+                  (f) =>
+                      f.toLowerCase().contains('lift') ||
+                      f.toLowerCase().contains('elevator'),
+                )),
+    };
 
     final searchable = [
       item.title,
@@ -643,18 +694,61 @@ List<PropertyListing> applyDiscoverListingFilters({
     return matchesBedrooms &&
         matchesPets &&
         matchesSmoking &&
+        matchesDrinking &&
         matchesFeature &&
+        matchesFurnishing &&
+        matchesKitchen &&
+        matchesVentilation &&
+        matchesAmenities &&
+        matchesWindows &&
+        matchesLift &&
         matchesQuery &&
         matchesVibe &&
         matchesMoveIn;
   }).toList();
 }
 
+/// True when [item] satisfies the explicit furnishing-level filter.
+/// Matches the top-level [PropertyListing.furnishingLevel] when present and
+/// falls back to feature tags for older rows.
+bool _matchesFurnishing(PropertyListing item, List<String> furnishing) {
+  if (furnishing.isEmpty) return true;
+  if (item.furnishingLevel != null &&
+      furnishing.contains(item.furnishingLevel)) {
+    return true;
+  }
+  return furnishing.any((f) => item.features.contains(f));
+}
+
+/// Listing-side smoking value with legacy [smoking_drinking] fallback.
+String? _smokingValue(Map<String, dynamic> prefs) {
+  final direct = prefs['smoking'];
+  if (direct is String && direct.trim().isNotEmpty) return direct.trim();
+  return switch (prefs['smoking_drinking']) {
+    'smoke_outside' || 'both_fine' => 'regularly',
+    _ => null,
+  };
+}
+
+/// Listing-side drinking value with legacy [smoking_drinking] fallback.
+String? _drinkingValue(Map<String, dynamic> prefs) {
+  final direct = prefs['drinking'];
+  if (direct is String && direct.trim().isNotEmpty) return direct.trim();
+  return switch (prefs['smoking_drinking']) {
+    'drink_occasionally' => 'occasionally',
+    // 'both_fine' resolves to occasional drinking, matching the web
+    // onboarding-store migration (smoking 'regularly' + drinking
+    // 'occasionally') so both surfaces agree on the legacy value.
+    'both_fine' => 'occasionally',
+    _ => null,
+  };
+}
+
 bool _matchesVibe(String? vibe, PropertyListing listing, dynamic profile) {
   if (vibe == null) return true;
 
   final prefs = listing.preferences ?? const {};
-  final smoking = prefs['smoking_drinking'] as String? ?? '';
+  final smoking = _smokingValue(prefs) ?? '';
   final guests = prefs['guests_policy'] as String? ?? '';
   final parties = prefs['parties_at_home'] as String? ?? '';
   final workStyle = prefs['work_style'] as String? ?? '';
@@ -662,7 +756,7 @@ bool _matchesVibe(String? vibe, PropertyListing listing, dynamic profile) {
 
   switch (vibe) {
     case 'quiet':
-      return smoking == 'neither' &&
+      return (smoking.isEmpty || smoking == 'never') &&
           (parties == 'never' || parties.isEmpty) &&
           (guests == 'no_overnight_guests' ||
               guests == 'occasional_ok' ||
@@ -672,7 +766,8 @@ bool _matchesVibe(String? vibe, PropertyListing listing, dynamic profile) {
               parties == 'party_friendly') ||
           guests == 'open_house';
     case 'professional':
-      return workStyle != 'wfh' && (smoking == 'neither' || smoking.isEmpty);
+      return workStyle != 'wfh' &&
+          (smoking == 'never' || smoking == 'neither' || smoking.isEmpty);
     case 'student':
       return true;
     case 'pet':

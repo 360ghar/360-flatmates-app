@@ -230,11 +230,15 @@ mixin _$FlatmatesProfileModel {
   String? get sleepSchedule => throw _privateConstructorUsedError;
   String? get cleanliness => throw _privateConstructorUsedError;
   String? get foodHabits => throw _privateConstructorUsedError;
-  String? get smokingDrinking => throw _privateConstructorUsedError;
+  String? get smoking => throw _privateConstructorUsedError;
+  String? get drinking => throw _privateConstructorUsedError;
   String? get guestsPolicy => throw _privateConstructorUsedError;
   String? get workStyle => throw _privateConstructorUsedError;
   String? get gender => throw _privateConstructorUsedError;
   String? get genderPreference => throw _privateConstructorUsedError;
+  String? get nativePlace => throw _privateConstructorUsedError;
+  String? get linkedInUrl => throw _privateConstructorUsedError;
+  String? get ageBucket => throw _privateConstructorUsedError;
   Map<String, dynamic> get preferences => throw _privateConstructorUsedError;
 
   /// Create a copy of FlatmatesProfileModel
@@ -272,11 +276,15 @@ abstract class $FlatmatesProfileModelCopyWith<$Res> {
     String? sleepSchedule,
     String? cleanliness,
     String? foodHabits,
-    String? smokingDrinking,
+    String? smoking,
+    String? drinking,
     String? guestsPolicy,
     String? workStyle,
     String? gender,
     String? genderPreference,
+    String? nativePlace,
+    String? linkedInUrl,
+    String? ageBucket,
     Map<String, dynamic> preferences,
   });
 }
@@ -319,11 +327,15 @@ class _$FlatmatesProfileModelCopyWithImpl<
     Object? sleepSchedule = freezed,
     Object? cleanliness = freezed,
     Object? foodHabits = freezed,
-    Object? smokingDrinking = freezed,
+    Object? smoking = freezed,
+    Object? drinking = freezed,
     Object? guestsPolicy = freezed,
     Object? workStyle = freezed,
     Object? gender = freezed,
     Object? genderPreference = freezed,
+    Object? nativePlace = freezed,
+    Object? linkedInUrl = freezed,
+    Object? ageBucket = freezed,
     Object? preferences = null,
   }) {
     return _then(
@@ -408,9 +420,13 @@ class _$FlatmatesProfileModelCopyWithImpl<
                 ? _value.foodHabits
                 : foodHabits // ignore: cast_nullable_to_non_nullable
                       as String?,
-            smokingDrinking: freezed == smokingDrinking
-                ? _value.smokingDrinking
-                : smokingDrinking // ignore: cast_nullable_to_non_nullable
+            smoking: freezed == smoking
+                ? _value.smoking
+                : smoking // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            drinking: freezed == drinking
+                ? _value.drinking
+                : drinking // ignore: cast_nullable_to_non_nullable
                       as String?,
             guestsPolicy: freezed == guestsPolicy
                 ? _value.guestsPolicy
@@ -427,6 +443,18 @@ class _$FlatmatesProfileModelCopyWithImpl<
             genderPreference: freezed == genderPreference
                 ? _value.genderPreference
                 : genderPreference // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nativePlace: freezed == nativePlace
+                ? _value.nativePlace
+                : nativePlace // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            linkedInUrl: freezed == linkedInUrl
+                ? _value.linkedInUrl
+                : linkedInUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            ageBucket: freezed == ageBucket
+                ? _value.ageBucket
+                : ageBucket // ignore: cast_nullable_to_non_nullable
                       as String?,
             preferences: null == preferences
                 ? _value.preferences
@@ -468,11 +496,15 @@ abstract class _$$FlatmatesProfileModelImplCopyWith<$Res>
     String? sleepSchedule,
     String? cleanliness,
     String? foodHabits,
-    String? smokingDrinking,
+    String? smoking,
+    String? drinking,
     String? guestsPolicy,
     String? workStyle,
     String? gender,
     String? genderPreference,
+    String? nativePlace,
+    String? linkedInUrl,
+    String? ageBucket,
     Map<String, dynamic> preferences,
   });
 }
@@ -512,11 +544,15 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
     Object? sleepSchedule = freezed,
     Object? cleanliness = freezed,
     Object? foodHabits = freezed,
-    Object? smokingDrinking = freezed,
+    Object? smoking = freezed,
+    Object? drinking = freezed,
     Object? guestsPolicy = freezed,
     Object? workStyle = freezed,
     Object? gender = freezed,
     Object? genderPreference = freezed,
+    Object? nativePlace = freezed,
+    Object? linkedInUrl = freezed,
+    Object? ageBucket = freezed,
     Object? preferences = null,
   }) {
     return _then(
@@ -601,9 +637,13 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
             ? _value.foodHabits
             : foodHabits // ignore: cast_nullable_to_non_nullable
                   as String?,
-        smokingDrinking: freezed == smokingDrinking
-            ? _value.smokingDrinking
-            : smokingDrinking // ignore: cast_nullable_to_non_nullable
+        smoking: freezed == smoking
+            ? _value.smoking
+            : smoking // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        drinking: freezed == drinking
+            ? _value.drinking
+            : drinking // ignore: cast_nullable_to_non_nullable
                   as String?,
         guestsPolicy: freezed == guestsPolicy
             ? _value.guestsPolicy
@@ -620,6 +660,18 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
         genderPreference: freezed == genderPreference
             ? _value.genderPreference
             : genderPreference // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nativePlace: freezed == nativePlace
+            ? _value.nativePlace
+            : nativePlace // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        linkedInUrl: freezed == linkedInUrl
+            ? _value.linkedInUrl
+            : linkedInUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        ageBucket: freezed == ageBucket
+            ? _value.ageBucket
+            : ageBucket // ignore: cast_nullable_to_non_nullable
                   as String?,
         preferences: null == preferences
             ? _value._preferences
@@ -654,11 +706,15 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
     this.sleepSchedule,
     this.cleanliness,
     this.foodHabits,
-    this.smokingDrinking,
+    this.smoking,
+    this.drinking,
     this.guestsPolicy,
     this.workStyle,
     this.gender,
     this.genderPreference,
+    this.nativePlace,
+    this.linkedInUrl,
+    this.ageBucket,
     final Map<String, dynamic> preferences = const {},
   }) : _preferences = preferences,
        super._();
@@ -706,7 +762,9 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
   @override
   final String? foodHabits;
   @override
-  final String? smokingDrinking;
+  final String? smoking;
+  @override
+  final String? drinking;
   @override
   final String? guestsPolicy;
   @override
@@ -715,6 +773,12 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
   final String? gender;
   @override
   final String? genderPreference;
+  @override
+  final String? nativePlace;
+  @override
+  final String? linkedInUrl;
+  @override
+  final String? ageBucket;
   final Map<String, dynamic> _preferences;
   @override
   @JsonKey()
@@ -726,7 +790,7 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
 
   @override
   String toString() {
-    return 'FlatmatesProfileModel(id: $id, fullName: $fullName, phone: $phone, email: $email, profileImageUrl: $profileImageUrl, mode: $mode, profileStatus: $profileStatus, onboardingCompleted: $onboardingCompleted, bio: $bio, age: $age, profession: $profession, budgetMin: $budgetMin, budgetMax: $budgetMax, moveInTimeline: $moveInTimeline, city: $city, state: $state, locality: $locality, sleepSchedule: $sleepSchedule, cleanliness: $cleanliness, foodHabits: $foodHabits, smokingDrinking: $smokingDrinking, guestsPolicy: $guestsPolicy, workStyle: $workStyle, gender: $gender, genderPreference: $genderPreference, preferences: $preferences)';
+    return 'FlatmatesProfileModel(id: $id, fullName: $fullName, phone: $phone, email: $email, profileImageUrl: $profileImageUrl, mode: $mode, profileStatus: $profileStatus, onboardingCompleted: $onboardingCompleted, bio: $bio, age: $age, profession: $profession, budgetMin: $budgetMin, budgetMax: $budgetMax, moveInTimeline: $moveInTimeline, city: $city, state: $state, locality: $locality, sleepSchedule: $sleepSchedule, cleanliness: $cleanliness, foodHabits: $foodHabits, smoking: $smoking, drinking: $drinking, guestsPolicy: $guestsPolicy, workStyle: $workStyle, gender: $gender, genderPreference: $genderPreference, nativePlace: $nativePlace, linkedInUrl: $linkedInUrl, ageBucket: $ageBucket, preferences: $preferences)';
   }
 
   @override
@@ -766,8 +830,9 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
                 other.cleanliness == cleanliness) &&
             (identical(other.foodHabits, foodHabits) ||
                 other.foodHabits == foodHabits) &&
-            (identical(other.smokingDrinking, smokingDrinking) ||
-                other.smokingDrinking == smokingDrinking) &&
+            (identical(other.smoking, smoking) || other.smoking == smoking) &&
+            (identical(other.drinking, drinking) ||
+                other.drinking == drinking) &&
             (identical(other.guestsPolicy, guestsPolicy) ||
                 other.guestsPolicy == guestsPolicy) &&
             (identical(other.workStyle, workStyle) ||
@@ -775,6 +840,12 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
             (identical(other.gender, gender) || other.gender == gender) &&
             (identical(other.genderPreference, genderPreference) ||
                 other.genderPreference == genderPreference) &&
+            (identical(other.nativePlace, nativePlace) ||
+                other.nativePlace == nativePlace) &&
+            (identical(other.linkedInUrl, linkedInUrl) ||
+                other.linkedInUrl == linkedInUrl) &&
+            (identical(other.ageBucket, ageBucket) ||
+                other.ageBucket == ageBucket) &&
             const DeepCollectionEquality().equals(
               other._preferences,
               _preferences,
@@ -804,11 +875,15 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
     sleepSchedule,
     cleanliness,
     foodHabits,
-    smokingDrinking,
+    smoking,
+    drinking,
     guestsPolicy,
     workStyle,
     gender,
     genderPreference,
+    nativePlace,
+    linkedInUrl,
+    ageBucket,
     const DeepCollectionEquality().hash(_preferences),
   ]);
 
@@ -847,11 +922,15 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
     final String? sleepSchedule,
     final String? cleanliness,
     final String? foodHabits,
-    final String? smokingDrinking,
+    final String? smoking,
+    final String? drinking,
     final String? guestsPolicy,
     final String? workStyle,
     final String? gender,
     final String? genderPreference,
+    final String? nativePlace,
+    final String? linkedInUrl,
+    final String? ageBucket,
     final Map<String, dynamic> preferences,
   }) = _$FlatmatesProfileModelImpl;
   const _FlatmatesProfileModel._() : super._();
@@ -897,7 +976,9 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
   @override
   String? get foodHabits;
   @override
-  String? get smokingDrinking;
+  String? get smoking;
+  @override
+  String? get drinking;
   @override
   String? get guestsPolicy;
   @override
@@ -906,6 +987,12 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
   String? get gender;
   @override
   String? get genderPreference;
+  @override
+  String? get nativePlace;
+  @override
+  String? get linkedInUrl;
+  @override
+  String? get ageBucket;
   @override
   Map<String, dynamic> get preferences;
 
