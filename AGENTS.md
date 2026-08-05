@@ -10,6 +10,10 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Keep the app mobile-first and maintain parity between iOS and Android.
 - Treat `../backend` as the source of truth for product data contracts.
 - Keep business metadata server-driven through `/api/v1/flatmates/catalogs` whenever the data affects product behavior.
+- **Store artifacts must be built by Shorebird, never plain `flutter build`.** A `flutter build` artifact has no Shorebird engine and can never receive an OTA patch. Use `scripts/shorebird_release.sh` or the `v*` tag workflows. The Flutter version in `.fvmrc` must stay Shorebird-supported and identical to the `--flutter-version` in both release workflows and `scripts/shorebird_release.sh`. See [docs/shorebird.md](docs/shorebird.md).
+- **Do not add assets or native code in a patch-only fix.** Assets, native code, plugin natives and the Flutter version cannot be shipped over the air; they require a full release.
+- **Keep the `--dart-define` set identical between a release and its patches, per platform.** `APP_STORE_ID` is iOS-only (Android carries 7 defines, iOS 8). Change `android-release.yml`, `ios-release.yml`, `shorebird-patch.yml` and `scripts/shorebird_{release,patch}.sh` together, or the patched app boots into `_ConfigErrorApp`.
+- **`.env` is a bundled Flutter asset, so its bytes are diffed by Shorebird.** Release and patch builds must both use the identical one-line `APP_ENV=prod` stub — CI writes it inline, local scripts via `scripts/shorebird_env_stub.sh`. Never let a real `.env` reach a shipped build; config goes in through `--dart-define`.
 
 ## Architecture Boundaries
 
@@ -19,6 +23,8 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 - Do not add another state-management library.
 - Keep GoRouter as the routing layer.
 - `scripts/banned_patterns.sh` enforces architecture guardrails: no `apiClientProvider` in page files (use a repository), no `Supabase.instance` in page files, no page files over 500 lines.
+- **When a page hits the 500-line cap, extract rather than trim.** Move a cohesive, low-coupling chunk into the feature's `presentation/widgets/` — pure helpers and data classes belong there just as much as widgets do (`listing_catalog_options.dart`, `edit_profile_form_state.dart`). Move the code **verbatim**; do not rewrite it in the same pass, so the diff stays reviewable. Only files named `*_page.dart` are subject to the cap, but the `EdgeInsets.all(<int>)` and `Image.network` bans apply to every file under `lib/features/`. There is no per-feature barrel: import extracted files directly. If the same helper exists in two features, promote it to `lib/features/shared/presentation/` (see `lifestyle_labels.dart`) instead of copying it.
+- **Never declare Xcode script-phase `inputPaths`/`outputPaths` that resolve inside the target's own product directory** — `${DWARF_DSYM_FOLDER_PATH}`, `${BUILT_PRODUCTS_DIR}`, `${TARGET_BUILD_DIR}/${WRAPPER_NAME}`. It creates `Cycle inside Runner`, which breaks every iOS build including archives and `shorebird release ios`. Use `alwaysOutOfDate = 1` and let the script resolve paths at runtime. Preserve the order of the two custom dSYM phases in the Runner target.
 - **Business logic goes in controllers, not widgets.** Widgets call `ref.read(controllerProvider.notifier).method()` instead of calling repositories directly. Repository calls in widget files are banned — use `application/` layer controllers.
 
 ## Code Generation

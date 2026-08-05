@@ -51,6 +51,7 @@ dependencies:
   qr_flutter: ^4.1.0
   video_player: ^2.11.1
   emoji_picker_flutter: ^4.4.0
+  shorebird_code_push: ^2.0.7
 
 
 
@@ -71,14 +72,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    # Local .env is optional for developer machines (see EnvLoader.isOptional).
-    # Release/CI builds must inject config via --dart-define (never ship secrets
-    # as bundled assets). Keep .env listed only for local convenience; the file
-    # is gitignored and absent from CI checkouts.
     - .env
     - assets/illustrations/
     - assets/legal/
     - assets/icons/
+    - shorebird.yaml
 
 flutter_launcher_icons:
   android: true

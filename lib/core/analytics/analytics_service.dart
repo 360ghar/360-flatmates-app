@@ -5,7 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
+import '../app_config/patch_service.dart';
 import 'analytics_events.dart';
 
 class AnalyticsService {
@@ -52,6 +52,20 @@ class AnalyticsService {
       await crashlytics.setCustomKey('platform', Platform.operatingSystem);
     } catch (e) {
       debugPrint('AnalyticsService: $e');
+    }
+
+    // Attach the Shorebird patch number as early as possible: a bad OTA patch
+    // fails on the first frame, which is exactly when this key must already be
+    // set for the crash to be attributable. Reads local updater state only —
+    // resolves to 0 ("no patch") on any non-Shorebird build.
+    try {
+      final patch = await sharedShorebirdUpdater.readCurrentPatch();
+      await crashlytics.setCustomKey(
+        'shorebird_patch_number',
+        patch?.number ?? 0,
+      );
+    } catch (e) {
+      debugPrint('AnalyticsService.shorebirdPatch: $e');
     }
 
     return AnalyticsService._(
@@ -114,6 +128,12 @@ class AnalyticsService {
 
   Future<void> logOptionalUpdateShown() =>
       logEvent(name: 'optional_update_shown');
+
+  /// A downloaded Shorebird patch is waiting on an app restart.
+  Future<void> logPatchReadyShown(int patchNumber) => logEvent(
+    name: 'patch_ready_shown',
+    parameters: {'patch_number': patchNumber},
+  );
 
   // -- Crashlytics --
 

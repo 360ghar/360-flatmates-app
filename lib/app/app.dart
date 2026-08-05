@@ -8,6 +8,7 @@ import '../core/analytics/analytics_service.dart';
 import '../core/app_config/app_config_service.dart';
 import '../core/app_config/force_update_page.dart';
 import '../core/app_config/optional_update_dialog.dart';
+import '../core/app_config/patch_service.dart';
 import '../core/deep_links/deep_link_service.dart';
 import '../core/errors/app_failure.dart';
 import '../core/network/connectivity_monitor.dart';
@@ -33,6 +34,7 @@ class App extends ConsumerStatefulWidget {
 class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   DeepLinkService? _deepLinkService;
   bool _appConfigChecked = false;
+  bool _patchCheckInFlight = false;
 
   // Local notifications are initialized in bootstrap() before runApp().
   // NotificationService.initialize() is called after auth login (see ref.listen below).
@@ -47,6 +49,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       final router = ref.read(appRouterProvider);
       _deepLinkService = DeepLinkService(router: router)..init();
       _checkAppConfig();
+      unawaited(_checkShorebirdPatch());
       ref.read(analyticsServiceProvider).logAppOpen();
     });
   }
@@ -61,6 +64,10 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
+    // Shorebird downloads patches in the background while the app runs, so a
+    // patch can land mid-session. Checked before the bootstrap guard below —
+    // a pending patch is worth announcing regardless of login state.
+    unawaited(_checkShorebirdPatch());
     final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
     if (bootstrap == null) return;
     final router = ref.read(appRouterProvider);
@@ -132,6 +139,56 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     }
 
     _appConfigChecked = true;
+  }
+
+  /// Tells the user once when Shorebird has downloaded an OTA patch that is
+  /// waiting on a restart.
+  ///
+  /// Shorebird applies patches on the next cold start, never to the running
+  /// isolate — so a user who only ever backgrounds the app would otherwise sit
+  /// on the unpatched build indefinitely. No-ops on any build without the
+  /// updater (debug, `flutter run`, non-Shorebird release).
+  Future<void> _checkShorebirdPatch() async {
+    // The first-frame callback and a fast resume can overlap. Without this
+    // guard both calls could clear shouldNudgeForPatch() before either marks
+    // the patch as seen, and the user would get the same message twice.
+    if (_patchCheckInFlight) return;
+    _patchCheckInFlight = true;
+    try {
+      await _presentPatchNudgeIfPending();
+    } finally {
+      _patchCheckInFlight = false;
+    }
+  }
+
+  Future<void> _presentPatchNudgeIfPending() async {
+    final patches = ref.read(patchServiceProvider);
+    final pending = await patches.pendingPatchNumber();
+    if (pending == null) return;
+    if (!patches.shouldNudgeForPatch(pending)) return;
+    if (!mounted) return;
+
+    // Mark before presenting: _presentWithRootNavigator may defer across
+    // frames, and the nudge must not be re-armed by a resume in between.
+    await patches.markPatchNudged(pending);
+    if (!mounted) return;
+
+    _presentWithRootNavigator((navContext) {
+      final messenger = ScaffoldMessenger.maybeOf(navContext);
+      if (messenger == null) {
+        debugPrint('App._checkShorebirdPatch: no ScaffoldMessenger');
+        return;
+      }
+      // Informational only — Flutter cannot restart itself, so offering an
+      // action button here would be a control that does nothing.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(navContext).patchReadyMessage),
+          duration: const Duration(seconds: 6),
+        ),
+      );
+      unawaited(ref.read(analyticsServiceProvider).logPatchReadyShown(pending));
+    });
   }
 
   /// _AppState sits above [MaterialApp.router] — use the GoRouter root

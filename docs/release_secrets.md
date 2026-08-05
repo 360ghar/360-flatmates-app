@@ -22,6 +22,19 @@ Release CI **must not** rely on a committed `.env`. Config is injected with
 | `IOS_PROVISIONING_PROFILE_BASE64` | iOS release | App Store profile |
 | `IOS_KEYCHAIN_PASSWORD` | iOS release | Temporary CI keychain |
 | `ASC_KEY_ID` / `ASC_ISSUER_ID` / `ASC_KEY_CONTENT` | iOS deliver | App Store Connect API key |
+| `SHOREBIRD_TOKEN` | Android + iOS release, Shorebird patch | Shorebird OTA auth — see below |
+
+### `SHOREBIRD_TOKEN`
+
+Mint it in the Shorebird console under **Account → API Keys → Create API Key**
+(Full access). The value is shown exactly once. Do **not** use
+`shorebird login:ci`; that path is deprecated and its tokens stop working after
+September 2026.
+
+The token is read only by `shorebird release` / `shorebird patch` — the
+`setup-shorebird` action never touches it. Note that `shorebird.yaml`'s `app_id`
+is **not** a secret and is committed deliberately; it only lets a client *fetch*
+patches, never publish them. See [shorebird.md](shorebird.md).
 
 ## Variables
 
@@ -31,7 +44,24 @@ Release CI **must not** rely on a committed `.env`. Config is injected with
 
 ## Local release dry-run
 
-### Android
+> **Anything that ships must be built by Shorebird.** A binary from plain
+> `flutter build` contains no Shorebird engine and can never receive an
+> over-the-air patch. Use the wrapper scripts, which carry the required
+> `--flutter-version`, obfuscation and dart-define set:
+
+```bash
+. ./scripts/load_env.sh && ./scripts/verify_env.sh
+./scripts/shorebird_release.sh android --dry-run   # validate, upload nothing
+./scripts/shorebird_release.sh android             # real release (.aab + .apk)
+./scripts/shorebird_release.sh ios
+```
+
+Full OTA runbook, including how to ship a patch: [shorebird.md](shorebird.md).
+
+### Plain `flutter build` (debugging only — NOT shippable)
+
+Useful for reproducing a build failure without involving Shorebird. The output
+of these commands must never be uploaded to a store.
 
 ```bash
 flutter build appbundle --release \
@@ -43,8 +73,6 @@ flutter build appbundle --release \
   --dart-define=ENABLE_DEBUG_LOGS=false
 ```
 
-### iOS
-
 ```bash
 flutter build ipa --release \
   --dart-define=APP_ENV=prod \
@@ -54,7 +82,8 @@ flutter build ipa --release \
   --dart-define=ENABLE_DEBUG_LOGS=false
 ```
 
-Or open `ios/Runner.xcworkspace` in Xcode → **Product → Archive** (Release).
+Archiving from Xcode (`ios/Runner.xcworkspace` → **Product → Archive**) is
+likewise debugging-only, for the same reason.
 
 #### Firebase / Google dSYMs (Upload Symbols Failed)
 

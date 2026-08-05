@@ -27,6 +27,12 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      # Installs the Shorebird CLI only — it never reads SHOREBIRD_TOKEN, which
+      # is consumed by the release/patch commands themselves.
+      - uses: shorebirdtech/setup-shorebird@4dd9d7dc2d7930bfeadb053b6e94b5110779d1e5 # v1
+        with:
+          cache: true
+
       - name: Decode keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -56,15 +62,34 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Build APK
+      # Replaces the former `flutter build apk` + `flutter build appbundle`
+      # steps. A binary from plain `flutter build` contains no Shorebird engine
+      # and can NEVER be patched over the air, so the release must be produced
+      # by Shorebird itself. `--artifact=apk` emits the .aab (the artifact
+      # uploaded to Shorebird and to Play) *and* the .apk, in one invocation —
+      # re-running this command for an already-released version exits 70.
+      #
+      # Flag placement matters: every flag Shorebird understands is passed
+      # natively, because Shorebird must know the release is obfuscated in order
+      # to upload the obfuscation map that later patches are rebuilt against.
+      # Only Flutter-specific flags it does not model go after the `--`.
+      #
+      # --no-tree-shake-icons keeps the MaterialIcons asset byte-stable across
+      # release and patch builds. With tree-shaking on, a Dart-only fix that
+      # references one new icon changes a bundled asset and trips Shorebird's
+      # asset-diff check, which would block the patch.
+      - name: Shorebird release (Android)
         env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
         run: |
-          flutter build apk --release \
+          shorebird release android \
+            --flutter-version=3.44.6 \
+            --artifact=apk \
             --obfuscate \
             --split-debug-info=build/symbols \
             --dart-define=APP_ENV=prod \
@@ -73,26 +98,9 @@ jobs:
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
             --dart-define=GOOGLE_WEB_CLIENT_ID="$GOOGLE_WEB_CLIENT_ID" \
             --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
-            --dart-define=ENABLE_DEBUG_LOGS=false
-
-      - name: Build AAB
-        env:
-          API_BASE_URL: ${{ secrets.API_BASE_URL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
-          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
-          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
-        run: |
-          flutter build appbundle --release \
-            --obfuscate \
-            --split-debug-info=build/symbols \
-            --dart-define=APP_ENV=prod \
-            --dart-define=API_BASE_URL="$API_BASE_URL" \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
-            --dart-define=GOOGLE_WEB_CLIENT_ID="$GOOGLE_WEB_CLIENT_ID" \
-            --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
-            --dart-define=ENABLE_DEBUG_LOGS=false
+            --dart-define=ENABLE_DEBUG_LOGS=false \
+            -- \
+            --no-tree-shake-icons
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -6,10 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 360 FlatMates — a Flutter mobile client for flatmate-finding in India. Uses Supabase for auth and a FastAPI backend monolith at `../backend` for all business logic, product data, and storage (Cloudinary).
 
-- **Flutter:** 3.41.9 (pinned via FVM in `.fvmrc`)
+- **Flutter:** 3.44.6 (pinned via FVM in `.fvmrc`; must be a Shorebird-supported
+  version and must match the `--flutter-version` in both release workflows and
+  `scripts/shorebird_release.sh` — see [docs/shorebird.md](docs/shorebird.md))
 - **Dart SDK:** ^3.9.0
 - **Riverpod:** `flutter_riverpod` ^2.6.1
 - **App ID:** `com.the360ghar.flatmates`
+- **OTA:** Shorebird code push for Dart-only fixes ([docs/shorebird.md](docs/shorebird.md))
 
 ## Commands
 
@@ -49,6 +52,17 @@ flutter gen-l10n
 # Maestro E2E (requires MAESTRO_PHONE, MAESTRO_PASSWORD, etc. env vars)
 maestro test .maestro/flatmates_e2e.yaml
 maestro test maestro/e2e.yaml
+
+# Shorebird OTA (code push) — see docs/shorebird.md for the full runbook.
+# Anything that ships MUST be built by Shorebird: a plain `flutter build`
+# artifact has no Shorebird engine and can never be patched.
+. ./scripts/load_env.sh && ./scripts/verify_env.sh
+./scripts/shorebird_release.sh android --dry-run    # validate, upload nothing
+./scripts/shorebird_release.sh android|ios          # cut a patchable release
+./scripts/shorebird_patch.sh android 1.0.9+18       # OTA patch -> staging track
+shorebird preview --platform=android --track=staging
+# Both scripts source scripts/shorebird_env_stub.sh, which swaps your real .env
+# for the one-line CI stub during the build and restores it afterwards.
 ```
 
 ## Architecture
@@ -194,6 +208,41 @@ final selectedProvider = NotifierProvider.autoDispose<
 - `connectivityProvider` (`StreamProvider<bool>` via `connectivity_plus`) monitors network state
 - `OfflineBanner` shown as a Stack overlay above `MaterialApp.router` when offline
 
+### Updates: store releases vs OTA patches
+
+Two independent mechanisms, both surfaced from `lib/core/app_config/`:
+
+- **Server-driven store updates** — `AppConfigService.checkForUpdates()` posts to
+  `/versions/check` and drives `ForceUpdatePage` / `OptionalUpdateDialog`. Tells
+  the user to download a new build.
+- **Shorebird OTA patches** — Dart-only fixes shipped without store review.
+  Downloads are handled entirely by Shorebird (`auto_update: true`);
+  `PatchService` is **read-only** and never downloads or applies anything. It
+  feeds the Crashlytics `shorebird_patch_number` key (set in
+  `AnalyticsService.create()` before `runApp`, so first-frame crashes stay
+  attributable), the Settings → About version line, and a one-off
+  restart-required SnackBar. Everything no-ops when
+  `ShorebirdUpdater.isAvailable` is false (debug, `flutter run`, non-Shorebird
+  builds).
+
+Assets, native code, plugin natives and the Flutter version **cannot** be
+patched — those need a `v*` tag release. Full runbook and gotchas:
+[docs/shorebird.md](docs/shorebird.md).
+
+Two invariants that silently break patching if violated:
+
+- **dart-define parity.** A patch must be built with the *same* define set as the
+  release it targets, per platform. `APP_STORE_ID` is **iOS-only** (it drives the
+  force-update deep link); Android carries 7 defines, iOS 8. The four places that
+  must agree are `android-release.yml`, `ios-release.yml`, `shorebird-patch.yml`,
+  and `scripts/shorebird_{release,patch}.sh`. A mismatch ships a broken config —
+  `AppConfig` throws on an empty `API_BASE_URL` and the app boots into
+  `_ConfigErrorApp`.
+- **`.env` is a bundled asset**, so its bytes are part of what Shorebird diffs.
+  Release and patch builds both write the identical one-line `APP_ENV=prod` stub
+  (CI inline, locally via `scripts/shorebird_env_stub.sh`). This also stops a real
+  `.env` with secrets being shipped inside the app.
+
 ### Auth flow
 
 1. Identifier input (phone or email) → password login or OTP via Supabase
@@ -223,19 +272,46 @@ spacing, border radii, component behavior, and per-screen layout specs.
 
 - Freezed + json_serializable for domain models. Run `dart run build_runner build --delete-conflicting-outputs` after changes.
 - DTO pattern: when backend JSON doesn't map cleanly to domain models, use a DTO class in the feature's `data/` layer (e.g., `PropertyListingDto` → `PropertyListing`).
-- Shared component library: `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`, `FlatmatesChromeIconButton`, `FlatmatesLocationChip`. Shell chrome uses solid surfaces + hairline borders (no `BackdropFilter` frost).
+- Shared component library: `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`, `FlatmatesChromeIconButton`, `FlatmatesLocationChip`. Shell chrome uses solid surfaces + hairline borders (no `BackdropFilter` frost). Two shared files in the same folder are deliberately **not** in the barrel and are imported directly: `profile_sections.dart` (`LifestyleCell`, `LifestyleGrid`, `PreferencesCard`, `SectionHeader`) and `lifestyle_labels.dart` (localized lifestyle dimension names, values and icons — the single source shared by the chat peer profile and the discover owner sheet).
 - Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
 - `FlatmatesEndpoints` centralizes all API path constants — no hardcoded backend paths.
 - Image uploads go through the backend API (Cloudinary) via `ImageUploadService`.
 - Compatibility scoring runs client-side in `core/compatibility/` with 6 weighted dimensions.
 - Chat uses Supabase realtime for the open thread; app-wide events use Realtime Broadcast on `flatmates:user:{id}`. `MessagesController` merges live arrivals with optimistic pending sends and refetches after successful POST.
 - Banned patterns (`scripts/banned_patterns.sh`): no `error.toString()` in pages, no `apiClientProvider` in pages, no `Supabase.instance` in pages, no raw `Image.network` in features, page files under 500 lines.
+- **Page size: `*_page.dart` under `lib/features/` is capped at 500 lines** (`-gt 500` fails; exactly 500 passes). When a page grows past it, extract to the feature's `presentation/widgets/` — only files *named* `*_page.dart` are subject to the cap, so extracted helpers are unconstrained by it (but `EdgeInsets.all(<int>)` and `Image.network` rules still apply to every file under `lib/features/`). There is **no per-feature barrel** — `components.dart` is shared-only and doesn't even export `profile_sections.dart`, so extracted files are imported directly. Prefer moving code verbatim over rewriting, so the diff stays reviewable. Worked examples: `listing_catalog_options.dart`, `edit_profile_form_state.dart` (`buildEditProfileTabHandlers`), `shared/presentation/lifestyle_labels.dart`.
 - **Business logic in controllers, not widgets.** Examples: `FeedbackController`, `ChatActionsController`, `SwipeDeckController`, `ManageListingsActionsController`, `NotificationsActionsController`.
 - **Local UI state:** ephemeral → `setState` (with `mounted` checks after async); shared/product → `Notifier` / `MutableNotifier`. Do not reintroduce shared `StateProvider`s.
 - **Always use `const` constructors** where possible. Run `dart fix --apply lib/` periodically.
 - **Add `tooltip` to all `IconButton` widgets** for accessibility.
 - **No empty catch blocks.** Every `catch` must log via `debugPrint`. Use `unawaited()` for fire-and-forget futures.
 - **Check `mounted` before using `context` or `setState` after `await`.**
+
+## iOS build phases (Runner target)
+
+Two custom shell-script phases run after `[CP] Embed Pods Frameworks`, in this
+order — the order matters and is documented in
+[docs/release_secrets.md](docs/release_secrets.md):
+
+1. **Generate missing vendor framework dSYMs** (`ios/scripts/generate_missing_framework_dsyms.sh`) —
+   Firebase ships as SPM binary frameworks with no dSYMs, which makes App Store
+   Connect report "Upload Symbols Failed". This runs `dsymutil` to produce real
+   dSYM companions. Gated to Release/Profile/archive.
+2. **[Crashlytics] Upload dSYMs** (`ios/scripts/upload_crashlytics_symbols.sh`) —
+   needs step 1 to have run.
+
+**Never give either phase `inputPaths`/`outputPaths` that resolve inside the
+target's own product directory** — `${DWARF_DSYM_FOLDER_PATH}` (which defaults to
+`$(CONFIGURATION_BUILD_DIR)`, the directory containing `Runner.app`),
+`${BUILT_PRODUCTS_DIR}`, or `${TARGET_BUILD_DIR}/${WRAPPER_NAME}`. Xcode expands a
+declared directory input into a node depending on everything produced beneath it,
+so the phase ends up depending on `Runner.app`, which depends on the phase:
+`Cycle inside Runner; building could produce unreliable results`. That breaks
+**every** iOS build including archives and `shorebird release ios`, and Xcode's
+suggested "move the phase earlier" does not help because these phases declare no
+outputs. This regressed once (commit `2fa149a`) and was fixed by emptying
+`inputPaths`. Both phases carry `alwaysOutOfDate = 1` and discover their paths at
+runtime, so declared inputs buy nothing.
 
 ## iOS Simulator Browser Preview
 
@@ -266,3 +342,7 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - **`tooltip` on every `IconButton`** for accessibility.
 - **Never mutate providers during build / `initState` first frame** without deferral; prefer autoDispose initial values over reset writes.
 - **`mounted` before `setState` / `context` after `await`.**
+- **Store artifacts must come from Shorebird, never plain `flutter build`** — a `flutter build` artifact can never be OTA-patched. Keep `.fvmrc` Shorebird-supported and identical to `--flutter-version` in both release workflows and `scripts/shorebird_release.sh`.
+- **Keep the `--dart-define` set identical between a release and its patches, per platform** (`APP_STORE_ID` is iOS-only), and build both against the same one-line `.env` stub.
+- **When a page hits the 500-line cap, extract verbatim** into `presentation/widgets/`; promote a helper duplicated across features to `features/shared/presentation/`.
+- **Never declare Xcode script-phase `inputPaths`/`outputPaths` inside the target's own product directory** — it causes `Cycle inside Runner` and breaks every iOS build.

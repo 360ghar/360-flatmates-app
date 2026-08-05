@@ -30,12 +30,16 @@ jobs:
             printf 'APP_ENV=ci\n' > .env
           fi
 
+      # Compile smoke-check for main. Deliberately plain `flutter build` — this
+      # artifact is NOT shippable and can never receive a Shorebird OTA patch
+      # (no Shorebird engine, and no dart-defines or release signing either).
+      # Store builds come from the `v*` tag workflows; see docs/shorebird.md.
       - name: Build APK
         run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: app-main-apk-${{ github.sha }}
+          name: app-main-apk-${{ github.sha }}-not-patchable
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14

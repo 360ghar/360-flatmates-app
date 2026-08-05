@@ -33,6 +33,12 @@ jobs:
       - name: Install CocoaPods
         run: cd ios && pod install --repo-update
 
+      # Installs the Shorebird CLI only — it never reads SHOREBIRD_TOKEN, which
+      # is consumed by the release/patch commands themselves.
+      - uses: shorebirdtech/setup-shorebird@4dd9d7dc2d7930bfeadb053b6e94b5110779d1e5 # v1
+        with:
+          cache: true
+
       - name: Install certificates and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_CERTIFICATE_BASE64 }}
@@ -57,8 +63,20 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles
 
-      - name: Build IPA
+      # Replaces the former `flutter build ipa` step — see the Android workflow
+      # for why the release must be built by Shorebird and why Shorebird-known
+      # flags are passed natively rather than after the `--`.
+      #
+      # --flutter-version must match the Android job exactly: Shorebird requires
+      # every platform of one release version to share a single Flutter revision
+      # and rejects the second platform otherwise.
+      #
+      # Codesigning is on by default and uses the temporary keychain set up
+      # above. The .ipa still lands in build/ios/ipa/, so the artifact upload
+      # and `fastlane deliver` steps below are unchanged.
+      - name: Shorebird release (iOS)
         env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
           APP_STORE_ID: ${{ vars.APP_STORE_ID }}
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -66,7 +84,8 @@ jobs:
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
         run: |
-          flutter build ipa --release \
+          shorebird release ios \
+            --flutter-version=3.44.6 \
             --obfuscate \
             --split-debug-info=build/symbols \
             --dart-define=APP_ENV=prod \
@@ -76,7 +95,9 @@ jobs:
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
             --dart-define=GOOGLE_WEB_CLIENT_ID="$GOOGLE_WEB_CLIENT_ID" \
             --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
-            --dart-define=ENABLE_DEBUG_LOGS=false
+            --dart-define=ENABLE_DEBUG_LOGS=false \
+            -- \
+            --no-tree-shake-icons
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
