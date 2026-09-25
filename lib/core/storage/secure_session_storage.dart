@@ -19,6 +19,8 @@ class SecureSessionStorage extends LocalStorage {
 
   final String persistSessionKey;
 
+  static const _installMarkerKey = 'secure_session_install_marker';
+
   // first_unlock: the token stays readable for background refresh.
   static const _secure = FlutterSecureStorage(
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -37,7 +39,13 @@ class SecureSessionStorage extends LocalStorage {
           await _secure.write(key: persistSessionKey, value: legacy);
         }
         await prefs.remove(persistSessionKey);
+      } else if (!prefs.containsKey(_installMarkerKey)) {
+        // SharedPreferences is wiped on uninstall but the iOS keychain is
+        // not. No marker and no legacy session = fresh install, so drop any
+        // session left behind by a previous install.
+        await _secure.delete(key: persistSessionKey);
       }
+      await prefs.setBool(_installMarkerKey, true);
     } catch (e) {
       debugPrint('SecureSessionStorage: secure storage unavailable: $e');
       final fallback = SharedPreferencesLocalStorage(

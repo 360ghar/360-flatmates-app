@@ -46,4 +46,29 @@ void main() {
     await storage.removePersistedSession();
     expect(await storage.hasAccessToken(), isFalse);
   });
+
+  test(
+    'fresh install drops a keychain session left by an old install',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({key: 'from-old-install'});
+
+      final storage = SecureSessionStorage(persistSessionKey: key);
+      await storage.initialize();
+
+      expect(await storage.hasAccessToken(), isFalse);
+    },
+  );
+
+  test('later launches keep the keychain session', () async {
+    SharedPreferences.setMockInitialValues({
+      'secure_session_install_marker': true,
+    });
+    FlutterSecureStorage.setMockInitialValues({key: 'current'});
+
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+
+    expect(await storage.accessToken(), 'current');
+  });
 }
