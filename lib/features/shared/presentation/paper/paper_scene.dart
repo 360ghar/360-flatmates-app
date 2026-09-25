@@ -22,10 +22,12 @@ class PaperScene extends StatelessWidget {
       _compact = false;
 
   /// 320 x 200 scene with one prop, for empty, error and offline states.
-  const PaperScene.compact({required PaperProp this.prop, super.key})
-    : parallax = null,
-      height = 168,
-      _compact = true;
+  const PaperScene.compact({
+    required PaperProp this.prop,
+    super.key,
+    this.height = 168,
+  }) : parallax = null,
+       _compact = true;
 
   /// Scroll position that drives parallax. Far layers move least.
   final ScrollController? parallax;

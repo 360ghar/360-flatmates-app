@@ -6,7 +6,9 @@ import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../core/theme/app_radius.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/paper/paper_scene.dart';
 
 class OnboardingSplashPages extends ConsumerStatefulWidget {
   const OnboardingSplashPages({required this.onComplete, super.key});
@@ -22,11 +24,12 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _illustrationAssets = [
-    'assets/illustrations/onboarding_find_flat.png',
-    'assets/illustrations/onboarding_lifestyle_match.png',
-    'assets/illustrations/onboarding_flatmate_match.png',
-    'assets/illustrations/onboarding_get_started.png',
+  /// Scene prop per page; the last page shows the full neighbourhood.
+  static const _pageProps = <PaperProp?>[
+    PaperProp.house,
+    PaperProp.heart,
+    PaperProp.chat,
+    null,
   ];
 
   @override
@@ -38,7 +41,7 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final pageCount = _illustrationAssets.length;
+    final pageCount = _pageProps.length;
     final isLast = _page == pageCount - 1;
 
     return FlatmatesScreen(
@@ -51,7 +54,7 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
               onPageChanged: (i) => setState(() => _page = i),
               itemBuilder: (context, index) => _OnboardingContent(
                 key: ValueKey('onboarding_page_$index'),
-                illustrationAsset: _illustrationAssets[index],
+                prop: _pageProps[index],
                 headline: switch (index) {
                   0 => locale.onboardingHeadline1,
                   1 => locale.onboardingHeadline2,
@@ -143,26 +146,19 @@ class _OutlineDotsProgress extends StatelessWidget {
         final isCompleted = index < currentStep;
 
         return AnimatedContainer(
-          duration: AppMotion.standard,
-          curve: AppMotion.easeOutCubic,
+          duration: AppMotion.durationOrZero(context, AppMotion.standard),
+          curve: AppMotion.paperOut,
           margin: EdgeInsets.only(
             right: index < totalSteps - 1 ? AppSpacing.md : 0,
           ),
           width: 10,
           height: 10,
-          decoration: isActive || isCompleted
-              ? const BoxDecoration(
-                  color: AppSemanticColors.accent,
-                  shape: BoxShape.circle,
-                )
-              : BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppSemanticColors.accent.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
+          decoration: BoxDecoration(
+            color: isActive || isCompleted
+                ? AppSemanticColors.clayFor(Theme.of(context).brightness)
+                : AppSemanticColors.paperDeepFor(Theme.of(context).brightness),
+            shape: BoxShape.circle,
+          ),
         );
       }),
     );
@@ -172,13 +168,13 @@ class _OutlineDotsProgress extends StatelessWidget {
 /// Per-page content with staggered entry animation.
 class _OnboardingContent extends StatefulWidget {
   const _OnboardingContent({
-    required this.illustrationAsset,
+    required this.prop,
     required this.headline,
     required this.subheadline,
     super.key,
   });
 
-  final String illustrationAsset;
+  final PaperProp? prop;
   final String headline;
   final String subheadline;
 
@@ -231,17 +227,20 @@ class _OnboardingContentState extends State<_OnboardingContent>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Illustration — no card wrapper, just the image
+          // Cut-paper scene: a prop on the hills, or the whole
+          // neighbourhood on the last page.
           _StaggeredFadeSlide(
             animation: illustrationAnim,
-            child: Image.asset(
-              widget.illustrationAsset,
-              fit: BoxFit.contain,
-              height: 260,
-            ),
+            child: switch (widget.prop) {
+              final prop? => PaperScene.compact(prop: prop, height: 220),
+              null => const ClipRRect(
+                borderRadius: AppRadius.cardBorder,
+                child: PaperScene.hero(height: 220),
+              ),
+            },
           ),
           const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
-          // Headline — Inter display (Airbnb Cereal substitute)
+          // Headline — Gambarino display
           _StaggeredFadeSlide(
             animation: headlineAnim,
             child: RichText(
@@ -309,6 +308,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
         TextSpan(
           text: raw,
           style: TextStyle(
+            fontFamily: AppTypography.displayFamily,
             fontWeight: AppTypography.displayXlWeight,
             fontSize: AppTypography.displayXlSize,
             height: AppTypography.displayXlHeight,
@@ -322,7 +322,8 @@ class _OnboardingContentState extends State<_OnboardingContent>
   }
 }
 
-/// Staggered fade-in + slide-up for onboarding page elements.
+/// Staggered rise for entry elements. Opacity stays at 1: the content is
+/// visible from the first frame even if the animation never runs.
 class _StaggeredFadeSlide extends StatelessWidget {
   const _StaggeredFadeSlide({required this.animation, required this.child});
 
@@ -331,18 +332,14 @@ class _StaggeredFadeSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: animation,
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, 14 * (1 - animation.value)),
-            child: child,
-          );
-        },
+    if (AppMotion.reduceMotion(context)) return child;
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(0, AppMotion.layerRise * (1 - animation.value)),
         child: child,
       ),
+      child: child,
     );
   }
 }

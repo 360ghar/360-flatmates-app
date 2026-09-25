@@ -55,6 +55,7 @@ import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
 import '../../features/swipe/match_celebration_screen.dart';
 import '../../features/swipe/match_qna_nudge.dart';
+import 'not_found_page.dart';
 import '../../features/profile/legal_content_page.dart';
 import '../../features/visits/schedule_visit_page.dart';
 import '../../features/visits/visits_page.dart';
@@ -120,6 +121,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
+    errorBuilder: (context, state) => const NotFoundPage(),
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
       final bootstrap = ref.read(bootstrapControllerProvider);
@@ -349,7 +351,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null) {
             final locale = AppLocalizations.of(context);
-            return Scaffold(body: Center(child: Text(locale.invalidListingId)));
+            return NotFoundPage(message: locale.invalidListingId);
           }
           final seededListing = state.extra is PropertyListing
               ? state.extra as PropertyListing
@@ -553,7 +555,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null) {
             final locale = AppLocalizations.of(context);
-            return Scaffold(body: Center(child: Text(locale.invalidListingId)));
+            return NotFoundPage(message: locale.invalidListingId);
           }
           final seededListing = state.extra is PropertyListing
               ? state.extra as PropertyListing
@@ -630,10 +632,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       final id = int.tryParse(state.pathParameters['id'] ?? '');
                       if (id == null) {
                         final locale = AppLocalizations.of(context);
-                        return Scaffold(
-                          body: Center(
-                            child: Text(locale.invalidConversationId),
-                          ),
+                        return NotFoundPage(
+                          message: locale.invalidConversationId,
                         );
                       }
                       return ChatThreadPage(

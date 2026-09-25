@@ -200,7 +200,7 @@ class ImageUploadService {
       });
 
       final response = await _apiClient.dio.post(
-        '/upload',
+        FlatmatesEndpoints.upload,
         data: formData,
         options: Options(
           contentType: 'multipart/form-data',
@@ -227,9 +227,9 @@ class ImageUploadService {
       final detail = responseData is Map<String, dynamic>
           ? responseData['detail']
           : null;
-      final message = detail ?? e.message ?? 'Upload failed';
+      debugPrint('ImageUploadService._upload failed: ${detail ?? e.message}');
       return UploadFailure(
-        reason: 'Upload failed: $message',
+        reason: '${detail ?? e.message ?? e.type.name}',
         underlyingError: e,
       );
     } on SocketException catch (e) {
@@ -238,7 +238,7 @@ class ImageUploadService {
         underlyingError: e,
       );
     } catch (e) {
-      return UploadFailure(reason: 'Upload failed: $e', underlyingError: e);
+      return UploadFailure(reason: '$e', underlyingError: e);
     }
   }
 }

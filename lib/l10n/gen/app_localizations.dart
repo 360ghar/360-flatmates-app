@@ -5666,6 +5666,12 @@ abstract class AppLocalizations {
   /// **'{count} photo{plural}'**
   String reviewPhotosAmount(int count, String plural);
 
+  /// Title of the page shown for an unknown route or deep link.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not find that page'**
+  String get notFoundTitle;
+
   /// No description provided for @invalidListingId.
   ///
   /// In en, this message translates to:

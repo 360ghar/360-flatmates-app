@@ -14,9 +14,9 @@ import '../bootstrap/catalog_helpers.dart';
 import '../location/application/location_search_provider.dart';
 import '../shared/presentation/components.dart';
 
-final _locatingProvider = StateProvider<bool>((ref) => false);
-final _selectingPlaceProvider = StateProvider<bool>((ref) => false);
-final _searchTextVersionProvider = StateProvider<int>((ref) => 0);
+final _locatingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _selectingPlaceProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _searchTextVersionProvider = StateProvider.autoDispose<int>((ref) => 0);
 
 class LocationSearchPage extends ConsumerStatefulWidget {
   final ValueChanged<LocationData>? onLocationSelected;

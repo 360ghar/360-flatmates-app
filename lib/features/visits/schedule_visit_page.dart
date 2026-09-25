@@ -13,13 +13,16 @@ import '../shared/presentation/components.dart';
 import 'application/visits_list_controller.dart';
 import 'visits_repository.dart';
 
-final _selectedDateProvider = StateProvider<DateTime>(
+// autoDispose: each visit starts from fresh defaults; nothing carries over
+// from a previous scheduling session.
+final _selectedDateProvider = StateProvider.autoDispose<DateTime>(
   (ref) => DateTime.now().add(const Duration(days: 1)),
 );
-final _selectedSlotProvider = StateProvider<String>((ref) => 'afternoon');
-final _submittingVisitProvider = StateProvider<bool>((ref) => false);
-final _conversationProvider = StateProvider<ConversationSummaryModel?>(
-  (ref) => null,
+final _selectedSlotProvider = StateProvider.autoDispose<String>(
+  (ref) => 'afternoon',
+);
+final _submittingVisitProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
 );
 
 class ScheduleVisitPage extends ConsumerStatefulWidget {
@@ -39,21 +42,11 @@ class ScheduleVisitPage extends ConsumerStatefulWidget {
 class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   final _noteController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    // The slot/date/conversation/submitting providers are file-level globals,
-    // so they retain values from a previous scheduling session. Reset them on
-    // entry so a fresh visit doesn't inherit a stale date, slot, or peer.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(_selectedDateProvider.notifier).state = DateTime.now().add(
-        const Duration(days: 1),
-      );
-      ref.read(_selectedSlotProvider.notifier).state = 'afternoon';
-      ref.read(_submittingVisitProvider.notifier).state = false;
-      ref.read(_conversationProvider.notifier).state = widget.conversation;
-    });
+  /// The conversation passed in, or the one fetched by [conversationId].
+  ConversationSummaryModel? get _conversation {
+    final id = widget.conversationId;
+    return widget.conversation ??
+        (id == null ? null : ref.read(conversationProvider(id)).valueOrNull);
   }
 
   @override
@@ -85,7 +78,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
     // taps before the rebuild disables it. (#24)
     if (ref.read(_submittingVisitProvider)) return;
     final locale = AppLocalizations.of(context);
-    final conversation = widget.conversation ?? ref.read(_conversationProvider);
+    final conversation = _conversation;
     final property = conversation?.contextProperty;
     if (conversation == null || property == null) {
       FlatmatesToast.error(context, locale.visitScheduleNoConversation);
@@ -150,15 +143,6 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
     final conversation =
         widget.conversation ?? fetchedConversation?.valueOrNull;
     final property = conversation?.contextProperty;
-    if (ref.read(_conversationProvider) == null &&
-        widget.conversation == null &&
-        conversation != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && ref.read(_conversationProvider) == null) {
-          ref.read(_conversationProvider.notifier).state = conversation;
-        }
-      });
-    }
 
     return Scaffold(
       appBar: FlatmatesHeader.logo(onBack: () => context.pop()),

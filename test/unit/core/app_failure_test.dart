@@ -61,12 +61,12 @@ void main() {
       expect(failure.userMessage(_testL10n), 'Server error');
     });
 
-    test('ServerFailure uses serverMessage when provided', () {
+    test('ServerFailure never shows raw backend text', () {
       const failure = ServerFailure(
         statusCode: 503,
-        serverMessage: 'Maintenance',
+        serverMessage: 'Traceback: db pool exhausted',
       );
-      expect(failure.userMessage(_testL10n), 'Maintenance');
+      expect(failure.userMessage(_testL10n), 'Server error');
     });
 
     test('PermissionFailure has correct label and userMessage', () {
@@ -114,9 +114,10 @@ void main() {
       expect(failure.userMessage(_testL10n), 'Upload error');
     });
 
-    test('UploadFailure includes reason when provided', () {
-      const failure = UploadFailure(reason: 'File too large');
-      expect(failure.userMessage(_testL10n), 'Upload error: File too large');
+    test('UploadFailure keeps the reason out of the user message', () {
+      const failure = UploadFailure(reason: 'DioException: connection reset');
+      expect(failure.userMessage(_testL10n), 'Upload error');
+      expect(failure.reason, 'DioException: connection reset');
     });
 
     test('UnknownFailure has correct label and userMessage', () {

@@ -3005,6 +3005,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notFoundTitle => 'We could not find that page';
+
+  @override
   String get invalidListingId => 'Invalid listing ID';
 
   @override

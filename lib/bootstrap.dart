@@ -1,11 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
+import 'app/build_error_view.dart';
 import 'core/analytics/analytics_service.dart';
 import 'core/config/app_config.dart';
 import 'core/config/env_loader.dart';
@@ -42,6 +44,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Release builds show a quiet message instead of the grey error box, and
+  // never the exception text. Debug keeps Flutter's red screen.
+  if (kReleaseMode) {
+    ErrorWidget.builder = (_) => const BuildErrorView();
+  }
 
   // Bound decoded image memory so long feed/swipe sessions do not grow
   // without limit on mid-range devices. Disk cache is still handled by

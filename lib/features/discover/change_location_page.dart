@@ -20,11 +20,13 @@ import 'application/discover_feed_controller.dart';
 import 'application/map_listings_controller.dart';
 import 'discover_repository.dart';
 
-final _selectedCityProvider = StateProvider<CatalogOption?>((ref) => null);
-final _locatingProvider = StateProvider<bool>((ref) => false);
-final _savingProvider = StateProvider<bool>((ref) => false);
-final _selectingPlaceProvider = StateProvider<bool>((ref) => false);
-final _searchVersionProvider = StateProvider<int>((ref) => 0);
+final _selectedCityProvider = StateProvider.autoDispose<CatalogOption?>(
+  (ref) => null,
+);
+final _locatingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _savingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _selectingPlaceProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _searchVersionProvider = StateProvider.autoDispose<int>((ref) => 0);
 
 class ChangeLocationPage extends ConsumerStatefulWidget {
   const ChangeLocationPage({super.key});

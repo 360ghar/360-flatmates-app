@@ -109,13 +109,16 @@ final class ServerFailure extends AppFailure {
   });
 
   final int? statusCode;
+
+  /// Backend detail, kept for logs. Not shown: 5xx text is English-only and
+  /// can leak internals.
   final String? serverMessage;
 
   @override
   String get label => 'server($statusCode)';
 
   @override
-  String userMessage(UserMessageL10n l10n) => serverMessage ?? l10n.errorServer;
+  String userMessage(UserMessageL10n l10n) => l10n.errorServer;
 }
 
 /// 403 Forbidden — user lacks permission.
@@ -218,14 +221,15 @@ final class ConflictFailure extends AppFailure {
 final class UploadFailure extends AppFailure {
   const UploadFailure({this.reason, super.underlyingError, super.stackTrace});
 
+  /// Developer-facing detail for logs. Never shown: it can hold raw English
+  /// transport or backend text.
   final String? reason;
 
   @override
   String get label => 'upload';
 
   @override
-  String userMessage(UserMessageL10n l10n) =>
-      reason != null ? '${l10n.errorUpload}: $reason' : l10n.errorUpload;
+  String userMessage(UserMessageL10n l10n) => l10n.errorUpload;
 }
 
 /// Catch-all for unexpected errors.

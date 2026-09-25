@@ -131,13 +131,11 @@ class MapListingsController extends Notifier<MapListingsState> {
   }
 
   Future<int?> setLiked(int propertyId, bool liked) async {
-    final original = state.listings;
-    final index = original.indexWhere((listing) => listing.id == propertyId);
-    if (index >= 0) {
-      final optimistic = [...original];
-      optimistic[index] = optimistic[index].copyWith(liked: liked);
-      state = state.copyWith(listings: optimistic);
-    }
+    // Snapshot the listing before the await: a reload can replace or reorder
+    // state.listings meanwhile, so indexes taken now are not valid later.
+    final index = state.listings.indexWhere((l) => l.id == propertyId);
+    final before = index >= 0 ? state.listings[index] : null;
+    if (before != null) _setLikedLocally(propertyId, liked);
 
     try {
       final conversationId = await ref
@@ -154,8 +152,8 @@ class MapListingsController extends Notifier<MapListingsState> {
       ref.invalidate(propertyListingProvider(propertyId));
 
       // Keep the Liked tab in sync when a property is liked from the map.
-      if (index >= 0) {
-        final listing = state.listings[index];
+      if (before != null) {
+        final listing = before.copyWith(liked: liked);
         final outgoing = ref.read(outgoingLikesListControllerProvider.notifier);
         if (liked) {
           outgoing.upsertOutgoingLike(
@@ -174,9 +172,19 @@ class MapListingsController extends Notifier<MapListingsState> {
       return conversationId;
     } catch (e) {
       debugPrint('MapListingsController.setLiked failed: $e');
-      state = state.copyWith(listings: original);
+      // Revert only this listing, so a reload that landed meanwhile is kept.
+      if (before != null) _setLikedLocally(propertyId, before.liked);
       rethrow;
     }
+  }
+
+  void _setLikedLocally(int propertyId, bool? liked) {
+    state = state.copyWith(
+      listings: [
+        for (final l in state.listings)
+          l.id == propertyId ? l.copyWith(liked: liked) : l,
+      ],
+    );
   }
 
   /// Toggles like for [propertyId] (like ↔ unlike). Returns conversation id

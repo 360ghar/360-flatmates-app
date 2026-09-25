@@ -3019,6 +3019,9 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String get notFoundTitle => 'हमें वह पेज नहीं मिला';
+
+  @override
   String get invalidListingId => 'अमान्य लिस्टिंग ID';
 
   @override

@@ -15,20 +15,22 @@ import 'presentation/widgets/listing_form_data.dart';
 import 'presentation/widgets/listing_step_header.dart';
 import 'presentation/widgets/listing_step_view.dart';
 
-// Local UI state for the create/edit listing page. Reset on entry so transient
-// state does not leak across page instances.
-final _createListingStepProvider = StateProvider<int>((ref) => 0);
-final _createListingSubmittingProvider = StateProvider<bool>((ref) => false);
-final _createListingPhotosUploadingProvider = StateProvider<bool>(
+// Local UI state for the create/edit listing page. autoDispose: each page
+// instance starts from the defaults, so nothing leaks across instances.
+final _createListingStepProvider = StateProvider.autoDispose<int>((ref) => 0);
+final _createListingSubmittingProvider = StateProvider.autoDispose<bool>(
   (ref) => false,
 );
-final _createListingLoadingExistingProvider = StateProvider<bool>(
+final _createListingPhotosUploadingProvider = StateProvider.autoDispose<bool>(
   (ref) => false,
 );
-final _createListingDirtyProvider = StateProvider<bool>((ref) => false);
-final _createListingValidationProvider = StateProvider<ListingStepValidation>(
-  (ref) => kNoListingValidation,
+final _createListingLoadingExistingProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
 );
+final _createListingValidationProvider =
+    StateProvider.autoDispose<ListingStepValidation>(
+      (ref) => kNoListingValidation,
+    );
 
 class CreateListingPage extends ConsumerStatefulWidget {
   const CreateListingPage({this.listingId, super.key});
@@ -40,6 +42,9 @@ class CreateListingPage extends ConsumerStatefulWidget {
 }
 
 class _CreateListingPageState extends ConsumerState<CreateListingPage> {
+  /// Unsaved edits. Never shown, so a plain field (no rebuild) is enough.
+  bool _dirty = false;
+
   final _societyController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
@@ -82,23 +87,12 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   @override
   void initState() {
     super.initState();
-    _resetProviders();
     if (widget.listingId != null) {
       ref.read(_createListingLoadingExistingProvider.notifier).state = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadListingForEdit(widget.listingId!);
       });
     }
-  }
-
-  void _resetProviders() {
-    ref.read(_createListingStepProvider.notifier).state = 0;
-    ref.read(_createListingSubmittingProvider.notifier).state = false;
-    ref.read(_createListingPhotosUploadingProvider.notifier).state = false;
-    ref.read(_createListingLoadingExistingProvider.notifier).state = false;
-    ref.read(_createListingDirtyProvider.notifier).state = false;
-    ref.read(_createListingValidationProvider.notifier).state =
-        kNoListingValidation;
   }
 
   Future<void> _loadListingForEdit(int listingId) async {
@@ -203,8 +197,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     setUploading: (v) =>
         ref.read(_createListingPhotosUploadingProvider.notifier).state = v,
     clearValidation: _clearValidationFlags,
-    markDirty: () =>
-        ref.read(_createListingDirtyProvider.notifier).state = true,
+    markDirty: () => _dirty = true,
   );
 
   Future<void> _submit() => submitListingForm(
@@ -219,13 +212,11 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     setStep: (s) => ref.read(_createListingStepProvider.notifier).state = s,
     setValidation: (v) =>
         ref.read(_createListingValidationProvider.notifier).state = v,
-    markClean: () =>
-        ref.read(_createListingDirtyProvider.notifier).state = false,
+    markClean: () => _dirty = false,
   );
 
   Future<bool> _confirmDiscard() async {
-    if (!ref.read(_createListingDirtyProvider) ||
-        ref.read(_createListingSubmittingProvider)) {
+    if (!_dirty || ref.read(_createListingSubmittingProvider)) {
       return true;
     }
     final locale = AppLocalizations.of(context);
@@ -445,7 +436,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   );
 
   void _onFieldChanged() {
-    ref.read(_createListingDirtyProvider.notifier).state = true;
+    _dirty = true;
   }
 
   void _updateString(void Function() setter) => _updateState(setter);
@@ -456,7 +447,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
 
   void _updateState(void Function() setter) {
     setState(setter);
-    ref.read(_createListingDirtyProvider.notifier).state = true;
+    _dirty = true;
   }
 
   void Function(String, bool) _toggleSet(Set<String> set) =>

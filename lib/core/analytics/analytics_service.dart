@@ -38,9 +38,11 @@ class AnalyticsService {
     // Pass uncaught Flutter errors to Crashlytics.
     FlutterError.onError = crashlytics.recordFlutterFatalError;
 
-    // Pass uncaught async errors to Crashlytics.
+    // Pass uncaught async errors to Crashlytics. They did not crash the
+    // app, so they are recorded as non-fatal to keep crash-free metrics true.
     PlatformDispatcher.instance.onError = (error, stack) {
-      crashlytics.recordError(error, stack, fatal: true);
+      debugPrint('Uncaught async error: $error');
+      crashlytics.recordError(error, stack);
       return true;
     };
 
