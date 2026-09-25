@@ -254,7 +254,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     // Never render the form without real prefills: a bootstrap failure would
     // leave Save armed to overwrite name/bio/preferences with blanks.
     if (profile == null) {
-      return Scaffold(
+      return FlatmatesScreen(
         appBar: FlatmatesHeader.backTitle(title: locale.editProfileCta),
         body: bootstrap.hasError
             ? FlatmatesErrorState(
@@ -309,70 +309,69 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         if (didPop) return;
         unawaited(_handlePop());
       },
-      child: Scaffold(
+      child: FlatmatesScreen(
         // Header back bypasses PopScope; route through the unsaved-changes guard.
         appBar: FlatmatesHeader.backTitle(
           title: locale.editProfileCta,
           onBack: _handlePop,
         ),
-        body: SafeArea(
-          minimum: const EdgeInsets.only(
-            top: AppSpacing.lg,
-            left: AppSpacing.screen,
-            right: AppSpacing.screen,
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: FlatmatesSegmentedControl<EditProfileTab>(
-                  segments: editProfileTabSegments(locale),
-                  selected: tab,
-                  onChanged: (value) => setState(() => _tab = value),
-                  segmentKeys: const [
-                    Key('profile_tab_identity'),
-                    Key('profile_tab_preferences'),
-                    Key('profile_tab_lifestyle'),
-                    Key('profile_tab_about'),
-                  ],
-                ),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screen,
+          AppSpacing.lg,
+          AppSpacing.screen,
+          0,
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: FlatmatesSegmentedControl<EditProfileTab>(
+                segments: editProfileTabSegments(locale),
+                selected: tab,
+                onChanged: (value) => setState(() => _tab = value),
+                segmentKeys: const [
+                  Key('profile_tab_identity'),
+                  Key('profile_tab_preferences'),
+                  Key('profile_tab_lifestyle'),
+                  Key('profile_tab_about'),
+                ],
               ),
-              Expanded(
-                child: buildEditProfileTabBody(
-                  tab: tab,
-                  locale: locale,
-                  options: options,
-                  values: values,
-                  handlers: handlers,
-                  emailController: _emailController,
-                  phoneController: _phoneController,
-                  nameController: _nameController,
-                  ageController: _ageController,
-                  professionController: _professionController,
-                  cityController: _cityController,
-                  localityController: _localityController,
-                  budgetMinController: _budgetMinController,
-                  budgetMaxController: _budgetMaxController,
-                  bioController: _bioController,
-                  nativePlaceController: _nativePlaceController,
-                  linkedInController: _linkedInController,
-                  nativePlaceError: _nativePlaceError,
-                  linkedInError: _linkedInError,
-                  hasEmail: _hasEmail,
-                  hasPhone: _hasPhone,
-                  onPickAndUploadPhoto: _pickAndUploadPhoto,
-                ),
+            ),
+            Expanded(
+              child: buildEditProfileTabBody(
+                tab: tab,
+                locale: locale,
+                options: options,
+                values: values,
+                handlers: handlers,
+                emailController: _emailController,
+                phoneController: _phoneController,
+                nameController: _nameController,
+                ageController: _ageController,
+                professionController: _professionController,
+                cityController: _cityController,
+                localityController: _localityController,
+                budgetMinController: _budgetMinController,
+                budgetMaxController: _budgetMaxController,
+                bioController: _bioController,
+                nativePlaceController: _nativePlaceController,
+                linkedInController: _linkedInController,
+                nativePlaceError: _nativePlaceError,
+                linkedInError: _linkedInError,
+                hasEmail: _hasEmail,
+                hasPhone: _hasPhone,
+                onPickAndUploadPhoto: _pickAndUploadPhoto,
               ),
-              FlatmatesBottomActionBar(
-                label: saving ? locale.profileSaving : locale.commonSave,
-                icon: saving ? null : Icons.check,
-                primaryButtonKey: const Key('profile_save_button'),
-                onPressed: (saving || photoUploading || !dirty)
-                    ? null
-                    : () => _save(nullableText),
-              ),
-            ],
-          ),
+            ),
+            FlatmatesBottomActionBar(
+              label: saving ? locale.profileSaving : locale.commonSave,
+              icon: saving ? null : Icons.check,
+              primaryButtonKey: const Key('profile_save_button'),
+              onPressed: (saving || photoUploading || !dirty)
+                  ? null
+                  : () => _save(nullableText),
+            ),
+          ],
         ),
       ),
     );
