@@ -1587,6 +1587,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get notificationsTitle => 'नोटिफिकेशन';
 
   @override
+  String get notificationUnreadLabel => 'अपठित';
+
+  @override
   String get notificationEmpty => 'अभी कोई नोटिफिकेशन नहीं है।';
 
   @override

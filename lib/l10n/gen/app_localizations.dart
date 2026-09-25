@@ -3032,6 +3032,12 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get notificationsTitle;
 
+  /// No description provided for @notificationUnreadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationUnreadLabel;
+
   /// No description provided for @notificationEmpty.
   ///
   /// In en, this message translates to:

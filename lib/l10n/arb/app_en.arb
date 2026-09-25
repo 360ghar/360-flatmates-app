@@ -729,6 +729,7 @@
   "chatPollingInfo": "Messages refresh automatically",
   "flatDetailsTitle": "Flat details",
   "notificationsTitle": "Notifications",
+  "notificationUnreadLabel": "Unread",
   "notificationEmpty": "No notifications yet.",
   "helpSafetyTitle": "Help & Safety",
   "safetyTips": "Safety tips",

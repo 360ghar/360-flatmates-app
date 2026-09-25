@@ -1585,6 +1585,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsTitle => 'Notifications';
 
   @override
+  String get notificationUnreadLabel => 'Unread';
+
+  @override
   String get notificationEmpty => 'No notifications yet.';
 
   @override

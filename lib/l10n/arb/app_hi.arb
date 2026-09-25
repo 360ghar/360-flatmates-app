@@ -715,6 +715,7 @@
   "chatPollingInfo": "मैसेज अपने आप रिफ्रेश होते हैं",
   "flatDetailsTitle": "फ्लैट विवरण",
   "notificationsTitle": "नोटिफिकेशन",
+  "notificationUnreadLabel": "अपठित",
   "notificationEmpty": "अभी कोई नोटिफिकेशन नहीं है।",
   "helpSafetyTitle": "सहायता और सुरक्षा",
   "safetyTips": "सुरक्षा सुझाव",

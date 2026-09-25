@@ -14,6 +14,7 @@ class FlatmatesNotificationCard extends StatelessWidget {
     super.key,
     this.iconColor,
     this.isRead = false,
+    this.unreadLabel,
     this.onTap,
   });
 
@@ -25,12 +26,37 @@ class FlatmatesNotificationCard extends StatelessWidget {
   /// Defaults to clay.
   final Color? iconColor;
   final bool isRead;
+
+  /// Screen-reader name of the unread dot (for example "Unread").
+  final String? unreadLabel;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final brightness = theme.brightness;
+    // At large text sizes the time moves under the text so the title keeps
+    // the full width instead of breaking mid-word.
+    final large = MediaQuery.textScalerOf(context).scale(1) >= 1.5;
+    final timeText = Text(
+      time,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: AppSemanticColors.textTertiaryFor(brightness),
+      ),
+    );
+    final dot = isRead
+        ? null
+        : Semantics(
+            label: unreadLabel,
+            child: Container(
+              width: AppSpacing.sm,
+              height: AppSpacing.sm,
+              decoration: BoxDecoration(
+                color: AppSemanticColors.clayFor(brightness),
+                shape: BoxShape.circle,
+              ),
+            ),
+          );
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -70,35 +96,37 @@ class FlatmatesNotificationCard extends StatelessWidget {
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(brightness),
                     ),
-                    maxLines: 2,
+                    maxLines: large ? 3 : 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (large) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        Flexible(child: timeText),
+                        if (dot != null) ...[
+                          const SizedBox(width: AppSpacing.sm),
+                          dot,
+                        ],
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  time,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.textTertiaryFor(brightness),
-                  ),
-                ),
-                if (!isRead) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Container(
-                    width: AppSpacing.sm,
-                    height: AppSpacing.sm,
-                    decoration: BoxDecoration(
-                      color: AppSemanticColors.clayFor(brightness),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+            if (!large) ...[
+              const SizedBox(width: AppSpacing.sm),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  timeText,
+                  if (dot != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    dot,
+                  ],
                 ],
-              ],
-            ),
+              ),
+            ],
           ],
         ),
       ),

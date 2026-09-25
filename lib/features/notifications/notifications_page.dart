@@ -14,6 +14,7 @@ import '../shared/presentation/flatmates_async_view.dart';
 import '../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_screen.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_ui.dart';
@@ -40,12 +41,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   @override
   void initState() {
     super.initState();
+    // The list controller loads itself on first build.
     _scrollController.addListener(_onScroll);
-    // Prime the cursor controller so the first paint already has data.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(notificationsListControllerProvider.notifier).load();
-    });
   }
 
   @override
@@ -77,116 +74,106 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final theme = Theme.of(context);
     final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
 
-    return Scaffold(
+    final hasUnread =
+        notificationsState.valueOrNull?.items.any((n) => !n.isRead) ?? false;
+
+    return FlatmatesScreen(
       backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(
         title: locale.notificationsTitle,
         actions: [
           FlatmatesChromeIconButton(
             key: const Key('notification_mark_all_read'),
-            onPressed: () async {
-              try {
-                await ref
-                    .read(notificationsActionsControllerProvider)
-                    .markAllRead();
-              } catch (e) {
-                if (context.mounted) {
-                  final msg = e is AppFailure
-                      ? e.userMessage(locale.toUserMessageL10n())
-                      : locale.errorUnknown;
-                  FlatmatesToast.error(context, msg);
-                }
-              }
-            },
+            // Disabled when there is nothing to mark.
+            onPressed: !hasUnread
+                ? null
+                : () async {
+                    try {
+                      await ref
+                          .read(notificationsActionsControllerProvider)
+                          .markAllRead();
+                    } catch (e) {
+                      debugPrint('NotificationsPage.markAllRead: $e');
+                      if (context.mounted) {
+                        final msg = e is AppFailure
+                            ? e.userMessage(locale.toUserMessageL10n())
+                            : locale.errorUnknown;
+                        FlatmatesToast.error(context, msg);
+                      }
+                    }
+                  },
             icon: Icons.check_circle_outline,
             tooltip: locale.markAllRead,
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: FlatmatesAsyncView<CursorListState<NotificationModel>>(
-                value: notificationsState,
-                loading: const FlatmatesSkeleton.notificationList(),
-                isEmpty: (state) => state.items.isEmpty,
-                empty: FlatmatesEmptyState(
-                  title: locale.notificationEmpty,
-                  subtitle: locale.notificationsEmptySubtitle,
-                  icon: Icons.notifications_none_rounded,
-                ),
-                onRetry: () => ref
-                    .read(notificationsListControllerProvider.notifier)
-                    .refresh(),
-                data: (state) {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      await ref
-                          .read(notificationsListControllerProvider.notifier)
-                          .refresh();
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.sm,
-                      ),
-                      itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= state.items.length) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.lg,
+      body: FlatmatesAsyncView<CursorListState<NotificationModel>>(
+        value: notificationsState,
+        loading: const FlatmatesSkeleton.notificationList(),
+        isEmpty: (state) => state.items.isEmpty,
+        empty: FlatmatesEmptyState(
+          title: locale.notificationEmpty,
+          subtitle: locale.notificationsEmptySubtitle,
+          icon: Icons.notifications_none_rounded,
+        ),
+        onRetry: () =>
+            ref.read(notificationsListControllerProvider.notifier).refresh(),
+        data: (state) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              await ref
+                  .read(notificationsListControllerProvider.notifier)
+                  .refresh();
+            },
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              itemCount: state.items.length + (state.hasMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.items.length) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.lg,
+                    ),
+                    child: Center(
+                      child: state.isLoadingMore
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : FlatmatesButton.tertiary(
+                              label: locale.loadMoreCta,
+                              icon: Icons.expand_more_rounded,
+                              onPressed: () => ref
+                                  .read(
+                                    notificationsListControllerProvider
+                                        .notifier,
+                                  )
+                                  .loadMore(),
                             ),
-                            child: Center(
-                              child: state.isLoadingMore
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : TextButton.icon(
-                                      onPressed: () => ref
-                                          .read(
-                                            notificationsListControllerProvider
-                                                .notifier,
-                                          )
-                                          .loadMore(),
-                                      icon: const Icon(
-                                        Icons.expand_more_rounded,
-                                      ),
-                                      label: Text(locale.loadMoreCta),
-                                    ),
-                            ),
-                          );
-                        }
-                        final notification = state.items[index];
-                        return FlatmatesNotificationCard(
-                          title: notification.title,
-                          body: notification.body,
-                          time: messageTimestamp(
-                            locale,
-                            notification.createdAt,
-                          ),
-                          icon: _iconForType(notification.type),
-                          iconColor: _iconColorForType(
-                            notification.type,
-                            Theme.of(context).brightness,
-                          ),
-                          isRead: notification.isRead,
-                          onTap: () =>
-                              unawaited(_handleTap(context, ref, notification)),
-                        );
-                      },
                     ),
                   );
-                },
-              ),
+                }
+                final notification = state.items[index];
+                return FlatmatesNotificationCard(
+                  title: notification.title,
+                  body: notification.body,
+                  time: messageTimestamp(locale, notification.createdAt),
+                  icon: _iconForType(notification.type),
+                  iconColor: _iconColorForType(
+                    notification.type,
+                    Theme.of(context).brightness,
+                  ),
+                  isRead: notification.isRead,
+                  unreadLabel: locale.notificationUnreadLabel,
+                  onTap: () =>
+                      unawaited(_handleTap(context, ref, notification)),
+                );
+              },
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -205,6 +192,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
               .read(notificationsActionsControllerProvider)
               .markRead(notification.id);
         } catch (e) {
+          debugPrint('NotificationsPage._handleTap markRead: $e');
           if (context.mounted) {
             final msg = e is AppFailure
                 ? e.userMessage(locale.toUserMessageL10n())
@@ -250,7 +238,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         return Icons.verified_outlined;
       case 'visit_scheduled':
       case 'flatmate_visit_scheduled':
-        return Icons.notifications_outlined;
+        return Icons.event_outlined;
       case 'visit_confirmed':
       case 'flatmate_visit_confirmed':
         return Icons.calendar_month;
