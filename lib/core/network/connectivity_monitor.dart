@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
+import '../../features/shared/presentation/paper/paper_edge_border.dart';
+import '../../features/shared/presentation/paper/paper_surface.dart';
 import '../../l10n/gen/app_localizations.dart';
 
 /// Whether the device currently has a non-none network interface.
@@ -82,45 +84,58 @@ class OfflineBanner extends ConsumerWidget {
     final locale = AppLocalizations.of(context);
     final ink = AppSemanticColors.warningInkFor(b);
 
-    return Column(
-      children: [
-        Semantics(
-          liveRegion: true,
-          child: Material(
-            color: AppSemanticColors.warningSoftFor(b),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screen,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.cloud_off_rounded, size: 18, color: ink),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        locale.youAreOffline,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: ink,
+    // The page colour sits behind the strip, so the scallop cut-outs show
+    // the page paper instead of the bare window.
+    return ColoredBox(
+      color: theme.scaffoldBackgroundColor,
+      child: Column(
+        children: [
+          Semantics(
+            liveRegion: true,
+            // Scallop-edged warning-soft strip (DESIGN.md §8). PaperSurface
+            // pads the cut side, so the text clears the scallops.
+            child: PaperSurface(
+              color: AppSemanticColors.warningSoftFor(b),
+              elevation: PaperElevation.e0,
+              borderRadius: BorderRadius.zero,
+              edge: PaperEdge.scallop,
+              edgeSide: PaperEdgeSide.bottom,
+              edgeDepth: 6,
+              grain: false,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screen,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_off_rounded, size: 18, color: ink),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          locale.youAreOffline,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: ink,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: child,
+          Expanded(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: child,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

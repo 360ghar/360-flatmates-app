@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/domain/enums.dart';
 import '../core/providers.dart';
 import '../core/storage/app_preferences.dart';
+import '../core/theme/app_motion.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../features/onboarding/onboarding_completion_banner.dart';
@@ -81,7 +82,6 @@ class AppShell extends ConsumerWidget {
         layer: PaperLayer.one,
         elevation: PaperElevation.e0,
         edge: PaperEdge.torn,
-        edgeDepth: 8,
         borderRadius: BorderRadius.zero,
         child: SafeArea(
           top: false,
@@ -98,6 +98,12 @@ class AppShell extends ConsumerWidget {
                 );
               },
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              // The indicator slides with the standard paper curve, and not
+              // at all under reduce motion (Material's default is 500 ms).
+              animationDuration: AppMotion.durationOrZero(
+                context,
+                AppMotion.standard,
+              ),
               backgroundColor: Colors.transparent,
               elevation: 0,
               shadowColor: Colors.transparent,
