@@ -18,6 +18,7 @@ export 'flatmates_dialog.dart';
 export 'flatmates_empty_state.dart';
 export 'flatmates_error_state.dart';
 export 'flatmates_header.dart';
+export 'flatmates_inline_error.dart';
 export 'flatmates_like_button.dart';
 export 'flatmates_listing_meta_chips.dart';
 export 'flatmates_listing_mini_card.dart';

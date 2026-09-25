@@ -30,6 +30,9 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
 
+  /// Focus nodes for the hardware-backspace listeners around each box.
+  late final List<FocusNode> _keyNodes;
+
   /// Guard flag to suppress re-entrant [onChanged] callbacks while
   /// programmatically distributing digits across boxes (autofill / paste).
   bool _isFilling = false;
@@ -42,6 +45,10 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
       (_) => TextEditingController(),
     );
     _focusNodes = List.generate(widget.digitCount, (_) => FocusNode());
+    _keyNodes = List.generate(
+      widget.digitCount,
+      (_) => FocusNode(skipTraversal: true),
+    );
   }
 
   @override
@@ -49,7 +56,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
     for (final c in _controllers) {
       c.dispose();
     }
-    for (final f in _focusNodes) {
+    for (final f in [..._focusNodes, ..._keyNodes]) {
       f.dispose();
     }
     super.dispose();
@@ -143,6 +150,7 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -162,11 +170,12 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
           children: List.generate(widget.digitCount, (index) {
             return Padding(
               padding: EdgeInsets.only(right: index < gapCount ? gap : 0),
+              // Width is fixed; height grows with the text size so digits
+              // never clip at large text scales.
               child: SizedBox(
                 width: boxWidth,
-                height: boxWidth + AppSpacing.sm,
                 child: KeyboardListener(
-                  focusNode: FocusNode(),
+                  focusNode: _keyNodes[index],
                   onKeyEvent: (event) {
                     if (event.logicalKey.keyLabel == 'Backspace' ||
                         event.logicalKey.keyLabel == 'Delete') {
@@ -188,34 +197,38 @@ class FlatmatesOtpInputState extends State<FlatmatesOtpInput> {
                         ? const [AutofillHints.oneTimeCode]
                         : null,
                     textAlign: TextAlign.center,
+                    textAlignVertical: TextAlignVertical.center,
                     maxLength: index == 0 ? null : 1,
                     style: theme.textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
                       fontSize: fontSize,
                     ),
                     decoration: InputDecoration(
                       counterText: '',
+                      constraints: BoxConstraints(
+                        minHeight: boxWidth + AppSpacing.sm,
+                      ),
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: AppSpacing.sm,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
                         borderSide: BorderSide(
-                          color: AppSemanticColors.hairlineFor(
-                            theme.brightness,
-                          ),
+                          color: AppSemanticColors.hairlineFor(brightness),
                         ),
                       ),
-                      focusedBorder: const OutlineInputBorder(
+                      focusedBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
                         borderSide: BorderSide(
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.clayFor(brightness),
                           width: 2,
                         ),
                       ),
-                      errorBorder: const OutlineInputBorder(
+                      errorBorder: OutlineInputBorder(
                         borderRadius: AppRadius.mdBorder,
-                        borderSide: BorderSide(color: AppSemanticColors.error),
+                        borderSide: BorderSide(
+                          color: AppSemanticColors.dangerFor(brightness),
+                          width: 2,
+                        ),
                       ),
                     ),
                     onChanged: (value) => _onDigitChanged(index, value),

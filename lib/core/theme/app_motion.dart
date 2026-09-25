@@ -70,20 +70,23 @@ abstract final class AppMotion {
     return reduceMotion(context) ? Duration.zero : duration;
   }
 
-  /// Returns a staggered [Interval] for list items.
-  ///
-  /// [index] is the item index, [totalItems] is the total count,
-  /// and [staggerMs] is the delay between each item (default 50ms).
-  /// The interval covers the item's own animation window.
+  /// Total length of an entrance with [count] staggered layers.
+  static Duration staggerTotal(int count) => slow + layerStagger * (count - 1);
+
+  /// The window of layer [index] inside a [staggerTotal] entrance of [count]
+  /// layers. Each layer starts [layerStagger] after the one before it and
+  /// runs for [slow]. Index 0 is the back layer (DESIGN.md §7).
   static Interval staggerInterval({
     required int index,
-    int totalItems = 6,
-    int staggerMs = 50,
+    required int count,
+    Curve curve = paperOut,
   }) {
-    final totalMs =
-        staggerMs * totalItems + 300; // 300ms for last item's own anim
-    final start = (staggerMs * index) / totalMs;
-    final end = (staggerMs * index + 300) / totalMs;
-    return Interval(start.clamp(0.0, 1.0), end.clamp(0.0, 1.0));
+    final total = staggerTotal(count).inMilliseconds;
+    final start = layerStagger.inMilliseconds * index;
+    return Interval(
+      start / total,
+      (start + slow.inMilliseconds) / total,
+      curve: curve,
+    );
   }
 }
