@@ -89,6 +89,7 @@ class OwnerProfileSheet extends ConsumerWidget {
         onScheduleVisit: onScheduleVisit,
         onReport: handleReport,
         showError: true,
+        onRetry: () => ref.invalidate(peerProfileProvider(ownerId)),
       ),
       // A null payload is the actual failure path (fetchPeerProfile catches
       // errors and returns null rather than throwing), so treat it like an
@@ -101,6 +102,7 @@ class OwnerProfileSheet extends ConsumerWidget {
         onScheduleVisit: onScheduleVisit,
         onReport: handleReport,
         showError: peerData == null,
+        onRetry: () => ref.invalidate(peerProfileProvider(ownerId)),
         compatResult: compatAsync.valueOrNull,
       ),
     );
@@ -115,6 +117,7 @@ class _OwnerProfileBody extends StatelessWidget {
     required this.onScheduleVisit,
     this.onReport,
     this.showError = false,
+    this.onRetry,
     this.compatResult,
   });
 
@@ -124,6 +127,7 @@ class _OwnerProfileBody extends StatelessWidget {
   final VoidCallback onScheduleVisit;
   final VoidCallback? onReport;
   final bool showError;
+  final VoidCallback? onRetry;
   final CompatibilityResult? compatResult;
 
   @override
@@ -330,6 +334,11 @@ class _OwnerProfileBody extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (onRetry != null)
+                        TextButton(
+                          onPressed: onRetry,
+                          child: Text(locale.commonRetry),
+                        ),
                     ],
                     if (age != null || profession != null)
                       Padding(

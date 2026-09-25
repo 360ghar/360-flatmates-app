@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/error_presenter.dart';
 import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
@@ -78,7 +79,11 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
     } catch (e, st) {
       debugPrint('FlatmateProfileSheet._handleContact: $e');
       if (!mounted) return;
-      final failure = e is DioException ? ErrorPresenter.fromDio(e, st) : null;
+      final failure = switch (e) {
+        final AppFailure f => f,
+        final DioException d => ErrorPresenter.fromDio(d, st),
+        _ => null,
+      };
       final message = failure != null
           ? failure.userMessage(locale.toUserMessageL10n())
           : locale.errorUnknown;
@@ -96,13 +101,20 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
     );
     final isSelf = currentUserId != null && currentUserId == widget.userId;
+    void retry() => ref.invalidate(peerProfileProvider(widget.userId));
 
     return profileAsync.when(
       loading: () => const FlatmatesSkeleton.peerProfileSheet(),
-      error: (_, _) => _LoadError(name: widget.nameFallback ?? 'Flatmate'),
+      error: (_, _) => _LoadError(
+        name: widget.nameFallback ?? locale.matchPeerFallbackName,
+        onRetry: retry,
+      ),
       data: (peerData) {
         if (peerData == null) {
-          return _LoadError(name: widget.nameFallback ?? 'Flatmate');
+          return _LoadError(
+            name: widget.nameFallback ?? locale.matchPeerFallbackName,
+            onRetry: retry,
+          );
         }
         final peer = SwipeProfile.fromJson(peerData);
         final currentUser = ref.watch(
@@ -136,8 +148,9 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
 }
 
 class _LoadError extends StatelessWidget {
-  const _LoadError({required this.name});
+  const _LoadError({required this.name, required this.onRetry});
   final String name;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +180,7 @@ class _LoadError extends StatelessWidget {
               ),
             ),
           ),
+          TextButton(onPressed: onRetry, child: Text(locale.commonRetry)),
         ],
       ),
     );

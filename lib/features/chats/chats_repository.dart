@@ -458,9 +458,12 @@ final messagesStreamProvider = StreamProvider.family
           ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
     );
 
-final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
-  (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
-);
+// autoDispose: a failed (null) load must not stay cached for the session.
+final peerProfileProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, int>(
+      (ref, userId) =>
+          ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
+    );
 
 final peerCompatibilityProvider =
     FutureProvider.family<CompatibilityResult?, int>(
