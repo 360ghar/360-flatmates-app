@@ -51,7 +51,8 @@ void main() {
 
       expect(tester.takeException(), isNull);
       final label = tester.widget<Text>(find.byType(Text));
-      expect(label.maxLines, 1);
+      // Wraps to two lines at most, then ellipsizes.
+      expect(label.maxLines, 2);
       expect(label.overflow, TextOverflow.ellipsis);
     });
 
@@ -147,7 +148,8 @@ void main() {
 
       expect(tester.takeException(), isNull);
       final label = tester.widget<Text>(find.text('मैच करें'));
-      expect(label.maxLines, 1);
+      // Wraps to two lines at most, then ellipsizes.
+      expect(label.maxLines, 2);
       expect(label.overflow, TextOverflow.ellipsis);
     });
   });

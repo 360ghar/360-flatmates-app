@@ -50,7 +50,7 @@ class FlatmatesTrustBadge extends StatelessWidget {
           Flexible(
             child: Text(
               label,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: color,

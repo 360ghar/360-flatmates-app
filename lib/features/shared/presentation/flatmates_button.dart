@@ -289,9 +289,11 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
         scale: _pressed ? 0.98 : 1.0,
         duration: AppMotion.buttonPress,
         curve: AppMotion.easeOutCubic,
-        child: SizedBox(
-          height: widget.height,
-          width: widget.fullWidth ? double.infinity : null,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: widget.height,
+            minWidth: widget.fullWidth ? double.infinity : 0,
+          ),
           child: ElevatedButton(
             onPressed: widget.onPressed,
             style:
@@ -334,6 +336,8 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
                 Flexible(
                   child: Text(
                     widget.label,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 14,

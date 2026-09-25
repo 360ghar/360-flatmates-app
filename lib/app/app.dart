@@ -331,8 +331,12 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       routerConfig: router,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) =>
-          OfflineBanner(child: child ?? const SizedBox.shrink()),
+      // Text follows the user's size up to 2x. Beyond that, display type
+      // breaks words mid-line and single-line controls truncate.
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 2,
+        child: OfflineBanner(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 

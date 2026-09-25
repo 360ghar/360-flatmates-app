@@ -279,12 +279,17 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
                         absorbing: isBusy || !termsAccepted,
                         child: Opacity(
                           opacity: (isBusy || !termsAccepted) ? 0.5 : 1,
-                          child: SignInWithAppleButton(
-                            key: const Key('auth_apple_button'),
-                            onPressed: _onApple,
-                            style: theme.brightness == Brightness.dark
-                                ? SignInWithAppleButtonStyle.white
-                                : SignInWithAppleButtonStyle.black,
+                          // The package button has a fixed 52 px height; keep its
+                          // label inside it at large text sizes.
+                          child: MediaQuery.withClampedTextScaling(
+                            maxScaleFactor: 1.3,
+                            child: SignInWithAppleButton(
+                              key: const Key('auth_apple_button'),
+                              onPressed: _onApple,
+                              style: theme.brightness == Brightness.dark
+                                  ? SignInWithAppleButtonStyle.white
+                                  : SignInWithAppleButtonStyle.black,
+                            ),
                           ),
                         ),
                       ),
