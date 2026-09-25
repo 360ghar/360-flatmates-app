@@ -1,27 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_motion.dart';
-import '../../../../core/theme/app_semantic_colors.dart';
-
-/// Section label above a profile menu group.
-class MenuGroupLabel extends StatelessWidget {
-  const MenuGroupLabel({required this.label, super.key});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      header: true,
-      child: Text(
-        label,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: AppSemanticColors.textSecondaryFor(theme.brightness),
-        ),
-      ),
-    );
-  }
-}
 
 /// Staggered rise for profile menu groups (content is never hidden).
 class StaggeredMenuGroup extends StatefulWidget {

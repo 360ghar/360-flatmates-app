@@ -3219,6 +3219,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'An update is ready. It will apply the next time you open the app.';
 
   @override
+  String appVersionLabel(String version) {
+    return 'Version $version';
+  }
+
+  @override
   String patchLabel(int number) {
     return 'patch $number';
   }

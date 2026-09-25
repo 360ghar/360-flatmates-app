@@ -1507,6 +1507,14 @@
   "optionalUpdateCta": "Update now",
   "optionalUpdateLater": "Later",
   "patchReadyMessage": "An update is ready. It will apply the next time you open the app.",
+  "appVersionLabel": "Version {version}",
+  "@appVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "patchLabel": "patch {number}",
   "@patchLabel": {
     "placeholders": {

@@ -77,10 +77,13 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // Type only: no decorative bar beside the label.
-    return Text(
-      label,
-      style: theme.textTheme.labelMedium?.copyWith(
-        color: AppSemanticColors.textSecondaryFor(theme.brightness),
+    return Semantics(
+      header: true,
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: AppSemanticColors.textSecondaryFor(theme.brightness),
+        ),
       ),
     );
   }

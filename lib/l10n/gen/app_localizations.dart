@@ -6032,6 +6032,12 @@ abstract class AppLocalizations {
   /// **'An update is ready. It will apply the next time you open the app.'**
   String get patchReadyMessage;
 
+  /// No description provided for @appVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String appVersionLabel(String version);
+
   /// No description provided for @patchLabel.
   ///
   /// In en, this message translates to:

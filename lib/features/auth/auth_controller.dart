@@ -752,6 +752,12 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Changes the password of the signed-in account (Settings). Leaves
+  /// [state] unchanged: the page shows its own progress, and an auth-state
+  /// change would refresh the router mid-flow.
+  Future<void> changePassword(String newPassword) =>
+      _repository.changePassword(newPassword);
+
   /// Finishes a forgot-password reset while keeping the session created by
   /// the reset OTP verify: the OTP already proved identity, so the user stays
   /// signed in instead of re-entering the new password on the login screen.

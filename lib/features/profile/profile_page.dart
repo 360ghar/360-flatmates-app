@@ -10,6 +10,7 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../settings/preferences_sheet.dart';
 import '../settings/settings_controller.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/profile_sections.dart';
 import 'presentation/widgets/profile_header.dart';
 import 'presentation/widgets/profile_menu_group.dart';
 import 'presentation/widgets/profile_strength_card.dart';
@@ -81,7 +82,7 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.base),
                 // --- Menu items with staggered appear ---
-                MenuGroupLabel(label: locale.discoverySectionLabel),
+                SectionHeader(label: locale.discoverySectionLabel),
                 const SizedBox(height: AppSpacing.sm),
                 StaggeredMenuGroup(
                   delayIndex: 0,
@@ -125,7 +126,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.base),
-                MenuGroupLabel(label: locale.trustSectionLabel),
+                SectionHeader(label: locale.trustSectionLabel),
                 const SizedBox(height: AppSpacing.sm),
                 StaggeredMenuGroup(
                   delayIndex: 1,
@@ -175,7 +176,7 @@ class ProfilePage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        MenuGroupLabel(label: locale.accountSectionLabel),
+        SectionHeader(label: locale.accountSectionLabel),
         const SizedBox(height: AppSpacing.sm),
         StaggeredMenuGroup(
           delayIndex: 2,

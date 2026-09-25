@@ -17,6 +17,16 @@ class BlockedUsersListController extends CursorListController<BlockedUser> {
   @override
   bool matchesItem(BlockedUser a, BlockedUser b) =>
       a.blockedUserId == b.blockedUserId;
+
+  /// Unblocks [blockedUserId], then reloads this list and the chat and
+  /// likes lists: the unblock restores that user's likes and conversations.
+  Future<void> unblock(int blockedUserId) async {
+    await ref.read(blockedUsersRepositoryProvider).unblockUser(blockedUserId);
+    ref.invalidateSelf();
+    ref.invalidate(conversationsListControllerProvider);
+    ref.invalidate(incomingLikesListControllerProvider);
+    ref.invalidate(outgoingLikesListControllerProvider);
+  }
 }
 
 final blockedUsersListControllerProvider =

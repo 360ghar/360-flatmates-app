@@ -3234,6 +3234,11 @@ class AppLocalizationsHi extends AppLocalizations {
       'एक अपडेट तैयार है। यह अगली बार ऐप खोलने पर लागू होगा।';
 
   @override
+  String appVersionLabel(String version) {
+    return 'संस्करण $version';
+  }
+
+  @override
   String patchLabel(int number) {
     return 'पैच $number';
   }

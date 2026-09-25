@@ -1,202 +1,196 @@
 import 'package:flutter/material.dart';
-import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
+import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
-import '../shared/presentation/flatmates_card.dart';
-import '../shared/presentation/flatmates_dialog.dart';
-import '../shared/presentation/flatmates_empty_state.dart';
-import '../shared/presentation/flatmates_error_state.dart';
-import '../shared/presentation/flatmates_header.dart';
-import '../shared/presentation/flatmates_skeleton.dart';
-import '../shared/presentation/flatmates_toast.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
+import 'data/blocked_user_model.dart';
 import 'data/blocked_users_list_controller.dart';
-import 'data/blocked_users_repository.dart';
 
-class BlockedUsersPage extends ConsumerWidget {
+class BlockedUsersPage extends ConsumerStatefulWidget {
   const BlockedUsersPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BlockedUsersPage> createState() => _BlockedUsersPageState();
+}
+
+class _BlockedUsersPageState extends ConsumerState<BlockedUsersPage> {
+  /// Users with an unblock in flight (their button is disabled).
+  final _unblocking = <int>{};
+
+  BlockedUsersListController get _controller =>
+      ref.read(blockedUsersListControllerProvider.notifier);
+
+  Future<void> _confirmAndUnblock(int blockedUserId) async {
+    final locale = AppLocalizations.of(context);
+    final confirmed = await FlatmatesDialog.confirm(
+      context,
+      title: locale.unblockCta,
+      cancelLabel: locale.cancelCta,
+      confirmLabel: locale.unblockCta,
+      cancelKey: const Key('unblock_dialog_cancel'),
+      confirmKey: const Key('unblock_dialog_confirm'),
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _unblocking.add(blockedUserId));
+    try {
+      await _controller.unblock(blockedUserId);
+      if (!mounted) return;
+      FlatmatesToast.success(context, locale.userUnblocked);
+    } catch (e) {
+      debugPrint(
+        'BlockedUsersPage: unblock failed for user $blockedUserId: $e',
+      );
+      if (!mounted) return;
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.unblockFailed;
+      FlatmatesToast.error(context, msg);
+    } finally {
+      if (mounted) setState(() => _unblocking.remove(blockedUserId));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final blockedUsers = ref.watch(blockedUsersListControllerProvider);
-    final unblockingIds = ref.watch(_unblockingIdsProvider);
 
-    return Scaffold(
+    return FlatmatesScreen(
       appBar: FlatmatesHeader.backTitle(title: locale.blockedUsersLabel),
-      body: blockedUsers.when(
-        data: (state) {
-          return RefreshIndicator(
-            onRefresh: () =>
-                ref.read(blockedUsersListControllerProvider.notifier).refresh(),
-            child: state.items.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      FlatmatesEmptyState(
-                        title: locale.noBlockedUsers,
-                        subtitle: locale.blockedUsersAppearHere,
-                        icon: Icons.person_off_rounded,
-                      ),
-                    ],
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.md),
-                    itemBuilder: (context, index) {
-                      if (index >= state.items.length) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.lg,
+      body: RefreshIndicator(
+        onRefresh: _controller.refresh,
+        child: FlatmatesAsyncView<CursorListState<BlockedUser>>(
+          value: blockedUsers,
+          onRetry: _controller.refresh,
+          loading: const Padding(
+            padding: EdgeInsets.all(AppSpacing.screen),
+            child: FlatmatesSkeleton.list(),
+          ),
+          error: (_, _) => FlatmatesErrorState(
+            message: locale.couldNotLoadBlockedUsers,
+            onRetry: _controller.refresh,
+          ),
+          isEmpty: (state) => state.items.isEmpty,
+          // A scroll view, so pull to refresh works on the empty state too.
+          empty: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              FlatmatesEmptyState(
+                title: locale.noBlockedUsers,
+                subtitle: locale.blockedUsersAppearHere,
+                icon: Icons.person_off_rounded,
+              ),
+            ],
+          ),
+          data: (state) => ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.screen),
+            itemCount: state.items.length + (state.hasMore ? 1 : 0),
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+            itemBuilder: (context, index) {
+              if (index >= state.items.length) {
+                return Center(
+                  child: state.isLoadingMore
+                      ? const Padding(
+                          padding: EdgeInsets.all(AppSpacing.md),
+                          child: SizedBox.square(
+                            dimension: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                          child: Center(
-                            child: state.isLoadingMore
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : TextButton.icon(
-                                    onPressed: () => ref
-                                        .read(
-                                          blockedUsersListControllerProvider
-                                              .notifier,
-                                        )
-                                        .loadMore(),
-                                    icon: const Icon(Icons.expand_more_rounded),
-                                    label: Text(locale.loadMoreCta),
-                                  ),
-                          ),
-                        );
-                      }
-                      final user = state.items[index];
-                      final isUnblocking = unblockingIds.contains(
-                        user.blockedUserId,
-                      );
-                      return FlatmatesCard(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                          vertical: AppSpacing.md,
+                        )
+                      : FlatmatesButton.tertiary(
+                          label: locale.loadMoreCta,
+                          icon: Icons.expand_more_rounded,
+                          onPressed: _controller.loadMore,
                         ),
-                        child: Row(
-                          children: [
-                            FlatmatesAvatar(
-                              name: user.name,
-                              imageUrl: user.imageUrl,
-                              size: 40,
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    user.name,
-                                    style: Theme.of(context).textTheme.bodyLarge
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                  if (user.location != null) ...[
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      user.location!,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color:
-                                                AppSemanticColors.textSecondaryFor(
-                                                  Theme.of(context).brightness,
-                                                ),
-                                          ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            FlatmatesButton.secondary(
-                              label: locale.unblockCta,
-                              destructive: true,
-                              height: 36,
-                              onPressed: isUnblocking
-                                  ? null
-                                  : () => _confirmAndUnblock(
-                                      context,
-                                      ref,
-                                      user.blockedUserId,
-                                    ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          );
-        },
-        loading: () => const Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: FlatmatesSkeleton.list(),
-        ),
-        error: (error, _) => FlatmatesErrorState(
-          message: locale.couldNotLoadBlockedUsers,
-          onRetry: () =>
-              ref.read(blockedUsersListControllerProvider.notifier).refresh(),
+                );
+              }
+              final user = state.items[index];
+              return _BlockedUserRow(
+                user: user,
+                onUnblock: _unblocking.contains(user.blockedUserId)
+                    ? null
+                    : () => _confirmAndUnblock(user.blockedUserId),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 }
 
-Future<void> _confirmAndUnblock(
-  BuildContext context,
-  WidgetRef ref,
-  int blockedUserId,
-) async {
-  final locale = AppLocalizations.of(context);
-  final confirmed = await FlatmatesDialog.confirm(
-    context,
-    title: locale.unblockCta,
-    cancelLabel: locale.cancelCta,
-    confirmLabel: locale.unblockCta,
-    cancelKey: const Key('unblock_dialog_cancel'),
-    confirmKey: const Key('unblock_dialog_confirm'),
-  );
-  if (confirmed != true || !context.mounted) return;
+class _BlockedUserRow extends StatelessWidget {
+  const _BlockedUserRow({required this.user, required this.onUnblock});
 
-  ref.read(_unblockingIdsProvider.notifier).state = {
-    ...ref.read(_unblockingIdsProvider),
-    blockedUserId,
-  };
-  try {
-    await ref.read(blockedUsersRepositoryProvider).unblockUser(blockedUserId);
-    ref.invalidate(blockedUsersListControllerProvider);
-    // Unblocking restores the user's likes and conversations; those lists
-    // are watched elsewhere and would stay stale until manually refreshed.
-    ref.invalidate(conversationsListControllerProvider);
-    ref.invalidate(incomingLikesListControllerProvider);
-    ref.invalidate(outgoingLikesListControllerProvider);
-    if (!context.mounted) return;
-    FlatmatesToast.success(context, locale.userUnblocked);
-  } catch (e) {
-    debugPrint('BlockedUsersPage: unblock failed for user $blockedUserId: $e');
-    if (!context.mounted) return;
-    final msg = e is AppFailure
-        ? e.userMessage(locale.toUserMessageL10n())
-        : locale.unblockFailed;
-    FlatmatesToast.error(context, msg);
-  } finally {
-    ref.read(_unblockingIdsProvider.notifier).state = {
-      ...ref.read(_unblockingIdsProvider),
-    }..remove(blockedUserId);
+  final BlockedUser user;
+  final VoidCallback? onUnblock;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+    final identity = Row(
+      children: [
+        FlatmatesAvatar(name: user.name, imageUrl: user.imageUrl, size: 40),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                user.name,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (user.location != null) ...[
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  user.location!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+    final unblock = FlatmatesButton.tertiary(
+      key: ValueKey('unblock_${user.blockedUserId}'),
+      label: locale.unblockCta,
+      onPressed: onUnblock,
+    );
+    // At large text sizes the button moves under the name so the name keeps
+    // the full row width.
+    final large = MediaQuery.textScalerOf(context).scale(1) >= 1.5;
+
+    return FlatmatesCard(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.base,
+        AppSpacing.sm,
+        AppSpacing.xs,
+        AppSpacing.sm,
+      ),
+      child: large
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [identity, unblock],
+            )
+          : Row(
+              children: [
+                Expanded(child: identity),
+                unblock,
+              ],
+            ),
+    );
   }
 }
-
-final _unblockingIdsProvider = StateProvider.autoDispose<Set<int>>((ref) => {});

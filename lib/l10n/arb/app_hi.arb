@@ -1497,6 +1497,14 @@
   "optionalUpdateCta": "अभी अपडेट करें",
   "optionalUpdateLater": "बाद में",
   "patchReadyMessage": "एक अपडेट तैयार है। यह अगली बार ऐप खोलने पर लागू होगा।",
+  "appVersionLabel": "संस्करण {version}",
+  "@appVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "patchLabel": "पैच {number}",
   "maintenanceTitle": "मेंटेनेंस चल रहा है",
   "maintenanceMessage": "हम चीज़ें बेहतर बना रहे हैं। कृपया कुछ देर बाद दोबारा देखें।",

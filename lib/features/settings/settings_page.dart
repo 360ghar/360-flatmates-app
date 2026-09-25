@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../auth/auth_controller.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/profile_sections.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -33,7 +34,7 @@ class SettingsPage extends ConsumerWidget {
               ),
               children: [
                 // Account group
-                _SectionHeader(label: locale.settingsGroupAccount),
+                _GroupLabel(label: locale.settingsGroupAccount),
                 FlatmatesCard(
                   padding: EdgeInsets.zero,
                   child: Column(
@@ -44,32 +45,20 @@ class SettingsPage extends ConsumerWidget {
                         label: locale.editProfileCta,
                         onTap: () => context.push('/profile/edit'),
                       ),
-                      const Divider(
-                        height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
-                        endIndent: AppSpacing.lg,
-                      ),
+                      const _MenuDivider(),
                       FlatmatesMenuItem(
                         icon: Icons.lock_outline,
                         label: locale.changePasswordLabel,
                         onTap: () => context.push('/change-password'),
                       ),
-                      const Divider(
-                        height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
-                        endIndent: AppSpacing.lg,
-                      ),
+                      const _MenuDivider(),
                       FlatmatesMenuItem(
                         key: const Key('settings_privacy_security_item'),
                         icon: Icons.shield_outlined,
                         label: locale.privacySecurityLabel,
                         onTap: () => context.push('/privacy-security'),
                       ),
-                      const Divider(
-                        height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
-                        endIndent: AppSpacing.lg,
-                      ),
+                      const _MenuDivider(),
                       FlatmatesMenuItem(
                         key: const Key('delete_account_menu_item'),
                         icon: Icons.delete_forever_outlined,
@@ -81,10 +70,10 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
 
                 // App group
-                _SectionHeader(label: locale.settingsGroupApp),
+                _GroupLabel(label: locale.settingsGroupApp),
                 FlatmatesCard(
                   padding: EdgeInsets.zero,
                   child: Column(
@@ -99,10 +88,10 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
 
                 // Legal group
-                _SectionHeader(label: locale.settingsGroupLegal),
+                _GroupLabel(label: locale.settingsGroupLegal),
                 FlatmatesCard(
                   padding: EdgeInsets.zero,
                   child: Column(
@@ -113,11 +102,7 @@ class SettingsPage extends ConsumerWidget {
                         label: locale.aboutLabel,
                         onTap: () => _showAboutDialog(context, ref),
                       ),
-                      const Divider(
-                        height: 1,
-                        indent: AppSpacing.xl * 3 + AppSpacing.sm,
-                        endIndent: AppSpacing.lg,
-                      ),
+                      const _MenuDivider(),
                       FlatmatesMenuItem(
                         icon: Icons.description_outlined,
                         label: locale.termsAndConditionsLabel,
@@ -154,14 +139,32 @@ class SettingsPage extends ConsumerWidget {
         .read(patchServiceProvider)
         .currentPatchNumber();
     if (!context.mounted) return;
-    final version = '${packageInfo.version}+${packageInfo.buildNumber}';
-    showAboutDialog(
-      context: context,
-      applicationName: locale.appName,
-      applicationVersion: patchNumber == null
-          ? version
-          : '$version (${locale.patchLabel(patchNumber)})',
-      applicationIcon: const FlutterLogo(size: 32),
+    final build = '${packageInfo.version}+${packageInfo.buildNumber}';
+    final version = patchNumber == null
+        ? build
+        : '$build (${locale.patchLabel(patchNumber)})';
+    await FlatmatesDialog.custom<void>(
+      context,
+      title: locale.appName,
+      body: (ctx, _) => Text(
+        locale.appVersionLabel(version),
+        style: Theme.of(ctx).textTheme.bodyLarge,
+      ),
+      actions: (ctx, _, close) => [
+        FlatmatesButton.tertiary(
+          key: const Key('about_licenses_button'),
+          label: MaterialLocalizations.of(ctx).viewLicensesButtonLabel,
+          onPressed: () {
+            close();
+            showLicensePage(
+              context: context,
+              applicationName: locale.appName,
+              applicationVersion: version,
+            );
+          },
+        ),
+        FlatmatesButton(label: locale.closeCta, onPressed: close),
+      ],
     );
   }
 
@@ -185,38 +188,27 @@ class SettingsPage extends ConsumerWidget {
   }
 }
 
-/// Section group header with a divider line above and bold label.
-/// Matches DESIGN.md Screen 19 group pattern.
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label});
+/// Label above a settings group, aligned with the card edge.
+class _GroupLabel extends StatelessWidget {
+  const _GroupLabel({required this.label});
 
   final String label;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+    child: SectionHeader(label: label),
+  );
+}
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.sm,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Divider(height: 1),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+/// Divider between menu rows, aligned with the row labels.
+class _MenuDivider extends StatelessWidget {
+  const _MenuDivider();
+
+  @override
+  Widget build(BuildContext context) => Divider(
+    height: 1,
+    indent: FlatmatesMenuItem.labelInset(),
+    endIndent: AppSpacing.base,
+  );
 }
