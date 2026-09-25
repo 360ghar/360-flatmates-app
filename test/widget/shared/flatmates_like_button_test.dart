@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flatmates_app/features/shared/presentation/flatmates_like_button.dart';
+import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 void main() {
   group('FlatmatesLikeButton', () {
     testWidgets('renders outlined heart when not liked', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: FlatmatesLikeButton(liked: false, onTap: () {})),
         ),
       );
@@ -19,6 +22,8 @@ void main() {
     testWidgets('renders filled heart when liked', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: FlatmatesLikeButton(liked: true, onTap: () {})),
         ),
       );
@@ -31,6 +36,8 @@ void main() {
       var tapped = false;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: FlatmatesLikeButton(liked: false, onTap: () => tapped = true),
           ),
@@ -46,6 +53,8 @@ void main() {
     testWidgets('has correct semantics label', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: FlatmatesLikeButton(
               liked: false,
@@ -62,6 +71,8 @@ void main() {
     testWidgets('uses custom size', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: FlatmatesLikeButton(
               liked: false,
@@ -83,6 +94,25 @@ void main() {
       );
       expect(sizedBox.width, 40);
       expect(sizedBox.height, 40);
+    });
+
+    testWidgets('has a 48 dp tap target around a smaller disc', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Center(
+              child: FlatmatesLikeButton(liked: false, onTap: () {}),
+            ),
+          ),
+        ),
+      );
+
+      final size = tester.getSize(find.byType(FlatmatesLikeButton));
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+      expect(find.bySemanticsLabel('Add to your likes'), findsOneWidget);
     });
   });
 }

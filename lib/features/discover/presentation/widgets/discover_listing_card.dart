@@ -192,9 +192,11 @@ class DiscoverListingCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // The 48 dp target puts the 32 dp disc 8 dp from the
+                  // corner.
                   Positioned(
-                    top: AppSpacing.sm,
-                    right: AppSpacing.sm,
+                    top: 0,
+                    right: 0,
                     child: FlatmatesLikeButton(
                       key: Key('discover_like_${item.id}'),
                       liked: isLiked,

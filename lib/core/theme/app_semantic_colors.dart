@@ -138,6 +138,10 @@ abstract final class AppSemanticColors {
   static const Color scrim = Color(0xFF0D100E);
   static Color get scrim50 => scrim.withValues(alpha: 0.5);
 
+  /// Text and icons on a [scrim] over a photo. The scrim stays dark in both
+  /// themes (DESIGN.md §10), so this stays white.
+  static const Color onScrim = Color(0xFFFFFFFF);
+
   // ── Categorical ─────────────────────────────────────────────────────────
   // One palette: every tag and chip tints from the clay or pine family (or
   // marigold for warnings). No off-palette blues, teals or purples.

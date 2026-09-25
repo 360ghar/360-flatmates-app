@@ -4,7 +4,9 @@ import '../../../../core/theme/app_semantic_colors.dart';
 
 /// Colors for skeleton bones and the shimmer highlight sweep.
 abstract final class SkeletonTokens {
-  /// Solid bone fill (the placeholder shape).
+  /// Solid bone fill (the placeholder shape). Paper-deep, not DESIGN's
+  /// paper-1: most skeletons sit on the sky layer, where paper-1 is almost
+  /// invisible.
   static Color bone(Brightness brightness) =>
       AppSemanticColors.paperDeepFor(brightness);
 
@@ -24,9 +26,6 @@ abstract final class SkeletonTokens {
       AppSemanticColors.paper2For(brightness);
 
   /// Unread / emphasized row tint (no side stripe).
-  static Color unreadTint(Brightness brightness) {
-    return brightness == Brightness.dark
-        ? AppSemanticColors.darkClaySoft
-        : AppSemanticColors.claySoft;
-  }
+  static Color unreadTint(Brightness brightness) =>
+      AppSemanticColors.coralSoftFor(brightness);
 }

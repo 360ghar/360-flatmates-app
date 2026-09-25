@@ -268,6 +268,7 @@ class _OwnerCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: compatibilityScoreColor(
                       matchPercentage!,
+                      brightness: Theme.of(context).brightness,
                     ).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -276,7 +277,10 @@ class _OwnerCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: compatibilityScoreColor(matchPercentage!),
+                      color: compatibilityScoreColor(
+                        matchPercentage!,
+                        brightness: Theme.of(context).brightness,
+                      ),
                     ),
                   ),
                 ),

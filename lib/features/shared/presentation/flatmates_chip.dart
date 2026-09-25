@@ -69,7 +69,11 @@ class FlatmatesChip extends StatelessWidget {
     const borderRadius = AppRadius.mdBorder;
     final removable = variant == FlatmatesChipVariant.removable;
 
-    return AnimatedContainer(
+    final selectable =
+        variant == FlatmatesChipVariant.filter ||
+        variant == FlatmatesChipVariant.choice;
+
+    final chip = AnimatedContainer(
       duration: AppMotion.durationOrZero(context, AppMotion.chipSelect),
       curve: AppMotion.paperOut,
       constraints: const BoxConstraints(minHeight: 48),
@@ -94,6 +98,8 @@ class FlatmatesChip extends StatelessWidget {
             padding: EdgeInsets.only(
               left: AppSpacing.md,
               right: removable ? AppSpacing.xxs : AppSpacing.md,
+              top: AppSpacing.xs,
+              bottom: AppSpacing.xs,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -102,10 +108,11 @@ class FlatmatesChip extends StatelessWidget {
                   Icon(_leadingIcon, size: 16, color: colors.foreground),
                   const SizedBox(width: AppSpacing.xs),
                 ],
+                // Two lines, so large text wraps instead of truncating.
                 Flexible(
                   child: Text(
                     label,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: colors.foreground,
@@ -138,6 +145,13 @@ class FlatmatesChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    if (!selectable) return chip;
+    return Semantics(
+      selected: selected,
+      inMutuallyExclusiveGroup: variant == FlatmatesChipVariant.choice,
+      child: chip,
     );
   }
 

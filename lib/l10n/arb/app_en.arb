@@ -1909,5 +1909,7 @@
   "ageBucket46Plus": "46+",
   "emailVerifiedLabel": "Email verified",
   "onboardingFinishLaterCta": "Finish later",
-  "removePhotoTooltip": "Remove photo"
+  "removePhotoTooltip": "Remove photo",
+  "budgetUpToLabel": "Up to ₹{amount}",
+  "@budgetUpToLabel": {"placeholders": {"amount": {"type": "String"}}}
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import 'cloudinary_transform.dart';
@@ -237,7 +238,7 @@ class _ResilientImageState extends State<_ResilientImage> {
           color: widget.placeholderColor,
         );
       },
-      fadeInDuration: const Duration(milliseconds: 200),
+      fadeInDuration: AppMotion.durationOrZero(context, AppMotion.standard),
       memCacheWidth: memW,
       memCacheHeight: memH,
     );
@@ -263,13 +264,6 @@ class _Placeholder extends StatelessWidget {
             AppSemanticColors.secondarySurfaceFor(Theme.of(context).brightness),
         borderRadius: borderRadius,
       ),
-      child: const Center(
-        child: SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      ),
     );
   }
 }
@@ -292,28 +286,26 @@ class _PhotoPendingFallback extends StatelessWidget {
     final radius = borderRadius ?? AppRadius.cardBorder;
     final initials = initialsFromName(fallbackName);
 
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final small = height != null && height! < 100;
+
+    // A solid clay-soft sheet with the initials (no gradient).
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
         borderRadius: radius,
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.accent.withValues(alpha: 0.85),
-            AppSemanticColors.accent.withValues(alpha: 0.45),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppSemanticColors.coralSoftFor(brightness),
       ),
       child: Center(
         child: Text(
           initials,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: (height != null && height! < 100) ? 20 : 36,
-            fontWeight: FontWeight.w700,
-          ),
+          style:
+              (small
+                      ? theme.textTheme.headlineSmall
+                      : theme.textTheme.headlineLarge)
+                  ?.copyWith(color: AppSemanticColors.clayInkFor(brightness)),
         ),
       ),
     );

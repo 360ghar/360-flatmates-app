@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_spacing.dart';
 
-/// Standardized menu row for Profile and Settings screens.
-/// Matches screenshot #15 / #19 menu item pattern.
+/// Standardized menu row for Profile and Settings screens: a bare clay icon
+/// (danger when destructive), a label, an optional subtitle and a chevron.
 class FlatmatesMenuItem extends StatefulWidget {
   const FlatmatesMenuItem({
     required this.label,
@@ -21,8 +23,17 @@ class FlatmatesMenuItem extends StatefulWidget {
   final VoidCallback? onTap;
   final bool isDestructive;
 
-  /// Smaller padding and icon well for compact lists (e.g. Me tab).
+  /// Smaller padding and icon slot for compact lists (e.g. Me tab).
   final bool dense;
+
+  static double _hPad(bool dense) => dense ? AppSpacing.base : AppSpacing.s20;
+  static double _iconSlot(bool dense) => dense ? AppSpacing.xl : AppSpacing.s40;
+  static const double _iconGap = AppSpacing.md;
+
+  /// Distance from the row's leading edge to its label. Use it as the
+  /// divider indent between rows so dividers line up with the text.
+  static double labelInset({bool dense = false}) =>
+      _hPad(dense) + _iconSlot(dense) + _iconGap;
 
   @override
   State<FlatmatesMenuItem> createState() => _FlatmatesMenuItemState();
@@ -31,57 +42,50 @@ class FlatmatesMenuItem extends StatefulWidget {
 class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
   bool _pressed = false;
 
+  void _setPressed(bool value) {
+    if (widget.onTap == null || AppMotion.reduceMotion(context)) return;
+    setState(() => _pressed = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = _menuIconPalette(widget.icon, widget.isDestructive, theme);
-    final textColor = widget.isDestructive ? AppSemanticColors.error : null;
+    final brightness = theme.brightness;
+    final clay = AppSemanticColors.clayFor(brightness);
+    final danger = AppSemanticColors.dangerFor(brightness);
     final dense = widget.dense;
-    final hPad = dense ? 16.0 : 20.0;
-    final vPad = dense ? 10.0 : 14.0;
-    final iconWell = dense ? 32.0 : 40.0;
-    final iconSize = dense ? 18.0 : 20.0;
-    final iconGap = dense ? 12.0 : 14.0;
 
     return Listener(
-      onPointerDown: widget.onTap != null
-          ? (_) => setState(() => _pressed = true)
-          : null,
-      onPointerUp: widget.onTap != null
-          ? (_) => setState(() => _pressed = false)
-          : null,
-      onPointerCancel: widget.onTap != null
-          ? (_) => setState(() => _pressed = false)
-          : null,
+      onPointerDown: (_) => _setPressed(true),
+      onPointerUp: (_) => _setPressed(false),
+      onPointerCancel: (_) => _setPressed(false),
       child: InkWell(
         onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: AppSemanticColors.accent.withValues(alpha: 0.05),
-        highlightColor: AppSemanticColors.accent.withValues(alpha: 0.03),
+        borderRadius: AppRadius.mdBorder,
+        splashColor: clay.withValues(alpha: 0.05),
+        highlightColor: clay.withValues(alpha: 0.03),
         child: AnimatedScale(
-          scale: _pressed ? 0.98 : 1.0,
-          duration: AppMotion.buttonPress,
-          curve: AppMotion.easeOutCubic,
+          scale: _pressed ? AppMotion.pressScale : 1.0,
+          duration: AppMotion.fast,
+          curve: AppMotion.paperOut,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
+            padding: EdgeInsets.symmetric(
+              horizontal: FlatmatesMenuItem._hPad(dense),
+              vertical: dense ? AppSpacing.md : AppSpacing.base,
+            ),
             child: Row(
               children: [
-                AnimatedOpacity(
-                  opacity: _pressed ? 0.8 : 1.0,
-                  duration: AppMotion.fast,
-                  // Bare icon (no tinted tile), kept in a fixed-width slot so
-                  // labels align down the list.
-                  child: SizedBox(
-                    width: iconWell,
-                    height: iconWell,
-                    child: Icon(
-                      widget.icon,
-                      size: iconSize,
-                      color: palette.foreground,
-                    ),
+                // Bare icon (no tinted tile), in a fixed-width slot so
+                // labels align down the list.
+                SizedBox(
+                  width: FlatmatesMenuItem._iconSlot(dense),
+                  child: Icon(
+                    widget.icon,
+                    size: dense ? 20 : 22,
+                    color: widget.isDestructive ? danger : clay,
                   ),
                 ),
-                SizedBox(width: iconGap),
+                const SizedBox(width: FlatmatesMenuItem._iconGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,26 +93,26 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
                       Text(
                         widget.label,
                         style: theme.textTheme.bodyLarge?.copyWith(
-                          color: textColor,
+                          color: widget.isDestructive ? danger : null,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (widget.subtitle != null) ...[
-                        const SizedBox(height: 2),
+                      if (widget.subtitle != null)
                         Text(
                           widget.subtitle!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 12,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppSemanticColors.textSecondaryFor(
+                              brightness,
+                            ),
                           ),
                         ),
-                      ],
                     ],
                   ),
                 ),
                 Icon(
                   Icons.chevron_right,
                   size: 20,
-                  color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                  color: AppSemanticColors.textTertiaryFor(brightness),
                 ),
               ],
             ),
@@ -117,85 +121,4 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
       ),
     );
   }
-}
-
-_MenuIconPalette _menuIconPalette(
-  IconData icon,
-  bool isDestructive,
-  ThemeData theme,
-) {
-  final isDark = theme.brightness == Brightness.dark;
-  if (isDestructive) {
-    return _MenuIconPalette(
-      background: isDark
-          ? AppSemanticColors.errorSoftDark
-          : AppSemanticColors.errorSoft,
-      foreground: AppSemanticColors.error,
-    );
-  }
-
-  Color soft;
-  Color darkSoft;
-  Color mid;
-  if (icon == Icons.calendar_month_outlined ||
-      icon == Icons.calendar_month ||
-      icon == Icons.event_available_outlined) {
-    soft = AppSemanticColors.tealSoft;
-    darkSoft = AppSemanticColors.tealSoftDark;
-    mid = AppSemanticColors.tealMid;
-  } else if (icon == Icons.favorite_border ||
-      icon == Icons.favorite_rounded ||
-      icon == Icons.favorite_outline) {
-    soft = AppSemanticColors.pinkSoft;
-    darkSoft = AppSemanticColors.pinkSoftDark;
-    mid = AppSemanticColors.pinkMid;
-  } else if (icon == Icons.chat_bubble_outline ||
-      icon == Icons.chat_bubble_rounded ||
-      icon == Icons.message_outlined) {
-    soft = AppSemanticColors.blueSoft;
-    darkSoft = AppSemanticColors.blueSoftDark;
-    mid = AppSemanticColors.blueMid;
-  } else if (icon == Icons.description_outlined ||
-      icon == Icons.article_outlined ||
-      icon == Icons.assignment_outlined) {
-    soft = AppSemanticColors.yellowSoft;
-    darkSoft = AppSemanticColors.yellowSoftDark;
-    mid = AppSemanticColors.yellowMid;
-  } else if (icon == Icons.payment_outlined ||
-      icon == Icons.account_balance_wallet_outlined ||
-      icon == Icons.wallet_outlined) {
-    soft = AppSemanticColors.greenSoft;
-    darkSoft = AppSemanticColors.greenSoftDark;
-    mid = AppSemanticColors.greenMid;
-  } else if (icon == Icons.settings_outlined ||
-      icon == Icons.tune ||
-      icon == Icons.tune_rounded ||
-      icon == Icons.lock_outline ||
-      icon == Icons.privacy_tip_outlined) {
-    soft = AppSemanticColors.purpleSoft;
-    darkSoft = AppSemanticColors.purpleSoftDark;
-    mid = AppSemanticColors.purpleMid;
-  } else if (icon == Icons.help_outline ||
-      icon == Icons.support_agent_outlined ||
-      icon == Icons.headset_mic_outlined) {
-    soft = AppSemanticColors.orangeSoft;
-    darkSoft = AppSemanticColors.orangeSoftDark;
-    mid = AppSemanticColors.orangeMid;
-  } else {
-    soft = AppSemanticColors.coralSoft;
-    darkSoft = AppSemanticColors.coralSoftDark;
-    mid = AppSemanticColors.accent;
-  }
-
-  return _MenuIconPalette(
-    background: isDark ? darkSoft : soft,
-    foreground: mid,
-  );
-}
-
-class _MenuIconPalette {
-  const _MenuIconPalette({required this.background, required this.foreground});
-
-  final Color background;
-  final Color foreground;
 }

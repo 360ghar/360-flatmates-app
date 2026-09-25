@@ -5,13 +5,15 @@ import '../../../core/compatibility/compatibility_engine.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import 'flatmates_network_image.dart';
 import 'flatmates_avatar.dart';
+import 'flatmates_button.dart';
 
-/// Profile grid card for Likes tab — matches screenshot #9 2-column grid pattern.
-/// Includes animated compatibility ring on mount.
+/// Profile card for the Likes grid: photo with a bottom scrim, a match ring
+/// that draws on mount (complete at once under reduce motion) and a 48 dp
+/// match button.
 class FlatmatesProfileGridCard extends StatefulWidget {
   const FlatmatesProfileGridCard({
     required this.name,
@@ -59,7 +61,22 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
       vsync: this,
       duration: AppMotion.compatibilityRing,
     );
-    _ringController.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Under reduce motion the ring is drawn complete at once.
+    if (AppMotion.reduceMotion(context)) {
+      _ringController.value = 1;
+    } else if (_ringController.isDismissed) {
+      _ringController.forward();
+    }
+  }
+
+  void _press(bool down) {
+    if (AppMotion.reduceMotion(context)) return;
+    setState(() => _scale = down ? AppMotion.pressScale : 1.0);
   }
 
   @override
@@ -71,11 +88,16 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final locale = AppLocalizations.of(context);
     final hasReliableMatch =
         widget.matchPercentage != null && widget.matchPercentage! > 0;
     final matchColor = hasReliableMatch
-        ? compatibilityScoreColor(widget.matchPercentage!)
-        : AppSemanticColors.accent;
+        ? compatibilityScoreColor(
+            widget.matchPercentage!,
+            brightness: Theme.of(context).brightness,
+          )
+        : AppSemanticColors.clayFor(brightness);
 
     final title = widget.age == null
         ? widget.name
@@ -85,7 +107,7 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
 
     // Photo-first card: meta sits on a bottom scrim like the match badge.
     final body = ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: AppRadius.cardBorder,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -103,17 +125,9 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
               ),
             )
           else
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppSemanticColors.accent.withValues(alpha: 0.18),
-                    AppSemanticColors.secondarySurfaceFor(theme.brightness),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
+            // No photo: a solid clay-soft sheet with the initials.
+            ColoredBox(
+              color: AppSemanticColors.coralSoftFor(brightness),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -121,18 +135,14 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
                     Text(
                       initialsFromName(widget.name),
                       style: theme.textTheme.headlineMedium?.copyWith(
-                        color: AppSemanticColors.accent,
-                        fontWeight: FontWeight.w800,
+                        color: AppSemanticColors.clayInkFor(brightness),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      AppLocalizations.of(context).photoPendingLabel,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppSemanticColors.textSecondaryFor(
-                          theme.brightness,
-                        ),
-                        fontWeight: FontWeight.w700,
+                      locale.photoPendingLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.clayInkFor(brightness),
                       ),
                     ),
                   ],
@@ -170,38 +180,31 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
                     Text(
                       title,
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: AppSemanticColors.onPrimary,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
+                        color: AppSemanticColors.onScrim,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (location.isNotEmpty) ...[
-                      const SizedBox(height: 2),
                       Text(
                         location,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppSemanticColors.onPrimary.withValues(
-                            alpha: 0.88,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.onScrim.withValues(
+                            alpha: 0.9,
                           ),
-                          fontSize: 12,
-                          height: 1.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                     if (profession.isNotEmpty) ...[
-                      const SizedBox(height: 2),
                       Text(
                         profession,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppSemanticColors.onPrimary.withValues(
-                            alpha: 0.78,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.onScrim.withValues(
+                            alpha: 0.9,
                           ),
-                          fontSize: 12,
-                          height: 1.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -214,8 +217,8 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
           ),
           if (widget.matchPercentage != null)
             Positioned(
-              top: 8,
-              right: 8,
+              top: AppSpacing.sm,
+              right: AppSpacing.sm,
               child: AnimatedBuilder(
                 animation: _ringController,
                 builder: (context, child) {
@@ -236,14 +239,20 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    hasReliableMatch
-                        ? '${widget.matchPercentage!.toInt()}%'
-                        : 'New',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: matchColor,
+                  padding: AppSpacing.edgeXs,
+                  // Scales down at large text sizes instead of overflowing
+                  // the fixed ring.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      hasReliableMatch
+                          ? '${widget.matchPercentage!.toInt()}%'
+                          : locale.badgeNew,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: matchColor,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ),
                 ),
@@ -259,18 +268,18 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
     final tappableBody = widget.onTap == null
         ? body
         : Listener(
-            onPointerDown: (_) => setState(() => _scale = 0.97),
-            onPointerUp: (_) => setState(() => _scale = 1.0),
-            onPointerCancel: (_) => setState(() => _scale = 1.0),
+            onPointerDown: (_) => _press(true),
+            onPointerUp: (_) => _press(false),
+            onPointerCancel: (_) => _press(false),
             child: AnimatedScale(
               scale: _scale,
-              duration: AppMotion.buttonPress,
-              curve: Curves.easeOutCubic,
+              duration: AppMotion.fast,
+              curve: AppMotion.paperOut,
               child: Material(
                 type: MaterialType.transparency,
                 child: InkWell(
                   key: const Key('flatmate_card_tap'),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: AppRadius.cardBorder,
                   onTap: widget.onTap,
                   child: body,
                 ),
@@ -284,37 +293,10 @@ class _FlatmatesProfileGridCardState extends State<FlatmatesProfileGridCard>
         Expanded(child: tappableBody),
         if (widget.matchButtonLabel.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
-          SizedBox(
-            width: double.infinity,
-            // No fixed height: the label's line box grows with the text scale
-            // so Devanagari matras are never clipped. 34 stays the *minimum*
-            // so the card keeps its proportions at 1.0x.
-            child: FilledButton(
-              onPressed: widget.onMatchTap,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.sm,
-                ),
-                minimumSize: const Size(0, 34),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                widget.matchButtonLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                // Size from the canonical button-sm token behind
-                // textTheme.labelMedium; colour still inherits onPrimary from
-                // the button's DefaultTextStyle.
-                style: const TextStyle(
-                  fontSize: AppTypography.buttonSmSize,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+          FlatmatesButton(
+            label: widget.matchButtonLabel,
+            onPressed: widget.onMatchTap,
+            fullWidth: true,
           ),
         ],
       ],

@@ -94,14 +94,14 @@ void main() {
   });
 
   group('FlatmatesProfileGridCard match button (finding 27)', () {
-    // The likes grid reserves 52px below the square photo; the button plus its
-    // 8px gap has to stay inside that at 1.0x and grow without clipping above.
+    // The likes grid reserves 56 dp (scaled with text) below the square
+    // photo: a 48 dp button plus its 8 dp gap.
     Widget gridTile({required double scale, String label = 'Match back'}) {
       return _scaled(
         scale: scale,
         child: SizedBox(
           width: 158,
-          height: 158 + 52,
+          height: 158 + 56 * scale,
           child: FlatmatesProfileGridCard(
             name: 'Anjali Sharma',
             age: 26,
@@ -116,11 +116,11 @@ void main() {
       );
     }
 
-    testWidgets('keeps its 34px height at 1.0x text scale', (tester) async {
+    testWidgets('is a 48 dp target at 1.0x text scale', (tester) async {
       await tester.pumpWidget(gridTile(scale: 1.0));
 
       expect(tester.takeException(), isNull);
-      expect(tester.getSize(find.byType(FilledButton)).height, 34);
+      expect(tester.getSize(find.byType(FilledButton)).height, 48);
     });
 
     testWidgets('grows instead of clipping the label at 1.3x text scale', (
@@ -133,12 +133,12 @@ void main() {
       final buttonHeight = tester.getSize(find.byType(FilledButton)).height;
       final labelHeight = tester.getSize(find.text('Match back')).height;
 
-      // The button must have grown past the old fixed 34 so the taller line
-      // box (Devanagari matras included) is fully inside it.
-      expect(buttonHeight, greaterThan(34));
+      // The taller line box (Devanagari matras included) is fully inside
+      // the button...
+      expect(buttonHeight, greaterThanOrEqualTo(48));
       expect(buttonHeight, greaterThanOrEqualTo(labelHeight));
-      // ...and still fit the grid's 52px below-photo reserve.
-      expect(buttonHeight, lessThanOrEqualTo(52 - 8));
+      // ...and it still fits the grid's scaled below-photo reserve.
+      expect(buttonHeight, lessThanOrEqualTo(56 * 1.3 - 8));
     });
 
     testWidgets('does not overflow with a long Hindi label at 1.3x', (
@@ -148,7 +148,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       final label = tester.widget<Text>(find.text('मैच करें'));
-      expect(label.maxLines, 1);
+      expect(label.maxLines, 2);
       expect(label.overflow, TextOverflow.ellipsis);
     });
   });

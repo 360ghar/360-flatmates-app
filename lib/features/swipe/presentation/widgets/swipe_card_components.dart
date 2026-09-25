@@ -354,7 +354,10 @@ class MatchPill extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final hasReliableScore = percentage > 0;
     final color = hasReliableScore
-        ? compatibilityScoreColor(percentage)
+        ? compatibilityScoreColor(
+            percentage,
+            brightness: Theme.of(context).brightness,
+          )
         : AppSemanticColors.accent;
     final pctLabel = hasReliableScore ? '${percentage.round()}%' : 'New';
     final tone = hasReliableScore && showTone

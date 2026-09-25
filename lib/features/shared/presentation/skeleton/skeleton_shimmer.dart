@@ -28,7 +28,7 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
   /// Built once; the pulse runs 1.0 -> 0.55 -> 1.0.
   late final CurvedAnimation _curve = CurvedAnimation(
     parent: _controller,
-    curve: Curves.easeInOut,
+    curve: AppMotion.tonePulse,
   );
   late final Animation<double> _opacity = Tween<double>(
     begin: 1,

@@ -367,6 +367,9 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                 ? null
                 : () => _handleShortlist(listing),
             tertiarySelected: hasLiked,
+            tertiaryLabel: hasLiked
+                ? locale.unlikeListingTooltip
+                : locale.likeListingTooltip,
             tertiaryButtonKey: const Key('flat_shortlist_button'),
           ),
         ],

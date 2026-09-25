@@ -540,29 +540,6 @@ void main() {
     });
   });
 
-  group('GradientActionButton', () {
-    testWidgets('delegates to FlatmatesButton', (tester) async {
-      var pressed = false;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: GradientActionButton(
-              label: 'Go',
-              onPressed: () => pressed = true,
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Go'), findsOneWidget);
-
-      await tester.tap(find.byType(GradientActionButton));
-      await tester.pumpAndSettle();
-
-      expect(pressed, isTrue);
-    });
-  });
-
   group('FlatmatesSectionHeader', () {
     testWidgets('renders title', (tester) async {
       await tester.pumpWidget(
@@ -735,7 +712,6 @@ void main() {
               body: 'You have a new message from Priya',
               time: '2m ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
             ),
           ),
@@ -756,7 +732,6 @@ void main() {
               body: 'Hello',
               time: '2m ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
             ),
           ),
@@ -783,7 +758,6 @@ void main() {
               body: 'Hello',
               time: '2d ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
               isRead: true,
             ),
@@ -811,7 +785,6 @@ void main() {
               body: 'Hello',
               time: '2m ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
               onTap: () => tapped = true,
             ),

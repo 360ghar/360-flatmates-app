@@ -20,6 +20,9 @@ abstract final class AppMotion {
   static const double pressScale = 0.98;
 
   static const Curve paperOut = Cubic(0.2, 0.7, 0.2, 1);
+
+  /// Symmetric in/out for the skeleton tone pulse (it runs back and forth).
+  static const Curve tonePulse = Curves.easeInOut;
   static const Curve paperSettle = Cubic(0.3, 1.3, 0.5, 1);
 
   // Named durations for specific use-cases

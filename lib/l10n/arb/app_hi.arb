@@ -1874,5 +1874,6 @@
   "ageBucket46Plus": "46+",
   "emailVerifiedLabel": "ईमेल सत्यापित",
   "onboardingFinishLaterCta": "बाद में पूरा करें",
-  "removePhotoTooltip": "फ़ोटो हटाएं"
+  "removePhotoTooltip": "फ़ोटो हटाएं",
+  "budgetUpToLabel": "₹{amount} तक"
 }

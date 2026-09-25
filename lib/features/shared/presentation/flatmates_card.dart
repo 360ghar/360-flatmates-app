@@ -141,9 +141,11 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
                   )
                 : null,
           ),
+          // Clip so edge-to-edge images follow the hand-cut corners.
           child: Material(
             color: Colors.transparent,
             borderRadius: resolvedRadius,
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: widget.onTap,
               borderRadius: resolvedRadius,

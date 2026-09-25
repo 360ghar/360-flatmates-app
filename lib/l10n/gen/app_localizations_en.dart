@@ -3991,4 +3991,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removePhotoTooltip => 'Remove photo';
+
+  @override
+  String budgetUpToLabel(String amount) {
+    return 'Up to ₹$amount';
+  }
 }

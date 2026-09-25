@@ -7429,6 +7429,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove photo'**
   String get removePhotoTooltip;
+
+  /// No description provided for @budgetUpToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to ₹{amount}'**
+  String budgetUpToLabel(String amount);
 }
 
 class _AppLocalizationsDelegate

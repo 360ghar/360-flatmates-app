@@ -58,8 +58,9 @@ class _CompatibilityRingState extends ConsumerState<CompatibilityRing>
   bool get _hasReliableScore => widget.percentage > 0;
 
   Color _color() {
-    if (!_hasReliableScore) return AppSemanticColors.accent;
-    return compatibilityScoreColor(widget.percentage);
+    final brightness = Theme.of(context).brightness;
+    if (!_hasReliableScore) return AppSemanticColors.clayFor(brightness);
+    return compatibilityScoreColor(widget.percentage, brightness: brightness);
   }
 
   @override
@@ -175,9 +176,10 @@ class CompatibilityBreakdown extends StatelessWidget {
         final icon = dim.isMatch
             ? Icons.check_circle_rounded
             : Icons.warning_amber_rounded;
-        final color = dim.isMatch
-            ? compatibilityScoreColor(100)
-            : compatibilityScoreColor(40);
+        final color = compatibilityScoreColor(
+          dim.isMatch ? 100 : 40,
+          brightness: Theme.of(context).brightness,
+        );
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(

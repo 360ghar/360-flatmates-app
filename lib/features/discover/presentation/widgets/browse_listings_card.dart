@@ -182,9 +182,11 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
                                 ),
                               ),
                       ),
+                      // The 48 dp target puts the 40 dp disc 8 dp from
+                      // the corner.
                       Positioned(
-                        top: AppSpacing.sm,
-                        right: AppSpacing.sm,
+                        top: AppSpacing.xs,
+                        right: AppSpacing.xs,
                         child: FlatmatesLikeButton(
                           key: Key('browse_like_${item.id}'),
                           liked: item.liked ?? false,
@@ -193,7 +195,9 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
                           backgroundColor: AppSemanticColors.coralSoftFor(
                             Theme.of(context).brightness,
                           ),
-                          unlikedColor: AppSemanticColors.accent,
+                          unlikedColor: AppSemanticColors.clayFor(
+                            Theme.of(context).brightness,
+                          ),
                         ),
                       ),
                     ],

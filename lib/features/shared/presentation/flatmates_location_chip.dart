@@ -87,17 +87,21 @@ class _FlatmatesLocationChipState extends State<FlatmatesLocationChip> {
 
     if (widget.onTap == null) return chip;
 
-    return Listener(
-      onPointerDown: (_) => setState(() => _pressed = true),
-      onPointerUp: (_) => setState(() => _pressed = false),
-      onPointerCancel: (_) => setState(() => _pressed = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _pressed ? 0.97 : 1.0,
-          duration: AppMotion.buttonPress,
-          curve: AppMotion.easeOutCubic,
-          child: chip,
+    final reduce = AppMotion.reduceMotion(context);
+    return Semantics(
+      button: true,
+      child: Listener(
+        onPointerDown: (_) => setState(() => _pressed = true),
+        onPointerUp: (_) => setState(() => _pressed = false),
+        onPointerCancel: (_) => setState(() => _pressed = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedScale(
+            scale: _pressed && !reduce ? AppMotion.pressScale : 1.0,
+            duration: AppMotion.fast,
+            curve: AppMotion.paperOut,
+            child: chip,
+          ),
         ),
       ),
     );

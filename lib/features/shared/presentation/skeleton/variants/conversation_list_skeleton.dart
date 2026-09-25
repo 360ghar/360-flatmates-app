@@ -39,7 +39,7 @@ class ConversationListSkeleton extends StatelessWidget {
                   width: 44,
                   height: 44,
                   color: bone,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: AppRadius.pillBorder,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -86,7 +86,7 @@ class ConversationListSkeleton extends StatelessWidget {
                             width: 13,
                             height: 13,
                             color: bone,
-                            borderRadius: BorderRadius.circular(6.5),
+                            borderRadius: AppRadius.smBorder,
                           ),
                           const SizedBox(width: 2),
                           FlatmatesSkeletonBone(

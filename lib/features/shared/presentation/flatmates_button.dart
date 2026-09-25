@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_brand_colors.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
@@ -182,7 +183,10 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
         ? AppSemanticColors.dangerFor(b)
         : AppSemanticColors.clayFor(b);
     final pressedFill = widget.destructive
-        ? AppSemanticColors.errorHover
+        ? Color.alphaBlend(
+            AppSemanticColors.textPrimaryFor(b).withValues(alpha: 0.12),
+            fill,
+          )
         : AppSemanticColors.clayPressFor(b);
     final onFill = AppSemanticColors.onClayFor(b);
     return _paperPress(
@@ -267,58 +271,44 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
   }
 
   Widget _buildGoogle(ThemeData theme, bool enabled) {
-    final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark
-        ? const Color(0xFF131314)
-        : const Color(0xFFFFFFFF);
-    final foregroundColor = isDark
-        ? const Color(0xFFE3E3E3)
-        : const Color(0xFF3C4043);
-    final borderColor = isDark
-        ? const Color(0xFF8E918F)
-        : const Color(0xFFDADCE0);
-    final hoverColor = isDark
-        ? const Color(0xFF1E1F20)
-        : const Color(0xFFF8F9FA);
+    final brand = AppBrandColors.google(theme.brightness);
+    final reduce = AppMotion.reduceMotion(context);
 
     return Listener(
       onPointerDown: enabled ? (_) => setState(() => _pressed = true) : null,
       onPointerUp: enabled ? (_) => setState(() => _pressed = false) : null,
       onPointerCancel: enabled ? (_) => setState(() => _pressed = false) : null,
       child: AnimatedScale(
-        scale: _pressed ? 0.98 : 1.0,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutCubic,
+        scale: _pressed && !reduce ? AppMotion.pressScale : 1.0,
+        duration: AppMotion.durationOrZero(context, AppMotion.fast),
+        curve: AppMotion.paperOut,
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: widget.height,
             minWidth: widget.fullWidth ? double.infinity : 0,
           ),
-          child: ElevatedButton(
+          // Google's own button: white (or near-black) fill with its brand
+          // stroke. Flat, like every other control (no Material shadow).
+          child: OutlinedButton(
             onPressed: widget.onPressed,
             style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: backgroundColor,
-                  foregroundColor: foregroundColor,
-                  surfaceTintColor: Colors.transparent,
-                  elevation: enabled ? 1 : 0,
-                  shadowColor: Colors.black.withValues(alpha: 0.15),
-                  shape: RoundedRectangleBorder(
+                OutlinedButton.styleFrom(
+                  backgroundColor: brand.fill,
+                  foregroundColor: brand.label,
+                  side: BorderSide(
+                    color: enabled
+                        ? brand.stroke
+                        : theme.disabledColor.withValues(alpha: 0.2),
+                  ),
+                  shape: const RoundedRectangleBorder(
                     borderRadius: AppRadius.mdBorder,
-                    side: BorderSide(
-                      color: enabled
-                          ? borderColor
-                          : theme.disabledColor.withValues(alpha: 0.2),
-                    ),
                   ),
                 ).copyWith(
-                  overlayColor: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.pressed) ||
-                        states.contains(WidgetState.hovered)) {
-                      return hoverColor;
-                    }
-                    return null;
-                  }),
+                  overlayColor: WidgetStateProperty.resolveWith(
+                    (states) => states.contains(WidgetState.pressed)
+                        ? brand.pressed
+                        : null,
+                  ),
                 ),
             child: Row(
               mainAxisSize: widget.fullWidth
@@ -332,18 +322,16 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
                   height: 20,
                   filterQuality: FilterQuality.high,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Flexible(
                   child: Text(
                     widget.label,
                     maxLines: 2,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: theme.textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: foregroundColor,
-                      letterSpacing: 0.2,
+                      color: brand.label,
                     ),
                   ),
                 ),
@@ -362,43 +350,20 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
       children: [
         if (widget.icon != null) ...[
           Icon(widget.icon, size: 20),
-          const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
+          const SizedBox(width: AppSpacing.md),
         ],
+        // Two lines, so a long label or a large text size wraps instead of
+        // being cut off.
         Flexible(
           child: Text(
             widget.label,
+            maxLines: 2,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelLarge?.copyWith(color: textColor),
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Legacy alias — now delegates to solid FlatmatesButton.
-/// Prefer using FlatmatesButton directly in new code.
-class GradientActionButton extends StatelessWidget {
-  const GradientActionButton({
-    required this.label,
-    required this.onPressed,
-    super.key,
-    this.icon,
-    this.height = 56,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final IconData? icon;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return FlatmatesButton(
-      label: label,
-      onPressed: onPressed,
-      icon: icon,
-      height: height,
     );
   }
 }

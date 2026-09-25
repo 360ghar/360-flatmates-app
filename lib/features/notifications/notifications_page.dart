@@ -171,11 +171,10 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                             notification.createdAt,
                           ),
                           icon: _iconForType(notification.type),
-                          iconBgColor: _iconBackgroundForType(
+                          iconColor: _iconColorForType(
                             notification.type,
                             Theme.of(context).brightness,
                           ),
-                          iconColor: _iconColorForType(notification.type),
                           isRead: notification.isRead,
                           onTap: () =>
                               unawaited(_handleTap(context, ref, notification)),
@@ -260,47 +259,18 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     }
   }
 
-  Color _iconBackgroundForType(String type, Brightness brightness) {
+  /// Pine for messages and confirmations, clay for everything else.
+  Color _iconColorForType(String type, Brightness brightness) {
     switch (type) {
-      case 'new_match':
-      case 'flatmate_new_match':
-        return AppSemanticColors.pinkSoftFor(brightness);
       case 'new_message':
       case 'flatmate_new_message':
-        return AppSemanticColors.blueSoftFor(brightness);
       case 'listing_approved':
       case 'flatmate_listing_approved':
-        return AppSemanticColors.greenSoftFor(brightness);
-      case 'visit_scheduled':
-      case 'flatmate_visit_scheduled':
-        return AppSemanticColors.yellowSoftFor(brightness);
       case 'visit_confirmed':
       case 'flatmate_visit_confirmed':
-        return AppSemanticColors.tealSoftFor(brightness);
+        return AppSemanticColors.pineFor(brightness);
       default:
-        return AppSemanticColors.coralSoftFor(brightness);
-    }
-  }
-
-  Color _iconColorForType(String type) {
-    switch (type) {
-      case 'new_match':
-      case 'flatmate_new_match':
-        return AppSemanticColors.pinkMid;
-      case 'new_message':
-      case 'flatmate_new_message':
-        return AppSemanticColors.blueMid;
-      case 'listing_approved':
-      case 'flatmate_listing_approved':
-        return AppSemanticColors.greenMid;
-      case 'visit_scheduled':
-      case 'flatmate_visit_scheduled':
-        return AppSemanticColors.yellowMid;
-      case 'visit_confirmed':
-      case 'flatmate_visit_confirmed':
-        return AppSemanticColors.tealMid;
-      default:
-        return AppSemanticColors.accent;
+        return AppSemanticColors.clayFor(brightness);
     }
   }
 }

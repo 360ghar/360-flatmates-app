@@ -182,8 +182,7 @@ String budgetRangeText(AppLocalizations locale, double? min, double? max) {
         '$suffix';
   }
   if (min != null) return '₹${shortMoney(min)}$suffix+';
-  // TODO(l10n): "Up to" has no ARB key yet — see the sweep report.
-  if (max != null) return 'Up to ₹${shortMoney(max)}$suffix';
+  if (max != null) return '${locale.budgetUpToLabel(shortMoney(max))}$suffix';
   return '';
 }
 

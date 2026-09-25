@@ -138,6 +138,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
                 name: fullName,
                 imageUrl: displayUrl,
                 size: 140,
+                tapLabel: locale.addPhotoCta,
                 onTap: _uploading || _photoUrls.length >= 5
                     ? null
                     : _pickFromGallery,

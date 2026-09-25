@@ -51,7 +51,7 @@ class DiscoverFeedSkeleton extends StatelessWidget {
               width: 52,
               height: 52,
               color: bone,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.mdBorder,
             ),
           ],
         ),

@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 
-/// Canonical spacing tokens from DESIGN.md (Airbnb 4px base scale).
+/// Spacing tokens. DESIGN.md §3 scale: 4 8 12 16 20 24 32 40 56 72.
 ///
-/// Use these instead of hard-coded numeric values everywhere.
+/// Use these instead of hard-coded numeric values everywhere. `s20`, `s40`,
+/// `s56` and `s72` are the scale steps that have no t-shirt name.
 abstract final class AppSpacing {
   static const double xxs = 2;
   static const double xs = 4;
   static const double sm = 8;
   static const double md = 12;
   static const double base = 16;
+  static const double s20 = 20;
   static const double lg = 24;
   static const double xl = 32;
+  static const double s40 = 40;
+  static const double s56 = 56;
+  static const double s72 = 72;
   static const double xxl = 48;
   static const double section = 64;
 
-  /// Page horizontal gutter (Airbnb mobile = 16).
+  /// Page horizontal gutter on phones (DESIGN.md §3).
   static const double screen = base;
 
   // Convenience EdgeInsets

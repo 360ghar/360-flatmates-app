@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_spacing.dart';
 
 class FlatmatesSectionHeader extends StatelessWidget {
   const FlatmatesSectionHeader({
@@ -28,7 +30,7 @@ class FlatmatesSectionHeader extends StatelessWidget {
             children: [
               Text(title, style: theme.textTheme.headlineMedium),
               if (subtitle != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -40,25 +42,15 @@ class FlatmatesSectionHeader extends StatelessWidget {
           ),
         ),
         if (actionLabel != null)
-          GestureDetector(
-            onTap: onActionTap,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  actionLabel!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppSemanticColors.accent,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: AppSemanticColors.accent,
-                ),
-              ],
+          // 48 dp text button with a trailing chevron.
+          TextButton.icon(
+            onPressed: onActionTap,
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.chevron_right, size: 18),
+            label: Text(actionLabel!),
+            style: TextButton.styleFrom(
+              foregroundColor: AppSemanticColors.clayFor(theme.brightness),
+              textStyle: theme.textTheme.labelMedium,
             ),
           ),
       ],
@@ -84,41 +76,37 @@ class InfoPill extends StatelessWidget {
     final brightness = theme.brightness;
     final background = highlighted
         ? AppSemanticColors.coralSoftFor(brightness)
-        : AppSemanticColors.secondarySurfaceFor(brightness);
+        : AppSemanticColors.paper1For(brightness);
     final foreground = highlighted
-        ? AppSemanticColors.accent
+        ? AppSemanticColors.clayInkFor(brightness)
         : AppSemanticColors.textSecondaryFor(brightness);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    // A solid tinted strip: no stroke, no glow.
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: highlighted
-              ? AppSemanticColors.accent.withValues(alpha: 0.15)
-              : AppSemanticColors.hairlineFor(
-                  brightness,
-                ).withValues(alpha: 0.35),
-        ),
+        borderRadius: AppRadius.mdBorder,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16, color: foreground),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: foreground,
-                fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: foreground),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(color: foreground),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

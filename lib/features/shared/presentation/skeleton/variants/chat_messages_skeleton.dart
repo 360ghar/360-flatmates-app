@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_radius.dart';
+
 import '../../../../../core/theme/app_semantic_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../skeleton_bone.dart';
@@ -53,7 +55,7 @@ class ChatMessagesSkeleton extends StatelessWidget {
                   width: 32,
                   height: 32,
                   color: bone,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: AppRadius.lgBorder,
                 ),
                 const SizedBox(width: AppSpacing.sm),
               ],
@@ -63,9 +65,11 @@ class ChatMessagesSkeleton extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
                   decoration: BoxDecoration(
                     color: isMine
-                        ? AppSemanticColors.accent.withValues(alpha: 0.2)
+                        ? AppSemanticColors.clayFor(
+                            Theme.of(context).brightness,
+                          ).withValues(alpha: 0.2)
                         : SkeletonTokens.surface(Theme.of(context).brightness),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadius.lgBorder,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +79,9 @@ class ChatMessagesSkeleton extends StatelessWidget {
                             ? double.infinity
                             : 180 + (msgIndex % 3) * 20.0,
                         color: isMine
-                            ? AppSemanticColors.accent.withValues(alpha: 0.15)
+                            ? AppSemanticColors.clayFor(
+                                Theme.of(context).brightness,
+                              ).withValues(alpha: 0.15)
                             : bone,
                       ),
                       if (msgIndex % 2 == 0) ...[
@@ -83,7 +89,9 @@ class ChatMessagesSkeleton extends StatelessWidget {
                         FlatmatesSkeletonBone(
                           width: 140,
                           color: isMine
-                              ? AppSemanticColors.accent.withValues(alpha: 0.15)
+                              ? AppSemanticColors.clayFor(
+                                  Theme.of(context).brightness,
+                                ).withValues(alpha: 0.15)
                               : bone,
                         ),
                       ],

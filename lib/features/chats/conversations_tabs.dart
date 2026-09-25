@@ -31,12 +31,12 @@ class _InteractivePressScaleState extends State<_InteractivePressScale> {
 /// Shared 2-column aspect ratio for Likes You / You Liked profile grid cards.
 ///
 /// Meta is overlaid on the photo; only the Match CTA (when present) sits
-/// below — reserve ~52 logical px so the button does not crush the image.
+/// below: a 48 dp button plus an 8 dp gap, scaled with the text size.
 double _likesGridChildAspectRatio(BuildContext context) {
   final screenWidth = MediaQuery.sizeOf(context).width;
   // Match hub ListView horizontal gutter (AppSpacing.screen on each side).
   const padding = AppSpacing.screen * 2;
-  const belowPhotoReserve = 52.0;
+  final belowPhotoReserve = AppSpacing.scaled(context, AppSpacing.s56);
   final gridWidth = screenWidth - padding;
   final itemWidth = (gridWidth - AppSpacing.md) / 2;
   return itemWidth / (itemWidth + belowPhotoReserve);

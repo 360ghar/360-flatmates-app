@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'flatmates_network_image.dart';
@@ -101,6 +102,7 @@ class FlatmatesAvatar extends StatefulWidget {
     this.onTap,
     this.shape = BoxShape.circle,
     this.borderRadius,
+    this.tapLabel,
   });
 
   final String? name;
@@ -110,6 +112,9 @@ class FlatmatesAvatar extends StatefulWidget {
   final VoidCallback? onTap;
   final BoxShape shape;
   final BorderRadius? borderRadius;
+
+  /// Screen-reader name of the [onTap] action (for example "Add photo").
+  final String? tapLabel;
 
   @override
   State<FlatmatesAvatar> createState() => _FlatmatesAvatarState();
@@ -126,7 +131,16 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
       vsync: this,
       duration: AppMotion.compatibilityRing,
     );
-    if (widget.showRing) {
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!widget.showRing) return;
+    // Under reduce motion the ring is drawn complete at once.
+    if (AppMotion.reduceMotion(context)) {
+      _ringController.value = 1;
+    } else if (_ringController.isDismissed) {
       _ringController.forward();
     }
   }
@@ -135,7 +149,11 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
   void didUpdateWidget(covariant FlatmatesAvatar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.showRing && !oldWidget.showRing) {
-      _ringController.forward(from: 0);
+      if (AppMotion.reduceMotion(context)) {
+        _ringController.value = 1;
+      } else {
+        _ringController.forward(from: 0);
+      }
     }
   }
 
@@ -153,11 +171,9 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
     final isCircle = widget.shape == BoxShape.circle;
     final resolvedRadius = isCircle
         ? null
-        : (widget.borderRadius ?? BorderRadius.circular(12));
-    final palette = avatarPaletteForName(
-      widget.name,
-      brightness: Theme.of(context).brightness,
-    );
+        : (widget.borderRadius ?? AppRadius.mdBorder);
+    final brightness = Theme.of(context).brightness;
+    final palette = avatarPaletteForName(widget.name, brightness: brightness);
 
     final avatar = Container(
       width: widget.size,
@@ -165,7 +181,9 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
       decoration: BoxDecoration(
         shape: widget.shape,
         borderRadius: resolvedRadius,
-        color: hasImage ? AppSemanticColors.surfaceStrong : palette.background,
+        color: hasImage
+            ? AppSemanticColors.paperDeepFor(brightness)
+            : palette.background,
       ),
       child: hasImage
           ? (isCircle
@@ -202,12 +220,12 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
           return CustomPaint(
             painter: _RingPainter(
               progress: _ringController.value,
-              color: AppSemanticColors.primary,
+              color: AppSemanticColors.clayFor(brightness),
               strokeWidth: 2.5,
               isCircle: isCircle,
               borderRadiusValue: resolvedRadius != null
                   ? resolvedRadius.topLeft.x
-                  : 12.0,
+                  : AppRadius.md,
             ),
             child: child,
           );
@@ -220,10 +238,14 @@ class _FlatmatesAvatarState extends State<FlatmatesAvatar>
     }
 
     if (widget.onTap != null) {
-      avatarContent = GestureDetector(
-        onTap: widget.onTap,
-        behavior: HitTestBehavior.opaque,
-        child: avatarContent,
+      avatarContent = Semantics(
+        button: true,
+        label: widget.tapLabel,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          behavior: HitTestBehavior.opaque,
+          child: avatarContent,
+        ),
       );
     }
 
@@ -238,7 +260,7 @@ class _RingPainter extends CustomPainter {
     required this.color,
     required this.strokeWidth,
     this.isCircle = true,
-    this.borderRadiusValue = 12.0,
+    this.borderRadiusValue = AppRadius.md,
   });
 
   final double progress;
@@ -310,12 +332,14 @@ class _AvatarFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
+      // Sized to the fixed circle, so it does not follow the text scale.
       child: Text(
         initials,
+        textScaler: TextScaler.noScaling,
         style: theme.textTheme.titleMedium?.copyWith(
           color: foreground,
           fontSize: size * 0.34,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

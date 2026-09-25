@@ -3,17 +3,16 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'flatmates_card.dart';
 
-/// Notification list item card — matches screenshot #17 pattern.
-/// Unread items get a left accent border + dot indicator.
+/// Notification row. Unread rows are a raised paper-2 card (e2) with a clay
+/// dot; read rows sit flat on paper-1, so unread reads as more prominent.
 class FlatmatesNotificationCard extends StatelessWidget {
   const FlatmatesNotificationCard({
     required this.title,
     required this.body,
     required this.time,
     required this.icon,
-    required this.iconBgColor,
-    required this.iconColor,
     super.key,
+    this.iconColor,
     this.isRead = false,
     this.onTap,
   });
@@ -22,8 +21,9 @@ class FlatmatesNotificationCard extends StatelessWidget {
   final String body;
   final String time;
   final IconData icon;
-  final Color iconBgColor;
-  final Color iconColor;
+
+  /// Defaults to clay.
+  final Color? iconColor;
   final bool isRead;
   final VoidCallback? onTap;
 
@@ -39,21 +39,19 @@ class FlatmatesNotificationCard extends StatelessWidget {
       ),
       child: FlatmatesCard(
         onTap: onTap,
+        bordered: !isRead,
         backgroundColor: isRead
-            ? null
-            : AppSemanticColors.secondarySurfaceFor(brightness),
+            ? AppSemanticColors.paper1For(brightness)
+            : null,
         padding: AppSpacing.edgeBase,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 24, color: iconColor),
+            // Bare icon, no tile behind it (DESIGN.md §9).
+            Icon(
+              icon,
+              size: 24,
+              color: iconColor ?? AppSemanticColors.clayFor(brightness),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -63,15 +61,13 @@ class FlatmatesNotificationCard extends StatelessWidget {
                   Text(
                     title,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: isRead ? FontWeight.w600 : FontWeight.w700,
+                      fontWeight: isRead ? FontWeight.w500 : FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     body,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 13,
-                      height: 1.35,
                       color: AppSemanticColors.textSecondaryFor(brightness),
                     ),
                     maxLines: 2,
@@ -82,21 +78,21 @@ class FlatmatesNotificationCard extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   time,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: 11,
                     color: AppSemanticColors.textTertiaryFor(brightness),
                   ),
                 ),
                 if (!isRead) ...[
                   const SizedBox(height: AppSpacing.sm),
                   Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppSemanticColors.accent,
+                    width: AppSpacing.sm,
+                    height: AppSpacing.sm,
+                    decoration: BoxDecoration(
+                      color: AppSemanticColors.clayFor(brightness),
                       shape: BoxShape.circle,
                     ),
                   ),

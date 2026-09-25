@@ -115,7 +115,7 @@ void main() {
       final texts = find.byType(Text);
       expect(
         tester.widgetList<Text>(texts).map((t) => t.style?.fontSize),
-        containsAll([26.0, 18.0, 14.0]),
+        containsAll([26.0, 17.0, 14.0]),
       );
     });
   });

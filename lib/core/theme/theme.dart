@@ -6,6 +6,7 @@
 /// ```
 library;
 
+export 'app_brand_colors.dart';
 export 'app_motion.dart';
 export 'app_radius.dart';
 export 'app_semantic_colors.dart';
