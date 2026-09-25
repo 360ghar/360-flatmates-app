@@ -68,7 +68,6 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
       await ref.read(outgoingLikesListControllerProvider.notifier).refresh();
     } else {
       await ref.read(conversationsListControllerProvider.notifier).refresh();
-      ref.invalidate(conversationsProvider);
     }
   }
 

@@ -14,39 +14,37 @@ import 'presentation/widgets/listing_review_body.dart';
 /// (e.g. manage-listings → review after a cold start). Prefers the durable
 /// seed store so pending listings never hard-depend on GET after a GoRouter
 /// refresh drops `state.extra`.
-final listingReviewProvider = FutureProvider.family<PropertyListing, int>((
-  ref,
-  listingId,
-) async {
-  final seeded = ref
-      .read(propertyListingSeedStoreProvider.notifier)
-      .get(listingId);
-  // Prefer seed for pending/rejected so a slow/failed GET never blocks the
-  // under-review screen with a false "no internet" error. Still try GET so
-  // cold-start opens with the latest moderation status when the network works.
-  if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
-    try {
-      final fresh = await ref
-          .watch(discoverRepositoryProvider)
-          .fetchListing(listingId);
-      ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
-      return fresh;
-    } catch (e) {
-      debugPrint('listingReviewProvider seed-fallback($listingId): $e');
-      return seeded;
-    }
-  }
-  try {
-    final fresh = await ref
-        .watch(discoverRepositoryProvider)
-        .fetchListing(listingId);
-    ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
-    return fresh;
-  } catch (e) {
-    if (seeded != null) return seeded;
-    rethrow;
-  }
-});
+final listingReviewProvider = FutureProvider.autoDispose
+    .family<PropertyListing, int>((ref, listingId) async {
+      final seeded = ref
+          .read(propertyListingSeedStoreProvider.notifier)
+          .get(listingId);
+      // Prefer seed for pending/rejected so a slow/failed GET never blocks the
+      // under-review screen with a false "no internet" error. Still try GET so
+      // cold-start opens with the latest moderation status when the network works.
+      if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
+        try {
+          final fresh = await ref
+              .watch(discoverRepositoryProvider)
+              .fetchListing(listingId);
+          ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+          return fresh;
+        } catch (e) {
+          debugPrint('listingReviewProvider seed-fallback($listingId): $e');
+          return seeded;
+        }
+      }
+      try {
+        final fresh = await ref
+            .watch(discoverRepositoryProvider)
+            .fetchListing(listingId);
+        ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+        return fresh;
+      } catch (e) {
+        if (seeded != null) return seeded;
+        rethrow;
+      }
+    });
 
 class ListingUnderReviewPage extends ConsumerStatefulWidget {
   const ListingUnderReviewPage({

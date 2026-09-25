@@ -98,7 +98,3 @@ class NotificationsRepository {
 final notificationsRepositoryProvider = Provider<NotificationsRepository>(
   (ref) => NotificationsRepository(ref),
 );
-
-final notificationsProvider = FutureProvider<List<NotificationModel>>((ref) {
-  return ref.watch(notificationsRepositoryProvider).fetchNotifications();
-});

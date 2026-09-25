@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../chats/chats_repository.dart';
 import '../visits_repository.dart';
 import 'visits_list_controller.dart';
 
@@ -35,9 +34,7 @@ class VisitsActionsController {
     _ref.invalidate(visitsListControllerProvider);
     _ref.invalidate(visitsProvider);
     final conversationId = item.conversationId;
-    if (conversationId != null) {
-      _ref.invalidate(messagesProvider(conversationId));
-    }
+    if (conversationId != null) {}
   }
 }
 

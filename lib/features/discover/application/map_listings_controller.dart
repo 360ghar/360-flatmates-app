@@ -141,7 +141,6 @@ class MapListingsController extends Notifier<MapListingsState> {
       final conversationId = await ref
           .read(discoverRepositoryProvider)
           .setLiked(propertyId, liked);
-      ref.invalidate(conversationsProvider);
       // The ConversationsPage Chats tab watches the cursor controller, not the
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.

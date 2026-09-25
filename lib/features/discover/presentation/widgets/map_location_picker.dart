@@ -9,7 +9,6 @@ import '../../../location/application/location_controller.dart';
 import '../../../location/presentation/location_picker_modal.dart';
 import '../../application/discover_feed_controller.dart';
 import '../../application/map_listings_controller.dart';
-import '../../discover_repository.dart';
 
 /// Opens the location picker modal pre-filled from the current map filters
 /// and profile, wiring radius and location changes back into
@@ -94,7 +93,6 @@ void showMapLocationPicker(
         mapController.updateTextLocationFilter(location: location.name);
         feedController.updateTextLocationFilter(location: location.name);
       }
-      ref.invalidate(discoverListingsProvider);
     },
   );
 }

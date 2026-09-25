@@ -18,7 +18,6 @@ import '../shared/presentation/components.dart';
 import '../profile/profile_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'application/map_listings_controller.dart';
-import 'discover_repository.dart';
 
 final _selectedCityProvider = StateProvider.autoDispose<CatalogOption?>(
   (ref) => null,
@@ -180,8 +179,6 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       feedController.updateTextLocationFilter(location: city);
       mapController.updateTextLocationFilter(location: city);
     }
-
-    ref.invalidate(discoverListingsProvider);
   }
 
   Future<void> _selectPlace(PlaceSuggestion suggestion) async {

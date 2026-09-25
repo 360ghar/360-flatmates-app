@@ -310,7 +310,6 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           .setLiked(propertyId, newLiked);
       // Invalidate on both like and unlike so the conversation list stays
       // in sync (unliking may remove a pending conversation/like entry).
-      ref.invalidate(conversationsProvider);
       // The ConversationsPage Chats tab watches the cursor controller, not the
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.

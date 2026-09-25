@@ -5,7 +5,6 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
-import '../../../chats/chats_repository.dart' show messagesProvider;
 import '../../../shared/presentation/components.dart';
 import '../../../visits/application/visits_list_controller.dart';
 import '../../../visits/visits_repository.dart';
@@ -223,7 +222,6 @@ Future<void> scheduleVisitFromDetails({
     ref.invalidate(propertyListingProvider(listingId));
     ref.invalidate(visitsListControllerProvider);
     ref.invalidate(visitsProvider);
-    ref.invalidate(messagesProvider(cid));
     if (context.mounted) {
       FlatmatesToast.success(context, locale.visitRequestSent);
     }

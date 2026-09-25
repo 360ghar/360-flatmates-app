@@ -5,8 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/errors/app_failure.dart';
-import '../chats/chats_repository.dart'
-    show conversationsProvider, peerProfileProvider;
+import '../chats/chats_repository.dart' show peerProfileProvider;
 import '../chats/application/cursor_list_controller.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
@@ -394,8 +393,6 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
 
   void _syncLikeAcrossViews() {
     ref.read(discoverFeedControllerProvider.notifier).refresh();
-    ref.invalidate(discoverListingsProvider);
-    ref.invalidate(conversationsProvider);
     // The Liked tab cursor is updated by PropertyListingController. The legacy
     // FutureProviders above are not watched by any tab, so refresh only the
     // cursor controllers for Chats and Likes.

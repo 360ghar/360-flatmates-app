@@ -114,7 +114,6 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       visitCreated = true;
       ref.invalidate(visitsListControllerProvider);
       ref.invalidate(visitsProvider);
-      ref.invalidate(messagesProvider(conversation.id));
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitRequestSent);
       context.pop();

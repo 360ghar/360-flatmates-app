@@ -110,7 +110,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   /// Toggles the like for [item].
   ///
-  /// The optimistic UI update, network call, and `conversationsProvider`
+  /// The optimistic UI update, network call, and conversation-list
   /// invalidation are handled by [DiscoverFeedController.toggleLike]. This
   /// method only shows the success or error toast: it displays the
   /// "contact request sent" toast for a new like (with conversation id if
@@ -199,7 +199,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
           // back to a text filter rather than writing an invalid geo filter.
           feedController.updateTextLocationFilter(location: location.name);
         }
-        ref.invalidate(discoverListingsProvider);
       },
     );
   }

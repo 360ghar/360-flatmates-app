@@ -339,7 +339,6 @@ class MessagesController extends AutoDisposeFamilyNotifier<MessagesState, int> {
     }
 
     state = state.copyWith(isSending: false);
-    ref.invalidate(conversationsProvider);
     ref.invalidate(conversationsListControllerProvider);
 
     // The POST succeeded; keep the optimistic bubble even if this refetch
@@ -351,7 +350,6 @@ class MessagesController extends AutoDisposeFamilyNotifier<MessagesState, int> {
     try {
       await ref.read(chatsRepositoryProvider).markMessagesAsRead(arg);
       // Refresh list unread badges without waiting for Broadcast.
-      ref.invalidate(conversationsProvider);
       ref.invalidate(conversationsListControllerProvider);
     } catch (e) {
       debugPrint(

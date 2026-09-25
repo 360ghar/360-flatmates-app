@@ -430,28 +430,11 @@ final chatsRepositoryProvider = Provider<ChatsRepository>(
   (ref) => ChatsRepository(ref),
 );
 
-final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchConversations(),
-);
-
-final incomingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchIncomingLikes(),
-);
-
-final outgoingLikesProvider = FutureProvider<List<OutgoingLikeModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchOutgoingLikes(),
-);
-
-final conversationProvider =
-    FutureProvider.family<ConversationSummaryModel, int>(
+final conversationProvider = FutureProvider.autoDispose
+    .family<ConversationSummaryModel, int>(
       (ref, conversationId) =>
           ref.watch(chatsRepositoryProvider).fetchConversation(conversationId),
     );
-
-final messagesProvider = FutureProvider.family<MessageListResponse, int>(
-  (ref, conversationId) =>
-      ref.watch(chatsRepositoryProvider).fetchMessages(conversationId),
-);
 
 final messagesStreamProvider = StreamProvider.family
     .autoDispose<List<ChatMessage>, int>(
@@ -466,8 +449,8 @@ final peerProfileProvider = FutureProvider.autoDispose
           ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
     );
 
-final peerCompatibilityProvider =
-    FutureProvider.family<CompatibilityResult?, int>(
+final peerCompatibilityProvider = FutureProvider.autoDispose
+    .family<CompatibilityResult?, int>(
       (ref, userId) =>
           ref.watch(chatsRepositoryProvider).fetchPeerCompatibility(userId),
     );

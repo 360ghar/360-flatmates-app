@@ -8,8 +8,6 @@ import '../../core/providers.dart';
 import '../../core/providers/mutable_notifier.dart';
 import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
-import '../location/application/location_controller.dart';
-import 'application/discover_feed_controller.dart';
 import 'application/move_in_filter.dart';
 import 'application/property_listing_seed_store.dart';
 import 'data/property_listing_dto.dart';
@@ -533,28 +531,6 @@ final selectedPropertyProvider =
       AutoDisposeMutableNotifier<PropertyListing?>,
       PropertyListing?
     >(() => AutoDisposeMutableNotifier(null));
-
-final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
-  final profile = ref.watch(
-    bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
-  );
-  final filters = ref.watch(discoverFiltersProvider);
-  final selectedLocation = ref.watch(
-    locationControllerProvider.select((s) => s.selectedLocation),
-  );
-  final effectiveFilters = filters?.hasGeoLocation == true
-      ? filters
-      : selectedLocation != null
-      ? (filters ?? const DiscoverFilters()).copyWith(
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
-          radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
-        )
-      : filters;
-  return ref
-      .watch(discoverRepositoryProvider)
-      .fetchListings(currentUser: profile, filters: effectiveFilters);
-});
 
 /// Owns the detail-page state for a single listing so that likes can be
 /// applied optimistically (instant heart flip) with rollback on failure,
