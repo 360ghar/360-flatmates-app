@@ -183,7 +183,7 @@ class StepReviewSection extends StatelessWidget {
               Text(
                 locale.videoTourAdded,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppSemanticColors.accent,
+                  color: AppSemanticColors.clayInkFor(theme.brightness),
                 ),
               ),
           ],
@@ -316,14 +316,14 @@ class StepReviewSection extends StatelessWidget {
               ),
             if (totalMonthlyOutflow > 0)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
                 child: Text(
                   locale.totalMonthlyOutflow(
                     FlatmatesPriceText.formatRupee(totalMonthlyOutflow.round()),
                   ),
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppSemanticColors.accent,
-                    fontWeight: FontWeight.w800,
+                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -424,7 +424,11 @@ class _ReviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 20, color: AppSemanticColors.accent),
+              Icon(
+                icon,
+                size: 20,
+                color: AppSemanticColors.clayFor(theme.brightness),
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(

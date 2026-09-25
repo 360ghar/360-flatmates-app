@@ -252,7 +252,7 @@ class StepCostsSection extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppSemanticColors.accent.withValues(alpha: 0.08),
+                color: AppSemanticColors.paper1For(theme.brightness),
                 borderRadius: AppRadius.mdBorder,
               ),
               child: Column(
@@ -265,24 +265,23 @@ class StepCostsSection extends StatelessWidget {
                       ),
                     ),
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: AppSemanticColors.accent,
-                      fontWeight: FontWeight.w800,
+                      color: AppSemanticColors.textPrimaryFor(theme.brightness),
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                     textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                    maxLines: 2,
                   ),
                   if (totalFlatmates > 1) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       '${locale.perPersonCostLabel} ${FlatmatesPriceText.formatRupee((totalMonthlyOutflow / totalFlatmates).round())}',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppSemanticColors.accent.withValues(alpha: 0.8),
+                        color: AppSemanticColors.clayInkFor(theme.brightness),
                         fontWeight: FontWeight.w600,
                       ),
                       textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                      maxLines: 2,
                     ),
                   ],
                 ],

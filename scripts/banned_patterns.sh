@@ -115,6 +115,17 @@ else
   echo "OK ($COUNT)"
 fi
 
+# Light-only status colours fail contrast in dark mode (clay on dark paper is
+# about 1.2:1). Use the brightness-aware AppSemanticColors.*For(brightness).
+echo -n "  light-only accent/status colours in features and app... "
+COUNT=$(grep -rE 'AppSemanticColors\.(accent|error|success|warning|info|primary|onPrimary)([^A-Za-z0-9]|$)' lib/features lib/app --include='*.dart' | wc -l | tr -d ' ')
+if [ "$COUNT" -gt 0 ]; then
+  echo "FAIL ($COUNT; use AppSemanticColors.*For(brightness))"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "OK"
+fi
+
 if [ "$ERRORS" -gt 0 ]; then
   echo ""
   echo "Found $ERRORS banned pattern(s). Fix before merging."
