@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeBroadenedRadius.
   ///
   /// In en, this message translates to:
-  /// **'No listings within your area — showing flats farther away.'**
+  /// **'No listings in your area. Showing flats farther away.'**
   String get homeBroadenedRadius;
 
   /// No description provided for @homeBedroomsChip.
@@ -1529,19 +1529,19 @@ abstract class AppLocalizations {
   /// No description provided for @quizCleanMinimal.
   ///
   /// In en, this message translates to:
-  /// **'Minimal — lived-in is fine'**
+  /// **'Minimal: lived-in is fine'**
   String get quizCleanMinimal;
 
   /// No description provided for @quizCleanTidy.
   ///
   /// In en, this message translates to:
-  /// **'Tidy — things in their place'**
+  /// **'Tidy: things in their place'**
   String get quizCleanTidy;
 
   /// No description provided for @quizCleanSpotless.
   ///
   /// In en, this message translates to:
-  /// **'Spotless — everything pristine'**
+  /// **'Spotless: everything pristine'**
   String get quizCleanSpotless;
 
   /// No description provided for @quizFoodHabits.
@@ -1631,7 +1631,7 @@ abstract class AppLocalizations {
   /// No description provided for @quizOpenHouse.
   ///
   /// In en, this message translates to:
-  /// **'Open house — always welcome'**
+  /// **'Open house: always welcome'**
   String get quizOpenHouse;
 
   /// No description provided for @quizParties.
@@ -1679,7 +1679,7 @@ abstract class AppLocalizations {
   /// No description provided for @quizHybrid.
   ///
   /// In en, this message translates to:
-  /// **'Hybrid — mix of both'**
+  /// **'Hybrid: mix of both'**
   String get quizHybrid;
 
   /// No description provided for @quizPets.
@@ -4685,7 +4685,7 @@ abstract class AppLocalizations {
   /// No description provided for @photoTipNaturalLight.
   ///
   /// In en, this message translates to:
-  /// **'• Use natural lighting — open curtains before shooting'**
+  /// **'• Use natural light: open the curtains before you shoot'**
   String get photoTipNaturalLight;
 
   /// No description provided for @photoTipFullRoom.
@@ -6521,7 +6521,7 @@ abstract class AppLocalizations {
   /// No description provided for @visitFromDetailPageNote.
   ///
   /// In en, this message translates to:
-  /// **'Interested in this property — scheduled from listing page.'**
+  /// **'Interested in this property. Scheduled from the listing page.'**
   String get visitFromDetailPageNote;
 
   /// No description provided for @readMoreCta.

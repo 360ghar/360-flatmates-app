@@ -198,7 +198,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get homeBroadenedRadius =>
-      'आपके क्षेत्र में कोई लिस्टिंग नहीं — दूर की फ्लैट्स दिखाई जा रही हैं।';
+      'आपके क्षेत्र में कोई लिस्टिंग नहीं। दूर के फ्लैट दिखाए जा रहे हैं।';
 
   @override
   String homeBedroomsChip(int count) {
@@ -791,13 +791,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizCleanliness => 'आप कितने साफ-सुथरे रहते हैं?';
 
   @override
-  String get quizCleanMinimal => 'कम — रहने वाला ठीक है';
+  String get quizCleanMinimal => 'कम: रहने वाला ठीक है';
 
   @override
-  String get quizCleanTidy => 'सुव्यवस्थित — हर चीज़ अपनी जगह पर';
+  String get quizCleanTidy => 'सुव्यवस्थित: हर चीज़ अपनी जगह पर';
 
   @override
-  String get quizCleanSpotless => 'बिल्कुल साफ — सब कुछ चमकदार';
+  String get quizCleanSpotless => 'बिल्कुल साफ: सब कुछ चमकदार';
 
   @override
   String get quizFoodHabits => 'आपकी खान-पान की आदतें?';
@@ -842,7 +842,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizOccasionalGuests => 'कभी-कभी मेहमान ठीक हैं';
 
   @override
-  String get quizOpenHouse => 'खुला घर — हमेशा स्वागत है';
+  String get quizOpenHouse => 'खुला घर: हमेशा स्वागत है';
 
   @override
   String get quizParties => 'घर पर पार्टी के बारे में?';
@@ -866,7 +866,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizOffice => 'ज़्यादातर ऑफिस से';
 
   @override
-  String get quizHybrid => 'हाइब्रिड — दोनों का मिश्रण';
+  String get quizHybrid => 'हाइब्रिड: दोनों का मिश्रण';
 
   @override
   String get quizPets => 'पालतू जानवरों के बारे में?';
@@ -2461,7 +2461,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get photoTipNaturalLight =>
-      '• प्राकृतिक रोशनी में शूट करें — पर्दे खोल लें';
+      '• प्राकृतिक रोशनी में शूट करें: पर्दे खोल लें';
 
   @override
   String get photoTipFullRoom => '• कमरे को कोने से कोने तक पूरा दिखाएं';
@@ -3510,7 +3510,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get visitFromDetailPageNote =>
-      'इस प्रॉपर्टी में रुचि — लिस्टिंग पेज से शेड्यूल किया गया।';
+      'इस प्रॉपर्टी में रुचि। लिस्टिंग पेज से शेड्यूल किया गया।';
 
   @override
   String get readMoreCta => 'और पढ़ें';

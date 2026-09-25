@@ -198,7 +198,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeBroadenedRadius =>
-      'No listings within your area — showing flats farther away.';
+      'No listings in your area. Showing flats farther away.';
 
   @override
   String homeBedroomsChip(int count) {
@@ -790,13 +790,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizCleanliness => 'How clean do you keep things?';
 
   @override
-  String get quizCleanMinimal => 'Minimal — lived-in is fine';
+  String get quizCleanMinimal => 'Minimal: lived-in is fine';
 
   @override
-  String get quizCleanTidy => 'Tidy — things in their place';
+  String get quizCleanTidy => 'Tidy: things in their place';
 
   @override
-  String get quizCleanSpotless => 'Spotless — everything pristine';
+  String get quizCleanSpotless => 'Spotless: everything pristine';
 
   @override
   String get quizFoodHabits => 'What are your food habits?';
@@ -841,7 +841,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizOccasionalGuests => 'Occasional guests are ok';
 
   @override
-  String get quizOpenHouse => 'Open house — always welcome';
+  String get quizOpenHouse => 'Open house: always welcome';
 
   @override
   String get quizParties => 'How about parties at home?';
@@ -865,7 +865,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizOffice => 'Office mostly';
 
   @override
-  String get quizHybrid => 'Hybrid — mix of both';
+  String get quizHybrid => 'Hybrid: mix of both';
 
   @override
   String get quizPets => 'How do you feel about pets?';
@@ -2457,7 +2457,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoTipNaturalLight =>
-      '• Use natural lighting — open curtains before shooting';
+      '• Use natural light: open the curtains before you shoot';
 
   @override
   String get photoTipFullRoom => '• Show the full room from corner to corner';
@@ -3495,7 +3495,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitFromDetailPageNote =>
-      'Interested in this property — scheduled from listing page.';
+      'Interested in this property. Scheduled from the listing page.';
 
   @override
   String get readMoreCta => 'Read more';
