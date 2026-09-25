@@ -10,8 +10,9 @@ abstract final class FlatmatesDialog {
   /// Asks the user to confirm an action. Resolves to true only when the
   /// user taps [confirmLabel]; dismissing or cancelling resolves to false.
   ///
-  /// Set [destructive] for irreversible actions (delete, sign out, cancel a
-  /// visit): the confirm button turns danger-red.
+  /// Set [destructive] for irreversible actions (delete, block, sign out):
+  /// the confirm button turns danger-red. A double tap closes the dialog
+  /// once.
   static Future<bool> confirm(
     BuildContext context, {
     required String title,
@@ -22,61 +23,104 @@ abstract final class FlatmatesDialog {
     Key? confirmKey,
     Key? cancelKey,
   }) async {
-    final result = await showDialog<bool>(
+    final result = await custom<bool>(
+      context,
+      title: title,
+      body: message == null
+          ? null
+          : (ctx, _) => Text(message, style: Theme.of(ctx).textTheme.bodyLarge),
+      actions: (ctx, _, close) => [
+        FlatmatesButton.tertiary(
+          key: cancelKey,
+          label: cancelLabel,
+          onPressed: () => close(false),
+        ),
+        FlatmatesButton(
+          key: confirmKey,
+          label: confirmLabel,
+          destructive: destructive,
+          onPressed: () => close(true),
+        ),
+      ],
+    );
+    return result ?? false;
+  }
+
+  /// A paper dialog with stateful [body] and [actions]. Actions call
+  /// `close(value)` to pop with a result; `close` ignores repeat calls, so a
+  /// double tap can never pop the route underneath.
+  static Future<T?> custom<T>(
+    BuildContext context, {
+    required String title,
+    Widget Function(BuildContext ctx, StateSetter setState)? body,
+    List<Widget> Function(
+      BuildContext ctx,
+      StateSetter setState,
+      void Function([T? value]) close,
+    )?
+    actions,
+    bool barrierDismissible = true,
+  }) {
+    return showDialog<T>(
       context: context,
+      barrierDismissible: barrierDismissible,
       builder: (dialogContext) {
-        final text = Theme.of(dialogContext).textTheme;
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.all(AppSpacing.lg),
-          child: PaperSurface(
-            layer: PaperLayer.three,
-            elevation: PaperElevation.e3,
-            borderRadius: AppRadius.lgBorder,
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.base,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Semantics(
-                  header: true,
-                  child: Text(title, style: text.headlineSmall),
+        var closed = false;
+        void close([T? value]) {
+          if (closed) return;
+          closed = true;
+          Navigator.of(dialogContext).pop(value);
+        }
+
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            final text = Theme.of(ctx).textTheme;
+            final actionWidgets = actions?.call(ctx, setState, close);
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              insetPadding: const EdgeInsets.all(AppSpacing.lg),
+              child: PaperSurface(
+                layer: PaperLayer.three,
+                elevation: PaperElevation.e3,
+                borderRadius: AppRadius.lgBorder,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.base,
                 ),
-                if (message != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(message, style: text.bodyLarge),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: [
-                    FlatmatesButton.tertiary(
-                      key: cancelKey,
-                      label: cancelLabel,
-                      onPressed: () => Navigator.of(dialogContext).pop(false),
-                    ),
-                    FlatmatesButton(
-                      key: confirmKey,
-                      label: confirmLabel,
-                      destructive: destructive,
-                      onPressed: () => Navigator.of(dialogContext).pop(true),
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(title, style: text.headlineSmall),
+                      ),
+                      if (body != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        body(ctx, setState),
+                      ],
+                      if (actionWidgets != null &&
+                          actionWidgets.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        Wrap(
+                          alignment: WrapAlignment.end,
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: actionWidgets,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
-    return result ?? false;
   }
 }

@@ -13,36 +13,30 @@ import 'owner_profile_sheet.dart';
 
 Future<TimeOfDay?> showFlatDetailsTimeSlotPicker(BuildContext context) async {
   final locale = AppLocalizations.of(context);
-  return showDialog<TimeOfDay>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(locale.selectTimeSlot),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+  const slots = [
+    TimeOfDay(hour: 10, minute: 0),
+    TimeOfDay(hour: 15, minute: 0),
+    TimeOfDay(hour: 18, minute: 0),
+  ];
+  return FlatmatesDialog.custom<TimeOfDay>(
+    context,
+    title: locale.selectTimeSlot,
+    body: (ctx, _) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (slot, time, icon) in [
+          (slots[0], locale.timeSlotMorningTime, Icons.wb_sunny_outlined),
+          (slots[1], locale.timeSlotAfternoonTime, Icons.wb_cloudy_outlined),
+          (slots[2], locale.timeSlotEveningTime, Icons.nights_stay_outlined),
+        ])
           ListTile(
-            title: Text(locale.timeSlotMorning),
-            subtitle: Text(locale.timeSlotMorningTime),
-            leading: const Icon(Icons.wb_sunny_outlined),
-            onTap: () =>
-                Navigator.of(ctx).pop(const TimeOfDay(hour: 10, minute: 0)),
+            contentPadding: EdgeInsets.zero,
+            title: Text(flatDetailsTimeSlotLabel(locale, slot)),
+            subtitle: Text(time),
+            leading: Icon(icon),
+            onTap: () => Navigator.of(ctx).pop(slot),
           ),
-          ListTile(
-            title: Text(locale.timeSlotAfternoon),
-            subtitle: Text(locale.timeSlotAfternoonTime),
-            leading: const Icon(Icons.wb_cloudy_outlined),
-            onTap: () =>
-                Navigator.of(ctx).pop(const TimeOfDay(hour: 15, minute: 0)),
-          ),
-          ListTile(
-            title: Text(locale.timeSlotEvening),
-            subtitle: Text(locale.timeSlotEveningTime),
-            leading: const Icon(Icons.nights_stay_outlined),
-            onTap: () =>
-                Navigator.of(ctx).pop(const TimeOfDay(hour: 18, minute: 0)),
-          ),
-        ],
-      ),
+      ],
     ),
   );
 }
