@@ -186,6 +186,9 @@ class _OnboardingContentState extends State<_OnboardingContent>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
+  /// Page scroll (small phones, large text) drives the scene parallax.
+  final _scroll = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -198,6 +201,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
 
   @override
   void dispose() {
+    _scroll.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -220,58 +224,64 @@ class _OnboardingContentState extends State<_OnboardingContent>
       curve: const Interval(0.30, 0.65, curve: AppMotion.easeOutCubic),
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screen + AppSpacing.lg,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Cut-paper scene: a prop on the hills, or the whole
-          // neighbourhood on the last page.
-          _StaggeredFadeSlide(
-            animation: illustrationAnim,
-            child: switch (widget.prop) {
-              final prop? => PaperScene.compact(prop: prop, height: 220),
-              null => const ClipRRect(
-                borderRadius: AppRadius.cardBorder,
-                child: PaperScene.hero(height: 220),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        controller: _scroll,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screen + AppSpacing.lg,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Cut-paper scene: a prop on the hills, or the whole
+              // neighbourhood on the last page.
+              _StaggeredFadeSlide(
+                animation: illustrationAnim,
+                child: switch (widget.prop) {
+                  final prop? => PaperScene.compact(prop: prop, height: 220),
+                  null => ClipRRect(
+                    borderRadius: AppRadius.cardBorder,
+                    child: PaperScene.hero(height: 220, parallax: _scroll),
+                  ),
+                },
               ),
-            },
-          ),
-          const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
-          // Headline — Gambarino display
-          _StaggeredFadeSlide(
-            animation: headlineAnim,
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: _buildStyledHeadline(widget.headline, brightness),
+              const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
+              // Headline — Gambarino display
+              _StaggeredFadeSlide(
+                animation: headlineAnim,
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    children: _buildStyledHeadline(widget.headline, brightness),
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Sub-headline — Inter Body Medium
-          _StaggeredFadeSlide(
-            animation: subheadlineAnim,
-            child: Text(
-              widget.subheadline,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: AppTypography.bodySmWeight,
-                fontSize: AppTypography.bodySmSize,
-                height: AppTypography.bodySmHeight,
-                color: AppSemanticColors.textSecondaryFor(brightness),
+              const SizedBox(height: AppSpacing.md),
+              // Sub-headline — body font
+              _StaggeredFadeSlide(
+                animation: subheadlineAnim,
+                child: Text(
+                  widget.subheadline,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: AppTypography.bodySmWeight,
+                    fontSize: AppTypography.bodySmSize,
+                    height: AppTypography.bodySmHeight,
+                    color: AppSemanticColors.textSecondaryFor(brightness),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   /// Splits headline by **bold** markers.
-  /// Base text: Inter display-xl. Emphasized text: Inter medium italic.
+  /// Both parts use the Gambarino display style in one ink colour.
   List<InlineSpan> _buildStyledHeadline(String raw, Brightness brightness) {
     final parts = raw.split(RegExp(r'\*\*'));
     final spans = <InlineSpan>[];

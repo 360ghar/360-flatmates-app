@@ -99,43 +99,13 @@ class PaperScene extends StatelessWidget {
     if (!_compact) {
       // Buildings cut by the screen edge fade into the sky instead of
       // ending in a hard slice.
-      landscape = ShaderMask(
-        blendMode: BlendMode.dstIn,
-        shaderCallback: (rect) => const LinearGradient(
-          colors: [
-            Colors.transparent,
-            Colors.black,
-            Colors.black,
-            Colors.transparent,
-          ],
-          stops: [0, 0.07, 0.93, 1],
-        ).createShader(rect),
-        child: landscape,
-      );
+      landscape = _Feather(gradient: _heroSides, child: landscape);
     } else {
       // Feather the sides and the bottom so the hills dissolve into the page
       // (no hard seam against whatever surface holds the scene).
-      landscape = ShaderMask(
-        blendMode: BlendMode.dstIn,
-        shaderCallback: (rect) => const LinearGradient(
-          colors: [
-            Colors.transparent,
-            Colors.black,
-            Colors.black,
-            Colors.transparent,
-          ],
-          stops: [0, 0.14, 0.86, 1],
-        ).createShader(rect),
-        child: ShaderMask(
-          blendMode: BlendMode.dstIn,
-          shaderCallback: (rect) => const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black, Colors.black, Colors.transparent],
-            stops: [0, 0.72, 1],
-          ).createShader(rect),
-          child: landscape,
-        ),
+      landscape = _Feather(
+        gradient: _compactSides,
+        child: _Feather(gradient: _compactBottom, child: landscape),
       );
     }
 
@@ -177,6 +147,44 @@ class PaperScene extends StatelessWidget {
     );
     return ExcludeSemantics(child: scene);
   }
+}
+
+const _heroSides = LinearGradient(
+  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+  stops: [0, 0.07, 0.93, 1],
+);
+const _compactSides = LinearGradient(
+  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+  stops: [0, 0.14, 0.86, 1],
+);
+const _compactBottom = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Colors.black, Colors.black, Colors.transparent],
+  stops: [0, 0.72, 1],
+);
+
+/// Alpha mask from [gradient]. The shader is cached per size, so parallax
+/// frames (which repaint the mask) do not rebuild it.
+class _Feather extends StatelessWidget {
+  const _Feather({required this.gradient, required this.child});
+
+  final LinearGradient gradient;
+  final Widget child;
+
+  static final Map<(LinearGradient, Size), Shader> _cache = {};
+
+  @override
+  Widget build(BuildContext context) => ShaderMask(
+    blendMode: BlendMode.dstIn,
+    shaderCallback: (rect) {
+      if (_cache.length > 32) _cache.clear();
+      return _cache[(gradient, rect.size)] ??= gradient.createShader(
+        Offset.zero & rect.size,
+      );
+    },
+    child: child,
+  );
 }
 
 class _Layer extends StatelessWidget {

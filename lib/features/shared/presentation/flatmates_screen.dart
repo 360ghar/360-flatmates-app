@@ -20,6 +20,7 @@ class FlatmatesScreen extends StatefulWidget {
     this.useSafeArea = true,
     this.scrollable = false,
     this.padding,
+    this.scrollController,
   });
 
   final PreferredSizeWidget? appBar;
@@ -31,6 +32,10 @@ class FlatmatesScreen extends StatefulWidget {
   final bool useSafeArea;
   final bool scrollable;
   final EdgeInsetsGeometry? padding;
+
+  /// Controller for the [scrollable] body, for example to drive scene
+  /// parallax.
+  final ScrollController? scrollController;
 
   @override
   State<FlatmatesScreen> createState() => _FlatmatesScreenState();
@@ -73,6 +78,7 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
             builder: (context, constraints) {
               final verticalPadding = effectivePadding.vertical;
               return SingleChildScrollView(
+                controller: widget.scrollController,
                 padding: effectivePadding,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(

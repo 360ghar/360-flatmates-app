@@ -42,6 +42,9 @@ class EnterPhonePage extends ConsumerStatefulWidget {
 
 class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   final _controller = TextEditingController();
+
+  /// Drives the scene parallax as the form scrolls.
+  final _scroll = ScrollController();
   final _identifierFocusNode = FocusNode();
   final _smartAuth = SmartAuth.instance;
   bool _phoneHintShown = false;
@@ -61,6 +64,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
 
   @override
   void dispose() {
+    _scroll.dispose();
     _controller.dispose();
     _identifierFocusNode.dispose();
     super.dispose();
@@ -225,6 +229,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     // sits below it on the page.
     return FlatmatesScreen(
       scrollable: true,
+      scrollController: _scroll,
       useSafeArea: false,
       padding: EdgeInsets.zero,
       backgroundColor: AppSemanticColors.paper1For(theme.brightness),
@@ -232,7 +237,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const PaperSceneHeader(),
+            PaperSceneHeader(parallax: _scroll),
             Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.screen,
