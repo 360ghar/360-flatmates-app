@@ -95,7 +95,7 @@ fi
 # are grandfathered at the baseline below; the count may only go down.
 # Lower the baseline when you remove one.
 RADIUS_BASELINE=81
-COLOR_BASELINE=16
+COLOR_BASELINE=11
 
 echo -n "  raw BorderRadius.circular(<number>) outside theme... "
 COUNT=$(grep -rE 'BorderRadius\.circular\([0-9.]+\)' lib --include='*.dart' | grep -v '^lib/core/theme/' | wc -l | tr -d ' ')

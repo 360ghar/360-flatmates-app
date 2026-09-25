@@ -103,10 +103,10 @@ class PaperScene extends StatelessWidget {
         blendMode: BlendMode.dstIn,
         shaderCallback: (rect) => const LinearGradient(
           colors: [
-            Color(0x00000000),
-            Color(0xFF000000),
-            Color(0xFF000000),
-            Color(0x00000000),
+            Colors.transparent,
+            Colors.black,
+            Colors.black,
+            Colors.transparent,
           ],
           stops: [0, 0.07, 0.93, 1],
         ).createShader(rect),
@@ -119,10 +119,10 @@ class PaperScene extends StatelessWidget {
         blendMode: BlendMode.dstIn,
         shaderCallback: (rect) => const LinearGradient(
           colors: [
-            Color(0x00000000),
-            Color(0xFF000000),
-            Color(0xFF000000),
-            Color(0x00000000),
+            Colors.transparent,
+            Colors.black,
+            Colors.black,
+            Colors.transparent,
           ],
           stops: [0, 0.14, 0.86, 1],
         ).createShader(rect),
@@ -131,7 +131,7 @@ class PaperScene extends StatelessWidget {
           shaderCallback: (rect) => const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF000000), Color(0xFF000000), Color(0x00000000)],
+            colors: [Colors.black, Colors.black, Colors.transparent],
             stops: [0, 0.72, 1],
           ).createShader(rect),
           child: landscape,
