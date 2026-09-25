@@ -5543,7 +5543,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorNotFound.
   ///
   /// In en, this message translates to:
-  /// **'The requested resource was not found.'**
+  /// **'This page or item no longer exists.'**
   String get errorNotFound;
 
   /// No description provided for @errorValidation.

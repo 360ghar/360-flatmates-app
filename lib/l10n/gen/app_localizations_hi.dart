@@ -2941,7 +2941,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorPermission => 'आपको यह क्रिया करने की अनुमति नहीं है।';
 
   @override
-  String get errorNotFound => 'अनुरोधित संसाधन नहीं मिला।';
+  String get errorNotFound => 'यह पेज या आइटम अब मौजूद नहीं है।';
 
   @override
   String get errorValidation => 'अमान्य डेटा। कृपया अपना इनपुट जांचें।';

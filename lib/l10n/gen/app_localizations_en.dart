@@ -2926,7 +2926,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You do not have permission to perform this action.';
 
   @override
-  String get errorNotFound => 'The requested resource was not found.';
+  String get errorNotFound => 'This page or item no longer exists.';
 
   @override
   String get errorValidation => 'Invalid data. Please check your input.';

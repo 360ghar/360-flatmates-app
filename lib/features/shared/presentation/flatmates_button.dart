@@ -162,7 +162,9 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
         child: AnimatedContainer(
           duration: AppMotion.durationOrZero(context, AppMotion.fast),
           curve: AppMotion.paperOut,
-          height: widget.height,
+          // Minimum, not fixed: the label grows with the user's text size
+          // instead of being clipped.
+          constraints: BoxConstraints(minHeight: widget.height),
           width: widget.fullWidth ? double.infinity : null,
           decoration: BoxDecoration(
             borderRadius: AppRadius.mdBorder,

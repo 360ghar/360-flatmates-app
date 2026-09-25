@@ -1317,7 +1317,7 @@
   "errorAuth": "Authentication failed. Please try again.",
   "errorServer": "Server error. Please try again later.",
   "errorPermission": "You do not have permission to perform this action.",
-  "errorNotFound": "The requested resource was not found.",
+  "errorNotFound": "This page or item no longer exists.",
   "errorValidation": "Invalid data. Please check your input.",
   "errorRateLimit": "Too many requests. Please wait a moment and try again.",
   "errorConflict": "A conflict occurred. The data may have changed.",
