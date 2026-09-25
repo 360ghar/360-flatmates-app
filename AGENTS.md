@@ -67,7 +67,7 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 ## UI Guidance
 
 - Maintain support for light, dark, and system theme modes (default: Light).
-- Use a single brand primary (Airbnb Rausch `#FF385C`). Do not reintroduce multi-palette switching.
+- Use the single clay brand primary from DESIGN.md (Paper Diorama). Do not reintroduce multi-palette switching.
 - Keep English and Hindi localization coverage in sync for all primary user flows (default: English).
 - Use meaningful keys on major interactive widgets so Maestro coverage can remain stable.
 - All visual tokens (colors, radii, spacing, typography, shadows, components) must match [DESIGN.md](DESIGN.md). Do not introduce values that contradict the design system.
