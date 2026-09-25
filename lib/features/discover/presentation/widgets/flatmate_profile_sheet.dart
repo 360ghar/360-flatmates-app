@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/error_presenter.dart';
 import '../../../../core/errors/l10n_bridge.dart';
-import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
@@ -101,20 +100,20 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
     );
     final isSelf = currentUserId != null && currentUserId == widget.userId;
-    void retry() => ref.invalidate(peerProfileProvider(widget.userId));
+    final loadError = Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: FlatmatesErrorState(
+        message: locale.couldNotLoadContent,
+        onRetry: () => ref.invalidate(peerProfileProvider(widget.userId)),
+      ),
+    );
 
     return profileAsync.when(
       loading: () => const FlatmatesSkeleton.peerProfileSheet(),
-      error: (_, _) => _LoadError(
-        name: widget.nameFallback ?? locale.matchPeerFallbackName,
-        onRetry: retry,
-      ),
+      error: (_, _) => loadError,
       data: (peerData) {
         if (peerData == null) {
-          return _LoadError(
-            name: widget.nameFallback ?? locale.matchPeerFallbackName,
-            onRetry: retry,
-          );
+          return loadError;
         }
         final peer = SwipeProfile.fromJson(peerData);
         final currentUser = ref.watch(
@@ -143,46 +142,6 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
           trailing: trailing,
         );
       },
-    );
-  }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.name, required this.onRetry});
-  final String name;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FlatmatesAvatar(name: name, size: 80),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            name,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            locale.couldNotLoadContent,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppSemanticColors.textTertiaryFor(
-                isDark ? Brightness.dark : Brightness.light,
-              ),
-            ),
-          ),
-          TextButton(onPressed: onRetry, child: Text(locale.commonRetry)),
-        ],
-      ),
     );
   }
 }

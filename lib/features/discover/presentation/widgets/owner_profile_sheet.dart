@@ -226,14 +226,13 @@ class _OwnerProfileBody extends StatelessWidget {
         key: const ValueKey('owner_action_message'),
         icon: Icons.chat_bubble_outline_rounded,
         label: locale.messageCta,
-        color: PeerActionButtonColor.blue,
+        color: PeerActionButtonColor.primary,
         onTap: onSendMessage,
       ),
       PeerActionButton(
         key: const ValueKey('owner_action_call'),
         icon: Icons.call_outlined,
         label: locale.callCta,
-        color: PeerActionButtonColor.green,
         onTap: phone != null && phone.isNotEmpty
             ? () => _launchCall(phone)
             : null,
@@ -242,15 +241,13 @@ class _OwnerProfileBody extends StatelessWidget {
         key: const ValueKey('owner_action_schedule'),
         icon: Icons.event_available_outlined,
         label: locale.scheduleVisitCta,
-        // ignore: avoid_redundant_argument_values
-        color: PeerActionButtonColor.pink,
         onTap: onScheduleVisit,
       ),
       PeerActionButton(
         key: const ValueKey('owner_action_report'),
         icon: Icons.flag_outlined,
         label: locale.reportCta,
-        color: PeerActionButtonColor.red,
+        color: PeerActionButtonColor.destructive,
         onTap: onReport,
       ),
     ];
@@ -381,21 +378,7 @@ class _OwnerProfileBody extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           // ROW 2: Action buttons row.
-          if (actionButtons.isNotEmpty)
-            Row(
-              children: actionButtons
-                  .map(
-                    (b) => Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xxs,
-                        ),
-                        child: b,
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
+          if (actionButtons.isNotEmpty) PeerActionRow(children: actionButtons),
 
           // About / bio.
           if (hasBio) ...[

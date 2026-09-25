@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flatmates_app/features/chats/chats_repository.dart';
-import 'package:flatmates_app/features/chats/domain/chat_report_reason.dart';
 import 'package:flatmates_app/features/chats/presentation/widgets/chat_app_bar.dart';
 
 import '../../helpers/test_helpers.dart';
@@ -34,7 +33,6 @@ void main() {
         _wrap(
           ChatAppBar(
             conversation: convWithProperty,
-            reportReasons: ChatReportReason.defaults(),
             onBlock: () {},
             onReport: () {},
             onUnmatch: () {},
@@ -57,7 +55,6 @@ void main() {
         _wrap(
           ChatAppBar(
             conversation: convWithoutProperty,
-            reportReasons: ChatReportReason.defaults(),
             onBlock: () {},
             onReport: () {},
             onUnmatch: () {},

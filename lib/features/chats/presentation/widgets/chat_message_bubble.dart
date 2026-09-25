@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
@@ -49,9 +50,13 @@ class ChatMessageBubble extends StatelessWidget {
       );
     }
 
+    // Bubbles take at most 75 % of the screen and shrink with the row, so
+    // a long message never overflows a narrow phone.
+    final maxBubble = MediaQuery.sizeOf(context).width * 0.75;
+
     if (message.messageType == 'image' && message.attachmentUrl != null) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 18),
+        padding: const EdgeInsets.only(bottom: AppSpacing.base),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: isMine
@@ -60,22 +65,33 @@ class ChatMessageBubble extends StatelessWidget {
           children: [
             if (!isMine) ...[
               FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 40),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.sm),
             ],
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 220),
-              child: Column(
-                crossAxisAlignment: isMine
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  FlatmatesNetworkImage(
-                    imageUrl: message.attachmentUrl!,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  _MessageMeta(message: message, isMine: isMine, time: time),
-                ],
+            Flexible(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxBubble * 0.8),
+                child: Column(
+                  crossAxisAlignment: isMine
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
+                    // Fixed aspect so the list does not jump when it loads.
+                    Semantics(
+                      image: true,
+                      label: locale.messageAttachment,
+                      child: AspectRatio(
+                        aspectRatio: 4 / 3,
+                        child: FlatmatesNetworkImage(
+                          imageUrl: message.attachmentUrl!,
+                          fit: BoxFit.cover,
+                          borderRadius: AppRadius.lgBorder,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    _MessageMeta(message: message, isMine: isMine, time: time),
+                  ],
+                ),
               ),
             ),
           ],
@@ -84,7 +100,7 @@ class ChatMessageBubble extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: isMine
@@ -95,41 +111,43 @@ class ChatMessageBubble extends StatelessWidget {
             FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 32),
             const SizedBox(width: AppSpacing.sm),
           ],
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 290),
-            child: Column(
-              crossAxisAlignment: isMine
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: isMine
-                        ? AppSemanticColors.accent
-                        : AppSemanticColors.disabledSurfaceFor(
-                            theme.brightness,
-                          ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-                    child: Text(
-                      message.body ??
-                          AppLocalizations.of(context).messageAttachment,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: isMine
-                            ? Colors.white
-                            : AppSemanticColors.textPrimaryFor(
-                                theme.brightness,
-                              ),
-                        height: 1.45,
+          Flexible(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxBubble),
+              child: Column(
+                crossAxisAlignment: isMine
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: isMine
+                          ? AppSemanticColors.clayFor(theme.brightness)
+                          : AppSemanticColors.paperDeepFor(theme.brightness),
+                      borderRadius: AppRadius.lgBorder,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Text(
+                        message.body ??
+                            AppLocalizations.of(context).messageAttachment,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: isMine
+                              ? AppSemanticColors.onClayFor(theme.brightness)
+                              : AppSemanticColors.textPrimaryFor(
+                                  theme.brightness,
+                                ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                _MessageMeta(message: message, isMine: isMine, time: time),
-              ],
+                  const SizedBox(height: AppSpacing.xs),
+                  _MessageMeta(message: message, isMine: isMine, time: time),
+                ],
+              ),
             ),
           ),
         ],
@@ -176,14 +194,14 @@ class _VisitRequestCard extends StatelessWidget {
     return 'requested';
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(String status, Brightness brightness) {
     switch (status) {
       case 'confirmed':
-        return AppSemanticColors.success;
+        return AppSemanticColors.pineFor(brightness);
       case 'cancelled':
-        return AppSemanticColors.error;
+        return AppSemanticColors.dangerFor(brightness);
       default:
-        return AppSemanticColors.warning;
+        return AppSemanticColors.warningInkFor(brightness);
     }
   }
 
@@ -219,7 +237,7 @@ class _VisitRequestCard extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final status = _status;
-    final statusColor = _statusColor(status);
+    final statusColor = _statusColor(status, theme.brightness);
     final statusBg = _statusBgColor(status, theme.brightness);
     final scheduledDate = visit?.scheduledDate ?? message.visitScheduledDate;
     final scheduleText = scheduledDate == null
@@ -235,7 +253,7 @@ class _VisitRequestCard extends StatelessWidget {
         (status == 'requested' || status == 'reschedule_suggested');
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: isMine
@@ -244,19 +262,16 @@ class _VisitRequestCard extends StatelessWidget {
         children: [
           if (!isMine) ...[
             FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 40),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
           ],
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 270),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border(left: BorderSide(color: statusColor, width: 4)),
+          // Status shows in the icon, title and badge: no accent stripe.
+          Flexible(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.sizeOf(context).width * 0.8,
               ),
               child: FlatmatesCard(
                 margin: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(18),
-                borderColor: statusColor.withValues(alpha: 0.3),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -279,15 +294,15 @@ class _VisitRequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       decoration: BoxDecoration(
                         color: statusBg,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.mdBorder,
                       ),
                       child: Row(
                         children: [
@@ -312,27 +327,33 @@ class _VisitRequestCard extends StatelessWidget {
                       ),
                     ),
                     if (canRespond) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Row(
                         children: [
                           Expanded(
-                            child: FilledButton(
+                            child: FlatmatesButton(
+                              label: locale.visitConfirmCta,
                               onPressed: () => onConfirmVisit?.call(visit!),
-                              child: Text(locale.visitConfirmCta),
+                              fullWidth: true,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
-                            child: OutlinedButton(
+                            child: FlatmatesButton.secondary(
+                              label: locale.visitRescheduleCta,
                               onPressed: () => onRescheduleVisit?.call(visit!),
-                              child: Text(locale.visitRescheduleCta),
+                              fullWidth: true,
                             ),
                           ),
                         ],
                       ),
                     ],
-                    const SizedBox(height: 10),
-                    Row(
+                    const SizedBox(height: AppSpacing.md),
+                    // Wrap: badge and time share a row when they fit.
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         FlatmatesTrustBadge(
                           label: status == 'confirmed'
@@ -348,7 +369,6 @@ class _VisitRequestCard extends StatelessWidget {
                           variant: _badgeVariant(status),
                           compact: true,
                         ),
-                        const Spacer(),
                         _MessageMeta(
                           message: message,
                           isMine: isMine,
@@ -392,7 +412,7 @@ class _MessageMeta extends StatelessWidget {
         ? locale.readReceiptRead
         : locale.readReceiptSent;
     final receiptColor = isRead
-        ? AppSemanticColors.accent
+        ? AppSemanticColors.clayFor(theme.brightness)
         : AppSemanticColors.textSecondaryFor(theme.brightness);
     final receiptIcon = isPending
         ? Icons.schedule_rounded
@@ -406,20 +426,18 @@ class _MessageMeta extends StatelessWidget {
         Text(
           time,
           style: theme.textTheme.bodySmall?.copyWith(
-            fontSize: 11,
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
           ),
         ),
         if (isMine) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm),
           Icon(receiptIcon, size: 14, color: receiptColor),
-          const SizedBox(width: 3),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             receipt,
             style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
               color: receiptColor,
-              fontWeight: isRead ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: isRead ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
         ],

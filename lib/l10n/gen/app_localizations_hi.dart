@@ -240,8 +240,19 @@ class AppLocalizationsHi extends AppLocalizations {
   String get badgeTrending => 'ट्रेंडिंग';
 
   @override
+  String unreadMessagesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count अपठित संदेश',
+      one: '1 अपठित संदेश',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String monthlyRentLabel(String amount) {
-    return 'मासिक किराया: ₹$amount';
+    return 'मासिक किराया: $amount';
   }
 
   @override

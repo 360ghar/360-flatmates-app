@@ -343,10 +343,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final userId = int.tryParse(state.pathParameters['userId'] ?? '');
-          if (userId == null) {
-            final locale = AppLocalizations.of(context);
-            return Scaffold(body: Center(child: Text(locale.errorUnknown)));
-          }
+          if (userId == null) return const NotFoundPage();
           return ChatPeerProfilePage(
             userId: userId,
             conversation: state.extra is ConversationSummaryModel

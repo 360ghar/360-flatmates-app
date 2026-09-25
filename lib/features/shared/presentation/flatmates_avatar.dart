@@ -26,70 +26,35 @@ String initialsFromName(String? name) {
   return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
 }
 
-/// Deterministic pastel pair for initials avatars (Profile/Settings language).
+/// Deterministic soft-fill + ink pair for initials avatars.
 ///
 /// Stable per [name] so the same person always gets the same colors.
 ({Color background, Color foreground}) avatarPaletteForName(
   String? name, {
   Brightness brightness = Brightness.light,
 }) {
-  final isDark = brightness == Brightness.dark;
-  // (light bg, light fg, dark bg, dark fg)
-  const palettes = <(Color, Color, Color, Color)>[
-    (
-      AppSemanticColors.blueSoft,
-      AppSemanticColors.blueInk,
-      AppSemanticColors.blueSoftDark,
-      AppSemanticColors.blueMid,
-    ),
-    (
-      AppSemanticColors.pinkSoft,
-      AppSemanticColors.pinkInk,
-      AppSemanticColors.pinkSoftDark,
-      AppSemanticColors.pinkMid,
-    ),
-    (
-      AppSemanticColors.tealSoft,
-      AppSemanticColors.tealInk,
-      AppSemanticColors.tealSoftDark,
-      AppSemanticColors.tealMid,
-    ),
-    (
-      AppSemanticColors.purpleSoft,
-      AppSemanticColors.purpleInk,
-      AppSemanticColors.purpleSoftDark,
-      AppSemanticColors.purpleMid,
-    ),
-    (
-      AppSemanticColors.greenSoft,
-      AppSemanticColors.greenInk,
-      AppSemanticColors.greenSoftDark,
-      AppSemanticColors.greenMid,
-    ),
-    (
-      AppSemanticColors.orangeSoft,
-      AppSemanticColors.orangeInk,
-      AppSemanticColors.orangeSoftDark,
-      AppSemanticColors.orangeMid,
-    ),
-    (
-      AppSemanticColors.yellowSoft,
-      AppSemanticColors.yellowInk,
-      AppSemanticColors.yellowSoftDark,
-      AppSemanticColors.yellowMid,
-    ),
-  ];
+  // AA-tested pill pairs (contrast_test.dart), in the historic slot order
+  // so a person keeps their tone: pine, clay, pine, clay, pine, clay, marigold.
+  final pine = (
+    background: AppSemanticColors.pineSoftFor(brightness),
+    foreground: AppSemanticColors.greenInkFor(brightness),
+  );
+  final clay = (
+    background: AppSemanticColors.coralSoftFor(brightness),
+    foreground: AppSemanticColors.clayInkFor(brightness),
+  );
+  final marigold = (
+    background: AppSemanticColors.warningSoftFor(brightness),
+    foreground: AppSemanticColors.warningInkFor(brightness),
+  );
+  final palettes = [pine, clay, pine, clay, pine, clay, marigold];
 
   final key = name?.trim() ?? '';
   var hash = 0;
   for (final unit in key.codeUnits) {
     hash = (hash * 31 + unit) & 0x7fffffff;
   }
-  final pair = palettes[hash % palettes.length];
-  return (
-    background: isDark ? pair.$3 : pair.$1,
-    foreground: isDark ? pair.$4 : pair.$2,
-  );
+  return palettes[hash % palettes.length];
 }
 
 class FlatmatesAvatar extends StatefulWidget {

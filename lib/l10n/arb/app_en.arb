@@ -137,7 +137,15 @@
   "badgeNew": "New",
   "badgePopular": "Popular",
   "badgeTrending": "Trending",
-  "monthlyRentLabel": "Monthly rent: ₹{amount}",
+  "unreadMessagesCount": "{count, plural, =1{1 unread message} other{{count} unread messages}}",
+  "@unreadMessagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyRentLabel": "Monthly rent: {amount}",
   "@monthlyRentLabel": {
     "placeholders": {
       "amount": {

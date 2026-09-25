@@ -95,7 +95,7 @@ class ChatPropertyCard extends StatelessWidget {
           color: AppSemanticColors.coralSoftFor(theme.brightness),
           child: Icon(
             Icons.home_rounded,
-            color: AppSemanticColors.accent.withValues(alpha: 0.4),
+            color: AppSemanticColors.clayInkFor(theme.brightness),
             size: 28,
           ),
         ),

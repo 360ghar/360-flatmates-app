@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
-import '../../../../core/theme/app_motion.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 
@@ -41,6 +42,11 @@ class ChatInputBar extends StatelessWidget {
     final canSend = !busy;
     final canPickPhoto = onPickPhoto != null && !busy;
 
+    final brightness = theme.brightness;
+    final muted = AppSemanticColors.textSecondaryFor(brightness);
+
+    // DESIGN.md input: paper-2 sheet, cut-md, e1, 2 px clay stroke while
+    // focused. 48 dp icon buttons; the send button is a clay disc.
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.fromLTRB(
@@ -49,35 +55,43 @@ class ChatInputBar extends StatelessWidget {
         AppSpacing.base,
         AppSpacing.base,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: AppSemanticColors.hairlineFor(
-              theme.brightness,
-            ).withValues(alpha: 0.35),
+      child: ListenableBuilder(
+        listenable: focusNode,
+        builder: (context, child) => DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppSemanticColors.surfaceFor(brightness),
+            borderRadius: AppRadius.mdBorder,
+            boxShadow: AppShadows.e1(brightness),
+          ),
+          child: DecoratedBox(
+            position: DecorationPosition.foreground,
+            decoration: BoxDecoration(
+              borderRadius: AppRadius.mdBorder,
+              border: Border.all(
+                color: focusNode.hasFocus
+                    ? AppSemanticColors.clayFor(brightness)
+                    : AppSemanticColors.hairlineFor(brightness),
+                width: focusNode.hasFocus ? 2 : 1,
+              ),
+            ),
+            child: child,
           ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _InteractivePressScale(
-              child: IconButton(
-                key: const Key('chat_emoji_button'),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                constraints: const BoxConstraints(),
-                onPressed: onToggleEmoji,
-                tooltip: locale.emojiCta,
-                icon: Icon(
-                  showEmoji
-                      ? Icons.keyboard_outlined
-                      : Icons.emoji_emotions_outlined,
-                  color: showEmoji
-                      ? AppSemanticColors.accent
-                      : AppSemanticColors.textSecondaryFor(theme.brightness),
-                  size: 24,
-                ),
+            IconButton(
+              key: const Key('chat_emoji_button'),
+              onPressed: onToggleEmoji,
+              tooltip: locale.emojiCta,
+              icon: Icon(
+                showEmoji
+                    ? Icons.keyboard_outlined
+                    : Icons.emoji_emotions_outlined,
+                color: showEmoji
+                    ? AppSemanticColors.clayFor(brightness)
+                    : muted,
+                size: 24,
               ),
             ),
             Expanded(
@@ -94,12 +108,6 @@ class ChatInputBar extends StatelessWidget {
                 maxLines: 5,
                 decoration: InputDecoration(
                   hintText: locale.chatInputHint,
-                  hintStyle: TextStyle(
-                    color: AppSemanticColors.textSecondaryFor(
-                      theme.brightness,
-                    ).withValues(alpha: 0.6),
-                    fontSize: 15,
-                  ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -111,106 +119,46 @@ class ChatInputBar extends StatelessWidget {
               ),
             ),
             if (onPickPhoto != null)
-              _InteractivePressScale(
-                child: IconButton(
-                  key: const Key('chat_photo_button'),
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  constraints: const BoxConstraints(),
-                  onPressed: canPickPhoto ? onPickPhoto : null,
-                  tooltip: locale.addPhotoCta,
-                  icon: isUploadingPhoto
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppSemanticColors.textSecondaryFor(
-                              theme.brightness,
-                            ),
-                          ),
-                        )
-                      : Icon(
-                          Icons.photo_outlined,
-                          color: canPickPhoto
-                              ? AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
-                                )
-                              : AppSemanticColors.textSecondaryFor(
-                                  theme.brightness,
-                                ).withValues(alpha: 0.4),
-                          size: 24,
+              IconButton(
+                key: const Key('chat_photo_button'),
+                onPressed: canPickPhoto ? onPickPhoto : null,
+                tooltip: locale.addPhotoCta,
+                icon: isUploadingPhoto
+                    ? SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: muted,
                         ),
+                      )
+                    : Icon(Icons.photo_outlined, color: muted, size: 24),
+              ),
+            IconButton.filled(
+              key: const Key('chat_send_button'),
+              onPressed: canSend ? onSend : null,
+              tooltip: locale.sendCta,
+              style: IconButton.styleFrom(
+                backgroundColor: AppSemanticColors.clayFor(brightness),
+                foregroundColor: AppSemanticColors.onClayFor(brightness),
+                disabledBackgroundColor: AppSemanticColors.paperDeepFor(
+                  brightness,
+                ),
+                disabledForegroundColor: AppSemanticColors.textTertiaryFor(
+                  brightness,
                 ),
               ),
-            _InteractivePressScale(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  0,
-                  0,
-                  AppSpacing.sm,
-                  AppSpacing.sm,
-                ),
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: Material(
-                    color: canSend
-                        ? AppSemanticColors.accent
-                        : AppSemanticColors.accent.withValues(alpha: 0.5),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      key: const Key('chat_send_button'),
-                      onTap: canSend ? onSend : null,
-                      customBorder: const CircleBorder(),
-                      child: isSending
-                          ? const Padding(
-                              padding: AppSpacing.edgeSm,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.send_rounded,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                    ),
-                  ),
-                ),
-              ),
+              icon: isSending
+                  ? SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppSemanticColors.textTertiaryFor(brightness),
+                      ),
+                    )
+                  : const Icon(Icons.send_rounded, size: 20),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Applies standard interactive scale animation to any child when pressed.
-class _InteractivePressScale extends StatefulWidget {
-  const _InteractivePressScale({required this.child});
-
-  final Widget child;
-
-  @override
-  State<_InteractivePressScale> createState() => _InteractivePressScaleState();
-}
-
-class _InteractivePressScaleState extends State<_InteractivePressScale> {
-  double _scale = 1.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => setState(() => _scale = 0.97),
-      onPointerUp: (_) => setState(() => _scale = 1.0),
-      onPointerCancel: (_) => setState(() => _scale = 1.0),
-      child: AnimatedScale(
-        scale: _scale,
-        duration: AppMotion.durationOrZero(context, AppMotion.buttonPress),
-        curve: AppMotion.easeOutCubic,
-        child: widget.child,
       ),
     );
   }

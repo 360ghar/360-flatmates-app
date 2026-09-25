@@ -137,7 +137,15 @@
   "badgeNew": "नया",
   "badgePopular": "लोकप्रिय",
   "badgeTrending": "ट्रेंडिंग",
-  "monthlyRentLabel": "मासिक किराया: ₹{amount}",
+  "unreadMessagesCount": "{count, plural, =1{1 अपठित संदेश} other{{count} अपठित संदेश}}",
+  "@unreadMessagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyRentLabel": "मासिक किराया: {amount}",
   "@monthlyRentLabel": {
     "placeholders": {
       "amount": {

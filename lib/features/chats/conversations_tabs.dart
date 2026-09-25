@@ -1,33 +1,5 @@
 part of 'conversations_page.dart';
 
-class _InteractivePressScale extends StatefulWidget {
-  const _InteractivePressScale({required this.child});
-
-  final Widget child;
-
-  @override
-  State<_InteractivePressScale> createState() => _InteractivePressScaleState();
-}
-
-class _InteractivePressScaleState extends State<_InteractivePressScale> {
-  double _scale = 1.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => setState(() => _scale = 0.97),
-      onPointerUp: (_) => setState(() => _scale = 1.0),
-      onPointerCancel: (_) => setState(() => _scale = 1.0),
-      child: AnimatedScale(
-        scale: _scale,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutCubic,
-        child: widget.child,
-      ),
-    );
-  }
-}
-
 /// Shared 2-column aspect ratio for Likes You / You Liked profile grid cards.
 ///
 /// Meta is overlaid on the photo; only the Match CTA (when present) sits
@@ -65,7 +37,7 @@ class _LikesTab extends StatelessWidget {
     return FlatmatesAsyncView<CursorListState<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
-      loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.grid),
+      loading: const _LikesGridLoading(),
       isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikesYet,
@@ -138,7 +110,7 @@ class _LikedTab extends StatelessWidget {
     return FlatmatesAsyncView<CursorListState<OutgoingLikeModel>>(
       value: likes,
       onRetry: onRetry,
-      loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.grid),
+      loading: const _LikesGridLoading(),
       isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikedYet,
@@ -165,7 +137,7 @@ class _LikedTab extends StatelessWidget {
                 name: property.title,
                 location: location,
                 profession: locale.monthlyRentLabel(
-                  property.monthlyRent.toStringAsFixed(0),
+                  FlatmatesPriceText.formatRupee(property.monthlyRent.round()),
                 ),
                 matchPercentage: null,
                 imageUrl: property.effectiveMainImageUrl,
@@ -312,139 +284,69 @@ class _LoadMoreFooter extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Center(
-        child: TextButton.icon(
+        child: FlatmatesButton.tertiary(
+          label: locale.loadMoreCta,
           onPressed: onLoadMore,
-          icon: const Icon(Icons.expand_more_rounded),
-          label: Text(locale.loadMoreCta),
+          icon: Icons.expand_more_rounded,
         ),
       ),
     );
   }
 }
 
-/// High-contrast loading chrome for soft list-hub pages (Inbox tabs).
-///
-/// Default [FlatmatesSkeleton.list] bones blend into `surfaceSoft` page bg;
-/// these white cards keep loading state obvious.
-enum _InboxHubLoadingVariant { list, grid }
-
-class _InboxHubLoading extends StatelessWidget {
-  const _InboxHubLoading({required this.variant});
-
-  final _InboxHubLoadingVariant variant;
+/// Likes grid placeholder: paper-2 cards with paper-deep bones, at the same
+/// aspect ratio as the real cards so the grid does not jump on load.
+class _LikesGridLoading extends StatelessWidget {
+  const _LikesGridLoading();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final brightness = theme.brightness;
-    final cardBg = AppSemanticColors.surfaceFor(brightness);
-    final bone = brightness == Brightness.dark
-        ? AppSemanticColors.darkHairline
-        : AppSemanticColors.hairline;
+    final brightness = Theme.of(context).brightness;
+    final bone = AppSemanticColors.paperDeepFor(brightness);
 
-    if (variant == _InboxHubLoadingVariant.grid) {
-      return GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        crossAxisSpacing: AppSpacing.md,
-        mainAxisSpacing: AppSpacing.md,
-        childAspectRatio: 0.72,
-        children: List.generate(
-          4,
-          (_) => FlatmatesCard(
-            backgroundColor: cardBg,
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: bone.withValues(alpha: 0.55),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(AppRadius.card),
-                      ),
+    Widget line(double height, double? width) => Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(color: bone, borderRadius: AppRadius.xsBorder),
+    );
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: AppSpacing.md,
+      mainAxisSpacing: AppSpacing.md,
+      childAspectRatio: _likesGridChildAspectRatio(context),
+      children: List.generate(
+        4,
+        (_) => FlatmatesCard(
+          backgroundColor: AppSemanticColors.paper2For(brightness),
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: bone,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.card),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 12,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.7),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Container(
-                        height: 10,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.5),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(12, double.infinity),
+                    const SizedBox(height: AppSpacing.sm),
+                    line(10, 80),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: List.generate(
-        4,
-        (index) => Padding(
-          padding: EdgeInsets.only(bottom: index == 3 ? 0 : AppSpacing.md),
-          child: FlatmatesCard(
-            backgroundColor: cardBg,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: bone.withValues(alpha: 0.55),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 12,
-                        width: 140,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.7),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Container(
-                        height: 10,
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.5),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

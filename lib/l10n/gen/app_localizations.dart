@@ -500,10 +500,16 @@ abstract class AppLocalizations {
   /// **'Trending'**
   String get badgeTrending;
 
+  /// No description provided for @unreadMessagesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unread message} other{{count} unread messages}}'**
+  String unreadMessagesCount(int count);
+
   /// No description provided for @monthlyRentLabel.
   ///
   /// In en, this message translates to:
-  /// **'Monthly rent: ₹{amount}'**
+  /// **'Monthly rent: {amount}'**
   String monthlyRentLabel(String amount);
 
   /// No description provided for @monthlyRentHeadline.

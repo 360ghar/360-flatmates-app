@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
-import '../../../shared/presentation/flatmates_bottom_sheet.dart';
 import '../../../shared/presentation/flatmates_dialog.dart';
 import '../../../shared/presentation/flatmates_toast.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
@@ -154,56 +152,5 @@ class ChatDialogs {
         FlatmatesToast.error(context, locale.failedToUnmatch);
       }
     }
-  }
-
-  static void showChatMenu({
-    required BuildContext context,
-    required VoidCallback onBlock,
-    required VoidCallback onReport,
-    required VoidCallback onUnmatch,
-  }) {
-    final locale = AppLocalizations.of(context);
-    FlatmatesBottomSheet.show(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.flag_outlined),
-              title: Text(locale.reportCta),
-              onTap: () {
-                Navigator.pop(ctx);
-                onReport();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.link_off_outlined),
-              title: Text(locale.unmatchCta),
-              onTap: () {
-                Navigator.pop(ctx);
-                onUnmatch();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.block_outlined,
-                color: AppSemanticColors.dangerFor(Theme.of(ctx).brightness),
-              ),
-              title: Text(
-                locale.blockCta,
-                style: TextStyle(
-                  color: AppSemanticColors.dangerFor(Theme.of(ctx).brightness),
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                onBlock();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

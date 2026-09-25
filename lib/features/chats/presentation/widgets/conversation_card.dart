@@ -8,11 +8,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
+import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../domain/chat_models.dart';
 
 const double _avatarSize = 44;
-const double _avatarRadius = _avatarSize / 2;
 const double _privacyBlurSigma = 8;
 const double _propertyPreviewSize = 40;
 const double _locationIconSize = 13;
@@ -64,8 +64,7 @@ class ConversationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           highlightMode && item.peer.profileImageUrl != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(_avatarRadius),
+              ? ClipOval(
                   child: ImageFiltered(
                     imageFilter: ImageFilter.blur(
                       sigmaX: _privacyBlurSigma,
@@ -90,18 +89,6 @@ class ConversationCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    // Accent dot for unread threads — improves scannability.
-                    if (isUnread) ...[
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
                     Expanded(
                       child: Text(
                         item.peer.fullName,
@@ -118,21 +105,24 @@ class ConversationCard extends StatelessWidget {
                       ),
                     ),
                     if (isUnread)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: 2,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
-                          borderRadius: AppRadius.pillBorder,
-                        ),
-                        child: Text(
-                          '${item.unreadCount}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppSemanticColors.onPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
+                      Semantics(
+                        label: locale.unreadMessagesCount(item.unreadCount),
+                        excludeSemantics: true,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xxs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppSemanticColors.clayFor(brightness),
+                            borderRadius: AppRadius.pillBorder,
+                          ),
+                          child: Text(
+                            '${item.unreadCount}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppSemanticColors.onClayFor(brightness),
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
@@ -224,7 +214,7 @@ class ConversationCard extends StatelessWidget {
                       color: AppSemanticColors.secondarySurfaceFor(
                         theme.brightness,
                       ),
-                      borderRadius: AppRadius.sheetBorder,
+                      borderRadius: AppRadius.mdBorder,
                     ),
                     child: Row(
                       children: [
@@ -255,8 +245,10 @@ class ConversationCard extends StatelessWidget {
                               if (item.contextProperty!.monthlyRent != null)
                                 Text(
                                   locale.monthlyRentLabel(
-                                    item.contextProperty!.monthlyRent!
-                                        .toStringAsFixed(0),
+                                    FlatmatesPriceText.formatRupee(
+                                      item.contextProperty!.monthlyRent!
+                                          .round(),
+                                    ),
                                   ),
                                   style: theme.textTheme.bodySmall,
                                 ),
@@ -292,8 +284,8 @@ class _PropertyPreviewFallback extends StatelessWidget {
         borderRadius: AppRadius.cardBorder,
         gradient: LinearGradient(
           colors: [
-            AppSemanticColors.accent.withValues(alpha: 0.9),
-            AppSemanticColors.accent.withValues(alpha: 0.4),
+            AppSemanticColors.clayFor(theme.brightness).withValues(alpha: 0.9),
+            AppSemanticColors.clayFor(theme.brightness).withValues(alpha: 0.4),
           ],
         ),
       ),
@@ -301,7 +293,7 @@ class _PropertyPreviewFallback extends StatelessWidget {
         child: Text(
           initialsFromName(title),
           style: theme.textTheme.bodySmall?.copyWith(
-            color: AppSemanticColors.onPrimary,
+            color: AppSemanticColors.onClayFor(theme.brightness),
             fontWeight: FontWeight.w600,
           ),
         ),
