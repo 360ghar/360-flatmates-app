@@ -48,6 +48,9 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final router = ref.read(appRouterProvider);
       _deepLinkService = DeepLinkService(router: router)..init();
+      NotificationService.onPendingRoute = _onNotificationTapped;
+      // A tap that arrived before this frame is still pending.
+      _onNotificationTapped();
       _checkAppConfig();
       unawaited(_checkShorebirdPatch());
       ref.read(analyticsServiceProvider).logAppOpen();
@@ -57,6 +60,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    NotificationService.onPendingRoute = null;
     _deepLinkService?.dispose();
     super.dispose();
   }
@@ -68,10 +72,16 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     // patch can land mid-session. Checked before the bootstrap guard below —
     // a pending patch is worth announcing regardless of login state.
     unawaited(_checkShorebirdPatch());
-    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
-    if (bootstrap == null) return;
-    final router = ref.read(appRouterProvider);
-    _navigateFromPendingNotification(router);
+    _onNotificationTapped();
+  }
+
+  /// Navigates to a tapped notification's route once bootstrap is ready.
+  /// If bootstrap is still loading, the bootstrap listener in [build]
+  /// consumes the route when data arrives.
+  void _onNotificationTapped() {
+    if (!mounted) return;
+    if (ref.read(bootstrapControllerProvider).valueOrNull == null) return;
+    _navigateFromPendingNotification(ref.read(appRouterProvider));
   }
 
   Future<void> _checkAppConfig() async {
@@ -219,7 +229,6 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsControllerProvider);
     final router = ref.watch(appRouterProvider);
-    final bootstrapState = ref.watch(bootstrapControllerProvider);
 
     // Activate Realtime event stream and provider invalidation router.
     ref.watch(flatmatesRealtimeEventRouterProvider);
@@ -266,15 +275,6 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
         });
       }
     });
-
-    // Handle notification deep links once bootstrap data is present.
-    // Always attempt consume — no permanent one-shot flag so subsequent
-    // warm taps (when build re-runs) can still navigate.
-    if (bootstrapState is AsyncData && bootstrapState.value != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _navigateFromPendingNotification(router);
-      });
-    }
 
     // React only to the login/logout *transition*, not to every auth-state
     // emission. Bootstrap fetches /users/me/auth-state and calls
