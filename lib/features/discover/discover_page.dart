@@ -63,6 +63,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
       return;
     }
     await ref.read(locationControllerProvider.notifier).getCurrentLocation();
+    if (!mounted) return;
     final updated = ref.read(locationControllerProvider);
     if (updated.selectedLocation != null) {
       _applyLocationToFeed(updated.selectedLocation!);

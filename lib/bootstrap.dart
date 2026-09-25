@@ -15,6 +15,7 @@ import 'core/notifications/notification_service.dart';
 import 'core/providers.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_kv_store.dart';
+import 'core/storage/secure_session_storage.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -96,6 +97,12 @@ Future<void> bootstrap() async {
   await Supabase.initialize(
     url: config.supabaseUrl,
     publishableKey: config.supabasePublishableKey,
+    // Session tokens live in the keychain / keystore, not SharedPreferences.
+    authOptions: FlutterAuthClientOptions(
+      localStorage: SecureSessionStorage(
+        persistSessionKey: SecureSessionStorage.keyForUrl(config.supabaseUrl),
+      ),
+    ),
   );
 
   final preferences = await AppPreferences.create();

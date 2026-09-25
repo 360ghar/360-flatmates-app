@@ -16,10 +16,6 @@ import '../../../shared/presentation/components.dart';
 import '../../application/discover_feed_controller.dart';
 import '../../discover_repository.dart';
 
-final browseCardPressedProvider = StateProvider.family<bool, int>(
-  (ref, index) => false,
-);
-
 class BrowseListingsCard extends ConsumerStatefulWidget {
   const BrowseListingsCard({
     required this.item,
@@ -35,6 +31,9 @@ class BrowseListingsCard extends ConsumerStatefulWidget {
 }
 
 class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
+  /// Ephemeral press feedback; never leaves this widget.
+  bool _pressed = false;
+
   Future<void> _handleLike() async {
     final locale = AppLocalizations.of(context);
     final wasLiked = widget.item.liked ?? false;
@@ -113,18 +112,10 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
     final hasImage =
         item.effectiveMainImageUrl != null &&
         item.effectiveMainImageUrl!.trim().isNotEmpty;
-    final pressed = ref.watch(browseCardPressedProvider(widget.index));
-
     return Listener(
-      onPointerDown: (_) =>
-          ref.read(browseCardPressedProvider(widget.index).notifier).state =
-              true,
-      onPointerUp: (_) =>
-          ref.read(browseCardPressedProvider(widget.index).notifier).state =
-              false,
-      onPointerCancel: (_) =>
-          ref.read(browseCardPressedProvider(widget.index).notifier).state =
-              false,
+      onPointerDown: (_) => setState(() => _pressed = true),
+      onPointerUp: (_) => setState(() => _pressed = false),
+      onPointerCancel: (_) => setState(() => _pressed = false),
       child: AnimatedContainer(
         duration: AppMotion.fast,
         curve: AppMotion.easeOutCubic,
@@ -138,7 +129,7 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
           borderRadius: AppRadius.cardBorder,
           boxShadow: [
             AppShadows.cardFor(theme.brightness),
-            if (pressed) AppShadows.subtleGlowFor(theme.brightness),
+            if (_pressed) AppShadows.subtleGlowFor(theme.brightness),
           ],
         ),
         child: Material(

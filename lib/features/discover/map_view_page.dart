@@ -448,6 +448,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
           );
     } else {
       await ref.read(locationControllerProvider.notifier).getCurrentLocation();
+      // The page can close while locating (it is also pushed as /map).
+      if (!mounted) return;
       final newPos = ref.read(locationControllerProvider).currentPosition;
       if (newPos != null) {
         await _mapController?.move(

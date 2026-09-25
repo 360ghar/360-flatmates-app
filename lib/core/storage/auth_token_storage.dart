@@ -15,12 +15,19 @@ final class AuthTokenStorage {
 
   Future<String?> read() => _store.readString(_tokenKey);
 
+  /// Last value written, so an unchanged token (every API request) costs no
+  /// keychain write and no change event.
+  String? _last;
+
   Future<void> save(String token) async {
+    if (token == _last) return;
     await _store.writeString(key: _tokenKey, value: token);
+    _last = token;
     _changes.add(token);
   }
 
   Future<void> clear() async {
+    _last = null;
     await _store.delete(_tokenKey);
     _changes.add(null);
   }

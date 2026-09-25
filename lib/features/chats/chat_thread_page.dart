@@ -198,9 +198,10 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       _modeTooltip.remove();
     } catch (e) {
       debugPrint('ChatThreadPage._sendMessage failed: $e');
+      if (!mounted) return;
       _messageController.text = previousText;
       _messageController.selection = previousSelection;
-      if (mounted) {
+      {
         final msg = e is AppFailure
             ? e.userMessage(locale.toUserMessageL10n())
             : locale.failedToSendMessage;

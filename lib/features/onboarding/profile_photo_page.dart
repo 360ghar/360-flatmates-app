@@ -32,7 +32,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
   Future<void> _pickFromGallery() async {
     final service = ref.read(imageUploadServiceProvider);
     final files = await service.pickImages(limit: 5 - _photoUrls.length);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     setState(() => _uploading = true);
     try {
       for (final file in files) {

@@ -137,28 +137,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isSetPassword = location == '/set-password';
       final isOnboarding = location == '/onboarding';
       final isCompleteProfile = location == '/complete-profile';
-      final isDeepLink =
-          location.startsWith('/chats/') ||
-          location.startsWith('/flat-details/') ||
-          location.startsWith('/user-profile/') ||
-          location.startsWith('/flatmates/listing/') ||
-          location.startsWith('/flatmates/chat/') ||
-          location.startsWith('/listing-review/') ||
-          location.startsWith('/manage-listings') ||
-          location == '/notifications' ||
-          location == '/notification-settings' ||
-          location == '/schedule-visit' ||
-          location.startsWith('/help-safety') ||
-          location == '/privacy-policy' ||
-          location == '/terms-of-service' ||
-          location == '/change-password' ||
-          location == '/delete-account' ||
-          location == '/blocked-users' ||
-          location == '/match-celebration' ||
-          location == '/waitlist' ||
-          location == '/change-location' ||
-          location == '/location-search' ||
-          location == '/map';
 
       if (auth.status == AuthStatus.checking) {
         return isSplash ? null : '/splash';
@@ -277,11 +255,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (isSplash || isAuthRoute) {
         return '/discover';
-      }
-
-      // Allow deep link paths through when user is authenticated
-      if (isDeepLink) {
-        return null;
       }
 
       return null;
@@ -510,9 +483,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final conversationId = extra?['conversationId'] as int?;
-          final userName = extra?['userName'] as String? ?? 'You';
+          final locale = AppLocalizations.of(context);
+          final userName =
+              extra?['userName'] as String? ?? locale.matchSelfFallbackName;
           final userImageUrl = extra?['userImageUrl'] as String?;
-          final peerName = extra?['peerName'] as String? ?? 'Flatmate';
+          final peerName =
+              extra?['peerName'] as String? ?? locale.matchPeerFallbackName;
           final peerImageUrl = extra?['peerImageUrl'] as String?;
           return MatchCelebrationScreen(
             userName: userName,
