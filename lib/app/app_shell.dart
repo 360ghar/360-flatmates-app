@@ -8,7 +8,9 @@ import '../core/storage/app_preferences.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../features/onboarding/onboarding_completion_banner.dart';
+import '../features/shared/presentation/paper/paper_art.dart';
 import '../features/shared/presentation/paper/paper_edge_border.dart';
+import '../features/shared/presentation/paper/paper_icon.dart';
 import '../features/shared/presentation/paper/paper_surface.dart';
 import '../l10n/gen/app_localizations.dart';
 
@@ -106,11 +108,13 @@ class AppShell extends ConsumerWidget {
   ) {
     final isRoomPoster = isRoomPosterMode(mode);
 
+    // Cut-paper nav icons shared with the web app. Selected vs unselected
+    // is colour only (clay vs ink-3, from navigationBarTheme).
     return [
       NavigationDestination(
         key: const ValueKey('nav_home'),
-        icon: _navIcon('nav_home_tab', Icons.home_outlined),
-        selectedIcon: _navIcon('nav_home_tab_selected', Icons.home_rounded),
+        icon: _navIcon('nav_home_tab', PaperArt.navHome),
+        selectedIcon: _navIcon('nav_home_tab_selected', PaperArt.navHome),
         label: locale.navHome,
       ),
       // Slot is shape-stable across modes: the same `NavigationDestination`
@@ -123,42 +127,36 @@ class AppShell extends ConsumerWidget {
       NavigationDestination(
         key: const ValueKey('nav_mode'),
         icon: isRoomPoster
-            ? _navIcon('nav_post_tab', Icons.add_home_outlined)
-            : _navIcon('nav_explore_tab', Icons.map_outlined),
+            ? _navIcon('nav_post_tab', PaperArt.navPost)
+            : _navIcon('nav_explore_tab', PaperArt.navExplore),
         selectedIcon: isRoomPoster
-            ? _navIcon('nav_post_tab_selected', Icons.add_home_rounded)
-            : _navIcon('nav_explore_tab_selected', Icons.map_rounded),
+            ? _navIcon('nav_post_tab_selected', PaperArt.navPost)
+            : _navIcon('nav_explore_tab_selected', PaperArt.navExplore),
         label: isRoomPoster ? locale.navPost : locale.navExplore,
       ),
       NavigationDestination(
         key: const ValueKey('nav_swipe'),
-        icon: _navIcon('nav_swipe_tab', Icons.swap_horiz_rounded),
-        selectedIcon: _navIcon(
-          'nav_swipe_tab_selected',
-          Icons.swap_horiz_rounded,
-        ),
+        icon: _navIcon('nav_swipe_tab', PaperArt.navSwipe),
+        selectedIcon: _navIcon('nav_swipe_tab_selected', PaperArt.navSwipe),
         label: locale.navSwipe,
       ),
       NavigationDestination(
         key: const ValueKey('nav_inbox'),
-        icon: _navIcon('nav_inbox_tab', Icons.markunread_outlined),
-        selectedIcon: _navIcon(
-          'nav_inbox_tab_selected',
-          Icons.markunread_rounded,
-        ),
+        icon: _navIcon('nav_inbox_tab', PaperArt.navChats),
+        selectedIcon: _navIcon('nav_inbox_tab_selected', PaperArt.navChats),
         label: locale.navLikesChat,
       ),
       NavigationDestination(
         key: const ValueKey('nav_me'),
-        icon: _navIcon('nav_me_tab', Icons.person_outline),
-        selectedIcon: _navIcon('nav_me_tab_selected', Icons.person_rounded),
+        icon: _navIcon('nav_me_tab', PaperArt.navProfile),
+        selectedIcon: _navIcon('nav_me_tab_selected', PaperArt.navProfile),
         label: locale.navProfile,
       ),
     ];
   }
 
   /// Semantics.identifier is sufficient for Maestro testing.
-  Widget _navIcon(String identifier, IconData icon) {
-    return Semantics(identifier: identifier, child: Icon(icon));
+  Widget _navIcon(String identifier, PaperShape shape) {
+    return Semantics(identifier: identifier, child: PaperIcon(shape));
   }
 }
