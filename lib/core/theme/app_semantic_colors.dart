@@ -28,7 +28,7 @@ abstract final class AppSemanticColors {
   // ── Brand (light) ──────────────────────────────────────────────────────
   static const Color clay = Color(0xFFA94A2B);
   static const Color clayPress = Color(0xFF8C3B20);
-  static const Color claySoft = Color(0xFFF2DACF);
+  static const Color claySoft = Color(0xFFF6E6DE);
   static const Color onClay = Color(0xFFFFFFFF);
   static const Color pine = Color(0xFF2E5B48);
   static const Color pineSoft = Color(0xFFD3E2D8);

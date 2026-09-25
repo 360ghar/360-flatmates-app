@@ -37,7 +37,7 @@ AA (4.5:1) on every paper layer. The contrast tests enforce this:
 |---|---|---|---|
 | `clay` | `#A94A2B` | `#E27E5A` | Primary. Main actions, active nav, links. |
 | `clay-press` | `#8C3B20` | `#C9694A` | Pressed primary. |
-| `clay-soft` | `#F2DACF` | `#3A2A23` | Selected fills, primary tint. |
+| `clay-soft` | `#F6E6DE` | `#3A2A23` | Selected fills, primary tint. |
 | `on-clay` | `#FFFFFF` | `#1A120E` | Text on `clay`. |
 | `pine` | `#2E5B48` | `#86B9A0` | Secondary. Success, verified, secondary actions. |
 | `pine-soft` | `#D3E2D8` | `#22352C` | Secondary fills. |

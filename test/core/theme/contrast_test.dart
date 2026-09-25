@@ -66,6 +66,14 @@ void main() {
         ),
         greaterThanOrEqualTo(4.5),
       );
+      // Selected chips / tints may carry clay text.
+      expect(
+        _contrast(
+          AppSemanticColors.clayFor(brightness),
+          AppSemanticColors.coralSoftFor(brightness),
+        ),
+        greaterThanOrEqualTo(4.5),
+      );
     });
   }
 }
