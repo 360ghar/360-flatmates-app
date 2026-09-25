@@ -4847,13 +4847,13 @@ abstract class AppLocalizations {
   /// No description provided for @swipeLikeLabel.
   ///
   /// In en, this message translates to:
-  /// **'LIKE'**
+  /// **'Like'**
   String get swipeLikeLabel;
 
   /// No description provided for @swipeNopeLabel.
   ///
   /// In en, this message translates to:
-  /// **'PASS'**
+  /// **'Pass'**
   String get swipeNopeLabel;
 
   /// No description provided for @failedToLoadProfiles.
@@ -7495,6 +7495,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Owner'**
   String get ownerFallbackName;
+
+  /// No description provided for @floorOfLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {floor} of {total}'**
+  String floorOfLabel(String floor, String total);
+
+  /// No description provided for @floorNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {floor}'**
+  String floorNumberLabel(String floor);
 }
 
 class _AppLocalizationsDelegate

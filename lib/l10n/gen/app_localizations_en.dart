@@ -2537,10 +2537,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get swipeCheckBackLater => 'Check back later for new matches';
 
   @override
-  String get swipeLikeLabel => 'LIKE';
+  String get swipeLikeLabel => 'Like';
 
   @override
-  String get swipeNopeLabel => 'PASS';
+  String get swipeNopeLabel => 'Pass';
 
   @override
   String get failedToLoadProfiles => 'Failed to load profiles';
@@ -4028,4 +4028,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ownerFallbackName => 'Owner';
+
+  @override
+  String floorOfLabel(String floor, String total) {
+    return 'Floor $floor of $total';
+  }
+
+  @override
+  String floorNumberLabel(String floor) {
+    return 'Floor $floor';
+  }
 }

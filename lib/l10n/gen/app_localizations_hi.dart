@@ -4036,4 +4036,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get ownerFallbackName => 'मालिक';
+
+  @override
+  String floorOfLabel(String floor, String total) {
+    return 'मंज़िल $floor / $total';
+  }
+
+  @override
+  String floorNumberLabel(String floor) {
+    return 'मंज़िल $floor';
+  }
 }

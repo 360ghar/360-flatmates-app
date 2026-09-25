@@ -35,6 +35,9 @@ abstract final class AppMotion {
   static const Duration cardStagger = layerStagger;
   static const Duration compatibilityRing = slow;
   static const Duration matchCelebration = Duration(milliseconds: 600);
+
+  /// How long the match confetti keeps emitting.
+  static const Duration confettiBurst = Duration(seconds: 2);
   static const Duration bottomSheet = Duration(milliseconds: 280);
   static const Duration fabExpand = Duration(milliseconds: 250);
   static const Duration skeletonShimmer = Duration(milliseconds: 1200);

@@ -1096,8 +1096,8 @@
   "matchKeepSwiping": "Keep swiping",
   "swipeNoMoreProfiles": "No more profiles",
   "swipeCheckBackLater": "Check back later for new matches",
-  "swipeLikeLabel": "LIKE",
-  "swipeNopeLabel": "PASS",
+  "swipeLikeLabel": "Like",
+  "swipeNopeLabel": "Pass",
   "failedToLoadProfiles": "Failed to load profiles",
   "actionFailedRetry": "Action failed. Please try again.",
   "wifiChipLabel": "WiFi",
@@ -1922,5 +1922,9 @@
   "mapFitAllTooltip": "Show all listings",
   "mapZoomInTooltip": "Zoom in",
   "mapZoomOutTooltip": "Zoom out",
-  "ownerFallbackName": "Owner"
+  "ownerFallbackName": "Owner",
+  "floorOfLabel": "Floor {floor} of {total}",
+  "@floorOfLabel": {"placeholders": {"floor": {"type": "String"}, "total": {"type": "String"}}},
+  "floorNumberLabel": "Floor {floor}",
+  "@floorNumberLabel": {"placeholders": {"floor": {"type": "String"}}}
 }

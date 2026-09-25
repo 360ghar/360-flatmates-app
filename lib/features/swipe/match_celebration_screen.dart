@@ -7,7 +7,8 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/components.dart';
+import '../shared/presentation/paper/paper_scene.dart';
 
 class MatchCelebrationScreen extends StatefulWidget {
   const MatchCelebrationScreen({
@@ -49,9 +50,7 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
     _scaleAnimation = Tween<double>(begin: 0.92, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: AppMotion.paperSettle),
     );
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 2),
-    );
+    _confettiController = ConfettiController(duration: AppMotion.confettiBurst);
   }
 
   bool _started = false;
@@ -81,125 +80,113 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
 
-    return Scaffold(
+    final brightness = theme.brightness;
+
+    // Content scrolls (small phones, large text); confetti is painted last so
+    // nothing covers it, from the top centre.
+    return FlatmatesScreen(
       body: Stack(
         children: [
-          ConfettiWidget(
-            confettiController: _confettiController,
-            blastDirectionality: BlastDirectionality.explosive,
-            blastDirection: math.pi / 2,
-            emissionFrequency: 0.05,
-            numberOfParticles: 30,
-            gravity: 0.3,
-            colors: const [
-              AppSemanticColors.accent,
-              AppSemanticColors.success,
-              AppSemanticColors.warning,
-            ],
-          ),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppSemanticColors.accent.withValues(alpha: 0.12),
-                  AppSemanticColors.surfaceFor(theme.brightness),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+          LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.lg,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - AppSpacing.lg * 2,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: const PaperScene.compact(
+                        prop: PaperProp.heart,
+                        height: 140,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Text(
+                        locale.matchItsAMatch,
+                        style: theme.textTheme.displayMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      locale.matchLikedEachOther(widget.peerName),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(brightness),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.s40),
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: FlatmatesAvatar(
+                              name: widget.userName,
+                              imageUrl: widget.userImageUrl,
+                              size: 96,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.lg),
+                          Icon(
+                            Icons.favorite_rounded,
+                            size: 32,
+                            color: AppSemanticColors.clayFor(brightness),
+                          ),
+                          const SizedBox(width: AppSpacing.lg),
+                          Flexible(
+                            child: FlatmatesAvatar(
+                              name: widget.peerName,
+                              imageUrl: widget.peerImageUrl,
+                              size: 96,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s56),
+                    FlatmatesButton(
+                      key: const Key('match_open_chat'),
+                      label: locale.matchSendMessage,
+                      onPressed: widget.onOpenChat,
+                      fullWidth: true,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    FlatmatesButton.secondary(
+                      key: const Key('match_keep_swiping'),
+                      label: locale.matchKeepSwiping,
+                      onPressed: widget.onKeepSwiping,
+                      fullWidth: true,
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: const Text(
-                      '🎉',
-                      style: TextStyle(fontSize: 64),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Text(
-                      locale.matchItsAMatch,
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        fontSize: 36,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    locale.matchLikedEachOther(widget.peerName),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.xl + AppSpacing.md),
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        FlatmatesAvatar(
-                          name: widget.userName,
-                          imageUrl: widget.userImageUrl,
-                          size: 100,
-                        ),
-                        const SizedBox(width: AppSpacing.xl),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            color: AppSemanticColors.success,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.favorite_rounded,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xl),
-                        FlatmatesAvatar(
-                          name: widget.peerName,
-                          imageUrl: widget.peerImageUrl,
-                          size: 100,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl + AppSpacing.xl),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screen + AppSpacing.md,
-                    ),
-                    child: Column(
-                      children: [
-                        FlatmatesButton(
-                          key: const Key('match_open_chat'),
-                          label: locale.matchSendMessage,
-                          onPressed: widget.onOpenChat,
-                          fullWidth: true,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        FlatmatesButton.secondary(
-                          key: const Key('match_keep_swiping'),
-                          label: locale.matchKeepSwiping,
-                          onPressed: widget.onKeepSwiping,
-                          fullWidth: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              blastDirection: math.pi / 2,
+              emissionFrequency: 0.05,
+              numberOfParticles: 30,
+              gravity: 0.3,
+              colors: [
+                AppSemanticColors.clayFor(brightness),
+                AppSemanticColors.pineFor(brightness),
+                AppSemanticColors.marigoldFor(brightness),
+              ],
             ),
           ),
         ],

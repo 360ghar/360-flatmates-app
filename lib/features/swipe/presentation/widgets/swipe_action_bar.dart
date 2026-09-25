@@ -45,17 +45,17 @@ class SwipeActionBar extends StatelessWidget {
         _SwipeActionButton(
           key: const Key('swipe_action_skip'),
           icon: Icons.close_rounded,
-          color: AppSemanticColors.compatLow,
+          color: AppSemanticColors.dangerFor(Theme.of(context).brightness),
           tooltip: locale.swipeSkipAction,
           semanticLabel: locale.swipeSkipAction,
-          size: 60,
+          size: AppSpacing.s56,
           onPressed: enabled ? onSkip : null,
         ),
         const SizedBox(width: AppSpacing.xl),
         _SwipeActionButton(
           key: const Key('swipe_action_undo'),
           icon: Icons.undo_rounded,
-          color: AppSemanticColors.warning,
+          color: AppSemanticColors.warningInkFor(Theme.of(context).brightness),
           tooltip: locale.swipeUndoAction,
           semanticLabel: locale.swipeUndoAction,
           size: 48,
@@ -65,10 +65,10 @@ class SwipeActionBar extends StatelessWidget {
         _SwipeActionButton(
           key: const Key('swipe_action_like'),
           icon: Icons.favorite_rounded,
-          color: AppSemanticColors.success,
+          color: AppSemanticColors.pineFor(Theme.of(context).brightness),
           tooltip: locale.swipeLikeAction,
           semanticLabel: locale.swipeLikeAction,
-          size: 60,
+          size: AppSpacing.s56,
           onPressed: enabled ? onLike : null,
         ),
       ],
@@ -102,7 +102,7 @@ class _SwipeActionButtonState extends State<_SwipeActionButton> {
   double _scale = 1.0;
 
   void _setScale(double value) {
-    if (widget.onPressed == null) return;
+    if (widget.onPressed == null || AppMotion.reduceMotion(context)) return;
     setState(() => _scale = value);
   }
 
@@ -117,15 +117,15 @@ class _SwipeActionButtonState extends State<_SwipeActionButton> {
         enabled: !disabled,
         label: widget.semanticLabel,
         child: Listener(
-          onPointerDown: (_) => _setScale(0.97),
+          onPointerDown: (_) => _setScale(AppMotion.pressScale),
           onPointerUp: (_) => _setScale(1.0),
           onPointerCancel: (_) => _setScale(1.0),
           child: GestureDetector(
             onTap: widget.onPressed,
             child: AnimatedScale(
               scale: _scale,
-              duration: AppMotion.buttonPress,
-              curve: AppMotion.easeOutCubic,
+              duration: AppMotion.fast,
+              curve: AppMotion.paperOut,
               child: Opacity(
                 opacity: disabled ? 0.4 : 1.0,
                 child: Container(
@@ -138,7 +138,10 @@ class _SwipeActionButtonState extends State<_SwipeActionButton> {
                       color: widget.color.withValues(alpha: 0.4),
                       width: 1.5,
                     ),
-                    boxShadow: AppShadows.e2(theme.brightness),
+                    // Pressed: the sheet sinks from e2 to e1.
+                    boxShadow: _scale < 1
+                        ? AppShadows.e1(theme.brightness)
+                        : AppShadows.e2(theme.brightness),
                   ),
                   child: Icon(
                     widget.icon,

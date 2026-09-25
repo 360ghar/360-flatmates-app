@@ -1885,5 +1885,7 @@
   "mapFitAllTooltip": "सभी लिस्टिंग दिखाएं",
   "mapZoomInTooltip": "ज़ूम इन करें",
   "mapZoomOutTooltip": "ज़ूम आउट करें",
-  "ownerFallbackName": "मालिक"
+  "ownerFallbackName": "मालिक",
+  "floorOfLabel": "मंज़िल {floor} / {total}",
+  "floorNumberLabel": "मंज़िल {floor}"
 }
