@@ -727,10 +727,20 @@ void main() {
       );
 
       expect(find.text('Edit'), findsOneWidget);
-      // The icon well should be 32px in dense mode.
-      final containers = tester.widgetList<Container>(find.byType(Container));
-      final iconWell = containers.where((c) => c.constraints?.maxWidth == 32.0);
-      expect(iconWell, isNotEmpty);
+      // The icon slot is 32 wide in dense mode (bare icon, no tile).
+      expect(
+        tester
+            .getSize(
+              find
+                  .ancestor(
+                    of: find.byIcon(Icons.edit),
+                    matching: find.byType(SizedBox),
+                  )
+                  .first,
+            )
+            .width,
+        32,
+      );
     });
   });
 

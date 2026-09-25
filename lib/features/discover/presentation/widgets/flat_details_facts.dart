@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../domain/property_listing.dart';
@@ -115,75 +116,48 @@ class _FactTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    // Use dark-mode soft backgrounds when in dark theme.
-    final bg = isDark ? _darkBackground(fact.palette) : fact.palette.background;
-    final fg = isDark ? _darkForeground(fact.palette) : fact.palette.foreground;
+    final b = theme.brightness;
 
+    // A paper tile with a bare clay icon: no tinted well behind the icon.
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.md,
       ),
-      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.mdBorder),
+      decoration: BoxDecoration(
+        color: AppSemanticColors.paper2For(b),
+        borderRadius: AppRadius.cardBorder,
+        boxShadow: AppShadows.e1(b),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: fg.withValues(alpha: 0.12),
-              borderRadius: AppRadius.smBorder,
-            ),
-            child: Icon(fact.icon, size: 18, color: fg),
-          ),
+          Icon(fact.icon, size: 22, color: AppSemanticColors.clayFor(b)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             fact.value,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppSemanticColors.textPrimaryFor(theme.brightness),
+              color: AppSemanticColors.textPrimaryFor(b),
             ),
           ),
           Text(
             fact.caption,
             style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              color: AppSemanticColors.textTertiaryFor(theme.brightness),
+              color: AppSemanticColors.textTertiaryFor(b),
             ),
           ),
         ],
       ),
     );
   }
-
-  Color _darkBackground(_FactPalette p) {
-    return switch (p) {
-      _FactPalette.blue => AppSemanticColors.blueSoftDark,
-      _FactPalette.teal => AppSemanticColors.tealSoftDark,
-      _FactPalette.purple => AppSemanticColors.purpleSoftDark,
-      _ => AppSemanticColors.orangeSoftDark,
-    };
-  }
-
-  Color _darkForeground(_FactPalette p) {
-    return switch (p) {
-      _FactPalette.blue => AppSemanticColors.blueMid,
-      _FactPalette.teal => AppSemanticColors.tealMid,
-      _FactPalette.purple => AppSemanticColors.purpleMid,
-      _ => AppSemanticColors.orangeMid,
-    };
-  }
 }
 
 /// Feature/amenity chips (furnished, wifi, parking, lift, security, plus
 /// catalog amenities) for the flat details page.
 ///
-/// Key amenities use color-coded soft-background pills (green for furnished,
-/// blue for wifi, teal for parking, purple for lift, orange for security)
-/// instead of uniform gray info chips — making the amenity list scannable
-/// and visually appealing, inspired by the swipe card's quick-stat pills.
+/// Key amenities use soft fills from the one palette (pine and clay
+/// families), so the list stays scannable without a rainbow of chips.
 class FlatDetailsFeatureChips extends StatelessWidget {
   const FlatDetailsFeatureChips({required this.listing, super.key});
 

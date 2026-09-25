@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @postListingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Create a real flatmate listing using the existing 360 Ghar inventory backend.'**
+  /// **'Add your room with photos, rent and move-in date.'**
   String get postListingSubtitle;
 
   /// No description provided for @postListingBasics.
@@ -5675,13 +5675,13 @@ abstract class AppLocalizations {
   /// No description provided for @invalidListingId.
   ///
   /// In en, this message translates to:
-  /// **'Invalid listing ID'**
+  /// **'This listing link is broken.'**
   String get invalidListingId;
 
   /// No description provided for @invalidConversationId.
   ///
   /// In en, this message translates to:
-  /// **'Invalid conversation ID'**
+  /// **'This chat link is broken.'**
   String get invalidConversationId;
 
   /// No description provided for @youAreOffline.

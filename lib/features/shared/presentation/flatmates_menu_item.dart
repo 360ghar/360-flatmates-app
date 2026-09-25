@@ -41,7 +41,6 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
     final vPad = dense ? 10.0 : 14.0;
     final iconWell = dense ? 32.0 : 40.0;
     final iconSize = dense ? 18.0 : 20.0;
-    final iconRadius = dense ? 10.0 : 12.0;
     final iconGap = dense ? 12.0 : 14.0;
 
     return Listener(
@@ -70,13 +69,11 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
                 AnimatedOpacity(
                   opacity: _pressed ? 0.8 : 1.0,
                   duration: AppMotion.fast,
-                  child: Container(
+                  // Bare icon (no tinted tile), kept in a fixed-width slot so
+                  // labels align down the list.
+                  child: SizedBox(
                     width: iconWell,
                     height: iconWell,
-                    decoration: BoxDecoration(
-                      color: palette.background,
-                      borderRadius: BorderRadius.circular(iconRadius),
-                    ),
                     child: Icon(
                       widget.icon,
                       size: iconSize,

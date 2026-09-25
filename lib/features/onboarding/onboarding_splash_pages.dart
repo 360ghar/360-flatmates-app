@@ -289,7 +289,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
                   fontFamily: AppTypography.displayFamily,
                   fontSize: AppTypography.displayXlSize,
                   height: AppTypography.displayXlHeight,
-                  color: AppSemanticColors.clayFor(brightness),
+                  color: textColor,
                 )
               : TextStyle(
                   fontFamily: AppTypography.displayFamily,

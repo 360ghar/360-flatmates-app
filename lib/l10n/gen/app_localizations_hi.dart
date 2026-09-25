@@ -601,7 +601,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get postListingSubtitle =>
-      'मौजूदा 360 Ghar इन्वेंटरी बैकएंड का उपयोग करके असली फ्लैटमेट लिस्टिंग बनाएं।';
+      'फ़ोटो, किराया और शिफ्ट होने की तारीख के साथ अपना कमरा जोड़ें।';
 
   @override
   String get postListingBasics => 'बेसिक्स';
@@ -3022,10 +3022,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get notFoundTitle => 'हमें वह पेज नहीं मिला';
 
   @override
-  String get invalidListingId => 'अमान्य लिस्टिंग ID';
+  String get invalidListingId => 'यह लिस्टिंग लिंक टूटा हुआ है।';
 
   @override
-  String get invalidConversationId => 'अमान्य वार्तालाप ID';
+  String get invalidConversationId => 'यह चैट लिंक टूटा हुआ है।';
 
   @override
   String get youAreOffline => 'आप ऑफ़लाइन हैं। अपना कनेक्शन जांचें।';

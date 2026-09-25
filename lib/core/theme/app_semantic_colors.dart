@@ -138,35 +138,40 @@ abstract final class AppSemanticColors {
   static const Color scrim = Color(0xFF0D100E);
   static Color get scrim50 => scrim.withValues(alpha: 0.5);
 
-  // ── Categorical (earth tones that sit with clay, pine and marigold) ────
-  static const Color blueSoft = Color(0xFFDCE6EA);
-  static const Color blueMid = Color(0xFF4F7A8C);
-  static const Color blueInk = Color(0xFF2A4B59);
-  static const Color purpleSoft = Color(0xFFEADDE3);
-  static const Color purpleMid = Color(0xFF7D4E63);
-  static const Color purpleInk = Color(0xFF512D3D);
+  // ── Categorical ─────────────────────────────────────────────────────────
+  // One palette: every tag and chip tints from the clay or pine family (or
+  // marigold for warnings). No off-palette blues, teals or purples.
+  static const Color blueSoft = pineSoft;
+  static const Color blueMid = pine;
+  static const Color blueInk = greenInk;
+  static const Color tealSoft = pineSoft;
+  static const Color tealMid = pine;
+  static const Color tealInk = greenInk;
   static const Color greenSoft = pineSoft;
   static const Color greenMid = pine;
   static const Color greenInk = Color(0xFF1F4636);
+  static const Color purpleSoft = claySoft;
+  static const Color purpleMid = clay;
+  static const Color purpleInk = clayInk;
+  static const Color pinkSoft = claySoft;
+  static const Color pinkMid = clay;
+  static const Color pinkInk = clayInk;
+  static const Color orangeSoft = claySoft;
+  static const Color orangeMid = clay;
+  static const Color orangeInk = clayInk;
   static const Color yellowSoft = warningSoftBg;
   static const Color yellowMid = Color(0xFFB07A16);
   static const Color yellowInk = Color(0xFF6B4A0B);
-  static const Color orangeSoft = Color(0xFFF5DDCC);
-  static const Color orangeMid = Color(0xFFC0612E);
-  static const Color orangeInk = Color(0xFF7A3A18);
-  static const Color tealSoft = Color(0xFFD6E6E1);
-  static const Color tealMid = Color(0xFF3C7D6E);
-  static const Color tealInk = Color(0xFF24544A);
-  static const Color pinkSoft = Color(0xFFF4DCD8);
-  static const Color pinkMid = Color(0xFFB8545A);
-  static const Color pinkInk = Color(0xFF7A2F35);
-  static const Color blueSoftDark = Color(0xFF1C2A30);
-  static const Color purpleSoftDark = Color(0xFF2C1F26);
+
+  /// Text on clay-soft fills.
+  static const Color clayInk = Color(0xFF6E2E18);
+  static const Color blueSoftDark = darkPineSoft;
+  static const Color tealSoftDark = darkPineSoft;
   static const Color greenSoftDark = darkPineSoft;
+  static const Color purpleSoftDark = darkClaySoft;
+  static const Color pinkSoftDark = darkClaySoft;
+  static const Color orangeSoftDark = darkClaySoft;
   static const Color yellowSoftDark = darkWarningSoftBg;
-  static const Color orangeSoftDark = Color(0xFF36241A);
-  static const Color tealSoftDark = Color(0xFF1D302B);
-  static const Color pinkSoftDark = Color(0xFF35201F);
 
   // ── Feature colours ────────────────────────────────────────────────────
   static const Color compatHigh = pine;

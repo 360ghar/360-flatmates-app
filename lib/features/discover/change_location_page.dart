@@ -353,8 +353,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
                   locale.suggestionsLabel,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                    letterSpacing: 1.1,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

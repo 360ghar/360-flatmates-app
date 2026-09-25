@@ -294,7 +294,7 @@
   "selectDateCta": "Select date",
   "postListingTitle": "Post your space",
   "postListingCta": "List your space in minutes",
-  "postListingSubtitle": "Create a real flatmate listing using the existing 360 Ghar inventory backend.",
+  "postListingSubtitle": "Add your room with photos, rent and move-in date.",
   "postListingBasics": "Basics",
   "postListingPricing": "Pricing",
   "postListingDetails": "Details",
@@ -1397,8 +1397,8 @@
   "@notFoundTitle": {
     "description": "Title of the page shown for an unknown route or deep link."
   },
-  "invalidListingId": "Invalid listing ID",
-  "invalidConversationId": "Invalid conversation ID",
+  "invalidListingId": "This listing link is broken.",
+  "invalidConversationId": "This chat link is broken.",
   "youAreOffline": "You are offline. Check your connection.",
   "visitScheduledNotificationFailed": "Visit scheduled! Could not send notification.",
   "bootstrapErrorRetry": "Something went wrong. Tap to retry.",

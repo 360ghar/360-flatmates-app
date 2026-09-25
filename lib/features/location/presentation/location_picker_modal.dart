@@ -214,8 +214,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
           label,
           style: theme.textTheme.labelMedium?.copyWith(
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
-            letterSpacing: 1.1,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -356,8 +355,7 @@ class _LocationPickerModalState extends ConsumerState<LocationPickerModal> {
                             color: AppSemanticColors.textSecondaryFor(
                               theme.brightness,
                             ),
-                            letterSpacing: 1.1,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xs),

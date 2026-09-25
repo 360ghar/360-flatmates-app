@@ -601,7 +601,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postListingSubtitle =>
-      'Create a real flatmate listing using the existing 360 Ghar inventory backend.';
+      'Add your room with photos, rent and move-in date.';
 
   @override
   String get postListingBasics => 'Basics';
@@ -3008,10 +3008,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notFoundTitle => 'We could not find that page';
 
   @override
-  String get invalidListingId => 'Invalid listing ID';
+  String get invalidListingId => 'This listing link is broken.';
 
   @override
-  String get invalidConversationId => 'Invalid conversation ID';
+  String get invalidConversationId => 'This chat link is broken.';
 
   @override
   String get youAreOffline => 'You are offline. Check your connection.';

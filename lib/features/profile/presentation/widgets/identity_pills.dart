@@ -125,12 +125,13 @@ class MenuGroupLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Text(
-      label.toUpperCase(),
-      style: theme.textTheme.labelSmall?.copyWith(
-        color: AppSemanticColors.textTertiaryFor(theme.brightness),
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1,
+    return Semantics(
+      header: true,
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: AppSemanticColors.textSecondaryFor(theme.brightness),
+        ),
       ),
     );
   }

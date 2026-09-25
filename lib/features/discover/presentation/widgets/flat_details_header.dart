@@ -89,18 +89,6 @@ class FlatDetailsHeader extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      locale.listingLabel.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.6,
-                        color: AppSemanticColors.textTertiaryFor(
-                          isDark ? Brightness.dark : Brightness.light,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
                     if (l.isLive) _LivePill(isDark: isDark, locale: locale),
                     const Spacer(),
                     if (l.createdAt != null)
