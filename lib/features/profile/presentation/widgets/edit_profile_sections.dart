@@ -8,6 +8,7 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import 'edit_profile_dropdown_utils.dart';
+import '../../../shared/presentation/test_id.dart';
 
 class EditProfileContactInfoSection extends StatelessWidget {
   const EditProfileContactInfoSection({
@@ -573,11 +574,14 @@ class EditProfileBioSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FlatmatesCard(
-      child: TextField(
-        key: const Key('profile_bio_input'),
-        controller: bioController,
-        maxLines: 4,
-        decoration: InputDecoration(labelText: locale.bioLabel),
+      child: withTestId(
+        const Key('profile_bio_input'),
+        TextField(
+          key: const Key('profile_bio_input'),
+          controller: bioController,
+          maxLines: 4,
+          decoration: InputDecoration(labelText: locale.bioLabel),
+        ),
       ),
     );
   }

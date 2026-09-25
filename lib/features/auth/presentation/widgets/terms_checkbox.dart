@@ -5,6 +5,7 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flatmates_app/core/theme/app_spacing.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/test_id.dart';
 
 class TermsCheckbox extends StatefulWidget {
   const TermsCheckbox({
@@ -61,18 +62,21 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
             SizedBox(
               height: 24,
               width: 24,
-              child: Checkbox(
-                key: const Key('terms_checkbox'),
-                value: widget.accepted,
-                onChanged: (v) => widget.onChanged(v ?? false),
-                activeColor: clay,
-                checkColor: AppSemanticColors.onClayFor(theme.brightness),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                semanticLabel:
-                    '${locale.termsAgreementPrefix}'
-                    '${locale.termsAndConditionsLabel}'
-                    '${locale.termsAgreementConjunction}'
-                    '${locale.privacyPolicy}',
+              child: withTestId(
+                const Key('terms_checkbox'),
+                Checkbox(
+                  key: const Key('terms_checkbox'),
+                  value: widget.accepted,
+                  onChanged: (v) => widget.onChanged(v ?? false),
+                  activeColor: clay,
+                  checkColor: AppSemanticColors.onClayFor(theme.brightness),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  semanticLabel:
+                      '${locale.termsAgreementPrefix}'
+                      '${locale.termsAndConditionsLabel}'
+                      '${locale.termsAgreementConjunction}'
+                      '${locale.privacyPolicy}',
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),

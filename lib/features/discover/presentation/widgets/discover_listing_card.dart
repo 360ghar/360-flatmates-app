@@ -10,6 +10,7 @@ import '../../../shared/presentation/flatmates_listing_meta_chips.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../discover_repository.dart';
+import '../../../shared/presentation/test_id.dart';
 
 /// Photo-first property card aligned with Airbnb `property-card`.
 class DiscoverListingCard extends StatelessWidget {
@@ -100,222 +101,230 @@ class DiscoverListingCard extends StatelessWidget {
         item.effectiveMainImageUrl!.trim().isNotEmpty;
     final isLiked = item.liked ?? false;
 
-    return Material(
-      key: cardKey ?? Key('discover_feed_card_${item.id}'),
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.cardBorder,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AspectRatio(
-              // Feed: 1:1 photo-first. Compact map carousel: 16:10 balances
-              // photo size with readable rent/locality text below.
-              aspectRatio: compact ? 16 / 10 : 1,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: AppRadius.cardBorder,
-                      boxShadow: isSelected
-                          ? AppShadows.elevationFor(brightness)
-                          : AppShadows.none,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: AppRadius.cardBorder,
-                      // FlatmatesNetworkImage uses LayoutBuilder to size
-                      // Cloudinary delivery + mem decode for this slot.
-                      child: hasImage
-                          ? FlatmatesNetworkImage(
-                              imageUrl: item.effectiveMainImageUrl!,
-                              fit: BoxFit.cover,
-                              fallbackName: item.title,
-                            )
-                          : _CardImageFallback(
-                              title: item.title,
-                              compact: compact,
-                            ),
-                    ),
-                  ),
-                  // Badge and room type share one wrapping row that stops
-                  // short of the 48 dp like target, so they never overlap
-                  // it on a narrow card.
-                  if (badgeLabel != null || roomTypeLabel != null)
-                    Positioned(
-                      top: AppSpacing.sm,
-                      left: AppSpacing.sm,
-                      right: kMinInteractiveDimension,
-                      child: Wrap(
-                        spacing: AppSpacing.xs,
-                        runSpacing: AppSpacing.xs,
-                        children: [
-                          for (final label in [?badgeLabel, ?roomTypeLabel])
-                            DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: AppSemanticColors.paper3For(brightness),
-                                borderRadius: AppRadius.pillBorder,
-                                boxShadow: AppShadows.e1(brightness),
+    final key = cardKey ?? Key('discover_feed_card_${item.id}');
+    return withTestId(
+      key,
+      Material(
+        key: key,
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.cardBorder,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AspectRatio(
+                // Feed: 1:1 photo-first. Compact map carousel: 16:10 balances
+                // photo size with readable rent/locality text below.
+                aspectRatio: compact ? 16 / 10 : 1,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: AppRadius.cardBorder,
+                        boxShadow: isSelected
+                            ? AppShadows.elevationFor(brightness)
+                            : AppShadows.none,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: AppRadius.cardBorder,
+                        // FlatmatesNetworkImage uses LayoutBuilder to size
+                        // Cloudinary delivery + mem decode for this slot.
+                        child: hasImage
+                            ? FlatmatesNetworkImage(
+                                imageUrl: item.effectiveMainImageUrl!,
+                                fit: BoxFit.cover,
+                                fallbackName: item.title,
+                              )
+                            : _CardImageFallback(
+                                title: item.title,
+                                compact: compact,
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.sm,
-                                  vertical: AppSpacing.xxs,
+                      ),
+                    ),
+                    // Badge and room type share one wrapping row that stops
+                    // short of the 48 dp like target, so they never overlap
+                    // it on a narrow card.
+                    if (badgeLabel != null || roomTypeLabel != null)
+                      Positioned(
+                        top: AppSpacing.sm,
+                        left: AppSpacing.sm,
+                        right: kMinInteractiveDimension,
+                        child: Wrap(
+                          spacing: AppSpacing.xs,
+                          runSpacing: AppSpacing.xs,
+                          children: [
+                            for (final label in [?badgeLabel, ?roomTypeLabel])
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: AppSemanticColors.paper3For(
+                                    brightness,
+                                  ),
+                                  borderRadius: AppRadius.pillBorder,
+                                  boxShadow: AppShadows.e1(brightness),
                                 ),
-                                child: Text(
-                                  label,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppSemanticColors.textPrimaryFor(
-                                      brightness,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: AppSpacing.xxs,
+                                  ),
+                                  child: Text(
+                                    label,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: AppSemanticColors.textPrimaryFor(
+                                        brightness,
+                                      ),
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
+                      ),
+                    // The 48 dp target puts the 32 dp disc 8 dp from the
+                    // corner.
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: FlatmatesLikeButton(
+                        key: Key('discover_like_${item.id}'),
+                        liked: isLiked,
+                        onTap: onLike,
+                        iconSize: 16,
+                        tooltip: isLiked
+                            ? locale.unlikeListingTooltip
+                            : locale.likeListingTooltip,
                       ),
                     ),
-                  // The 48 dp target puts the 32 dp disc 8 dp from the
-                  // corner.
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: FlatmatesLikeButton(
-                      key: Key('discover_like_${item.id}'),
-                      liked: isLiked,
-                      onTap: onLike,
-                      iconSize: 16,
-                      tooltip: isLiked
-                          ? locale.unlikeListingTooltip
-                          : locale.likeListingTooltip,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: compact ? AppSpacing.sm : AppSpacing.sm + AppSpacing.xxs,
-              ),
-              child: compact
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          FlatmatesPriceText.formatCompact(
-                            item.monthlyRent.round(),
-                          ),
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: ink,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (titleLocation.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: compact ? AppSpacing.sm : AppSpacing.sm + AppSpacing.xxs,
+                ),
+                child: compact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Text(
-                            titleLocation,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: muted,
+                            FlatmatesPriceText.formatCompact(
+                              item.monthlyRent.round(),
+                            ),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: ink,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: ink,
-                            fontWeight: FontWeight.w600,
-                            height: 1.25,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (titleLocation.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_rounded,
-                                size: 12,
-                                color: AppSemanticColors.clayFor(brightness),
+                          if (titleLocation.isNotEmpty)
+                            Text(
+                              titleLocation,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: muted,
                               ),
-                              const SizedBox(width: 2),
-                              Flexible(
-                                child: Text(
-                                  titleLocation,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: muted,
-                                    height: 1.43,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        if (metaItems.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.xs),
-                          FlatmatesListingMetaChips(items: metaItems),
-                        ],
-                        const SizedBox(height: AppSpacing.xs),
-                        // Full rent must never be mid-truncated by competing
-                        // flex siblings. Soft-wrap may break before /month;
-                        // move-in is a second line when a deposit exists.
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: FlatmatesPriceText.formatCompact(
-                                  item.monthlyRent.round(),
-                                ),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: ink,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.25,
-                                ),
-                              ),
-                              const TextSpan(text: ' '),
-                              TextSpan(
-                                text: locale.perMonthSuffix,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: body,
-                                ),
-                              ),
-                            ],
-                          ),
-                          softWrap: true,
-                          maxLines: 2,
-                        ),
-                        if (item.securityDeposit != null &&
-                            item.securityDeposit! > 0) ...[
-                          const SizedBox(height: AppSpacing.xxs),
-                          Text(
-                            locale.moveInCostLabel(
-                              FlatmatesPriceText.formatRupee(moveInTotal),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: muted,
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item.title,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: ink,
+                              fontWeight: FontWeight.w600,
+                              height: 1.25,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (titleLocation.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  size: 12,
+                                  color: AppSemanticColors.clayFor(brightness),
+                                ),
+                                const SizedBox(width: 2),
+                                Flexible(
+                                  child: Text(
+                                    titleLocation,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: muted,
+                                      height: 1.43,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (metaItems.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            FlatmatesListingMetaChips(items: metaItems),
+                          ],
+                          const SizedBox(height: AppSpacing.xs),
+                          // Full rent must never be mid-truncated by competing
+                          // flex siblings. Soft-wrap may break before /month;
+                          // move-in is a second line when a deposit exists.
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: FlatmatesPriceText.formatCompact(
+                                    item.monthlyRent.round(),
+                                  ),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: ink,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.25,
+                                  ),
+                                ),
+                                const TextSpan(text: ' '),
+                                TextSpan(
+                                  text: locale.perMonthSuffix,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: body,
+                                  ),
+                                ),
+                              ],
                             ),
                             softWrap: true,
                             maxLines: 2,
                           ),
+                          if (item.securityDeposit != null &&
+                              item.securityDeposit! > 0) ...[
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              locale.moveInCostLabel(
+                                FlatmatesPriceText.formatRupee(moveInTotal),
+                              ),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: muted,
+                              ),
+                              softWrap: true,
+                              maxLines: 2,
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-            ),
-          ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

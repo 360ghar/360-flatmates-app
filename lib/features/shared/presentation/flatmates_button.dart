@@ -5,6 +5,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
+import 'test_id.dart';
 
 /// Button variant — determines visual style.
 enum FlatmatesButtonVariant {
@@ -116,7 +117,10 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
   bool _pressed = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      withTestId(widget.key, _buildContent(context));
+
+  Widget _buildContent(BuildContext context) {
     final theme = Theme.of(context);
     final enabled = widget.onPressed != null;
 

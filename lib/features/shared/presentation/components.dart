@@ -35,3 +35,4 @@ export 'flatmates_toast.dart';
 export 'flatmates_trust_badge.dart';
 export 'flatmates_ui.dart';
 export 'flatmates_video_tour_player.dart';
+export 'test_id.dart';

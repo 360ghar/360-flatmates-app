@@ -341,7 +341,7 @@ runtime, so declared inputs buy nothing.
 - All authenticated requests must flow through the shared Dio client and auth interceptor.
 - Maintain light/dark/system theme support with the single clay brand primary (DESIGN.md).
 - Keep English and Hindi localization in sync for primary flows.
-- Use meaningful `Key` values on interactive widgets for Maestro stability.
+- Use meaningful string `Key` values on interactive widgets. Maestro's `id:` matches only `Semantics.identifier` (Flutter keys never reach the accessibility layer). `FlatmatesButton`, `FlatmatesMenuItem`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesChromeIconButton`, `FlatmatesSegmentedControl` segments and the action-bar toggle expose their string key as the identifier; wrap any other widget in `withTestId(key, child)` (`shared/presentation/test_id.dart`).
 - Update `docs/` when API surface, architecture, theme/localization strategy, auth flow, or Maestro assumptions change.
 - **Ephemeral UI → `setState`; shared state → `Notifier` / `MutableNotifier`.** Avoid new shared `StateProvider`s. Write shared simple values with `.set` / `.update`, not `.notifier.state =`.
 - **Controllers over direct repository calls** in widgets. Create `application/` layer controllers.

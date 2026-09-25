@@ -299,28 +299,31 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
         if (widget.roomPhotoUrls.length < 10)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: InkWell(
-              key: const Key('listing_add_photos_tile'),
-              onTap: widget.onPickPhotos,
-              borderRadius: AppRadius.cardBorder,
-              child: DashedBorderContainer(
-                color: AppSemanticColors.hairlineFor(theme.brightness),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 140,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_a_photo_outlined, color: clay, size: 32),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        locale.addMorePhotosLabel,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: clay,
-                          fontWeight: FontWeight.w600,
+            child: withTestId(
+              const Key('listing_add_photos_tile'),
+              InkWell(
+                key: const Key('listing_add_photos_tile'),
+                onTap: widget.onPickPhotos,
+                borderRadius: AppRadius.cardBorder,
+                child: DashedBorderContainer(
+                  color: AppSemanticColors.hairlineFor(theme.brightness),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 140,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_a_photo_outlined, color: clay, size: 32),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          locale.addMorePhotosLabel,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: clay,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -264,14 +264,17 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                TextField(
-                  key: const Key('visit_note_input'),
-                  controller: _noteController,
-                  maxLength: 180,
-                  minLines: 3,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    labelText: locale.addNoteOptional,
+                withTestId(
+                  const Key('visit_note_input'),
+                  TextField(
+                    key: const Key('visit_note_input'),
+                    controller: _noteController,
+                    maxLength: 180,
+                    minLines: 3,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      labelText: locale.addNoteOptional,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),

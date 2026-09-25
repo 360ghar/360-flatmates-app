@@ -239,24 +239,28 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextField(
-                          key: const Key('enter_phone_input'),
-                          controller: _controller,
-                          focusNode: _identifierFocusNode,
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: _looksLikeEmail
-                              ? const [AutofillHints.email]
-                              : const [
-                                  AutofillHints.telephoneNumber,
-                                  AutofillHints.email,
-                                ],
-                          // Rebuild so autofill hints track email vs phone.
-                          onChanged: (_) => setState(() {}),
-                          onTap: _requestPhoneHint,
-                          onSubmitted: (_) =>
-                              (isBusy || !termsAccepted) ? null : _onContinue(),
-                          decoration: InputDecoration(
-                            labelText: locale.identifierLabel,
+                        withTestId(
+                          const Key('enter_phone_input'),
+                          TextField(
+                            key: const Key('enter_phone_input'),
+                            controller: _controller,
+                            focusNode: _identifierFocusNode,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: _looksLikeEmail
+                                ? const [AutofillHints.email]
+                                : const [
+                                    AutofillHints.telephoneNumber,
+                                    AutofillHints.email,
+                                  ],
+                            // Rebuild so autofill hints track email vs phone.
+                            onChanged: (_) => setState(() {}),
+                            onTap: _requestPhoneHint,
+                            onSubmitted: (_) => (isBusy || !termsAccepted)
+                                ? null
+                                : _onContinue(),
+                            decoration: InputDecoration(
+                              labelText: locale.identifierLabel,
+                            ),
                           ),
                         ),
                         const SizedBox(height: AppSpacing.lg),

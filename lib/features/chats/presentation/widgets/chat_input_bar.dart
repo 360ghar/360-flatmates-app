@@ -5,6 +5,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/test_id.dart';
 
 class ChatInputBar extends StatelessWidget {
   const ChatInputBar({
@@ -95,25 +96,28 @@ class ChatInputBar extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: TextField(
-                key: const Key('chat_message_input'),
-                controller: controller,
-                focusNode: focusNode,
-                textInputAction: TextInputAction.send,
-                onTap: () {
-                  if (showEmoji) onToggleEmoji();
-                },
-                onSubmitted: canSend ? (_) => onSend() : null,
-                minLines: 1,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: locale.chatInputHint,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: AppSpacing.md,
+              child: withTestId(
+                const Key('chat_message_input'),
+                TextField(
+                  key: const Key('chat_message_input'),
+                  controller: controller,
+                  focusNode: focusNode,
+                  textInputAction: TextInputAction.send,
+                  onTap: () {
+                    if (showEmoji) onToggleEmoji();
+                  },
+                  onSubmitted: canSend ? (_) => onSend() : null,
+                  minLines: 1,
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    hintText: locale.chatInputHint,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
                   ),
                 ),
               ),
@@ -133,29 +137,32 @@ class ChatInputBar extends StatelessWidget {
                       )
                     : Icon(Icons.photo_outlined, color: muted, size: 24),
               ),
-            IconButton.filled(
-              key: const Key('chat_send_button'),
-              onPressed: canSend ? onSend : null,
-              tooltip: locale.sendCta,
-              style: IconButton.styleFrom(
-                backgroundColor: AppSemanticColors.clayFor(brightness),
-                foregroundColor: AppSemanticColors.onClayFor(brightness),
-                disabledBackgroundColor: AppSemanticColors.paperDeepFor(
-                  brightness,
+            withTestId(
+              const Key('chat_send_button'),
+              IconButton.filled(
+                key: const Key('chat_send_button'),
+                onPressed: canSend ? onSend : null,
+                tooltip: locale.sendCta,
+                style: IconButton.styleFrom(
+                  backgroundColor: AppSemanticColors.clayFor(brightness),
+                  foregroundColor: AppSemanticColors.onClayFor(brightness),
+                  disabledBackgroundColor: AppSemanticColors.paperDeepFor(
+                    brightness,
+                  ),
+                  disabledForegroundColor: AppSemanticColors.textTertiaryFor(
+                    brightness,
+                  ),
                 ),
-                disabledForegroundColor: AppSemanticColors.textTertiaryFor(
-                  brightness,
-                ),
+                icon: isSending
+                    ? SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppSemanticColors.textTertiaryFor(brightness),
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded, size: 20),
               ),
-              icon: isSending
-                  ? SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppSemanticColors.textTertiaryFor(brightness),
-                      ),
-                    )
-                  : const Icon(Icons.send_rounded, size: 20),
             ),
           ],
         ),

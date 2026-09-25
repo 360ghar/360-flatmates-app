@@ -6,6 +6,7 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/paper_theme.dart';
+import 'test_id.dart';
 
 /// Paper card: a layer-two sheet with a hand-cut radius, fine grain and a
 /// tight down-right shadow (DESIGN.md §4, §8). Interactive cards press flat:
@@ -79,7 +80,10 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
   bool _pressed = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      withTestId(widget.key, _buildContent(context));
+
+  Widget _buildContent(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final resolvedPadding = widget.padding ?? AppSpacing.cardPadding;

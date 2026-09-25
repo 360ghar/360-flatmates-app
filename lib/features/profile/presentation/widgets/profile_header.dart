@@ -61,6 +61,8 @@ class ProfileHeader extends StatelessWidget {
             child: Tooltip(
               message: locale.editProfileCta,
               child: Semantics(
+                // Maestro id (keys never reach the accessibility layer).
+                identifier: 'profile_edit_button',
                 button: true,
                 label: locale.editProfileCta,
                 excludeSemantics: true,
@@ -99,12 +101,15 @@ class ProfileHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          displayName,
-          key: const Key('profile_name_text'),
-          style: theme.textTheme.headlineMedium,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
+        withTestId(
+          const Key('profile_name_text'),
+          Text(
+            displayName,
+            key: const Key('profile_name_text'),
+            style: theme.textTheme.headlineMedium,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
         ),
         if (contact != null) ...[
           const SizedBox(height: AppSpacing.xxs),

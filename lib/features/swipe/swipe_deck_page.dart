@@ -25,6 +25,7 @@ import 'presentation/widgets/swipe_card_stack.dart';
 import 'presentation/widgets/swipe_deck_header.dart';
 import 'presentation/widgets/swipe_empty_state.dart';
 import 'swipe_repository.dart';
+import '../shared/presentation/test_id.dart';
 
 part 'swipe_deck_actions.dart';
 
@@ -413,27 +414,30 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           // the foreground card (revealed after scrolling to the end).
           return Stack(
             children: [
-              SwipeCardStack(
-                key: const Key('swipe_card'),
-                item: item,
-                compatibility: compatibility,
-                nextItem: nextItem,
-                nextCompatibility: nextCompatibility,
-                thirdItem: thirdItem,
-                thirdCompatibility: thirdCompatibility,
-                dragOffset: interaction.dragOffset,
-                dragProgress: progress,
-                currentRotation: rotation,
-                isDragging: interaction.isDragging,
-                onHorizontalDragStart: _onHorizontalDragStart,
-                onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                onHorizontalDragEnd: _onHorizontalDragEnd,
-                actionBar: SwipeActionBar(
-                  onSkip: () => _triggerButtonSwipe(-1),
-                  onLike: () => _triggerButtonSwipe(1),
-                  onUndo: _undoLastSwipe,
-                  canUndo: deckState.lastSwipedProfile != null,
-                  enabled: !interaction.isBusy,
+              withTestId(
+                const Key('swipe_card'),
+                SwipeCardStack(
+                  key: const Key('swipe_card'),
+                  item: item,
+                  compatibility: compatibility,
+                  nextItem: nextItem,
+                  nextCompatibility: nextCompatibility,
+                  thirdItem: thirdItem,
+                  thirdCompatibility: thirdCompatibility,
+                  dragOffset: interaction.dragOffset,
+                  dragProgress: progress,
+                  currentRotation: rotation,
+                  isDragging: interaction.isDragging,
+                  onHorizontalDragStart: _onHorizontalDragStart,
+                  onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                  onHorizontalDragEnd: _onHorizontalDragEnd,
+                  actionBar: SwipeActionBar(
+                    onSkip: () => _triggerButtonSwipe(-1),
+                    onLike: () => _triggerButtonSwipe(1),
+                    onUndo: _undoLastSwipe,
+                    canUndo: deckState.lastSwipedProfile != null,
+                    enabled: !interaction.isBusy,
+                  ),
                 ),
               ),
               if (deckState.isLoadingMore)

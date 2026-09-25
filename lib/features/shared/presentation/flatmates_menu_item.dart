@@ -3,6 +3,7 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import 'test_id.dart';
 
 /// Standardized menu row for Profile and Settings screens: a bare clay icon
 /// (danger when destructive), a label, an optional subtitle and a chevron.
@@ -48,7 +49,10 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      withTestId(widget.key, _buildContent(context));
+
+  Widget _buildContent(BuildContext context) {
     final theme = Theme.of(context);
     final brightness = theme.brightness;
     final clay = AppSemanticColors.clayFor(brightness);

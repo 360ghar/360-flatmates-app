@@ -104,26 +104,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  TextField(
-                    key: const Key('login_password_input'),
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) =>
-                        auth.status == AuthStatus.submitting ? null : _submit(),
-                    decoration: InputDecoration(
-                      labelText: locale.passwordLabel,
-                      suffixIcon: IconButton(
-                        key: const Key('login_password_visibility_toggle'),
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
+                  withTestId(
+                    const Key('login_password_input'),
+                    TextField(
+                      key: const Key('login_password_input'),
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      autofillHints: const [AutofillHints.password],
+                      onSubmitted: (_) => auth.status == AuthStatus.submitting
+                          ? null
+                          : _submit(),
+                      decoration: InputDecoration(
+                        labelText: locale.passwordLabel,
+                        suffixIcon: IconButton(
+                          key: const Key('login_password_visibility_toggle'),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                          tooltip: locale.togglePasswordVisibility,
                         ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                        tooltip: locale.togglePasswordVisibility,
                       ),
                     ),
                   ),

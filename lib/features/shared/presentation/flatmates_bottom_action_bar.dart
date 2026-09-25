@@ -4,6 +4,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'flatmates_ui.dart';
+import 'test_id.dart';
 
 /// Sticky bottom CTA bar on paper-2 with a top hairline.
 ///
@@ -129,11 +130,14 @@ class FlatmatesBottomActionBar extends StatelessWidget {
       ),
     );
     final name = tertiaryLabel;
-    return Semantics(
-      button: true,
-      toggled: selected,
-      label: name,
-      child: name == null ? button : Tooltip(message: name, child: button),
+    return withTestId(
+      tertiaryButtonKey,
+      Semantics(
+        button: true,
+        toggled: selected,
+        label: name,
+        child: name == null ? button : Tooltip(message: name, child: button),
+      ),
     );
   }
 }

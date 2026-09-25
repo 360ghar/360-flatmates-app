@@ -5,6 +5,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
+import 'test_id.dart';
 
 /// Segment toggle for tabs like Likes/Chat, listing status, room type.
 ///
@@ -88,44 +89,48 @@ class FlatmatesSegmentedControl<T> extends StatelessWidget {
             final (value, label, icon) = segments[index];
             final isSelected = index == selectedIndex;
             final color = isSelected ? ink : inactive;
-            return Semantics(
-              button: true,
-              selected: isSelected,
-              inMutuallyExclusiveGroup: true,
-              child: InkWell(
-                key: segmentKeys != null && index < segmentKeys!.length
-                    ? segmentKeys![index]
-                    : null,
-                onTap: () => onChanged(value),
-                borderRadius: innerRadius,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: AppSpacing.md,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (showIcon && icon != null) ...[
-                        Icon(icon, size: 16, color: color),
-                        const SizedBox(width: AppSpacing.xs),
-                      ],
-                      Flexible(
-                        child: Text(
-                          label,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: color,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
+            final key = segmentKeys != null && index < segmentKeys!.length
+                ? segmentKeys![index]
+                : null;
+            return withTestId(
+              key,
+              Semantics(
+                button: true,
+                selected: isSelected,
+                inMutuallyExclusiveGroup: true,
+                child: InkWell(
+                  key: key,
+                  onTap: () => onChanged(value),
+                  borderRadius: innerRadius,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs,
+                      vertical: AppSpacing.md,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showIcon && icon != null) ...[
+                          Icon(icon, size: 16, color: color),
+                          const SizedBox(width: AppSpacing.xs),
+                        ],
+                        Flexible(
+                          child: Text(
+                            label,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: color,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

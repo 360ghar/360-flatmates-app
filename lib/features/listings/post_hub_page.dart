@@ -154,43 +154,48 @@ class _HubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return FlatmatesCard.elevated(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Row(
-        children: [
-          // Bare clay icon: no tinted circle behind it.
-          Icon(
-            icon,
-            size: 32,
-            color: AppSemanticColors.clayFor(theme.brightness),
-          ),
-          const SizedBox(width: AppSpacing.base),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleLarge),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                ),
-                if (counts != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  counts!,
-                ],
-              ],
+    return withTestId(
+      key,
+      FlatmatesCard.elevated(
+        onTap: onTap,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          children: [
+            // Bare clay icon: no tinted circle behind it.
+            Icon(
+              icon,
+              size: 32,
+              color: AppSemanticColors.clayFor(theme.brightness),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.base),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleLarge),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
+                    ),
+                  ),
+                  if (counts != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    counts!,
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
+          ],
+        ),
       ),
     );
   }

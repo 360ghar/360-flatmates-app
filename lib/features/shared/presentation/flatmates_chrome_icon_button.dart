@@ -4,6 +4,7 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
+import 'test_id.dart';
 
 /// Visual style for app-bar / overlay chrome icon buttons (DESIGN.md).
 enum FlatmatesChromeIconStyle {
@@ -63,7 +64,10 @@ class _FlatmatesChromeIconButtonState extends State<FlatmatesChromeIconButton> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      withTestId(widget.key, _buildContent(context));
+
+  Widget _buildContent(BuildContext context) {
     final theme = Theme.of(context);
     final brightness = theme.brightness;
     final enabled = widget.onPressed != null;
