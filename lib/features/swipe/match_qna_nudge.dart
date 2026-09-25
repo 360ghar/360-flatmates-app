@@ -60,7 +60,7 @@ class _MatchQnANudgeSheetState extends ConsumerState<MatchQnANudgeSheet> {
       Navigator.of(context).pop();
     } else {
       // Keep the nudge open so the user can retry without reopening.
-      FlatmatesToast.error(context, locale.commonRetry);
+      FlatmatesToast.error(context, locale.errorUnknown);
     }
   }
 
@@ -70,135 +70,140 @@ class _MatchQnANudgeSheetState extends ConsumerState<MatchQnANudgeSheet> {
     final locale = AppLocalizations.of(context);
     final isSubmitting = ref.watch(matchQnAControllerProvider);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Title
-        Text(
-          locale.qnaNudgeTitle,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+    // Scrolls so the fields stay reachable above the keyboard on small phones.
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Text(
+            locale.qnaNudgeTitle,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xl),
 
-        // Q1
-        FlatmatesCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                locale.qnaQuestion1,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+          // Q1
+          FlatmatesCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.qnaQuestion1,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _q1Controller,
-                maxLines: 2,
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  hintText: locale.qnaQuestion1,
-                  contentPadding: const EdgeInsets.all(AppSpacing.md),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _q1Controller,
+                  maxLines: 2,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: locale.qnaQuestion1,
+                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
-        // Q2 (social scale)
-        FlatmatesCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                locale.qnaQuestion2,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+          // Q2 (social scale)
+          FlatmatesCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.qnaQuestion2,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Text(
-                    locale.qnaVeryPrivate,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Text(
+                      locale.qnaVeryPrivate,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Slider(
-                      value: _socialScale.toDouble(),
-                      min: 1,
-                      max: 5,
-                      divisions: 4,
-                      label: _socialScaleLabel(locale),
-                      onChanged: (v) =>
-                          setState(() => _socialScale = v.round()),
-                    ),
-                  ),
-                  Text(
-                    locale.qnaVerySocial,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
+                    Expanded(
+                      child: Slider(
+                        value: _socialScale.toDouble(),
+                        min: 1,
+                        max: 5,
+                        divisions: 4,
+                        label: _socialScaleLabel(locale),
+                        onChanged: (v) =>
+                            setState(() => _socialScale = v.round()),
                       ),
                     ),
+                    Text(
+                      locale.qnaVerySocial,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Q3
+          FlatmatesCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.qnaQuestion3,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-
-        // Q3
-        FlatmatesCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                locale.qnaQuestion3,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _q3Controller,
-                maxLines: 2,
-                textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  hintText: locale.qnaQuestion3,
-                  contentPadding: const EdgeInsets.all(AppSpacing.md),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _q3Controller,
+                  maxLines: 2,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    hintText: locale.qnaQuestion3,
+                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.screen),
+          const SizedBox(height: AppSpacing.screen),
 
-        // Share Answers button
-        FlatmatesButton(
-          label: locale.qnaShareAnswers,
-          onPressed: isSubmitting ? null : _submitAnswers,
-          fullWidth: true,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-
-        // Skip for now
-        Center(
-          child: FlatmatesButton.tertiary(
-            label: locale.qnaSkipForNow,
-            onPressed: isSubmitting ? null : () => Navigator.of(context).pop(),
+          // Share Answers button
+          FlatmatesButton(
+            label: locale.qnaShareAnswers,
+            onPressed: isSubmitting ? null : _submitAnswers,
+            fullWidth: true,
           ),
-        ),
-      ],
+          const SizedBox(height: AppSpacing.sm),
+
+          // Skip for now
+          Center(
+            child: FlatmatesButton.tertiary(
+              label: locale.qnaSkipForNow,
+              onPressed: isSubmitting
+                  ? null
+                  : () => Navigator.of(context).pop(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
