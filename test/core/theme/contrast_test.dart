@@ -37,6 +37,42 @@ void main() {
       }
     }
 
+    // Tinted pills: status text on its own soft fill.
+    final pills = {
+      'clay-ink on clay-soft': (
+        AppSemanticColors.clayInkFor(brightness),
+        AppSemanticColors.coralSoftFor(brightness),
+      ),
+      'clay on clay-soft': (
+        AppSemanticColors.clayFor(brightness),
+        AppSemanticColors.coralSoftFor(brightness),
+      ),
+      'green-ink on pine-soft': (
+        AppSemanticColors.greenInkFor(brightness),
+        AppSemanticColors.pineSoftFor(brightness),
+      ),
+      'danger on danger-soft': (
+        AppSemanticColors.dangerFor(brightness),
+        AppSemanticColors.errorSoftFor(brightness),
+      ),
+      'warning-ink on warning-soft': (
+        AppSemanticColors.warningInkFor(brightness),
+        AppSemanticColors.warningSoftFor(brightness),
+      ),
+      'on-pine on pine': (
+        AppSemanticColors.onPineFor(brightness),
+        AppSemanticColors.pineFor(brightness),
+      ),
+    };
+    for (final pill in pills.entries) {
+      test('${brightness.name}: ${pill.key} passes AA', () {
+        expect(
+          _contrast(pill.value.$1, pill.value.$2),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+    }
+
     test('${brightness.name}: labels on filled controls pass AA', () {
       expect(
         _contrast(

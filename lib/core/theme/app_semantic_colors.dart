@@ -245,5 +245,11 @@ abstract final class AppSemanticColors {
 
   /// Ink on soft green chips (match chips, meta tags).
   static Color greenInkFor(Brightness b) => _dark(b) ? darkPine : greenInk;
+
+  /// Ink on clay-soft fills.
+  static Color clayInkFor(Brightness b) => _dark(b) ? darkClay : clayInk;
+
+  /// Text and icons on a `pine` fill.
+  static Color onPineFor(Brightness b) => _dark(b) ? darkOnClay : onPine;
   static Color hairlineFor(Brightness b) => _dark(b) ? darkHairline : hairline;
 }
