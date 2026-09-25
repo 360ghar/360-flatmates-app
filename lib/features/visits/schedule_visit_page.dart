@@ -6,24 +6,13 @@ import 'package:intl/intl.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
 import '../shared/presentation/components.dart';
-import 'application/visits_list_controller.dart';
-import 'visits_repository.dart';
-
-// autoDispose: each visit starts from fresh defaults; nothing carries over
-// from a previous scheduling session.
-final _selectedDateProvider = StateProvider.autoDispose<DateTime>(
-  (ref) => DateTime.now().add(const Duration(days: 1)),
-);
-final _selectedSlotProvider = StateProvider.autoDispose<String>(
-  (ref) => 'afternoon',
-);
-final _submittingVisitProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
+import '../shared/presentation/paper/paper_scene.dart';
+import 'application/visits_actions_controller.dart';
 
 class ScheduleVisitPage extends ConsumerStatefulWidget {
   const ScheduleVisitPage({
@@ -42,6 +31,11 @@ class ScheduleVisitPage extends ConsumerStatefulWidget {
 class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   final _noteController = TextEditingController();
 
+  // Ephemeral form state: each visit starts from these defaults.
+  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  String _slot = 'afternoon';
+  bool _submitting = false;
+
   /// The conversation passed in, or the one fetched by [conversationId].
   ConversationSummaryModel? get _conversation {
     final id = widget.conversationId;
@@ -58,12 +52,12 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   /// Returns a local DateTime for the selected date and slot.
   /// The repository converts to UTC before sending to the backend.
   DateTime get _scheduledDate {
-    final hour = switch (ref.read(_selectedSlotProvider)) {
+    final hour = switch (_slot) {
       'morning' => 10,
       'evening' => 18,
       _ => 15,
     };
-    final selectedDate = ref.read(_selectedDateProvider);
+    final selectedDate = _selectedDate;
     return DateTime(
       selectedDate.year,
       selectedDate.month,
@@ -76,7 +70,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
     // Guard against a same-frame double-tap firing two POSTs → two visit rows.
     // The button is disabled while submitting, but a rapid tap can land both
     // taps before the rebuild disables it. (#24)
-    if (ref.read(_submittingVisitProvider)) return;
+    if (_submitting) return;
     final locale = AppLocalizations.of(context);
     final conversation = _conversation;
     final property = conversation?.contextProperty;
@@ -92,17 +86,17 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
       return;
     }
 
-    ref.read(_submittingVisitProvider.notifier).state = true;
+    setState(() => _submitting = true);
     var visitCreated = false;
     try {
-      final timeSlotLabel = switch (ref.read(_selectedSlotProvider)) {
+      final timeSlotLabel = switch (_slot) {
         'morning' => locale.timeSlotMorning,
         'evening' => locale.timeSlotEvening,
         _ => locale.timeSlotAfternoon,
       };
       await ref
-          .read(visitsRepositoryProvider)
-          .scheduleVisitAndNotify(
+          .read(visitsActionsControllerProvider)
+          .schedule(
             propertyId: property.id,
             counterpartyUserId: conversation.peer.id,
             conversationId: conversation.id,
@@ -112,8 +106,6 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
             timeSlotLabel: timeSlotLabel,
           );
       visitCreated = true;
-      ref.invalidate(visitsListControllerProvider);
-      ref.invalidate(visitsProvider);
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitRequestSent);
       context.pop();
@@ -127,7 +119,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
           : locale.visitRequestFailed;
       FlatmatesToast.error(context, message);
     } finally {
-      if (mounted) ref.read(_submittingVisitProvider.notifier).state = false;
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -143,208 +135,191 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
         widget.conversation ?? fetchedConversation?.valueOrNull;
     final property = conversation?.contextProperty;
 
-    return Scaffold(
+    return FlatmatesScreen(
       appBar: FlatmatesHeader.logo(onBack: () => context.pop()),
-      body: SafeArea(
-        child: fetchedConversation?.isLoading == true
-            ? const FlatmatesSkeleton.form()
-            : fetchedConversation?.hasError == true
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(locale.errorUnknown, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    FlatmatesButton(
-                      label: locale.commonRetry,
-                      onPressed: () => ref.invalidate(
-                        conversationProvider(widget.conversationId!),
+      body: fetchedConversation?.isLoading == true
+          ? const FlatmatesSkeleton.form()
+          : fetchedConversation?.hasError == true
+          ? FlatmatesErrorState(
+              message: locale.couldNotLoadContent,
+              onRetry: () =>
+                  ref.invalidate(conversationProvider(widget.conversationId!)),
+            )
+          : property == null || conversation == null
+          ? FlatmatesEmptyState(
+              title: locale.visitScheduleNoConversation,
+              prop: PaperProp.chat,
+            )
+          : ListView(
+              padding: const EdgeInsets.all(AppSpacing.screen),
+              children: [
+                _PropertySummary(
+                  thumbnail: property.mainImageUrl != null
+                      ? FlatmatesNetworkImage(
+                          imageUrl: property.mainImageUrl!,
+                          width: 88,
+                          height: 88,
+                          borderRadius: AppRadius.mdBorder,
+                        )
+                      : Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            color: AppSemanticColors.paperDeepFor(
+                              theme.brightness,
+                            ),
+                            borderRadius: AppRadius.mdBorder,
+                          ),
+                          child: Icon(
+                            Icons.apartment_rounded,
+                            color: AppSemanticColors.textTertiaryFor(
+                              theme.brightness,
+                            ),
+                          ),
+                        ),
+                  details: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(property.title, style: theme.textTheme.titleLarge),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        conversation.peer.fullName,
+                        style: theme.textTheme.bodyMedium,
                       ),
-                      fullWidth: true,
-                    ),
-                  ],
-                ),
-              )
-            : property == null || conversation == null
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Text(
-                    locale.visitScheduleNoConversation,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl,
-                  AppSpacing.lg,
-                  AppSpacing.xl,
-                  120,
-                ),
-                children: [
-                  const SizedBox(height: AppSpacing.xs),
-                  FlatmatesCard(
-                    child: Row(
-                      children: [
-                        if (property.mainImageUrl != null)
-                          FlatmatesNetworkImage(
-                            imageUrl: property.mainImageUrl!,
-                            width: 88,
-                            height: 88,
-                            borderRadius: BorderRadius.circular(14),
+                      if (conversation.matchedAt != null) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          locale.matchedOnDate(
+                            DateFormat(
+                              'd MMM yyyy',
+                              locale.localeName,
+                            ).format(conversation.matchedAt!),
                           ),
-                        if (property.mainImageUrl == null)
-                          Container(
-                            width: 88,
-                            height: 88,
-                            decoration: BoxDecoration(
-                              color: AppSemanticColors.accent.withValues(
-                                alpha: 0.1,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppSemanticColors.textSecondaryFor(
+                              theme.brightness,
                             ),
-                            child: const Icon(
-                              Icons.apartment_rounded,
-                              color: AppSemanticColors.accent,
-                            ),
-                          ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                property.title,
-                                style: theme.textTheme.titleLarge,
-                              ),
-                              const SizedBox(
-                                height: AppSpacing.xs + AppSpacing.xs,
-                              ),
-                              Text(
-                                conversation.peer.fullName,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              if (conversation.matchedAt != null) ...[
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  locale.matchedOnDate(
-                                    DateFormat(
-                                      'd MMM yyyy',
-                                    ).format(conversation.matchedAt!),
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppSemanticColors.textSecondaryFor(
-                                      theme.brightness,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    locale.scheduleVisitTitle,
-                    style: theme.textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  FlatmatesCard(
-                    child: Builder(
-                      builder: (context) {
-                        final firstDate = DateUtils.dateOnly(DateTime.now());
-                        final lastDate = firstDate.add(
-                          const Duration(days: 90),
-                        );
-                        // Clamp the stored date into [firstDate, lastDate];
-                        // CalendarDatePicker asserts initialDate is in range.
-                        final selectedDate = ref.watch(_selectedDateProvider);
-                        final initial = selectedDate.isBefore(firstDate)
-                            ? firstDate
-                            : selectedDate.isAfter(lastDate)
-                            ? lastDate
-                            : selectedDate;
-                        return CalendarDatePicker(
-                          initialDate: initial,
-                          firstDate: firstDate,
-                          lastDate: lastDate,
-                          onDateChanged: (date) =>
-                              ref.read(_selectedDateProvider.notifier).state =
-                                  date,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    locale.selectTimeSlot,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    children: [
-                      FlatmatesChip(
-                        key: const Key('visit_morning_slot'),
-                        variant: FlatmatesChipVariant.choice,
-                        label: locale.timeSlotMorning,
-                        selected: ref.watch(_selectedSlotProvider) == 'morning',
-                        onSelected: (_) =>
-                            ref.read(_selectedSlotProvider.notifier).state =
-                                'morning',
-                      ),
-                      FlatmatesChip(
-                        key: const Key('visit_afternoon_slot'),
-                        variant: FlatmatesChipVariant.choice,
-                        label: locale.timeSlotAfternoon,
-                        selected:
-                            ref.watch(_selectedSlotProvider) == 'afternoon',
-                        onSelected: (_) =>
-                            ref.read(_selectedSlotProvider.notifier).state =
-                                'afternoon',
-                      ),
-                      FlatmatesChip(
-                        key: const Key('visit_evening_slot'),
-                        variant: FlatmatesChipVariant.choice,
-                        label: locale.timeSlotEvening,
-                        selected: ref.watch(_selectedSlotProvider) == 'evening',
-                        onSelected: (_) =>
-                            ref.read(_selectedSlotProvider.notifier).state =
-                                'evening',
-                      ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  TextField(
-                    key: const Key('visit_note_input'),
-                    controller: _noteController,
-                    maxLength: 180,
-                    minLines: 3,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      labelText: locale.addNoteOptional,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  locale.scheduleVisitTitle,
+                  style: theme.textTheme.headlineMedium,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FlatmatesCard(
+                  child: Builder(
+                    builder: (context) {
+                      final firstDate = DateUtils.dateOnly(DateTime.now());
+                      final lastDate = firstDate.add(const Duration(days: 90));
+                      // Clamp the stored date into [firstDate, lastDate];
+                      // CalendarDatePicker asserts initialDate is in range.
+                      final selectedDate = _selectedDate;
+                      final initial = selectedDate.isBefore(firstDate)
+                          ? firstDate
+                          : selectedDate.isAfter(lastDate)
+                          ? lastDate
+                          : selectedDate;
+                      return CalendarDatePicker(
+                        initialDate: initial,
+                        firstDate: firstDate,
+                        lastDate: lastDate,
+                        onDateChanged: (date) =>
+                            setState(() => _selectedDate = date),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(locale.selectTimeSlot, style: theme.textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.md),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  children: [
+                    FlatmatesChip(
+                      key: const Key('visit_morning_slot'),
+                      variant: FlatmatesChipVariant.choice,
+                      label: locale.timeSlotMorning,
+                      selected: _slot == 'morning',
+                      onSelected: (_) => setState(() => _slot = 'morning'),
                     ),
+                    FlatmatesChip(
+                      key: const Key('visit_afternoon_slot'),
+                      variant: FlatmatesChipVariant.choice,
+                      label: locale.timeSlotAfternoon,
+                      selected: _slot == 'afternoon',
+                      onSelected: (_) => setState(() => _slot = 'afternoon'),
+                    ),
+                    FlatmatesChip(
+                      key: const Key('visit_evening_slot'),
+                      variant: FlatmatesChipVariant.choice,
+                      label: locale.timeSlotEvening,
+                      selected: _slot == 'evening',
+                      onSelected: (_) => setState(() => _slot = 'evening'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                TextField(
+                  key: const Key('visit_note_input'),
+                  controller: _noteController,
+                  maxLength: 180,
+                  minLines: 3,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: locale.addNoteOptional,
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  FlatmatesTrustBadge(
-                    variant: FlatmatesTrustBadgeVariant.privacy,
-                    label: locale.visitPrivacyNote(conversation.peer.fullName),
-                    compact: true,
-                  ),
-                ],
-              ),
-      ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FlatmatesTrustBadge(
+                  variant: FlatmatesTrustBadgeVariant.privacy,
+                  label: locale.visitPrivacyNote(conversation.peer.fullName),
+                  compact: true,
+                ),
+              ],
+            ),
       bottomNavigationBar: FlatmatesBottomActionBar(
         primaryButtonKey: const Key('visit_send_request_button'),
-        label: ref.watch(_submittingVisitProvider)
-            ? locale.sendingLabel
-            : locale.sendRequestCta,
+        label: _submitting ? locale.sendingLabel : locale.sendRequestCta,
         icon: Icons.send_rounded,
-        onPressed: ref.watch(_submittingVisitProvider) ? null : _submit,
+        onPressed: _submitting ? null : _submit,
       ),
+    );
+  }
+}
+
+/// Property thumbnail beside its details; stacked at large text sizes so
+/// the title keeps the full card width.
+class _PropertySummary extends StatelessWidget {
+  const _PropertySummary({required this.thumbnail, required this.details});
+
+  final Widget thumbnail;
+  final Widget details;
+
+  @override
+  Widget build(BuildContext context) {
+    final large = MediaQuery.textScalerOf(context).scale(1) >= 1.5;
+    return FlatmatesCard(
+      child: large
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                thumbnail,
+                const SizedBox(height: AppSpacing.md),
+                details,
+              ],
+            )
+          : Row(
+              children: [
+                thumbnail,
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: details),
+              ],
+            ),
     );
   }
 }

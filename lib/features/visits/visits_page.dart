@@ -11,21 +11,16 @@ import '../shared/presentation/flatmates_async_view.dart';
 import '../shared/presentation/flatmates_dialog.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_screen.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
+import '../shared/presentation/profile_sections.dart';
 import 'application/visits_actions_controller.dart';
 import 'application/visits_list_controller.dart';
 import 'visits_repository.dart';
 import 'widgets/visit_card.dart';
-
-/// Visit ids that currently have an action (confirm/cancel/reschedule)
-/// in flight. Used to disable the card's action chips and prevent
-/// double-submission of the same mutation.
-final _pendingVisitActionsProvider = StateProvider.autoDispose<Set<int>>(
-  (ref) => <int>{},
-);
 
 class VisitsPage extends ConsumerStatefulWidget {
   const VisitsPage({super.key});
@@ -35,28 +30,24 @@ class VisitsPage extends ConsumerStatefulWidget {
 }
 
 class _VisitsPageState extends ConsumerState<VisitsPage> {
+  /// Clears the shell's bottom navigation bar.
+  static const double _bottomNavOffset = 120;
+
+  /// Visit ids with an action (confirm / cancel / reschedule) in flight: their
+  /// buttons are disabled, so the same mutation cannot be sent twice.
+  final _pending = <int>{};
+
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<CursorListState<VisitItem>>>(
-      visitsListControllerProvider,
-      (previous, next) {
-        if (next.isLoading && (previous == null || !previous.isLoading)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            ref.read(visitsListControllerProvider.notifier).load();
-          });
-        }
-      },
-    );
-
+    // The list controller loads itself on first build and after invalidation.
     final visitsState = ref.watch(visitsListControllerProvider);
-    final pending = ref.watch(_pendingVisitActionsProvider);
+    final pending = _pending;
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
 
-    return Scaffold(
+    return FlatmatesScreen(
       backgroundColor: listHubBg,
       appBar: FlatmatesHeader.backTitle(title: locale.scheduleTitle),
       body: FlatmatesAsyncView<CursorListState<VisitItem>>(
@@ -101,20 +92,16 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
             onRefresh: () =>
                 ref.read(visitsListControllerProvider.notifier).refresh(),
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screen,
                 AppSpacing.screen,
                 AppSpacing.screen,
-                120,
+                _bottomNavOffset,
               ),
               children: [
-                FlatmatesSectionHeader(
-                  title: locale.scheduleTitle,
-                  subtitle: locale.scheduleSubtitle,
-                ),
-                const SizedBox(height: AppSpacing.lg),
                 if (upcoming.isNotEmpty) ...[
-                  _SectionHeader(title: locale.visitStatusConfirmed),
+                  SectionHeader(label: locale.visitStatusConfirmed),
                   const SizedBox(height: AppSpacing.sm),
                   ...upcoming.map(
                     (item) => Padding(
@@ -133,7 +120,7 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                   ),
                 ],
                 if (requested.isNotEmpty) ...[
-                  _SectionHeader(title: locale.visitStatusRequested),
+                  SectionHeader(label: locale.visitStatusRequested),
                   const SizedBox(height: AppSpacing.sm),
                   ...requested.map(
                     (item) => Padding(
@@ -152,7 +139,7 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                   ),
                 ],
                 if (past.isNotEmpty) ...[
-                  _SectionHeader(title: locale.visitStatusPast),
+                  SectionHeader(label: locale.visitStatusPast),
                   const SizedBox(height: AppSpacing.sm),
                   ...past.map(
                     (item) => Padding(
@@ -178,12 +165,12 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
                               height: 22,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : TextButton.icon(
+                          : FlatmatesButton.tertiary(
+                              label: locale.loadMoreCta,
+                              icon: Icons.expand_more_rounded,
                               onPressed: () => ref
                                   .read(visitsListControllerProvider.notifier)
                                   .loadMore(),
-                              icon: const Icon(Icons.expand_more_rounded),
-                              label: Text(locale.loadMoreCta),
                             ),
                     ),
                   ),
@@ -198,17 +185,14 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
   /// Marks [id] as in-flight. Returns false if an action is already running
   /// for this visit (double-submit guard).
   bool _beginAction(int id) {
-    final pending = ref.read(_pendingVisitActionsProvider);
-    if (pending.contains(id)) return false;
-    ref.read(_pendingVisitActionsProvider.notifier).state = {...pending, id};
+    if (_pending.contains(id)) return false;
+    setState(() => _pending.add(id));
     return true;
   }
 
   void _endAction(int id) {
     if (!mounted) return;
-    final pending = ref.read(_pendingVisitActionsProvider);
-    ref.read(_pendingVisitActionsProvider.notifier).state = {...pending}
-      ..remove(id);
+    setState(() => _pending.remove(id));
   }
 
   Future<void> _confirmVisit(VisitItem item) async {
@@ -316,23 +300,5 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
     } finally {
       _endAction(item.id);
     }
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text(
-      title,
-      style: theme.textTheme.titleSmall?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: AppSemanticColors.textSecondaryFor(theme.brightness),
-      ),
-    );
   }
 }
