@@ -72,7 +72,6 @@ flutter:
 
   assets:
     - .env
-    - assets/illustrations/
     - assets/legal/
     - assets/icons/
     - assets/paper/
