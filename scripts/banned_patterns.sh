@@ -94,7 +94,7 @@ fi
 # Ratchets: raw radii and raw colours belong in lib/core/theme. Existing uses
 # are grandfathered at the baseline below; the count may only go down.
 # Lower the baseline when you remove one.
-RADIUS_BASELINE=5
+RADIUS_BASELINE=0
 COLOR_BASELINE=0
 
 echo -n "  raw BorderRadius.circular(<number>) outside theme... "

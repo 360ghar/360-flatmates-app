@@ -69,7 +69,7 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               color: theme.colorScheme.surfaceContainerHighest.withValues(
                 alpha: 0.5,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.mdBorder,
             ),
             child: Row(
               children: [

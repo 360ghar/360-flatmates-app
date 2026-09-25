@@ -221,7 +221,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
                     horizontal: 2.0,
                     vertical: 4.0,
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.mdBorder,
                   backgroundColor: Colors.transparent,
                   bordered: false,
                   elevation: 0,
@@ -233,7 +233,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
                         imageUrl: imageUrl,
                         size: 68,
                         shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.mdBorder,
                       ),
                       const SizedBox(height: 4),
                       Text(

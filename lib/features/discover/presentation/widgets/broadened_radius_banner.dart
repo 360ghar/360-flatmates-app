@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_radius.dart';
 
 /// Compact info banner shown when the discover feed broadened its radius
 /// beyond the user's selected area because the user's radius returned zero
@@ -21,7 +22,7 @@ class BroadenedRadiusBanner extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppSemanticColors.pineSoftFor(Theme.of(context).brightness),
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        borderRadius: AppRadius.smBorder,
         border: Border.all(
           color: AppSemanticColors.coralSoftFor(Theme.of(context).brightness),
         ),

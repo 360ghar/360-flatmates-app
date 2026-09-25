@@ -6,6 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/catalog_helpers.dart';
 import '../../shared/presentation/components.dart';
+import '../../../core/theme/app_radius.dart';
 
 /// Single tappable row used in the location-picker screens for primary
 /// actions (e.g. "Use current location").
@@ -28,7 +29,7 @@ class LocationActionRow extends StatelessWidget {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: AppRadius.mdBorder,
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: vertical),
         child: Row(
@@ -155,7 +156,7 @@ class LocationCityRow extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: AppSemanticColors.secondarySurfaceFor(brightness),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: AppRadius.pillBorder,
                 ),
                 child: Text(
                   locale.comingSoon,
