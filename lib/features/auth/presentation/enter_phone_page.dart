@@ -17,6 +17,7 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
+import '../../shared/presentation/paper/paper_scene.dart';
 import 'widgets/terms_checkbox.dart';
 
 /// Whether the user has accepted the terms checkbox.
@@ -220,135 +221,149 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
         ref.watch(_isSubmittingProvider);
 
     // Root auth entry — no top chrome; title lives in the body.
+    // The neighbourhood scene owns the top of the first screen; the form
+    // sits below it on the page.
     return FlatmatesScreen(
       scrollable: true,
+      useSafeArea: false,
+      padding: EdgeInsets.zero,
+      backgroundColor: AppSemanticColors.paper1For(theme.brightness),
       body: AutofillGroup(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(locale.authEntryTitle, style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(locale.authEntrySubtitle),
-            if (lastMethod != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                locale.lastUsedMethodHint(
-                  _methodLabel(lastMethod.method, locale),
-                ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                ),
+            const PaperSceneHeader(),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.base,
+                AppSpacing.screen,
+                AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
               ),
-            ],
-            const SizedBox(height: AppSpacing.screen),
-            FlatmatesButton.google(
-              key: const Key('auth_google_button'),
-              label: locale.continueWithGoogleCta,
-              fullWidth: true,
-              onPressed: (isBusy || !termsAccepted) ? null : _onGoogle,
-            ),
-            // Sign in with Apple — iOS only, as prominent as Google. Apple
-            // requires it on iOS apps that offer Google sign-in.
-            if (Platform.isIOS) ...[
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                height: 52,
-                child: AbsorbPointer(
-                  absorbing: isBusy || !termsAccepted,
-                  child: Opacity(
-                    opacity: (isBusy || !termsAccepted) ? 0.5 : 1,
-                    child: SignInWithAppleButton(
-                      key: const Key('auth_apple_button'),
-                      onPressed: _onApple,
-                      style: theme.brightness == Brightness.dark
-                          ? SignInWithAppleButtonStyle.white
-                          : SignInWithAppleButtonStyle.black,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                  ),
-                  child: Text(
-                    locale.authDividerOr,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                  ),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FlatmatesCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    key: const Key('enter_phone_input'),
-                    controller: _controller,
-                    focusNode: _identifierFocusNode,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: _looksLikeEmail
-                        ? const [AutofillHints.email]
-                        : const [
-                            AutofillHints.telephoneNumber,
-                            AutofillHints.email,
-                          ],
-                    onChanged: (_) =>
-                        ref.read(_identifierRevProvider.notifier).state++,
-                    onTap: _requestPhoneHint,
-                    onSubmitted: (_) =>
-                        (isBusy || !termsAccepted) ? null : _onContinue(),
-                    decoration: InputDecoration(
-                      labelText: locale.identifierLabel,
+                  Text(
+                    locale.authEntryTitle,
+                    style: theme.textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(locale.authEntrySubtitle),
+                  if (lastMethod != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      locale.lastUsedMethodHint(
+                        _methodLabel(lastMethod.method, locale),
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.screen),
+                  FlatmatesButton.google(
+                    key: const Key('auth_google_button'),
+                    label: locale.continueWithGoogleCta,
+                    fullWidth: true,
+                    onPressed: (isBusy || !termsAccepted) ? null : _onGoogle,
+                  ),
+                  // Sign in with Apple — iOS only, as prominent as Google. Apple
+                  // requires it on iOS apps that offer Google sign-in.
+                  if (Platform.isIOS) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: 52,
+                      child: AbsorbPointer(
+                        absorbing: isBusy || !termsAccepted,
+                        child: Opacity(
+                          opacity: (isBusy || !termsAccepted) ? 0.5 : 1,
+                          child: SignInWithAppleButton(
+                            key: const Key('auth_apple_button'),
+                            onPressed: _onApple,
+                            style: theme.brightness == Brightness.dark
+                                ? SignInWithAppleButtonStyle.white
+                                : SignInWithAppleButtonStyle.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.base),
+                  // Spacing, not rules, separates the two sign-in routes.
+                  Center(
+                    child: Text(
+                      locale.authDividerOr,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      FlatmatesTrustBadge(
-                        label: locale.yourNumberIsPrivate,
-                        variant: FlatmatesTrustBadgeVariant.privacy,
-                        compact: true,
-                      ),
-                    ],
+                  const SizedBox(height: AppSpacing.base),
+                  FlatmatesCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          key: const Key('enter_phone_input'),
+                          controller: _controller,
+                          focusNode: _identifierFocusNode,
+                          keyboardType: TextInputType.emailAddress,
+                          autofillHints: _looksLikeEmail
+                              ? const [AutofillHints.email]
+                              : const [
+                                  AutofillHints.telephoneNumber,
+                                  AutofillHints.email,
+                                ],
+                          onChanged: (_) =>
+                              ref.read(_identifierRevProvider.notifier).state++,
+                          onTap: _requestPhoneHint,
+                          onSubmitted: (_) =>
+                              (isBusy || !termsAccepted) ? null : _onContinue(),
+                          decoration: InputDecoration(
+                            labelText: locale.identifierLabel,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        FlatmatesTrustBadge(
+                          label: locale.yourNumberIsPrivate,
+                          variant: FlatmatesTrustBadgeVariant.privacy,
+                          compact: true,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TermsCheckbox(
+                          accepted: termsAccepted,
+                          onChanged: (v) =>
+                              ref.read(_termsAcceptedProvider.notifier).state =
+                                  v,
+                          locale: locale,
+                          theme: theme,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  TermsCheckbox(
-                    accepted: termsAccepted,
-                    onChanged: (v) =>
-                        ref.read(_termsAcceptedProvider.notifier).state = v,
-                    locale: locale,
-                    theme: theme,
+                  if (auth.status == AuthStatus.error &&
+                      auth.errorMessage != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      resolveAuthError(auth.errorMessage, locale),
+                      style: TextStyle(
+                        color: AppSemanticColors.dangerFor(theme.brightness),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.screen),
+                  FlatmatesButton(
+                    key: const Key('enter_phone_continue_cta'),
+                    label: locale.continueCta,
+                    fullWidth: true,
+                    onPressed: (isBusy || !termsAccepted) ? null : _onContinue,
                   ),
                 ],
               ),
-            ),
-            if (auth.status == AuthStatus.error &&
-                auth.errorMessage != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                resolveAuthError(auth.errorMessage, locale),
-                style: const TextStyle(color: AppSemanticColors.error),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.screen),
-            FlatmatesButton(
-              key: const Key('enter_phone_continue_cta'),
-              label: locale.continueCta,
-              fullWidth: true,
-              onPressed: (isBusy || !termsAccepted) ? null : _onContinue,
             ),
           ],
         ),

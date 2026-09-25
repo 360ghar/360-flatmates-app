@@ -6,6 +6,7 @@ import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/paper_theme.dart';
 import 'paper_art.dart';
+import 'paper_edge_border.dart';
 
 /// Foreground props for the compact scene. See DESIGN.md §6.
 enum PaperProp { house, chat, heart, magnifier, bell, rainCloud }
@@ -263,4 +264,50 @@ class _ShapePainter extends CustomPainter {
       old.color != color ||
       old.shadow != shadow ||
       old.fit != fit;
+}
+
+/// A page header built from the hero scene: the sky runs up behind the
+/// status bar, and the page below (layer one) tears over the scene's
+/// ground, so there is no flat seam where the hills end.
+///
+/// Put it first in a page whose background is `paper-1`.
+class PaperSceneHeader extends StatelessWidget {
+  const PaperSceneHeader({super.key, this.height = 200, this.parallax});
+
+  final double height;
+  final ScrollController? parallax;
+
+  /// Matches the default [PaperEdgeBorder] depth.
+  static const double _lip = 10;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final top = MediaQuery.paddingOf(context).top;
+    return ColoredBox(
+      color: AppSemanticColors.skyFor(brightness),
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: top, bottom: _lip),
+            child: PaperScene.hero(height: height, parallax: parallax),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SizedBox(
+              height: _lip * 2,
+              child: DecoratedBox(
+                decoration: ShapeDecoration(
+                  color: AppSemanticColors.paper1For(brightness),
+                  shape: const PaperEdgeBorder(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
