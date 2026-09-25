@@ -193,13 +193,14 @@ class AuthController extends Notifier<AuthState> {
   /// `'password'` (wrong password on sign-in) → `invalid_credentials`;
   /// otherwise (OTP verify) → `otp_invalid`.
   String _userSafeMessage(Object error, {String? authOp}) {
+    // Every auth catch routes through here, so this one log covers them all.
+    debugPrint('AuthController${authOp == null ? '' : '.$authOp'}: $error');
     if (error is AppFailure) {
       if (error is AuthExpiredFailure && error.serverMessage != null) {
         return 'failure:${error.label}|${error.serverMessage}';
       }
-      if (error is ServerFailure && error.serverMessage != null) {
-        return 'failure:server|${error.serverMessage}';
-      }
+      // 5xx detail is never shown (English-only, may leak internals); the
+      // label below resolves to the localized server error.
       if (error is PermissionFailure && error.serverMessage != null) {
         return 'failure:${error.label}|${error.serverMessage}';
       }

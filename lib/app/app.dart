@@ -18,6 +18,9 @@ import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
+import '../features/chats/application/cursor_list_controller.dart';
+import '../features/notifications/notifications_list_controller.dart';
+import '../features/visits/application/visits_list_controller.dart';
 import '../features/notifications/notification_route_resolver.dart';
 import '../features/onboarding/onboarding_controller.dart';
 import '../features/settings/settings_controller.dart';
@@ -242,6 +245,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       service.setNetworkAvailable(online);
       if (online && ref.read(authControllerProvider).isLoggedIn) {
         _connectRealtimeIfReady();
+        if (previous?.valueOrNull == false) _refetchAfterReconnect();
       }
     });
 
@@ -330,6 +334,21 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       builder: (context, child) =>
           OfflineBanner(child: child ?? const SizedBox.shrink()),
     );
+  }
+
+  /// Back online: refetch the lists that realtime would have kept fresh, and
+  /// bootstrap if it failed while offline. Invalidating an unwatched provider
+  /// is free; it only reloads when a screen next reads it.
+  void _refetchAfterReconnect() {
+    ref
+      ..invalidate(conversationsListControllerProvider)
+      ..invalidate(incomingLikesListControllerProvider)
+      ..invalidate(outgoingLikesListControllerProvider)
+      ..invalidate(notificationsListControllerProvider)
+      ..invalidate(visitsListControllerProvider);
+    if (ref.read(bootstrapControllerProvider).hasError) {
+      _refreshBootstrapAfterAuth('reconnect');
+    }
   }
 
   bool _bootstrapNeedsRefresh() {

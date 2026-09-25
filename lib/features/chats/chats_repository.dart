@@ -216,6 +216,7 @@ class ChatsRepository {
         final response = await fetchMessages(conversationId);
         emitMessages(response.messages);
       } catch (error, stackTrace) {
+        debugPrint('ChatsRepository.watchMessages refetch failed: $error');
         if (!controller.isClosed && !hasEmittedMessages) {
           controller.addError(error, stackTrace);
         }
