@@ -155,7 +155,6 @@ class StaggeredMenuGroup extends StatefulWidget {
 class _StaggeredMenuGroupState extends State<StaggeredMenuGroup>
     with SingleTickerProviderStateMixin {
   AnimationController? _controller;
-  Animation<double>? _fadeIn;
   Animation<Offset>? _slideUp;
   var _skipAnimation = false;
 
@@ -179,10 +178,6 @@ class _StaggeredMenuGroupState extends State<StaggeredMenuGroup>
       duration: AppMotion.slow,
     );
     _controller = controller;
-    _fadeIn = CurvedAnimation(
-      parent: controller,
-      curve: AppMotion.easeOutCubic,
-    );
     _slideUp = Tween(begin: const Offset(0, 0.04), end: Offset.zero).animate(
       CurvedAnimation(parent: controller, curve: AppMotion.easeOutCubic),
     );
@@ -209,9 +204,8 @@ class _StaggeredMenuGroupState extends State<StaggeredMenuGroup>
       return widget.child;
     }
 
-    return FadeTransition(
-      opacity: _fadeIn!,
-      child: SlideTransition(position: _slideUp!, child: widget.child),
-    );
+    // Rise only: opacity stays 1, so the content is visible even if the
+    // delayed animation never starts.
+    return SlideTransition(position: _slideUp!, child: widget.child);
   }
 }

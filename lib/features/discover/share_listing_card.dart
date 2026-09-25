@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/deep_links/deep_link_service.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../discover/discover_repository.dart';
@@ -128,12 +129,11 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                         ),
                       const SizedBox(width: 10),
                       const Text(
-                        '360 FLATMATES',
+                        '360 Flatmates',
                         style: TextStyle(
+                          fontFamily: AppTypography.displayFamily,
                           color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.6,
+                          fontSize: 18,
                         ),
                       ),
                     ],

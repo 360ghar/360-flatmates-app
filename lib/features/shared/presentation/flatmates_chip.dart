@@ -72,7 +72,7 @@ class FlatmatesChip extends StatelessWidget {
     return AnimatedContainer(
       duration: AppMotion.durationOrZero(context, AppMotion.chipSelect),
       curve: AppMotion.paperOut,
-      constraints: const BoxConstraints(minHeight: 40),
+      constraints: const BoxConstraints(minHeight: 48),
       decoration: BoxDecoration(
         color: colors.background,
         borderRadius: borderRadius,
@@ -114,7 +114,7 @@ class FlatmatesChip extends StatelessWidget {
                   ),
                 ),
                 if (removable)
-                  // 40 x 40 hit area around a 16 px glyph.
+                  // 48 x 48 hit area around a 16 px glyph.
                   Semantics(
                     button: true,
                     label: MaterialLocalizations.of(
@@ -122,9 +122,9 @@ class FlatmatesChip extends StatelessWidget {
                     ).deleteButtonTooltip,
                     child: InkResponse(
                       onTap: onRemoved,
-                      radius: 20,
+                      radius: 24,
                       child: SizedBox.square(
-                        dimension: 40,
+                        dimension: 48,
                         child: Icon(
                           Icons.close_rounded,
                           size: 16,

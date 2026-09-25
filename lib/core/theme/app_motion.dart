@@ -29,7 +29,7 @@ abstract final class AppMotion {
   static const Duration tabSwitch = Duration(milliseconds: 200);
   static const Duration buttonPress = fast;
   static const Duration cardAppear = slow;
-  static const Duration cardStagger = Duration(milliseconds: 50);
+  static const Duration cardStagger = layerStagger;
   static const Duration compatibilityRing = slow;
   static const Duration matchCelebration = Duration(milliseconds: 600);
   static const Duration bottomSheet = Duration(milliseconds: 280);
@@ -40,7 +40,7 @@ abstract final class AppMotion {
   static const Duration heroTransition = Duration(milliseconds: 300);
   static const Duration animatedSwitcher = standard;
   static const Duration fadeInEntry = Duration(milliseconds: 200);
-  static const Duration staggerItem = Duration(milliseconds: 100);
+  static const Duration staggerItem = layerStagger;
   static const Duration breathing = Duration(seconds: 2);
 
   /// Delay before the chat mode/intent tooltip appears after open.

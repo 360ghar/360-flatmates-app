@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 
@@ -137,13 +138,7 @@ class _SwipeActionButtonState extends State<_SwipeActionButton> {
                       color: widget.color.withValues(alpha: 0.4),
                       width: 1.5,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    boxShadow: AppShadows.e2(theme.brightness),
                   ),
                   child: Icon(
                     widget.icon,

@@ -175,8 +175,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
           label,
           style: theme.textTheme.labelMedium?.copyWith(
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
-            letterSpacing: 1.1,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
@@ -296,8 +295,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
                           color: AppSemanticColors.textSecondaryFor(
                             theme.brightness,
                           ),
-                          letterSpacing: 1.1,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 8),

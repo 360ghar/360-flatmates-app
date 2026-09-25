@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/map/map_controller.dart';
 import '../../../../core/map/tile_layer_factory.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../discover_repository.dart';
 import 'map_marker_builder.dart';
 
@@ -134,15 +135,12 @@ class _DiscoverMapState extends State<DiscoverMap> {
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.blue.shade700,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
+          color: AppSemanticColors.pineFor(Theme.of(context).brightness),
+          border: Border.all(
+            color: AppSemanticColors.paper3For(Theme.of(context).brightness),
+            width: 3,
+          ),
+          boxShadow: AppShadows.e2(Theme.of(context).brightness),
         ),
       ),
     );

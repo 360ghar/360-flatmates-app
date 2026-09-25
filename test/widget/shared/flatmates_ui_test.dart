@@ -398,37 +398,18 @@ void main() {
   });
 
   group('FlatmatesLogo', () {
-    testWidgets('renders "36" and "FLATMATES" in default mode', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesLogo())),
-      );
-
-      // "36" is rendered inside a RichText (TextSpan), not a plain Text.
-      // The icon also renders as a RichText, so we expect multiple.
-      expect(find.byType(RichText), findsWidgets);
-      expect(find.text('FLATMATES'), findsOneWidget);
-      expect(find.byIcon(Icons.rotate_right_rounded), findsOneWidget);
-    });
-
-    testWidgets('renders compact variant', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesLogo(compact: true))),
-      );
-
-      expect(find.byType(RichText), findsWidgets);
-      expect(find.text('FLATMATES'), findsOneWidget);
-    });
-
-    testWidgets('toolbar variant renders only RichText + icon', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesLogo(toolbar: true))),
-      );
-
-      // Toolbar mode: "36" + icon in RichText, no "FLATMATES" text.
-      expect(find.byType(RichText), findsWidgets);
-      expect(find.text('FLATMATES'), findsNothing);
-      expect(find.byIcon(Icons.rotate_right_rounded), findsOneWidget);
-    });
+    for (final logo in const [
+      FlatmatesLogo(),
+      FlatmatesLogo(compact: true),
+      FlatmatesLogo(toolbar: true),
+    ]) {
+      testWidgets('reads "360 Flatmates" (compact=${logo.compact}, '
+          'toolbar=${logo.toolbar})', (tester) async {
+        await tester.pumpWidget(MaterialApp(home: Scaffold(body: logo)));
+        expect(find.text('360 Flatmates', findRichText: true), findsOneWidget);
+        expect(find.bySemanticsLabel('360 Flatmates'), findsOneWidget);
+      });
+    }
   });
 
   group('FlatmatesButton', () {

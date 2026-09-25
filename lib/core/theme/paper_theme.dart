@@ -43,7 +43,7 @@ class PaperTheme extends ThemeExtension<PaperTheme> {
     sun: AppSemanticColors.darkMarigold,
     cloud: AppSemanticColors.darkPaper3,
     layerShadow: Color(0x80000000), // black @ 50 %
-    grainOpacity: 0.05,
+    grainOpacity: 0.04,
   );
 
   static PaperTheme of(Object brightnessOrContext) {

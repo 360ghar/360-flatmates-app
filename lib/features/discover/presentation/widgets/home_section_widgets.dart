@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../shared/presentation/components.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -227,17 +229,8 @@ class HomeSearchBar extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: AppSemanticColors.surfaceFor(theme.brightness),
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(
-              color: AppSemanticColors.hairlineFor(theme.brightness),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: AppRadius.mdBorder,
+            boxShadow: AppShadows.e2(theme.brightness),
           ),
           child: Row(
             children: [

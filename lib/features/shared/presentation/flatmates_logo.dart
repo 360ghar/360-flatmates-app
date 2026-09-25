@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_semantic_colors.dart';
 
-/// Brand logo: "36" + rotate_right icon (acts as the "0") + "FLATMATES".
-///
-/// This is intentional per DESIGN.md — the rotate_right icon visually
-/// represents the "0" in "360", making the logo read as "360 FLATMATES".
-/// Do NOT change "36" to "360" or replace the icon with a literal "0".
+import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_typography.dart';
+
+/// Brand wordmark, same as the web logo: "360" in clay and "Flatmates" in
+/// ink, both Gambarino, on one baseline. Sentence case, no tracking.
 class FlatmatesLogo extends StatelessWidget {
   const FlatmatesLogo({
     super.key,
@@ -17,89 +16,42 @@ class FlatmatesLogo extends StatelessWidget {
   final bool compact;
   final bool centered;
 
-  /// Single-line mark sized for a 56px app bar (number + icon only).
+  /// One line sized for a 56 px app bar.
   final bool toolbar;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final ink = AppSemanticColors.textPrimaryFor(theme.brightness);
+    final b = Theme.of(context).brightness;
+    final (number, word) = toolbar
+        ? (24.0, 20.0)
+        : compact
+        ? (24.0, 20.0)
+        : (34.0, 28.0);
+    TextStyle style(double size, Color color) => TextStyle(
+      fontFamily: AppTypography.displayFamily,
+      fontSize: size,
+      height: 1,
+      color: color,
+    );
 
-    if (toolbar) {
-      return RichText(
-        text: TextSpan(
+    return Semantics(
+      label: '360 Flatmates',
+      excludeSemantics: true,
+      child: Text.rich(
+        TextSpan(
           children: [
             TextSpan(
-              text: '36',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -1.2,
-                color: ink,
-                height: 1,
-              ),
+              text: '360 ',
+              style: style(number, AppSemanticColors.clayFor(b)),
             ),
-            const WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: Icon(
-                Icons.rotate_right_rounded,
-                color: AppSemanticColors.primary,
-                size: 24,
-              ),
+            TextSpan(
+              text: 'Flatmates',
+              style: style(word, AppSemanticColors.textPrimaryFor(b)),
             ),
           ],
         ),
-      );
-    }
-
-    final numberSize = compact ? 28.0 : 38.0;
-    final labelSize = compact ? 13.0 : 15.0;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: centered
-          ? CrossAxisAlignment.center
-          : CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '36',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontSize: numberSize,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -1.4,
-                  color: isDark
-                      ? AppSemanticColors.darkInk
-                      : AppSemanticColors.ink,
-                ),
-              ),
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Transform.translate(
-                  offset: Offset(0, compact ? -2 : -4),
-                  child: Icon(
-                    Icons.rotate_right_rounded,
-                    color: AppSemanticColors.primary,
-                    size: compact ? 30 : 38,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Text(
-          'FLATMATES',
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: AppSemanticColors.primary,
-            fontSize: labelSize,
-            letterSpacing: 1.6,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+        textAlign: centered ? TextAlign.center : TextAlign.start,
+      ),
     );
   }
 }
