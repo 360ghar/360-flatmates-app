@@ -254,7 +254,7 @@ Two invariants that silently break patching if violated:
 5. Missing env vars show `_ConfigErrorApp`; missing Firebase config sets `NotificationService.messagingEnabled = false`
 6. Account deletion: `DeleteAccountPage` → `AuthController.deleteAccount()` → `DELETE /users/me`, then best-effort Supabase sign-out + token clear → `/enter-phone`
 7. Phone held between auth steps via `pendingPhoneProvider` (`MutableNotifier`); post-social “add phone” prompt via `addPhonePromptProvider`
-8. The Supabase session (access + refresh token) is stored in the keychain / keystore by `SecureSessionStorage` (`core/storage/secure_session_storage.dart`), passed to `Supabase.initialize`. It migrates an existing SharedPreferences session on first run and falls back to SharedPreferences only if secure storage fails.
+8. The Supabase session (access + refresh token) is stored in the keychain / keystore by `SecureSessionStorage` (`core/storage/secure_session_storage.dart`), passed to `Supabase.initialize`. It migrates an existing SharedPreferences session on first run and falls back to SharedPreferences only if secure storage fails. Storage writes are serialized. Sign-out writes a persistent invalidation marker before deleting both credential copies; session reads and migration honor the marker until a new session is saved successfully.
 9. `AuthController` also listens to Supabase `signedOut` events, so a server-side sign-out routes to login without waiting for a failed request.
 
 ### Theme and localization

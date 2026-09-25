@@ -141,6 +141,7 @@ class _ListingMarkerWidget extends StatelessWidget {
     return Semantics(
       button: true,
       label: [priceText, ?bhkLabel].join(', '),
+      onTap: onTap,
       excludeSemantics: true,
       child: MediaQuery.withNoTextScaling(
         child: GestureDetector(
@@ -283,6 +284,7 @@ class _ClusterMarkerWidget extends StatelessWidget {
     return Semantics(
       button: true,
       label: '$count, $rangeText',
+      onTap: onTap,
       excludeSemantics: true,
       child: MediaQuery.withNoTextScaling(
         child: GestureDetector(

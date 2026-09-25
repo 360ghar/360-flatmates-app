@@ -33,32 +33,51 @@ class SecureSessionStorage extends LocalStorage {
 
   final FlutterSecureStorage _secure;
 
-  LocalStorage? _fallback;
+  late SharedPreferences _prefs;
+  bool _useFallback = false;
+  bool _signedOut = false;
+  Future<void> _pending = Future<void>.value();
+
+  String get _signedOutKey => '$persistSessionKey-signed-out';
+
+  // Supabase emits storage writes without awaiting the previous event. Keep
+  // token refresh, sign-out, and the next login in their original order.
+  Future<T> _serialize<T>(Future<T> Function() operation) {
+    final result = _pending.then((_) => operation());
+    _pending = result.then<void>(
+      (_) {},
+      onError: (Object error) {
+        debugPrint('SecureSessionStorage.operation: $error');
+      },
+    );
+    return result;
+  }
 
   @override
   Future<void> initialize() async {
+    _prefs = await SharedPreferences.getInstance();
+    _signedOut = _prefs.getBool(_signedOutKey) ?? false;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final legacy = prefs.getString(persistSessionKey);
-      if (legacy != null) {
+      final legacy = _prefs.getString(persistSessionKey);
+      if (_signedOut) {
+        // A failed keychain delete must not restore an account on restart,
+        // including through the legacy migration or plaintext fallback.
+        await _deleteStoredSession();
+      } else if (legacy != null) {
         // A plaintext session is always the newest one: the old default
         // storage kept writing it until this build. Overwrite, then drop it.
         await _secure.write(key: persistSessionKey, value: legacy);
-        await prefs.remove(persistSessionKey);
-      } else if (!prefs.containsKey(_installMarkerKey)) {
+        await _prefs.remove(persistSessionKey);
+      } else if (!_prefs.containsKey(_installMarkerKey)) {
         // SharedPreferences is wiped on uninstall but the iOS keychain is
         // not. No marker and no legacy session = fresh install, so drop any
         // session left behind by a previous install.
         await _secure.delete(key: persistSessionKey);
       }
-      await prefs.setBool(_installMarkerKey, true);
+      await _prefs.setBool(_installMarkerKey, true);
     } catch (e) {
       debugPrint('SecureSessionStorage: secure storage unavailable: $e');
-      final fallback = SharedPreferencesLocalStorage(
-        persistSessionKey: persistSessionKey,
-      );
-      await fallback.initialize();
-      _fallback = fallback;
+      _useFallback = true;
     }
   }
 
@@ -67,33 +86,38 @@ class SecureSessionStorage extends LocalStorage {
   // Supabase.initialize and block runApp. A failed read means "no session".
 
   @override
-  Future<bool> hasAccessToken() async {
-    final fallback = _fallback;
-    if (fallback != null) return fallback.hasAccessToken();
-    try {
-      return await _secure.containsKey(key: persistSessionKey);
-    } catch (e) {
-      debugPrint('SecureSessionStorage.hasAccessToken: $e');
-      return false;
-    }
-  }
+  Future<bool> hasAccessToken() async => await accessToken() != null;
 
   @override
-  Future<String?> accessToken() async {
-    final fallback = _fallback;
-    if (fallback != null) return fallback.accessToken();
+  Future<String?> accessToken() => _serialize(() async {
+    if (_signedOut) return null;
+    if (_useFallback) return _prefs.getString(persistSessionKey);
     try {
       return await _secure.read(key: persistSessionKey);
     } catch (e) {
       debugPrint('SecureSessionStorage.accessToken: $e');
       return null;
     }
-  }
+  });
 
   @override
-  Future<void> removePersistedSession() async {
-    final fallback = _fallback;
-    if (fallback != null) return fallback.removePersistedSession();
+  Future<void> removePersistedSession() => _serialize(() async {
+    _signedOut = true;
+    try {
+      if (!await _prefs.setBool(_signedOutKey, true)) {
+        throw StateError('Could not persist session invalidation');
+      }
+    } finally {
+      await _deleteStoredSession();
+    }
+  });
+
+  Future<void> _deleteStoredSession() async {
+    try {
+      await _prefs.remove(persistSessionKey);
+    } catch (e) {
+      debugPrint('SecureSessionStorage.removePlaintextSession: $e');
+    }
     try {
       await _secure.delete(key: persistSessionKey);
     } catch (e) {
@@ -102,13 +126,28 @@ class SecureSessionStorage extends LocalStorage {
   }
 
   @override
-  Future<void> persistSession(String persistSessionString) async {
-    final fallback = _fallback;
-    if (fallback != null) return fallback.persistSession(persistSessionString);
-    try {
-      await _secure.write(key: persistSessionKey, value: persistSessionString);
-    } catch (e) {
-      debugPrint('SecureSessionStorage.persistSession: $e');
-    }
-  }
+  Future<void> persistSession(String persistSessionString) =>
+      _serialize(() async {
+        try {
+          if (_useFallback) {
+            if (!await _prefs.setString(
+              persistSessionKey,
+              persistSessionString,
+            )) {
+              throw StateError('Could not persist session');
+            }
+          } else {
+            await _secure.write(
+              key: persistSessionKey,
+              value: persistSessionString,
+            );
+          }
+          if (!await _prefs.remove(_signedOutKey)) {
+            throw StateError('Could not clear session invalidation');
+          }
+          _signedOut = false;
+        } catch (e) {
+          debugPrint('SecureSessionStorage.persistSession: $e');
+        }
+      });
 }
