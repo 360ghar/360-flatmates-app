@@ -22,7 +22,12 @@ class TransientAuthRefreshException implements Exception {
 }
 
 abstract interface class AuthTokenProvider {
-  Future<String?> getAccessToken();
+  /// Returns a usable access token, refreshing it when it is expired.
+  ///
+  /// Pass [rejectedToken] when the server returned 401 for that token: the
+  /// provider then refreshes even if the JWT still looks unexpired locally
+  /// (revoked session, clock skew), unless another caller already did.
+  Future<String?> getAccessToken({String? rejectedToken});
 
   Future<void> clearSession();
 }
@@ -34,7 +39,7 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
   Future<supabase.Session?>? _refreshInflight;
 
   @override
-  Future<String?> getAccessToken() async {
+  Future<String?> getAccessToken({String? rejectedToken}) async {
     late final supabase.SupabaseClient client;
     try {
       client = supabase.Supabase.instance.client;
@@ -52,9 +57,11 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
       return null;
     }
 
-    if (session.isExpired || _isJwtExpired(session.accessToken)) {
+    final rejected =
+        rejectedToken != null && session.accessToken == rejectedToken;
+    if (rejected || session.isExpired || _isJwtExpired(session.accessToken)) {
       try {
-        session = await _refreshSession(client);
+        session = await _refreshSession(client, rejectedToken);
         if (session != null &&
             (session.isExpired || _isJwtExpired(session.accessToken))) {
           await _storage.clear();
@@ -106,10 +113,13 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
   }
 
   // Single-flight: concurrent callers share one Supabase refresh RPC.
-  Future<supabase.Session?> _refreshSession(supabase.SupabaseClient client) {
+  Future<supabase.Session?> _refreshSession(
+    supabase.SupabaseClient client,
+    String? rejectedToken,
+  ) {
     final existing = _refreshInflight;
     if (existing != null) return existing;
-    final future = _doRefresh(client);
+    final future = _doRefresh(client, rejectedToken);
     _refreshInflight = future;
     future.whenComplete(() {
       if (identical(_refreshInflight, future)) {
@@ -119,13 +129,17 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
     return future;
   }
 
-  Future<supabase.Session?> _doRefresh(supabase.SupabaseClient client) async {
+  Future<supabase.Session?> _doRefresh(
+    supabase.SupabaseClient client,
+    String? rejectedToken,
+  ) async {
     // Callers decide to refresh based on an expiry check taken OUTSIDE the
     // single-flight guard, so a refresh that completed while this caller was
     // en route may already have produced a fresh session. Re-check here to
     // avoid a duplicate refresh RPC.
     final current = client.auth.currentSession;
     if (current != null &&
+        current.accessToken != rejectedToken &&
         !current.isExpired &&
         !_isJwtExpired(current.accessToken)) {
       return current;

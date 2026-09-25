@@ -26,7 +26,7 @@ AppConfig fakeAppConfig() => const AppConfig(
 /// A no-op [AuthTokenProvider] for tests.
 class FakeAuthTokenProvider implements AuthTokenProvider {
   @override
-  Future<String?> getAccessToken() async => null;
+  Future<String?> getAccessToken({String? rejectedToken}) async => null;
 
   @override
   Future<void> clearSession() async {}

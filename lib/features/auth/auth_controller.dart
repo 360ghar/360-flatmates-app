@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart'
     show GoogleSignInException, GoogleSignInExceptionCode;
-import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show AuthChangeEvent, AuthException;
 
 import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
@@ -45,6 +46,7 @@ class AuthController extends Notifier<AuthState> {
   @override
   AuthState build() {
     _watchTokenClears();
+    _watchSupabaseSignOut();
     Future<void>.microtask(checkSession);
     return const AuthState(status: AuthStatus.checking);
   }
@@ -107,6 +109,25 @@ class AuthController extends Notifier<AuthState> {
     ref.onDispose(() {
       _tokenSubscription?.cancel();
     });
+  }
+
+  /// Server-side sign-out or a revoked refresh token arrives as a Supabase
+  /// `signedOut` event. Without this, the app would only notice on the next
+  /// failed request.
+  void _watchSupabaseSignOut() {
+    final sub = _repository.authEvents.listen(
+      (event) {
+        if (event != AuthChangeEvent.signedOut) return;
+        if (!state.isLoggedIn || state.status == AuthStatus.submitting) return;
+        if (_hasLiveSession) return;
+        unawaited(_clearOwnerScopedData());
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      },
+      onError: (Object error) {
+        debugPrint('AuthController._watchSupabaseSignOut error: $error');
+      },
+    );
+    ref.onDispose(sub.cancel);
   }
 
   Future<void> checkSession() async {

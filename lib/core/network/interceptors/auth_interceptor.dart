@@ -55,43 +55,31 @@ final class AuthInterceptor extends Interceptor {
       }
 
       _refreshCompleter = Completer<bool>();
+      String? newToken;
       try {
-        String? newToken;
-        try {
-          newToken = await _tokenProvider.getAccessToken();
-        } on TransientAuthRefreshException catch (e) {
-          // Refresh failed for transport reasons. Don't clear the session —
-          // let the user retry once the network is back. Propagate the
-          // ORIGINAL 401 to the caller so they see a real error, and fail
-          // any queued requests with the same transient error.
-          _refreshCompleter?.complete(false);
-          _refreshCompleter = null;
-          _failQueueTransient(e, err.stackTrace);
-          handler.next(
-            DioException(
-              requestOptions: err.requestOptions,
-              error: e,
-              type: DioExceptionType.connectionError,
-              stackTrace: err.stackTrace,
-            ),
-          );
-          return;
-        }
-        if (newToken != null && newToken.isNotEmpty) {
-          final opts = err.requestOptions;
-          opts.extra['_retried'] = true;
-          opts.headers['Authorization'] = 'Bearer $newToken';
-          final response = await _dio.fetch(opts);
-          _refreshCompleter!.complete(true);
-          _refreshCompleter = null;
-          handler.resolve(response);
-          unawaited(_processQueue(newToken));
-          return;
-        }
+        newToken = await _tokenProvider.getAccessToken(
+          rejectedToken: _bearer(err.requestOptions),
+        );
+      } on TransientAuthRefreshException catch (e) {
+        // Refresh failed for transport reasons. Don't clear the session —
+        // the user may still be logged in once the network is back. Fail
+        // this request and the queue with the transient error.
+        _finishRefresh(false);
+        _failQueueTransient(e, err.stackTrace);
+        handler.next(
+          DioException(
+            requestOptions: err.requestOptions,
+            error: e,
+            type: DioExceptionType.connectionError,
+            stackTrace: err.stackTrace,
+          ),
+        );
+        return;
+      }
+
+      if (newToken == null || newToken.isEmpty) {
         // No new token — session is genuinely gone. Clear and surface a 401.
-        final capturedCompleter = _refreshCompleter!;
-        capturedCompleter.complete(false);
-        _refreshCompleter = null;
+        _finishRefresh(false);
         await _tokenProvider.clearSession();
         _failQueueSessionExpired(err.stackTrace);
         handler.next(
@@ -106,28 +94,39 @@ final class AuthInterceptor extends Interceptor {
             stackTrace: err.stackTrace,
           ),
         );
+        return;
+      }
+
+      // The session is valid again. Each queued request retries on its own,
+      // so one failed retry (network, 5xx) never fails the others.
+      _finishRefresh(true);
+      unawaited(_processQueue(newToken));
+      final opts = err.requestOptions;
+      opts.extra['_retried'] = true;
+      opts.headers['Authorization'] = 'Bearer $newToken';
+      try {
+        handler.resolve(await _dio.fetch(opts));
+      } on DioException catch (e) {
+        handler.next(e);
       } catch (e, st) {
-        // The retry itself failed (network or non-401 server error). Don't
-        // pretend this is a session-expiry; forward the real cause so the
-        // caller can render the actual error.
-        _refreshCompleter?.complete(false);
-        _refreshCompleter = null;
-        _failQueueSessionExpired(e is DioException ? e.stackTrace : st);
-        if (e is DioException) {
-          handler.next(e);
-        } else {
-          handler.next(
-            DioException(
-              requestOptions: err.requestOptions,
-              error: e,
-              stackTrace: st,
-            ),
-          );
-        }
+        handler.next(
+          DioException(requestOptions: opts, error: e, stackTrace: st),
+        );
       }
     } else {
       handler.next(err);
     }
+  }
+
+  void _finishRefresh(bool refreshed) {
+    _refreshCompleter?.complete(refreshed);
+    _refreshCompleter = null;
+  }
+
+  static String? _bearer(RequestOptions options) {
+    final header = options.headers['Authorization'];
+    if (header is! String || !header.startsWith('Bearer ')) return null;
+    return header.substring('Bearer '.length);
   }
 
   Future<void> _processQueue(String token) async {

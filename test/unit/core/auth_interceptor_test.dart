@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dio/dio.dart';
 
@@ -14,7 +17,7 @@ class _FakeTokenProvider implements AuthTokenProvider {
   void setToken(String? token) => _token = token;
 
   @override
-  Future<String?> getAccessToken() async => _token;
+  Future<String?> getAccessToken({String? rejectedToken}) async => _token;
 
   @override
   Future<void> clearSession() async {
@@ -139,7 +142,108 @@ void main() {
       expect(tokenProvider.clearSessionCalled, isFalse);
       expect(handler.nextCalled, isTrue);
     });
+
+    test(
+      'passes the rejected token so the provider can force a refresh',
+      () async {
+        final tokenProvider = _GatedTokenProvider('new-token');
+        final dio = Dio()..httpClientAdapter = _PathStatusAdapter({'/a': 200});
+        final interceptor = AuthInterceptor(
+          tokenProvider: tokenProvider,
+          dio: dio,
+        );
+
+        final handler = _RecordingErrorHandler();
+        final done = interceptor.onError(
+          _unauthorized('/a', 'old-token'),
+          handler,
+        );
+        tokenProvider.release();
+        await done;
+
+        expect(tokenProvider.rejected, 'old-token');
+        expect(handler.resolved?.statusCode, 200);
+      },
+    );
+
+    test('one failed retry does not fail queued requests as expired', () async {
+      final tokenProvider = _GatedTokenProvider('new-token');
+      final dio = Dio()
+        ..httpClientAdapter = _PathStatusAdapter({'/a': 500, '/b': 200});
+      final interceptor = AuthInterceptor(
+        tokenProvider: tokenProvider,
+        dio: dio,
+      );
+
+      final first = _RecordingErrorHandler();
+      final queued = _RecordingErrorHandler();
+      final a = interceptor.onError(_unauthorized('/a', 'old'), first);
+      final b = interceptor.onError(_unauthorized('/b', 'old'), queued);
+      tokenProvider.release();
+      await Future.wait([a, b]);
+
+      expect(first.capturedError?.response?.statusCode, 500);
+      expect(queued.resolved?.statusCode, 200);
+      expect(tokenProvider.clearSessionCalled, isFalse);
+    });
   });
+}
+
+DioException _unauthorized(String path, String token) {
+  final options = RequestOptions(
+    path: path,
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  return DioException(
+    type: DioExceptionType.badResponse,
+    requestOptions: options,
+    response: Response(requestOptions: options, statusCode: 401),
+  );
+}
+
+/// Holds token refresh open until [release], so a second 401 can queue.
+class _GatedTokenProvider implements AuthTokenProvider {
+  _GatedTokenProvider(this._token);
+
+  final String _token;
+  final _gate = Completer<void>();
+  String? rejected;
+  bool clearSessionCalled = false;
+
+  void release() => _gate.complete();
+
+  @override
+  Future<String?> getAccessToken({String? rejectedToken}) async {
+    rejected = rejectedToken;
+    await _gate.future;
+    return _token;
+  }
+
+  @override
+  Future<void> clearSession() async => clearSessionCalled = true;
+}
+
+/// Answers each request path with a fixed status code.
+class _PathStatusAdapter implements HttpClientAdapter {
+  _PathStatusAdapter(this._statusByPath);
+
+  final Map<String, int> _statusByPath;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => ResponseBody.fromString(
+    '{}',
+    _statusByPath[options.path] ?? 404,
+    headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    },
+  );
+
+  @override
+  void close({bool force = false}) {}
 }
 
 /// A recording [RequestInterceptorHandler] for testing that does not propagate
@@ -160,6 +264,12 @@ class _RecordingRequestHandler extends RequestInterceptorHandler {
 class _RecordingErrorHandler extends ErrorInterceptorHandler {
   bool nextCalled = false;
   DioException? capturedError;
+  Response<dynamic>? resolved;
+
+  @override
+  void resolve(Response<dynamic> response) {
+    resolved = response;
+  }
 
   @override
   void next(DioException err) {
