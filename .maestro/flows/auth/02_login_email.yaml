@@ -19,9 +19,8 @@ tags:
     id: "enter_phone_input"
 - inputText: ${MAESTRO_PHONE}
 
-- tapOn:
-    id: "terms_checkbox"
-    optional: true
+# The terms box starts checked on a fresh install; a tap here would untick it
+# and disable Continue.
 
 - tapOn:
     id: "enter_phone_continue_cta"

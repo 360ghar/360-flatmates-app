@@ -116,61 +116,66 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  List<NavigationDestination> _buildDestinations(
-    String mode,
-    AppLocalizations locale,
-  ) {
+  List<Widget> _buildDestinations(String mode, AppLocalizations locale) {
     final isRoomPoster = isRoomPosterMode(mode);
 
     // Cut-paper nav icons shared with the web app. Selected vs unselected
     // is colour only (clay vs ink-3, from navigationBarTheme).
     return [
-      NavigationDestination(
-        key: const ValueKey('nav_home'),
-        icon: _navIcon('nav_home_tab', PaperArt.navHome),
-        selectedIcon: _navIcon('nav_home_tab_selected', PaperArt.navHome),
-        label: locale.navHome,
+      _tab(
+        'nav_home_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_home'),
+          icon: const PaperIcon(PaperArt.navHome),
+          label: locale.navHome,
+        ),
       ),
       // Slot is shape-stable across modes: the same `NavigationDestination`
       // instance (keyed by `nav_mode`) is always present, only the icon
       // and label change. This stops the destination list from changing
       // shape when the user switches mode, which previously caused the
-      // inner `Semantics(identifier:…)` widgets to be unmounted+remounted
-      // in the same frame as `/tab2`'s body swap — triggering
-      // `!semantics.parentDataDirty`.
-      NavigationDestination(
-        key: const ValueKey('nav_mode'),
-        icon: isRoomPoster
-            ? _navIcon('nav_post_tab', PaperArt.navPost)
-            : _navIcon('nav_explore_tab', PaperArt.navExplore),
-        selectedIcon: isRoomPoster
-            ? _navIcon('nav_post_tab_selected', PaperArt.navPost)
-            : _navIcon('nav_explore_tab_selected', PaperArt.navExplore),
-        label: isRoomPoster ? locale.navPost : locale.navExplore,
+      // inner semantics widgets to be unmounted+remounted in the same frame
+      // as `/tab2`'s body swap — triggering `!semantics.parentDataDirty`.
+      // Only the identifier string changes with the mode.
+      _tab(
+        isRoomPoster ? 'nav_post_tab' : 'nav_explore_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_mode'),
+          icon: isRoomPoster
+              ? const PaperIcon(PaperArt.navPost)
+              : const PaperIcon(PaperArt.navExplore),
+          label: isRoomPoster ? locale.navPost : locale.navExplore,
+        ),
       ),
-      NavigationDestination(
-        key: const ValueKey('nav_swipe'),
-        icon: _navIcon('nav_swipe_tab', PaperArt.navSwipe),
-        selectedIcon: _navIcon('nav_swipe_tab_selected', PaperArt.navSwipe),
-        label: locale.navSwipe,
+      _tab(
+        'nav_swipe_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_swipe'),
+          icon: const PaperIcon(PaperArt.navSwipe),
+          label: locale.navSwipe,
+        ),
       ),
-      NavigationDestination(
-        key: const ValueKey('nav_inbox'),
-        icon: _navIcon('nav_inbox_tab', PaperArt.navChats),
-        selectedIcon: _navIcon('nav_inbox_tab_selected', PaperArt.navChats),
-        label: locale.navLikesChat,
+      _tab(
+        'nav_inbox_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_inbox'),
+          icon: const PaperIcon(PaperArt.navChats),
+          label: locale.navLikesChat,
+        ),
       ),
-      NavigationDestination(
-        key: const ValueKey('nav_me'),
-        icon: _navIcon('nav_me_tab', PaperArt.navProfile),
-        selectedIcon: _navIcon('nav_me_tab_selected', PaperArt.navProfile),
-        label: locale.navProfile,
+      _tab(
+        'nav_me_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_me'),
+          icon: const PaperIcon(PaperArt.navProfile),
+          label: locale.navProfile,
+        ),
       ),
     ];
   }
 
-  /// Semantics.identifier is sufficient for Maestro testing.
-  Widget _navIcon(String identifier, PaperShape shape) {
-    return Semantics(identifier: identifier, child: PaperIcon(shape));
-  }
+  /// Maestro id on the whole destination. Material merges a destination's
+  /// semantics into one node, which drops an identifier set on the icon.
+  Widget _tab(String identifier, NavigationDestination destination) =>
+      Semantics(identifier: identifier, container: true, child: destination);
 }
