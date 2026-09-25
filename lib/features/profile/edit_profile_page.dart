@@ -6,17 +6,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/errors/app_failure.dart' hide UploadFailure;
 import '../../core/errors/l10n_bridge.dart';
-import '../../core/storage/image_upload_service.dart';
+import '../../core/storage/image_upload_service.dart'
+    show UploadFailure, UploadSuccess;
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
-import '../discover/application/discover_feed_controller.dart';
+import 'application/edit_profile_actions_controller.dart';
 import '../shared/presentation/components.dart';
-import '../swipe/application/swipe_deck_controller.dart';
 import 'presentation/widgets/edit_profile_form_state.dart';
 import 'presentation/widgets/edit_profile_options.dart';
 import 'presentation/widgets/edit_profile_tabs.dart';
-import 'profile_repository.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -43,23 +42,29 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   bool _hasEmail = false;
   bool _hasPhone = false;
 
+  // Ephemeral page state (setState; never read outside this page).
+  bool _saving = false;
+  bool _photoUploading = false;
+  bool _dirty = false;
+  EditProfileTab _tab = EditProfileTab.identity;
+  String? _nativePlaceError;
+  String? _linkedInError;
+
   /// Suppresses dirty writes while seeding controllers (listener fires on .text=).
   bool _seeding = false;
 
   void _markDirty() {
-    if (_seeding) return;
-    if (!ref.read(editProfileDirtyProvider)) {
-      ref.read(editProfileDirtyProvider.notifier).state = true;
-    }
+    if (_seeding || _dirty || !mounted) return;
+    setState(() => _dirty = true);
   }
 
   void _handleTextChanged(TextEditingController controller) {
     if (_seeding) return;
-    if (controller == _linkedInController) {
-      ref.read(editProfileLinkedInErrorProvider.notifier).state = null;
+    if (controller == _linkedInController && _linkedInError != null) {
+      setState(() => _linkedInError = null);
     }
-    if (controller == _nativePlaceController) {
-      ref.read(editProfileNativePlaceErrorProvider.notifier).state = null;
+    if (controller == _nativePlaceController && _nativePlaceError != null) {
+      setState(() => _nativePlaceError = null);
     }
     _markDirty();
   }
@@ -82,12 +87,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(editProfileSavingProvider.notifier).state = false;
-      ref.read(editProfilePhotoUploadingProvider.notifier).state = false;
-      ref.read(editProfileDirtyProvider.notifier).state = false;
-    });
     for (final controller in _textControllers) {
       controller.addListener(() => _handleTextChanged(controller));
     }
@@ -156,7 +155,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     ref.read(editProfileNonNegotiablesProvider.notifier).state =
         seed.nonNegotiables;
     ref.read(editProfilePhotoUrlsProvider.notifier).state = seed.photoUrls;
-    ref.read(editProfileDirtyProvider.notifier).state = false;
+    setState(() => _dirty = false);
   }
 
   /// Validates a LinkedIn URL: empty/whitespace is allowed (field optional);
@@ -180,15 +179,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Future<void> _pickAndUploadPhoto() async {
-    if (ref.read(editProfilePhotoUploadingProvider)) return;
+    if (_photoUploading) return;
     final locale = AppLocalizations.of(context);
-    ref.read(editProfilePhotoUploadingProvider.notifier).state = true;
+    setState(() => _photoUploading = true);
     try {
-      final uploadService = ref.read(imageUploadServiceProvider);
-      final files = await uploadService.pickImages(limit: 1);
-      if (files.isEmpty) return;
-      final result = await uploadService.uploadProfilePhoto(files.first);
-      if (!mounted) return;
+      final result = await ref
+          .read(editProfileActionsControllerProvider)
+          .pickAndUploadPhoto();
+      if (!mounted || result == null) return;
       switch (result) {
         case UploadSuccess(:final url):
           final current = List<String>.of(
@@ -200,7 +198,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             current[0] = url;
             ref.read(editProfilePhotoUrlsProvider.notifier).state = current;
           }
-          ref.read(editProfileDirtyProvider.notifier).state = true;
+          setState(() => _dirty = true);
         case UploadFailure(:final reason, :final underlyingError):
           debugPrint(
             'EditProfilePage._pickAndUploadPhoto failed: $reason '
@@ -213,14 +211,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (!mounted) return;
       FlatmatesToast.error(context, locale.profilePhotoUploadFailed);
     } finally {
-      if (mounted) {
-        ref.read(editProfilePhotoUploadingProvider.notifier).state = false;
-      }
+      if (mounted) setState(() => _photoUploading = false);
     }
   }
 
   Future<bool> _confirmDiscard() async {
-    if (!ref.read(editProfileDirtyProvider)) return true;
+    if (!_dirty) return true;
     final locale = AppLocalizations.of(context);
     return FlatmatesDialog.confirm(
       context,
@@ -245,7 +241,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Future<void> _handlePop() async {
     final shouldPop = await _confirmDiscard();
     if (!mounted || !shouldPop) return;
-    ref.read(editProfileDirtyProvider.notifier).state = false;
+    setState(() => _dirty = false);
     _leaveEditPage();
   }
 
@@ -277,10 +273,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       });
     }
 
-    final saving = ref.watch(editProfileSavingProvider);
-    final photoUploading = ref.watch(editProfilePhotoUploadingProvider);
-    final dirty = ref.watch(editProfileDirtyProvider);
-    final tab = ref.watch(editProfileTabProvider);
+    final saving = _saving;
+    final photoUploading = _photoUploading;
+    final dirty = _dirty;
+    final tab = _tab;
     final options = EditProfileOptions(
       locale: locale,
       bootstrap: bootstrap.valueOrNull,
@@ -332,8 +328,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 child: FlatmatesSegmentedControl<EditProfileTab>(
                   segments: editProfileTabSegments(locale),
                   selected: tab,
-                  onChanged: (value) =>
-                      ref.read(editProfileTabProvider.notifier).state = value,
+                  onChanged: (value) => setState(() => _tab = value),
                   segmentKeys: const [
                     Key('profile_tab_identity'),
                     Key('profile_tab_preferences'),
@@ -361,10 +356,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   bioController: _bioController,
                   nativePlaceController: _nativePlaceController,
                   linkedInController: _linkedInController,
-                  nativePlaceError: ref.watch(
-                    editProfileNativePlaceErrorProvider,
-                  ),
-                  linkedInError: ref.watch(editProfileLinkedInErrorProvider),
+                  nativePlaceError: _nativePlaceError,
+                  linkedInError: _linkedInError,
                   hasEmail: _hasEmail,
                   hasPhone: _hasPhone,
                   onPickAndUploadPhoto: _pickAndUploadPhoto,
@@ -391,25 +384,31 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     final locale = AppLocalizations.of(context);
     final budgetMin = double.tryParse(_budgetMinController.text.trim());
     final budgetMax = double.tryParse(_budgetMaxController.text.trim());
+    // A failed field can sit on another tab: switch to it so the error shows.
     if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) {
+      setState(() => _tab = EditProfileTab.preferences);
       FlatmatesToast.error(context, locale.budgetMinMaxError);
       return;
     }
 
     final nativePlace = nullableText(_nativePlaceController);
     if (nativePlace != null && nativePlace.length > 120) {
-      ref.read(editProfileNativePlaceErrorProvider.notifier).state =
-          locale.nativePlaceTooLongError;
+      setState(() {
+        _tab = EditProfileTab.identity;
+        _nativePlaceError = locale.nativePlaceTooLongError;
+      });
       return;
     }
     final linkedIn = nullableText(_linkedInController);
     if (linkedIn != null && !isValidLinkedInUrl(linkedIn)) {
-      ref.read(editProfileLinkedInErrorProvider.notifier).state =
-          locale.linkedinInvalidError;
+      setState(() {
+        _tab = EditProfileTab.identity;
+        _linkedInError = locale.linkedinInvalidError;
+      });
       return;
     }
 
-    ref.read(editProfileSavingProvider.notifier).state = true;
+    setState(() => _saving = true);
     try {
       final payload = buildEditProfileSavePayload(
         ref: ref,
@@ -436,13 +435,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         hasEmail: _hasEmail,
         hasPhone: _hasPhone,
       );
-      await ref.read(profileRepositoryProvider).updateProfile(payload: payload);
-      await ref.read(bootstrapControllerProvider.notifier).refresh();
-      // Feed/deck read the profile via ref.read — invalidate to drop stale results.
-      ref.invalidate(discoverFeedControllerProvider);
-      ref.invalidate(swipeDeckControllerProvider);
+      await ref.read(editProfileActionsControllerProvider).save(payload);
       if (!mounted) return;
-      ref.read(editProfileDirtyProvider.notifier).state = false;
+      setState(() => _dirty = false);
       FlatmatesToast.success(context, locale.profileUpdated);
       _leaveEditPage();
     } catch (e) {
@@ -453,7 +448,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           : locale.errorUnknown;
       FlatmatesToast.error(context, message);
     } finally {
-      if (mounted) ref.read(editProfileSavingProvider.notifier).state = false;
+      if (mounted) setState(() => _saving = false);
     }
   }
 }
