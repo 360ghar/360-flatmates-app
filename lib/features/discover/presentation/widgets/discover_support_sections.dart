@@ -333,6 +333,25 @@ class MeetFlatmatesSection extends ConsumerWidget {
     final profilesAsync = ref.watch(homeMeetProfilesProvider);
     final displayProfiles = profilesAsync.valueOrNull ?? const <SwipeProfile>[];
 
+    // A failed load shows an inline retry instead of silently hiding the
+    // section. Loading and a genuinely empty list stay hidden.
+    if (displayProfiles.isEmpty && profilesAsync.hasError) {
+      final locale = AppLocalizations.of(context);
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              locale.couldNotLoadContent,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          FlatmatesButton.tertiary(
+            label: locale.commonRetry,
+            onPressed: () => ref.invalidate(homeMeetProfilesProvider),
+          ),
+        ],
+      );
+    }
     if (displayProfiles.isEmpty) return const SizedBox.shrink();
 
     return Column(

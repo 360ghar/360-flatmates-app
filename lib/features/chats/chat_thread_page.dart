@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -400,21 +401,30 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
           if (!hasSentFirstMessage && _showQnANudge)
             ChatQnANudgeCard(onTap: _showQnABottomSheet),
           Expanded(
-            child: MessageList(
-              messagesState: messagesState,
-              currentUserId: currentUserId,
-              conversation: conversation,
-              visitsAsync: visits,
-              conversationId: widget.conversationId,
-              onConfirmVisit: (visit) => confirmVisitFromChat(
-                context: context,
-                ref: ref,
-                visit: visit,
-              ),
-              onRescheduleVisit: (visit) => rescheduleVisitFromChat(
-                context: context,
-                ref: ref,
-                visit: visit,
+            // Pull down to fetch the latest messages if realtime missed any.
+            child: RefreshIndicator(
+              color: AppSemanticColors.clayFor(Theme.of(context).brightness),
+              onRefresh: () => ref
+                  .read(
+                    messagesControllerProvider(widget.conversationId).notifier,
+                  )
+                  .refetchLatest(),
+              child: MessageList(
+                messagesState: messagesState,
+                currentUserId: currentUserId,
+                conversation: conversation,
+                visitsAsync: visits,
+                conversationId: widget.conversationId,
+                onConfirmVisit: (visit) => confirmVisitFromChat(
+                  context: context,
+                  ref: ref,
+                  visit: visit,
+                ),
+                onRescheduleVisit: (visit) => rescheduleVisitFromChat(
+                  context: context,
+                  ref: ref,
+                  visit: visit,
+                ),
               ),
             ),
           ),

@@ -334,16 +334,8 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
               ),
             ),
             if (isPlacesLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              ),
+              // Bones in the shape of the suggestion rows.
+              const FlatmatesSkeleton.settingsList(itemCount: 3),
             if (hasPlacesResults) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(

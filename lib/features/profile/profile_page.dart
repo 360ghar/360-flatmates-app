@@ -52,64 +52,73 @@ class ProfilePage extends ConsumerWidget {
             hideExactLocation: settings.hideExactLocation,
           );
           final profileStrength = profileStrengthPercent(profile);
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              AppSpacing.base,
-              AppSpacing.screen,
-              AppSpacing.xxl,
-            ),
-            children: [
-              // --- Compact header: avatar left, text right, whole group centered ---
-              Row(
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Semantics(
-                        image: true,
-                        label: locale.profilePhotoSemantic(displayName),
-                        child: FlatmatesAvatar(
-                          name: displayName,
-                          imageUrl: profile.profileImageUrl,
-                          size: 80,
-                          showRing: true,
-                        ),
-                      ),
-                      Positioned(
-                        right: -_kAvatarOffset,
-                        bottom: _kAvatarOffset,
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0.8, end: 1.0),
-                          duration: AppMotion.durationOrZero(
-                            context,
-                            AppMotion.fabExpand,
+          return RefreshIndicator(
+            color: AppSemanticColors.clayFor(theme.brightness),
+            onRefresh: () =>
+                ref.read(bootstrapControllerProvider.notifier).refresh(),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.base,
+                AppSpacing.screen,
+                AppSpacing.xxl,
+              ),
+              children: [
+                // --- Compact header: avatar left, text right, whole group centered ---
+                Row(
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Semantics(
+                          image: true,
+                          label: locale.profilePhotoSemantic(displayName),
+                          child: FlatmatesAvatar(
+                            name: displayName,
+                            imageUrl: profile.profileImageUrl,
+                            size: 80,
+                            showRing: true,
                           ),
-                          curve: AppMotion.easeOutBack,
-                          builder: (context, scale, child) {
-                            return Transform.scale(scale: scale, child: child);
-                          },
-                          child: Material(
-                            color: AppSemanticColors.accent,
-                            shape: const CircleBorder(),
-                            elevation: 3,
-                            child: Tooltip(
-                              message: locale.editProfileCta,
-                              child: Semantics(
-                                button: true,
-                                label: locale.editProfileCta,
-                                child: InkWell(
-                                  key: const Key('profile_edit_button'),
-                                  onTap: () => context.push('/profile/edit'),
-                                  customBorder: const CircleBorder(),
-                                  child: Container(
-                                    width: 30,
-                                    height: 30,
-                                    alignment: Alignment.center,
-                                    child: const Icon(
-                                      Icons.edit,
-                                      size: 14,
-                                      color: AppSemanticColors.onPrimary,
+                        ),
+                        Positioned(
+                          right: -_kAvatarOffset,
+                          bottom: _kAvatarOffset,
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0.8, end: 1.0),
+                            duration: AppMotion.durationOrZero(
+                              context,
+                              AppMotion.fabExpand,
+                            ),
+                            curve: AppMotion.easeOutBack,
+                            builder: (context, scale, child) {
+                              return Transform.scale(
+                                scale: scale,
+                                child: child,
+                              );
+                            },
+                            child: Material(
+                              color: AppSemanticColors.accent,
+                              shape: const CircleBorder(),
+                              elevation: 3,
+                              child: Tooltip(
+                                message: locale.editProfileCta,
+                                child: Semantics(
+                                  button: true,
+                                  label: locale.editProfileCta,
+                                  child: InkWell(
+                                    key: const Key('profile_edit_button'),
+                                    onTap: () => context.push('/profile/edit'),
+                                    customBorder: const CircleBorder(),
+                                    child: Container(
+                                      width: 30,
+                                      height: 30,
+                                      alignment: Alignment.center,
+                                      child: const Icon(
+                                        Icons.edit,
+                                        size: 14,
+                                        color: AppSemanticColors.onPrimary,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -117,179 +126,179 @@ class ProfilePage extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: AppSpacing.xl),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          displayName,
-                          key: const Key('profile_name_text'),
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        if (profile.email != null &&
-                            profile.email!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 2),
+                      ],
+                    ),
+                    const SizedBox(width: AppSpacing.xl),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Text(
-                            profile.email!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppSemanticColors.textSecondaryFor(
-                                theme.brightness,
-                              ),
+                            displayName,
+                            key: const Key('profile_name_text'),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
-                        ] else if (profile.phone != null &&
-                            profile.phone!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            profile.phone!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppSemanticColors.textSecondaryFor(
-                                theme.brightness,
-                              ),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ],
-
-                        if (location != null && location.isNotEmpty) ...[
-                          const SizedBox(height: _kVerticalSpacingCompact),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 16,
+                          if (profile.email != null &&
+                              profile.email!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              profile.email!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppSemanticColors.textSecondaryFor(
                                   theme.brightness,
                                 ),
                               ),
-                              const SizedBox(width: _kVerticalSpacingCompact),
-                              Expanded(
-                                child: Text(
-                                  location,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppSemanticColors.textSecondaryFor(
-                                      theme.brightness,
-                                    ),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ] else if (profile.phone != null &&
+                              profile.phone!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              profile.phone!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppSemanticColors.textSecondaryFor(
+                                  theme.brightness,
                                 ),
                               ),
-                            ],
-                          ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ],
+
+                          if (location != null && location.isNotEmpty) ...[
+                            const SizedBox(height: _kVerticalSpacingCompact),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_outlined,
+                                  size: 16,
+                                  color: AppSemanticColors.textSecondaryFor(
+                                    theme.brightness,
+                                  ),
+                                ),
+                                const SizedBox(width: _kVerticalSpacingCompact),
+                                Expanded(
+                                  child: Text(
+                                    location,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: AppSemanticColors.textSecondaryFor(
+                                        theme.brightness,
+                                      ),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.base),
+                ProfileStrengthCard(
+                  percent: profileStrength,
+                  onTap: () => context.push('/profile/edit'),
+                ),
+                const SizedBox(height: AppSpacing.base),
+                // --- Menu items with staggered appear ---
+                MenuGroupLabel(label: locale.discoverySectionLabel),
+                const SizedBox(height: AppSpacing.sm),
+                StaggeredMenuGroup(
+                  delayIndex: 0,
+                  child: FlatmatesCard(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: AppSemanticColors.surfaceFor(
+                      theme.brightness,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FlatmatesMenuItem(
+                          dense: true,
+                          icon: Icons.add_home_outlined,
+                          label: locale.profileMenuPostListing,
+                          onTap: () => context.push('/manage-listings'),
+                        ),
+                        const Divider(
+                          height: 1,
+                          indent: _kDenseDividerIndent,
+                          endIndent: AppSpacing.lg,
+                        ),
+                        FlatmatesMenuItem(
+                          dense: true,
+                          icon: Icons.calendar_month_outlined,
+                          label: locale.profileMenuVisits,
+                          onTap: () => context.push('/profile/visits'),
+                        ),
+                        const Divider(
+                          height: 1,
+                          indent: _kDenseDividerIndent,
+                          endIndent: AppSpacing.lg,
+                        ),
+                        FlatmatesMenuItem(
+                          dense: true,
+                          icon: Icons.favorite_border,
+                          label: locale.profileMenuShortlisted,
+                          onTap: () => context.go('/chats?tab=likes'),
+                        ),
+                        const Divider(
+                          height: 1,
+                          indent: _kDenseDividerIndent,
+                          endIndent: AppSpacing.lg,
+                        ),
+                        FlatmatesMenuItem(
+                          dense: true,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          label: locale.profileMenuChats,
+                          onTap: () => context.go('/chats'),
+                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.base),
-              ProfileStrengthCard(
-                percent: profileStrength,
-                onTap: () => context.push('/profile/edit'),
-              ),
-              const SizedBox(height: AppSpacing.base),
-              // --- Menu items with staggered appear ---
-              MenuGroupLabel(label: locale.discoverySectionLabel),
-              const SizedBox(height: AppSpacing.sm),
-              StaggeredMenuGroup(
-                delayIndex: 0,
-                child: FlatmatesCard(
-                  padding: EdgeInsets.zero,
-                  backgroundColor: AppSemanticColors.surfaceFor(
-                    theme.brightness,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FlatmatesMenuItem(
-                        dense: true,
-                        icon: Icons.add_home_outlined,
-                        label: locale.profileMenuPostListing,
-                        onTap: () => context.push('/manage-listings'),
-                      ),
-                      const Divider(
-                        height: 1,
-                        indent: _kDenseDividerIndent,
-                        endIndent: AppSpacing.lg,
-                      ),
-                      FlatmatesMenuItem(
-                        dense: true,
-                        icon: Icons.calendar_month_outlined,
-                        label: locale.profileMenuVisits,
-                        onTap: () => context.push('/profile/visits'),
-                      ),
-                      const Divider(
-                        height: 1,
-                        indent: _kDenseDividerIndent,
-                        endIndent: AppSpacing.lg,
-                      ),
-                      FlatmatesMenuItem(
-                        dense: true,
-                        icon: Icons.favorite_border,
-                        label: locale.profileMenuShortlisted,
-                        onTap: () => context.go('/chats?tab=likes'),
-                      ),
-                      const Divider(
-                        height: 1,
-                        indent: _kDenseDividerIndent,
-                        endIndent: AppSpacing.lg,
-                      ),
-                      FlatmatesMenuItem(
-                        dense: true,
-                        icon: Icons.chat_bubble_outline_rounded,
-                        label: locale.profileMenuChats,
-                        onTap: () => context.go('/chats'),
-                      ),
-                    ],
+                ),
+                const SizedBox(height: AppSpacing.base),
+                MenuGroupLabel(label: locale.trustSectionLabel),
+                const SizedBox(height: AppSpacing.sm),
+                StaggeredMenuGroup(
+                  delayIndex: 1,
+                  child: FlatmatesCard(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: AppSemanticColors.surfaceFor(
+                      theme.brightness,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FlatmatesMenuItem(
+                          dense: true,
+                          icon: Icons.description_outlined,
+                          label: locale.profileMenuDocuments,
+                          onTap: () => context.push('/help-safety/bookings'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.base),
-              MenuGroupLabel(label: locale.trustSectionLabel),
-              const SizedBox(height: AppSpacing.sm),
-              StaggeredMenuGroup(
-                delayIndex: 1,
-                child: FlatmatesCard(
-                  padding: EdgeInsets.zero,
-                  backgroundColor: AppSemanticColors.surfaceFor(
-                    theme.brightness,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FlatmatesMenuItem(
-                        dense: true,
-                        icon: Icons.description_outlined,
-                        label: locale.profileMenuDocuments,
-                        onTap: () => context.push('/help-safety/bookings'),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: AppSpacing.base),
+                _accountGroup(context, locale),
+                const SizedBox(height: AppSpacing.base),
+                FlatmatesButton.tertiary(
+                  key: const Key('logout_button'),
+                  label: locale.logoutCta,
+                  destructive: true,
+                  onPressed: () => _confirmAndLogout(context, ref),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.base),
-              _accountGroup(context, locale),
-              const SizedBox(height: AppSpacing.base),
-              FlatmatesButton.tertiary(
-                key: const Key('logout_button'),
-                label: locale.logoutCta,
-                destructive: true,
-                onPressed: () => _confirmAndLogout(context, ref),
-              ),
-            ],
+              ],
+            ),
           );
         },
         loading: () => const FlatmatesSkeleton.profile(),

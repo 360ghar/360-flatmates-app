@@ -3,6 +3,7 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/components.dart';
@@ -46,6 +47,25 @@ class PostHubPage extends ConsumerWidget {
             variant: FlatmatesChipVariant.info,
           ),
         ],
+      );
+    } else if (listings.isLoading) {
+      // Bones in the shape of the two count chips (no layout jump on load).
+      manageCounts = const FlatmatesSkeletonShimmer(
+        child: Wrap(
+          spacing: AppSpacing.xs,
+          children: [
+            FlatmatesSkeletonBone(
+              width: 88,
+              height: 40,
+              borderRadius: AppRadius.mdBorder,
+            ),
+            FlatmatesSkeletonBone(
+              width: 80,
+              height: 40,
+              borderRadius: AppRadius.mdBorder,
+            ),
+          ],
+        ),
       );
     } else if (listings.hasError) {
       manageCounts = Wrap(
