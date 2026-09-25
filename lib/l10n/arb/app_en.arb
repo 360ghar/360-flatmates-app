@@ -1917,5 +1917,10 @@
   "ventilationAny": "Any",
   "adjustFiltersCta": "Adjust filters",
   "clearSearchTooltip": "Clear search",
-  "voteDownHint": "Vote down"
+  "voteDownHint": "Vote down",
+  "mapRecenterTooltip": "Go to my location",
+  "mapFitAllTooltip": "Show all listings",
+  "mapZoomInTooltip": "Zoom in",
+  "mapZoomOutTooltip": "Zoom out",
+  "ownerFallbackName": "Owner"
 }

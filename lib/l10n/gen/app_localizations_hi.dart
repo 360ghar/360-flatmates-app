@@ -4021,4 +4021,19 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get voteDownHint => 'नकारात्मक वोट दें';
+
+  @override
+  String get mapRecenterTooltip => 'मेरी लोकेशन पर जाएं';
+
+  @override
+  String get mapFitAllTooltip => 'सभी लिस्टिंग दिखाएं';
+
+  @override
+  String get mapZoomInTooltip => 'ज़ूम इन करें';
+
+  @override
+  String get mapZoomOutTooltip => 'ज़ूम आउट करें';
+
+  @override
+  String get ownerFallbackName => 'मालिक';
 }

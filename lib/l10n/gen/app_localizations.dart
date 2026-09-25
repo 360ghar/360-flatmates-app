@@ -7465,6 +7465,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vote down'**
   String get voteDownHint;
+
+  /// No description provided for @mapRecenterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to my location'**
+  String get mapRecenterTooltip;
+
+  /// No description provided for @mapFitAllTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all listings'**
+  String get mapFitAllTooltip;
+
+  /// No description provided for @mapZoomInTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get mapZoomInTooltip;
+
+  /// No description provided for @mapZoomOutTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get mapZoomOutTooltip;
+
+  /// No description provided for @ownerFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get ownerFallbackName;
 }
 
 class _AppLocalizationsDelegate

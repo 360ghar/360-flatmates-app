@@ -84,9 +84,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   }
 
   void _applyLocationToFeed(LocationData location, {double? radiusKm}) {
-    if (!location.latitude.isFinite ||
-        !location.longitude.isFinite ||
-        (location.latitude == 0 && location.longitude == 0)) {
+    if (!location.hasCoordinates) {
       return;
     }
 
@@ -187,9 +185,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
         final feedController = ref.read(
           discoverFeedControllerProvider.notifier,
         );
-        if (location.latitude.isFinite &&
-            location.longitude.isFinite &&
-            !(location.latitude == 0 && location.longitude == 0)) {
+        if (location.hasCoordinates) {
           feedController.updateLocationFilter(
             latitude: location.latitude,
             longitude: location.longitude,

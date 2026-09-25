@@ -19,7 +19,12 @@ class BrowseListingsSkeleton extends StatelessWidget {
     final surface = SkeletonTokens.surface(brightness);
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 120),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screen,
+        AppSpacing.md,
+        AppSpacing.screen,
+        AppSpacing.xl,
+      ),
       itemCount: itemCount,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (_, _) {
@@ -52,7 +57,7 @@ class BrowseListingsSkeleton extends StatelessWidget {
                       FlatmatesSkeletonBone(width: 80, height: 16, color: bone),
                       const SizedBox(height: AppSpacing.xs),
                       FlatmatesSkeletonBone(width: 140, color: bone),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
                           FlatmatesSkeletonBone(
@@ -61,15 +66,17 @@ class BrowseListingsSkeleton extends StatelessWidget {
                             color: bone,
                             borderRadius: AppRadius.smBorder,
                           ),
-                          const SizedBox(width: 2),
-                          FlatmatesSkeletonBone(
-                            width: 100,
-                            height: 10,
-                            color: bone,
+                          const SizedBox(width: AppSpacing.xxs),
+                          Flexible(
+                            child: FlatmatesSkeletonBone(
+                              width: 100,
+                              height: 10,
+                              color: bone,
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       FlatmatesSkeletonBone(
                         width: 120,
                         height: 10,

@@ -198,7 +198,7 @@ class _OwnerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final name = ownerName ?? locale.ownerFallbackLabel;
+    final name = ownerName ?? locale.ownerFallbackName;
 
     return FlatmatesCard(
       padding: AppSpacing.edgeMd,

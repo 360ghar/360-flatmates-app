@@ -78,7 +78,7 @@ void showMapLocationPicker(
       );
       final mapController = ref.read(mapListingsProvider.notifier);
       final feedController = ref.read(discoverFeedControllerProvider.notifier);
-      if (location.latitude.isFinite && location.longitude.isFinite) {
+      if (location.hasCoordinates) {
         mapController.updateLocationFilter(
           latitude: location.latitude,
           longitude: location.longitude,

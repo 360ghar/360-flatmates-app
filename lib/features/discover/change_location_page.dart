@@ -19,14 +19,6 @@ import '../profile/profile_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'application/map_listings_controller.dart';
 
-final _selectedCityProvider = StateProvider.autoDispose<CatalogOption?>(
-  (ref) => null,
-);
-final _locatingProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _savingProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _selectingPlaceProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _searchVersionProvider = StateProvider.autoDispose<int>((ref) => 0);
-
 class ChangeLocationPage extends ConsumerStatefulWidget {
   const ChangeLocationPage({super.key});
 
@@ -37,21 +29,27 @@ class ChangeLocationPage extends ConsumerStatefulWidget {
 class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
   final _searchController = TextEditingController();
 
+  // Ephemeral page state (setState).
+  CatalogOption? _selectedCity;
+  bool _locating = false;
+  bool _saving = false;
+  bool _selectingPlace = false;
+
   String get _typedCity => _searchController.text.trim();
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(() {
-      final selectedCity = ref.read(_selectedCityProvider);
+      final selectedCity = _selectedCity;
       if (selectedCity != null && _typedCity != selectedCity.label) {
-        ref.read(_selectedCityProvider.notifier).state = null;
+        setState(() => _selectedCity = null);
       }
       ref
           .read(locationSearchProvider.notifier)
           .onSearchChanged(_searchController.text);
-      // Bump version so the visible-cities filter recomputes reactively.
-      ref.read(_searchVersionProvider.notifier).state++;
+      // Rebuild so the visible-cities filter recomputes.
+      if (mounted) setState(() {});
     });
   }
 
@@ -62,7 +60,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
   }
 
   Future<void> _useCurrentLocation() async {
-    ref.read(_locatingProvider.notifier).state = true;
+    setState(() => _locating = true);
     try {
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
@@ -75,20 +73,20 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       if (!mounted) return;
 
       if (detection.result == LocationDetectResult.success) {
-        ref.read(_selectedCityProvider.notifier).state = detection.city;
+        setState(() => _selectedCity = detection.city);
         final city = detection.city;
         if (city != null) _searchController.text = city.label;
       }
     } finally {
-      if (mounted) ref.read(_locatingProvider.notifier).state = false;
+      if (mounted) setState(() => _locating = false);
     }
   }
 
   Future<void> _save() async {
-    final selectedCity = ref.read(_selectedCityProvider);
+    final selectedCity = _selectedCity;
     final city = selectedCity?.label ?? _typedCity;
-    if (city.isEmpty || ref.read(_savingProvider)) return;
-    ref.read(_savingProvider.notifier).state = true;
+    if (city.isEmpty || _saving) return;
+    setState(() => _saving = true);
 
     final locale = AppLocalizations.of(context);
     try {
@@ -98,9 +96,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       // or applied as a filter — mirror LocationPickerModal's
       // _selectTypedLocation, which blocks and surfaces locationDetailsFailed.
       if (resolvedLocation == null && selectedCity == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.locationDetailsFailed)));
+        FlatmatesToast.error(context, locale.locationDetailsFailed);
         return;
       }
       await ref
@@ -114,22 +110,15 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       await ref.read(bootstrapControllerProvider.notifier).refresh();
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(locale.locationUpdated),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      FlatmatesToast.success(context, locale.locationUpdated);
       if (mounted) context.pop();
     } catch (e) {
       debugPrint('ChangeLocationPage._save failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(locale.actionFailedRetry)));
+        FlatmatesToast.error(context, locale.actionFailedRetry);
       }
     } finally {
-      if (mounted) ref.read(_savingProvider.notifier).state = false;
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -182,19 +171,16 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
   }
 
   Future<void> _selectPlace(PlaceSuggestion suggestion) async {
-    ref.read(_selectingPlaceProvider.notifier).state = true;
+    setState(() => _selectingPlace = true);
     try {
       final details = await ref
           .read(locationSearchProvider.notifier)
           .resolveSuggestion(suggestion);
       if (details == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).locationDetectionFailed,
-              ),
-            ),
+          FlatmatesToast.error(
+            context,
+            AppLocalizations.of(context).locationDetectionFailed,
           );
         }
         return;
@@ -221,7 +207,7 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       }
 
       if (match != null && minDist <= kMaxMatchDistanceKm) {
-        ref.read(_selectedCityProvider.notifier).state = match;
+        setState(() => _selectedCity = match);
         _searchController.text = match.label;
         ref.read(locationSearchProvider.notifier).clear();
       } else {
@@ -230,21 +216,20 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
           label: details.name,
           meta: {'latitude': details.latitude, 'longitude': details.longitude},
         );
-        ref.read(_selectedCityProvider.notifier).state = fallbackOption;
+        setState(() => _selectedCity = fallbackOption);
         _searchController.text = details.name;
         ref.read(locationSearchProvider.notifier).clear();
       }
     } catch (e) {
       debugPrint('selectPlace error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).locationDetectionFailed),
-          ),
+        FlatmatesToast.error(
+          context,
+          AppLocalizations.of(context).locationDetectionFailed,
         );
       }
     } finally {
-      if (mounted) ref.read(_selectingPlaceProvider.notifier).state = false;
+      if (mounted) setState(() => _selectingPlace = false);
     }
   }
 
@@ -252,133 +237,83 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    // Watch version so the visible-cities filter recomputes when search text
-    // changes.
-    ref.watch(_searchVersionProvider);
     final searchState = ref.watch(locationSearchProvider);
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
-    final selectingPlace = ref.watch(_selectingPlaceProvider);
+    final selectingPlace = _selectingPlace;
     final isPlacesLoading = searchState.isLoading || selectingPlace;
-    final locating = ref.watch(_locatingProvider);
-    final saving = ref.watch(_savingProvider);
-    final selectedCity = ref.watch(_selectedCityProvider);
+    final locating = _locating;
+    final saving = _saving;
+    final selectedCity = _selectedCity;
     final canSave = (selectedCity?.label ?? _typedCity).isNotEmpty;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                AppSpacing.md,
-                AppSpacing.screen,
-                0,
-              ),
-              child: Row(
-                children: [
-                  FlatmatesChromeIconButton(
-                    onPressed: () => context.pop(),
-                    icon: Icons.arrow_back_rounded,
-                    tooltip: locale.backCta,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      locale.locationSelectionTitle,
-                      style: theme.textTheme.headlineMedium,
-                      overflow: TextOverflow.ellipsis,
+    return FlatmatesScreen(
+      appBar: FlatmatesHeader.backTitle(
+        title: locale.locationSelectionTitle,
+        onBack: () => context.pop(),
+      ),
+      padding: AppSpacing.horizontalScreen,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: AppSpacing.base),
+          FlatmatesSearchBar(
+            controller: _searchController,
+            hint: locale.searchCityOrAreaHint,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          LocationActionRow(
+            icon: Icons.my_location_outlined,
+            title: locating
+                ? locale.detectingLocation
+                : locale.useCurrentLocation,
+            onTap: locating ? null : _useCurrentLocation,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Suggestions scroll in the space left above the CTA, so the
+          // keyboard never pushes them off the screen.
+          Expanded(
+            child: ListView(
+              children: [
+                if (isPlacesLoading)
+                  const FlatmatesSkeleton.settingsList(itemCount: 3),
+                if (hasPlacesResults) ...[
+                  Text(
+                    locale.suggestionsLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
+                      ),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.sm),
+                  for (final suggestion in searchState.suggestions)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xs,
+                      ),
+                      child: LocationSuggestionRow(
+                        suggestion: suggestion,
+                        onTap: selectingPlace
+                            ? null
+                            : () => _selectPlace(suggestion),
+                      ),
+                    ),
                 ],
-              ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: FlatmatesSearchBar(
-                controller: _searchController,
-                hint: locale.searchCityOrAreaHint,
-                // No-op onChanged; the _searchVersionProvider bump in the
-                // listener triggers rebuild.
-                onChanged: (_) {},
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.sm,
+              bottom: AppSpacing.base,
             ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: LocationActionRow(
-                icon: Icons.my_location_outlined,
-                title: locating
-                    ? locale.detectingLocation
-                    : locale.useCurrentLocation,
-                onTap: locating ? null : _useCurrentLocation,
-              ),
+            child: FlatmatesButton(
+              label: locale.modeContinue,
+              fullWidth: true,
+              onPressed: !canSave || saving ? null : _save,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: Divider(
-                color: AppSemanticColors.hairlineFor(
-                  Theme.of(context).brightness,
-                ),
-              ),
-            ),
-            if (isPlacesLoading)
-              // Bones in the shape of the suggestion rows.
-              const FlatmatesSkeleton.settingsList(itemCount: 3),
-            if (hasPlacesResults) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screen,
-                ),
-                child: Text(
-                  locale.suggestionsLabel,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              ...searchState.suggestions.map(
-                (suggestion) => Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screen,
-                    vertical: 4,
-                  ),
-                  child: LocationSuggestionRow(
-                    suggestion: suggestion,
-                    onTap: selectingPlace
-                        ? null
-                        : () => _selectPlace(suggestion),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            const Expanded(child: SizedBox.shrink()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                AppSpacing.sm,
-                AppSpacing.screen,
-                AppSpacing.xl,
-              ),
-              child: FlatmatesButton(
-                label: locale.modeContinue,
-                fullWidth: true,
-                onPressed: !canSave || saving ? null : _save,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

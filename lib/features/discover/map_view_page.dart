@@ -97,9 +97,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _applyLocationToMap(LocationData location, {double? radiusKm}) {
-    if (!location.latitude.isFinite ||
-        !location.longitude.isFinite ||
-        (location.latitude == 0 && location.longitude == 0)) {
+    if (!location.hasCoordinates) {
       return;
     }
 
@@ -181,27 +179,34 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         : AppSemanticColors.frostOverlayLight;
 
     if (mapState.isLoading && mapState.listings.isEmpty) {
-      return const Scaffold(body: FlatmatesSkeleton.mapExplore());
+      return const FlatmatesScreen(
+        useSafeArea: false,
+        body: FlatmatesSkeleton.mapExplore(),
+      );
     }
 
     if (mapState.hasError) {
-      return Scaffold(
-        body: SafeArea(
-          child: FlatmatesErrorState(
-            message: locale.couldNotLoadListing,
-            onRetry: () => ref.read(mapListingsProvider.notifier).load(),
-            retryLabel: locale.commonRetry,
-          ),
+      // Pushed as /map it needs a way back; as the Explore tab it does not.
+      return FlatmatesScreen(
+        appBar: Navigator.of(context).canPop()
+            ? const FlatmatesHeader.backTitle(title: '')
+            : null,
+        body: FlatmatesErrorState(
+          message: locale.errorUnknown,
+          onRetry: () => ref.read(mapListingsProvider.notifier).load(),
+          retryLabel: locale.commonRetry,
         ),
       );
     }
 
-    final safeAreaTop = MediaQuery.of(context).padding.top;
-    // Top bar internal height: md (top) + 48 (icon button) + xs (bottom) ≈ 64
-    const topBarContentHeight = AppSpacing.md + 48.0 + AppSpacing.xs;
+    final safeAreaTop = MediaQuery.paddingOf(context).top;
+    // Top bar internal height: md (top) + 48 (icon button) + xs (bottom).
+    const topBarContentHeight =
+        AppSpacing.md + kMinInteractiveDimension + AppSpacing.xs;
     final controlsTopOffset = safeAreaTop + topBarContentHeight + AppSpacing.lg;
 
-    return Scaffold(
+    return FlatmatesScreen(
+      useSafeArea: false,
       body: Stack(
         children: [
           // Full-screen map
@@ -217,9 +222,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
             child: Container(
               color: frostOverlayColor,
               child: Padding(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top,
-                ),
+                padding: EdgeInsets.only(top: safeAreaTop),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -395,7 +398,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     if (index >= 0 && _cardScrollController.hasClients) {
       final viewportWidth = MediaQuery.sizeOf(context).width;
       const itemWidth = kMapCarouselCardWidth;
-      const padding = AppSpacing.md;
+      const padding = kMapCarouselPadding;
       const spacing = AppSpacing.sm;
       const totalItemWidth = itemWidth + spacing;
 
@@ -439,6 +442,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         LatLng(pos.latitude, pos.longitude),
         kDefaultInitialZoom,
       );
+      if (!mounted) return;
       ref
           .read(mapListingsProvider.notifier)
           .updateLocationFilter(
@@ -453,21 +457,28 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       // The page can close while locating (it is also pushed as /map).
       if (!mounted) return;
       final newPos = ref.read(locationControllerProvider).currentPosition;
-      if (newPos != null) {
-        await _mapController?.move(
-          LatLng(newPos.latitude, newPos.longitude),
-          kDefaultInitialZoom,
+      if (newPos == null) {
+        // Permission denied or no fix: say so instead of doing nothing.
+        FlatmatesToast.info(
+          context,
+          AppLocalizations.of(context).locationPermissionRequired,
         );
-        ref
-            .read(mapListingsProvider.notifier)
-            .updateLocationFilter(
-              latitude: newPos.latitude,
-              longitude: newPos.longitude,
-              radiusKm:
-                  ref.read(mapListingsProvider).filters.radiusKm ??
-                  MapListingsController.defaultLocationRadiusKm,
-            );
+        return;
       }
+      await _mapController?.move(
+        LatLng(newPos.latitude, newPos.longitude),
+        kDefaultInitialZoom,
+      );
+      if (!mounted) return;
+      ref
+          .read(mapListingsProvider.notifier)
+          .updateLocationFilter(
+            latitude: newPos.latitude,
+            longitude: newPos.longitude,
+            radiusKm:
+                ref.read(mapListingsProvider).filters.radiusKm ??
+                MapListingsController.defaultLocationRadiusKm,
+          );
     }
   }
 

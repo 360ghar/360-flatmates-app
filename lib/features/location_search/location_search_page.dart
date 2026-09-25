@@ -12,11 +12,9 @@ import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../location/application/location_search_provider.dart';
+import '../location/presentation/location_picker_rows.dart';
 import '../shared/presentation/components.dart';
-
-final _locatingProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _selectingPlaceProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _searchTextVersionProvider = StateProvider.autoDispose<int>((ref) => 0);
+import '../shared/presentation/paper/paper_scene.dart';
 
 class LocationSearchPage extends ConsumerStatefulWidget {
   final ValueChanged<LocationData>? onLocationSelected;
@@ -35,6 +33,10 @@ class LocationSearchPage extends ConsumerStatefulWidget {
 class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
+
+  // Ephemeral page state (setState).
+  bool _locating = false;
+  bool _selectingPlace = false;
 
   @override
   void initState() {
@@ -57,7 +59,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
   }
 
   Future<void> _useCurrentLocation() async {
-    ref.read(_locatingProvider.notifier).state = true;
+    setState(() => _locating = true);
     try {
       final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
       final catalogCities =
@@ -78,12 +80,12 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
         );
       }
     } finally {
-      if (mounted) ref.read(_locatingProvider.notifier).state = false;
+      if (mounted) setState(() => _locating = false);
     }
   }
 
   Future<void> _selectPlace(PlaceSuggestion suggestion) async {
-    ref.read(_selectingPlaceProvider.notifier).state = true;
+    setState(() => _selectingPlace = true);
     try {
       final details = await ref
           .read(locationSearchProvider.notifier)
@@ -113,7 +115,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
         );
       }
     } finally {
-      if (mounted) ref.read(_selectingPlaceProvider.notifier).state = false;
+      if (mounted) setState(() => _selectingPlace = false);
     }
   }
 
@@ -130,188 +132,78 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final searchState = ref.watch(locationSearchProvider);
-    ref.watch(_searchTextVersionProvider);
     final hasPlacesResults = searchState.suggestions.isNotEmpty;
-    final isPlacesLoading =
-        searchState.isLoading || ref.watch(_selectingPlaceProvider);
+    final isPlacesLoading = searchState.isLoading || _selectingPlace;
+    final hasQuery = _searchController.text.trim().isNotEmpty;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                AppSpacing.md,
-                AppSpacing.screen,
-                0,
-              ),
-              child: Row(
-                children: [
-                  FlatmatesChromeIconButton(
-                    onPressed: () => context.pop(),
-                    icon: Icons.arrow_back_rounded,
-                    tooltip: locale.backCta,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      locale.locationSelectionTitle,
-                      style: theme.textTheme.headlineMedium,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: FlatmatesSearchBar(
-                controller: _searchController,
-                hint: locale.searchCityOrAreaHint,
-                autofocus: true,
-                onChanged: (_) =>
-                    ref.read(_searchTextVersionProvider.notifier).state++,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: InkWell(
-                onTap: ref.watch(_locatingProvider)
-                    ? null
-                    : _useCurrentLocation,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  child: Row(
+    return FlatmatesScreen(
+      appBar: FlatmatesHeader.backTitle(
+        title: locale.locationSelectionTitle,
+        onBack: () => context.pop(),
+      ),
+      padding: AppSpacing.horizontalScreen,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: AppSpacing.base),
+          FlatmatesSearchBar(
+            controller: _searchController,
+            hint: locale.searchCityOrAreaHint,
+            autofocus: true,
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          LocationActionRow(
+            icon: Icons.my_location_outlined,
+            title: _locating
+                ? locale.detectingLocation
+                : locale.useCurrentLocation,
+            onTap: _locating ? null : _useCurrentLocation,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Expanded(
+            child: isPlacesLoading
+                ? const SingleChildScrollView(
+                    child: FlatmatesSkeleton.settingsList(itemCount: 3),
+                  )
+                : hasPlacesResults
+                ? ListView(
                     children: [
-                      Icon(
-                        Icons.my_location_outlined,
-                        color: AppSemanticColors.clayFor(theme.brightness),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Text(
-                          ref.watch(_locatingProvider)
-                              ? locale.detectingLocation
-                              : locale.useCurrentLocation,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: AppSemanticColors.clayFor(theme.brightness),
-                            fontWeight: FontWeight.w700,
+                      Text(
+                        locale.suggestionsLabel,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
                           ),
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: AppSemanticColors.hairlineFor(theme.brightness),
-                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      for (final suggestion in searchState.suggestions)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.xs,
+                          ),
+                          child: LocationSuggestionRow(
+                            suggestion: suggestion,
+                            onTap: _selectingPlace
+                                ? null
+                                : () => _selectPlace(suggestion),
+                          ),
+                        ),
                     ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screen,
-              ),
-              child: Divider(
-                color: AppSemanticColors.hairlineFor(theme.brightness),
-              ),
-            ),
-            if (isPlacesLoading)
-              // Bones in the shape of the suggestion rows.
-              const FlatmatesSkeleton.settingsList(itemCount: 3),
-            if (hasPlacesResults) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screen,
-                ),
-                child: Text(
-                  locale.suggestionsLabel,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screen,
-                  ),
-                  itemCount: searchState.suggestions.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 4),
-                  itemBuilder: (context, index) {
-                    final suggestion = searchState.suggestions[index];
-                    return FlatmatesCard(
-                      onTap: ref.watch(_selectingPlaceProvider)
-                          ? null
-                          : () => _selectPlace(suggestion),
-                      borderColor: AppSemanticColors.hairlineFor(
-                        theme.brightness,
-                      ).withValues(alpha: 0.35),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            color: AppSemanticColors.clayFor(
-                              Theme.of(context).brightness,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  suggestion.mainText,
-                                  style: theme.textTheme.bodyLarge,
-                                ),
-                                if (suggestion.secondaryText.isNotEmpty)
-                                  Text(
-                                    suggestion.secondaryText,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppSemanticColors.textSecondaryFor(
-                                        theme.brightness,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: AppSemanticColors.hairlineFor(
-                              theme.brightness,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-            if (!hasPlacesResults && !isPlacesLoading)
-              Expanded(
-                child: Center(
-                  child: Text(
-                    locale.noLocationsAvailable,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
-              ),
-          ],
-        ),
+                  )
+                // Only after the user has typed: an empty page on open is
+                // not "no results".
+                : hasQuery
+                ? FlatmatesEmptyState(
+                    title: locale.noLocationsAvailable,
+                    prop: PaperProp.magnifier,
+                    padHorizontally: false,
+                    expand: true,
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

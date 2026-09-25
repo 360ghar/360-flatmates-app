@@ -10,6 +10,7 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
+import '../../shared/presentation/flatmates_button.dart';
 
 /// Canonical "simple map" example: a non-interactive flutter_map centered on a
 /// single coordinate with one pin. Because all gestures are disabled the camera
@@ -56,22 +57,7 @@ class MiniMapView extends StatelessWidget {
           flags: InteractiveFlag.none,
         ),
       ),
-      children: [
-        TileLayerFactory.build(context),
-        RichAttributionWidget(
-          attributions: [
-            TextSourceAttribution(
-              TileLayerFactory.attributionFor(context),
-              textStyle: TextStyle(
-                fontSize: 8,
-                color: AppSemanticColors.textSecondaryFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+      children: [TileLayerFactory.build(context)],
     );
 
     final mapContent = SizedBox(
@@ -171,12 +157,10 @@ class _OpenInMapsHint extends StatelessWidget {
             size: 12,
             color: AppSemanticColors.clayFor(Theme.of(context).brightness),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             AppLocalizations.of(context).openInMapsLabel,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: AppSemanticColors.clayFor(Theme.of(context).brightness),
             ),
           ),
@@ -212,10 +196,9 @@ class _AttributionWidget extends StatelessWidget {
         borderRadius: AppRadius.smBorder,
         child: Text(
           TileLayerFactory.attributionFor(context),
-          style: TextStyle(
-            fontSize: 8,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppSemanticColors.textSecondaryFor(
-              isDark ? Brightness.dark : Brightness.light,
+              Theme.of(context).brightness,
             ),
           ),
         ),
@@ -242,12 +225,14 @@ class MapControlButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final locale = AppLocalizations.of(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _MapControlButton(
           icon: Icons.my_location_rounded,
+          tooltip: locale.mapRecenterTooltip,
           onTap: onRecenter,
           isDark: isDark,
         ),
@@ -255,6 +240,7 @@ class MapControlButtons extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           _MapControlButton(
             icon: Icons.crop_free_rounded,
+            tooltip: locale.mapFitAllTooltip,
             onTap: onFitBounds!,
             isDark: isDark,
           ),
@@ -262,12 +248,14 @@ class MapControlButtons extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         _MapControlButton(
           icon: Icons.add_rounded,
+          tooltip: locale.mapZoomInTooltip,
           onTap: onZoomIn,
           isDark: isDark,
         ),
         const SizedBox(height: AppSpacing.xs),
         _MapControlButton(
           icon: Icons.remove_rounded,
+          tooltip: locale.mapZoomOutTooltip,
           onTap: onZoomOut,
           isDark: isDark,
         ),
@@ -278,41 +266,42 @@ class MapControlButtons extends StatelessWidget {
 
 class _MapControlButton extends StatelessWidget {
   final IconData icon;
+  final String tooltip;
   final VoidCallback onTap;
   final bool isDark;
 
   const _MapControlButton({
     required this.icon,
+    required this.tooltip,
     required this.onTap,
     required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final brightness = Theme.of(context).brightness;
+    // A 48 dp paper-3 button with the e2 shadow.
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: isDark
-            ? AppSemanticColors.darkSurfaceElevated
-            : AppSemanticColors.surfaceFor(Theme.of(context).brightness),
-        borderRadius: AppRadius.smBorder,
-        boxShadow: [
-          AppShadows.floatingFor(isDark ? Brightness.dark : Brightness.light),
-        ],
+        color: AppSemanticColors.paper3For(brightness),
+        borderRadius: AppRadius.mdBorder,
+        boxShadow: AppShadows.e2(brightness),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: AppRadius.smBorder,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppRadius.smBorder,
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Icon(
-              icon,
-              size: 20,
-              color: AppSemanticColors.textSecondaryFor(
-                isDark ? Brightness.dark : Brightness.light,
-              ),
+        borderRadius: AppRadius.mdBorder,
+        child: IconButton(
+          onPressed: onTap,
+          tooltip: tooltip,
+          icon: Icon(
+            icon,
+            size: 22,
+            color: AppSemanticColors.textPrimaryFor(brightness),
+          ),
+          style: IconButton.styleFrom(
+            minimumSize: const Size.square(kMinInteractiveDimension),
+            shape: const RoundedRectangleBorder(
+              borderRadius: AppRadius.mdBorder,
             ),
           ),
         ),
@@ -336,23 +325,10 @@ class GetDirectionsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    return OutlinedButton.icon(
+    return FlatmatesButton.secondary(
+      label: label ?? locale.getDirectionsLabel,
+      icon: Icons.directions_rounded,
       onPressed: _launchDirections,
-      icon: const Icon(Icons.directions_rounded, size: 18),
-      label: Text(label ?? locale.getDirectionsLabel),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppSemanticColors.clayFor(
-          Theme.of(context).brightness,
-        ),
-        side: BorderSide(
-          color: AppSemanticColors.clayFor(Theme.of(context).brightness),
-        ),
-        shape: const RoundedRectangleBorder(borderRadius: AppRadius.smBorder),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-      ),
     );
   }
 

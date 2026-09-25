@@ -4013,4 +4013,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voteDownHint => 'Vote down';
+
+  @override
+  String get mapRecenterTooltip => 'Go to my location';
+
+  @override
+  String get mapFitAllTooltip => 'Show all listings';
+
+  @override
+  String get mapZoomInTooltip => 'Zoom in';
+
+  @override
+  String get mapZoomOutTooltip => 'Zoom out';
+
+  @override
+  String get ownerFallbackName => 'Owner';
 }
