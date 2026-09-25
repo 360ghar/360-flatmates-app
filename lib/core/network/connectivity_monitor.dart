@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_semantic_colors.dart';
+import '../theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 
 /// Whether the device currently has a non-none network interface.
@@ -61,51 +62,65 @@ final connectivityProvider = StreamProvider<bool>((ref) async* {
   }
 });
 
+/// Wraps the app and shows an offline strip in the layout flow, above the
+/// app, so it pushes content down instead of covering the app bar.
+///
+/// The strip takes the top safe-area inset; the app below gets that inset
+/// removed so it is not applied twice.
 class OfflineBanner extends ConsumerWidget {
-  const OfflineBanner({super.key});
+  const OfflineBanner({required this.child, super.key});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final connectivity = ref.watch(connectivityProvider);
-    final isOnline = connectivity.valueOrNull ?? true;
+    final isOnline = ref.watch(connectivityProvider).valueOrNull ?? true;
+    if (isOnline) return child;
 
-    if (isOnline) return const SizedBox.shrink();
-
+    final theme = Theme.of(context);
+    final b = theme.brightness;
     final locale = AppLocalizations.of(context);
+    final ink = AppSemanticColors.warningInkFor(b);
 
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: SafeArea(
-        bottom: false,
-        child: Material(
-          color: AppSemanticColors.error,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.cloud_off_outlined,
-                  size: 18,
-                  color: AppSemanticColors.paper,
+    return Column(
+      children: [
+        Semantics(
+          liveRegion: true,
+          child: Material(
+            color: AppSemanticColors.warningSoftFor(b),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screen,
+                  vertical: AppSpacing.sm,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    locale.youAreOffline,
-                    style: const TextStyle(
-                      color: AppSemanticColors.paper,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                child: Row(
+                  children: [
+                    Icon(Icons.cloud_off_rounded, size: 18, color: ink),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        locale.youAreOffline,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: ink,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: child,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -5,10 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../core/domain/enums.dart';
 import '../core/providers.dart';
 import '../core/storage/app_preferences.dart';
-import '../core/theme/app_semantic_colors.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../features/onboarding/onboarding_completion_banner.dart';
+import '../features/shared/presentation/paper/paper_edge_border.dart';
+import '../features/shared/presentation/paper/paper_surface.dart';
 import '../l10n/gen/app_localizations.dart';
 
 /// Canonical room-poster check for the backend `profile.mode` string.
@@ -27,7 +28,6 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     // Use select so AppShell only rebuilds when mode changes,
     // not on every bootstrap async lifecycle event.
     final mode =
@@ -37,11 +37,6 @@ class AppShell extends ConsumerWidget {
           ),
         ) ??
         'co_hunter';
-    final isDark = theme.brightness == Brightness.dark;
-    final surface = isDark
-        ? AppSemanticColors.darkSurface
-        : AppSemanticColors.canvas;
-    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
 
     // Show the onboarding completion banner when the user's onboarding is
     // incomplete. The soft gate allows access to Discover, Map, and Profile,
@@ -70,30 +65,35 @@ class AppShell extends ConsumerWidget {
           Expanded(child: navigationShell),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: surface,
-          border: Border(top: BorderSide(color: hairline)),
-        ),
+      // Paper tab strip: layer one with a torn top edge; the active tab
+      // rises one layer (indicator = paper-2, see navigationBarTheme).
+      bottomNavigationBar: PaperSurface(
+        layer: PaperLayer.one,
+        elevation: PaperElevation.e0,
+        edge: PaperEdge.torn,
+        edgeDepth: 8,
+        borderRadius: BorderRadius.zero,
         child: SafeArea(
           top: false,
-          child: NavigationBar(
-            height: 64,
-            selectedIndex: navigationShell.currentIndex.clamp(0, 4),
-            onDestinationSelected: (index) {
-              navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            indicatorColor: Colors.transparent,
-            labelPadding: EdgeInsets.zero,
-            destinations: destinations,
+          // Labels scale with the user's text size, but capped so five tabs
+          // still fit on one row without clipping.
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.3,
+            child: NavigationBar(
+              selectedIndex: navigationShell.currentIndex.clamp(0, 4),
+              onDestinationSelected: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              destinations: destinations,
+            ),
           ),
         ),
       ),

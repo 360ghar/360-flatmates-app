@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// Chip variant — determines visual style.
@@ -65,58 +66,75 @@ class FlatmatesChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = _resolveColors(theme);
-    const borderRadius = AppRadius.pillBorder;
+    const borderRadius = AppRadius.mdBorder;
+    final removable = variant == FlatmatesChipVariant.removable;
 
-    return AnimatedScale(
-      scale: selected ? 1.03 : 1.0,
-      duration: AppMotion.chipSelect,
-      curve: AppMotion.easeOutBack,
-      child: AnimatedContainer(
-        duration: AppMotion.chipSelect,
-        curve: AppMotion.easeOutCubic,
-        // Compact density (12×6) matches icebreaker pills and keeps more
-        // filter options on one row in the search sheet.
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs + AppSpacing.xxs,
-        ),
-        decoration: BoxDecoration(
-          color: colors.background,
-          borderRadius: borderRadius,
-          border: Border.all(color: colors.border),
-        ),
+    return AnimatedContainer(
+      duration: AppMotion.durationOrZero(context, AppMotion.chipSelect),
+      curve: AppMotion.paperOut,
+      constraints: const BoxConstraints(minHeight: 40),
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: borderRadius,
+        border: colors.border == null
+            ? null
+            : Border.all(color: colors.border!, width: 1.5),
+        boxShadow: selected || !enabled
+            ? AppShadows.none
+            : AppShadows.e1(theme.brightness),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
         child: InkWell(
           onTap: enabled && onSelected != null
               ? () => onSelected!(!selected)
               : null,
           borderRadius: borderRadius,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_leadingIcon != null) ...[
-                Icon(_leadingIcon, size: 14, color: colors.foreground),
-                const SizedBox(width: AppSpacing.xs),
-              ],
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colors.foreground,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    fontSize: 13,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: AppSpacing.md,
+              right: removable ? AppSpacing.xxs : AppSpacing.md,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_leadingIcon != null) ...[
+                  Icon(_leadingIcon, size: 16, color: colors.foreground),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colors.foreground,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
-              if (variant == FlatmatesChipVariant.removable) ...[
-                const SizedBox(width: AppSpacing.xs),
-                GestureDetector(
-                  onTap: onRemoved,
-                  child: Icon(Icons.close, size: 14, color: colors.foreground),
-                ),
+                if (removable)
+                  // 40 x 40 hit area around a 16 px glyph.
+                  Semantics(
+                    button: true,
+                    label: MaterialLocalizations.of(
+                      context,
+                    ).deleteButtonTooltip,
+                    child: InkResponse(
+                      onTap: onRemoved,
+                      radius: 20,
+                      child: SizedBox.square(
+                        dimension: 40,
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: colors.foreground,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -130,7 +148,6 @@ class FlatmatesChip extends StatelessWidget {
       return _ChipColors(
         background: AppSemanticColors.disabledSurfaceFor(theme.brightness),
         foreground: AppSemanticColors.textTertiaryFor(theme.brightness),
-        border: AppSemanticColors.hairlineFor(theme.brightness),
       );
     }
 
@@ -144,38 +161,30 @@ class FlatmatesChip extends StatelessWidget {
     }
 
     if (selected) {
-      // Airbnb-quiet selected: ink fill, white label (not brand-tinted slab).
+      // Selected: clay-soft fill pressed flat, ink label, clay lip.
       return _ChipColors(
-        background: isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink,
-        foreground: isDark
-            ? AppSemanticColors.darkScaffold
-            : AppSemanticColors.onPrimary,
-        border: isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink,
+        background: AppSemanticColors.coralSoftFor(theme.brightness),
+        foreground: AppSemanticColors.textPrimaryFor(theme.brightness),
+        border: AppSemanticColors.clayFor(theme.brightness),
       );
     }
 
     switch (variant) {
       case FlatmatesChipVariant.info:
         return _ChipColors(
-          background: isDark
-              ? AppSemanticColors.darkSurfaceElevated
-              : AppSemanticColors.surfaceSoft,
+          background: AppSemanticColors.paper1For(theme.brightness),
           foreground: isDark
               ? AppSemanticColors.darkBody
               : AppSemanticColors.body,
-          border: AppSemanticColors.hairlineFor(theme.brightness),
         );
       case FlatmatesChipVariant.filter:
       case FlatmatesChipVariant.choice:
       case FlatmatesChipVariant.removable:
         return _ChipColors(
-          background: isDark
-              ? AppSemanticColors.darkSurface
-              : AppSemanticColors.canvas,
+          background: AppSemanticColors.paper2For(theme.brightness),
           foreground: isDark
               ? AppSemanticColors.darkBody
               : AppSemanticColors.body,
-          border: AppSemanticColors.hairlineFor(theme.brightness),
         );
     }
   }
@@ -185,10 +194,10 @@ class _ChipColors {
   const _ChipColors({
     required this.background,
     required this.foreground,
-    required this.border,
+    this.border,
   });
 
   final Color background;
   final Color foreground;
-  final Color border;
+  final Color? border;
 }

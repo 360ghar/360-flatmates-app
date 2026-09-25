@@ -327,11 +327,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       routerConfig: router,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) {
-        return Stack(
-          children: [child ?? const SizedBox.shrink(), const OfflineBanner()],
-        );
-      },
+      builder: (context, child) =>
+          OfflineBanner(child: child ?? const SizedBox.shrink()),
     );
   }
 
