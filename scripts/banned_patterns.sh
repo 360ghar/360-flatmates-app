@@ -91,6 +91,30 @@ else
   echo "OK"
 fi
 
+# Ratchets: raw radii and raw colours belong in lib/core/theme. Existing uses
+# are grandfathered at the baseline below; the count may only go down.
+# Lower the baseline when you remove one.
+RADIUS_BASELINE=81
+COLOR_BASELINE=16
+
+echo -n "  raw BorderRadius.circular(<number>) outside theme... "
+COUNT=$(grep -rE 'BorderRadius\.circular\([0-9.]+\)' lib --include='*.dart' | grep -v '^lib/core/theme/' | wc -l | tr -d ' ')
+if [ "$COUNT" -gt "$RADIUS_BASELINE" ]; then
+  echo "FAIL ($COUNT > baseline $RADIUS_BASELINE; use AppRadius)"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "OK ($COUNT)"
+fi
+
+echo -n "  raw Color(0x...) outside theme... "
+COUNT=$(grep -r 'Color(0x' lib --include='*.dart' | grep -v '^lib/core/theme/\|paper_art.dart\|l10n/gen' | wc -l | tr -d ' ')
+if [ "$COUNT" -gt "$COLOR_BASELINE" ]; then
+  echo "FAIL ($COUNT > baseline $COLOR_BASELINE; use AppSemanticColors)"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "OK ($COUNT)"
+fi
+
 if [ "$ERRORS" -gt 0 ]; then
   echo ""
   echo "Found $ERRORS banned pattern(s). Fix before merging."
