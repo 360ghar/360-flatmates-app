@@ -20,7 +20,9 @@ tags:
     id: flat_shortlist_button
 - scroll
 - scroll
-- back
+# On-screen back button: Maestro's `back` works on Android only.
+- tapOn:
+    id: flat_back_button
 - extendedWaitUntil:
     visible:
       id: home_search_bar

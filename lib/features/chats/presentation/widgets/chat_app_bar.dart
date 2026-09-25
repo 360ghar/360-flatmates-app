@@ -105,6 +105,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: Padding(
         padding: const EdgeInsets.only(left: AppSpacing.sm),
         child: FlatmatesChromeIconButton(
+          key: const Key('nav_back_button'),
           icon: Icons.arrow_back_rounded,
           onPressed: () => context.pop(),
           tooltip: locale.backCta,

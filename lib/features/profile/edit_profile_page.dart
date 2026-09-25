@@ -58,8 +58,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     setState(() => _dirty = true);
   }
 
+  /// Last text seen per field. A controller also notifies on cursor and
+  /// selection moves; only a real text change marks the form dirty (a tap
+  /// into a field used to trigger the unsaved-changes dialog).
+  final _lastText = <TextEditingController, String>{};
+
   void _handleTextChanged(TextEditingController controller) {
     if (_seeding) return;
+    if (_lastText[controller] == controller.text) return;
+    _lastText[controller] = controller.text;
     if (controller == _linkedInController && _linkedInError != null) {
       setState(() => _linkedInError = null);
     }
@@ -88,6 +95,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   void initState() {
     super.initState();
     for (final controller in _textControllers) {
+      _lastText[controller] = controller.text;
       controller.addListener(() => _handleTextChanged(controller));
     }
   }
@@ -131,6 +139,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       _linkedInController.text = profile.linkedInUrl ?? '';
     } finally {
       _seeding = false;
+      for (final controller in _textControllers) {
+        _lastText[controller] = controller.text;
+      }
     }
   }
 

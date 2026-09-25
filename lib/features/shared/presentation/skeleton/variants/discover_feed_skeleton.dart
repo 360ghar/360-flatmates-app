@@ -15,9 +15,9 @@ class DiscoverFeedSkeleton extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
+        AppSpacing.screen,
         AppSpacing.lg,
-        AppSpacing.xl,
+        AppSpacing.screen,
         120,
       ),
       children: [
@@ -82,6 +82,26 @@ class DiscoverFeedSkeleton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// One row of two listing-card placeholders (no header, not scrollable).
+class DiscoverFeedCardsSkeleton extends StatelessWidget {
+  const DiscoverFeedCardsSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bone = SkeletonTokens.bone(Theme.of(context).brightness);
+    return SizedBox(
+      height: 320,
+      child: Row(
+        children: [
+          _FeedCard(bone: bone),
+          const SizedBox(width: AppSpacing.md),
+          _FeedCard(bone: bone),
+        ],
+      ),
     );
   }
 }

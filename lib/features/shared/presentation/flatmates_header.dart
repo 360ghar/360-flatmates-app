@@ -106,6 +106,7 @@ class FlatmatesHeader extends StatelessWidget implements PreferredSizeWidget {
       leading = Padding(
         padding: const EdgeInsets.only(left: AppSpacing.sm),
         child: FlatmatesChromeIconButton(
+          key: const Key('nav_back_button'),
           icon: Icons.arrow_back_rounded,
           tooltip: backTooltip,
           // maybePop so a PopScope guard (unsaved changes) still runs.

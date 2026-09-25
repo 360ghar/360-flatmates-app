@@ -118,6 +118,27 @@ void main() {
       expect(button.onPressed, isNull);
     });
 
+    testWidgets('tapping into a field does not mark the form dirty', (
+      tester,
+    ) async {
+      final widget = await _routedTestWidget(child: const EditProfilePage());
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('profile_tab_about')));
+      await tester.pumpAndSettle();
+      // Focus moves the cursor, which notifies the controller; it is not an
+      // edit, so Back must not ask to discard changes.
+      await tester.tap(find.byKey(const Key('profile_bio_input')));
+      await tester.pumpAndSettle();
+
+      final button = tester.widget<FlatmatesButton>(
+        find.byKey(const Key('profile_save_button')),
+      );
+      expect(button.onPressed, isNull);
+    });
+
     testWidgets('edit state is preserved when switching tabs', (tester) async {
       final widget = await _routedTestWidget(child: const EditProfilePage());
       await tester.pumpWidget(widget);
