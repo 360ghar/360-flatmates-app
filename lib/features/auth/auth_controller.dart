@@ -315,6 +315,41 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Runs the entry step for [identifier]: resolves its status, sends an OTP
+  /// when the next step needs one, and returns the route to open next.
+  /// `route` is null when a step failed (the error is on the state).
+  /// `unverified` is true for an existing account that is not verified.
+  Future<({String? route, bool unverified})> startIdentifierFlow(
+    String identifier,
+  ) async {
+    final status = await checkIdentifierStatus(identifier);
+    if (status == null) return (route: null, unverified: false);
+    ref.read(pendingPhoneProvider.notifier).set(identifier);
+
+    final unverified = status.exists && !status.verified;
+    final encoded = Uri.encodeComponent(identifier);
+    final isEmail = status.channel == AuthChannel.email;
+    final query = isEmail ? 'email=$encoded' : 'phone=$encoded';
+
+    // A verified account with a password logs in with the password screen.
+    if (status.nextStep == IdentifierNextStep.password) {
+      return (route: '/login?$query', unverified: unverified);
+    }
+
+    // Everything else is OTP-first. Unknown identifiers sign up; unverified
+    // accounts also allow creation, because some GoTrue versions reject a
+    // login-only OTP for unconfirmed accounts. shouldCreateUser=true never
+    // duplicates an existing account.
+    final allowCreate = !status.exists || !status.verified;
+    if (isEmail) {
+      final sent = await sendEmailOtp(identifier, isSignup: allowCreate);
+      return (route: sent ? '/otp?$query' : null, unverified: unverified);
+    }
+    await requestOtp(identifier, shouldCreateUser: allowCreate);
+    final failed = state.status == AuthStatus.error;
+    return (route: failed ? null : '/otp?$query', unverified: unverified);
+  }
+
   // ---------------------------------------------------------------------------
   // Google
   // ---------------------------------------------------------------------------

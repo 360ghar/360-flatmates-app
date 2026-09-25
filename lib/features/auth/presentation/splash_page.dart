@@ -17,13 +17,6 @@ import '../../shared/presentation/paper/paper_scene.dart';
 import '../../shared/presentation/paper/paper_surface.dart';
 import '../auth_controller.dart';
 
-final _bootstrapRecoveryQueuedProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final _bootstrapRecoveryAttemptedProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -35,12 +28,20 @@ class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
+  // Bootstrap-recovery guards (ephemeral, page-local).
+  bool _recoveryQueued = false;
+  bool _recoveryAttempted = false;
+
+  /// Entrance layers, back to front: scene, logo, tagline, subtagline,
+  /// progress strip.
+  static const _layers = 5;
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: AppMotion.staggerTotal(_layers),
     );
     _controller.forward();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -62,11 +63,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final bootstrap = ref.watch(bootstrapControllerProvider);
-    // Keep the autoDispose queued guard alive while this page is mounted.
-    ref.watch(_bootstrapRecoveryQueuedProvider);
-    final bootstrapRecoveryAttempted = ref.watch(
-      _bootstrapRecoveryAttemptedProvider,
-    );
+    final bootstrapRecoveryAttempted = _recoveryAttempted;
 
     ref.listen<AuthState>(authControllerProvider, (_, next) {
       _queueBootstrapRecoveryIfNeeded(
@@ -86,23 +83,23 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
     final logoAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.35, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 1, count: _layers),
     );
     final taglineAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.15, 0.50, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 2, count: _layers),
     );
     final subtaglineAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.30, 0.60, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 3, count: _layers),
     );
     final illustrationAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.45, 0.80, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 0, count: _layers),
     );
     final progressAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.60, 0.95, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 4, count: _layers),
     );
 
     final status = bootstrap.when(
@@ -127,8 +124,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
     // Composition: brand and tagline in the sky, the cut-paper
     // neighbourhood across the lower screen, and a torn paper strip at the
     // bottom that carries progress (or Retry).
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return FlatmatesScreen(
+      useSafeArea: false,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final sceneHeight = (constraints.maxHeight * 0.36).clamp(
@@ -217,25 +214,21 @@ class _SplashPageState extends ConsumerState<SplashPage>
     AuthState auth,
     AsyncValue<BootstrapData?> bootstrap,
   ) {
+    // Called from ref.listen and post-frame callbacks, never during build,
+    // so setState is safe here.
     if (!auth.isLoggedIn || bootstrap.valueOrNull != null) {
-      ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = false;
-      ref.read(_bootstrapRecoveryAttemptedProvider.notifier).state = false;
+      _recoveryQueued = false;
+      if (_recoveryAttempted) setState(() => _recoveryAttempted = false);
       return;
     }
-    final bootstrapRecoveryAttempted = ref.read(
-      _bootstrapRecoveryAttemptedProvider,
-    );
-    final bootstrapRecoveryQueued = ref.read(_bootstrapRecoveryQueuedProvider);
-    if (bootstrap.isLoading ||
-        bootstrapRecoveryAttempted ||
-        bootstrapRecoveryQueued) {
+    if (bootstrap.isLoading || _recoveryAttempted || _recoveryQueued) {
       return;
     }
 
-    ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = true;
+    _recoveryQueued = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(_bootstrapRecoveryQueuedProvider.notifier).state = false;
+      _recoveryQueued = false;
 
       final latestAuth = ref.read(authControllerProvider);
       final latestBootstrap = ref.read(bootstrapControllerProvider);
@@ -245,7 +238,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
         return;
       }
 
-      ref.read(_bootstrapRecoveryAttemptedProvider.notifier).state = true;
+      setState(() => _recoveryAttempted = true);
       unawaited(
         ref.read(bootstrapControllerProvider.notifier).refresh().catchError((
           Object error,
@@ -328,8 +321,9 @@ class _SplashProgress extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.6,
+        width: MediaQuery.sizeOf(context).width * 0.6,
         child: LinearProgressIndicator(
+          semanticsLabel: AppLocalizations.of(context).loadingLabel,
           minHeight: 4,
           borderRadius: AppRadius.pillBorder,
           backgroundColor: AppSemanticColors.disabledSurfaceFor(

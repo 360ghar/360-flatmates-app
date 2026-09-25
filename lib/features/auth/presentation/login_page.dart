@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -131,9 +130,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   if (auth.status == AuthStatus.error &&
                       auth.errorMessage != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    Text(
+                    FlatmatesInlineError(
                       resolveAuthError(auth.errorMessage, locale),
-                      style: const TextStyle(color: AppSemanticColors.error),
                     ),
                   ],
                 ],

@@ -90,11 +90,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   if (resetState.step == PasswordResetStep.error &&
                       resetState.failure != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    Text(
+                    FlatmatesInlineError(
                       resetState.failure!.userMessage(
                         locale.toUserMessageL10n(),
                       ),
-                      style: const TextStyle(color: AppSemanticColors.error),
                     ),
                   ],
                 ],

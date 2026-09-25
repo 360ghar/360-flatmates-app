@@ -140,27 +140,20 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
                         _confirmText.isNotEmpty &&
                         !passwordsMatch) ...[
                       const SizedBox(height: AppSpacing.md),
-                      Text(
-                        locale.passwordsDoNotMatch,
-                        style: const TextStyle(color: AppSemanticColors.error),
-                      ),
+                      FlatmatesInlineError(locale.passwordsDoNotMatch),
                     ],
                   ],
                 ),
               ),
               if (_localError != null) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text(
-                  _localError!,
-                  style: const TextStyle(color: AppSemanticColors.error),
-                ),
+                FlatmatesInlineError(_localError!),
               ],
               if (auth.status == AuthStatus.error &&
                   auth.errorMessage != null) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text(
+                FlatmatesInlineError(
                   resolveAuthError(auth.errorMessage, locale),
-                  style: const TextStyle(color: AppSemanticColors.error),
                 ),
               ],
               const SizedBox(height: AppSpacing.screen),

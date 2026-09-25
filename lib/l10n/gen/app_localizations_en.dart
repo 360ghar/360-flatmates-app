@@ -3976,4 +3976,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ageBucket46Plus => '46+';
+
+  @override
+  String get emailVerifiedLabel => 'Email verified';
 }

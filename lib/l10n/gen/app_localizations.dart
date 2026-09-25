@@ -7411,6 +7411,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'46+'**
   String get ageBucket46Plus;
+
+  /// No description provided for @emailVerifiedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verified'**
+  String get emailVerifiedLabel;
 }
 
 class _AppLocalizationsDelegate
