@@ -58,7 +58,9 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
     }
 
     final rejected =
-        rejectedToken != null && session.accessToken == rejectedToken;
+        rejectedToken != null &&
+        session.accessToken == rejectedToken &&
+        !jwtIssuedWithin(rejectedToken, const Duration(seconds: 30));
     if (rejected || session.isExpired || _isJwtExpired(session.accessToken)) {
       try {
         session = await _refreshSession(client, rejectedToken);
@@ -149,27 +151,41 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
   }
 }
 
-bool _isJwtExpired(
-  String token, {
-  Duration skew = const Duration(seconds: 10),
-}) {
+/// Reads an integer claim (seconds since epoch) from a JWT payload.
+int? _jwtSeconds(String token, String claim) {
   final parts = token.split('.');
-  if (parts.length < 2) return false;
+  if (parts.length < 2) return null;
   try {
     final payload = jsonDecode(
       utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
     );
-    if (payload is! Map) return false;
-    final exp = payload['exp'];
-    final expiry = exp is num
-        ? exp.toInt()
-        : int.tryParse(exp?.toString() ?? '');
-    if (expiry == null) return false;
-    return DateTime.now()
-        .add(skew)
-        .isAfter(DateTime.fromMillisecondsSinceEpoch(expiry * 1000));
+    if (payload is! Map) return null;
+    final value = payload[claim];
+    return value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
   } catch (e) {
-    debugPrint('_isJwtExpired: failed to decode token: $e');
-    return false;
+    debugPrint('_jwtSeconds: failed to decode token: $e');
+    return null;
   }
+}
+
+bool _isJwtExpired(
+  String token, {
+  Duration skew = const Duration(seconds: 10),
+}) {
+  final expiry = _jwtSeconds(token, 'exp');
+  if (expiry == null) return false;
+  return DateTime.now()
+      .add(skew)
+      .isAfter(DateTime.fromMillisecondsSinceEpoch(expiry * 1000));
+}
+
+/// True when [token] was issued less than [window] ago. A server 401 on such
+/// a token is not fixed by refreshing again, so the forced refresh is skipped
+/// (otherwise every request would trigger a refresh RPC).
+@visibleForTesting
+bool jwtIssuedWithin(String token, Duration window, {DateTime? now}) {
+  final issuedAt = _jwtSeconds(token, 'iat');
+  if (issuedAt == null) return false;
+  final issued = DateTime.fromMillisecondsSinceEpoch(issuedAt * 1000);
+  return (now ?? DateTime.now()).difference(issued) < window;
 }
