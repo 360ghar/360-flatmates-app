@@ -697,6 +697,7 @@
   "visitCancelConfirm": "क्या आप वाकई इस विज़िट को रद्द करना चाहते हैं?",
   "visitConfirmed": "विज़िट पुष्ट",
   "visitCancelled": "विज़िट रद्द की गई।",
+  "videoUploadFailed": "वीडियो अपलोड नहीं हो सका। फिर से कोशिश करें।",
   "videoTourLabel": "वीडियो टूर (वैकल्पिक)",
   "videoTourHint": "15-60 सेकंड का वर्टिकल वीडियो, अधिकतम 50MB",
   "addVideoCta": "वीडियो टूर जोड़ें",
@@ -1253,14 +1254,11 @@
       }
     }
   },
-  "listingSummaryPhotos": "{count} फ़ोटो{plural}",
+  "listingSummaryPhotos": "{count, plural, =1{1 फ़ोटो} other{{count} फ़ोटो}}",
   "@listingSummaryPhotos": {
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "plural": {
-        "type": "String"
       }
     }
   },
@@ -1384,14 +1382,11 @@
       }
     }
   },
-  "reviewPhotosAmount": "{count} फोटो{plural}",
+  "reviewPhotosAmount": "{count, plural, =1{1 फ़ोटो} other{{count} फ़ोटो}}",
   "@reviewPhotosAmount": {
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "plural": {
-        "type": "String"
       }
     }
   },

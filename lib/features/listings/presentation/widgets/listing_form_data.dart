@@ -96,6 +96,10 @@ typedef ListingEditScalars = ({
   String? kitchenType,
   String? ventilationType,
   String electricityIncluded,
+
+  /// Preferred flatmate age range, or null when the listing has none.
+  double? ageMin,
+  double? ageMax,
 });
 
 /// Populates [controllers] and the mutable [sets] in place from [listing] for
@@ -124,6 +128,7 @@ ListingEditScalars populateListingControllers({
   required Set<String> roomFeatures,
   required Set<String> societyAmenities,
   required Set<String> societyVibeTags,
+  required Set<String> nonNegotiables,
   required List<String> roomPhotoUrls,
   required String fallbackRoomType,
   required String fallbackSocietyType,
@@ -180,6 +185,9 @@ ListingEditScalars populateListingControllers({
   roomPhotoUrls
     ..clear()
     ..addAll(listing.imageUrls);
+  nonNegotiables
+    ..clear()
+    ..addAll((prefs['non_negotiables'] as List?)?.cast<String>() ?? const []);
   return (
     roomType: listing.sharingType ?? fallbackRoomType,
     societyType: prefs['society_type'] as String? ?? fallbackSocietyType,
@@ -197,6 +205,8 @@ ListingEditScalars populateListingControllers({
     electricityIncluded: electricityIncluded.isEmpty
         ? 'separate'
         : electricityIncluded,
+    ageMin: (prefs['preferred_age_min'] as num?)?.toDouble(),
+    ageMax: (prefs['preferred_age_max'] as num?)?.toDouble(),
   );
 }
 
@@ -450,10 +460,7 @@ class ListingFormData {
         catalogLabel('flatmates_room_types', roomType),
         roomFurnishing.length,
       ),
-      4 => locale.listingSummaryPhotos(
-        roomPhotoUrls.length,
-        roomPhotoUrls.length != 1 ? 's' : '',
-      ),
+      4 => locale.listingSummaryPhotos(roomPhotoUrls.length),
       5 => locale.listingSummaryFlat(flatConfig, floor.isEmpty ? '-' : floor),
       6 => rent.isNotEmpty ? locale.listingSummaryCosts(rent) : null,
       7 => locale.listingSummaryAbout(

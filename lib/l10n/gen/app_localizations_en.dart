@@ -1531,6 +1531,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get visitCancelled => 'Visit cancelled.';
 
   @override
+  String get videoUploadFailed => 'Could not upload the video. Try again.';
+
+  @override
   String get videoTourLabel => 'Video tour (optional)';
 
   @override
@@ -2870,8 +2873,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String listingSummaryPhotos(int count, String plural) {
-    return '$count photo$plural';
+  String listingSummaryPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3014,8 +3023,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String reviewPhotosAmount(int count, String plural) {
-    return '$count photo$plural';
+  String reviewPhotosAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
   }
 
   @override

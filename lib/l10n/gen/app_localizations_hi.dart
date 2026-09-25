@@ -1533,6 +1533,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get visitCancelled => 'विज़िट रद्द की गई।';
 
   @override
+  String get videoUploadFailed =>
+      'वीडियो अपलोड नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
   String get videoTourLabel => 'वीडियो टूर (वैकल्पिक)';
 
   @override
@@ -2885,8 +2889,14 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String listingSummaryPhotos(int count, String plural) {
-    return '$count फ़ोटो$plural';
+  String listingSummaryPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ोटो',
+      one: '1 फ़ोटो',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3028,8 +3038,14 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String reviewPhotosAmount(int count, String plural) {
-    return '$count फोटो$plural';
+  String reviewPhotosAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ोटो',
+      one: '1 फ़ोटो',
+    );
+    return '$_temp0';
   }
 
   @override

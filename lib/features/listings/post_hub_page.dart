@@ -34,54 +34,38 @@ class PostHubPage extends ConsumerWidget {
     // visible and recoverable, not a silent disappearance of the chips.
     Widget? manageCounts;
     if (activeCount != null && draftCount != null) {
-      manageCounts = Wrap(
-        spacing: AppSpacing.xs,
-        runSpacing: AppSpacing.xs,
-        children: [
-          FlatmatesChip(
-            label: locale.postHubActiveCount(activeCount),
-            variant: FlatmatesChipVariant.info,
-          ),
-          FlatmatesChip(
-            label: locale.postHubDraftCount(draftCount),
-            variant: FlatmatesChipVariant.info,
-          ),
-        ],
+      // Plain text, not a pair of pills.
+      manageCounts = Text(
+        '${locale.postHubActiveCount(activeCount)} · '
+        '${locale.postHubDraftCount(draftCount)}',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: AppSemanticColors.textPrimaryFor(theme.brightness),
+          fontWeight: FontWeight.w600,
+        ),
       );
     } else if (listings.isLoading) {
-      // Bones in the shape of the two count chips (no layout jump on load).
+      // One bone the size of the counts line (no layout jump on load).
       manageCounts = const FlatmatesSkeletonShimmer(
-        child: Wrap(
-          spacing: AppSpacing.xs,
-          children: [
-            FlatmatesSkeletonBone(
-              width: 88,
-              height: 40,
-              borderRadius: AppRadius.mdBorder,
-            ),
-            FlatmatesSkeletonBone(
-              width: 80,
-              height: 40,
-              borderRadius: AppRadius.mdBorder,
-            ),
-          ],
+        child: FlatmatesSkeletonBone(
+          width: 140,
+          height: 16,
+          borderRadius: AppRadius.xsBorder,
         ),
       );
     } else if (listings.hasError) {
       manageCounts = Wrap(
         spacing: AppSpacing.xs,
-        runSpacing: AppSpacing.xs,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text(
             locale.couldNotLoadListings,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppSemanticColors.textTertiaryFor(theme.brightness),
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
             ),
           ),
-          TextButton(
+          FlatmatesButton.tertiary(
+            label: locale.commonRetry,
             onPressed: () => ref.invalidate(myListingsProvider),
-            child: Text(locale.commonRetry),
           ),
         ],
       );
@@ -107,8 +91,14 @@ class PostHubPage extends ConsumerWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: RefreshIndicator(
+            // Keeps the spinner until the reload lands; a failure shows in
+            // the Manage card, so it is only logged here.
             onRefresh: () async {
-              ref.invalidate(myListingsProvider);
+              try {
+                final _ = await ref.refresh(myListingsProvider.future);
+              } catch (e) {
+                debugPrint('PostHubPage.onRefresh: $e');
+              }
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -166,29 +156,21 @@ class _HubCard extends StatelessWidget {
 
     return FlatmatesCard.elevated(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppSemanticColors.accent.withValues(alpha: 0.12),
-            ),
-            child: Icon(icon, size: 28, color: AppSemanticColors.accent),
+          // Bare clay icon: no tinted circle behind it.
+          Icon(
+            icon,
+            size: 32,
+            color: AppSemanticColors.clayFor(theme.brightness),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: AppSpacing.base),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                Text(title, style: theme.textTheme.titleLarge),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle,

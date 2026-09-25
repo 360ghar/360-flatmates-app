@@ -2924,6 +2924,12 @@ abstract class AppLocalizations {
   /// **'Visit cancelled.'**
   String get visitCancelled;
 
+  /// No description provided for @videoUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload the video. Try again.'**
+  String get videoUploadFailed;
+
   /// No description provided for @videoTourLabel.
   ///
   /// In en, this message translates to:
@@ -5441,8 +5447,8 @@ abstract class AppLocalizations {
   /// No description provided for @listingSummaryPhotos.
   ///
   /// In en, this message translates to:
-  /// **'{count} photo{plural}'**
-  String listingSummaryPhotos(int count, String plural);
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String listingSummaryPhotos(int count);
 
   /// No description provided for @listingSummaryFlat.
   ///
@@ -5675,8 +5681,8 @@ abstract class AppLocalizations {
   /// No description provided for @reviewPhotosAmount.
   ///
   /// In en, this message translates to:
-  /// **'{count} photo{plural}'**
-  String reviewPhotosAmount(int count, String plural);
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String reviewPhotosAmount(int count);
 
   /// Title of the page shown for an unknown route or deep link.
   ///

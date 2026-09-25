@@ -15,23 +15,6 @@ import 'presentation/widgets/listing_form_data.dart';
 import 'presentation/widgets/listing_step_header.dart';
 import 'presentation/widgets/listing_step_view.dart';
 
-// Local UI state for the create/edit listing page. autoDispose: each page
-// instance starts from the defaults, so nothing leaks across instances.
-final _createListingStepProvider = StateProvider.autoDispose<int>((ref) => 0);
-final _createListingSubmittingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final _createListingPhotosUploadingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final _createListingLoadingExistingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final _createListingValidationProvider =
-    StateProvider.autoDispose<ListingStepValidation>(
-      (ref) => kNoListingValidation,
-    );
-
 class CreateListingPage extends ConsumerStatefulWidget {
   const CreateListingPage({this.listingId, super.key});
 
@@ -44,6 +27,13 @@ class CreateListingPage extends ConsumerStatefulWidget {
 class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   /// Unsaved edits. Never shown, so a plain field (no rebuild) is enough.
   bool _dirty = false;
+
+  // Ephemeral page state (setState): each page instance starts fresh.
+  int _step = 0;
+  bool _submitting = false;
+  bool _photosUploading = false;
+  late bool _loadingExisting = widget.listingId != null;
+  ListingStepValidation _validation = kNoListingValidation;
 
   final _societyController = TextEditingController();
   final _addressController = TextEditingController();
@@ -88,7 +78,6 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   void initState() {
     super.initState();
     if (widget.listingId != null) {
-      ref.read(_createListingLoadingExistingProvider.notifier).state = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadListingForEdit(widget.listingId!);
       });
@@ -125,6 +114,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         roomFeatures: _roomFeatures,
         societyAmenities: _societyAmenities,
         societyVibeTags: _societyVibeTags,
+        nonNegotiables: _nonNegotiables,
         roomPhotoUrls: _roomPhotoUrls,
         fallbackRoomType: _roomType,
         fallbackSocietyType: _societyType,
@@ -140,14 +130,20 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         _electricityIncluded = scalars.electricityIncluded;
         _videoTourUrl = scalars.videoTourUrl;
         _availableFrom = scalars.availableFrom;
+        // Clamp to the slider range (18-50) so an odd stored value cannot
+        // assert in RangeSlider.
+        final min = (scalars.ageMin ?? _ageMin).clamp(18.0, 50.0);
+        final max = (scalars.ageMax ?? _ageMax).clamp(18.0, 50.0);
+        _ageMin = min <= max ? min : max;
+        _ageMax = max >= min ? max : min;
+        _loadingExisting = false;
       });
-      ref.read(_createListingLoadingExistingProvider.notifier).state = false;
     } catch (e) {
       debugPrint(
         'CreateListingPage._loadListingForEdit failed for listing $listingId: $e',
       );
       if (!mounted) return;
-      ref.read(_createListingLoadingExistingProvider.notifier).state = false;
+      setState(() => _loadingExisting = false);
       FlatmatesToast.error(context, locale.couldNotLoadListings);
     }
   }
@@ -193,9 +189,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     isMounted: () => mounted,
     currentPhotoCount: _roomPhotoUrls.length,
     onUrlAdded: (url) => setState(() => _roomPhotoUrls.add(url)),
-    isUploading: ref.read(_createListingPhotosUploadingProvider),
-    setUploading: (v) =>
-        ref.read(_createListingPhotosUploadingProvider.notifier).state = v,
+    isUploading: _photosUploading,
+    setUploading: (v) => setState(() => _photosUploading = v),
     clearValidation: _clearValidationFlags,
     markDirty: () => _dirty = true,
   );
@@ -206,17 +201,15 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     isMounted: () => mounted,
     formData: _formData,
     editingId: widget.listingId,
-    isSubmitting: ref.read(_createListingSubmittingProvider),
-    setSubmitting: (v) =>
-        ref.read(_createListingSubmittingProvider.notifier).state = v,
-    setStep: (s) => ref.read(_createListingStepProvider.notifier).state = s,
-    setValidation: (v) =>
-        ref.read(_createListingValidationProvider.notifier).state = v,
+    isSubmitting: _submitting,
+    setSubmitting: (v) => setState(() => _submitting = v),
+    setStep: (s) => setState(() => _step = s),
+    setValidation: (v) => setState(() => _validation = v),
     markClean: () => _dirty = false,
   );
 
   Future<bool> _confirmDiscard() async {
-    if (!_dirty || ref.read(_createListingSubmittingProvider)) {
+    if (!_dirty || _submitting) {
       return true;
     }
     final locale = AppLocalizations.of(context);
@@ -231,8 +224,15 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   }
 
   void _clearValidationFlags() {
-    ref.read(_createListingValidationProvider.notifier).state =
-        kNoListingValidation;
+    if (!mounted) return;
+    setState(() => _validation = kNoListingValidation);
+  }
+
+  void _goToStep(int step) {
+    setState(() {
+      _step = step;
+      _validation = kNoListingValidation;
+    });
   }
 
   Future<void> _handleBack() async {
@@ -245,14 +245,16 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final step = ref.watch(_createListingStepProvider);
-    final submitting = ref.watch(_createListingSubmittingProvider);
-    final photosUploading = ref.watch(_createListingPhotosUploadingProvider);
-    final loadingExisting = ref.watch(_createListingLoadingExistingProvider);
-    final validation = ref.watch(_createListingValidationProvider);
+    final step = _step;
+    final submitting = _submitting;
+    // A step change during an upload would drop the uploaded URL, so the
+    // step buttons wait for photo and video uploads.
+    final uploading = _photosUploading || _videoUploading;
+    final loadingExisting = _loadingExisting;
+    final validation = _validation;
 
     final summary = _formData.stepSummary(locale, step, _catalogLabel);
-    final canAdvance = _formData.canProceed(step) && !photosUploading;
+    final canAdvance = _formData.canProceed(step) && !uploading;
 
     return PopScope(
       canPop: false,
@@ -260,59 +262,55 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         if (didPop) return;
         unawaited(_handleBack());
       },
-      child: Scaffold(
+      child: FlatmatesScreen(
         appBar: FlatmatesHeader.logo(onBack: () => unawaited(_handleBack())),
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  ListingStepHeader(
-                    locale: locale,
+        body: Stack(
+          children: [
+            // The step header scrolls with the form, so the keyboard can
+            // never squeeze it into an overflow.
+            ListView(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+              children: [
+                ListingStepHeader(
+                  locale: locale,
+                  step: step,
+                  totalSteps: totalSteps,
+                  summary: summary,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screen,
+                  ),
+                  child: ListingStepView(
                     step: step,
-                    totalSteps: totalSteps,
-                    summary: summary,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.screen,
-                        0,
-                        AppSpacing.screen,
-                        AppSpacing.xl * 4 + AppSpacing.sm,
-                      ),
-                      children: [
-                        ListingStepView(
-                          step: step,
-                          data: _formData,
-                          catalog: _catalog,
-                          catalogLabel: _catalogLabel,
-                          showSocietyValidation: validation.society,
-                          showCityValidation: validation.city,
-                          showLocalityValidation: validation.locality,
-                          showRentValidation: validation.rent,
-                          showDepositValidation: validation.deposit,
-                          showMaintenanceValidation: validation.maintenance,
-                          showCostValidation: validation.cost,
-                          showElectricityValidation: validation.electricity,
-                          showPhotosValidation: validation.photos,
-                          callbacks: _stepCallbacks,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (loadingExisting)
-                const Positioned.fill(
-                  child: ColoredBox(
-                    color: Color(0x0D000000),
-                    child: FlatmatesSkeleton.form(itemCount: 4),
+                    data: _formData,
+                    catalog: _catalog,
+                    catalogLabel: _catalogLabel,
+                    showSocietyValidation: validation.society,
+                    showCityValidation: validation.city,
+                    showLocalityValidation: validation.locality,
+                    showRentValidation: validation.rent,
+                    showDepositValidation: validation.deposit,
+                    showMaintenanceValidation: validation.maintenance,
+                    showCostValidation: validation.cost,
+                    showElectricityValidation: validation.electricity,
+                    showPhotosValidation: validation.photos,
+                    callbacks: _stepCallbacks,
                   ),
                 ),
-            ],
-          ),
+              ],
+            ),
+            // Edit mode: the form skeleton covers the empty form on the
+            // page colour until the listing loads.
+            if (loadingExisting)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: const FlatmatesSkeleton.form(itemCount: 4),
+                ),
+              ),
+          ],
         ),
         bottomNavigationBar: FlatmatesBottomActionBar(
           primaryButtonKey: step < totalSteps - 1
@@ -326,20 +324,12 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
               : (step < totalSteps - 1
                     ? locale.onboardingNext
                     : locale.publishListingCta),
-          onPressed: submitting || photosUploading
+          onPressed: submitting || uploading
               ? null
               : (step < totalSteps - 1
                     ? (canAdvance
-                          ? () {
-                              ref
-                                      .read(_createListingStepProvider.notifier)
-                                      .state =
-                                  step + 1;
-                              _clearValidationFlags();
-                            }
-                          : () {
-                              _showInlineValidation(step);
-                            })
+                          ? () => _goToStep(step + 1)
+                          : () => _showInlineValidation(step))
                     // _submit itself gates canPublish and jumps to the first
                     // incomplete required step instead of posting empty data.
                     : _submit),
@@ -347,12 +337,8 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
               ? Icons.arrow_forward_rounded
               : Icons.upload_rounded,
           secondaryLabel: step > 0 ? locale.backCta : null,
-          secondaryOnPressed: step > 0
-              ? () {
-                  ref.read(_createListingStepProvider.notifier).state =
-                      step - 1;
-                  _clearValidationFlags();
-                }
+          secondaryOnPressed: step > 0 && !uploading
+              ? () => _goToStep(step - 1)
               : null,
           secondaryIcon: step > 0 ? Icons.arrow_back_rounded : null,
         ),
@@ -361,8 +347,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   }
 
   void _showInlineValidation(int step) {
-    ref.read(_createListingValidationProvider.notifier).state =
-        computeStepValidation(_formData, step);
+    setState(() => _validation = computeStepValidation(_formData, step));
   }
 
   ListingStepCallbacks get _stepCallbacks => ListingStepCallbacks(
@@ -389,10 +374,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     }),
     onNonNegotiableToggled: _toggleSet(_nonNegotiables),
     onAvailableFromChanged: (d) => _updateNullable(() => _availableFrom = d),
-    onGoToStep: (s) {
-      ref.read(_createListingStepProvider.notifier).state = s;
-      _clearValidationFlags();
-    },
+    onGoToStep: _goToStep,
   );
 
   ListingFormData get _formData => ListingFormData(

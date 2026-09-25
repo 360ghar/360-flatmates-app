@@ -176,10 +176,7 @@ class StepReviewSection extends StatelessWidget {
           editLabel: locale.editStep,
           children: [
             Text(
-              locale.reviewPhotosAmount(
-                d.roomPhotoUrls.length,
-                d.roomPhotoUrls.length != 1 ? 's' : '',
-              ),
+              locale.reviewPhotosAmount(d.roomPhotoUrls.length),
               style: theme.textTheme.bodyLarge,
             ),
             if (d.videoTourUrl != null)

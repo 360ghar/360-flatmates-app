@@ -37,8 +37,21 @@ class ImageUploadService {
 
   final ApiClient _apiClient;
 
+  /// Picks up to [limit] gallery images. image_picker's multi-picker throws
+  /// for a limit below 2, so a limit of 1 uses the single-image picker and a
+  /// limit below 1 picks nothing.
   Future<List<File>> pickImages({int limit = 10}) async {
+    if (limit < 1) return [];
     final picker = ImagePicker();
+    if (limit == 1) {
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+      return image == null ? [] : [File(image.path)];
+    }
     final images = await picker.pickMultiImage(
       imageQuality: 80,
       maxWidth: 1920,

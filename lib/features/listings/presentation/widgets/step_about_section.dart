@@ -131,13 +131,21 @@ class StepAboutSection extends StatelessWidget {
               FlatmatesButton.secondary(
                 label: locale.selectDateCta,
                 onPressed: () async {
+                  final first = DateUtils.dateOnly(DateTime.now());
+                  final last = first.add(const Duration(days: 180));
+                  // An older listing can carry a date outside the range;
+                  // showDatePicker asserts initialDate is inside it.
+                  final wanted =
+                      availableFrom ?? first.add(const Duration(days: 1));
                   final date = await showDatePicker(
                     context: context,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 180)),
-                    initialDate:
-                        availableFrom ??
-                        DateTime.now().add(const Duration(days: 1)),
+                    firstDate: first,
+                    lastDate: last,
+                    initialDate: wanted.isBefore(first)
+                        ? first
+                        : wanted.isAfter(last)
+                        ? last
+                        : wanted,
                   );
                   if (date != null) onAvailableFromChanged(date);
                 },
