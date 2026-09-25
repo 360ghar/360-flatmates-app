@@ -67,11 +67,17 @@ class AppShell extends ConsumerWidget {
           if (showOnboardingBanner) const OnboardingCompletionBanner(),
           // The banner takes the status-bar inset, so the page must not add
           // it again.
+          // Builder: the context must be inside the Scaffold body, whose
+          // MediaQuery has the keyboard inset removed. The shell's own
+          // context would put the inset back, and every page Scaffold would
+          // resize for the keyboard a second time.
           Expanded(
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: showOnboardingBanner,
-              child: navigationShell,
+            child: Builder(
+              builder: (context) => MediaQuery.removePadding(
+                context: context,
+                removeTop: showOnboardingBanner,
+                child: navigationShell,
+              ),
             ),
           ),
         ],
