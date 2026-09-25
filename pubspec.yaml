@@ -30,7 +30,6 @@ dependencies:
   geocoding: ^3.0.0
   geolocator: ^13.0.2
   go_router: ^16.2.1
-  google_fonts: ^6.3.2
   google_sign_in: ^7.2.0
   http: ^1.3.0
   image_picker: ^1.1.2
@@ -76,7 +75,24 @@ flutter:
     - assets/illustrations/
     - assets/legal/
     - assets/icons/
+    - assets/paper/
     - shorebird.yaml
+
+  # Gambarino ships one weight. The same file is registered under every
+  # weight a display style may request, so Flutter never fakes a bold.
+  fonts:
+    - family: Gambarino
+      fonts:
+        - asset: assets/fonts/Gambarino-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Gambarino-Regular.ttf
+          weight: 500
+        - asset: assets/fonts/Gambarino-Regular.ttf
+          weight: 600
+        - asset: assets/fonts/Gambarino-Regular.ttf
+          weight: 700
+        - asset: assets/fonts/Gambarino-Regular.ttf
+          weight: 800
 
 flutter_launcher_icons:
   android: true

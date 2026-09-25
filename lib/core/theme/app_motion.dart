@@ -1,13 +1,26 @@
 import 'package:flutter/widgets.dart';
 
-/// Canonical motion/animation tokens from DESIGN.md.
+/// Motion tokens. See DESIGN.md §7.
 ///
-/// All durations use ease-out curves only. Respect reduced motion.
+/// Content is never hidden behind motion: entrances move things that start
+/// fully visible. Every animation respects [reduceMotion].
 abstract final class AppMotion {
   // Durations
-  static const Duration fast = Duration(milliseconds: 150);
-  static const Duration standard = Duration(milliseconds: 220);
-  static const Duration slow = Duration(milliseconds: 300);
+  static const Duration fast = Duration(milliseconds: 120);
+  static const Duration standard = Duration(milliseconds: 200);
+  static const Duration slow = Duration(milliseconds: 320);
+
+  /// Delay between paper layers in an entrance (back layers first).
+  static const Duration layerStagger = Duration(milliseconds: 40);
+
+  /// Distance a layer rises into place on entrance.
+  static const double layerRise = 12;
+
+  /// Pressed scale for buttons and chips.
+  static const double pressScale = 0.98;
+
+  static const Curve paperOut = Cubic(0.2, 0.7, 0.2, 1);
+  static const Curve paperSettle = Cubic(0.3, 1.3, 0.5, 1);
 
   // Named durations for specific use-cases
   static const Duration chipSelect = fast;

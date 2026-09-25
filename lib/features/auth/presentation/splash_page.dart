@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/l10n_bridge.dart';
@@ -125,7 +124,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     Text(
                       locale.splashTaglineLine1,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
+                        fontFamily: AppTypography.displayFamily,
                         fontWeight: AppTypography.displayXlWeight,
                         fontSize: AppTypography.displayXlSize,
                         height: AppTypography.displayXlHeight,
@@ -138,7 +138,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     Text(
                       locale.splashTaglineLine2,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
+                        fontFamily: AppTypography.displayFamily,
                         fontWeight: AppTypography.displayXlWeight,
                         fontSize: AppTypography.displayXlSize,
                         height: AppTypography.displayXlHeight,
@@ -158,7 +159,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                 child: Text(
                   locale.splashSubtagline,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontWeight: AppTypography.bodySmWeight,
                     fontSize: 15,
                     height: 1.5,

@@ -144,10 +144,10 @@ class DiscoverListingCard extends StatelessWidget {
                           horizontal: AppSpacing.sm + AppSpacing.xxs,
                           vertical: AppSpacing.xs,
                         ),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppSemanticColors.canvas,
                           borderRadius: AppRadius.pillBorder,
-                          boxShadow: AppShadows.elevation,
+                          boxShadow: AppShadows.e1(theme.brightness),
                         ),
                         child: Text(
                           badgeLabel!,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_semantic_colors.dart';
@@ -259,7 +258,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
             child: Text(
               widget.subheadline,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
+              style: TextStyle(
                 fontWeight: AppTypography.bodySmWeight,
                 fontSize: AppTypography.bodySmSize,
                 height: AppTypography.bodySmHeight,
@@ -287,14 +286,14 @@ class _OnboardingContentState extends State<_OnboardingContent>
         TextSpan(
           text: parts[i],
           style: isEmphasis
-              ? GoogleFonts.inter(
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
+              ? TextStyle(
+                  fontFamily: AppTypography.displayFamily,
                   fontSize: AppTypography.displayXlSize,
                   height: AppTypography.displayXlHeight,
-                  color: textColor,
+                  color: AppSemanticColors.clayFor(brightness),
                 )
-              : GoogleFonts.inter(
+              : TextStyle(
+                  fontFamily: AppTypography.displayFamily,
                   fontWeight: AppTypography.displayXlWeight,
                   fontSize: AppTypography.displayXlSize,
                   height: AppTypography.displayXlHeight,
@@ -309,7 +308,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
       spans.add(
         TextSpan(
           text: raw,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontWeight: AppTypography.displayXlWeight,
             fontSize: AppTypography.displayXlSize,
             height: AppTypography.displayXlHeight,

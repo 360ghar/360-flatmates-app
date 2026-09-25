@@ -1,71 +1,68 @@
 import 'package:flutter/material.dart';
 
-/// Canonical shadow tokens from DESIGN.md (Airbnb single elevation tier).
+import 'app_semantic_colors.dart';
+
+/// Paper elevation. See DESIGN.md §4.
 ///
-/// The system has one float recipe or none. Depth comes from photography,
-/// white-on-white separation, and rounded clipping — not layered shadows.
+/// Light comes from the top-left, so each layer casts a tight shadow down and
+/// to the right onto the layer behind it, plus a 1 px self-coloured lip.
+/// No symmetric blur, no glow.
 abstract final class AppShadows {
-  // Airbnb float: hairline ring + soft mid + deeper low
-  static const BoxShadow _ring = BoxShadow(
-    color: Color(0x05000000), // rgba(0,0,0,0.02)
-    spreadRadius: 1,
-  );
+  static Color _edge(Brightness b) => b == Brightness.dark
+      ? AppSemanticColors.darkInk.withValues(alpha: 0.10)
+      : AppSemanticColors.ink.withValues(alpha: 0.10);
 
-  static const BoxShadow _mid = BoxShadow(
-    color: Color(0x0A000000), // rgba(0,0,0,0.04)
-    blurRadius: 6,
-    offset: Offset(0, 2),
-  );
+  static Color _ink(Brightness b, double light, double dark) =>
+      b == Brightness.dark
+      ? Colors.black.withValues(alpha: dark)
+      : AppSemanticColors.ink.withValues(alpha: light);
 
-  static const BoxShadow _low = BoxShadow(
-    color: Color(0x1A000000), // rgba(0,0,0,0.10)
-    blurRadius: 8,
-    offset: Offset(0, 4),
-  );
+  /// e1: inputs, chips, list rows.
+  static List<BoxShadow> e1(Brightness b) => [
+    BoxShadow(color: _edge(b), offset: const Offset(0, 1)),
+    BoxShadow(
+      color: _ink(b, 0.08, 0.40),
+      offset: const Offset(0, 1),
+      blurRadius: 2,
+    ),
+  ];
 
-  static const BoxShadow _ringDark = BoxShadow(
-    color: Color(0x0AFFFFFF),
-    spreadRadius: 1,
-  );
+  /// e2: cards, buttons.
+  static List<BoxShadow> e2(Brightness b) => [
+    BoxShadow(color: _edge(b), offset: const Offset(0, 1)),
+    BoxShadow(
+      color: _ink(b, 0.14, 0.50),
+      offset: const Offset(1, 3),
+      blurRadius: 4,
+      spreadRadius: -2,
+    ),
+  ];
 
-  static const BoxShadow _midDark = BoxShadow(
-    color: Color(0x33000000),
-    blurRadius: 6,
-    offset: Offset(0, 2),
-  );
+  /// e3: sheets, popovers, lifted cards.
+  static List<BoxShadow> e3(Brightness b) => [
+    BoxShadow(color: _edge(b), offset: const Offset(0, 1)),
+    BoxShadow(
+      color: _ink(b, 0.18, 0.60),
+      offset: const Offset(2, 6),
+      blurRadius: 8,
+      spreadRadius: -4,
+    ),
+  ];
 
-  static const BoxShadow _lowDark = BoxShadow(
-    color: Color(0x40000000),
-    blurRadius: 8,
-    offset: Offset(0, 4),
-  );
-
-  /// The single elevation tier used for search bar, floated cards, menus.
-  static const List<BoxShadow> elevation = [_ring, _mid, _low];
-
-  static const List<BoxShadow> elevationDark = [_ringDark, _midDark, _lowDark];
-
-  /// Flat baseline — 95% of surfaces.
+  /// Flat on its layer.
   static const List<BoxShadow> none = <BoxShadow>[];
 
-  // Per-brightness helpers for the few surfaces that read a single BoxShadow.
-  static const BoxShadow card = _mid;
-  static const BoxShadow floating = _low;
-  static const BoxShadow subtleGlow = _mid;
-
-  static const BoxShadow cardDark = _midDark;
-  static const BoxShadow floatingDark = _lowDark;
-  static const BoxShadow subtleGlowDark = _midDark;
-
-  static BoxShadow cardFor(Brightness brightness) =>
-      brightness == Brightness.dark ? cardDark : card;
-
-  static BoxShadow floatingFor(Brightness brightness) =>
-      brightness == Brightness.dark ? floatingDark : floating;
-
-  static BoxShadow subtleGlowFor(Brightness brightness) =>
-      brightness == Brightness.dark ? subtleGlowDark : subtleGlow;
-
-  static List<BoxShadow> elevationFor(Brightness brightness) =>
-      brightness == Brightness.dark ? elevationDark : elevation;
+  // ── Aliases for existing call sites ────────────────────────────────────
+  static final List<BoxShadow> elevation = e2(Brightness.light);
+  static final List<BoxShadow> elevationDark = e2(Brightness.dark);
+  static List<BoxShadow> elevationFor(Brightness b) => e2(b);
+  static BoxShadow cardFor(Brightness b) => e2(b).last;
+  static BoxShadow floatingFor(Brightness b) => e3(b).last;
+  static BoxShadow subtleGlowFor(Brightness b) => e1(b).last;
+  static final BoxShadow card = cardFor(Brightness.light);
+  static final BoxShadow floating = floatingFor(Brightness.light);
+  static final BoxShadow subtleGlow = subtleGlowFor(Brightness.light);
+  static final BoxShadow cardDark = cardFor(Brightness.dark);
+  static final BoxShadow floatingDark = floatingFor(Brightness.dark);
+  static final BoxShadow subtleGlowDark = subtleGlowFor(Brightness.dark);
 }

@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/compatibility/compatibility_engine.dart';
@@ -744,7 +743,7 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
                   child: Text(
                     widget.label,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.roboto(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: foregroundColor,
