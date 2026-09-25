@@ -130,11 +130,6 @@ abstract final class AppTheme {
       ),
     );
 
-    final buttonText = body(
-      size: AppTypography.buttonMdSize,
-      height: AppTypography.buttonMdHeight,
-      weight: AppTypography.buttonMdWeight,
-    );
     const controlShape = RoundedRectangleBorder(
       borderRadius: AppRadius.mdBorder,
     );
@@ -275,7 +270,6 @@ abstract final class AppTheme {
             const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
           shape: WidgetStateProperty.all(controlShape),
-          textStyle: WidgetStateProperty.all(buttonText),
         ),
       ),
       // Secondary actions are a soft pine fill, never an outline next to a
@@ -293,14 +287,12 @@ abstract final class AppTheme {
           ),
           side: WidgetStateProperty.all(BorderSide.none),
           shape: WidgetStateProperty.all(controlShape),
-          textStyle: WidgetStateProperty.all(buttonText),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           foregroundColor: WidgetStateProperty.all(primary),
           minimumSize: WidgetStateProperty.all(const Size(48, 48)),
-          textStyle: WidgetStateProperty.all(buttonText),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
