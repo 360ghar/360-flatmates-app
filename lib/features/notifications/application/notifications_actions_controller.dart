@@ -37,9 +37,15 @@ class NotificationsActionsController {
     }
   }
 
-  /// Reloads the first page while the current list stays on screen.
-  /// Invalidating would drop to the loading state and flash the skeleton.
+  /// Reloads the first page. A list on screen refreshes in place:
+  /// invalidating it would drop to the loading state and flash the skeleton.
+  /// A list that is not alive yet is invalidated (refresh() would create it
+  /// and then fetch twice).
   void _reloadKeepingList() {
+    if (!_ref.exists(notificationsListControllerProvider)) {
+      _ref.invalidate(notificationsListControllerProvider);
+      return;
+    }
     unawaited(
       _ref.read(notificationsListControllerProvider.notifier).refresh(),
     );
