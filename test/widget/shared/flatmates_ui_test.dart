@@ -465,7 +465,9 @@ void main() {
       );
 
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.byType(OutlinedButton), findsOneWidget);
+      // Secondary is a soft fill (DESIGN.md §8), never an outline.
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.byType(OutlinedButton), findsNothing);
     });
 
     testWidgets('tertiary variant renders label', (tester) async {
@@ -553,15 +555,7 @@ void main() {
         ),
       );
 
-      final sizedBox = tester.widget<SizedBox>(
-        find
-            .ancestor(
-              of: find.byType(FilledButton),
-              matching: find.byType(SizedBox),
-            )
-            .first,
-      );
-      expect(sizedBox.width, double.infinity);
+      expect(tester.getSize(find.byType(FilledButton)).width, 300);
     });
   });
 

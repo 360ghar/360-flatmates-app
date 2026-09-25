@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// Button variant — determines visual style.
@@ -9,26 +10,26 @@ enum FlatmatesButtonVariant {
   /// Solid primary fill.
   primary,
 
-  /// Outline with primary border.
+  /// Soft pine fill. Never an outline next to a filled button.
   secondary,
 
-  /// Text only, primary color.
+  /// Text only, clay colour.
   tertiary,
 
-  /// Circular icon-only.
+  /// Bare icon with a 48 dp tap target and no tile behind it.
   iconOnly,
 
   /// Google theme button.
   google,
 }
 
-/// Primary CTA button — solid fill with premium press feedback.
+/// Paper button: a raised sheet that presses down onto the layer below.
 ///
 /// Use named constructors for variants:
-/// - [FlatmatesButton] (default) — solid primary
-/// - [FlatmatesButton.secondary] — outline
+/// - [FlatmatesButton] (default) — clay fill
+/// - [FlatmatesButton.secondary] — soft pine fill
 /// - [FlatmatesButton.tertiary] — text only
-/// - [FlatmatesButton.icon] — circular icon-only
+/// - [FlatmatesButton.icon] — bare icon
 class FlatmatesButton extends StatefulWidget {
   const FlatmatesButton({
     required this.label,
@@ -61,7 +62,7 @@ class FlatmatesButton extends StatefulWidget {
     this.icon,
     this.destructive = false,
   }) : variant = FlatmatesButtonVariant.tertiary,
-       height = 44,
+       height = 48,
        fullWidth = false,
        tooltip = null,
        iconOnly = false;
@@ -78,7 +79,7 @@ class FlatmatesButton extends StatefulWidget {
     this.destructive = false,
   }) : variant = FlatmatesButtonVariant.iconOnly,
        label = '',
-       height = 44,
+       height = 48,
        fullWidth = false,
        iconOnly = true;
 
@@ -136,96 +137,116 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
     }
   }
 
-  Widget _buildPrimary(ThemeData theme, bool enabled) {
+  /// Press feedback shared by the filled variants: scale 0.98 and the
+  /// shadow drops from e2 to e1, as if the sheet is pressed flat.
+  Widget _paperPress({
+    required ThemeData theme,
+    required bool enabled,
+    required Widget child,
+  }) {
+    final reduce = AppMotion.reduceMotion(context);
+    final brightness = theme.brightness;
+    final shadows = !enabled
+        ? AppShadows.none
+        : _pressed
+        ? AppShadows.e1(brightness)
+        : AppShadows.e2(brightness);
     return Listener(
       onPointerDown: enabled ? (_) => setState(() => _pressed = true) : null,
       onPointerUp: enabled ? (_) => setState(() => _pressed = false) : null,
       onPointerCancel: enabled ? (_) => setState(() => _pressed = false) : null,
       child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutCubic,
-        child: SizedBox(
+        scale: _pressed && !reduce ? AppMotion.pressScale : 1.0,
+        duration: AppMotion.durationOrZero(context, AppMotion.fast),
+        curve: AppMotion.paperOut,
+        child: AnimatedContainer(
+          duration: AppMotion.durationOrZero(context, AppMotion.fast),
+          curve: AppMotion.paperOut,
           height: widget.height,
           width: widget.fullWidth ? double.infinity : null,
-          child: FilledButton(
-            onPressed: widget.onPressed,
-            style: FilledButton.styleFrom(
-              backgroundColor: widget.destructive
-                  ? AppSemanticColors.error
-                  : enabled
-                  ? AppSemanticColors.primary
-                  : AppSemanticColors.primaryDisabled,
-              foregroundColor: AppSemanticColors.onPrimary,
-              disabledBackgroundColor: AppSemanticColors.primaryDisabled,
-              disabledForegroundColor: AppSemanticColors.onPrimary,
-              shape: const RoundedRectangleBorder(
-                borderRadius: AppRadius.smBorder,
-              ),
-              elevation: 0,
-              shadowColor: Colors.transparent,
-            ),
-            child: _buildChild(theme, AppSemanticColors.onPrimary),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.mdBorder,
+            boxShadow: shadows,
           ),
+          child: child,
         ),
       ),
     );
   }
 
-  Widget _buildSecondary(ThemeData theme, bool enabled) {
-    final isDark = theme.brightness == Brightness.dark;
-    final borderColor = widget.destructive
-        ? AppSemanticColors.error
-        : (isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink);
-    final textColor = widget.destructive
-        ? AppSemanticColors.error
-        : (isDark ? AppSemanticColors.darkInk : AppSemanticColors.ink);
-
-    return Listener(
-      onPointerDown: enabled ? (_) => setState(() => _pressed = true) : null,
-      onPointerUp: enabled ? (_) => setState(() => _pressed = false) : null,
-      onPointerCancel: enabled ? (_) => setState(() => _pressed = false) : null,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutCubic,
-        child: SizedBox(
-          height: widget.height,
-          width: widget.fullWidth ? double.infinity : null,
-          child: OutlinedButton(
-            onPressed: widget.onPressed,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: textColor,
-              backgroundColor: isDark
-                  ? AppSemanticColors.darkSurface
-                  : AppSemanticColors.canvas,
-              side: BorderSide(color: borderColor),
-              shape: const RoundedRectangleBorder(
-                borderRadius: AppRadius.smBorder,
-              ),
-            ),
-            child: _buildChild(theme, textColor),
-          ),
+  Widget _buildPrimary(ThemeData theme, bool enabled) {
+    final b = theme.brightness;
+    final fill = widget.destructive
+        ? AppSemanticColors.dangerFor(b)
+        : AppSemanticColors.clayFor(b);
+    final pressedFill = widget.destructive
+        ? AppSemanticColors.errorHover
+        : AppSemanticColors.clayPressFor(b);
+    final onFill = AppSemanticColors.onClayFor(b);
+    return _paperPress(
+      theme: theme,
+      enabled: enabled,
+      child: FilledButton(
+        onPressed: widget.onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: _pressed ? pressedFill : fill,
+          foregroundColor: onFill,
+          disabledBackgroundColor: AppSemanticColors.paperDeepFor(b),
+          disabledForegroundColor: AppSemanticColors.textTertiaryFor(b),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          elevation: 0,
+          shadowColor: Colors.transparent,
         ),
+        child: _buildChild(theme, enabled ? onFill : null),
+      ),
+    );
+  }
+
+  Widget _buildSecondary(ThemeData theme, bool enabled) {
+    final b = theme.brightness;
+    final fill = widget.destructive
+        ? AppSemanticColors.errorSoftFor(b)
+        : AppSemanticColors.pineSoftFor(b);
+    final textColor = widget.destructive
+        ? AppSemanticColors.dangerFor(b)
+        : AppSemanticColors.textPrimaryFor(b);
+    return _paperPress(
+      theme: theme,
+      enabled: enabled,
+      child: FilledButton(
+        onPressed: widget.onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: fill,
+          foregroundColor: textColor,
+          disabledBackgroundColor: AppSemanticColors.paperDeepFor(b),
+          disabledForegroundColor: AppSemanticColors.textTertiaryFor(b),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+        ),
+        child: _buildChild(theme, enabled ? textColor : null),
       ),
     );
   }
 
   Widget _buildTertiary(ThemeData theme, bool enabled) {
     final textColor = widget.destructive
-        ? AppSemanticColors.error
-        : AppSemanticColors.textPrimaryFor(theme.brightness);
+        ? AppSemanticColors.dangerFor(theme.brightness)
+        : AppSemanticColors.clayFor(theme.brightness);
 
     return TextButton(
       onPressed: widget.onPressed,
-      style: TextButton.styleFrom(foregroundColor: textColor),
-      child: _buildChild(theme, textColor),
+      style: TextButton.styleFrom(
+        foregroundColor: textColor,
+        minimumSize: Size(48, widget.height),
+      ),
+      child: _buildChild(theme, enabled ? textColor : null),
     );
   }
 
   Widget _buildIconButton(ThemeData theme, bool enabled) {
     final color = widget.destructive
-        ? AppSemanticColors.error
+        ? AppSemanticColors.dangerFor(theme.brightness)
         : AppSemanticColors.textPrimaryFor(theme.brightness);
 
     return SizedBox(
@@ -234,11 +255,10 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
       child: IconButton(
         onPressed: widget.onPressed,
         tooltip: widget.tooltip,
-        icon: Icon(widget.icon, size: 22),
+        icon: Icon(widget.icon, size: 24),
         style: IconButton.styleFrom(
           foregroundColor: color,
-          backgroundColor: color.withValues(alpha: 0.1),
-          shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          minimumSize: const Size(48, 48),
         ),
       ),
     );
@@ -329,7 +349,7 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
     );
   }
 
-  Widget _buildChild(ThemeData theme, Color textColor) {
+  Widget _buildChild(ThemeData theme, Color? textColor) {
     return Row(
       mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -342,13 +362,7 @@ class _FlatmatesButtonState extends State<FlatmatesButton> {
           child: Text(
             widget.label,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: widget.variant == FlatmatesButtonVariant.primary
-                  ? null
-                  : textColor,
-            ),
+            style: theme.textTheme.labelLarge?.copyWith(color: textColor),
           ),
         ),
       ],

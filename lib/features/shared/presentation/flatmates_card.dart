@@ -5,11 +5,11 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/paper_theme.dart';
 
-/// Standard card — flat by default, 14px radius, hairline border for scannability.
-///
-/// Airbnb: most surfaces are flat; elevation is reserved for hover/float moments.
-/// List rows use a 1px hairline so white cards separate on white canvas.
+/// Paper card: a layer-two sheet with a hand-cut radius, fine grain and a
+/// tight down-right shadow (DESIGN.md §4, §8). Interactive cards press flat:
+/// scale 0.98 and the shadow drops from e2 to e1.
 class FlatmatesCard extends StatefulWidget {
   const FlatmatesCard({
     required this.child,
@@ -39,7 +39,7 @@ class FlatmatesCard extends StatefulWidget {
     this.gradient,
   }) : padding = const EdgeInsets.all(AppSpacing.md);
 
-  /// Elevated card using the single Airbnb shadow tier.
+  /// Raised card (e3), for content that floats above its neighbours.
   const FlatmatesCard.elevated({
     required this.child,
     super.key,
@@ -61,8 +61,9 @@ class FlatmatesCard extends StatefulWidget {
   final Color? backgroundColor;
   final Color? borderColor;
 
-  /// When true (default), draws a 1px hairline (or [borderColor] if set).
-  /// Set false for photo tiles / transparent chrome that must not stroke.
+  /// When true (default) the card casts its paper shadow. Set false for
+  /// transparent chrome that must stay flat. [borderColor] adds a 1.5 px
+  /// stroke, for selected states.
   final bool bordered;
   final EdgeInsetsGeometry? margin;
 
@@ -74,6 +75,7 @@ class FlatmatesCard extends StatefulWidget {
 }
 
 class _FlatmatesCardState extends State<FlatmatesCard> {
+  static const _grain = AssetImage('assets/paper/grain.png');
   bool _pressed = false;
 
   @override
@@ -87,25 +89,22 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
         (isDark ? AppSemanticColors.darkSurface : AppSemanticColors.canvas);
 
     final bool isInteractive = widget.onTap != null;
+    final raised = widget.elevation != null && widget.elevation! > 0;
     final List<BoxShadow> shadows;
-    if (widget.elevation != null && widget.elevation! > 0) {
-      shadows = AppShadows.elevationFor(theme.brightness);
-    } else if (isInteractive && _pressed) {
-      shadows = AppShadows.elevationFor(theme.brightness);
-    } else {
-      shadows = AppShadows.none;
-    }
-
-    final Border? border;
     if (!widget.bordered) {
-      border = null;
+      shadows = AppShadows.none;
+    } else if (isInteractive && _pressed) {
+      shadows = AppShadows.e1(theme.brightness);
     } else {
-      border = Border.all(
-        color:
-            widget.borderColor ??
-            AppSemanticColors.hairlineFor(theme.brightness),
-      );
+      shadows = raised
+          ? AppShadows.e3(theme.brightness)
+          : AppShadows.e2(theme.brightness);
     }
+    final borderColor = widget.borderColor;
+    final border = borderColor == null
+        ? null
+        : Border.all(color: borderColor, width: 1.5);
+    final reduce = AppMotion.reduceMotion(context);
 
     return Listener(
       onPointerDown: isInteractive
@@ -118,12 +117,14 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
           ? (_) => setState(() => _pressed = false)
           : null,
       child: AnimatedScale(
-        scale: isInteractive && _pressed ? 0.97 : 1.0,
-        duration: AppMotion.fast,
-        curve: AppMotion.easeOutCubic,
+        scale: isInteractive && _pressed && !reduce
+            ? AppMotion.pressScale
+            : 1.0,
+        duration: AppMotion.durationOrZero(context, AppMotion.fast),
+        curve: AppMotion.paperOut,
         child: AnimatedContainer(
-          duration: AppMotion.fast,
-          curve: AppMotion.easeOutCubic,
+          duration: AppMotion.durationOrZero(context, AppMotion.fast),
+          curve: AppMotion.paperOut,
           margin: widget.margin,
           decoration: BoxDecoration(
             color: widget.gradient != null ? null : resolvedBg,
@@ -131,6 +132,14 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
             borderRadius: resolvedRadius,
             border: border,
             boxShadow: shadows,
+            image: widget.bordered && widget.gradient == null
+                ? DecorationImage(
+                    image: _grain,
+                    repeat: ImageRepeat.repeat,
+                    opacity: PaperTheme.of(context).grainOpacity,
+                    scale: 2,
+                  )
+                : null,
           ),
           child: Material(
             color: Colors.transparent,
