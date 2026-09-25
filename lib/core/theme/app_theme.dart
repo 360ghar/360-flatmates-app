@@ -65,6 +65,8 @@ abstract final class AppTheme {
       fontWeight: AppTypography.displayWeight,
       fontSize: size,
       height: height,
+      // Set 0 explicitly: an unset value inherits Material 3 tracking.
+      letterSpacing: 0,
       color: textPrimary,
     );
 
@@ -77,6 +79,7 @@ abstract final class AppTheme {
       fontWeight: weight,
       fontSize: size,
       height: height,
+      letterSpacing: 0,
       color: color ?? textPrimary,
     );
 
