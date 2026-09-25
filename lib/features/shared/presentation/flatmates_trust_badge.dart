@@ -55,6 +55,7 @@ class FlatmatesTrustBadge extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
+                fontSize: compact ? 12 : null,
               ),
             ),
           ),

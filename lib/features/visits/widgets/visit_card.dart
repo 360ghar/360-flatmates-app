@@ -99,10 +99,17 @@ class VisitCard extends StatelessWidget {
                   ],
                 ),
               ),
-              FlatmatesTrustBadge(
-                variant: badgeVariant,
-                label: localizedFlatmatesVisitStatusLabel(locale, item.status),
-                compact: true,
+              // Flexible: at large text sizes the status ellipsizes instead
+              // of pushing the row past its width.
+              Flexible(
+                child: FlatmatesTrustBadge(
+                  variant: badgeVariant,
+                  label: localizedFlatmatesVisitStatusLabel(
+                    locale,
+                    item.status,
+                  ),
+                  compact: true,
+                ),
               ),
             ],
           ),
