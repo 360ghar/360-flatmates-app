@@ -3810,7 +3810,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String onboardingStepsRemaining(int count) {
-    return '$count steps left';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count steps left',
+      one: '1 step left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3979,4 +3985,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emailVerifiedLabel => 'Email verified';
+
+  @override
+  String get onboardingFinishLaterCta => 'Finish later';
+
+  @override
+  String get removePhotoTooltip => 'Remove photo';
 }

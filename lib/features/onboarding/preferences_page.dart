@@ -191,130 +191,126 @@ class _PreferencesPageState extends ConsumerState<PreferencesPage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final controllerState = ref.watch(onboardingControllerProvider);
-    final completionPct = controllerState.completionPercentage;
 
-    return FlatmatesScreen(
-      scrollable: true,
-      padding: AppSpacing.horizontalScreen,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: AppSpacing.sm),
-          FlatmatesStepProgress.segments(
-            currentStep: completionPct.round(),
-            totalSteps: 100,
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Text(locale.preferencesTitle, style: theme.textTheme.headlineLarge),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            locale.preferencesSubtitle,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+    return Material(
+      // Inside the onboarding FlatmatesScreen; see basic_info_page.dart.
+      type: MaterialType.transparency,
+      child: SingleChildScrollView(
+        padding: AppSpacing.horizontalScreen,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: AppSpacing.sm),
+            Text(locale.preferencesTitle, style: theme.textTheme.headlineLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              locale.preferencesSubtitle,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
 
-          // 1. Preferred Gender
-          _PreferenceSection(
-            icon: Icons.wc_outlined,
-            title: locale.prefGenderLabel,
-            children: [
-              _pillOptions(
-                options: _genderOptions,
-                selectedKey: _preferredGender,
-                onSelected: (v) => setState(() => _preferredGender = v),
-              ),
-            ],
-          ),
+            // 1. Preferred Gender
+            _PreferenceSection(
+              icon: Icons.wc_outlined,
+              title: locale.prefGenderLabel,
+              children: [
+                _pillOptions(
+                  options: _genderOptions,
+                  selectedKey: _preferredGender,
+                  onSelected: (v) => setState(() => _preferredGender = v),
+                ),
+              ],
+            ),
 
-          // 2. Allowed Flatmates
-          _PreferenceSection(
-            icon: Icons.group_outlined,
-            title: locale.prefFlatmatesLabel,
-            children: [
-              _pillOptions(
-                options: [
-                  const _PillOption(key: '1', label: '1'),
-                  const _PillOption(key: '2', label: '2'),
-                  const _PillOption(key: '3', label: '3'),
-                  const _PillOption(key: '4+', label: '4+'),
-                ],
-                selectedKey: _allowedFlatmates,
-                onSelected: (v) => setState(() => _allowedFlatmates = v),
-              ),
-            ],
-          ),
+            // 2. Allowed Flatmates
+            _PreferenceSection(
+              icon: Icons.group_outlined,
+              title: locale.prefFlatmatesLabel,
+              children: [
+                _pillOptions(
+                  options: [
+                    const _PillOption(key: '1', label: '1'),
+                    const _PillOption(key: '2', label: '2'),
+                    const _PillOption(key: '3', label: '3'),
+                    const _PillOption(key: '4+', label: '4+'),
+                  ],
+                  selectedKey: _allowedFlatmates,
+                  onSelected: (v) => setState(() => _allowedFlatmates = v),
+                ),
+              ],
+            ),
 
-          // 3. Food Habits
-          _PreferenceSection(
-            icon: Icons.restaurant_outlined,
-            title: locale.prefFoodLabel,
-            children: [
-              _pillOptions(
-                options: _foodOptions,
-                selectedKey: _foodHabits,
-                onSelected: (v) => setState(() => _foodHabits = v),
-              ),
-            ],
-          ),
+            // 3. Food Habits
+            _PreferenceSection(
+              icon: Icons.restaurant_outlined,
+              title: locale.prefFoodLabel,
+              children: [
+                _pillOptions(
+                  options: _foodOptions,
+                  selectedKey: _foodHabits,
+                  onSelected: (v) => setState(() => _foodHabits = v),
+                ),
+              ],
+            ),
 
-          // 4. Pets
-          _PreferenceSection(
-            icon: Icons.pets_outlined,
-            title: locale.prefPetsLabel,
-            children: [
-              _pillOptions(
-                options: _petsOptions,
-                selectedKey: _pets,
-                onSelected: (v) => setState(() => _pets = v),
-              ),
-            ],
-          ),
+            // 4. Pets
+            _PreferenceSection(
+              icon: Icons.pets_outlined,
+              title: locale.prefPetsLabel,
+              children: [
+                _pillOptions(
+                  options: _petsOptions,
+                  selectedKey: _pets,
+                  onSelected: (v) => setState(() => _pets = v),
+                ),
+              ],
+            ),
 
-          // 5. Smoking
-          _PreferenceSection(
-            icon: Icons.smoke_free_outlined,
-            title: locale.prefSmokingLabel,
-            children: [
-              _pillOptions(
-                options: _smokingOptions,
-                selectedKey: _smoking,
-                onSelected: (v) => setState(() => _smoking = v),
-              ),
-            ],
-          ),
+            // 5. Smoking
+            _PreferenceSection(
+              icon: Icons.smoke_free_outlined,
+              title: locale.prefSmokingLabel,
+              children: [
+                _pillOptions(
+                  options: _smokingOptions,
+                  selectedKey: _smoking,
+                  onSelected: (v) => setState(() => _smoking = v),
+                ),
+              ],
+            ),
 
-          // 6. Drinking
-          _PreferenceSection(
-            icon: Icons.local_bar_outlined,
-            title: locale.prefDrinkingLabel,
-            children: [
-              _pillOptions(
-                options: _drinkingOptions,
-                selectedKey: _drinking,
-                onSelected: (v) => setState(() => _drinking = v),
-              ),
-            ],
-          ),
+            // 6. Drinking
+            _PreferenceSection(
+              icon: Icons.local_bar_outlined,
+              title: locale.prefDrinkingLabel,
+              children: [
+                _pillOptions(
+                  options: _drinkingOptions,
+                  selectedKey: _drinking,
+                  onSelected: (v) => setState(() => _drinking = v),
+                ),
+              ],
+            ),
 
-          const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
-          FlatmatesButton(
-            key: const Key('onboarding_preferences_next'),
-            label: locale.prefNext,
-            fullWidth: true,
-            onPressed: () => widget.onComplete({
-              'gender_preference': _preferredGender,
-              'allowed_flatmates': _allowedFlatmates,
-              'food_habits': _foodHabits,
-              'pets': _pets,
-              'smoking': _smoking,
-              'drinking': _drinking,
-            }),
-            icon: Icons.arrow_forward_rounded,
-          ),
-        ],
+            const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
+            FlatmatesButton(
+              key: const Key('onboarding_preferences_next'),
+              label: locale.prefNext,
+              fullWidth: true,
+              onPressed: () => widget.onComplete({
+                'gender_preference': _preferredGender,
+                'allowed_flatmates': _allowedFlatmates,
+                'food_habits': _foodHabits,
+                'pets': _pets,
+                'smoking': _smoking,
+                'drinking': _drinking,
+              }),
+              icon: Icons.arrow_forward_rounded,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -364,7 +360,11 @@ class _PreferenceSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: AppSemanticColors.accent, size: 22),
+                Icon(
+                  icon,
+                  color: AppSemanticColors.clayFor(theme.brightness),
+                  size: 22,
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(

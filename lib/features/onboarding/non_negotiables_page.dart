@@ -80,20 +80,16 @@ class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final controllerState = ref.watch(onboardingControllerProvider);
-    final completionPct = controllerState.completionPercentage;
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: AppSpacing.horizontalScreen,
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: AppSpacing.horizontalScreen,
         child: ListView(
           children: [
             const SizedBox(height: AppSpacing.sm),
-            FlatmatesStepProgress.segments(
-              currentStep: completionPct.round(),
-              totalSteps: 100,
-            ),
-            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.nonNegotiablesTitle,
               style: theme.textTheme.headlineLarge,
@@ -108,17 +104,24 @@ class _NonNegotiablesPageState extends ConsumerState<NonNegotiablesPage> {
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                InfoPill(
-                  icon: Icons.info_outline,
-                  label: locale.nonNegotiablesLimit,
-                  highlighted: true,
+                // Expanded + Align: the pill keeps its own width but wraps
+                // instead of overflowing at large text or in Hindi.
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: InfoPill(
+                      icon: Icons.info_outline,
+                      label: locale.nonNegotiablesLimit,
+                      highlighted: true,
+                    ),
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   '${_selected.length}/3',
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: _selected.length >= 3
-                        ? AppSemanticColors.accent
+                        ? AppSemanticColors.clayFor(theme.brightness)
                         : AppSemanticColors.textSecondaryFor(theme.brightness),
                     fontWeight: FontWeight.w600,
                   ),

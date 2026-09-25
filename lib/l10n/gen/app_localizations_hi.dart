@@ -3993,4 +3993,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get emailVerifiedLabel => 'ईमेल सत्यापित';
+
+  @override
+  String get onboardingFinishLaterCta => 'बाद में पूरा करें';
+
+  @override
+  String get removePhotoTooltip => 'फ़ोटो हटाएं';
 }

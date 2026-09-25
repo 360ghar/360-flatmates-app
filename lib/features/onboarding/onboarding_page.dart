@@ -28,7 +28,6 @@ class OnboardingPage extends ConsumerWidget {
     final state = ref.watch(onboardingControllerProvider);
     final controller = ref.read(onboardingControllerProvider.notifier);
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     if (!state.isHydrated) {
       // Draft is still being read from SharedPreferences; render a placeholder
@@ -63,35 +62,12 @@ class OnboardingPage extends ConsumerWidget {
           state.failure?.userMessage(locale.toUserMessageL10n()) ??
           locale.onboardingSubmitError;
       return FlatmatesScreen(
-        body: Center(
-          child: Padding(
-            padding: AppSpacing.horizontalScreen,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  size: 48,
-                  color: AppSemanticColors.error,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(message, textAlign: TextAlign.center),
-                const SizedBox(height: AppSpacing.lg),
-                FlatmatesButton(
-                  key: const Key('onboarding_submit_retry'),
-                  label: locale.commonRetry,
-                  onPressed: () =>
-                      controller.submitNonNegotiables(state.nonNegotiables),
-                  fullWidth: true,
-                ),
-              ],
-            ),
-          ),
+        body: FlatmatesErrorState(
+          message: message,
+          onRetry: () => controller.submitNonNegotiables(state.nonNegotiables),
         ),
       );
     }
-
-    final progress = state.completionPercentage / 100;
 
     final stepWidget = switch (state.step) {
       OnboardingStep.splash => OnboardingSplashPages(
@@ -102,7 +78,6 @@ class OnboardingPage extends ConsumerWidget {
       ),
       OnboardingStep.locationSelection => LocationSelectionPage(
         onLocationSelected: controller.setLocation,
-        onBack: () => unawaited(controller.goBack()),
       ),
       OnboardingStep.basicInfo => BasicInfoPage(
         onNext: controller.setBasicInfo,
@@ -141,118 +116,16 @@ class OnboardingPage extends ConsumerWidget {
       child: FlatmatesScreen(
         body: Column(
           children: [
-            // Progress indicator
             if (state.step != OnboardingStep.splash)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl,
-                  AppSpacing.lg,
-                  AppSpacing.xl,
-                  0,
-                ),
-                child: Column(
-                  children: [
-                    // Phase label (Essentials / Lifestyle & preferences).
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        state.phase == OnboardingPhase.essentials
-                            ? locale.onboardingPhaseOneTitle
-                            : locale.onboardingPhaseTwoTitle,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppSemanticColors.accent,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    // Welcome-back only when a local draft was restored.
-                    if (controller.resumedFromDraft &&
-                        state.completionPercentage > 0 &&
-                        state.step != OnboardingStep.modeSelection)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: Text(
-                          locale.onboardingWelcomeBack,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppSemanticColors.textSecondaryFor(
-                              theme.brightness,
-                            ),
-                          ),
-                        ),
-                      ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                locale.onboardingProgressTitle,
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _stepLabel(state.step, locale).isEmpty
-                                    ? locale.onboardingStepsRemaining(
-                                        state.remainingSteps,
-                                      )
-                                    : '${_stepLabel(state.step, locale)} · '
-                                          '${locale.onboardingStepsRemaining(state.remainingSteps)}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppSemanticColors.textSecondaryFor(
-                                    theme.brightness,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${state.completionPercentage.toInt()}%',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: AppSemanticColors.accent,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: progress),
-                      duration: AppMotion.pageTransition,
-                      curve: AppMotion.easeOutCubic,
-                      builder: (context, animatedValue, child) {
-                        return LinearProgressIndicator(
-                          value: animatedValue,
-                          backgroundColor: AppSemanticColors.disabledSurfaceFor(
-                            theme.brightness,
-                          ),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            AppSemanticColors.accent,
-                          ),
-                        );
-                      },
-                    ),
-                    // Setup is a *soft* gate: leaving is allowed. The AppShell
-                    // banner keeps reminding the user, and the router still
-                    // gates Swipe / Post / Chats until setup is finished.
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: FlatmatesButton.tertiary(
-                        key: const Key('onboarding_exit_cta'),
-                        label: locale.skipCta,
-                        onPressed: () => context.go('/discover'),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
-                ),
+              _OnboardingProgressHeader(
+                state: state,
+                showWelcomeBack:
+                    controller.resumedFromDraft &&
+                    state.completionPercentage > 0 &&
+                    state.step != OnboardingStep.modeSelection,
+                onBack: controller.canGoBack
+                    ? () => unawaited(controller.goBack())
+                    : null,
               ),
             // Step content
             Expanded(child: stepWidget),
@@ -279,4 +152,118 @@ String _stepLabel(OnboardingStep step, AppLocalizations locale) {
     OnboardingStep.preferences => locale.onboardingStepPreferences,
     OnboardingStep.nonNegotiables => locale.onboardingStepNonNegotiables,
   };
+}
+
+/// Progress for every step after the splash: Back (when there is an earlier
+/// step), the phase and step, "Finish later", and one progress bar.
+class _OnboardingProgressHeader extends StatelessWidget {
+  const _OnboardingProgressHeader({
+    required this.state,
+    required this.showWelcomeBack,
+    required this.onBack,
+  });
+
+  final OnboardingState state;
+  final bool showWelcomeBack;
+
+  /// Null on the first step: there is nothing to go back to.
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final secondary = AppSemanticColors.textSecondaryFor(brightness);
+    final stepLabel = _stepLabel(state.step, locale);
+    final remaining = locale.onboardingStepsRemaining(state.remainingSteps);
+    final percent = state.completionPercentage;
+
+    // Chrome, like the tab strip: text scales, capped at 1.5x so the row
+    // still fits a 320 dp phone.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.5,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screen,
+          AppSpacing.sm,
+          AppSpacing.screen,
+          AppSpacing.sm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // App-bar row: Back on the left, Finish later on the right.
+            Row(
+              children: [
+                if (onBack != null)
+                  FlatmatesChromeIconButton(
+                    key: const Key('onboarding_back'),
+                    onPressed: onBack,
+                    icon: Icons.arrow_back_rounded,
+                    tooltip: locale.backCta,
+                  ),
+                const Spacer(),
+                // Setup is a soft gate: leaving is allowed. The shell banner
+                // keeps reminding the user, and the router still gates Swipe,
+                // Post and Chats until setup is finished.
+                FlatmatesButton.tertiary(
+                  key: const Key('onboarding_exit_cta'),
+                  label: locale.onboardingFinishLaterCta,
+                  onPressed: () => context.go('/discover'),
+                ),
+              ],
+            ),
+            Text(
+              state.phase == OnboardingPhase.essentials
+                  ? locale.onboardingPhaseOneTitle
+                  : locale.onboardingPhaseTwoTitle,
+              style: theme.textTheme.labelMedium,
+            ),
+            Text(
+              stepLabel.isEmpty ? remaining : '$stepLabel · $remaining',
+              style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+            ),
+            if (showWelcomeBack)
+              Text(
+                locale.onboardingWelcomeBack,
+                style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+              ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: percent / 100),
+                    duration: AppMotion.durationOrZero(context, AppMotion.slow),
+                    curve: AppMotion.paperOut,
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: AppSpacing.xs,
+                      borderRadius: AppRadius.pillBorder,
+                      semanticsLabel: locale.onboardingProgressTitle,
+                      backgroundColor: AppSemanticColors.disabledSurfaceFor(
+                        brightness,
+                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppSemanticColors.clayFor(brightness),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  '${percent.toInt()}%',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppSemanticColors.clayFor(brightness),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

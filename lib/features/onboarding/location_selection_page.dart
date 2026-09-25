@@ -15,17 +15,9 @@ import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 
 class LocationSelectionPage extends ConsumerStatefulWidget {
-  const LocationSelectionPage({
-    required this.onLocationSelected,
-    super.key,
-    this.onBack,
-  });
+  const LocationSelectionPage({required this.onLocationSelected, super.key});
 
   final void Function(Map<String, String?> data) onLocationSelected;
-
-  /// Steps back to the previous onboarding step. Falls back to the system pop
-  /// when null.
-  final VoidCallback? onBack;
 
   @override
   ConsumerState<LocationSelectionPage> createState() =>
@@ -178,7 +170,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         ...cities.map(
           (city) => Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
@@ -212,9 +204,12 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
         ? const <CatalogOption>[]
         : catalogCities.where((c) => cityMatchesQuery(c, typedCity)).toList();
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
           AppSpacing.screen,
           AppSpacing.lg,
           AppSpacing.screen,
@@ -223,50 +218,39 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FlatmatesChromeIconButton(
-                onPressed: widget.onBack ?? () => context.pop(),
-                icon: Icons.arrow_back_rounded,
-                tooltip: locale.backCta,
-              ),
-            ),
-            const SizedBox(height: 28),
-            const FlatmatesStepProgress.dots(currentStep: 1, totalSteps: 4),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              locale.locationSelectionTitle,
-              style: theme.textTheme.headlineLarge,
-            ),
-            const SizedBox(height: 20),
-            FlatmatesSearchBar(
-              controller: _searchController,
-              hint: locale.searchCityOrAreaHint,
-              onChanged: (value) {
-                final selectedCity = _selectedCity;
-                if (selectedCity != null &&
-                    value.trim() != selectedCity.label) {
-                  _selectedCity = null;
-                }
-                setState(() {});
-              },
-            ),
-            const SizedBox(height: 18),
-            LocationActionRow(
-              icon: Icons.my_location_outlined,
-              title: locating
-                  ? locale.detectingLocation
-                  : locale.useCurrentLocation,
-              onTap: locating ? null : _useCurrentLocation,
-              vertical: 10,
-            ),
-            const SizedBox(height: 18),
-            Divider(color: AppSemanticColors.hairlineFor(theme.brightness)),
+            // Everything above the CTA scrolls, so the list keeps room
+            // when the keyboard is open.
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      locale.locationSelectionTitle,
+                      style: theme.textTheme.headlineLarge,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    FlatmatesSearchBar(
+                      controller: _searchController,
+                      hint: locale.searchCityOrAreaHint,
+                      onChanged: (value) {
+                        final selectedCity = _selectedCity;
+                        if (selectedCity != null &&
+                            value.trim() != selectedCity.label) {
+                          _selectedCity = null;
+                        }
+                        setState(() {});
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.base),
+                    LocationActionRow(
+                      icon: Icons.my_location_outlined,
+                      title: locating
+                          ? locale.detectingLocation
+                          : locale.useCurrentLocation,
+                      onTap: locating ? null : _useCurrentLocation,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
                     if (typedCity.isEmpty) ...[
                       _citySection(locale.popularCitiesLabel, popularCities),
                       if (popularCities.isNotEmpty && moreCities.isNotEmpty)
@@ -277,18 +261,9 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
                       const SizedBox(height: AppSpacing.sm),
                     ],
                     if (isPlacesLoading)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        child: Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                      ),
+                      const FlatmatesSkeleton.list(itemCount: 3),
                     if (hasPlacesResults) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         locale.suggestionsLabel,
                         style: theme.textTheme.labelMedium?.copyWith(
@@ -298,7 +273,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       ...searchState.suggestions.map(
                         (suggestion) => Padding(
                           padding: const EdgeInsets.symmetric(
@@ -312,7 +287,7 @@ class _LocationSelectionPageState extends ConsumerState<LocationSelectionPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                     ],
                   ],
                 ),

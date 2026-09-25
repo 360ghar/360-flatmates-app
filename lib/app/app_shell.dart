@@ -64,7 +64,15 @@ class AppShell extends ConsumerWidget {
       body: Column(
         children: [
           if (showOnboardingBanner) const OnboardingCompletionBanner(),
-          Expanded(child: navigationShell),
+          // The banner takes the status-bar inset, so the page must not add
+          // it again.
+          Expanded(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: showOnboardingBanner,
+              child: navigationShell,
+            ),
+          ),
         ],
       ),
       // Paper tab strip: layer one with a torn top edge; the active tab

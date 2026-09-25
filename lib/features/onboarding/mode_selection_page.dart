@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
@@ -10,17 +9,12 @@ import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
 
 class ModeSelectionPage extends ConsumerStatefulWidget {
-  const ModeSelectionPage({
-    required this.onModeSelected,
-    super.key,
-    this.onBack,
-  });
+  const ModeSelectionPage({required this.onModeSelected, super.key});
 
   final void Function(String mode) onModeSelected;
 
   /// Optional back handler. Mode selection is the first interactive step, so
   /// this is normally null and no back affordance is shown.
-  final VoidCallback? onBack;
 
   @override
   ConsumerState<ModeSelectionPage> createState() => _ModeSelectionPageState();
@@ -28,8 +22,6 @@ class ModeSelectionPage extends ConsumerStatefulWidget {
 
 class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
   String? _selectedMode;
-
-  static const _totalSteps = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +50,12 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
             ),
           ];
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
           AppSpacing.screen,
           AppSpacing.lg,
           AppSpacing.screen,
@@ -69,49 +64,28 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Back arrow (only when a back handler is provided) ---
-            if (widget.onBack != null) ...[
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FlatmatesChromeIconButton(
-                  key: const Key('mode_selection_back'),
-                  onPressed: widget.onBack,
-                  icon: Icons.arrow_back_rounded,
-                  tooltip: locale.backCta,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            // --- Progress indicator using shared component ---
-            const FlatmatesStepProgress.dots(
-              currentStep: 0,
-              totalSteps: _totalSteps,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            // --- Heading & subtitle ---
-            Text(
-              locale.modeSelectionTitle,
-              style: theme.textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 26,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              locale.modeSelectionSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppSemanticColors.textSecondaryFor(theme.brightness),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            // --- Option cards ---
-            Flexible(
+            // Heading, subtitle and cards scroll together; the CTA stays.
+            Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ...modes.map((mode) {
-                      return Padding(
+                    Text(
+                      locale.modeSelectionTitle,
+                      style: theme.textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      locale.modeSelectionSubtitle,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    for (final mode in modes)
+                      Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: _ModeCard(
                           key: Key('mode_${mode.id}'),
@@ -122,18 +96,13 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
                           isSelected: _selectedMode == mode.id,
                           onTap: () => setState(() => _selectedMode = mode.id),
                         ),
-                      );
-                    }),
+                      ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            // --- CTA ---
             Padding(
-              padding: const EdgeInsets.only(
-                bottom: AppSpacing.screen + AppSpacing.sm,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
               child: FlatmatesButton(
                 key: const Key('mode_continue'),
                 label: locale.modeContinue,
@@ -159,7 +128,7 @@ class _ModeSelectionPageState extends ConsumerState<ModeSelectionPage> {
   }
 }
 
-class _ModeCard extends StatefulWidget {
+class _ModeCard extends StatelessWidget {
   const _ModeCard({
     required this.icon,
     required this.title,
@@ -176,81 +145,51 @@ class _ModeCard extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_ModeCard> createState() => _ModeCardState();
-}
-
-class _ModeCardState extends State<_ModeCard> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final clay = AppSemanticColors.clayFor(brightness);
 
-    return Listener(
-      onPointerDown: (_) => setState(() => _pressed = true),
-      onPointerUp: (_) => setState(() => _pressed = false),
-      onPointerCancel: (_) => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutBack,
-        child: FlatmatesCard(
-          onTap: widget.onTap,
-          borderColor: widget.isSelected
-              ? AppSemanticColors.accent
-              : AppSemanticColors.hairlineFor(
-                  theme.brightness,
-                ).withValues(alpha: 0.4),
-          elevation: widget.isSelected ? 2 : 0.5,
-          child: Row(
-            children: [
-              // Left: circle with icon
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.accent.withAlpha(25),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  widget.icon,
-                  color: AppSemanticColors.accent,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              // Center: title + description
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+    // FlatmatesCard owns the press feedback. Selected = clay-soft fill and a
+    // clay edge (DESIGN.md §8), plus a check in place of the chevron.
+    return Semantics(
+      selected: isSelected,
+      inMutuallyExclusiveGroup: true,
+      child: FlatmatesCard(
+        onTap: onTap,
+        backgroundColor: isSelected
+            ? AppSemanticColors.coralSoftFor(brightness)
+            : null,
+        borderColor: isSelected
+            ? clay
+            : AppSemanticColors.hairlineFor(brightness).withValues(alpha: 0.4),
+        child: Row(
+          children: [
+            Icon(icon, color: clay, size: 28),
+            const SizedBox(width: AppSpacing.base),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleLarge),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(brightness),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      widget.description,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppSemanticColors.textSecondaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              // Right: chevron
-              Icon(
-                Icons.chevron_right,
-                color: AppSemanticColors.textTertiaryFor(theme.brightness),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Icon(
+              isSelected ? Icons.check_circle_rounded : Icons.chevron_right,
+              color: isSelected
+                  ? clay
+                  : AppSemanticColors.textTertiaryFor(brightness),
+            ),
+          ],
         ),
       ),
     );

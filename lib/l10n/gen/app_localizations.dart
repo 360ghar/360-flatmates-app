@@ -7103,7 +7103,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingStepsRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count} steps left'**
+  /// **'{count, plural, =1{1 step left} other{{count} steps left}}'**
   String onboardingStepsRemaining(int count);
 
   /// No description provided for @onboardingStepOf.
@@ -7417,6 +7417,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email verified'**
   String get emailVerifiedLabel;
+
+  /// No description provided for @onboardingFinishLaterCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish later'**
+  String get onboardingFinishLaterCta;
+
+  /// No description provided for @removePhotoTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhotoTooltip;
 }
 
 class _AppLocalizationsDelegate

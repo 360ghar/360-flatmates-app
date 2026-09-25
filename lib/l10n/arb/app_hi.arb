@@ -1872,5 +1872,7 @@
   "ageBucket36_40": "36-40",
   "ageBucket41_45": "41-45",
   "ageBucket46Plus": "46+",
-  "emailVerifiedLabel": "ईमेल सत्यापित"
+  "emailVerifiedLabel": "ईमेल सत्यापित",
+  "onboardingFinishLaterCta": "बाद में पूरा करें",
+  "removePhotoTooltip": "फ़ोटो हटाएं"
 }

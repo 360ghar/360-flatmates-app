@@ -1821,7 +1821,7 @@
 
   "onboardingBannerTitle": "Complete your profile to start matching",
   "onboardingBannerCta": "Continue setup",
-  "onboardingStepsRemaining": "{count} steps left",
+  "onboardingStepsRemaining": "{count, plural, =1{1 step left} other{{count} steps left}}",
   "@onboardingStepsRemaining": {
     "placeholders": {
       "count": {
@@ -1907,5 +1907,7 @@
   "ageBucket36_40": "36-40",
   "ageBucket41_45": "41-45",
   "ageBucket46Plus": "46+",
-  "emailVerifiedLabel": "Email verified"
+  "emailVerifiedLabel": "Email verified",
+  "onboardingFinishLaterCta": "Finish later",
+  "removePhotoTooltip": "Remove photo"
 }

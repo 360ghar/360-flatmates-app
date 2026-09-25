@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../core/theme/app_radius.dart';
 import '../shared/presentation/components.dart';
@@ -44,8 +43,10 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
     final pageCount = _pageProps.length;
     final isLast = _page == pageCount - 1;
 
-    return FlatmatesScreen(
-      body: Column(
+    // Inside the onboarding FlatmatesScreen, which owns the scaffold.
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
         children: [
           Expanded(
             child: PageView.builder(
@@ -70,7 +71,6 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
               ),
             ),
           ),
-          // --- Step progress dots (outline circles, active filled) ---
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screen,
@@ -78,9 +78,10 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
               AppSpacing.screen,
               AppSpacing.md,
             ),
-            child: _OutlineDotsProgress(
+            child: FlatmatesStepProgress.dots(
               currentStep: _page,
               totalSteps: pageCount,
+              semanticsLabel: locale.onboardingStepOf(_page + 1, pageCount),
             ),
           ),
           // --- Action buttons ---
@@ -100,67 +101,37 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
                     fullWidth: true,
                   )
                 : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      FlatmatesButton.tertiary(
-                        key: const Key('onboarding_skip'),
-                        label: locale.onboardingSkip,
-                        onPressed: widget.onComplete,
-                      ),
-                      FlatmatesButton(
-                        key: const Key('onboarding_next'),
-                        label: locale.onboardingNext,
-                        onPressed: () => _controller.nextPage(
-                          duration: AppMotion.pageTransition,
-                          curve: AppMotion.easeOutCubic,
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: FlatmatesButton.tertiary(
+                            key: const Key('onboarding_skip'),
+                            label: locale.onboardingSkip,
+                            onPressed: widget.onComplete,
+                          ),
                         ),
-                        icon: Icons.arrow_forward_rounded,
-                        height: 44,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Flexible(
+                        child: FlatmatesButton(
+                          key: const Key('onboarding_next'),
+                          label: locale.onboardingNext,
+                          onPressed: () => _controller.nextPage(
+                            duration: AppMotion.durationOrZero(
+                              context,
+                              AppMotion.slow,
+                            ),
+                            curve: AppMotion.paperOut,
+                          ),
+                          icon: Icons.arrow_forward_rounded,
+                        ),
                       ),
                     ],
                   ),
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Outline-circle dot progress matching Screen 02 spec:
-/// "4 dots, outline style, active = filled terracotta circle, centered above buttons."
-class _OutlineDotsProgress extends StatelessWidget {
-  const _OutlineDotsProgress({
-    required this.currentStep,
-    required this.totalSteps,
-  });
-
-  final int currentStep;
-  final int totalSteps;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(totalSteps, (index) {
-        final isActive = index == currentStep;
-        final isCompleted = index < currentStep;
-
-        return AnimatedContainer(
-          duration: AppMotion.durationOrZero(context, AppMotion.standard),
-          curve: AppMotion.paperOut,
-          margin: EdgeInsets.only(
-            right: index < totalSteps - 1 ? AppSpacing.md : 0,
-          ),
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: isActive || isCompleted
-                ? AppSemanticColors.clayFor(Theme.of(context).brightness)
-                : AppSemanticColors.paperDeepFor(Theme.of(context).brightness),
-            shape: BoxShape.circle,
-          ),
-        );
-      }),
     );
   }
 }
@@ -194,7 +165,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: AppMotion.staggerTotal(3),
     );
     _controller.forward();
   }
@@ -213,23 +184,21 @@ class _OnboardingContentState extends State<_OnboardingContent>
 
     final illustrationAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.40, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 0, count: 3),
     );
     final headlineAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.15, 0.55, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 1, count: 3),
     );
     final subheadlineAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.30, 0.65, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 2, count: 3),
     );
 
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
         controller: _scroll,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screen + AppSpacing.lg,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Column(
@@ -251,11 +220,12 @@ class _OnboardingContentState extends State<_OnboardingContent>
               // Headline — Gambarino display
               _StaggeredFadeSlide(
                 animation: headlineAnim,
-                child: RichText(
+                // `**` markers in the copy carry no style: emphasis is size
+                // and colour, and the headline is one ink colour.
+                child: Text(
+                  widget.headline.replaceAll('**', ''),
                   textAlign: TextAlign.center,
-                  text: TextSpan(
-                    children: _buildStyledHeadline(widget.headline, brightness),
-                  ),
+                  style: theme.textTheme.headlineMedium,
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -265,10 +235,7 @@ class _OnboardingContentState extends State<_OnboardingContent>
                 child: Text(
                   widget.subheadline,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: AppTypography.bodySmWeight,
-                    fontSize: AppTypography.bodySmSize,
-                    height: AppTypography.bodySmHeight,
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppSemanticColors.textSecondaryFor(brightness),
                   ),
                 ),
@@ -278,57 +245,6 @@ class _OnboardingContentState extends State<_OnboardingContent>
         ),
       ),
     );
-  }
-
-  /// Splits headline by **bold** markers.
-  /// Both parts use the Gambarino display style in one ink colour.
-  List<InlineSpan> _buildStyledHeadline(String raw, Brightness brightness) {
-    final parts = raw.split(RegExp(r'\*\*'));
-    final spans = <InlineSpan>[];
-    final textColor = AppSemanticColors.textPrimaryFor(brightness);
-
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].isEmpty) continue;
-      final isEmphasis = i.isOdd;
-
-      spans.add(
-        TextSpan(
-          text: parts[i],
-          style: isEmphasis
-              ? TextStyle(
-                  fontFamily: AppTypography.displayFamily,
-                  fontSize: AppTypography.displayXlSize,
-                  height: AppTypography.displayXlHeight,
-                  color: textColor,
-                )
-              : TextStyle(
-                  fontFamily: AppTypography.displayFamily,
-                  fontWeight: AppTypography.displayXlWeight,
-                  fontSize: AppTypography.displayXlSize,
-                  height: AppTypography.displayXlHeight,
-                  letterSpacing: AppTypography.displayXlLetterSpacing,
-                  color: textColor,
-                ),
-        ),
-      );
-    }
-    // If no ** markers found, render entire text as Inter display
-    if (spans.isEmpty) {
-      spans.add(
-        TextSpan(
-          text: raw,
-          style: TextStyle(
-            fontFamily: AppTypography.displayFamily,
-            fontWeight: AppTypography.displayXlWeight,
-            fontSize: AppTypography.displayXlSize,
-            height: AppTypography.displayXlHeight,
-            letterSpacing: AppTypography.displayXlLetterSpacing,
-            color: textColor,
-          ),
-        ),
-      );
-    }
-    return spans;
   }
 }
 
