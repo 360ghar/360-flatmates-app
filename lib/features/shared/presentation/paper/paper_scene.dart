@@ -96,7 +96,23 @@ class PaperScene extends StatelessWidget {
           ),
       ],
     );
-    if (_compact) {
+    if (!_compact) {
+      // Buildings cut by the screen edge fade into the sky instead of
+      // ending in a hard slice.
+      landscape = ShaderMask(
+        blendMode: BlendMode.dstIn,
+        shaderCallback: (rect) => const LinearGradient(
+          colors: [
+            Color(0x00000000),
+            Color(0xFF000000),
+            Color(0xFF000000),
+            Color(0x00000000),
+          ],
+          stops: [0, 0.07, 0.93, 1],
+        ).createShader(rect),
+        child: landscape,
+      );
+    } else {
       // Feather the sides and the bottom so the hills dissolve into the page
       // (no hard seam against whatever surface holds the scene).
       landscape = ShaderMask(
