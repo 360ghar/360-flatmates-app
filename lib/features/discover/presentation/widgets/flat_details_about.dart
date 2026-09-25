@@ -6,7 +6,6 @@ import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/components.dart';
-import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/profile_sections.dart';
 import '../../domain/property_listing.dart';
 
@@ -27,12 +26,11 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final l = widget.listing;
-    final isDark = theme.brightness == Brightness.dark;
     final desc = l.description?.trim();
     final isLong = (desc?.length ?? 0) > 120;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: AppSpacing.horizontalScreen,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,28 +46,19 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
                   overflow: _expanded
                       ? TextOverflow.visible
                       : TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.6,
-                    color: AppSemanticColors.textPrimaryFor(
-                      isDark ? Brightness.dark : Brightness.light,
-                    ).withValues(alpha: 0.85),
+                  // Long-form text: the body role (16/24).
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
                 ),
                 if (isLong)
-                  TextButton(
-                    onPressed: () => setState(() => _expanded = !_expanded),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      _expanded ? locale.showLessCta : locale.readMoreCta,
-                      style: const TextStyle(
-                        color: AppSemanticColors.accent,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
+                  Semantics(
+                    expanded: _expanded,
+                    child: FlatmatesButton.tertiary(
+                      label: _expanded
+                          ? locale.showLessCta
+                          : locale.readMoreCta,
+                      onPressed: () => setState(() => _expanded = !_expanded),
                     ),
                   ),
               ],
@@ -78,16 +67,18 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
             Text(
               locale.noDescriptionAvailable,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppSemanticColors.textSecondaryFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
+                color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
           const SizedBox(height: AppSpacing.screen),
 
           // Costs breakdown — accentSoft total card + line items, inspired by
           // the swipe card's CostsSection.
-          _CostsBreakdown(listing: l, locale: locale, isDark: isDark),
+          _CostsBreakdown(
+            listing: l,
+            locale: locale,
+            isDark: theme.brightness == Brightness.dark,
+          ),
           const SizedBox(height: AppSpacing.screen),
 
           // Availability grid
@@ -171,8 +162,7 @@ class _CostsBreakdown extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${locale.estimatedTotalLabel} · ${locale.perMonthSuffix}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
                 ),
@@ -180,10 +170,9 @@ class _CostsBreakdown extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 FlatmatesPriceText.formatRupee(totalMonthly.round()),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppSemanticColors.accent,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: AppSemanticColors.clayInkFor(theme.brightness),
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -264,13 +253,10 @@ class _AvailabilityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: AppSpacing.edgeMd,
       decoration: BoxDecoration(
-        color: AppSemanticColors.secondarySurfaceFor(
-          isDark ? Brightness.dark : Brightness.light,
-        ),
+        color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
         borderRadius: AppRadius.mdBorder,
         border: Border.all(
           color: AppSemanticColors.hairlineFor(
@@ -283,15 +269,17 @@ class _AvailabilityTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: AppSemanticColors.accent),
+              Icon(
+                icon,
+                size: 14,
+                color: AppSemanticColors.clayFor(theme.brightness),
+              ),
               const SizedBox(width: AppSpacing.xs),
               Flexible(
                 child: Text(
                   label,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(
-                      isDark ? Brightness.dark : Brightness.light,
-                    ),
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),

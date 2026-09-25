@@ -1875,5 +1875,10 @@
   "emailVerifiedLabel": "ईमेल सत्यापित",
   "onboardingFinishLaterCta": "बाद में पूरा करें",
   "removePhotoTooltip": "फ़ोटो हटाएं",
-  "budgetUpToLabel": "₹{amount} तक"
+  "budgetUpToLabel": "₹{amount} तक",
+  "ageRangeYearsValue": "{min} – {max} वर्ष",
+  "ventilationAny": "कोई भी",
+  "adjustFiltersCta": "फ़िल्टर बदलें",
+  "clearSearchTooltip": "खोज साफ़ करें",
+  "voteDownHint": "नकारात्मक वोट दें"
 }

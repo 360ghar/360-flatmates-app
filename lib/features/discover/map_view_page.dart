@@ -350,7 +350,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                 color:
                     (isDark
                             ? AppSemanticColors.darkSurface
-                            : AppSemanticColors.canvas)
+                            : AppSemanticColors.surfaceFor(
+                                Theme.of(context).brightness,
+                              ))
                         .withValues(alpha: 0.35),
               ),
             ),

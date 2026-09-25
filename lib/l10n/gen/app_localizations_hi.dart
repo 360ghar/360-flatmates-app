@@ -4004,4 +4004,21 @@ class AppLocalizationsHi extends AppLocalizations {
   String budgetUpToLabel(String amount) {
     return '₹$amount तक';
   }
+
+  @override
+  String ageRangeYearsValue(int min, int max) {
+    return '$min – $max वर्ष';
+  }
+
+  @override
+  String get ventilationAny => 'कोई भी';
+
+  @override
+  String get adjustFiltersCta => 'फ़िल्टर बदलें';
+
+  @override
+  String get clearSearchTooltip => 'खोज साफ़ करें';
+
+  @override
+  String get voteDownHint => 'नकारात्मक वोट दें';
 }

@@ -408,10 +408,10 @@ class _PlaceSuggestionTile extends StatelessWidget {
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
-        leading: const Icon(
+        leading: Icon(
           Icons.location_on_outlined,
           size: 20,
-          color: AppSemanticColors.accent,
+          color: AppSemanticColors.clayFor(theme.brightness),
         ),
         title: Text(
           suggestion.mainText,
@@ -453,10 +453,10 @@ class _TypedLocationTile extends StatelessWidget {
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
-        leading: const Icon(
+        leading: Icon(
           Icons.location_city_rounded,
           size: 20,
-          color: AppSemanticColors.accent,
+          color: AppSemanticColors.clayFor(theme.brightness),
         ),
         title: Text(
           location,
@@ -500,7 +500,7 @@ class _CurrentLocationIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.brightness == Brightness.dark
                 ? AppSemanticColors.darkSurface.withValues(alpha: 0.5)
-                : AppSemanticColors.card,
+                : AppSemanticColors.surfaceFor(theme.brightness),
             borderRadius: AppRadius.smBorder,
             border: Border.all(
               color: AppSemanticColors.hairlineFor(theme.brightness),
@@ -513,10 +513,10 @@ class _CurrentLocationIconButton extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(
+                : Icon(
                     Icons.gps_fixed_rounded,
                     size: 20,
-                    color: AppSemanticColors.accent,
+                    color: AppSemanticColors.clayFor(theme.brightness),
                   ),
           ),
         ),
@@ -554,7 +554,7 @@ class _RadiusSlider extends StatelessWidget {
             Text(
               locale.distanceKmLabel(radius.round()),
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppSemanticColors.accent,
+                color: AppSemanticColors.clayFor(theme.brightness),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -565,7 +565,7 @@ class _RadiusSlider extends StatelessWidget {
           min: 5,
           max: 50,
           divisions: 9,
-          activeColor: AppSemanticColors.accent,
+          activeColor: AppSemanticColors.clayFor(theme.brightness),
           onChanged: onChanged,
         ),
       ],

@@ -6,8 +6,7 @@ import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
 import '../../../shared/presentation/components.dart';
-import '../../../visits/application/visits_list_controller.dart';
-import '../../../visits/visits_repository.dart';
+import '../../../visits/application/visits_actions_controller.dart';
 import '../../discover_repository.dart';
 import 'owner_profile_sheet.dart';
 
@@ -59,9 +58,8 @@ Future<void> handleSocietyTagVote({
 }) async {
   try {
     await ref
-        .read(discoverRepositoryProvider)
-        .voteSocietyTag(listingId: listing.id, tag: tag, vote: vote);
-    ref.invalidate(propertyListingProvider(listingId));
+        .read(propertyListingProvider(listingId).notifier)
+        .voteSocietyTag(tag: tag, vote: vote);
   } catch (e) {
     debugPrint('FlatDetailsActions.handleSocietyTagVote: $e');
     if (context.mounted) {
@@ -202,9 +200,13 @@ Future<void> scheduleVisitFromDetails({
       if (!wasLiked) onLikeSynced();
     }
 
+    // Read both notifiers before the await: this widget may be gone after.
+    final listingNotifier = ref.read(
+      propertyListingProvider(listingId).notifier,
+    );
     await ref
-        .read(visitsRepositoryProvider)
-        .scheduleVisitAndNotify(
+        .read(visitsActionsControllerProvider)
+        .schedule(
           propertyId: listing.id,
           counterpartyUserId: ownerId,
           conversationId: cid,
@@ -213,9 +215,7 @@ Future<void> scheduleVisitFromDetails({
           note: locale.visitFromDetailPageNote,
           timeSlotLabel: flatDetailsTimeSlotLabel(locale, timeSlot),
         );
-    ref.invalidate(propertyListingProvider(listingId));
-    ref.invalidate(visitsListControllerProvider);
-    ref.invalidate(visitsProvider);
+    listingNotifier.refresh();
     if (context.mounted) {
       FlatmatesToast.success(context, locale.visitRequestSent);
     }

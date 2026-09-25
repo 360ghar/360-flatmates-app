@@ -57,12 +57,12 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: FlatmatesPriceText.hero(amount: 24000, period: 'mo'),
+            body: FlatmatesPriceText.hero(amount: 24000, period: '/month'),
           ),
         ),
       );
 
-      expect(find.text('₹24,000 / mo'), findsOneWidget);
+      expect(find.text('₹24,000/month'), findsOneWidget);
     });
 
     testWidgets('card variant renders formatted amount', (tester) async {
@@ -89,12 +89,12 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: FlatmatesPriceText.inline(amount: 8000, period: 'night'),
+            body: FlatmatesPriceText.inline(amount: 8000, period: '/night'),
           ),
         ),
       );
 
-      expect(find.text('₹8,000 / night'), findsOneWidget);
+      expect(find.text('₹8,000/night'), findsOneWidget);
     });
 
     testWidgets('uses correct font sizes per variant', (tester) async {

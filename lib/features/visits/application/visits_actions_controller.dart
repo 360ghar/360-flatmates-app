@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/gen/app_localizations.dart';
 import '../visits_repository.dart';
 import 'visits_list_controller.dart';
 
@@ -26,6 +27,31 @@ class VisitsActionsController {
   Future<void> reschedule(VisitItem item, DateTime newDate) async {
     await _repository.rescheduleVisit(item.id, newDate);
     _invalidateRelated(item);
+  }
+
+  /// Requests a visit and posts the chat notification, then refreshes the
+  /// visit lists. Returns the new visit id. Throws on failure.
+  Future<int> schedule({
+    required int propertyId,
+    required int counterpartyUserId,
+    required int conversationId,
+    required DateTime scheduledDate,
+    required AppLocalizations locale,
+    String? note,
+    String? timeSlotLabel,
+  }) async {
+    final visitId = await _repository.scheduleVisitAndNotify(
+      propertyId: propertyId,
+      counterpartyUserId: counterpartyUserId,
+      conversationId: conversationId,
+      scheduledDate: scheduledDate,
+      locale: locale,
+      note: note,
+      timeSlotLabel: timeSlotLabel,
+    );
+    _ref.invalidate(visitsListControllerProvider);
+    _ref.invalidate(visitsProvider);
+    return visitId;
   }
 
   /// Refreshes both visit lists after a status change.

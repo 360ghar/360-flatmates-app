@@ -98,7 +98,7 @@ class ManageListingCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 FlatmatesPriceText.card(
                   amount: listing.monthlyRent.toInt(),
-                  period: 'mo',
+                  period: AppLocalizations.of(context).perMonthSuffix,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 // Quick info row using FlatmatesChip

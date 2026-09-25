@@ -7,82 +7,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../shared/presentation/components.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 
-class MarketInsightCard extends StatelessWidget {
-  const MarketInsightCard({
-    required this.count,
-    required this.onTap,
-    super.key,
-  });
-
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-
-    return FlatmatesCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
-      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.08),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: AppSemanticColors.accent.withValues(alpha: 0.14),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.verified_user_outlined,
-              color: AppSemanticColors.accent,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  locale.homeMarketInsight(count),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  locale.homeMarketInsightCta,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppSemanticColors.accent,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppSemanticColors.accent,
-            size: 20,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class PostYourSpaceCard extends StatelessWidget {
   const PostYourSpaceCard({required this.onTap, super.key});
 
@@ -93,61 +17,43 @@ class PostYourSpaceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
 
+    final brightness = theme.brightness;
+    final clay = AppSemanticColors.clayFor(brightness);
+
+    // A clay-soft sheet with a bare icon (no tile, no tinted stroke).
     return FlatmatesCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        horizontal: AppSpacing.base,
+        vertical: AppSpacing.md,
       ),
-      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
-      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.08),
+      backgroundColor: AppSemanticColors.coralSoftFor(brightness),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: AppSemanticColors.accent.withValues(alpha: 0.14),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.add_home_outlined,
-              color: AppSemanticColors.accent,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
+          Icon(Icons.add_home_outlined, color: clay, size: 24),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   locale.postListingTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
-                    height: 1.2,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppSemanticColors.textPrimaryFor(brightness),
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   locale.postListingCta,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppSemanticColors.accent,
-                    fontWeight: FontWeight.w800,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppSemanticColors.clayInkFor(brightness),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppSemanticColors.accent,
-            size: 20,
-          ),
+          Icon(Icons.chevron_right_rounded, color: clay, size: 20),
         ],
       ),
     );
@@ -177,30 +83,19 @@ class HomeSectionHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+            style: theme.textTheme.titleLarge?.copyWith(
               color: AppSemanticColors.textPrimaryFor(theme.brightness),
             ),
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),
         if (actionLabel != null) ...[
           const SizedBox(width: AppSpacing.sm),
-          TextButton(
+          FlatmatesButton.tertiary(
             key: actionKey,
+            label: actionLabel!,
             onPressed: onActionTap,
-            style: TextButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            ),
-            child: Text(
-              actionLabel!,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: AppSemanticColors.accent,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
           ),
         ],
       ],
@@ -222,21 +117,23 @@ class HomeSearchBar extends StatelessWidget {
       button: true,
       child: GestureDetector(
         onTap: onTap,
+        // Looks like the DESIGN input: 48 high (grows with text), e1.
         child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: 8,
+            vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
             color: AppSemanticColors.surfaceFor(theme.brightness),
             borderRadius: AppRadius.mdBorder,
-            boxShadow: AppShadows.e2(theme.brightness),
+            boxShadow: AppShadows.e1(theme.brightness),
           ),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 AppIcons.search,
-                color: AppSemanticColors.accent,
+                color: AppSemanticColors.clayFor(theme.brightness),
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -248,17 +145,10 @@ class HomeSearchBar extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                padding: AppSpacing.edgeXs,
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.coralSoftFor(theme.brightness),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  AppIcons.filter,
-                  color: AppSemanticColors.accent,
-                  size: 16,
-                ),
+              Icon(
+                AppIcons.filter,
+                color: AppSemanticColors.clayFor(theme.brightness),
+                size: 20,
               ),
             ],
           ),

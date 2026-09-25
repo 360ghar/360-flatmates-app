@@ -65,6 +65,8 @@ class _DiscoverMapState extends State<DiscoverMap> {
       widget.listings.isEmpty ? 0 : widget.listings.first.id,
       widget.listings.isEmpty ? 0 : widget.listings.last.id,
       widget.selectedPropertyId,
+      // Markers are theme-coloured, so a theme change rebuilds them.
+      Theme.of(context).brightness,
     ).toString();
     if (sig == _markerSignature) return;
     _markerSignature = sig;

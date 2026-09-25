@@ -83,13 +83,13 @@ class MiniMapView extends StatelessWidget {
         children: [
           if (isTappable) IgnorePointer(child: mapLayer) else mapLayer,
           // The pin: map is locked on `center`, so screen-center == `center`.
-          const IgnorePointer(
+          IgnorePointer(
             child: Padding(
               // Anchor the tip of the pin (icon bottom) on the centre point.
-              padding: EdgeInsets.only(bottom: 40),
+              padding: const EdgeInsets.only(bottom: 40),
               child: Icon(
                 Icons.location_on,
-                color: AppSemanticColors.accent,
+                color: AppSemanticColors.clayFor(Theme.of(context).brightness),
                 size: 40,
               ),
             ),
@@ -157,7 +157,7 @@ class _OpenInMapsHint extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppSemanticColors.darkSurfaceElevated
-            : AppSemanticColors.card,
+            : AppSemanticColors.surfaceFor(Theme.of(context).brightness),
         borderRadius: AppRadius.smBorder,
         boxShadow: [
           AppShadows.floatingFor(isDark ? Brightness.dark : Brightness.light),
@@ -166,18 +166,18 @@ class _OpenInMapsHint extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.open_in_new_rounded,
             size: 12,
-            color: AppSemanticColors.accent,
+            color: AppSemanticColors.clayFor(Theme.of(context).brightness),
           ),
           const SizedBox(width: 4),
           Text(
             AppLocalizations.of(context).openInMapsLabel,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: AppSemanticColors.accent,
+              color: AppSemanticColors.clayFor(Theme.of(context).brightness),
             ),
           ),
         ],
@@ -201,7 +201,7 @@ class _AttributionWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppSemanticColors.darkSurfaceElevated
-            : AppSemanticColors.card,
+            : AppSemanticColors.surfaceFor(Theme.of(context).brightness),
         borderRadius: AppRadius.smBorder,
         boxShadow: [
           AppShadows.floatingFor(isDark ? Brightness.dark : Brightness.light),
@@ -293,7 +293,7 @@ class _MapControlButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppSemanticColors.darkSurfaceElevated
-            : AppSemanticColors.card,
+            : AppSemanticColors.surfaceFor(Theme.of(context).brightness),
         borderRadius: AppRadius.smBorder,
         boxShadow: [
           AppShadows.floatingFor(isDark ? Brightness.dark : Brightness.light),
@@ -341,8 +341,12 @@ class GetDirectionsButton extends StatelessWidget {
       icon: const Icon(Icons.directions_rounded, size: 18),
       label: Text(label ?? locale.getDirectionsLabel),
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppSemanticColors.accent,
-        side: const BorderSide(color: AppSemanticColors.accent),
+        foregroundColor: AppSemanticColors.clayFor(
+          Theme.of(context).brightness,
+        ),
+        side: BorderSide(
+          color: AppSemanticColors.clayFor(Theme.of(context).brightness),
+        ),
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.smBorder),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,

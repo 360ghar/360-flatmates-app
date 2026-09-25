@@ -20,24 +20,28 @@ class BroadenedRadiusBanner extends StatelessWidget {
         vertical: AppSpacing.sm + 2,
       ),
       decoration: BoxDecoration(
-        color: AppSemanticColors.infoBg,
+        color: AppSemanticColors.pineSoftFor(Theme.of(context).brightness),
         borderRadius: BorderRadius.circular(AppSpacing.sm),
-        border: Border.all(color: AppSemanticColors.primaryDisabled),
+        border: Border.all(
+          color: AppSemanticColors.coralSoftFor(Theme.of(context).brightness),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline_rounded,
             size: 18,
-            color: AppSemanticColors.primary,
+            color: AppSemanticColors.clayFor(Theme.of(context).brightness),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppSemanticColors.ink,
+                color: AppSemanticColors.textPrimaryFor(
+                  Theme.of(context).brightness,
+                ),
                 height: 1.3,
               ),
             ),

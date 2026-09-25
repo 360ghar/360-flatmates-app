@@ -7435,6 +7435,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Up to ₹{amount}'**
   String budgetUpToLabel(String amount);
+
+  /// No description provided for @ageRangeYearsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} – {max} yrs'**
+  String ageRangeYearsValue(int min, int max);
+
+  /// No description provided for @ventilationAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get ventilationAny;
+
+  /// No description provided for @adjustFiltersCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust filters'**
+  String get adjustFiltersCta;
+
+  /// No description provided for @clearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearchTooltip;
+
+  /// No description provided for @voteDownHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote down'**
+  String get voteDownHint;
 }
 
 class _AppLocalizationsDelegate

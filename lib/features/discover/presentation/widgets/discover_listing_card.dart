@@ -37,6 +37,11 @@ class DiscoverListingCard extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final brightness = theme.brightness;
+    final roomTypeLabel = switch (item.sharingType) {
+      'private_room' => locale.roomTypePrivate,
+      'shared_room' => locale.roomTypeShared,
+      _ => null,
+    };
     final ink = AppSemanticColors.textPrimaryFor(brightness);
     final body = AppSemanticColors.textSecondaryFor(brightness);
     final muted = AppSemanticColors.textTertiaryFor(brightness);
@@ -135,61 +140,42 @@ class DiscoverListingCard extends StatelessWidget {
                             ),
                     ),
                   ),
-                  if (badgeLabel != null)
+                  // Badge and room type share one wrapping row that stops
+                  // short of the 48 dp like target, so they never overlap
+                  // it on a narrow card.
+                  if (badgeLabel != null || roomTypeLabel != null)
                     Positioned(
                       top: AppSpacing.sm,
                       left: AppSpacing.sm,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm + AppSpacing.xxs,
-                          vertical: AppSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppSemanticColors.canvas,
-                          borderRadius: AppRadius.pillBorder,
-                          boxShadow: AppShadows.e1(theme.brightness),
-                        ),
-                        child: Text(
-                          badgeLabel!,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppSemanticColors.ink,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (item.sharingType != null &&
-                      (item.sharingType == 'private_room' ||
-                          item.sharingType == 'shared_room'))
-                    Positioned(
-                      top: AppSpacing.sm,
-                      left: badgeLabel != null ? null : AppSpacing.sm,
-                      // Clearance for the top-right like control (default size 32).
-                      right: badgeLabel != null
-                          ? AppSpacing.sm + AppSpacing.xl
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: AppSpacing.xxs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppSemanticColors.canvas.withValues(
-                            alpha: 0.92,
-                          ),
-                          borderRadius: AppRadius.pillBorder,
-                        ),
-                        child: Text(
-                          item.sharingType == 'private_room'
-                              ? locale.roomTypePrivate
-                              : locale.roomTypeShared,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppSemanticColors.ink,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                        ),
+                      right: kMinInteractiveDimension,
+                      child: Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          for (final label in [?badgeLabel, ?roomTypeLabel])
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: AppSemanticColors.paper3For(brightness),
+                                borderRadius: AppRadius.pillBorder,
+                                boxShadow: AppShadows.e1(brightness),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.sm,
+                                  vertical: AppSpacing.xxs,
+                                ),
+                                child: Text(
+                                  label,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: AppSemanticColors.textPrimaryFor(
+                                      brightness,
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   // The 48 dp target puts the 32 dp disc 8 dp from the
@@ -225,9 +211,7 @@ class DiscoverListingCard extends StatelessWidget {
                           ),
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: ink,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            height: 1.2,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -235,10 +219,8 @@ class DiscoverListingCard extends StatelessWidget {
                         if (titleLocation.isNotEmpty)
                           Text(
                             titleLocation,
-                            style: theme.textTheme.labelSmall?.copyWith(
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: muted,
-                              fontSize: 12,
-                              height: 1.2,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -263,10 +245,10 @@ class DiscoverListingCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.location_on_rounded,
                                 size: 12,
-                                color: AppSemanticColors.primary,
+                                color: AppSemanticColors.clayFor(brightness),
                               ),
                               const SizedBox(width: 2),
                               Flexible(

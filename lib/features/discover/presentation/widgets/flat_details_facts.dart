@@ -5,18 +5,21 @@ import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_listing_meta_chips.dart';
 import '../../domain/property_listing.dart';
 
-/// Compact stat row (Beds | Baths | Sqft | Floor) shown under the owner
-/// card on the flat details page. Columns with null data are hidden.
+/// Compact stat tiles (Beds | Baths | Sqft | Floor) shown under the owner
+/// card on the flat details page. Facts with null data are hidden.
 ///
-/// Each fact renders as a color-coded soft-background tile (inspired by the
-/// swipe card's lifestyle grid) instead of a plain divider column — blue for
-/// beds, teal for baths, purple for area, orange for floor.
+/// Tiles share one height. On a narrow phone (or at large text) they wrap
+/// into two columns instead of squeezing four tiles into one row.
 class FlatDetailsFactsRow extends StatelessWidget {
   const FlatDetailsFactsRow({required this.listing, super.key});
 
   final PropertyListing listing;
+
+  /// Narrowest tile that still fits "1,200" and its caption.
+  static const double _minTileWidth = 80;
 
   @override
   Widget build(BuildContext context) {
@@ -25,87 +28,76 @@ class FlatDetailsFactsRow extends StatelessWidget {
 
     final facts = <_Fact>[
       if (l.bedrooms != null)
-        _Fact(
-          icon: Icons.bed_outlined,
-          value: '${l.bedrooms}',
-          caption: locale.factBedsLabel,
-          palette: _FactPalette.blue,
-        ),
+        _Fact(Icons.bed_outlined, '${l.bedrooms}', locale.factBedsLabel),
       if (l.bathrooms != null)
-        _Fact(
-          icon: Icons.shower_outlined,
-          value: '${l.bathrooms}',
-          caption: locale.factBathsLabel,
-          palette: _FactPalette.teal,
-        ),
+        _Fact(Icons.shower_outlined, '${l.bathrooms}', locale.factBathsLabel),
       if (l.areaSqft != null)
         _Fact(
-          icon: Icons.square_foot_outlined,
-          value: '${l.areaSqft!.round()}',
-          caption: locale.factAreaLabel,
-          palette: _FactPalette.purple,
+          Icons.square_foot_outlined,
+          '${l.areaSqft!.round()}',
+          locale.factAreaLabel,
         ),
       if (l.floorNumber != null)
         _Fact(
-          icon: Icons.layers_outlined,
-          value: l.totalFloors != null
+          Icons.layers_outlined,
+          l.totalFloors != null
               ? '${l.floorNumber}/${l.totalFloors}'
               : '${l.floorNumber}',
-          caption: locale.factFloorLabel,
-          palette: _FactPalette.orange,
+          locale.factFloorLabel,
         ),
     ];
 
     if (facts.length < 2) return const SizedBox.shrink();
 
-    return Row(
-      children: [
-        for (var i = 0; i < facts.length; i++) ...[
-          if (i > 0) const SizedBox(width: AppSpacing.sm),
-          Expanded(child: _FactTile(fact: facts[i])),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = AppSpacing.sm;
+        final scale = MediaQuery.textScalerOf(context).scale(1);
+        final fitsOneRow =
+            constraints.maxWidth >=
+            facts.length * _minTileWidth * scale + (facts.length - 1) * gap;
+        final perRow = fitsOneRow ? facts.length : 2;
+
+        final rows = <Widget>[];
+        for (var start = 0; start < facts.length; start += perRow) {
+          final slice = facts.skip(start).take(perRow).toList();
+          rows.add(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < perRow; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    Expanded(
+                      child: i < slice.length
+                          ? _FactTile(fact: slice[i])
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        }
+        return Column(
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) const SizedBox(height: gap),
+              rows[i],
+            ],
+          ],
+        );
+      },
     );
   }
 }
 
 class _Fact {
-  const _Fact({
-    required this.icon,
-    required this.value,
-    required this.caption,
-    required this.palette,
-  });
+  const _Fact(this.icon, this.value, this.caption);
 
   final IconData icon;
   final String value;
   final String caption;
-  final _FactPalette palette;
-}
-
-/// Soft-background + coloured-foreground pair for a fact tile.
-class _FactPalette {
-  const _FactPalette({required this.background, required this.foreground});
-
-  final Color background;
-  final Color foreground;
-
-  static const blue = _FactPalette(
-    background: AppSemanticColors.blueSoft,
-    foreground: AppSemanticColors.blueInk,
-  );
-  static const teal = _FactPalette(
-    background: AppSemanticColors.tealSoft,
-    foreground: AppSemanticColors.tealInk,
-  );
-  static const purple = _FactPalette(
-    background: AppSemanticColors.purpleSoft,
-    foreground: AppSemanticColors.purpleInk,
-  );
-  static const orange = _FactPalette(
-    background: AppSemanticColors.orangeSoft,
-    foreground: AppSemanticColors.orangeInk,
-  );
 }
 
 class _FactTile extends StatelessWidget {
@@ -130,19 +122,21 @@ class _FactTile extends StatelessWidget {
         boxShadow: AppShadows.e1(b),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(fact.icon, size: 22, color: AppSemanticColors.clayFor(b)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             fact.value,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
               color: AppSemanticColors.textPrimaryFor(b),
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           Text(
             fact.caption,
+            textAlign: TextAlign.center,
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppSemanticColors.textTertiaryFor(b),
             ),
@@ -153,11 +147,11 @@ class _FactTile extends StatelessWidget {
   }
 }
 
-/// Feature/amenity chips (furnished, wifi, parking, lift, security, plus
-/// catalog amenities) for the flat details page.
+/// Feature and amenity facts for the flat details page.
 ///
-/// Key amenities use soft fills from the one palette (pine and clay
-/// families), so the list stays scannable without a rainbow of chips.
+/// Key features (furnished, wifi, parking, lift, security) are pine-soft
+/// pills; catalog amenities are plain icon + label, so the list stays
+/// scannable without a pill on every noun. Beds are already a fact tile.
 class FlatDetailsFeatureChips extends StatelessWidget {
   const FlatDetailsFeatureChips({required this.listing, super.key});
 
@@ -166,186 +160,52 @@ class FlatDetailsFeatureChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final chips = <Widget>[];
-    final shownLabels = <String>{};
     final l = listing;
+    final items = <ListingMetaItem>[];
+    final shown = <String>{};
 
-    void addChip(
-      String key,
-      IconData icon,
-      String label,
-      _ChipPalette palette,
-    ) {
-      if (shownLabels.add(key)) {
-        chips.add(
-          _ColoredChip(
+    bool has(String needle) =>
+        l.features.any((f) => f.toLowerCase().contains(needle));
+
+    void addKey(String key, IconData icon, String label) {
+      if (shown.add(key)) {
+        items.add(
+          ListingMetaItem(
             icon: icon,
             label: label,
-            palette: palette,
-            isDark: isDark,
+            chipColor: MetaChipColor.green,
           ),
         );
       }
     }
 
-    if (l.bedrooms != null) {
-      addChip(
-        'beds',
-        Icons.bed_outlined,
-        '${l.bedrooms} Beds',
-        _ChipPalette.blue,
-      );
-    }
     if (l.isFurnished) {
-      addChip(
-        'furnished',
-        Icons.chair_outlined,
-        locale.featureFurnished,
-        _ChipPalette.green,
-      );
+      addKey('furnished', Icons.chair_outlined, locale.featureFurnished);
     }
-    if (l.features.any(
-      (f) =>
-          f.toLowerCase().contains('wifi') || f.toLowerCase().contains('wi_fi'),
-    )) {
-      addChip(
-        'wifi',
-        Icons.wifi_outlined,
-        locale.wifiChipLabel,
-        _ChipPalette.blue,
-      );
+    if (has('wifi') || has('wi_fi')) {
+      addKey('wifi', Icons.wifi_outlined, locale.wifiChipLabel);
     }
-    if (l.features.any((f) => f.toLowerCase().contains('parking'))) {
-      addChip(
-        'parking',
-        Icons.local_parking_outlined,
-        locale.parkingChipLabel,
-        _ChipPalette.teal,
-      );
+    if (has('parking')) {
+      addKey('parking', Icons.local_parking_outlined, locale.parkingChipLabel);
     }
-    if (l.features.any(
-      (f) =>
-          f.toLowerCase().contains('lift') ||
-          f.toLowerCase().contains('elevator'),
-    )) {
-      addChip(
-        'lift',
-        Icons.elevator_outlined,
-        locale.liftChipLabel,
-        _ChipPalette.purple,
-      );
+    if (has('lift') || has('elevator')) {
+      addKey('lift', Icons.elevator_outlined, locale.liftChipLabel);
     }
-    if (l.features.any((f) => f.toLowerCase().contains('security'))) {
-      addChip(
-        'security',
-        Icons.security_outlined,
-        locale.securityChipLabel,
-        _ChipPalette.orange,
-      );
+    if (has('security')) {
+      addKey('security', Icons.security_outlined, locale.securityChipLabel);
     }
-
-    // Catalog amenities use the default neutral pill style.
     for (final amenity in l.amenities) {
-      final key = amenity.title.toLowerCase();
-      if (shownLabels.add(key)) {
-        chips.add(
-          _ColoredChip(
+      if (shown.add(amenity.title.toLowerCase())) {
+        items.add(
+          ListingMetaItem(
             icon: Icons.check_circle_outline_rounded,
             label: amenity.title,
-            palette: _ChipPalette.neutral,
-            isDark: isDark,
           ),
         );
       }
     }
 
-    if (chips.isEmpty) return const SizedBox.shrink();
-
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: chips,
-    );
-  }
-}
-
-/// Palette for a feature chip — soft background + coloured icon.
-enum _ChipPalette { blue, teal, purple, orange, green, neutral }
-
-class _ColoredChip extends StatelessWidget {
-  const _ColoredChip({
-    required this.icon,
-    required this.label,
-    required this.palette,
-    required this.isDark,
-  });
-
-  final IconData icon;
-  final String label;
-  final _ChipPalette palette;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final (bg, fg) = _resolve(palette, isDark);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: fg.withValues(alpha: 0.2), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: fg),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: palette == _ChipPalette.neutral
-                  ? AppSemanticColors.textSecondaryFor(theme.brightness)
-                  : fg,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  (Color, Color) _resolve(_ChipPalette p, bool isDark) {
-    final brightness = isDark ? Brightness.dark : Brightness.light;
-    return switch (p) {
-      _ChipPalette.blue => (
-        AppSemanticColors.blueSoftFor(brightness),
-        isDark ? AppSemanticColors.blueMid : AppSemanticColors.blueInk,
-      ),
-      _ChipPalette.teal => (
-        AppSemanticColors.tealSoftFor(brightness),
-        isDark ? AppSemanticColors.tealMid : AppSemanticColors.tealInk,
-      ),
-      _ChipPalette.purple => (
-        AppSemanticColors.purpleSoftFor(brightness),
-        isDark ? AppSemanticColors.purpleMid : AppSemanticColors.purpleInk,
-      ),
-      _ChipPalette.orange => (
-        AppSemanticColors.orangeSoftFor(brightness),
-        isDark ? AppSemanticColors.orangeMid : AppSemanticColors.orangeInk,
-      ),
-      _ChipPalette.green => (
-        AppSemanticColors.greenSoftFor(brightness),
-        AppSemanticColors.greenInkFor(brightness),
-      ),
-      _ChipPalette.neutral => (
-        AppSemanticColors.secondarySurfaceFor(brightness),
-        AppSemanticColors.textSecondaryFor(brightness),
-      ),
-    };
+    if (items.isEmpty) return const SizedBox.shrink();
+    return FlatmatesListingMetaChips(items: items);
   }
 }

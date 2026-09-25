@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
-import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_location_chip.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
@@ -49,16 +48,11 @@ class DiscoverHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final brightness = theme.brightness;
     final ink = AppSemanticColors.textPrimaryFor(brightness);
-    const brand = AppSemanticColors.primary;
+    final brand = AppSemanticColors.clayFor(brightness);
     final previewLocation = locationPreview(location);
 
-    final greetingStyle = theme.textTheme.titleMedium?.copyWith(
-      color: ink,
-      fontSize: AppTypography.displaySmSize,
-      fontWeight: AppTypography.displaySmWeight,
-      height: AppTypography.displaySmHeight,
-      letterSpacing: AppTypography.displaySmLetterSpacing,
-    );
+    // h3 display role (Gambarino 21/26).
+    final greetingStyle = theme.textTheme.headlineSmall?.copyWith(color: ink);
 
     return Row(
       children: [
@@ -96,49 +90,15 @@ class DiscoverHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        _InteractivePressScale(
+        // 48 dp target, announced as the Profile button.
+        FlatmatesAvatar(
+          name: userName,
+          imageUrl: avatarUrl,
+          size: 48,
           onTap: onAvatarTap,
-          child: FlatmatesAvatar(name: userName, imageUrl: avatarUrl, size: 45),
+          tapLabel: AppLocalizations.of(context).navProfile,
         ),
       ],
-    );
-  }
-}
-
-/// Applies premium scale-down on press using Listener and AnimatedScale.
-class _InteractivePressScale extends StatefulWidget {
-  const _InteractivePressScale({required this.child, this.onTap});
-
-  final Widget child;
-  final VoidCallback? onTap;
-
-  @override
-  State<_InteractivePressScale> createState() => _InteractivePressScaleState();
-}
-
-class _InteractivePressScaleState extends State<_InteractivePressScale> {
-  double _scale = 1.0;
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.onTap == null) return widget.child;
-
-    return Listener(
-      onPointerDown: (_) => setState(() => _scale = AppMotion.pressScale),
-      onPointerUp: (_) => setState(() => _scale = 1.0),
-      onPointerCancel: (_) => setState(() => _scale = 1.0),
-      child: Semantics(
-        button: true,
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedScale(
-            scale: AppMotion.reduceMotion(context) ? 1.0 : _scale,
-            duration: AppMotion.fast,
-            curve: AppMotion.paperOut,
-            child: widget.child,
-          ),
-        ),
-      ),
     );
   }
 }

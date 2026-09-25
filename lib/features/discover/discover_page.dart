@@ -15,6 +15,7 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../location/application/location_controller.dart';
 import '../location/presentation/location_picker_modal.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/paper/paper_scene.dart';
 import 'discover_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'presentation/widgets/broadened_radius_banner.dart';
@@ -301,10 +302,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                             onTap: () => context.push('/post/new'),
                           ),
                         ],
-                        if (city != null) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          TrendingNeighborhoodsSection(city: city),
-                        ],
                         if (showMeet) ...[
                           const SizedBox(height: AppSpacing.lg),
                           const MeetFlatmatesSection(),
@@ -341,9 +338,10 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                               : FlatmatesEmptyState(
                                   title: locale.homeNoResults,
                                   subtitle: locale.homeNoResultsSubtitle,
-                                  icon: Icons.search_off_rounded,
+                                  prop: PaperProp.magnifier,
                                   padHorizontally: false,
-                                  compact: true,
+                                  ctaLabel: locale.adjustFiltersCta,
+                                  onCtaTap: () => showFiltersSheet(context),
                                 ),
                       ]),
                     ),
@@ -375,11 +373,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                             final cells = <Widget>[];
                             for (var i = start; i < end; i++) {
                               final item = preview[i];
-                              final badgeLabel = switch (i) {
-                                0 => locale.badgeNew,
-                                1 => locale.badgePopular,
-                                _ => null,
-                              };
                               cells.add(
                                 Expanded(
                                   child: StaggeredCardAppear(
@@ -389,7 +382,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                                           ? const Key('discover_feed_card_0')
                                           : null,
                                       item: item,
-                                      badgeLabel: badgeLabel,
                                       onTap: () => context.push(
                                         '/flat-details/${item.id}',
                                       ),

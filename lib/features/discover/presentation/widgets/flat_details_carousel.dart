@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
+import '../../../../core/theme/app_motion.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
-import '../../../shared/presentation/flatmates_ui.dart';
+import '../../../shared/presentation/paper/paper_scene.dart';
 
 class FlatDetailsCarousel extends StatefulWidget {
   const FlatDetailsCarousel({
@@ -15,7 +17,7 @@ class FlatDetailsCarousel extends StatefulWidget {
     required this.title,
     required this.onBack,
     required this.onShare,
-    required this.onFavorite,
+    this.onFavorite,
     this.isFavorite = false,
     this.onImageTap,
     this.heroTagPrefix,
@@ -29,7 +31,9 @@ class FlatDetailsCarousel extends StatefulWidget {
   final String title;
   final VoidCallback onBack;
   final VoidCallback onShare;
-  final VoidCallback onFavorite;
+
+  /// Null hides the heart (for example on the viewer's own listing).
+  final VoidCallback? onFavorite;
   final bool isFavorite;
   final VoidCallback? onImageTap;
 
@@ -78,32 +82,20 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
     );
     final images = widget.images;
     final currentIndex = widget.currentIndex;
+    final reduce = AppMotion.reduceMotion(context);
 
     return SizedBox(
       height: heroHeight,
       child: Stack(
         children: [
           Positioned.fill(
+            // No photos: the compact paper scene with the house prop
+            // (DESIGN.md §6), not a gradient.
             child: images.isEmpty
-                ? Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppSemanticColors.accent.withValues(alpha: 0.9),
-                          AppSemanticColors.accent.withValues(alpha: 0.35),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        initialsFromName(widget.title),
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          color: Colors.white,
-                          fontSize: 48,
-                        ),
-                      ),
+                ? ColoredBox(
+                    color: AppSemanticColors.skyFor(theme.brightness),
+                    child: const Center(
+                      child: PaperScene.compact(prop: PaperProp.house),
                     ),
                   )
                 : PageView.builder(
@@ -111,32 +103,42 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
                     itemCount: images.length,
                     onPageChanged: widget.onPageChanged,
                     itemBuilder: (context, index) {
-                      final delta = (_page - index).clamp(-1.0, 1.0);
+                      // Parallax is off under reduce motion.
+                      final delta = reduce
+                          ? 0.0
+                          : (_page - index).clamp(-1.0, 1.0);
                       return Stack(
                         fit: StackFit.expand,
                         children: [
-                          GestureDetector(
-                            onTap: widget.onImageTap,
-                            child: ClipRect(
-                              // Subtle parallax: image is overscaled slightly
-                              // and slides slower than the page so edges
-                              // never show.
-                              child: Transform.translate(
-                                offset: Offset(
-                                  -delta *
-                                      MediaQuery.sizeOf(context).width *
-                                      0.05,
-                                  0,
-                                ),
-                                child: Transform.scale(
-                                  scale: 1.12,
-                                  child: FlatmatesNetworkImage(
-                                    imageUrl: images[index],
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    heroTag: widget.heroTagPrefix != null
-                                        ? '${widget.heroTagPrefix}-$index'
-                                        : null,
+                          Semantics(
+                            button: true,
+                            label: locale.galleryPhotoSemantic(
+                              index + 1,
+                              images.length,
+                            ),
+                            child: GestureDetector(
+                              onTap: widget.onImageTap,
+                              child: ClipRect(
+                                // Subtle parallax: image is overscaled slightly
+                                // and slides slower than the page so edges
+                                // never show.
+                                child: Transform.translate(
+                                  offset: Offset(
+                                    -delta *
+                                        MediaQuery.sizeOf(context).width *
+                                        0.05,
+                                    0,
+                                  ),
+                                  child: Transform.scale(
+                                    scale: reduce ? 1.0 : 1.12,
+                                    child: FlatmatesNetworkImage(
+                                      imageUrl: images[index],
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      heroTag: widget.heroTagPrefix != null
+                                          ? '${widget.heroTagPrefix}-$index'
+                                          : null,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -154,8 +156,12 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
                                     colors: [
-                                      Colors.transparent,
-                                      Colors.black.withValues(alpha: 0.4),
+                                      AppSemanticColors.scrim.withValues(
+                                        alpha: 0,
+                                      ),
+                                      AppSemanticColors.scrim.withValues(
+                                        alpha: 0.4,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -168,9 +174,9 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
                   ),
           ),
 
-          // Airbnb-style solid circular overlay chrome
+          // Overlay chrome on the photo.
           Positioned(
-            top: MediaQuery.of(context).padding.top + 4,
+            top: MediaQuery.paddingOf(context).top + AppSpacing.xs,
             left: AppSpacing.base,
             right: AppSpacing.base,
             child: Row(
@@ -192,18 +198,23 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
                       style: FlatmatesChromeIconStyle.overlay,
                       onPressed: widget.onShare,
                     ),
-                    FlatmatesChromeIconButton(
-                      key: const Key('flat_header_shortlist_button'),
-                      icon: widget.isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      iconColor: widget.isFavorite
-                          ? AppSemanticColors.primary
-                          : AppSemanticColors.ink,
-                      tooltip: locale.shortlistCta,
-                      style: FlatmatesChromeIconStyle.overlay,
-                      onPressed: widget.onFavorite,
-                    ),
+                    if (widget.onFavorite != null)
+                      FlatmatesChromeIconButton(
+                        key: const Key('flat_header_shortlist_button'),
+                        icon: widget.isFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        iconColor: widget.isFavorite
+                            ? AppSemanticColors.clayFor(
+                                Theme.of(context).brightness,
+                              )
+                            : AppSemanticColors.textPrimaryFor(
+                                Theme.of(context).brightness,
+                              ),
+                        tooltip: locale.shortlistCta,
+                        style: FlatmatesChromeIconStyle.overlay,
+                        onPressed: widget.onFavorite,
+                      ),
                   ],
                 ),
               ],
@@ -213,7 +224,7 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
           // Image counter pill
           if (images.length > 1)
             Positioned(
-              bottom: 14 + widget.bottomInset,
+              bottom: AppSpacing.md + widget.bottomInset,
               left: 0,
               right: 0,
               child: Row(
@@ -221,49 +232,23 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xxs,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppSemanticColors.scrim.withValues(alpha: 0.6),
+                      borderRadius: AppRadius.mdBorder,
                     ),
                     child: Text(
                       '${currentIndex + 1} / ${images.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.onScrim,
                         fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
                 ],
-              ),
-            ),
-
-          // Page indicator dots
-          if (images.length > 1)
-            Positioned(
-              bottom: 40 + widget.bottomInset,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  images.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: currentIndex == index ? 16 : 5,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3),
-                      color: currentIndex == index
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ),
               ),
             ),
         ],

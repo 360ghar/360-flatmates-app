@@ -3996,4 +3996,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String budgetUpToLabel(String amount) {
     return 'Up to ₹$amount';
   }
+
+  @override
+  String ageRangeYearsValue(int min, int max) {
+    return '$min – $max yrs';
+  }
+
+  @override
+  String get ventilationAny => 'Any';
+
+  @override
+  String get adjustFiltersCta => 'Adjust filters';
+
+  @override
+  String get clearSearchTooltip => 'Clear search';
+
+  @override
+  String get voteDownHint => 'Vote down';
 }

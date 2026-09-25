@@ -61,7 +61,8 @@ class FlatmatesPriceText extends StatelessWidget {
         color ?? AppSemanticColors.textPrimaryFor(theme.brightness);
 
     final formatted = formatRupee(amount);
-    final text = period != null ? '$formatted / $period' : formatted;
+    // [period] is a localized suffix, for example `perMonthSuffix`.
+    final text = period != null ? '$formatted$period' : formatted;
 
     // Body font with tabular figures (DESIGN.md §2: numbers in data).
     return Text(

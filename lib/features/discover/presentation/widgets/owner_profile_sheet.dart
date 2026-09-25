@@ -280,23 +280,13 @@ class _OwnerProfileBody extends StatelessWidget {
                   ),
                   if (!showError && matchPercentage > 0) ...[
                     const SizedBox(height: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _matchColor(
+                    // Same colour thresholds as every other match score.
+                    Text(
+                      locale.percentMatch(matchPercentage.round()),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: compatibilityScoreColor(
                           matchPercentage,
-                        ).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        locale.percentMatch(matchPercentage.round()),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: _matchColor(matchPercentage),
+                          brightness: theme.brightness,
                         ),
                       ),
                     ),
@@ -583,13 +573,6 @@ class _OwnerProfileBody extends StatelessWidget {
       _ => null,
     };
   }
-
-  Color _matchColor(double pct) {
-    if (pct >= 70) return AppSemanticColors.success;
-    if (pct >= 40) return AppSemanticColors.warning;
-    if (pct > 0) return AppSemanticColors.error;
-    return AppSemanticColors.textTertiaryFor(Brightness.light);
-  }
 }
 
 class _ModeBadge extends StatelessWidget {
@@ -599,25 +582,19 @@ class _ModeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final label = switch (mode) {
-      'co_hunter' => 'Co-Hunter',
-      'room_poster' => 'Room Poster',
-      'open_to_both' => 'Open to Both',
-      _ => mode,
+      'co_hunter' => locale.ownerModeCoHunter,
+      'room_poster' => locale.ownerModeRoomPoster,
+      'open_to_both' => locale.ownerModeOpenToBoth,
+      _ => humanizeFlatmatesToken(mode),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppSemanticColors.accent),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppSemanticColors.accent,
-        ),
+    // Type, not an outlined pill.
+    return Text(
+      label,
+      style: theme.textTheme.labelMedium?.copyWith(
+        color: AppSemanticColors.clayFor(theme.brightness),
       ),
     );
   }

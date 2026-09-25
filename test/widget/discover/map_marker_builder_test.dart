@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 import 'package:flatmates_app/features/discover/discover_repository.dart';
 import 'package:flatmates_app/features/discover/presentation/widgets/map_marker_builder.dart';
 
@@ -51,6 +52,8 @@ void main() {
         ).single;
         await tester.pumpWidget(
           MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: Center(child: marker.child)),
           ),
         );

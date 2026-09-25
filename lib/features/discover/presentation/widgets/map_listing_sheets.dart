@@ -110,7 +110,7 @@ void showClusterSheet(
                           ],
                           FlatmatesPriceText.card(
                             amount: item.monthlyRent.toInt(),
-                            period: 'mo',
+                            period: AppLocalizations.of(context).perMonthSuffix,
                           ),
                         ],
                       ),
@@ -176,7 +176,7 @@ void showListingSheet(
               locality: item.locality,
               trailing: FlatmatesPriceText.card(
                 amount: item.monthlyRent.toInt(),
-                period: 'mo',
+                period: AppLocalizations.of(context).perMonthSuffix,
               ),
             ),
             if (item.owner != null) ...[

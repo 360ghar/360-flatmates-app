@@ -586,6 +586,31 @@ class PropertyListingController
     state = AsyncData(listing);
   }
 
+  /// Fetches the listing from the network (bypassing the seed), stores it as
+  /// the new seed and state, and returns it. Throws on failure; the previous
+  /// state stays.
+  Future<PropertyListing> refetchFromNetwork() async {
+    final fresh = await ref.read(discoverRepositoryProvider).fetchListing(arg);
+    ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+    state = AsyncData(fresh);
+    return fresh;
+  }
+
+  /// Refetches this listing (for example after a related write).
+  void refresh() => ref.invalidateSelf();
+
+  /// Records the viewer's vote on a society tag, then refetches this listing
+  /// so counts update. Throws on failure so callers can toast.
+  Future<void> voteSocietyTag({
+    required String tag,
+    required String vote,
+  }) async {
+    await ref
+        .read(discoverRepositoryProvider)
+        .voteSocietyTag(listingId: arg, tag: tag, vote: vote);
+    refresh();
+  }
+
   /// Toggles the like state optimistically. Returns the conversation_id (or
   /// null) on success. Rolls back and rethrows on failure so callers can toast.
   Future<int?> toggleLike() async {

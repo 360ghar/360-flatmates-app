@@ -1911,5 +1911,11 @@
   "onboardingFinishLaterCta": "Finish later",
   "removePhotoTooltip": "Remove photo",
   "budgetUpToLabel": "Up to ₹{amount}",
-  "@budgetUpToLabel": {"placeholders": {"amount": {"type": "String"}}}
+  "@budgetUpToLabel": {"placeholders": {"amount": {"type": "String"}}},
+  "ageRangeYearsValue": "{min} – {max} yrs",
+  "@ageRangeYearsValue": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "ventilationAny": "Any",
+  "adjustFiltersCta": "Adjust filters",
+  "clearSearchTooltip": "Clear search",
+  "voteDownHint": "Vote down"
 }

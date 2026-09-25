@@ -21,7 +21,7 @@ class FlatDetailsMedia extends StatelessWidget {
     final l = listing;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: AppSpacing.horizontalScreen,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -101,46 +101,27 @@ class FlatDetailsMedia extends StatelessWidget {
             FlatmatesSectionHeader(title: locale.virtualTourSectionTitle),
             const SizedBox(height: AppSpacing.sm),
             FlatmatesCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              onTap: () => _openUrl(l.virtualTourUrl!),
-              gradient: LinearGradient(
-                colors: [
-                  AppSemanticColors.accent.withValues(alpha: 0.10),
-                  AppSemanticColors.accent.withValues(alpha: 0.04),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              padding: AppSpacing.edgeLg,
+              onTap: () => _openUrl(context, l.virtualTourUrl!),
               child: Column(
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppSemanticColors.accent.withValues(alpha: 0.12),
-                      borderRadius: AppRadius.cardBorder,
-                    ),
-                    child: const Icon(
-                      Icons.view_in_ar_rounded,
-                      size: 32,
-                      color: AppSemanticColors.accent,
-                    ),
+                  Icon(
+                    Icons.view_in_ar_rounded,
+                    size: 32,
+                    color: AppSemanticColors.clayFor(theme.brightness),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     locale.exploreVirtualTourPrompt,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _openUrl(l.virtualTourUrl!),
-                      icon: const Icon(Icons.open_in_new_rounded),
-                      label: Text(locale.openVirtualTourCta),
-                    ),
+                  FlatmatesButton.secondary(
+                    label: locale.openVirtualTourCta,
+                    icon: Icons.open_in_new_rounded,
+                    fullWidth: true,
+                    onPressed: () => _openUrl(context, l.virtualTourUrl!),
                   ),
                 ],
               ),
@@ -157,23 +138,11 @@ class FlatDetailsMedia extends StatelessWidget {
           // Google Street View
           if (l.googleStreetViewUrl != null &&
               l.googleStreetViewUrl!.isNotEmpty) ...[
-            FlatmatesSectionHeader(title: locale.locationSectionTitle),
-            const SizedBox(height: AppSpacing.sm),
-            OutlinedButton.icon(
-              onPressed: () => _openUrl(l.googleStreetViewUrl!),
-              icon: const Icon(Icons.streetview_rounded, size: 18),
-              label: Text(locale.streetViewCta),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppSemanticColors.accent,
-                side: const BorderSide(color: AppSemanticColors.accent),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppRadius.smBorder,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.md,
-                ),
-              ),
+            // The location section below has its own header.
+            FlatmatesButton.secondary(
+              label: locale.streetViewCta,
+              icon: Icons.streetview_rounded,
+              onPressed: () => _openUrl(context, l.googleStreetViewUrl!),
             ),
             const SizedBox(height: AppSpacing.screen),
           ],
@@ -182,10 +151,19 @@ class FlatDetailsMedia extends StatelessWidget {
     );
   }
 
-  Future<void> _openUrl(String url) async {
+  Future<void> _openUrl(BuildContext context, String url) async {
     final uri = Uri.tryParse(url);
-    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      return;
+    }
+    var opened = false;
+    try {
+      opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('FlatDetailsMedia._openUrl: $e');
+    }
+    if (!opened && context.mounted) {
+      FlatmatesToast.error(context, AppLocalizations.of(context).errorUnknown);
     }
   }
 }

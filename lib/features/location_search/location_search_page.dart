@@ -192,9 +192,9 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.my_location_outlined,
-                        color: AppSemanticColors.accent,
+                        color: AppSemanticColors.clayFor(theme.brightness),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
@@ -203,7 +203,7 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                               ? locale.detectingLocation
                               : locale.useCurrentLocation,
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            color: AppSemanticColors.accent,
+                            color: AppSemanticColors.clayFor(theme.brightness),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -261,9 +261,11 @@ class _LocationSearchPageState extends ConsumerState<LocationSearchPage> {
                       ).withValues(alpha: 0.35),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
-                            color: AppSemanticColors.accent,
+                            color: AppSemanticColors.clayFor(
+                              Theme.of(context).brightness,
+                            ),
                           ),
                           const SizedBox(width: AppSpacing.md),
                           Expanded(
