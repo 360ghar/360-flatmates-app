@@ -11,7 +11,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// signed-in users stay signed in. If secure storage is unavailable, it falls
 /// back to the SharedPreferences storage rather than signing the user out.
 class SecureSessionStorage extends LocalStorage {
-  SecureSessionStorage({required this.persistSessionKey});
+  SecureSessionStorage({
+    required this.persistSessionKey,
+    @visibleForTesting FlutterSecureStorage? secure,
+  }) : _secure = secure ?? _defaultSecure;
 
   /// Same key supabase_flutter uses: `sb-<project-ref>-auth-token`.
   static String keyForUrl(String supabaseUrl) =>
@@ -22,10 +25,13 @@ class SecureSessionStorage extends LocalStorage {
   static const _installMarkerKey = 'secure_session_install_marker';
 
   // first_unlock: the token stays readable for background refresh.
-  static const _secure = FlutterSecureStorage(
+  // Android options stay at the default so this shares one store format with
+  // SecureKvStore (mixing encryptedSharedPreferences modes breaks deletes).
+  static const _defaultSecure = FlutterSecureStorage(
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
+
+  final FlutterSecureStorage _secure;
 
   LocalStorage? _fallback;
 
@@ -35,9 +41,9 @@ class SecureSessionStorage extends LocalStorage {
       final prefs = await SharedPreferences.getInstance();
       final legacy = prefs.getString(persistSessionKey);
       if (legacy != null) {
-        if (!await _secure.containsKey(key: persistSessionKey)) {
-          await _secure.write(key: persistSessionKey, value: legacy);
-        }
+        // A plaintext session is always the newest one: the old default
+        // storage kept writing it until this build. Overwrite, then drop it.
+        await _secure.write(key: persistSessionKey, value: legacy);
         await prefs.remove(persistSessionKey);
       } else if (!prefs.containsKey(_installMarkerKey)) {
         // SharedPreferences is wiped on uninstall but the iOS keychain is
@@ -56,22 +62,53 @@ class SecureSessionStorage extends LocalStorage {
     }
   }
 
-  @override
-  Future<bool> hasAccessToken() =>
-      _fallback?.hasAccessToken() ??
-      _secure.containsKey(key: persistSessionKey);
+  // Every keychain call is guarded: an error (for example iOS error -25308
+  // on a background launch before first unlock) must never crash
+  // Supabase.initialize and block runApp. A failed read means "no session".
 
   @override
-  Future<String?> accessToken() =>
-      _fallback?.accessToken() ?? _secure.read(key: persistSessionKey);
+  Future<bool> hasAccessToken() async {
+    final fallback = _fallback;
+    if (fallback != null) return fallback.hasAccessToken();
+    try {
+      return await _secure.containsKey(key: persistSessionKey);
+    } catch (e) {
+      debugPrint('SecureSessionStorage.hasAccessToken: $e');
+      return false;
+    }
+  }
 
   @override
-  Future<void> removePersistedSession() =>
-      _fallback?.removePersistedSession() ??
-      _secure.delete(key: persistSessionKey);
+  Future<String?> accessToken() async {
+    final fallback = _fallback;
+    if (fallback != null) return fallback.accessToken();
+    try {
+      return await _secure.read(key: persistSessionKey);
+    } catch (e) {
+      debugPrint('SecureSessionStorage.accessToken: $e');
+      return null;
+    }
+  }
 
   @override
-  Future<void> persistSession(String persistSessionString) =>
-      _fallback?.persistSession(persistSessionString) ??
-      _secure.write(key: persistSessionKey, value: persistSessionString);
+  Future<void> removePersistedSession() async {
+    final fallback = _fallback;
+    if (fallback != null) return fallback.removePersistedSession();
+    try {
+      await _secure.delete(key: persistSessionKey);
+    } catch (e) {
+      debugPrint('SecureSessionStorage.removePersistedSession: $e');
+    }
+  }
+
+  @override
+  Future<void> persistSession(String persistSessionString) async {
+    final fallback = _fallback;
+    if (fallback != null) return fallback.persistSession(persistSessionString);
+    try {
+      await _secure.write(key: persistSessionKey, value: persistSessionString);
+    } catch (e) {
+      debugPrint('SecureSessionStorage.persistSession: $e');
+    }
+  }
 }
