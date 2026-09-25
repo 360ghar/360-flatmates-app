@@ -28,13 +28,10 @@ class VisitsActionsController {
     _invalidateRelated(item);
   }
 
-  /// Refreshes the visits list and, when known, the originating conversation
-  /// thread so a visit-status change is reflected in chat too.
+  /// Refreshes both visit lists after a status change.
   void _invalidateRelated(VisitItem item) {
     _ref.invalidate(visitsListControllerProvider);
     _ref.invalidate(visitsProvider);
-    final conversationId = item.conversationId;
-    if (conversationId != null) {}
   }
 }
 

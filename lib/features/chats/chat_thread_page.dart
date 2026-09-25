@@ -135,8 +135,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   String _peerModeLabel() {
-    final asyncConv = ref.read(conversationProvider(widget.conversationId));
-    final conv = _conversation ?? asyncConv.valueOrNull;
+    final conv =
+        _conversation ??
+        ref.read(conversationProvider(widget.conversationId)).valueOrNull;
     final mode = conv?.peer.mode;
     if (mode == null) return '';
     return localizedFlatmatesModeLabel(AppLocalizations.of(context), mode);

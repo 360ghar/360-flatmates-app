@@ -20,28 +20,35 @@ class FlatmatesSkeletonShimmer extends StatefulWidget {
 
 class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
     with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: AppMotion.skeletonShimmer,
+  );
+
+  /// Built once; the pulse runs 1.0 -> 0.55 -> 1.0.
+  late final CurvedAnimation _curve = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeInOut,
+  );
+  late final Animation<double> _opacity = Tween<double>(
+    begin: 1,
+    end: 0.55,
+  ).animate(_curve);
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final reduce = AppMotion.reduceMotion(context);
-    if (reduce) {
-      if (_controller != null) {
-        _controller!.dispose();
-        _controller = null;
-      }
-      return;
+    if (AppMotion.reduceMotion(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat(reverse: true);
     }
-    _controller ??= AnimationController(
-      vsync: this,
-      duration: AppMotion.skeletonShimmer,
-    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _curve.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -53,17 +60,7 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
       child: widget.child,
     );
 
-    final controller = _controller;
-    if (controller == null) {
-      return labeled;
-    }
-
-    return FadeTransition(
-      opacity: Tween<double>(
-        begin: 1,
-        end: 0.55,
-      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
-      child: labeled,
-    );
+    if (AppMotion.reduceMotion(context)) return labeled;
+    return FadeTransition(opacity: _opacity, child: labeled);
   }
 }
