@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_card.dart';
 import '../shared/presentation/flatmates_header.dart';
+import '../shared/presentation/flatmates_screen.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
@@ -20,112 +21,144 @@ class HelpSafetyPage extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Scaffold(
+    return FlatmatesScreen(
       appBar: FlatmatesHeader.backTitle(title: locale.helpSafetyTitle),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-          children: [
-            const SizedBox(height: AppSpacing.lg),
-            FlatmatesCard.elevated(
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppSemanticColors.accent.withValues(alpha: 0.12),
-                    ),
-                    child: const Icon(
-                      Icons.shield_rounded,
-                      size: 24,
-                      color: AppSemanticColors.accent,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      locale.safetyIsPriority,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+        children: [
+          const SizedBox(height: AppSpacing.lg),
+          FlatmatesCard.elevated(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.shield_outlined,
+                  size: 28,
+                  color: AppSemanticColors.clayFor(theme.brightness),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    locale.safetyIsPriority,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: AppSemanticColors.textPrimaryFor(theme.brightness),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            FlatmatesMenuItem(
-              key: const Key('help_faq_item'),
-              icon: Icons.help_outline,
-              label: locale.faqTitle,
-              subtitle: locale.faqSubtitle,
-              onTap: () => _navigateToSubPage(context, '/help-safety/faq'),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          FlatmatesCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FlatmatesMenuItem(
+                  key: const Key('help_faq_item'),
+                  icon: Icons.help_outline,
+                  label: locale.faqTitle,
+                  subtitle: locale.faqSubtitle,
+                  onTap: () => _navigateToSubPage(context, '/help-safety/faq'),
+                ),
+                Divider(
+                  height: 1,
+                  indent: FlatmatesMenuItem.labelInset(),
+                  endIndent: AppSpacing.base,
+                ),
+                FlatmatesMenuItem(
+                  icon: Icons.local_fire_department,
+                  label: locale.popularTopicsLabel,
+                  subtitle: locale.popularTopicsSubtitle,
+                  onTap: () => _navigateToSubPage(
+                    context,
+                    '/help-safety/popular-topics',
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  indent: FlatmatesMenuItem.labelInset(),
+                  endIndent: AppSpacing.base,
+                ),
+                FlatmatesMenuItem(
+                  icon: Icons.assignment_outlined,
+                  label: locale.bookingAgreementsLabel,
+                  subtitle: locale.bookingAgreementsSubtitle,
+                  onTap: () =>
+                      _navigateToSubPage(context, '/help-safety/bookings'),
+                ),
+                Divider(
+                  height: 1,
+                  indent: FlatmatesMenuItem.labelInset(),
+                  endIndent: AppSpacing.base,
+                ),
+                FlatmatesMenuItem(
+                  icon: Icons.person_outline,
+                  label: locale.accountProfileLabel,
+                  subtitle: locale.accountProfileSubtitle,
+                  onTap: () =>
+                      _navigateToSubPage(context, '/help-safety/account'),
+                ),
+                Divider(
+                  height: 1,
+                  indent: FlatmatesMenuItem.labelInset(),
+                  endIndent: AppSpacing.base,
+                ),
+                FlatmatesMenuItem(
+                  key: const Key('help_contact_item'),
+                  icon: Icons.headset_mic,
+                  label: locale.contactSupport,
+                  subtitle: locale.contactSupportSubtitle,
+                  onTap: () =>
+                      _navigateToSubPage(context, '/help-safety/contact'),
+                ),
+                Divider(
+                  height: 1,
+                  indent: FlatmatesMenuItem.labelInset(),
+                  endIndent: AppSpacing.base,
+                ),
+                FlatmatesMenuItem(
+                  key: const Key('report_a_bug_menu_item'),
+                  icon: Icons.bug_report_outlined,
+                  label: locale.reportABug,
+                  subtitle: locale.reportABugSubtitle,
+                  onTap: () =>
+                      _navigateToSubPage(context, '/help-safety/report-bug'),
+                ),
+                Divider(
+                  height: 1,
+                  indent: FlatmatesMenuItem.labelInset(),
+                  endIndent: AppSpacing.base,
+                ),
+                FlatmatesMenuItem(
+                  key: const Key('request_a_feature_menu_item'),
+                  icon: Icons.lightbulb_outline,
+                  label: locale.requestAFeature,
+                  subtitle: locale.requestAFeatureSubtitle,
+                  onTap: () => _navigateToSubPage(
+                    context,
+                    '/help-safety/request-feature',
+                  ),
+                ),
+              ],
             ),
-            FlatmatesMenuItem(
-              icon: Icons.local_fire_department,
-              label: locale.popularTopicsLabel,
-              subtitle: locale.popularTopicsSubtitle,
-              onTap: () =>
-                  _navigateToSubPage(context, '/help-safety/popular-topics'),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          FlatmatesButton(
+            key: const Key('help_chat_with_us_button'),
+            label: locale.contactSupport,
+            onPressed: () =>
+                _navigateToSubPage(context, '/help-safety/contact'),
+            icon: Icons.headset_mic,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Center(
+            child: FlatmatesTrustBadge(
+              variant: FlatmatesTrustBadgeVariant.privacy,
+              label: locale.supportAvailable247,
             ),
-            FlatmatesMenuItem(
-              icon: Icons.assignment_outlined,
-              label: locale.bookingAgreementsLabel,
-              subtitle: locale.bookingAgreementsSubtitle,
-              onTap: () => _navigateToSubPage(context, '/help-safety/bookings'),
-            ),
-            FlatmatesMenuItem(
-              icon: Icons.person_outline,
-              label: locale.accountProfileLabel,
-              subtitle: locale.accountProfileSubtitle,
-              onTap: () => _navigateToSubPage(context, '/help-safety/account'),
-            ),
-            FlatmatesMenuItem(
-              key: const Key('help_contact_item'),
-              icon: Icons.headset_mic,
-              label: locale.contactSupport,
-              subtitle: locale.contactSupportSubtitle,
-              onTap: () => _navigateToSubPage(context, '/help-safety/contact'),
-            ),
-            FlatmatesMenuItem(
-              key: const Key('report_a_bug_menu_item'),
-              icon: Icons.bug_report_outlined,
-              label: locale.reportABug,
-              subtitle: locale.reportABugSubtitle,
-              onTap: () =>
-                  _navigateToSubPage(context, '/help-safety/report-bug'),
-            ),
-            FlatmatesMenuItem(
-              key: const Key('request_a_feature_menu_item'),
-              icon: Icons.lightbulb_outline,
-              label: locale.requestAFeature,
-              subtitle: locale.requestAFeatureSubtitle,
-              onTap: () =>
-                  _navigateToSubPage(context, '/help-safety/request-feature'),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            FlatmatesButton(
-              key: const Key('help_chat_with_us_button'),
-              label: locale.contactSupport,
-              onPressed: () =>
-                  _navigateToSubPage(context, '/help-safety/contact'),
-              icon: Icons.headset_mic,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Center(
-              child: FlatmatesTrustBadge(
-                variant: FlatmatesTrustBadgeVariant.privacy,
-                label: locale.supportAvailable247,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.screen),
-          ],
-        ),
+          ),
+          const SizedBox(height: AppSpacing.screen),
+        ],
       ),
     );
   }
@@ -154,49 +187,48 @@ class HelpSafetyTopicPage extends StatelessWidget {
     final theme = Theme.of(context);
     final content = _HelpTopicContent.forTopic(topic, locale);
 
-    return Scaffold(
+    return FlatmatesScreen(
       appBar: FlatmatesHeader.backTitle(title: content.title),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-          children: [
-            const SizedBox(height: AppSpacing.lg),
-            FlatmatesCard.elevated(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(content.icon, color: AppSemanticColors.accent, size: 28),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      content.summary,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                        height: 1.35,
-                      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+        children: [
+          const SizedBox(height: AppSpacing.lg),
+          FlatmatesCard.elevated(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  content.icon,
+                  color: AppSemanticColors.clayFor(theme.brightness),
+                  size: 28,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    content.summary,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: AppSemanticColors.textPrimaryFor(theme.brightness),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            for (final article in content.articles) ...[
-              _HelpArticleCard(article: article),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            if (topic == HelpSafetyTopic.accountProfile) ...[
-              _AccountActions(locale: locale),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            if (topic == HelpSafetyTopic.contact) ...[
-              _ContactActions(locale: locale),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            const SizedBox(height: AppSpacing.screen),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          for (final article in content.articles) ...[
+            _HelpArticleCard(article: article),
+            const SizedBox(height: AppSpacing.md),
           ],
-        ),
+          if (topic == HelpSafetyTopic.accountProfile) ...[
+            _AccountActions(locale: locale),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          if (topic == HelpSafetyTopic.contact) ...[
+            _ContactActions(locale: locale),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          const SizedBox(height: AppSpacing.screen),
+        ],
       ),
     );
   }
@@ -326,7 +358,6 @@ class _HelpArticleCard extends StatelessWidget {
           Text(
             article.title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
               color: AppSemanticColors.textPrimaryFor(theme.brightness),
             ),
           ),
@@ -335,7 +366,6 @@ class _HelpArticleCard extends StatelessWidget {
             article.body,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppSemanticColors.textSecondaryFor(theme.brightness),
-              height: 1.45,
             ),
           ),
         ],
@@ -361,13 +391,21 @@ class _AccountActions extends StatelessWidget {
             label: locale.editProfileCta,
             onTap: () => context.push('/profile/edit'),
           ),
-          const Divider(height: 1, indent: 68, endIndent: 16),
+          Divider(
+            height: 1,
+            indent: FlatmatesMenuItem.labelInset(),
+            endIndent: AppSpacing.base,
+          ),
           FlatmatesMenuItem(
             icon: Icons.lock_outline,
             label: locale.changePasswordLabel,
             onTap: () => context.push('/change-password'),
           ),
-          const Divider(height: 1, indent: 68, endIndent: 16),
+          Divider(
+            height: 1,
+            indent: FlatmatesMenuItem.labelInset(),
+            endIndent: AppSpacing.base,
+          ),
           FlatmatesMenuItem(
             icon: Icons.person_off_outlined,
             label: locale.blockedUsersLabel,
@@ -397,13 +435,21 @@ class _ContactActions extends StatelessWidget {
             subtitle: kSupportEmail,
             onTap: () => _launchSupportEmail(context, locale),
           ),
-          const Divider(height: 1, indent: 68, endIndent: 16),
+          Divider(
+            height: 1,
+            indent: FlatmatesMenuItem.labelInset(),
+            endIndent: AppSpacing.base,
+          ),
           FlatmatesMenuItem(
             icon: Icons.privacy_tip_outlined,
             label: locale.privacyPolicy,
             onTap: () => context.push('/privacy-policy'),
           ),
-          const Divider(height: 1, indent: 68, endIndent: 16),
+          Divider(
+            height: 1,
+            indent: FlatmatesMenuItem.labelInset(),
+            endIndent: AppSpacing.base,
+          ),
           FlatmatesMenuItem(
             icon: Icons.description_outlined,
             label: locale.termsOfService,
