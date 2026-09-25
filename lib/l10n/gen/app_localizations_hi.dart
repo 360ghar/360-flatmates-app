@@ -1741,6 +1741,14 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपके फ़िल्टर्स से कोई लिस्टिंग नहीं मिली। उन्हें बदलकर देखें।';
 
   @override
+  String labelWithCount(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get listingStatusUnknown => 'अज्ञात स्थिति';
+
+  @override
   String get listingRejected => 'अस्वीकृत';
 
   @override

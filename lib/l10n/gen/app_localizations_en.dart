@@ -1738,6 +1738,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'No listings match your filters. Try adjusting them.';
 
   @override
+  String labelWithCount(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get listingStatusUnknown => 'Unknown status';
+
+  @override
   String get listingRejected => 'Rejected';
 
   @override

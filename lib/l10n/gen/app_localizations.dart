@@ -3332,6 +3332,18 @@ abstract class AppLocalizations {
   /// **'No listings match your filters. Try adjusting them.'**
   String get noListingsMatchFilters;
 
+  /// No description provided for @labelWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} ({count})'**
+  String labelWithCount(String label, int count);
+
+  /// No description provided for @listingStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown status'**
+  String get listingStatusUnknown;
+
   /// No description provided for @listingRejected.
   ///
   /// In en, this message translates to:

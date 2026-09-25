@@ -6,7 +6,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../discover/domain/property_listing.dart';
 import '../../../shared/presentation/flatmates_card.dart';
-import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
@@ -68,16 +67,6 @@ class ManageListingCard extends StatelessWidget {
                 )
               else
                 _buildPlaceholderImage(fullWidth: true),
-              // Status chip overlay at top-right — color-coded by severity
-              Positioned(
-                top: AppSpacing.sm,
-                right: AppSpacing.sm,
-                child: FlatmatesChip(
-                  label: _statusLabel,
-                  icon: _statusIcon,
-                  tint: _statusColor,
-                ),
-              ),
             ],
           ),
 
@@ -87,11 +76,27 @@ class ManageListingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Status as coloured text above the title (not a tag pinned
+                // on the photo).
+                Row(
+                  children: [
+                    Icon(_statusIcon, size: 16, color: _statusColor),
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        _statusLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   listing.title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.textTheme.titleLarge,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -100,32 +105,18 @@ class ManageListingCard extends StatelessWidget {
                   amount: listing.monthlyRent.toInt(),
                   period: AppLocalizations.of(context).perMonthSuffix,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                // Quick info row using FlatmatesChip
-                Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    if (listing.bedrooms != null)
-                      FlatmatesChip(
-                        icon: Icons.bed_outlined,
-                        label: locale.bedsCount(listing.bedrooms!),
-                        variant: FlatmatesChipVariant.info,
+                if (_facts.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  // Plain text, not a row of pills.
+                  Text(
+                    _facts.join(' · '),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
                       ),
-                    if (listing.bathrooms != null)
-                      FlatmatesChip(
-                        icon: Icons.bathtub_outlined,
-                        label: locale.bathsCount(listing.bathrooms!),
-                        variant: FlatmatesChipVariant.info,
-                      ),
-                    if (listing.areaSqft != null)
-                      FlatmatesChip(
-                        icon: Icons.square_foot_outlined,
-                        label: locale.sqftLabel(listing.areaSqft!.round()),
-                        variant: FlatmatesChipVariant.info,
-                      ),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -261,7 +252,9 @@ class ManageListingCard extends StatelessWidget {
       'pending_review' => locale.underReview,
       'under_review' => locale.underReview,
       'paused' => locale.pausedStatus,
-      _ => status,
+      'rejected' => locale.listingRejected,
+      // Never show a raw backend value.
+      _ => locale.listingStatusUnknown,
     };
   }
 
@@ -275,6 +268,7 @@ class ManageListingCard extends StatelessWidget {
       'pending_review' => Icons.hourglass_top_outlined,
       'under_review' => Icons.hourglass_top_outlined,
       'paused' => Icons.pause_circle_outline,
+      'rejected' => Icons.error_outline_rounded,
       _ => Icons.info_outline,
     };
   }
@@ -288,12 +282,12 @@ class ManageListingCard extends StatelessWidget {
     final brightness = theme.brightness;
     if (_isPaused) return AppSemanticColors.textSecondaryFor(brightness);
     return switch (status) {
-      'active' || 'live' || 'approved' => AppSemanticColors.success,
+      'active' || 'live' || 'approved' => AppSemanticColors.pineFor(brightness),
       'draft' => AppSemanticColors.textTertiaryFor(brightness),
-      'expired' => AppSemanticColors.error,
-      'pending_review' || 'under_review' => AppSemanticColors.warning,
-      'paused' => AppSemanticColors.textSecondaryFor(brightness),
-      _ => AppSemanticColors.info,
+      'expired' || 'rejected' => AppSemanticColors.dangerFor(brightness),
+      'pending_review' ||
+      'under_review' => AppSemanticColors.warningInkFor(brightness),
+      _ => AppSemanticColors.textSecondaryFor(brightness),
     };
   }
 
@@ -325,8 +319,16 @@ class ManageListingCard extends StatelessWidget {
     return () => onTogglePause(listing.id, _isPaused);
   }
 
+  /// Beds, baths and area, when known.
+  List<String> get _facts => [
+    if (listing.bedrooms != null) locale.bedsCount(listing.bedrooms!),
+    if (listing.bathrooms != null) locale.bathsCount(listing.bathrooms!),
+    if (listing.areaSqft != null) locale.sqftLabel(listing.areaSqft!.round()),
+  ];
+
+  /// Only a real expiry date: the move-in date is not an expiry.
   String? get _expiryLabel {
-    final expiresAt = listing.expiresAt ?? listing.availableFrom;
+    final expiresAt = listing.expiresAt;
     if (expiresAt == null) return null;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -346,10 +348,13 @@ class ManageListingCard extends StatelessWidget {
       width: fullWidth ? double.infinity : 80,
       height: fullWidth ? 160 : 80,
       decoration: BoxDecoration(
-        color: AppSemanticColors.accent.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(fullWidth ? 0 : AppRadius.md),
+        color: AppSemanticColors.paperDeepFor(theme.brightness),
+        borderRadius: fullWidth ? BorderRadius.zero : AppRadius.mdBorder,
       ),
-      child: const Icon(Icons.apartment_rounded),
+      child: Icon(
+        Icons.apartment_rounded,
+        color: AppSemanticColors.textTertiaryFor(theme.brightness),
+      ),
     );
   }
 }
@@ -372,7 +377,7 @@ class _PerfStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = emphasis
-        ? AppSemanticColors.error
+        ? AppSemanticColors.dangerFor(theme.brightness)
         : AppSemanticColors.textSecondaryFor(theme.brightness);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -382,8 +387,7 @@ class _PerfStat extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
+            style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: color,
             ),

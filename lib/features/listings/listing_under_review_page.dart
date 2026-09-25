@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/network/sse_providers.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -94,6 +95,17 @@ class _ListingUnderReviewPageState
     });
   }
 
+  /// Back when there is a page below; otherwise the home feed.
+  void _close() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/discover');
+    }
+  }
+
+  PreferredSizeWidget get _header => FlatmatesHeader.logo(onBack: _close);
+
   @override
   Widget build(BuildContext context) {
     // Prefer in-memory seed (navigation extra or durable store recovery).
@@ -101,6 +113,7 @@ class _ListingUnderReviewPageState
     if (live != null) {
       _listenForStatusChanges();
       return FlatmatesScreen(
+        appBar: _header,
         body: RefreshIndicator(
           onRefresh: _refreshAfterStatusChange,
           child: ListingReviewBody(listing: live, listingId: widget.listingId),
@@ -113,6 +126,7 @@ class _ListingUnderReviewPageState
     _listenForStatusChanges();
 
     return FlatmatesScreen(
+      appBar: _header,
       body: listingAsync.when(
         data: (listing) => RefreshIndicator(
           onRefresh: _refreshAfterStatusChange,

@@ -75,6 +75,63 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
 
     final items = listingsState.valueOrNull?.items ?? const <PropertyListing>[];
 
+    final header = Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screen,
+        AppSpacing.md,
+        AppSpacing.screen,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            locale.manageListingsTitle,
+            style: theme.textTheme.headlineLarge,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FlatmatesButton(
+            key: const Key('manage_new_listing_button'),
+            label: locale.postListingTitle,
+            onPressed: () => context.push('/post/new'),
+            icon: Icons.add,
+            fullWidth: true,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FlatmatesSegmentedControl<String>(
+            segments: [
+              (
+                'active',
+                locale.labelWithCount(
+                  locale.activeStatus,
+                  _countForTab(items, 'active'),
+                ),
+                null,
+              ),
+              (
+                'draft',
+                locale.labelWithCount(
+                  locale.draftStatus,
+                  _countForTab(items, 'draft'),
+                ),
+                null,
+              ),
+              (
+                'expired',
+                locale.labelWithCount(
+                  locale.expiredStatus,
+                  _countForTab(items, 'expired'),
+                ),
+                null,
+              ),
+            ],
+            selected: status,
+            onChanged: (v) => setState(() => _manageTab = v),
+          ),
+        ],
+      ),
+    );
+
     return FlatmatesScreen(
       appBar: FlatmatesHeader.logo(
         onBack: () => context.pop(),
@@ -94,142 +151,88 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screen,
-                  0,
-                  AppSpacing.screen,
-                  AppSpacing.md,
-                ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    locale.manageListingsTitle,
-                    style: theme.textTheme.headlineLarge,
+          child: listingsState.when(
+            data: (state) {
+              if (items.isEmpty && !state.hasMore) {
+                return _withHeader(
+                  header,
+                  FlatmatesEmptyState(
+                    icon: Icons.add_home_outlined,
+                    title: locale.emptyListings,
+                    ctaLabel: locale.postListingTitle,
+                    onCtaTap: () => context.push('/post/new'),
                   ),
-                ),
-              ),
+                );
+              }
 
-              // "New Listing" CTA
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screen,
-                ),
-                child: FlatmatesButton(
-                  key: const Key('manage_new_listing_button'),
-                  label: locale.postListingTitle,
-                  onPressed: () => context.push('/post/new'),
-                  icon: Icons.add,
-                  fullWidth: true,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
+              final myListings = items
+                  .where((listing) => listingMatchesTab(listing, status))
+                  .toList();
 
-              // Segmented tab control
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screen,
-                ),
-                child: FlatmatesSegmentedControl<String>(
-                  segments: [
-                    (
-                      'active',
-                      '${locale.activeListingsLabel} (${_countForTab(items, 'active')})',
-                      null,
-                    ),
-                    (
-                      'draft',
-                      '${locale.draftsLabel} (${_countForTab(items, 'draft')})',
-                      null,
-                    ),
-                    (
-                      'expired',
-                      '${locale.expiredLabel} (${_countForTab(items, 'expired')})',
-                      null,
-                    ),
-                  ],
-                  selected: status,
-                  onChanged: (v) => setState(() => _manageTab = v),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
+              if (myListings.isEmpty) {
+                return _withHeader(
+                  header,
+                  FlatmatesEmptyState(
+                    icon: Icons.add_home_outlined,
+                    title: status == 'active'
+                        ? locale.activeListingsLabel
+                        : status == 'draft'
+                        ? locale.draftsLabel
+                        : locale.expiredLabel,
+                  ),
+                );
+              }
 
-              // Listings content
-              Expanded(
-                child: listingsState.when(
-                  data: (state) {
-                    if (items.isEmpty && !state.hasMore) {
-                      return FlatmatesEmptyState(
-                        icon: Icons.add_home_outlined,
-                        title: locale.emptyListings,
-                        ctaLabel: locale.postListingTitle,
-                        onCtaTap: () => context.push('/post/new'),
-                      );
-                    }
-
-                    final myListings = items
-                        .where((listing) => listingMatchesTab(listing, status))
-                        .toList();
-
-                    if (myListings.isEmpty) {
-                      return FlatmatesEmptyState(
-                        icon: Icons.add_home_outlined,
-                        title: status == 'active'
-                            ? locale.activeListingsLabel
-                            : status == 'draft'
-                            ? locale.draftsLabel
-                            : locale.expiredLabel,
-                      );
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        await ref
-                            .read(myListingsListControllerProvider.notifier)
-                            .refresh();
-                      },
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screen,
-                          AppSpacing.xs,
-                          AppSpacing.screen,
-                          AppSpacing.xl + AppSpacing.md,
+              // The header is the first list item, so at large text sizes it
+              // scrolls away instead of leaving no room for the listings.
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await ref
+                      .read(myListingsListControllerProvider.notifier)
+                      .refresh();
+                },
+                child: ListView.builder(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(
+                    bottom: AppSpacing.xl + AppSpacing.md,
+                  ),
+                  itemCount: 1 + myListings.length + (state.hasMore ? 1 : 0),
+                  itemBuilder: (context, i) {
+                    if (i == 0) return header;
+                    final index = i - 1;
+                    if (index >= myListings.length) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.lg,
                         ),
-                        itemCount: myListings.length + (state.hasMore ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= myListings.length) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: AppSpacing.lg,
-                              ),
-                              child: Center(
-                                child: state.isLoadingMore
-                                    ? const SizedBox(
-                                        width: 22,
-                                        height: 22,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
+                        child: Center(
+                          child: state.isLoadingMore
+                              ? const SizedBox.square(
+                                  dimension: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : FlatmatesButton.tertiary(
+                                  label: locale.loadMoreCta,
+                                  icon: Icons.expand_more_rounded,
+                                  onPressed: () => ref
+                                      .read(
+                                        myListingsListControllerProvider
+                                            .notifier,
                                       )
-                                    : TextButton.icon(
-                                        onPressed: () => ref
-                                            .read(
-                                              myListingsListControllerProvider
-                                                  .notifier,
-                                            )
-                                            .loadMore(),
-                                        icon: const Icon(
-                                          Icons.expand_more_rounded,
-                                        ),
-                                        label: Text(locale.loadMoreCta),
-                                      ),
-                              ),
-                            );
-                          }
+                                      .loadMore(),
+                                ),
+                        ),
+                      );
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.screen,
+                      ),
+                      child: Builder(
+                        builder: (context) {
                           final listing = myListings[index];
                           final statusKey = listingStatus(listing);
                           final isPaused = actionsState.isPaused(
@@ -279,21 +282,33 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
                       ),
                     );
                   },
-                  loading: () => const FlatmatesSkeleton.manageListings(),
-                  error: (e, _) => FlatmatesErrorState(
-                    message: locale.couldNotLoadListings,
-                    onRetry: () => ref
-                        .read(myListingsListControllerProvider.notifier)
-                        .refresh(),
-                  ),
                 ),
+              );
+            },
+            loading: () =>
+                _withHeader(header, const FlatmatesSkeleton.manageListings()),
+            error: (e, _) => _withHeader(
+              header,
+              FlatmatesErrorState(
+                message: locale.couldNotLoadListings,
+                onRetry: () => ref
+                    .read(myListingsListControllerProvider.notifier)
+                    .refresh(),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  /// [header] above [content] for the non-list states.
+  Widget _withHeader(Widget header, Widget content) => Column(
+    children: [
+      header,
+      Expanded(child: content),
+    ],
+  );
 
   int _countForTab(List<PropertyListing> listings, String tab) {
     return listings.where((listing) => listingMatchesTab(listing, tab)).length;

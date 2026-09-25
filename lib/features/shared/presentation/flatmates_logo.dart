@@ -51,6 +51,10 @@ class FlatmatesLogo extends StatelessWidget {
           ],
         ),
         textAlign: centered ? TextAlign.center : TextAlign.start,
+        // A wordmark is a picture: it keeps its size at any text scale (the
+        // screen-reader label carries the name).
+        textScaler: TextScaler.noScaling,
+        maxLines: 1,
       ),
     );
   }

@@ -765,6 +765,18 @@
   "editStep": "संपादित करें",
   "filterApplied": "फ़िल्टर लागू किए गए",
   "noListingsMatchFilters": "आपके फ़िल्टर्स से कोई लिस्टिंग नहीं मिली। उन्हें बदलकर देखें।",
+  "labelWithCount": "{label} ({count})",
+  "@labelWithCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "listingStatusUnknown": "अज्ञात स्थिति",
   "listingRejected": "अस्वीकृत",
   "reviewSupportText": "हम 24 घंटे के भीतर आपकी लिस्टिंग की समीक्षा करेंगे",
   "reviewStep3Desc": "आपकी लिस्टिंग स्वीकृत और लाइव होने पर आपको सूचना मिलेगी।",

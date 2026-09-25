@@ -779,6 +779,18 @@
   "editStep": "Edit",
   "filterApplied": "Filters applied",
   "noListingsMatchFilters": "No listings match your filters. Try adjusting them.",
+  "labelWithCount": "{label} ({count})",
+  "@labelWithCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "listingStatusUnknown": "Unknown status",
   "listingRejected": "Rejected",
   "reviewSupportText": "We'll review your listing within 24 hours",
   "reviewStep3Desc": "You'll receive a notification once your listing is approved and live.",
