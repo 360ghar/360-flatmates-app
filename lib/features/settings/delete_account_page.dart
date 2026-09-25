@@ -125,27 +125,15 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
     if (!_isConfirmed || _isDeleting) return;
 
     // Final irreversible-action confirmation dialog.
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(locale.deleteAccountTitle),
-        content: Text(locale.deleteAccountDialogBody),
-        actions: [
-          TextButton(
-            key: const Key('delete_account_dialog_cancel'),
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(locale.cancelCta),
-          ),
-          TextButton(
-            key: const Key('delete_account_dialog_confirm'),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppSemanticColors.error,
-            ),
-            child: Text(locale.deleteAccountButton),
-          ),
-        ],
-      ),
+    final confirmed = await FlatmatesDialog.confirm(
+      context,
+      title: locale.deleteAccountTitle,
+      message: locale.deleteAccountDialogBody,
+      cancelLabel: locale.cancelCta,
+      confirmLabel: locale.deleteAccountButton,
+      destructive: true,
+      cancelKey: const Key('delete_account_dialog_cancel'),
+      confirmKey: const Key('delete_account_dialog_confirm'),
     );
 
     if (confirmed != true || !mounted) return;

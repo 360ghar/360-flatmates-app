@@ -222,24 +222,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Future<bool> _confirmDiscard() async {
     if (!ref.read(editProfileDirtyProvider)) return true;
     final locale = AppLocalizations.of(context);
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(locale.unsavedChangesTitle),
-        content: Text(locale.unsavedChangesMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(locale.keepEditing),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(locale.discardChanges),
-          ),
-        ],
-      ),
+    return FlatmatesDialog.confirm(
+      context,
+      title: locale.unsavedChangesTitle,
+      message: locale.unsavedChangesMessage,
+      cancelLabel: locale.keepEditing,
+      confirmLabel: locale.discardChanges,
+      destructive: true,
     );
-    return discard ?? false;
   }
 
   void _leaveEditPage() {

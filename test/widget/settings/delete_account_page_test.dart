@@ -93,7 +93,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The irreversible-action confirmation dialog should appear.
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
       expect(
         find.byKey(const Key('delete_account_dialog_cancel')),
         findsOneWidget,
@@ -125,7 +125,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The dialog should be dismissed.
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(Dialog), findsNothing);
       // The page should still be present (not deleted).
       expect(find.byType(DeleteAccountPage), findsOneWidget);
     });

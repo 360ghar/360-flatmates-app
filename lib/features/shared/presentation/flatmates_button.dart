@@ -38,10 +38,10 @@ class FlatmatesButton extends StatefulWidget {
     this.icon,
     this.height = 48,
     this.fullWidth = false,
+    this.destructive = false,
   }) : variant = FlatmatesButtonVariant.primary,
        iconOnly = false,
-       tooltip = null,
-       destructive = false;
+       tooltip = null;
 
   const FlatmatesButton.secondary({
     required this.label,

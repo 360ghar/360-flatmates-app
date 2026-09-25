@@ -171,7 +171,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // A discard confirmation dialog should appear.
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
     });
   });
 }

@@ -373,24 +373,14 @@ class ProfilePage extends ConsumerWidget {
 
 Future<void> _confirmAndLogout(BuildContext context, WidgetRef ref) async {
   final locale = AppLocalizations.of(context);
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(locale.logoutCta),
-      actions: [
-        TextButton(
-          key: const Key('logout_dialog_cancel'),
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(locale.cancelCta),
-        ),
-        TextButton(
-          key: const Key('logout_dialog_confirm'),
-          onPressed: () => Navigator.of(ctx).pop(true),
-          style: TextButton.styleFrom(foregroundColor: AppSemanticColors.error),
-          child: Text(locale.logoutCta),
-        ),
-      ],
-    ),
+  final confirmed = await FlatmatesDialog.confirm(
+    context,
+    title: locale.logoutCta,
+    cancelLabel: locale.cancelCta,
+    confirmLabel: locale.logoutCta,
+    destructive: true,
+    cancelKey: const Key('logout_dialog_cancel'),
+    confirmKey: const Key('logout_dialog_confirm'),
   );
   if (confirmed == true && context.mounted) {
     await ref.read(authControllerProvider.notifier).signOut();

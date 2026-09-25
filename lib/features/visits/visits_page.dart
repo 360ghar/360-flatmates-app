@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
 import '../shared/presentation/flatmates_async_view.dart';
+import '../shared/presentation/flatmates_dialog.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
@@ -231,22 +232,13 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
 
   Future<void> _cancelVisit(VisitItem item) async {
     final locale = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(locale.visitCancelCta),
-        content: Text(locale.visitCancelConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(locale.cancelCta),
-          ),
-          FlatmatesButton(
-            label: locale.visitCancelCta,
-            onPressed: () => Navigator.pop(ctx, true),
-          ),
-        ],
-      ),
+    final confirmed = await FlatmatesDialog.confirm(
+      context,
+      title: locale.visitCancelCta,
+      message: locale.visitCancelConfirm,
+      cancelLabel: locale.cancelCta,
+      confirmLabel: locale.visitCancelCta,
+      destructive: true,
     );
     if (confirmed != true || !mounted) return;
     if (!_beginAction(item.id)) return;

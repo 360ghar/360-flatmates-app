@@ -4,8 +4,11 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import 'paper/paper_edge_border.dart';
+import 'paper/paper_surface.dart';
 
-/// Shared bottom sheet — solid canvas, soft top radius, quiet drag handle.
+/// Shared bottom sheet: a paper-2 sheet with a torn top edge and an e3
+/// shadow (DESIGN.md §8).
 ///
 /// Use [FlatmatesBottomSheet.show()] instead of raw [showModalBottomSheet].
 class FlatmatesBottomSheet extends StatelessWidget {
@@ -22,7 +25,7 @@ class FlatmatesBottomSheet extends StatelessWidget {
   final List<Widget>? actions;
   final Widget child;
 
-  /// Shows a modal bottom sheet with Airbnb-aligned surface treatment.
+  /// Shows a modal bottom sheet on the paper treatment.
   static Future<T?> show<T>({
     required BuildContext context,
     required WidgetBuilder builder,
@@ -50,12 +53,7 @@ class FlatmatesBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-
-    final sheetBg = isDark
-        ? AppSemanticColors.darkSurface
-        : AppSemanticColors.canvas;
 
     // The keyboard inset sits outside the height cap, so the sheet keeps its
     // full usable height above the keyboard instead of shrinking inside it.
@@ -65,67 +63,63 @@ class FlatmatesBottomSheet extends StatelessWidget {
       duration: AppMotion.durationOrZero(context, AppMotion.bottomSheet),
       curve: AppMotion.easeOutQuart,
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: ClipRRect(
-        borderRadius: AppRadius.sheetTopBorder,
-        child: Container(
-          constraints: BoxConstraints(maxHeight: maxHeight),
-          decoration: BoxDecoration(
-            color: sheetBg,
-            borderRadius: AppRadius.sheetTopBorder,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: PaperSurface(
+          elevation: PaperElevation.e3,
+          edge: PaperEdge.torn,
+          borderRadius: BorderRadius.zero,
+          padding: const EdgeInsets.only(
+            left: AppSpacing.screen,
+            right: AppSpacing.screen,
+            top: AppSpacing.sm,
+            bottom: AppSpacing.lg,
           ),
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.screen,
-              right: AppSpacing.screen,
-              top: AppSpacing.md,
-              bottom: AppSpacing.lg,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Drag handle
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: AppSemanticColors.hairlineFor(theme.brightness),
-                    borderRadius: BorderRadius.circular(2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppSemanticColors.hairlineFor(theme.brightness),
+                  borderRadius: AppRadius.pillBorder,
+                ),
+              ),
+              // Header row
+              if (title != null || actions != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (title != null)
+                              Text(
+                                title!,
+                                style: theme.textTheme.headlineSmall,
+                              ),
+                            if (subtitle != null) ...[
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                subtitle!,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      ...?actions,
+                    ],
                   ),
                 ),
-                // Header row
-                if (title != null || actions != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (title != null)
-                                Text(
-                                  title!,
-                                  style: theme.textTheme.headlineSmall,
-                                ),
-                              if (subtitle != null) ...[
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  subtitle!,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        ...?actions,
-                      ],
-                    ),
-                  ),
-                // Content
-                Flexible(child: child),
-              ],
-            ),
+              // Content
+              Flexible(child: child),
+            ],
           ),
         ),
       ),

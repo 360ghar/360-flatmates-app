@@ -14,6 +14,7 @@ export 'flatmates_bottom_sheet.dart';
 export 'flatmates_card.dart';
 export 'flatmates_chip.dart';
 export 'flatmates_chrome_icon_button.dart';
+export 'flatmates_dialog.dart';
 export 'flatmates_empty_state.dart';
 export 'flatmates_error_state.dart';
 export 'flatmates_header.dart';

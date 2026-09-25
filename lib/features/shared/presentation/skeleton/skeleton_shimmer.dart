@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_motion.dart';
 import '../../../../l10n/gen/app_localizations.dart';
-import 'skeleton_tokens.dart';
 
-/// Sweeps a highlight gradient over [child] skeleton bones.
+/// Slow tone pulse over [child] skeleton bones (DESIGN.md §8): no sweeping
+/// highlight. Bones are placeholders, not content, so fading them is safe.
 ///
 /// Respects reduced motion: when animations are disabled, renders a static
 /// tree with no [AnimationController].
@@ -36,7 +36,7 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
     _controller ??= AnimationController(
       vsync: this,
       duration: AppMotion.skeletonShimmer,
-    )..repeat();
+    )..repeat(reverse: true);
   }
 
   @override
@@ -47,10 +47,6 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final base = SkeletonTokens.shimmerBase(brightness);
-    final highlight = SkeletonTokens.shimmerHighlight(brightness);
-
     final labeled = Semantics(
       label: AppLocalizations.of(context).loadingLabel,
       container: true,
@@ -62,22 +58,11 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
       return labeled;
     }
 
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return ShaderMask(
-          blendMode: BlendMode.srcATop,
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment(-1.2 + 2.4 * controller.value, 0),
-              end: Alignment(0.2 + 2.4 * controller.value, 0),
-              colors: [base, highlight, base],
-              stops: const [0.25, 0.5, 0.75],
-            ).createShader(bounds);
-          },
-          child: child,
-        );
-      },
+    return FadeTransition(
+      opacity: Tween<double>(
+        begin: 1,
+        end: 0.55,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
       child: labeled,
     );
   }

@@ -229,24 +229,14 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
       return true;
     }
     final locale = AppLocalizations.of(context);
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(locale.discardListingTitle),
-        content: Text(locale.discardListingMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(locale.keepEditingCta),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(locale.discardCta),
-          ),
-        ],
-      ),
+    return FlatmatesDialog.confirm(
+      context,
+      title: locale.discardListingTitle,
+      message: locale.discardListingMessage,
+      cancelLabel: locale.keepEditingCta,
+      confirmLabel: locale.discardCta,
+      destructive: true,
     );
-    return discard ?? false;
   }
 
   void _clearValidationFlags() {

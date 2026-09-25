@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
 import '../shared/presentation/flatmates_card.dart';
+import '../shared/presentation/flatmates_dialog.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_error_state.dart';
 import '../shared/presentation/flatmates_header.dart';
@@ -160,24 +161,13 @@ Future<void> _confirmAndUnblock(
   int blockedUserId,
 ) async {
   final locale = AppLocalizations.of(context);
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(locale.unblockCta),
-      actions: [
-        TextButton(
-          key: const Key('unblock_dialog_cancel'),
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(locale.cancelCta),
-        ),
-        TextButton(
-          key: const Key('unblock_dialog_confirm'),
-          onPressed: () => Navigator.of(ctx).pop(true),
-          style: TextButton.styleFrom(foregroundColor: AppSemanticColors.error),
-          child: Text(locale.unblockCta),
-        ),
-      ],
-    ),
+  final confirmed = await FlatmatesDialog.confirm(
+    context,
+    title: locale.unblockCta,
+    cancelLabel: locale.cancelCta,
+    confirmLabel: locale.unblockCta,
+    cancelKey: const Key('unblock_dialog_cancel'),
+    confirmKey: const Key('unblock_dialog_confirm'),
   );
   if (confirmed != true || !context.mounted) return;
 

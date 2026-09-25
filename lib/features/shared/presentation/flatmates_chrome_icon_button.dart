@@ -7,20 +7,20 @@ import '../../../core/theme/app_spacing.dart';
 
 /// Visual style for app-bar / overlay chrome icon buttons (DESIGN.md).
 enum FlatmatesChromeIconStyle {
-  /// 40px canvas + hairline border — default toolbar back/actions.
+  /// Bare icon on the toolbar — default back/actions. No tile behind it.
   outline,
 
-  /// 32–40px surface-strong fill — compact chrome.
+  /// Bare icon, slightly smaller — compact chrome.
   filled,
 
-  /// White circle + elevation shadow — photo/media overlays.
+  /// Paper disc with a tight e1 shadow — only over photos, where the icon
+  /// needs its own surface to stay legible.
   overlay,
 }
 
-/// Circular icon button used in top chrome (app bars, listing overlays).
+/// Icon button used in top chrome (app bars, listing overlays).
 ///
-/// Matches Airbnb `icon-button-outline` / `icon-button-circle` tokens.
-/// Touch target is at least 40×40 even when the visual diameter is smaller.
+/// Touch target is at least 48 x 48 even when the visual is smaller.
 class FlatmatesChromeIconButton extends StatefulWidget {
   const FlatmatesChromeIconButton({
     required this.icon,
@@ -43,7 +43,7 @@ class FlatmatesChromeIconButton extends StatefulWidget {
   /// Visual diameter. Defaults: outline/overlay 40, filled 32.
   final double? size;
 
-  static const double _minTouch = 40;
+  static const double _minTouch = 48;
 
   @override
   State<FlatmatesChromeIconButton> createState() =>
@@ -79,26 +79,18 @@ class _FlatmatesChromeIconButtonState extends State<FlatmatesChromeIconButton> {
 
     switch (widget.style) {
       case FlatmatesChromeIconStyle.outline:
-        bg = brightness == Brightness.dark
-            ? AppSemanticColors.darkSurface
-            : AppSemanticColors.canvas;
-        borderColor = AppSemanticColors.hairlineFor(brightness);
-        shadows = AppShadows.none;
-        iconColor =
-            widget.iconColor ?? AppSemanticColors.textPrimaryFor(brightness);
       case FlatmatesChromeIconStyle.filled:
-        bg = brightness == Brightness.dark
-            ? AppSemanticColors.darkSurfaceElevated
-            : AppSemanticColors.surfaceStrong;
+        bg = Colors.transparent;
         borderColor = Colors.transparent;
         shadows = AppShadows.none;
         iconColor =
             widget.iconColor ?? AppSemanticColors.textPrimaryFor(brightness);
       case FlatmatesChromeIconStyle.overlay:
-        bg = AppSemanticColors.canvas;
+        bg = AppSemanticColors.paper3For(brightness);
         borderColor = Colors.transparent;
-        shadows = AppShadows.elevation;
-        iconColor = widget.iconColor ?? AppSemanticColors.ink;
+        shadows = AppShadows.e1(brightness);
+        iconColor =
+            widget.iconColor ?? AppSemanticColors.textPrimaryFor(brightness);
     }
 
     final button = Listener(
@@ -106,9 +98,11 @@ class _FlatmatesChromeIconButtonState extends State<FlatmatesChromeIconButton> {
       onPointerUp: enabled ? (_) => setState(() => _pressed = false) : null,
       onPointerCancel: enabled ? (_) => setState(() => _pressed = false) : null,
       child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutCubic,
+        scale: _pressed && !AppMotion.reduceMotion(context)
+            ? AppMotion.pressScale
+            : 1.0,
+        duration: AppMotion.durationOrZero(context, AppMotion.fast),
+        curve: AppMotion.paperOut,
         child: Tooltip(
           message: widget.tooltip,
           child: Material(
@@ -137,7 +131,9 @@ class _FlatmatesChromeIconButtonState extends State<FlatmatesChromeIconButton> {
                       ),
                       child: Icon(
                         widget.icon,
-                        size: widget.iconSize,
+                        size: widget.style == FlatmatesChromeIconStyle.overlay
+                            ? widget.iconSize
+                            : widget.iconSize + 4,
                         color: iconColor,
                       ),
                     ),
