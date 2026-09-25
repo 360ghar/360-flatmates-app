@@ -33,6 +33,11 @@ final addPhonePromptProvider = NotifierProvider<MutableNotifier<bool>, bool>(
   () => MutableNotifier(false),
 );
 
+/// Supabase auth events. A provider so tests can inject a stream.
+final supabaseAuthEventsProvider = Provider<Stream<AuthChangeEvent>>(
+  (ref) => ref.watch(authRepositoryProvider).authEvents,
+);
+
 class AuthController extends Notifier<AuthState> {
   StreamSubscription<String?>? _tokenSubscription;
 
@@ -71,8 +76,14 @@ class AuthController extends Notifier<AuthState> {
   /// case — treating the dead session as live would strand the user on
   /// `authenticated` with no route back to login.
   bool get _hasLiveSession {
-    final session = _repository.currentSession;
-    return session != null && !session.isExpired;
+    try {
+      final session = _repository.currentSession;
+      return session != null && !session.isExpired;
+    } catch (e) {
+      // Supabase not initialised (tests, config error): no live session.
+      debugPrint('AuthController._hasLiveSession: $e');
+      return false;
+    }
   }
 
   void _watchTokenClears() {
@@ -115,18 +126,21 @@ class AuthController extends Notifier<AuthState> {
   /// `signedOut` event. Without this, the app would only notice on the next
   /// failed request.
   void _watchSupabaseSignOut() {
-    final sub = _repository.authEvents.listen(
-      (event) {
-        if (event != AuthChangeEvent.signedOut) return;
-        if (!state.isLoggedIn || state.status == AuthStatus.submitting) return;
-        if (_hasLiveSession) return;
-        unawaited(_clearOwnerScopedData());
-        state = const AuthState(status: AuthStatus.unauthenticated);
-      },
-      onError: (Object error) {
-        debugPrint('AuthController._watchSupabaseSignOut error: $error');
-      },
-    );
+    final sub = ref
+        .read(supabaseAuthEventsProvider)
+        .listen(
+          (event) {
+            if (event != AuthChangeEvent.signedOut) return;
+            final busy = state.status == AuthStatus.submitting;
+            if (!state.isLoggedIn || busy) return;
+            if (_hasLiveSession) return;
+            unawaited(_clearOwnerScopedData());
+            state = const AuthState(status: AuthStatus.unauthenticated);
+          },
+          onError: (Object error) {
+            debugPrint('AuthController._watchSupabaseSignOut error: $error');
+          },
+        );
     ref.onDispose(sub.cancel);
   }
 
