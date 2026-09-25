@@ -1865,7 +1865,7 @@ abstract class AppLocalizations {
   /// No description provided for @whyThisMatchWorks.
   ///
   /// In en, this message translates to:
-  /// **'WHY THIS MATCH WORKS'**
+  /// **'Why this match works'**
   String get whyThisMatchWorks;
 
   /// No description provided for @tapToCollapse.
@@ -4769,7 +4769,7 @@ abstract class AppLocalizations {
   /// No description provided for @popularCitiesLabel.
   ///
   /// In en, this message translates to:
-  /// **'POPULAR CITIES'**
+  /// **'Popular cities'**
   String get popularCitiesLabel;
 
   /// No description provided for @noLocationsAvailable.
@@ -5819,7 +5819,7 @@ abstract class AppLocalizations {
   /// No description provided for @suggestionsLabel.
   ///
   /// In en, this message translates to:
-  /// **'SUGGESTIONS'**
+  /// **'Suggestions'**
   String get suggestionsLabel;
 
   /// No description provided for @locationPickerTitle.
@@ -5837,7 +5837,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchingCitiesLabel.
   ///
   /// In en, this message translates to:
-  /// **'MATCHING CITIES'**
+  /// **'Matching cities'**
   String get matchingCitiesLabel;
 
   /// No description provided for @noCitiesFound.
@@ -5849,7 +5849,7 @@ abstract class AppLocalizations {
   /// No description provided for @moreCitiesLabel.
   ///
   /// In en, this message translates to:
-  /// **'MORE CITIES'**
+  /// **'More cities'**
   String get moreCitiesLabel;
 
   /// No description provided for @searchRadiusLabel.
@@ -6359,7 +6359,7 @@ abstract class AppLocalizations {
   /// No description provided for @listingLabel.
   ///
   /// In en, this message translates to:
-  /// **'LISTING'**
+  /// **'Listing'**
   String get listingLabel;
 
   /// No description provided for @liveBadge.

@@ -12,11 +12,12 @@ Flutter mobile client for the 360 FlatMates product.
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill the Supabase and backend values.
-2. Run `flutter pub get`.
-3. Start the backend monolith from `../backend`.
-4. Run the app for your target device. For a physical Android phone over USB,
-   use `.\scripts\run_android_usb.ps1` instead of plain `flutter run`.
+1. Install the pinned Flutter (3.44.6, see `.fvmrc`): `dart pub global activate fvm && fvm install`.
+2. Copy `.env.example` to `.env` and fill the Supabase and backend values.
+3. Run `fvm flutter pub get`.
+4. Start the backend monolith from `../backend`.
+5. Run the app for your target device with `fvm flutter run`. For a physical
+   Android phone over USB, use `.\scripts\run_android_usb.ps1` instead.
 
 ## Release Configuration
 
@@ -28,11 +29,11 @@ Stream the iOS Simulator to your browser for agent-accessible testing using [ser
 
 ```bash
 # Prerequisites: macOS with Xcode + a booted iOS simulator
-# 1. Start the simulator stream (run BEFORE flutter run)
+# 1. Start the simulator stream (run BEFORE fvm flutter run)
 npx serve-sim                  # → http://localhost:3200
 
 # 2. Run the Flutter app on the simulator
-flutter run
+fvm flutter run
 ```
 
 Once running, the simulator is viewable and interactable at `http://localhost:3200` — no need to control the Simulator app directly. This enables AI agents (Codex, Cursor, Claude Desktop) to visually test the app through the browser.
@@ -61,8 +62,10 @@ If multiple devices are connected, pass `-DeviceId`. If the backend uses a non-d
 
 ## Quality Checks
 
-- `flutter analyze`
-- `flutter test`
+- `fvm dart format --set-exit-if-changed lib test`
+- `fvm flutter analyze --fatal-infos lib test`
+- `fvm flutter test` (goldens run on macOS only; refresh with `--update-goldens`)
+- `bash scripts/banned_patterns.sh`
 
 ## Backend Dependency
 

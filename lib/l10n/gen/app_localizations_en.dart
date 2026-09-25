@@ -953,7 +953,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tapToSeeMore => 'View full profile';
 
   @override
-  String get whyThisMatchWorks => 'WHY THIS MATCH WORKS';
+  String get whyThisMatchWorks => 'Why this match works';
 
   @override
   String get tapToCollapse => 'Tap to collapse';
@@ -2494,7 +2494,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detectingLocation => 'Detecting location...';
 
   @override
-  String get popularCitiesLabel => 'POPULAR CITIES';
+  String get popularCitiesLabel => 'Popular cities';
 
   @override
   String get noLocationsAvailable => 'No locations available';
@@ -3088,7 +3088,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchCityOrAreaHint => 'Search city or area';
 
   @override
-  String get suggestionsLabel => 'SUGGESTIONS';
+  String get suggestionsLabel => 'Suggestions';
 
   @override
   String get locationPickerTitle => 'Choose Location';
@@ -3097,13 +3097,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationPickerSearchHint => 'Search area, locality, city...';
 
   @override
-  String get matchingCitiesLabel => 'MATCHING CITIES';
+  String get matchingCitiesLabel => 'Matching cities';
 
   @override
   String get noCitiesFound => 'No cities found';
 
   @override
-  String get moreCitiesLabel => 'MORE CITIES';
+  String get moreCitiesLabel => 'More cities';
 
   @override
   String get searchRadiusLabel => 'Search Radius';
@@ -3386,7 +3386,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactRequestSentToast => 'Contact request sent';
 
   @override
-  String get listingLabel => 'LISTING';
+  String get listingLabel => 'Listing';
 
   @override
   String get liveBadge => 'Live';

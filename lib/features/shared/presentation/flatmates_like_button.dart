@@ -4,9 +4,9 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 
-/// Circular heart save toggle (Airbnb property-card heart).
+/// Circular heart save toggle on listing photos.
 ///
-/// Default: white/outline on photo. Liked: Rausch filled heart.
+/// Default: outline heart on a paper disc. Liked: filled clay heart.
 class FlatmatesLikeButton extends StatefulWidget {
   const FlatmatesLikeButton({
     required this.liked,
