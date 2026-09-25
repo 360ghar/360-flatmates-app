@@ -322,66 +322,70 @@ class _SocietyTagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = myVote == 'up';
-    return GestureDetector(
-      onTap: () => onVote(tag, 'up'),
-      onLongPress: () => onVote(tag, 'down'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppSemanticColors.accent.withValues(alpha: 0.1)
-              : AppSemanticColors.secondarySurfaceFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-          borderRadius: AppRadius.pillBorder,
-          border: Border.all(
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: GestureDetector(
+        onTap: () => onVote(tag, 'up'),
+        onLongPress: () => onVote(tag, 'down'),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
             color: selected
-                ? AppSemanticColors.accent.withValues(alpha: 0.4)
-                : AppSemanticColors.hairlineFor(
+                ? AppSemanticColors.accent.withValues(alpha: 0.1)
+                : AppSemanticColors.secondarySurfaceFor(
                     isDark ? Brightness.dark : Brightness.light,
                   ),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              selected ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
-              size: 14,
+            borderRadius: AppRadius.pillBorder,
+            border: Border.all(
               color: selected
-                  ? AppSemanticColors.accent
-                  : AppSemanticColors.textSecondaryFor(
+                  ? AppSemanticColors.accent.withValues(alpha: 0.4)
+                  : AppSemanticColors.hairlineFor(
                       isDark ? Brightness.dark : Brightness.light,
                     ),
             ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: AppTypography.microLabelSize,
-                fontWeight: FontWeight.w600,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selected ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                size: 14,
                 color: selected
                     ? AppSemanticColors.accent
-                    : AppSemanticColors.textPrimaryFor(
+                    : AppSemanticColors.textSecondaryFor(
                         isDark ? Brightness.dark : Brightness.light,
                       ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              netVotes.toString(),
-              style: TextStyle(
-                fontSize: AppTypography.badgeSize,
-                fontWeight: FontWeight.w700,
-                color: AppSemanticColors.textSecondaryFor(
-                  isDark ? Brightness.dark : Brightness.light,
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: AppTypography.microLabelSize,
+                  fontWeight: FontWeight.w600,
+                  color: selected
+                      ? AppSemanticColors.accent
+                      : AppSemanticColors.textPrimaryFor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 4),
+              Text(
+                netVotes.toString(),
+                style: TextStyle(
+                  fontSize: AppTypography.badgeSize,
+                  fontWeight: FontWeight.w700,
+                  color: AppSemanticColors.textSecondaryFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

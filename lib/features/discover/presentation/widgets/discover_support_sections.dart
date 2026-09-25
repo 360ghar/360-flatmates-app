@@ -146,7 +146,7 @@ class MovingSoonSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 140,
+          height: AppSpacing.scaled(context, 140),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: movingSoon.length,
@@ -347,14 +347,16 @@ class MeetFlatmatesSection extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         SizedBox(
-          height: 112,
+          height: AppSpacing.scaled(context, 112),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: displayProfiles.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.xs),
             itemBuilder: (context, index) {
               final profile = displayProfiles[index];
-              final name = profile.fullName?.split(' ').first ?? 'Flatmate';
+              final name =
+                  profile.fullName?.split(' ').first ??
+                  AppLocalizations.of(context).matchPeerFallbackName;
               final imageUrl =
                   profile.profileImageUrl ??
                   (profile.imageUrls.isNotEmpty

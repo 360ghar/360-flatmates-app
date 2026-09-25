@@ -15,9 +15,8 @@ class ActiveFilterChips extends StatelessWidget {
 
     // Vertical spacing is owned by FilterSheet (gap after search / before budget).
     return SizedBox(
-      // Dense chip padding (~26–28) + hairline; keep a little slack for
-      // the close glyph and selection scale.
-      height: 32,
+      // Chips are at least 40 tall (40 x 40 remove target); scales with text.
+      height: AppSpacing.scaled(context, 44),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,

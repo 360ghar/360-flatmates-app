@@ -107,46 +107,49 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: locale.backCta,
         ),
       ),
-      title: GestureDetector(
-        key: const Key('chat_peer_header'),
-        behavior: HitTestBehavior.opaque,
-        onTap: onPeerTap,
-        child: Row(
-          children: [
-            CompositedTransformTarget(
-              link: avatarLink ?? LayerLink(),
-              child: FlatmatesAvatar(
-                name: conversation?.peer.fullName,
-                imageUrl: conversation?.peer.profileImageUrl,
-                size: 36,
+      title: Semantics(
+        button: true,
+        child: GestureDetector(
+          key: const Key('chat_peer_header'),
+          behavior: HitTestBehavior.opaque,
+          onTap: onPeerTap,
+          child: Row(
+            children: [
+              CompositedTransformTarget(
+                link: avatarLink ?? LayerLink(),
+                child: FlatmatesAvatar(
+                  name: conversation?.peer.fullName,
+                  imageUrl: conversation?.peer.profileImageUrl,
+                  size: 36,
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          conversation?.peer.fullName ?? locale.chatsTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontSize: AppTypography.titleMdSize,
-                            fontWeight: AppTypography.titleMdWeight,
-                            height: AppTypography.titleMdHeight,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            conversation?.peer.fullName ?? locale.chatsTitle,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontSize: AppTypography.titleMdSize,
+                              fontWeight: AppTypography.titleMdWeight,
+                              height: AppTypography.titleMdHeight,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [

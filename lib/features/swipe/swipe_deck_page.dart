@@ -140,7 +140,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
   void _triggerSnapBack(Offset startOffset) {
     _snapBackStartOffset = startOffset;
-    _snapBackController.forward(from: 0);
+    _snapBackController
+      ..duration = AppMotion.durationOrZero(context, _snapBackDuration)
+      ..forward(from: 0);
   }
 
   void _onSnapBackTick() {
@@ -182,7 +184,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       dragOffset: startOffset,
       isAnimating: true,
     );
-    _flyOffController.forward(from: 0);
+    _flyOffController
+      ..duration = AppMotion.durationOrZero(context, _flyOffDuration)
+      ..forward(from: 0);
   }
 
   SwipeProfile? _currentProfile() {

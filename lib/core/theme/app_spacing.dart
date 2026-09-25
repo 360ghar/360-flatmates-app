@@ -41,4 +41,10 @@ abstract final class AppSpacing {
     horizontal: base,
     vertical: md,
   );
+
+  /// [base] scaled by the user's text size (capped at 2x), for fixed-height
+  /// boxes that hold text, such as horizontal lists. Keeps text from clipping
+  /// at large text sizes.
+  static double scaled(BuildContext context, double base) =>
+      MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2).scale(base);
 }

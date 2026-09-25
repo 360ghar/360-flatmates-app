@@ -124,16 +124,19 @@ class _InteractivePressScaleState extends State<_InteractivePressScale> {
     if (widget.onTap == null) return widget.child;
 
     return Listener(
-      onPointerDown: (_) => setState(() => _scale = 0.97),
+      onPointerDown: (_) => setState(() => _scale = AppMotion.pressScale),
       onPointerUp: (_) => setState(() => _scale = 1.0),
       onPointerCancel: (_) => setState(() => _scale = 1.0),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _scale,
-          duration: AppMotion.buttonPress,
-          curve: AppMotion.easeOutCubic,
-          child: widget.child,
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedScale(
+            scale: AppMotion.reduceMotion(context) ? 1.0 : _scale,
+            duration: AppMotion.fast,
+            curve: AppMotion.paperOut,
+            child: widget.child,
+          ),
         ),
       ),
     );

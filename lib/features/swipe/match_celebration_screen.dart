@@ -44,15 +44,28 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
       vsync: this,
       duration: AppMotion.matchCelebration,
     );
-    _scaleAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: AppMotion.easeOutBack,
+    // Starts at 92 % scale, never 0: the match content is readable from the
+    // first frame even if the animation never runs.
+    _scaleAnimation = Tween<double>(begin: 0.92, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: AppMotion.paperSettle),
     );
-    _controller.forward();
-
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
+  }
+
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (AppMotion.reduceMotion(context)) {
+      _controller.value = 1;
+      return;
+    }
+    _controller.forward();
     _confettiController.play();
   }
 

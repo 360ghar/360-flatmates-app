@@ -136,86 +136,97 @@ class _ListingMarkerWidget extends StatelessWidget {
       }
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 72,
-        height: 68,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
+    // Markers are fixed-size map glyphs: text is not scaled inside them, and
+    // the whole marker is announced as one button.
+    return Semantics(
+      button: true,
+      label: [priceText, ?bhkLabel].join(', '),
+      excludeSemantics: true,
+      child: MediaQuery.withNoTextScaling(
+        child: GestureDetector(
+          onTap: onTap,
+          child: SizedBox(
+            width: 72,
+            height: 68,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs + 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(AppRadius.md),
-                    ),
-                    border: isSelected
-                        ? Border.all(color: Colors.white, width: 3)
-                        : null,
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withValues(alpha: isSelected ? 0.6 : 0.4),
-                        blurRadius: isSelected ? 10 : 6,
-                        offset: const Offset(0, 2),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs + 1,
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    priceText,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(AppRadius.md),
+                        ),
+                        border: isSelected
+                            ? Border.all(color: Colors.white, width: 3)
+                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(
+                              alpha: isSelected ? 0.6 : 0.4,
+                            ),
+                            blurRadius: isSelected ? 10 : 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        priceText,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    CustomPaint(
+                      size: const Size(12, 8),
+                      painter: _TrianglePainter(color: color),
+                    ),
+                  ],
+                ),
+                if (bhkLabel != null)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: AppRadius.smBorder,
+                        border: Border.all(color: color),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 3,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        bhkLabel,
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                          height: 1.1,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                CustomPaint(
-                  size: const Size(12, 8),
-                  painter: _TrianglePainter(color: color),
-                ),
               ],
             ),
-            if (bhkLabel != null)
-              Positioned(
-                top: -4,
-                right: -4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: AppRadius.smBorder,
-                    border: Border.all(color: color),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 3,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    bhkLabel,
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                      height: 1.1,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -269,54 +280,61 @@ class _ClusterMarkerWidget extends StatelessWidget {
         ? FlatmatesPriceText.formatCompact(minRent, thousands: true)
         : '${FlatmatesPriceText.formatCompact(minRent, thousands: true)}-${FlatmatesPriceText.formatCompact(maxRent, thousands: true)}';
 
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 64,
-        height: 76,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: clusterColor.withValues(alpha: 0.4),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+    return Semantics(
+      button: true,
+      label: '$count, $rangeText',
+      excludeSemantics: true,
+      child: MediaQuery.withNoTextScaling(
+        child: GestureDetector(
+          onTap: onTap,
+          child: SizedBox(
+            width: 64,
+            height: 76,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: clusterColor.withValues(alpha: 0.4),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                    border: Border.all(color: clusterColor, width: 2.5),
                   ),
-                ],
-                border: Border.all(color: clusterColor, width: 2.5),
-              ),
-              child: Center(
-                child: Text(
-                  '$count',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: clusterColor,
+                  child: Center(
+                    child: Text(
+                      '$count',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: clusterColor,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                rangeText,
-                style: const TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.w600,
-                  color: clusterColor,
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    rangeText,
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                      color: clusterColor,
+                    ),
+                    maxLines: 1,
+                  ),
                 ),
-                maxLines: 1,
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
