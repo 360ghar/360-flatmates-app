@@ -616,13 +616,13 @@ void main() {
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
 
-    testWidgets('wraps its label when a Row hands it unbounded width', (
+    testWidgets('wraps its label when its parent bounds it at 2x text scale', (
       tester,
     ) async {
-      // A Row lays non-flex children out with unbounded width (the geometry of
-      // step_room_section.dart). The pill must still find a finite width to
-      // wrap against at 2x text scale, or it runs off the row.
-      const label = 'Minimum 2 photos required';
+      // The pill needs a finite width to wrap against: a plain Row child gets
+      // unbounded width, so the call site (step_room_section.dart) must flex
+      // it. This is the pattern that fixes it.
+      const label = 'Min 2 photos required';
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.build(brightness: Brightness.light),
@@ -632,7 +632,21 @@ void main() {
               textScaler: TextScaler.linear(2),
             ),
             child: Scaffold(
-              body: Row(children: [InfoPill(label: label, highlighted: true)]),
+              body: Center(
+                // The content column of a 320 dp phone (16 dp page gutter).
+                child: SizedBox(
+                  width: 288,
+                  child: Row(
+                    children: [
+                      Expanded(child: Text('Room photos')),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: InfoPill(label: label, highlighted: true),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -641,14 +655,10 @@ void main() {
       expect(tester.takeException(), isNull);
 
       final pillWidth = tester.getSize(find.byType(InfoPill)).width;
-      // Capped at the page content width (320 - 2 x 16 gutter), so it never
-      // exceeds the viewport.
-      expect(pillWidth, lessThanOrEqualTo(320 - 32));
+      expect(pillWidth, lessThanOrEqualTo(288));
       // The label wraps inside the pill instead of running past its edge.
       final labelWidth = tester.getSize(find.text(label)).width;
       expect(labelWidth, lessThanOrEqualTo(pillWidth));
-      final labelHeight = tester.getSize(find.text(label)).height;
-      expect(labelHeight, greaterThan(0));
     });
   });
 

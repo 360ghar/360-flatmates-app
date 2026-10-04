@@ -81,45 +81,36 @@ class InfoPill extends StatelessWidget {
         ? AppSemanticColors.clayInkFor(brightness)
         : AppSemanticColors.textSecondaryFor(brightness);
 
-    // A Row hands its non-flex children unbounded width, and a pill is often
-    // one (see step_room_section.dart). Without a finite width the label can
-    // never wrap and the pill runs past its row at large text scales, so cap
-    // the pill at the page content width when its parent does not bound it.
-    // Inside a bounded parent this is a no-op.
-    final unboundedFallback = BoxConstraints(
-      maxWidth: MediaQuery.sizeOf(context).width - AppSpacing.screen * 2,
-    );
-
     // A solid tinted strip: no stroke, no glow.
-    return ConstrainedBox(
-      constraints: unboundedFallback,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: AppRadius.mdBorder,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: AppRadius.mdBorder,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 16, color: foreground),
-                const SizedBox(width: AppSpacing.sm),
-              ],
-              Flexible(
-                child: Text(
-                  label,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: foreground,
-                  ),
-                ),
-              ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: foreground),
+              const SizedBox(width: AppSpacing.sm),
             ],
-          ),
+            // Loose fit: the label wraps when the parent bounds the pill and
+            // stays compact when it does not. A parent that hands the pill
+            // unbounded width (a plain Row child, as in step_room_section.dart)
+            // gives it nothing to wrap against — flex the pill at that call
+            // site instead of changing the pill's own layout.
+            Flexible(
+              child: Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(color: foreground),
+              ),
+            ),
+          ],
         ),
       ),
     );
