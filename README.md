@@ -12,12 +12,14 @@ Flutter mobile client for the 360 FlatMates product.
 
 ## Setup
 
-1. Install the pinned Flutter (3.44.6, see `.fvmrc`): `dart pub global activate fvm && fvm install`.
+1. Install the pinned Flutter (3.44.6, see `.fvmrc`): run `dart pub global activate fvm`, then run `fvm install` (Windows PowerShell 5.1 does not parse `&&`, and `;` would run `fvm install` even if the activation failed).
 2. Copy `.env.example` to `.env` and fill the Supabase and backend values.
 3. Run `fvm flutter pub get`.
 4. Start the backend monolith from `../backend`.
 5. Run the app for your target device with `fvm flutter run`. For a physical
-   Android phone over USB, use `.\scripts\run_android_usb.ps1` instead.
+   Android phone over USB, use `.\scripts\run_android_usb.ps1` instead — it runs
+   through the pinned SDK (`fvm flutter`) when `fvm` is on PATH, and falls back
+   to a plain `flutter` only when it is not.
 
 ## Release Configuration
 
@@ -48,7 +50,7 @@ Use the Windows PowerShell helper when the backend is running on the host machin
 .\scripts\run_android_usb.ps1
 ```
 
-The script checks `http://127.0.0.1:3600/health`, finds `adb`, selects one ready USB device, runs `adb reverse tcp:3600 tcp:3600`, then launches Flutter with `API_BASE_URL=http://127.0.0.1:3600/api/v1`.
+The script checks `http://127.0.0.1:3600/health`, finds `adb`, selects one ready USB device, runs `adb reverse tcp:3600 tcp:3600`, then launches the app through the pinned SDK (`fvm flutter run`) when `fvm` is on PATH, falling back to a plain `flutter run` otherwise. It passes `API_BASE_URL=http://127.0.0.1:3600/api/v1`.
 
 Common options:
 

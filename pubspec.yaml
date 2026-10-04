@@ -99,7 +99,9 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"
 
 # Native launch screen: the paper "sky" so the handoff to the Flutter splash
-# (same colour) has no flash. Plain colour, no image.
+# (same colour) has no flash. No splash image is configured: Android <12 and
+# iOS show the plain colour, and Android 12+ additionally shows the launcher
+# icon, which is the platform default when `android_12.image` is omitted.
 flutter_native_splash:
   color: "#E4EBE3"
   color_dark: "#121814"
