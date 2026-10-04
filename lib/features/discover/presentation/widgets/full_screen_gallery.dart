@@ -39,8 +39,12 @@ class FullScreenGallery extends StatefulWidget {
         opaque: false,
         barrierDismissible: true,
         barrierColor: AppSemanticColors.scrim,
-        // Reduce motion: the viewer opens at once instead of fading in.
+        // Reduce motion: the viewer opens and closes at once instead of
+        // fading in and out.
         transitionDuration: reduceMotion
+            ? Duration.zero
+            : AppMotion.heroTransition,
+        reverseTransitionDuration: reduceMotion
             ? Duration.zero
             : AppMotion.heroTransition,
         pageBuilder: (context, animation, secondaryAnimation) =>
