@@ -218,18 +218,29 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
           const SizedBox(height: AppSpacing.s20),
         ],
 
-        // Min photos required indicator
+        // Min photos required indicator. Both children are flex children, so
+        // each gets a finite width: the label takes what is left and the pill
+        // wraps inside its own bound. A non-flex pill in this Row is what used
+        // to overflow by 206 px at 1x and 676 px at 2x on a 320 dp phone.
         Row(
           children: [
-            Text(
-              locale.roomPhotosLabel,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                locale.roomPhotosLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: AppSpacing.sm),
             if (widget.roomPhotoUrls.length < 2)
-              InfoPill(label: locale.minPhotosRequired, highlighted: true),
+              Flexible(
+                child: InfoPill(
+                  label: locale.minPhotosRequired,
+                  highlighted: true,
+                ),
+              ),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
