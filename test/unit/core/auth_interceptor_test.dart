@@ -186,6 +186,78 @@ void main() {
       expect(queued.resolved?.statusCode, 200);
       expect(tokenProvider.clearSessionCalled, isFalse);
     });
+
+    test('a non-transient refresh failure does not wedge later 401s', () async {
+      final tokenProvider = _ThrowingTokenProvider();
+      final dio = Dio()..httpClientAdapter = _PathStatusAdapter({'/b': 200});
+      final interceptor = AuthInterceptor(
+        tokenProvider: tokenProvider,
+        dio: dio,
+      );
+
+      final first = _RecordingErrorHandler();
+      final queued = _RecordingErrorHandler();
+      final a = interceptor.onError(_unauthorized('/a', 'old'), first);
+      final b = interceptor.onError(_unauthorized('/b', 'old'), queued);
+      await Future.wait([a, b]);
+
+      // The failed refresh is forwarded, the queued request is released, and
+      // no second refresh was started for it.
+      expect(first.nextCalled, isTrue);
+      expect(first.capturedError?.error, isA<StateError>());
+      expect(queued.nextCalled, isTrue);
+      expect(queued.capturedError?.error, isA<StateError>());
+      expect(tokenProvider.calls, 1);
+      expect(tokenProvider.clearSessionCalled, isFalse);
+
+      // The refresh gate is released: the next 401 refreshes and retries.
+      tokenProvider.throwing = false;
+      final later = _RecordingErrorHandler();
+      await interceptor.onError(_unauthorized('/b', 'old'), later);
+
+      expect(tokenProvider.calls, 2);
+      expect(later.resolved?.statusCode, 200);
+    });
+
+    test('does not retry with the token the server rejected', () async {
+      final tokenProvider = _FakeTokenProvider(token: 'old-token');
+      final dio = Dio()..httpClientAdapter = _PathStatusAdapter({'/a': 200});
+      final interceptor = AuthInterceptor(
+        tokenProvider: tokenProvider,
+        dio: dio,
+      );
+
+      final handler = _RecordingErrorHandler();
+      final exception = _unauthorized('/a', 'old-token');
+      await interceptor.onError(exception, handler);
+
+      // No second round trip: the original 401 is forwarded untouched.
+      expect(handler.resolved, isNull);
+      expect(handler.capturedError, same(exception));
+      expect(tokenProvider.clearSessionCalled, isFalse);
+    });
+
+    test('a same-token refresh fails the queue without a retry', () async {
+      final tokenProvider = _GatedTokenProvider('old');
+      final dio = Dio()
+        ..httpClientAdapter = _PathStatusAdapter({'/a': 200, '/b': 200});
+      final interceptor = AuthInterceptor(
+        tokenProvider: tokenProvider,
+        dio: dio,
+      );
+
+      final first = _RecordingErrorHandler();
+      final queued = _RecordingErrorHandler();
+      final a = interceptor.onError(_unauthorized('/a', 'old'), first);
+      final b = interceptor.onError(_unauthorized('/b', 'old'), queued);
+      tokenProvider.release();
+      await Future.wait([a, b]);
+
+      expect(first.resolved, isNull);
+      expect(first.capturedError?.response?.statusCode, 401);
+      expect(queued.resolved, isNull);
+      expect(queued.capturedError?.response?.statusCode, 401);
+    });
   });
 }
 
@@ -217,6 +289,25 @@ class _GatedTokenProvider implements AuthTokenProvider {
     rejected = rejectedToken;
     await _gate.future;
     return _token;
+  }
+
+  @override
+  Future<void> clearSession() async => clearSessionCalled = true;
+}
+
+/// Throws a non-transient error while [throwing] is true, then hands out a
+/// fresh token. Counts attempts so a test can prove the refresh gate was
+/// released after a failure.
+class _ThrowingTokenProvider implements AuthTokenProvider {
+  bool throwing = true;
+  int calls = 0;
+  bool clearSessionCalled = false;
+
+  @override
+  Future<String?> getAccessToken({String? rejectedToken}) async {
+    calls++;
+    if (throwing) throw StateError('session storage unavailable');
+    return 'new-token';
   }
 
   @override

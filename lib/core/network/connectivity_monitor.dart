@@ -67,8 +67,15 @@ final connectivityProvider = StreamProvider<bool>((ref) async* {
 /// Wraps the app and shows an offline strip in the layout flow, above the
 /// app, so it pushes content down instead of covering the app bar.
 ///
-/// The strip takes the top safe-area inset; the app below gets that inset
-/// removed so it is not applied twice.
+/// The strip takes the top safe-area inset; while it is visible the app below
+/// gets that inset removed so it is not applied twice.
+///
+/// The returned tree has the same shape online and offline — only the strip's
+/// visibility and the child's top padding change. Returning `child` directly
+/// when online and a `Column` when offline would make Flutter deactivate and
+/// re-inflate the whole app subtree (Navigator, route state, every open
+/// screen's local state) on each connectivity change, because reconciliation
+/// at this position compares runtime types.
 class OfflineBanner extends ConsumerWidget {
   const OfflineBanner({required this.child, super.key});
 
@@ -77,64 +84,75 @@ class OfflineBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isOnline = ref.watch(connectivityProvider).valueOrNull ?? true;
-    if (isOnline) return child;
-
-    final theme = Theme.of(context);
-    final b = theme.brightness;
-    final locale = AppLocalizations.of(context);
-    final ink = AppSemanticColors.warningInkFor(b);
 
     // The page colour sits behind the strip, so the scallop cut-outs show
     // the page paper instead of the bare window.
     return ColoredBox(
-      color: theme.scaffoldBackgroundColor,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         children: [
-          Semantics(
-            liveRegion: true,
-            // Scallop-edged warning-soft strip (DESIGN.md §8). PaperSurface
-            // pads the cut side, so the text clears the scallops.
-            child: PaperSurface(
-              color: AppSemanticColors.warningSoftFor(b),
-              elevation: PaperElevation.e0,
-              borderRadius: BorderRadius.zero,
-              edge: PaperEdge.scallop,
-              edgeSide: PaperEdgeSide.bottom,
-              edgeDepth: 6,
-              grain: false,
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screen,
-                    vertical: AppSpacing.sm,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.cloud_off_rounded, size: 18, color: ink),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          locale.youAreOffline,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: ink,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // Same slot either way: the strip is only built while offline.
+          if (isOnline) const SizedBox.shrink() else const _OfflineStrip(),
           Expanded(
             child: MediaQuery.removePadding(
               context: context,
-              removeTop: true,
+              // The strip already consumed the top inset. Without it the app
+              // keeps the inset, so app bars and scene art still draw under
+              // the status bar exactly as they did before.
+              removeTop: !isOnline,
               child: child,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Scallop-edged `warning-soft` strip in the page flow (DESIGN.md §8).
+/// [PaperSurface] pads the cut side, so the text clears the scallops.
+///
+/// No animation: the strip appears and disappears with the connectivity
+/// state, so there is nothing for `AppMotion.reduceMotion` to switch off.
+class _OfflineStrip extends StatelessWidget {
+  const _OfflineStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context);
+    final ink = AppSemanticColors.warningInkFor(theme.brightness);
+    return Semantics(
+      liveRegion: true,
+      child: PaperSurface(
+        color: AppSemanticColors.warningSoftFor(theme.brightness),
+        elevation: PaperElevation.e0,
+        borderRadius: BorderRadius.zero,
+        edge: PaperEdge.scallop,
+        edgeSide: PaperEdgeSide.bottom,
+        edgeDepth: 6,
+        grain: false,
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screen,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.cloud_off_rounded, size: 18, color: ink),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    locale.youAreOffline,
+                    style: theme.textTheme.labelMedium?.copyWith(color: ink),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

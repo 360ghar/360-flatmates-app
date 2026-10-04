@@ -7,6 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   const key = 'sb-abc-auth-token';
+  const storeKey = '$key-store';
+  const signedOutKey = '$key-signed-out';
+  const installMarkerKey = 'secure_session_install_marker';
 
   test('keyForUrl matches the supabase_flutter default key', () {
     expect(
@@ -25,6 +28,8 @@ void main() {
     expect(await storage.accessToken(), '{"session":1}');
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.containsKey(key), isFalse);
+    // The marker names the store that holds the live session.
+    expect(prefs.getString(storeKey), 'secure');
   });
 
   test(
@@ -48,6 +53,9 @@ void main() {
 
     await storage.persistSession('s');
     expect(await storage.hasAccessToken(), isTrue);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(storeKey), 'secure');
+    expect(prefs.containsKey(key), isFalse);
     await storage.removePersistedSession();
     expect(await storage.hasAccessToken(), isFalse);
   });
@@ -66,9 +74,7 @@ void main() {
   );
 
   test('later launches keep the keychain session', () async {
-    SharedPreferences.setMockInitialValues({
-      'secure_session_install_marker': true,
-    });
+    SharedPreferences.setMockInitialValues({installMarkerKey: true});
     FlutterSecureStorage.setMockInitialValues({key: 'current'});
 
     final storage = SecureSessionStorage(persistSessionKey: key);
@@ -77,12 +83,22 @@ void main() {
     expect(await storage.accessToken(), 'current');
   });
 
+  test('a marked keychain session is never wiped as a fresh install', () async {
+    // No install marker, but the store marker names the keychain: the session
+    // was saved by this install, so the fresh-install wipe must not run.
+    SharedPreferences.setMockInitialValues({storeKey: 'secure'});
+    FlutterSecureStorage.setMockInitialValues({key: 'saved-session'});
+
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+
+    expect(await storage.accessToken(), 'saved-session');
+  });
+
   test(
     'failed deletion cannot restore a session after restart or migration',
     () async {
-      SharedPreferences.setMockInitialValues({
-        'secure_session_install_marker': true,
-      });
+      SharedPreferences.setMockInitialValues({installMarkerKey: true});
       FlutterSecureStorage.setMockInitialValues({key: 'old-account'});
       final secure = _FailingDeleteStorage();
       final storage = SecureSessionStorage(
@@ -102,17 +118,127 @@ void main() {
       expect(await restarted.accessToken(), isNull);
       expect(await restarted.hasAccessToken(), isFalse);
       expect(prefs.containsKey(key), isFalse);
-
-      secure.failWrite = true;
-      await restarted.persistSession('failed-login');
-      expect(await restarted.accessToken(), isNull);
-      secure.failWrite = false;
-      await restarted.persistSession('new-account');
-      final afterLogin = SecureSessionStorage(persistSessionKey: key);
-      await afterLogin.initialize();
-      expect(await afterLogin.accessToken(), 'new-account');
     },
   );
+
+  test(
+    'a failed keychain write falls back to plaintext and records it',
+    () async {
+      SharedPreferences.setMockInitialValues({installMarkerKey: true});
+      FlutterSecureStorage.setMockInitialValues({});
+      final secure = _FailingDeleteStorage()..failWrite = true;
+      final storage = SecureSessionStorage(
+        persistSessionKey: key,
+        secure: secure,
+      );
+      await storage.initialize();
+
+      // The login is not lost: it lands in the plaintext fallback, and the
+      // marker says where to find it.
+      await storage.persistSession('{"session":1}');
+      expect(await storage.accessToken(), '{"session":1}');
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(storeKey), 'prefs');
+      expect(prefs.getString(key), '{"session":1}');
+
+      // It survives a restart while the keychain is still unusable.
+      final restarted = SecureSessionStorage(
+        persistSessionKey: key,
+        secure: secure,
+      );
+      await restarted.initialize();
+      expect(await restarted.accessToken(), '{"session":1}');
+
+      // Once the keychain works again the session moves back to it and the
+      // plaintext copy is dropped: the fallback is only for as long as the
+      // keychain is unusable.
+      final recovered = SecureSessionStorage(persistSessionKey: key);
+      await recovered.initialize();
+      expect(await recovered.accessToken(), '{"session":1}');
+      expect(
+        await const FlutterSecureStorage().read(key: key),
+        '{"session":1}',
+      );
+      expect(prefs.getString(key), isNull);
+      expect(prefs.getString(storeKey), 'secure');
+    },
+  );
+
+  test('a store marker without credentials is not a session', () async {
+    SharedPreferences.setMockInitialValues({
+      installMarkerKey: true,
+      storeKey: 'secure',
+    });
+    FlutterSecureStorage.setMockInitialValues({});
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+    expect(await storage.hasAccessToken(), isFalse);
+    expect(await storage.accessToken(), isNull);
+
+    // A marker naming the plaintext store is dropped when that copy is gone.
+    SharedPreferences.setMockInitialValues({
+      installMarkerKey: true,
+      storeKey: 'prefs',
+    });
+    FlutterSecureStorage.setMockInitialValues({});
+    final prefsMarker = SecureSessionStorage(persistSessionKey: key);
+    await prefsMarker.initialize();
+    expect(await prefsMarker.accessToken(), isNull);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(storeKey), isNull);
+  });
+
+  test('a stale plaintext marker does not hide a live keychain copy', () async {
+    SharedPreferences.setMockInitialValues({
+      installMarkerKey: true,
+      storeKey: 'prefs',
+    });
+    FlutterSecureStorage.setMockInitialValues({key: 'keychain-copy'});
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+
+    // The marker is dropped because the copy it named is gone, so the
+    // keychain copy (the migration duplicate) is the only session left.
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(storeKey), isNull);
+    expect(await storage.accessToken(), 'keychain-copy');
+  });
+
+  test('a signed-out marker suppresses a leftover keychain session', () async {
+    SharedPreferences.setMockInitialValues({
+      installMarkerKey: true,
+      signedOutKey: true,
+      storeKey: 'secure',
+    });
+    FlutterSecureStorage.setMockInitialValues({key: 'leftover'});
+
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+
+    expect(await storage.hasAccessToken(), isFalse);
+    expect(await storage.accessToken(), isNull);
+  });
+
+  test('a session saved after sign-out clears the invalidation', () async {
+    SharedPreferences.setMockInitialValues({installMarkerKey: true});
+    FlutterSecureStorage.setMockInitialValues({});
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+
+    await storage.persistSession('first');
+    await storage.removePersistedSession();
+    expect(await storage.accessToken(), isNull);
+
+    await storage.persistSession('second');
+    expect(await storage.accessToken(), 'second');
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool(signedOutKey), isFalse);
+    expect(prefs.getString(storeKey), 'secure');
+
+    final restarted = SecureSessionStorage(persistSessionKey: key);
+    await restarted.initialize();
+    expect(await restarted.accessToken(), 'second');
+  });
 
   test(
     'sign-out in plaintext fallback also invalidates the old keychain session',
@@ -143,9 +269,7 @@ void main() {
   test(
     'sign-out waits for an earlier session write before invalidation',
     () async {
-      SharedPreferences.setMockInitialValues({
-        'secure_session_install_marker': true,
-      });
+      SharedPreferences.setMockInitialValues({installMarkerKey: true});
       FlutterSecureStorage.setMockInitialValues({key: 'old'});
       final secure = _FailingDeleteStorage()..writeGate = Completer<void>();
       final storage = SecureSessionStorage(
@@ -167,9 +291,7 @@ void main() {
   );
 
   test('keychain errors never throw out of the storage', () async {
-    SharedPreferences.setMockInitialValues({
-      'secure_session_install_marker': true,
-    });
+    SharedPreferences.setMockInitialValues({installMarkerKey: true});
     final storage = SecureSessionStorage(
       persistSessionKey: key,
       secure: const _ThrowingSecureStorage(),

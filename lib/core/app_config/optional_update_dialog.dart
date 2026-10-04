@@ -42,11 +42,25 @@ abstract final class OptionalUpdateDialog {
     );
   }
 
+  /// Opens the store page in the browser. [updateUrl] comes from server
+  /// app-config, so only `http`/`https` is allowed: `canLaunchUrl` would
+  /// otherwise hand a custom scheme (`intent://`, `tel:`, …) to another app
+  /// on the device.
   static Future<void> _launchUrl(String updateUrl) async {
     if (updateUrl.isEmpty) return;
-    final uri = Uri.parse(updateUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final uri = Uri.tryParse(updateUrl);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      debugPrint(
+        'OptionalUpdateDialog._launchUrl: refused non-http(s) update URL',
+      );
+      return;
+    }
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('OptionalUpdateDialog._launchUrl: $e');
     }
   }
 }

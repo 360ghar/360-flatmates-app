@@ -18,6 +18,18 @@ void main() {
     expect(jwtIssuedWithin(token, window, now: now), isTrue);
   });
 
+  test('a token issued now is fresh', () {
+    final token = _jwt({'iat': 1_800_000_000});
+    expect(jwtIssuedWithin(token, window, now: now), isTrue);
+  });
+
+  test('a token dated in the future is not fresh', () {
+    // Device clock behind the server: a negative age must not read as recent,
+    // or the token looks freshly minted for as long as the clock is behind.
+    final token = _jwt({'iat': 1_800_000_000 + 5});
+    expect(jwtIssuedWithin(token, window, now: now), isFalse);
+  });
+
   test('a token issued 5 min ago is not fresh', () {
     final token = _jwt({'iat': 1_800_000_000 - 300});
     expect(jwtIssuedWithin(token, window, now: now), isFalse);

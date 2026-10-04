@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../auth_token_provider.dart';
 
@@ -55,17 +56,22 @@ final class AuthInterceptor extends Interceptor {
       }
 
       _refreshCompleter = Completer<bool>();
+      final rejectedToken = _bearer(err.requestOptions);
       String? newToken;
       try {
         newToken = await _tokenProvider.getAccessToken(
-          rejectedToken: _bearer(err.requestOptions),
+          rejectedToken: rejectedToken,
         );
       } on TransientAuthRefreshException catch (e) {
         // Refresh failed for transport reasons. Don't clear the session —
         // the user may still be logged in once the network is back. Fail
         // this request and the queue with the transient error.
         _finishRefresh(false);
-        _failQueueTransient(e, err.stackTrace);
+        _failQueueWith(
+          e,
+          type: DioExceptionType.connectionError,
+          stackTrace: err.stackTrace,
+        );
         handler.next(
           DioException(
             requestOptions: err.requestOptions,
@@ -75,13 +81,34 @@ final class AuthInterceptor extends Interceptor {
           ),
         );
         return;
+      } catch (e, st) {
+        // Any other provider failure (Supabase SDK error, storage error, a
+        // programming error) must still release the refresh gate and drain
+        // the queue. Otherwise `_refreshCompleter` stays set and every later
+        // 401 queues behind a completer nobody completes.
+        debugPrint('AuthInterceptor.onError: token refresh failed: $e');
+        _finishRefresh(false);
+        _failQueueWith(e, type: DioExceptionType.unknown, stackTrace: st);
+        handler.next(
+          DioException(
+            requestOptions: err.requestOptions,
+            error: e,
+            stackTrace: st,
+          ),
+        );
+        return;
       }
 
       if (newToken == null || newToken.isEmpty) {
         // No new token — session is genuinely gone. Clear and surface a 401.
         _finishRefresh(false);
         await _tokenProvider.clearSession();
-        _failQueueSessionExpired(err.stackTrace);
+        _failQueueWith(
+          'Session expired. Please sign in again.',
+          type: DioExceptionType.badResponse,
+          statusCode: 401,
+          stackTrace: err.stackTrace,
+        );
         handler.next(
           DioException(
             requestOptions: err.requestOptions,
@@ -94,6 +121,25 @@ final class AuthInterceptor extends Interceptor {
             stackTrace: err.stackTrace,
           ),
         );
+        return;
+      }
+
+      if (rejectedToken != null && newToken == rejectedToken) {
+        // The provider handed back the very token the server just rejected,
+        // so retrying with it can only 401 again. Fail this request and the
+        // queue without the extra round trip; the session is left intact
+        // (the provider clears it when the session is genuinely gone).
+        debugPrint(
+          'AuthInterceptor.onError: refresh returned the rejected token',
+        );
+        _finishRefresh(false);
+        _failQueueWith(
+          err.error ?? 'Unauthorized',
+          type: DioExceptionType.badResponse,
+          statusCode: 401,
+          stackTrace: err.stackTrace,
+        );
+        handler.next(err);
         return;
       }
 
@@ -163,38 +209,26 @@ final class AuthInterceptor extends Interceptor {
     }
   }
 
-  void _failQueueSessionExpired(StackTrace? stackTrace) {
-    final queued = List<_QueuedRequest>.from(_queuedRequests);
-    _queuedRequests.clear();
-    for (final item in queued) {
-      item.handler.next(
-        DioException(
-          requestOptions: item.requestOptions,
-          error: 'Session expired. Please sign in again.',
-          type: DioExceptionType.badResponse,
-          response: Response(
-            requestOptions: item.requestOptions,
-            statusCode: 401,
-          ),
-          stackTrace: stackTrace,
-        ),
-      );
-      item.completer.complete();
-    }
-  }
-
-  void _failQueueTransient(
-    TransientAuthRefreshException exception,
+  void _failQueueWith(
+    Object error, {
+    required DioExceptionType type,
+    int? statusCode,
     StackTrace? stackTrace,
-  ) {
+  }) {
     final queued = List<_QueuedRequest>.from(_queuedRequests);
     _queuedRequests.clear();
     for (final item in queued) {
       item.handler.next(
         DioException(
           requestOptions: item.requestOptions,
-          error: exception,
-          type: DioExceptionType.connectionError,
+          error: error,
+          type: type,
+          response: statusCode == null
+              ? null
+              : Response(
+                  requestOptions: item.requestOptions,
+                  statusCode: statusCode,
+                ),
           stackTrace: stackTrace,
         ),
       );

@@ -111,10 +111,8 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
       final locale = AppLocalizations.of(context);
       final route = result.route;
       if (route == null) {
-        final err = ref.read(authControllerProvider).errorMessage;
-        if (err != null && err.isNotEmpty) {
-          FlatmatesToast.error(context, resolveAuthError(err, locale));
-        }
+        // The failure is already on the auth state, and `build` renders it as
+        // a FlatmatesInlineError — one presentation per error, no toast.
         return;
       }
       if (result.unverified) {

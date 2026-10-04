@@ -57,10 +57,11 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
       return null;
     }
 
+    // A 401 means the server rejected this token, so the local expiry check is
+    // not enough: refresh for real. A token the server just rejected is never
+    // handed back — the caller would retry with it and 401 again.
     final rejected =
-        rejectedToken != null &&
-        session.accessToken == rejectedToken &&
-        !jwtIssuedWithin(rejectedToken, const Duration(seconds: 30));
+        rejectedToken != null && session.accessToken == rejectedToken;
     if (rejected || session.isExpired || _isJwtExpired(session.accessToken)) {
       try {
         session = await _refreshSession(client, rejectedToken);
@@ -179,13 +180,17 @@ bool _isJwtExpired(
       .isAfter(DateTime.fromMillisecondsSinceEpoch(expiry * 1000));
 }
 
-/// True when [token] was issued less than [window] ago. A server 401 on such
-/// a token is not fixed by refreshing again, so the forced refresh is skipped
-/// (otherwise every request would trigger a refresh RPC).
+/// True when [token] was issued less than [window] ago.
+///
+/// Only a non-negative age counts: a token whose `iat` is at or after [now]
+/// (device clock running behind the server) is *not* recently issued, and a
+/// missing or unreadable `iat` is not either. Treating a future `iat` as
+/// recent would make such a token look freshly minted forever.
 @visibleForTesting
 bool jwtIssuedWithin(String token, Duration window, {DateTime? now}) {
   final issuedAt = _jwtSeconds(token, 'iat');
   if (issuedAt == null) return false;
   final issued = DateTime.fromMillisecondsSinceEpoch(issuedAt * 1000);
-  return (now ?? DateTime.now()).difference(issued) < window;
+  final age = (now ?? DateTime.now()).difference(issued);
+  return !age.isNegative && age < window;
 }
