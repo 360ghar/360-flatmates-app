@@ -119,7 +119,10 @@ class FlatmatesHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       toolbarHeight: toolbarHeight,
-      leadingWidth: _showsBack ? 56 : null,
+      // 60, not 56: the caller's 8 dp leading padding and the icon button's own
+      // 2 + 2 dp padding come out of this slot, so the back button only keeps
+      // its 48 dp target at 60.
+      leadingWidth: _showsBack ? 60 : null,
       leading: leading,
       automaticallyImplyLeading: false,
       title: titleWidget ?? _buildTitle(context),
