@@ -31,6 +31,7 @@ AA (4.5:1) on every paper layer. The contrast tests enforce this:
 | `ink-2` | `#4A443D` | `#CBC4B9` | Body text. |
 | `ink-3` | `#6B6359` | `#A39C91` | Muted text, captions, placeholders. |
 | `edge` | `#23201C` at 10 % | `#F1EDE6` at 10 % | Self-coloured paper lip (1 px top/side stroke). |
+| `scrim` | `#121814` | `#121814` | Photo caption backing and modal backdrops. Never inverts; `ink` does, so never use `ink` for a scrim. |
 
 ### Brand
 | Token | Light | Dark | Use |
@@ -80,6 +81,9 @@ AA (4.5:1) on every paper layer. The contrast tests enforce this:
 | `body-sm` | Body | 14 / 20 | 400 |
 | `label` | Body | 14 / 18 | 600 |
 | `caption` | Body | 13 / 18 | 400 |
+| `micro` | Body | 12 / 14 | 600 |
+
+`micro` is web only: tab-bar labels and count badges, never running text.
 
 Headlines stay on one or two lines. No uppercase tracked "eyebrow" labels.
 
@@ -113,8 +117,14 @@ Scene layers each cast `drop-shadow(1px 2px 1.5px)` in `ink/22%` (light) or blac
 - **Torn edge**: one generated tile (`tornEdgeTile`), repeated along an edge. Used where a scene
   meets content, on bottom-sheet tops and on section breaks. Depth 10 px.
 - **Scallop edge**: semicircles of radius 6 along an edge. Used on toasts and the offline strip.
-- **Clear the cut**: any element with a torn or scallop edge gets padding larger than the edge depth
-  on that side.
+- **Ticket edge** (web `paper-edge-ticket`): two half-circle notches, top and bottom, where a
+  tear-off stub meets the body. `--stub` sets the notch position. Used on the visit pass.
+- **Perforated edge** (web `paper-edge-perforated`): small holes on all four sides. Postage stamps
+  on the city postcards.
+- **Stamp**: a clay rubber-stamp ring with text on a circular path (`Stamp`). Decoration only, never
+  a status, and only where the claim it prints is true.
+- **Clear the cut**: any element with a torn, scallop, ticket or perforated edge gets padding larger
+  than the edge depth on that side.
 
 ## 6. Scene art
 
@@ -134,6 +144,11 @@ Never edit the generated files. Change the script and rerun it.
 | `townWindows` | 6 | `scene-window` |
 | `townNear` | 7 | `scene-town` |
 | `tree` | 8 | `scene-tree` |
+
+Night variant (web footer): the same town with `moon` and `stars` in place of the sun and clouds,
+lit windows in `scene-window`. City postcards use `cardSun`, `cardHillsFar`, `cardHillsNear` and a
+city skyline (`bangaloreTown` + `bangaloreWindows` + `bangaloreTree`, `gurugramTowers` +
+`gurugramWindows`).
 
 Compact scene (320 x 200) for empty states: `miniSun`, `miniHillsFar`, `miniHillsNear`, plus one prop.
 
@@ -183,8 +198,53 @@ Compact scene (320 x 200) for empty states: `miniSun`, `miniHillsFar`, `miniHill
 | Empty state | Compact scene + prop, `h3` title, one `body` line, one primary action. |
 | Error state | `rainCloud` scene, human message (never raw error text), Retry button. |
 | Offline | Scallop-edged strip in the page flow (pushes content down), `warning-soft`. |
+| Status / metadata | Tonal text (`pine`, `warning-ink`, `ink-2`, `danger`), optional leading icon. No filled pill, no chip, no dot. |
+| Choice (pick one) | A radio group: one tab stop, arrow keys move. Few short options = chips; options with a line of explanation = cards (`paper-2`, selected = `paper-3` + 2 px `clay` ring + check); 2 to 3 views = segmented control. |
+| Facts | A description list: `caption ink-3` label over `label ink` value, in a 2 or 3 column grid. Not chips. |
+| Menu | `paper-3` sheet, `e3`, rows 44 high, full keyboard support. Destructive rows in `danger`. |
+| Visit pass | `paper-2` ticket: date stub on `paper-1` (month, day in `h1`, weekday), ticket notches, place and status beside it. |
+| Map marker | Solid tag: `clay` + `on-clay` for rooms, `pine` + `paper-2` for flatmates, `cut-sm`, tabular rent (`₹22k`). Hover or focus = `ink` fill. Clusters: `paper-3` disc with a 3 px `clay` ring. Never scales. |
 
 ## 9. Icons
 
 Five nav icons are custom filled paper shapes. Utility icons use lucide (web) or Material (Flutter)
 at one stroke weight (1.75 px web) with no container tile behind them.
+
+
+## 10. Web page composition
+
+### Page frame
+- App pages sit in `Page` with one of three widths: `narrow` 640 (forms, settings, a single
+  profile), `default` 960 (lists, detail pages), `wide` 1200 (home, dashboards, grids). The shell
+  owns the gutters (16 / 24 / 32).
+- `PageHeader` holds the one `h1`, an optional line of description, optional actions and an
+  optional picture (an avatar). Its title matches the route title. On phones a secondary page's
+  title and Back move to the top bar; the top-bar title is not a heading.
+- Public pages open with `PageBand`: a `paper-1` band with a torn bottom edge, the `h1` held to two
+  lines, one line of intro, and a small scene from 1024 px.
+- Focused tasks (post a listing, onboarding, role, location) use the focus layout: logo, Close, one
+  column of 680, the town along the bottom, no navigation to wander off to.
+- Map and chat views fill the space under the top bar edge to edge. From 1024 px chats are a split
+  view: the list beside the open thread.
+
+### Landing page: one day in the neighbourhood
+The page runs from morning to night as one paper diorama; layers alternate `sky` and `paper-1`
+with torn edges between them.
+1. **Hero** (unchanged): headline, `PaperScene`, search sheet pinned across the torn edge. The
+   header is transparent over the sky and becomes a `paper-1` strip with a torn lip on scroll.
+2. **How do you live?**: three questions as chip radio groups, scored live by the app's own
+   compatibility engine on two tilted profile sheets. It shows a score on first render and says
+   it is an example. One action: Start matching.
+3. **From match to move-in**: real components with demo data stacked on the z-axis: a chat sheet,
+   a visit pass, a clay stamp. Three short facts beside it.
+4. **Pick a neighbourhood**: two tilted postcards (Bangalore, Gurugram) with generated skylines, a
+   perforated stamp and real neighbourhood links as text links.
+5. **Questions**: native `<details>` sheets in a 720 column on a `paper-1` band. The FAQ JSON-LD
+   matches the visible questions.
+6. **Night footer**: the footer subtree sets `data-theme="dark"`, so the night tokens apply in both
+   themes: moon, stars, lit windows, one closing line and one `clay` action, then links, store
+   badges and the copyright on the ground layer.
+
+Photo captions use `scrim`, never `ink`. The public header is 72 px high plus its safe-area inset;
+desktop navigation starts at 1024 px and smaller screens use the drawer. The theme control is
+always visible.
