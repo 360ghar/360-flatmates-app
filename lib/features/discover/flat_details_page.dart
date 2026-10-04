@@ -86,6 +86,12 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       _conversationId = null;
       _localListing = widget.seededListing;
       _forceNetwork = false;
+      // GoRouter reuses this page for /flat-details/:id, so the previous
+      // listing's carousel index and in-flight contact/schedule flags must not
+      // leak into the next listing.
+      _currentImageIndex = 0;
+      _isContacting = false;
+      _isScheduling = false;
     }
   }
 

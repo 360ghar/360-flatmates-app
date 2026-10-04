@@ -94,17 +94,38 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final profileAsync = ref.watch(peerProfileProvider(widget.userId));
     final locale = AppLocalizations.of(context);
     final currentUserId = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
     );
     final isSelf = currentUserId != null && currentUserId == widget.userId;
+    final nameFallback = widget.nameFallback;
+    // The payload with photos failed to load, but the caller already knows who
+    // this is — keep the name/avatar visible so the failure stays attributable
+    // to a person instead of showing a bare generic error.
     final loadError = Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      child: FlatmatesErrorState(
-        message: locale.couldNotLoadContent,
-        onRetry: () => ref.invalidate(peerProfileProvider(widget.userId)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (nameFallback != null && nameFallback.isNotEmpty) ...[
+            FlatmatesAvatar(name: nameFallback, size: 80),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              nameFallback,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          FlatmatesErrorState(
+            message: locale.couldNotLoadContent,
+            onRetry: () => ref.invalidate(peerProfileProvider(widget.userId)),
+          ),
+        ],
       ),
     );
 

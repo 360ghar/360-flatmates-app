@@ -50,20 +50,42 @@ class FlatDetailsCarousel extends StatefulWidget {
 }
 
 class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
-  late final PageController _pageController;
+  late PageController _pageController;
   double _page = 0;
 
   @override
   void initState() {
     super.initState();
     _page = widget.currentIndex.toDouble();
-    _pageController = PageController(initialPage: widget.currentIndex)
-      ..addListener(_onScroll);
+    _pageController = _createController(widget.currentIndex);
   }
+
+  PageController _createController(int initialPage) =>
+      PageController(initialPage: initialPage)..addListener(_onScroll);
 
   void _onScroll() {
     final page = _pageController.page;
     if (page != null) setState(() => _page = page);
+  }
+
+  @override
+  void didUpdateWidget(covariant FlatDetailsCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The details page is reused for a different listing (GoRouter keeps this
+    // State), so the parent resets `currentIndex` to 0 when the listing id
+    // changes. A new `images` list is the signal that the listing changed:
+    // start the carousel at the reset index instead of staying parked on the
+    // previous listing's page (which may not even exist in the new listing).
+    //
+    // The controller is replaced rather than jumped: a jump here would fire
+    // `onPageChanged` mid-build and make the parent call setState during
+    // build.
+    if (identical(oldWidget.images, widget.images)) return;
+    _pageController
+      ..removeListener(_onScroll)
+      ..dispose();
+    _page = widget.currentIndex.toDouble();
+    _pageController = _createController(widget.currentIndex);
   }
 
   @override

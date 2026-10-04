@@ -176,13 +176,13 @@ class _ChangeLocationPageState extends ConsumerState<ChangeLocationPage> {
       final details = await ref
           .read(locationSearchProvider.notifier)
           .resolveSuggestion(suggestion);
+      // The page can be popped while the geocode request is in flight.
+      if (!mounted) return;
       if (details == null) {
-        if (mounted) {
-          FlatmatesToast.error(
-            context,
-            AppLocalizations.of(context).locationDetectionFailed,
-          );
-        }
+        FlatmatesToast.error(
+          context,
+          AppLocalizations.of(context).locationDetectionFailed,
+        );
         return;
       }
 

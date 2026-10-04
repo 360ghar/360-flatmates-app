@@ -218,9 +218,30 @@ class _MessageListState extends ConsumerState<MessageList>
 
     final items = messagesState.displayMessages;
     if (items.isEmpty) {
-      return _ChatEmptyCard(
-        title: locale.noMessagesYet,
-        subtitle: locale.noMessagesYetHint,
+      // The empty card must sit inside an always-scrollable list: the
+      // RefreshIndicator above needs a scrollable child, otherwise
+      // pull-to-refresh cannot recover messages realtime missed while the
+      // thread looked empty.
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final emptyCard = _ChatEmptyCard(
+            title: locale.noMessagesYet,
+            subtitle: locale.noMessagesYetHint,
+          );
+          return ListView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            children: [
+              // A viewport-height cell keeps the card centred, exactly as the
+              // non-scrollable layout did.
+              if (constraints.maxHeight.isFinite)
+                SizedBox(height: constraints.maxHeight, child: emptyCard)
+              else
+                emptyCard,
+            ],
+          );
+        },
       );
     }
 

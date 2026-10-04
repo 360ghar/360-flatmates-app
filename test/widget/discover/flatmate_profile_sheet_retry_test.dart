@@ -31,4 +31,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(calls, 2);
   });
+
+  testWidgets('a failed peer profile keeps the caller-known identity', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testableWidget(
+        overrides: [
+          peerProfileProvider.overrideWith((ref, userId) async => null),
+        ],
+        child: const Scaffold(
+          body: FlatmateProfileSheet(userId: 7, nameFallback: 'Asha'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The sheet still says who failed to load, not just a generic error.
+    expect(find.text('Asha'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
 }

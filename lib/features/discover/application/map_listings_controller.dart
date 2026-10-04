@@ -181,7 +181,11 @@ class MapListingsController extends Notifier<MapListingsState> {
     state = state.copyWith(
       listings: [
         for (final l in state.listings)
-          l.id == propertyId ? l.copyWith(liked: liked) : l,
+          l.id == propertyId
+              // `liked: null` must clear the optimistic heart back to unknown
+              // when the original value was null (rollback after a failure).
+              ? l.copyWith(liked: liked, clearLiked: liked == null)
+              : l,
       ],
     );
   }

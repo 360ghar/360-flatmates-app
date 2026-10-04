@@ -537,6 +537,33 @@ final selectedPropertyProvider =
 /// instead of a full network refetch round-trip.
 class PropertyListingController
     extends FamilyAsyncNotifier<PropertyListing, int> {
+  /// One in-flight GET shared by [build], [_reconcileInBackground] and
+  /// [refetchFromNetwork].
+  ///
+  /// Without it, the first notifier read on a seeded detail page starts the
+  /// build/reconcile fetch, and a pull-to-refresh right after starts a second
+  /// GET in parallel — the slower response then wins and can overwrite fresher
+  /// state and seed with older data.
+  Future<PropertyListing>? _inFlightFetch;
+
+  /// Fetches this listing from the network, coalescing concurrent callers onto
+  /// one request. Errors propagate to every awaiter; the slot is cleared once
+  /// the request settles.
+  Future<PropertyListing> _fetchListingOnce() {
+    final inFlight = _inFlightFetch;
+    if (inFlight != null) return inFlight;
+    final future = ref.read(discoverRepositoryProvider).fetchListing(arg);
+    _inFlightFetch = future;
+    unawaited(
+      future
+          .then<void>((_) {}, onError: (Object _, StackTrace _) {})
+          .whenComplete(() {
+            if (identical(_inFlightFetch, future)) _inFlightFetch = null;
+          }),
+    );
+    return future;
+  }
+
   @override
   FutureOr<PropertyListing> build(int arg) async {
     final seeded = ref.read(propertyListingSeedStoreProvider.notifier).get(arg);
@@ -545,14 +572,15 @@ class PropertyListingController
     // (timeout → false "no internet") or 404 for non-owners; reconcile in the
     // background when the owner is authenticated.
     if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
-      unawaited(_reconcileInBackground(arg));
+      unawaited(_reconcileInBackground());
       return seeded;
     }
 
     try {
-      final fresh = await ref
-          .watch(discoverRepositoryProvider)
-          .fetchListing(arg);
+      // Keep the reactive edge on the repository, but fetch through the shared
+      // single-flight slot so a concurrent refresh cannot race this request.
+      ref.watch(discoverRepositoryProvider);
+      final fresh = await _fetchListingOnce();
       // Keep seed warm for later router rebuilds / owner preview.
       ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
       return fresh;
@@ -564,11 +592,9 @@ class PropertyListingController
     }
   }
 
-  Future<void> _reconcileInBackground(int listingId) async {
+  Future<void> _reconcileInBackground() async {
     try {
-      final fresh = await ref
-          .read(discoverRepositoryProvider)
-          .fetchListing(listingId);
+      final fresh = await _fetchListingOnce();
       ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
       // Only update if this family instance is still alive.
       state = AsyncData(fresh);
@@ -589,8 +615,11 @@ class PropertyListingController
   /// Fetches the listing from the network (bypassing the seed), stores it as
   /// the new seed and state, and returns it. Throws on failure; the previous
   /// state stays.
+  ///
+  /// Shares one GET with [build]/[_reconcileInBackground] when a fetch is
+  /// already in flight, so the two paths never race (see [_inFlightFetch]).
   Future<PropertyListing> refetchFromNetwork() async {
-    final fresh = await ref.read(discoverRepositoryProvider).fetchListing(arg);
+    final fresh = await _fetchListingOnce();
     ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
     state = AsyncData(fresh);
     return fresh;

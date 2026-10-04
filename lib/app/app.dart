@@ -341,15 +341,27 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   }
 
   /// Back online: refetch the lists that realtime would have kept fresh, and
-  /// bootstrap if it failed while offline. Invalidating an unwatched provider
-  /// is free; it only reloads when a screen next reads it.
+  /// bootstrap if it failed while offline.
+  ///
+  /// The lists are refreshed in place rather than invalidated: invalidation
+  /// drops the rows the user is looking at, so a transient failure after
+  /// reconnect left blank / error screens even though good data was on screen
+  /// moments earlier. [refreshKeepingListFromWidget] keeps the current rows
+  /// until the refetch lands and keeps them (plus the error) if it fails. A
+  /// provider that was never read is skipped — its first read fetches anyway.
   void _refetchAfterReconnect() {
-    ref
-      ..invalidate(conversationsListControllerProvider)
-      ..invalidate(incomingLikesListControllerProvider)
-      ..invalidate(outgoingLikesListControllerProvider)
-      ..invalidate(notificationsListControllerProvider)
-      ..invalidate(visitsListControllerProvider);
+    unawaited(
+      Future.wait<void>([
+        refreshKeepingListFromWidget(ref, conversationsListControllerProvider),
+        refreshKeepingListFromWidget(ref, incomingLikesListControllerProvider),
+        refreshKeepingListFromWidget(ref, outgoingLikesListControllerProvider),
+        refreshKeepingListFromWidget(ref, notificationsListControllerProvider),
+        refreshKeepingListFromWidget(ref, visitsListControllerProvider),
+      ]).catchError((Object error, StackTrace stackTrace) {
+        debugPrint('App._refetchAfterReconnect failed: $error');
+        return const <void>[];
+      }),
+    );
     if (ref.read(bootstrapControllerProvider).hasError) {
       _refreshBootstrapAfterAuth('reconnect');
     }

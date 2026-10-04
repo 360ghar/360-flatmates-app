@@ -246,8 +246,13 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     final showSeeAll =
         filtered.isNotEmpty && (filtered.length > 2 || feedState.hasMore);
 
+    // Mount the section when there are profiles OR the load failed: a failed
+    // load renders its own inline retry, so hiding the section here would make
+    // that retry unreachable.
+    final meetProfilesAsync = ref.watch(homeMeetProfilesProvider);
     final showMeet =
-        (ref.watch(homeMeetProfilesProvider).valueOrNull?.length ?? 0) > 0;
+        (meetProfilesAsync.valueOrNull?.isNotEmpty ?? false) ||
+        meetProfilesAsync.hasError;
     final hasMovingSoon = movingSoonItems(filtered).isNotEmpty;
 
     // The header and search bar render at once; only the listings section

@@ -166,6 +166,9 @@ class PropertyListing {
     PropertyOwner? owner,
     double? distanceKm,
     bool? liked,
+    // Clears [liked] back to null (unknown). Needed for optimistic rollbacks:
+    // a plain `liked: null` means "keep the current value".
+    bool clearLiked = false,
     bool? userHasScheduledVisit,
     DateTime? userNextVisitDate,
     String? googleStreetViewUrl,
@@ -228,7 +231,7 @@ class PropertyListing {
       maintenanceCharges: maintenanceCharges ?? this.maintenanceCharges,
       owner: owner ?? this.owner,
       distanceKm: distanceKm ?? this.distanceKm,
-      liked: liked ?? this.liked,
+      liked: clearLiked ? null : (liked ?? this.liked),
       userHasScheduledVisit:
           userHasScheduledVisit ?? this.userHasScheduledVisit,
       userNextVisitDate: userNextVisitDate ?? this.userNextVisitDate,
