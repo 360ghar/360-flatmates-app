@@ -112,9 +112,9 @@ void main() {
         testableWidget(
           child: Builder(
             builder: (context) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(textScale),
-              ),
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
               child: Theme(
                 data: AppTheme.build(brightness: Brightness.light),
                 child: Scaffold(
@@ -177,9 +177,7 @@ void main() {
       expect(confirm.top, lessThan(reschedule.bottom));
     });
 
-    testWidgets('stacks on a wide screen once the labels grow', (
-      tester,
-    ) async {
+    testWidgets('stacks on a wide screen once the labels grow', (tester) async {
       // Same viewport as the side-by-side case, twice the text size: the
       // decision follows the label metrics, not a fixed breakpoint.
       await pumpVisitRequest(tester, width: 700, textScale: 2);
