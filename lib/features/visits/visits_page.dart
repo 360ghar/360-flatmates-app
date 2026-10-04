@@ -17,6 +17,7 @@ import '../shared/presentation/flatmates_toast.dart';
 import '../shared/presentation/flatmates_trust_badge.dart';
 import '../shared/presentation/flatmates_ui.dart';
 import '../shared/presentation/profile_sections.dart';
+import '../shared/presentation/visit_date_picker_bounds.dart';
 import 'application/visits_actions_controller.dart';
 import 'application/visits_list_controller.dart';
 import 'visits_repository.dart';
@@ -248,19 +249,17 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
 
     final now = DateTime.now();
     final scheduledLocal = item.scheduledDate.toLocal();
-    final firstDate = DateUtils.dateOnly(now);
-    final lastDate = firstDate.add(const Duration(days: 90));
-    var initialDate = scheduledLocal.isAfter(now)
-        ? DateUtils.dateOnly(scheduledLocal)
-        : firstDate.add(const Duration(days: 1));
-    if (initialDate.isBefore(firstDate)) initialDate = firstDate;
-    if (initialDate.isAfter(lastDate)) initialDate = lastDate;
+    // Calendar-date bounds: a visit already in the past falls back to tomorrow.
+    final bounds = visitDatePickerBounds(
+      now: now,
+      preferred: scheduledLocal.isAfter(now) ? scheduledLocal : null,
+    );
 
     final date = await showDatePicker(
       context: context,
-      firstDate: firstDate,
-      lastDate: lastDate,
-      initialDate: initialDate,
+      firstDate: bounds.first,
+      lastDate: bounds.last,
+      initialDate: bounds.initial,
     );
     if (date == null || !mounted) return;
 

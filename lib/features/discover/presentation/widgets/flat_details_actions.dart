@@ -6,6 +6,7 @@ import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
 import '../../../shared/presentation/components.dart';
+import '../../../shared/presentation/visit_date_picker_bounds.dart';
 import '../../../visits/application/visits_actions_controller.dart';
 import '../../discover_repository.dart';
 import 'owner_profile_sheet.dart';
@@ -139,13 +140,13 @@ Future<void> scheduleVisitFromDetails({
   if (currentUserId == null) return;
 
   final locale = AppLocalizations.of(context);
-  final now = DateTime.now();
+  final bounds = visitDatePickerBounds(now: DateTime.now());
 
   final date = await showDatePicker(
     context: context,
-    firstDate: now,
-    lastDate: now.add(const Duration(days: 90)),
-    initialDate: now.add(const Duration(days: 1)),
+    firstDate: bounds.first,
+    lastDate: bounds.last,
+    initialDate: bounds.initial,
   );
   if (date == null || !context.mounted) return;
 

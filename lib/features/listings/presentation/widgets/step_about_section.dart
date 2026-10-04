@@ -5,6 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/catalog_helpers.dart';
 import '../../../shared/presentation/components.dart';
+import '../../../shared/presentation/visit_date_picker_bounds.dart';
 
 /// Calendar bounds for the "available from" date picker.
 ///
@@ -24,23 +25,8 @@ import '../../../shared/presentation/components.dart';
 ({DateTime first, DateTime last, DateTime initial}) availableFromPickerBounds({
   required DateTime now,
   DateTime? availableFrom,
-}) {
-  final first = DateUtils.dateOnly(now);
-  final last = DateTime(first.year, first.month, first.day + 180);
-  final wanted = availableFrom == null
-      ? DateTime(first.year, first.month, first.day + 1)
-      : DateUtils.dateOnly(availableFrom.toLocal());
-  // An older listing can carry a date outside the range.
-  return (
-    first: first,
-    last: last,
-    initial: wanted.isBefore(first)
-        ? first
-        : wanted.isAfter(last)
-        ? last
-        : wanted,
-  );
-}
+}) =>
+    visitDatePickerBounds(now: now, preferred: availableFrom, windowDays: 180);
 
 /// Step 6 — About (typical day, gender preference, age range,
 /// non-negotiables, available from date).

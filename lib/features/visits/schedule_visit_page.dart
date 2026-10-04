@@ -12,6 +12,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../chats/chats_repository.dart';
 import '../shared/presentation/components.dart';
 import '../shared/presentation/paper/paper_scene.dart';
+import '../shared/presentation/visit_date_picker_bounds.dart';
 import 'application/visits_actions_controller.dart';
 
 class ScheduleVisitPage extends ConsumerStatefulWidget {
@@ -31,8 +32,10 @@ class ScheduleVisitPage extends ConsumerStatefulWidget {
 class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
   final _noteController = TextEditingController();
 
-  // Ephemeral form state: each visit starts from these defaults.
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  // Ephemeral form state: each visit starts from these defaults. Calendar-date
+  // default (tomorrow, local) — `Duration(days: 1)` would land on 23:00 of
+  // today across a DST fall-back.
+  DateTime _selectedDate = visitDatePickerBounds(now: DateTime.now()).initial;
   String _slot = 'afternoon';
   bool _submitting = false;
 
@@ -214,20 +217,17 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                 FlatmatesCard(
                   child: Builder(
                     builder: (context) {
-                      final firstDate = DateUtils.dateOnly(DateTime.now());
-                      final lastDate = firstDate.add(const Duration(days: 90));
-                      // Clamp the stored date into [firstDate, lastDate];
-                      // CalendarDatePicker asserts initialDate is in range.
-                      final selectedDate = _selectedDate;
-                      final initial = selectedDate.isBefore(firstDate)
-                          ? firstDate
-                          : selectedDate.isAfter(lastDate)
-                          ? lastDate
-                          : selectedDate;
+                      // Calendar-date bounds; CalendarDatePicker asserts
+                      // initialDate is in range, and the stored date may sit
+                      // outside it.
+                      final bounds = visitDatePickerBounds(
+                        now: DateTime.now(),
+                        preferred: _selectedDate,
+                      );
                       return CalendarDatePicker(
-                        initialDate: initial,
-                        firstDate: firstDate,
-                        lastDate: lastDate,
+                        initialDate: bounds.initial,
+                        firstDate: bounds.first,
+                        lastDate: bounds.last,
                         onDateChanged: (date) =>
                             setState(() => _selectedDate = date),
                       );
