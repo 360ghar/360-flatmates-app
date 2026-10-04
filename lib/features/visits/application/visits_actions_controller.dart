@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/gen/app_localizations.dart';
+import '../../chats/application/cursor_list_controller.dart';
 import '../visits_repository.dart';
 import 'visits_list_controller.dart';
 
@@ -51,6 +52,10 @@ class VisitsActionsController {
     );
     _ref.invalidate(visitsListControllerProvider);
     _ref.invalidate(visitsProvider);
+    // The visit request posts a `visit_request` chat message, so the
+    // conversation list's preview and timestamp are stale — refresh it the
+    // same way MessagesController.sendMessage does.
+    _ref.invalidate(conversationsListControllerProvider);
     return visitId;
   }
 

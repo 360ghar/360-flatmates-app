@@ -269,8 +269,10 @@ class StepCostsSection extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
+                    // No line cap: at 2x text scale a phone-width card wraps
+                    // this past two lines, and a clipped amount is a number
+                    // the user cannot read.
                     textAlign: TextAlign.center,
-                    maxLines: 2,
                   ),
                   if (totalFlatmates > 1) ...[
                     const SizedBox(height: AppSpacing.sm),
@@ -281,7 +283,6 @@ class StepCostsSection extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                       textAlign: TextAlign.center,
-                      maxLines: 2,
                     ),
                   ],
                 ],

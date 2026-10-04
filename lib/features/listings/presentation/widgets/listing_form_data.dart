@@ -205,10 +205,18 @@ ListingEditScalars populateListingControllers({
     electricityIncluded: electricityIncluded.isEmpty
         ? 'separate'
         : electricityIncluded,
-    ageMin: (prefs['preferred_age_min'] as num?)?.toDouble(),
-    ageMax: (prefs['preferred_age_max'] as num?)?.toDouble(),
+    ageMin: _parseAgePreference(prefs['preferred_age_min']),
+    ageMax: _parseAgePreference(prefs['preferred_age_max']),
   );
 }
+
+/// Parses one preferred-age preference defensively.
+///
+/// Preferences are server JSON, so the value can be a number, a numeric
+/// string, or absent. Casting to `num` threw on the string form and aborted
+/// the whole edit-form load; anything unparseable now means "no preference".
+double? _parseAgePreference(Object? value) =>
+    double.tryParse(value?.toString() ?? '');
 
 /// Removes a leading "NBHK in " prefix (e.g. "2BHK in ") so editing a listing
 /// whose title was composed by the builder does not double up on re-submit.
