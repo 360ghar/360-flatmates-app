@@ -40,6 +40,12 @@ abstract final class AppTheme {
           secondaryContainer: AppSemanticColors.pineSoftFor(brightness),
           onSecondaryContainer: textPrimary,
           tertiary: AppSemanticColors.marigoldFor(brightness),
+          // Seed-generated onTertiary is too light on marigold (2.27:1 in
+          // light mode). Ink on marigold is AA in both themes; enforced by
+          // test/core/theme/contrast_test.dart.
+          onTertiary: isDark
+              ? AppSemanticColors.darkOnClay
+              : AppSemanticColors.ink,
           surface: surface,
           surfaceContainerLowest: sky,
           surfaceContainerLow: paper1,

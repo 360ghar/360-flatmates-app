@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
+import 'package:flatmates_app/core/theme/app_theme.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
@@ -614,6 +615,41 @@ void main() {
       expect(find.text('Furnished'), findsOneWidget);
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
+
+    testWidgets('wraps its label when a Row hands it unbounded width', (
+      tester,
+    ) async {
+      // A Row lays non-flex children out with unbounded width (the geometry of
+      // step_room_section.dart). The pill must still find a finite width to
+      // wrap against at 2x text scale, or it runs off the row.
+      const label = 'Minimum 2 photos required';
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.build(brightness: Brightness.light),
+          home: const MediaQuery(
+            data: MediaQueryData(
+              size: Size(320, 640),
+              textScaler: TextScaler.linear(2),
+            ),
+            child: Scaffold(
+              body: Row(children: [InfoPill(label: label, highlighted: true)]),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+
+      final pillWidth = tester.getSize(find.byType(InfoPill)).width;
+      // Capped at the page content width (320 - 2 x 16 gutter), so it never
+      // exceeds the viewport.
+      expect(pillWidth, lessThanOrEqualTo(320 - 32));
+      // The label wraps inside the pill instead of running past its edge.
+      final labelWidth = tester.getSize(find.text(label)).width;
+      expect(labelWidth, lessThanOrEqualTo(pillWidth));
+      final labelHeight = tester.getSize(find.text(label)).height;
+      expect(labelHeight, greaterThan(0));
+    });
   });
 
   group('FlatmatesMenuItem', () {
@@ -699,6 +735,43 @@ void main() {
             .width,
         32,
       );
+    });
+
+    testWidgets('stays a 48 dp tap target at every text scale', (tester) async {
+      // A scale below 1 shrinks the label's line box, which used to take the
+      // dense row to 43-45 dp.
+      for (final scale in <double>[1, 0.8, 2]) {
+        for (final dense in <bool>[true, false]) {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: MediaQuery(
+                data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                child: Scaffold(
+                  // A Column of rows: the geometry of the real settings lists,
+                  // where a row takes its own height (inside the Scaffold body
+                  // slot on its own it would stretch to the screen).
+                  body: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FlatmatesMenuItem(
+                        label: 'Settings',
+                        icon: Icons.settings_outlined,
+                        dense: dense,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          expect(
+            tester.getSize(find.byType(FlatmatesMenuItem)).height,
+            greaterThanOrEqualTo(48),
+            reason: 'dense=$dense at text scale $scale',
+          );
+        }
+      }
     });
   });
 

@@ -10,12 +10,17 @@ class BuildErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = MediaQuery.maybePlatformBrightnessOf(context);
-    final dark = brightness == Brightness.dark;
+    // Follow the app's selected theme, not the OS setting: an explicit dark
+    // theme must not paint a light panel (and the reverse). ErrorWidget
+    // renders wherever the failure happened, so there may be no Theme or
+    // MediaQuery above it — fall back to light.
+    final brightness =
+        Theme.maybeBrightnessOf(context) ??
+        MediaQuery.maybePlatformBrightnessOf(context) ??
+        Brightness.light;
     final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
-    final ink = dark ? AppSemanticColors.darkMuted : AppSemanticColors.muted;
     return ColoredBox(
-      color: dark ? AppSemanticColors.darkPaper1 : AppSemanticColors.paper1,
+      color: AppSemanticColors.paper1For(brightness),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -23,7 +28,10 @@ class BuildErrorView extends StatelessWidget {
             l10n?.errorUnknown ?? 'Something went wrong.',
             textAlign: TextAlign.center,
             textDirection: TextDirection.ltr,
-            style: TextStyle(color: ink, fontSize: 14),
+            style: TextStyle(
+              color: AppSemanticColors.textTertiaryFor(brightness),
+              fontSize: 14,
+            ),
           ),
         ),
       ),

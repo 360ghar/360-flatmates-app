@@ -15,8 +15,10 @@ abstract final class AppBrandColors {
         )
       : (
           fill: const Color(0xFFFFFFFF),
-          label: const Color(0xFF3C4043),
-          stroke: const Color(0xFFDADCE0),
+          // Google identity branding guidelines (light): label #1F1F1F,
+          // stroke #747775.
+          label: const Color(0xFF1F1F1F),
+          stroke: const Color(0xFF747775),
           pressed: const Color(0xFFF8F9FA),
         );
 }

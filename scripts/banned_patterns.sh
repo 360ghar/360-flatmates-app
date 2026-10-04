@@ -117,10 +117,20 @@ fi
 
 # Light-only status colours fail contrast in dark mode (clay on dark paper is
 # about 1.2:1). Use the brightness-aware AppSemanticColors.*For(brightness).
+# Every token below is a light-only constant that has a *For() counterpart, so
+# a raw reference inside a feature or app widget is always the wrong choice.
+LIGHT_ONLY_TOKENS='accent|error|success|warning|info|primary|onPrimary|sky|paper1|paper2|paper3|paperDeep|clay|clayPress|onClay|pine|pineSoft|marigold|danger|warningInk|textPrimary|textSecondary|textTertiary|surface|paper|scaffold|secondarySurface|disabledSurface|coralSoft|successSoft|warningSoft|errorSoft|blueSoft|purpleSoft|greenSoft|yellowSoft|orangeSoft|tealSoft|pinkSoft|greenInk|clayInk|onPine|hairline'
+
+# Deliberate exemption: the share poster renders a PNG for export, so it must
+# keep the fixed light palette instead of following the viewer's theme.
+LIGHT_ONLY_EXEMPT='lib/features/discover/share_listing_card.dart'
+
 echo -n "  light-only accent/status colours in features and app... "
-COUNT=$(grep -rE 'AppSemanticColors\.(accent|error|success|warning|info|primary|onPrimary)([^A-Za-z0-9]|$)' lib/features lib/app --include='*.dart' | wc -l | tr -d ' ')
+HITS=$(grep -rEn "AppSemanticColors\.($LIGHT_ONLY_TOKENS)([^A-Za-z0-9]|$)" lib/features lib/app --include='*.dart' | grep -v "^$LIGHT_ONLY_EXEMPT:" || true)
+COUNT=$(printf '%s\n' "$HITS" | grep -c . || true)
 if [ "$COUNT" -gt 0 ]; then
   echo "FAIL ($COUNT; use AppSemanticColors.*For(brightness))"
+  echo "$HITS"
   ERRORS=$((ERRORS + 1))
 else
   echo "OK"

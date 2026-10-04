@@ -86,20 +86,36 @@ class DiscoverFeedSkeleton extends StatelessWidget {
   }
 }
 
-/// One row of two listing-card placeholders (no header, not scrollable).
+/// Columns in the real "Picked for you" grid at [width] — 2 on phones, 3 from
+/// 600 dp, 4 from 900 dp. Keep in step with `DiscoverPage`.
+int _gridColumns(double width) => width < 600
+    ? 2
+    : width < 900
+    ? 3
+    : 4;
+
+/// One row of listing-card placeholders (no header, not scrollable).
+///
+/// Same column count as the loaded grid, so a wide screen does not reflow when
+/// the feed arrives (DESIGN.md §8: the skeleton has the layout of the loaded
+/// view).
 class DiscoverFeedCardsSkeleton extends StatelessWidget {
   const DiscoverFeedCardsSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final bone = SkeletonTokens.bone(Theme.of(context).brightness);
+    final columns = _gridColumns(MediaQuery.sizeOf(context).width);
+
     return SizedBox(
       height: 320,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _FeedCard(bone: bone),
-          const SizedBox(width: AppSpacing.md),
-          _FeedCard(bone: bone),
+          for (var column = 0; column < columns; column++) ...[
+            if (column > 0) const SizedBox(width: AppSpacing.md),
+            _FeedCard(bone: bone),
+          ],
         ],
       ),
     );

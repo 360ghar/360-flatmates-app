@@ -16,14 +16,16 @@ class PaperIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = IconTheme.of(context);
     final side = size ?? theme.size ?? 24;
+    var tint = color ?? theme.color ?? const Color.fromARGB(255, 0, 0, 0);
+    // Match Icon: the nearest IconTheme's opacity multiplies the colour's own
+    // alpha, so a faded icon theme fades a paper icon too.
+    final opacity = theme.opacity ?? 1;
+    if (opacity != 1) {
+      tint = tint.withValues(alpha: tint.a * opacity);
+    }
     return SizedBox.square(
       dimension: side,
-      child: CustomPaint(
-        painter: _PaperIconPainter(
-          shape,
-          color ?? theme.color ?? const Color.fromARGB(255, 0, 0, 0),
-        ),
-      ),
+      child: CustomPaint(painter: _PaperIconPainter(shape, tint)),
     );
   }
 }

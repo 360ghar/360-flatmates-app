@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flatmates_app/features/shared/presentation/flatmates_skeleton.dart';
+import 'package:flatmates_app/features/shared/presentation/skeleton/variants/discover_feed_skeleton.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 void main() {
@@ -85,6 +86,45 @@ void main() {
       expect(find.byType(FlatmatesSkeleton), findsOneWidget);
       // No exception should be thrown.
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('discover feed card row mirrors the loaded grid columns', (
+      tester,
+    ) async {
+      // DiscoverPage switches the "Picked for you" grid to 3 columns at 600 dp
+      // and 4 at 900 dp; the placeholder row must match or a wide screen
+      // reflows when the feed arrives (DESIGN.md §8).
+      Future<int> columnsAt(double width) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: MediaQuery(
+              data: MediaQueryData(size: Size(width, 800)),
+              child: const Scaffold(
+                body: FlatmatesSkeleton.discoverFeedCards(),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final row = find.descendant(
+          of: find.byType(DiscoverFeedCardsSkeleton),
+          matching: find.byType(Row),
+        );
+        expect(row, findsOneWidget);
+        // One card per column with a gap between them: n cards, n-1 gaps.
+        final children = tester.widget<Row>(row).children.length;
+        return (children + 1) ~/ 2;
+      }
+
+      expect(await columnsAt(320), 2);
+      expect(await columnsAt(599), 2);
+      expect(await columnsAt(600), 3);
+      expect(await columnsAt(899), 3);
+      expect(await columnsAt(900), 4);
+      expect(await columnsAt(1200), 4);
     });
   });
 }

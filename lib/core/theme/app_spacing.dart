@@ -47,9 +47,15 @@ abstract final class AppSpacing {
     vertical: md,
   );
 
-  /// [base] scaled by the user's text size (capped at 2x), for fixed-height
-  /// boxes that hold text, such as horizontal lists. Keeps text from clipping
-  /// at large text sizes.
+  /// [base] scaled by the user's text size, for fixed-height boxes that hold
+  /// text, such as horizontal lists. Keeps text from clipping at large text
+  /// sizes.
+  ///
+  /// The factor is clamped to 1x..2x: above 2x text would clip, and below 1x a
+  /// scaled box would shrink past the 48 dp minimum tap target it wraps (e.g.
+  /// the 52 dp parent around the filter chips). Scale 1.0 is unchanged.
   static double scaled(BuildContext context, double base) =>
-      MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2).scale(base);
+      MediaQuery.textScalerOf(
+        context,
+      ).clamp(minScaleFactor: 1, maxScaleFactor: 2).scale(base);
 }

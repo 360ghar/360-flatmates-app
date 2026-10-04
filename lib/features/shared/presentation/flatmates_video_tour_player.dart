@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -30,6 +32,11 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
   Object? _error;
   bool _started = false;
 
+  /// The reduce-motion value the player is currently obeying. Re-read on every
+  /// dependency change so flipping the setting while the tour is open stops
+  /// (or resumes) playback instead of leaving the video looping.
+  bool? _reduceMotion;
+
   @override
   void initState() {
     super.initState();
@@ -39,19 +46,40 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started) return;
-    _started = true;
-    // Muted autoplay loop, except under reduce motion: then the first frame
-    // shows and a tap starts playback.
-    _initialize(autoplay: !AppMotion.reduceMotion(context));
+    final reduceMotion = AppMotion.reduceMotion(context);
+    final changed = _reduceMotion != reduceMotion;
+    _reduceMotion = reduceMotion;
+    if (!_started) {
+      _started = true;
+      // Muted autoplay loop, except under reduce motion: then the first frame
+      // shows and a tap starts playback.
+      _initialize();
+      return;
+    }
+    if (changed && _ready) {
+      unawaited(_applyMotionPreference(reduceMotion));
+    }
   }
 
-  Future<void> _initialize({required bool autoplay}) async {
+  /// Reduce motion on: no loop and no playback. Off again: loop and play.
+  ///
+  /// Safe before the controller is initialized (the platform calls no-op) and
+  /// when the video is already in the requested state.
+  Future<void> _applyMotionPreference(bool reduceMotion) async {
+    await _controller.setLooping(!reduceMotion);
+    if (reduceMotion) {
+      await _controller.pause();
+    } else if (!_controller.value.isPlaying) {
+      await _controller.play();
+    }
+  }
+
+  Future<void> _initialize() async {
     try {
       await _controller.initialize();
-      await _controller.setLooping(true);
       await _controller.setVolume(0);
-      if (autoplay) await _controller.play();
+      // Read the setting again: it can change while the player is loading.
+      await _applyMotionPreference(_reduceMotion ?? false);
       if (mounted) setState(() => _ready = true);
     } catch (error) {
       debugPrint('FlatmatesVideoTourPlayer._initialize: $error');

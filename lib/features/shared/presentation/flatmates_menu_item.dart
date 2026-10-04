@@ -72,7 +72,11 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
           scale: _pressed ? AppMotion.pressScale : 1.0,
           duration: AppMotion.fast,
           curve: AppMotion.paperOut,
-          child: Padding(
+          // The row measures 48 dp at 1x, but a text scale below 1 shrinks the
+          // label's line box and takes the tap target with it. Hold the 48 dp
+          // minimum at every scale.
+          child: Container(
+            constraints: const BoxConstraints(minHeight: AppSpacing.xxl),
             padding: EdgeInsets.symmetric(
               horizontal: FlatmatesMenuItem._hPad(dense),
               vertical: dense ? AppSpacing.md : AppSpacing.base,

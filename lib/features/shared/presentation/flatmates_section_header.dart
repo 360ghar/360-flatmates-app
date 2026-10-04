@@ -81,31 +81,45 @@ class InfoPill extends StatelessWidget {
         ? AppSemanticColors.clayInkFor(brightness)
         : AppSemanticColors.textSecondaryFor(brightness);
 
+    // A Row hands its non-flex children unbounded width, and a pill is often
+    // one (see step_room_section.dart). Without a finite width the label can
+    // never wrap and the pill runs past its row at large text scales, so cap
+    // the pill at the page content width when its parent does not bound it.
+    // Inside a bounded parent this is a no-op.
+    final unboundedFallback = BoxConstraints(
+      maxWidth: MediaQuery.sizeOf(context).width - AppSpacing.screen * 2,
+    );
+
     // A solid tinted strip: no stroke, no glow.
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: AppRadius.mdBorder,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+    return ConstrainedBox(
+      constraints: unboundedFallback,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: AppRadius.mdBorder,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16, color: foreground),
-              const SizedBox(width: AppSpacing.sm),
-            ],
-            Flexible(
-              child: Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(color: foreground),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: foreground),
+                const SizedBox(width: AppSpacing.sm),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: foreground,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

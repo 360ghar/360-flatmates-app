@@ -1,4 +1,5 @@
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
+import 'package:flatmates_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -72,6 +73,17 @@ void main() {
         );
       });
     }
+
+    // The seed-generated onTertiary is too light on marigold (2.27:1 in light
+    // mode), so AppTheme sets it explicitly. Check the built scheme, not the
+    // token, so a seed or token change cannot slip past this test.
+    test('${brightness.name}: on-tertiary on tertiary passes AA', () {
+      final scheme = AppTheme.build(brightness: brightness).colorScheme;
+      expect(
+        _contrast(scheme.onTertiary, scheme.tertiary),
+        greaterThanOrEqualTo(4.5),
+      );
+    });
 
     test('${brightness.name}: labels on filled controls pass AA', () {
       expect(

@@ -65,10 +65,19 @@ abstract final class FlatmatesDialog {
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (dialogContext) {
+        // Captured while the dialog builds: the route to pop, and the proof
+        // that it is still the top route when a delayed action closes.
+        final dialogRoute = ModalRoute.of(dialogContext);
         var closed = false;
         void close([T? value]) {
           if (closed) return;
           closed = true;
+          // Back and barrier dismissal pop this route without calling close.
+          // By the time a delayed action runs, the page underneath is current
+          // and a second pop would close it, so only pop while the dialog's
+          // own route is still the top one.
+          if (!dialogContext.mounted) return;
+          if (dialogRoute != null && !dialogRoute.isCurrent) return;
           Navigator.of(dialogContext).pop(value);
         }
 

@@ -53,8 +53,15 @@ abstract final class AppShadows {
   static const List<BoxShadow> none = <BoxShadow>[];
 
   // ── Aliases for existing call sites ────────────────────────────────────
-  static final List<BoxShadow> elevation = e2(Brightness.light);
-  static final List<BoxShadow> elevationDark = e2(Brightness.dark);
+  // Unmodifiable: these lists are shared app-wide, so a caller must not be
+  // able to mutate the shadows every other caller sees. `e1`/`e2`/`e3` build a
+  // fresh list per call and stay growable for local use.
+  static final List<BoxShadow> elevation = List.unmodifiable(
+    e2(Brightness.light),
+  );
+  static final List<BoxShadow> elevationDark = List.unmodifiable(
+    e2(Brightness.dark),
+  );
   static List<BoxShadow> elevationFor(Brightness b) => e2(b);
   static BoxShadow cardFor(Brightness b) => e2(b).last;
   static BoxShadow floatingFor(Brightness b) => e3(b).last;

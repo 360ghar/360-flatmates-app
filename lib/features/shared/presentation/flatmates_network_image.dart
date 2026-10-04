@@ -290,6 +290,15 @@ class _PhotoPendingFallback extends StatelessWidget {
     final brightness = theme.brightness;
     final small = height != null && height! < 100;
 
+    final initialsText = Text(
+      initials,
+      style:
+          (small
+                  ? theme.textTheme.headlineSmall
+                  : theme.textTheme.headlineLarge)
+              ?.copyWith(color: AppSemanticColors.clayInkFor(brightness)),
+    );
+
     // A solid clay-soft sheet with the initials (no gradient).
     return Container(
       width: width,
@@ -299,14 +308,12 @@ class _PhotoPendingFallback extends StatelessWidget {
         color: AppSemanticColors.coralSoftFor(brightness),
       ),
       child: Center(
-        child: Text(
-          initials,
-          style:
-              (small
-                      ? theme.textTheme.headlineSmall
-                      : theme.textTheme.headlineLarge)
-                  ?.copyWith(color: AppSemanticColors.clayInkFor(brightness)),
-        ),
+        // Small boxes are avatars, where the initials must fit the box: at 2x
+        // the 21 dp headline is a 52 dp line inside a 48 dp avatar and clips.
+        // Shrink them to the box instead (larger boxes keep the display size).
+        child: small
+            ? FittedBox(fit: BoxFit.scaleDown, child: initialsText)
+            : initialsText,
       ),
     );
   }
