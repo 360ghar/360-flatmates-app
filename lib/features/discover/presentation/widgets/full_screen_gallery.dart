@@ -33,11 +33,16 @@ class FullScreenGallery extends StatefulWidget {
     String? heroTagPrefix,
   }) {
     if (images.isEmpty) return Future.value();
+    final reduceMotion = AppMotion.reduceMotion(context);
     return Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: true,
         barrierColor: AppSemanticColors.scrim,
+        // Reduce motion: the viewer opens at once instead of fading in.
+        transitionDuration: reduceMotion
+            ? Duration.zero
+            : AppMotion.heroTransition,
         pageBuilder: (context, animation, secondaryAnimation) =>
             FullScreenGallery(
               images: images,
@@ -99,6 +104,11 @@ class _FullScreenGalleryState extends State<FullScreenGallery>
   }
 
   void _settleBack() {
+    // Reduce motion: snap back instead of springing into place.
+    if (AppMotion.reduceMotion(context)) {
+      setState(() => _dragOffset = 0);
+      return;
+    }
     final settle = Tween<double>(begin: _dragOffset, end: 0).animate(
       CurvedAnimation(parent: _settleController, curve: AppMotion.easeOutCubic),
     );
@@ -292,6 +302,12 @@ class _ZoomablePageState extends State<_ZoomablePage>
         )
         ..scaleByDouble(_doubleTapScale, _doubleTapScale, 1, 1);
     }
+    // Reduce motion: apply the new zoom level at once.
+    if (AppMotion.reduceMotion(context)) {
+      _transform.value = target;
+      _reportZoom();
+      return;
+    }
     _zoomAnim = Matrix4Tween(begin: _transform.value, end: target).animate(
       CurvedAnimation(parent: _zoomController, curve: AppMotion.easeOutCubic),
     );
@@ -336,7 +352,7 @@ class _GalleryChrome extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
-      duration: AppMotion.fast,
+      duration: AppMotion.durationOrZero(context, AppMotion.fast),
       child: IgnorePointer(ignoring: !visible, child: child),
     );
   }

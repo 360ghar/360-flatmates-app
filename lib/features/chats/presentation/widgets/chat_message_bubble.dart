@@ -328,24 +328,11 @@ class _VisitRequestCard extends StatelessWidget {
                     ),
                     if (canRespond) ...[
                       const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FlatmatesButton(
-                              label: locale.visitConfirmCta,
-                              onPressed: () => onConfirmVisit?.call(visit!),
-                              fullWidth: true,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: FlatmatesButton.secondary(
-                              label: locale.visitRescheduleCta,
-                              onPressed: () => onRescheduleVisit?.call(visit!),
-                              fullWidth: true,
-                            ),
-                          ),
-                        ],
+                      _VisitResponseActions(
+                        confirmLabel: locale.visitConfirmCta,
+                        rescheduleLabel: locale.visitRescheduleCta,
+                        onConfirm: () => onConfirmVisit?.call(visit!),
+                        onReschedule: () => onRescheduleVisit?.call(visit!),
                       ),
                     ],
                     const SizedBox(height: AppSpacing.md),
@@ -384,6 +371,94 @@ class _VisitRequestCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Confirm / reschedule pair for a visit request.
+///
+/// Side by side when both labels still fit inside the two lines
+/// [FlatmatesButton] renders before ellipsizing; stacked when they do not
+/// ("Suggest another time" on a 320 dp phone). The decision is measured from
+/// the labels, the current text scale and the button style's own horizontal
+/// padding — not a fixed breakpoint.
+class _VisitResponseActions extends StatelessWidget {
+  const _VisitResponseActions({
+    required this.confirmLabel,
+    required this.rescheduleLabel,
+    required this.onConfirm,
+    required this.onReschedule,
+  });
+
+  final String confirmLabel;
+  final String rescheduleLabel;
+  final VoidCallback onConfirm;
+  final VoidCallback onReschedule;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final confirm = FlatmatesButton(
+          label: confirmLabel,
+          onPressed: onConfirm,
+          fullWidth: true,
+        );
+        final reschedule = FlatmatesButton.secondary(
+          label: rescheduleLabel,
+          onPressed: onReschedule,
+          fullWidth: true,
+        );
+
+        if (!_fitsSideBySide(context, constraints.maxWidth)) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              confirm,
+              const SizedBox(height: AppSpacing.sm),
+              reschedule,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: confirm),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: reschedule),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _fitsSideBySide(BuildContext context, double available) {
+    final perButton = (available - AppSpacing.sm) / 2;
+    final labelWidth = perButton - _buttonChromeWidth(context);
+    if (labelWidth <= 0) return false;
+
+    final style = Theme.of(context).textTheme.labelLarge;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    return [confirmLabel, rescheduleLabel].every((label) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 2,
+      )..layout(maxWidth: labelWidth);
+      return !painter.didExceedMaxLines;
+    });
+  }
+
+  /// Horizontal space the button style keeps around its label. The app theme
+  /// sets it (24 each side, `app_theme.dart`); the fallback mirrors that so a
+  /// missing theme entry cannot keep the pair side by side when the labels
+  /// need stacking.
+  double _buttonChromeWidth(BuildContext context) {
+    final padding = Theme.of(
+      context,
+    ).filledButtonTheme.style?.padding?.resolve(const <WidgetState>{});
+    return padding?.horizontal ?? 2 * AppSpacing.lg;
   }
 }
 

@@ -20,6 +20,11 @@ enum FlatmatesChipVariant {
 
   /// Removable chip with close icon (e.g., selected filters).
   removable,
+
+  /// Fires an action instead of toggling a selected state (e.g., a suggested
+  /// message that gets sent). Announced as a button, never as a selected
+  /// filter, so the semantics match the interaction.
+  action,
 }
 
 /// Single chip API for filter, choice, info, and removable states.
@@ -75,6 +80,14 @@ class FlatmatesChip extends StatelessWidget {
     final selectable =
         variant == FlatmatesChipVariant.filter ||
         variant == FlatmatesChipVariant.choice;
+    final actionable = variant == FlatmatesChipVariant.action;
+
+    final onTap = !enabled || onSelected == null
+        ? null
+        // An action chip fires once; it has no selected state to flip.
+        : actionable
+        ? () => onSelected!(true)
+        : () => onSelected!(!selected);
 
     final chip = AnimatedContainer(
       duration: AppMotion.durationOrZero(context, AppMotion.chipSelect),
@@ -93,9 +106,7 @@ class FlatmatesChip extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          onTap: enabled && onSelected != null
-              ? () => onSelected!(!selected)
-              : null,
+          onTap: onTap,
           borderRadius: borderRadius,
           child: Padding(
             padding: EdgeInsets.only(
@@ -150,6 +161,11 @@ class FlatmatesChip extends StatelessWidget {
       ),
     );
 
+    if (actionable) {
+      // No selected state: it submits something, so announce a button.
+      return Semantics(button: true, enabled: enabled, child: chip);
+    }
+
     if (!selectable) return chip;
     return Semantics(
       selected: selected,
@@ -197,6 +213,7 @@ class FlatmatesChip extends StatelessWidget {
       case FlatmatesChipVariant.filter:
       case FlatmatesChipVariant.choice:
       case FlatmatesChipVariant.removable:
+      case FlatmatesChipVariant.action:
         return _ChipColors(
           background: AppSemanticColors.paper2For(theme.brightness),
           foreground: isDark

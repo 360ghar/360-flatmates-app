@@ -100,7 +100,10 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: toolbarHeight,
       titleSpacing: 0,
-      leadingWidth: 56,
+      // 60, not 56: the leading padding (8) and the icon button's own
+      // horizontal padding (2 + 2) come out of the slot, so the back button
+      // only keeps its 48 dp target at 60.
+      leadingWidth: 60,
       automaticallyImplyLeading: false,
       leading: Padding(
         padding: const EdgeInsets.only(left: AppSpacing.sm),

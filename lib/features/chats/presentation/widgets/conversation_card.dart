@@ -311,18 +311,17 @@ class _PropertyPreviewFallback extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         borderRadius: AppRadius.cardBorder,
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.clayFor(theme.brightness).withValues(alpha: 0.9),
-            AppSemanticColors.clayFor(theme.brightness).withValues(alpha: 0.4),
-          ],
-        ),
+        // Flat clay-soft, not a clay gradient: no stop of the old gradient
+        // kept the initials at AA (about 2.2:1 dark / 2.0:1 light).
+        // clay-ink on clay-soft is an asserted pair in
+        // test/core/theme/contrast_test.dart (8.4:1 light, 4.8:1 dark).
+        color: AppSemanticColors.coralSoftFor(theme.brightness),
       ),
       child: Center(
         child: Text(
           initialsFromName(title),
           style: theme.textTheme.bodySmall?.copyWith(
-            color: AppSemanticColors.onClayFor(theme.brightness),
+            color: AppSemanticColors.clayInkFor(theme.brightness),
             fontWeight: FontWeight.w600,
           ),
         ),

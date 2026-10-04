@@ -97,8 +97,11 @@ class ChatIcebreakerRow extends StatelessWidget {
             for (var i = 0; i < icebreakers.length; i++) ...[
               if (i > 0) const SizedBox(width: AppSpacing.sm),
               // Shared 48 dp chip (the private one was about 26 dp high).
+              // Tapping sends the suggestion, so it is an action, not a
+              // filter: it has no selected state to announce.
               FlatmatesChip(
                 label: icebreakers[i],
+                variant: FlatmatesChipVariant.action,
                 onSelected: (_) => onSelected(icebreakers[i]),
               ),
             ],

@@ -52,6 +52,9 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
     // The whole row toggles, so the tap target is the full width and at
     // least 48 dp high. The links inside keep their own taps.
     return InkWell(
+      // The checkbox below is already labelled and tappable: without this,
+      // assistive technology sees two controls for one action.
+      excludeFromSemantics: true,
       onTap: () => widget.onChanged(!widget.accepted),
       borderRadius: AppRadius.smBorder,
       child: Padding(

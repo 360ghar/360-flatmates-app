@@ -30,12 +30,21 @@ class _StaggeredMenuGroupState extends State<StaggeredMenuGroup>
   }
 
   void _ensureController(BuildContext context) {
-    if (_controller != null || _skipAnimation) return;
-
+    // Checked before the controller guard: the platform setting can change
+    // while this widget is alive, and a rebuild must honour the new
+    // preference rather than the one captured on first build.
     if (AppMotion.reduceMotion(context)) {
       _skipAnimation = true;
+      final controller = _controller;
+      if (controller != null) {
+        // Finish a queued or running rise so it stops ticking.
+        controller.stop();
+        controller.value = 1;
+      }
       return;
     }
+
+    if (_controller != null || _skipAnimation) return;
 
     final controller = AnimationController(
       vsync: this,
@@ -51,7 +60,9 @@ class _StaggeredMenuGroupState extends State<StaggeredMenuGroup>
           300 + widget.delayIndex * AppMotion.staggerItem.inMilliseconds,
     );
     Future.delayed(delay, () {
-      if (mounted) controller.forward();
+      // Reduce motion may have been switched on while this was queued.
+      if (!mounted || _skipAnimation) return;
+      controller.forward();
     });
   }
 

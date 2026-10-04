@@ -107,7 +107,12 @@ class PeerActionRow extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gap = AppSpacing.xs;
-        final scale = MediaQuery.textScalerOf(context).scale(1);
+        // TextScaler can scale nonlinearly, so derive the multiplier from the
+        // real label size instead of scaling 1.
+        final textScaler = MediaQuery.textScalerOf(context);
+        final scale =
+            textScaler.scale(AppTypography.microLabelSize) /
+            AppTypography.microLabelSize;
         final n = children.length;
         final fitsOneRow =
             constraints.maxWidth >= n * _minTileWidth * scale + (n - 1) * gap;
