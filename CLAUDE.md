@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `scripts/shorebird_release.sh` — see [docs/shorebird.md](docs/shorebird.md))
 - **Dart SDK:** ^3.9.0
 - **Riverpod:** `flutter_riverpod` ^2.6.1
-- **App ID:** `com.the360ghar.flatmates`
+- **App ID:** `com.the360ghar.flatmates360`
 - **OTA:** Shorebird code push for Dart-only fixes ([docs/shorebird.md](docs/shorebird.md))
 
 ## Commands

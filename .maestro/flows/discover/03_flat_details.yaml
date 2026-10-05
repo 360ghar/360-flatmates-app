@@ -26,6 +26,10 @@ tags:
     direction: DOWN
 - swipe:
     direction: DOWN
+# The list sits in a RefreshIndicator, so the second swipe-down overscrolls at
+# the top and can start a refresh. Let that settle before tapping, or the tap
+# races the refresh's setState and the rebuild.
+- waitForAnimationToEnd
 # On-screen back button: Maestro's `back` works on Android only.
 - tapOn:
     id: flat_back_button

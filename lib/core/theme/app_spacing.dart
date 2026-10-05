@@ -53,7 +53,7 @@ abstract final class AppSpacing {
   ///
   /// The factor is clamped to 1x..2x: above 2x text would clip, and below 1x a
   /// scaled box would shrink past the 48 dp minimum tap target it wraps (e.g.
-  /// the 52 dp parent around the filter chips). Scale 1.0 is unchanged.
+  /// the 56 dp parent around the filter chips). Scale 1.0 is unchanged.
   static double scaled(BuildContext context, double base) =>
       MediaQuery.textScalerOf(
         context,
