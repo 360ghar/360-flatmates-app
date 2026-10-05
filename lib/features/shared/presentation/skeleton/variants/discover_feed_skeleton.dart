@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_breakpoints.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../skeleton_bone.dart';
@@ -86,26 +87,20 @@ class DiscoverFeedSkeleton extends StatelessWidget {
   }
 }
 
-/// Columns in the real "Picked for you" grid at [width] — 2 on phones, 3 from
-/// 600 dp, 4 from 900 dp. Keep in step with `DiscoverPage`.
-int _gridColumns(double width) => width < 600
-    ? 2
-    : width < 900
-    ? 3
-    : 4;
-
 /// One row of listing-card placeholders (no header, not scrollable).
 ///
-/// Same column count as the loaded grid, so a wide screen does not reflow when
-/// the feed arrives (DESIGN.md §8: the skeleton has the layout of the loaded
-/// view).
+/// Same column count as the loaded grid (`AppBreakpoints.cardGridColumns`), so
+/// a wide screen does not reflow when the feed arrives (DESIGN.md §8: the
+/// skeleton has the layout of the loaded view).
 class DiscoverFeedCardsSkeleton extends StatelessWidget {
   const DiscoverFeedCardsSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final bone = SkeletonTokens.bone(Theme.of(context).brightness);
-    final columns = _gridColumns(MediaQuery.sizeOf(context).width);
+    final columns = AppBreakpoints.cardGridColumns(
+      MediaQuery.sizeOf(context).width,
+    );
 
     return SizedBox(
       height: 320,

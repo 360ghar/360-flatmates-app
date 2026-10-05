@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/location/location_data.dart';
+import '../../core/theme/app_breakpoints.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -235,12 +236,11 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
     // Responsive grid columns for the "Picked for you" preview: 2 on mobile,
     // 3 on small tablet, 4 on large tablet/desktop (DESIGN.md breakpoints).
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final crossAxisCount = screenWidth < 600
-        ? 2
-        : screenWidth < 900
-        ? 3
-        : 4;
+    // `cardGridColumns` is also what the loading skeleton uses, so the grid
+    // cannot reflow when the feed arrives.
+    final crossAxisCount = AppBreakpoints.cardGridColumns(
+      MediaQuery.sizeOf(context).width,
+    );
 
     final preview = filtered.take(_homeFeedPreviewCount).toList();
     final showSeeAll =
