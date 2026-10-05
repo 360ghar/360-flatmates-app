@@ -43,6 +43,11 @@ jobs:
         run: flutter analyze --fatal-infos
 
       - name: Run tests
+        # A DST zone, not the runner default of UTC: the calendar-date tests
+        # only discriminate across a fall-back, and under UTC they pass with
+        # either the fixed or the broken arithmetic, so they guard nothing.
+        env:
+          TZ: America/New_York
         run: flutter test --coverage
 
       - name: Upload coverage

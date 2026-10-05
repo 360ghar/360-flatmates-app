@@ -498,21 +498,30 @@ class _MessageMeta extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          time,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+        // Both labels are Flexible: at 2x text scale on a 320 dp phone the
+        // timestamp plus the receipt label are wider than the bubble, and a
+        // fixed Row overflows by ~180 px. At normal scales nothing truncates.
+        Flexible(
+          child: Text(
+            time,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
           ),
         ),
         if (isMine) ...[
           const SizedBox(width: AppSpacing.sm),
           Icon(receiptIcon, size: 14, color: receiptColor),
           const SizedBox(width: AppSpacing.xs),
-          Text(
-            receipt,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: receiptColor,
-              fontWeight: isRead ? FontWeight.w600 : FontWeight.w500,
+          Flexible(
+            child: Text(
+              receipt,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: receiptColor,
+                fontWeight: isRead ? FontWeight.w600 : FontWeight.w500,
+              ),
             ),
           ),
         ],
