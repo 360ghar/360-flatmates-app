@@ -619,9 +619,17 @@ void main() {
     testWidgets('wraps its label when its parent bounds it at 2x text scale', (
       tester,
     ) async {
+      // Scope: this pins how the pill behaves *inside* a bounded parent. It
+      // hand-builds the flexed row, so it passes for any pill implementation
+      // and is not a call-site regression guard.
+      //
+      // The guard for the real call site is
+      // test/widget/listings/step_room_section_test.dart, which pumps
+      // StepRoomSection itself and fails when its Row stops flexing the pill.
+      //
       // The pill needs a finite width to wrap against: a plain Row child gets
       // unbounded width, so the call site (step_room_section.dart) must flex
-      // it. This is the pattern that fixes it.
+      // it.
       const label = 'Min 2 photos required';
       await tester.pumpWidget(
         MaterialApp(
