@@ -88,6 +88,74 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('reduced motion never allocates the shimmer ticker', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: Scaffold(body: FlatmatesSkeleton.list()),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final shimmer = find.byType(FlatmatesSkeletonShimmer);
+      expect(shimmer, findsOneWidget);
+
+      // `SingleTickerProviderStateMixin` reports its ticker in the state's
+      // diagnostics (`ticker active` / `ticker inactive`), so an absent
+      // `ticker` property means no ticker — and therefore no
+      // AnimationController — was ever created. The pre-fix code called
+      // `_controller.stop()` here, which forced the `late final` controller
+      // (and its ticker) into existence.
+      final state = tester.state(shimmer);
+      expect(state.toString(), isNot(contains('ticker')));
+
+      // Nothing is scheduled either, however long the skeleton stays up.
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(tester.binding.transientCallbackCount, 0);
+      }
+
+      // The static path renders the bones directly: no FadeTransition of its
+      // own to animate.
+      expect(
+        find.descendant(of: shimmer, matching: find.byType(FadeTransition)),
+        findsNothing,
+      );
+      expect(find.byType(FlatmatesSkeleton), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('with motion enabled the shimmer owns a running ticker', (
+      tester,
+    ) async {
+      // The contrast case: it proves the ticker diagnostic used above is
+      // really visible when a ticker exists, so the reduced-motion assertion
+      // cannot pass just because the diagnostic string is empty.
+      await tester.pumpWidget(
+        const MaterialApp(
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: Scaffold(body: FlatmatesSkeleton.list()),
+        ),
+      );
+      await tester.pump();
+
+      final shimmer = find.byType(FlatmatesSkeletonShimmer);
+      expect(shimmer, findsOneWidget);
+      expect(tester.state(shimmer).toString(), contains('ticker active'));
+      expect(tester.binding.transientCallbackCount, greaterThan(0));
+      expect(
+        find.descendant(of: shimmer, matching: find.byType(FadeTransition)),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('discover feed card row mirrors the loaded grid columns', (
       tester,
     ) async {
