@@ -412,6 +412,8 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     // `currentPosition` is only set by a real GPS fix — every other outcome
     // lands on the IP fallback, so branch on the state we actually have
     // instead of claiming a permission problem that granting would not fix.
+    // `error` is cleared by any successful detection (GPS or IP fallback), so
+    // a non-null error here means this attempt resolved nothing at all.
     final after = ref.read(locationControllerProvider);
     if (after.isLoading) {
       // Another detection is still running; do not toast for it.

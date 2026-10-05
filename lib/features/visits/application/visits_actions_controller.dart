@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/gen/app_localizations.dart';
@@ -17,17 +19,17 @@ class VisitsActionsController {
 
   Future<void> confirm(VisitItem item) async {
     await _repository.confirmVisit(item.id);
-    _invalidateRelated(item);
+    _refreshRelated();
   }
 
   Future<void> cancel(VisitItem item) async {
     await _repository.cancelVisit(item.id);
-    _invalidateRelated(item);
+    _refreshRelated();
   }
 
   Future<void> reschedule(VisitItem item, DateTime newDate) async {
     await _repository.rescheduleVisit(item.id, newDate);
-    _invalidateRelated(item);
+    _refreshRelated();
   }
 
   /// Requests a visit and posts the chat notification, then refreshes the
@@ -50,19 +52,28 @@ class VisitsActionsController {
       note: note,
       timeSlotLabel: timeSlotLabel,
     );
-    _ref.invalidate(visitsListControllerProvider);
-    _ref.invalidate(visitsProvider);
+    _refreshRelated();
     // The visit request posts a `visit_request` chat message, so the
-    // conversation list's preview and timestamp are stale — refresh it the
-    // same way MessagesController.sendMessage does.
-    _ref.invalidate(conversationsListControllerProvider);
+    // conversation list's preview and timestamp are stale. Refresh it in place
+    // (`refreshKeepingList`) instead of invalidating it: a failed refetch keeps
+    // the conversations already on screen rather than dropping the list.
+    unawaited(refreshKeepingList(_ref, conversationsListControllerProvider));
     return visitId;
   }
 
-  /// Refreshes both visit lists after a status change.
-  void _invalidateRelated(VisitItem item) {
-    _ref.invalidate(visitsListControllerProvider);
+  /// Refreshes the visit data after a status change.
+  ///
+  /// [visitsProvider] is a `FutureProvider`, which keeps its previous value
+  /// while the refetch is in flight, so invalidating it is safe. The cursor
+  /// list is refreshed in place (`refreshKeepingList`) so a failed reload
+  /// leaves the rows on screen instead of blanking the visits page.
+  ///
+  /// The list reload is deliberately not awaited: the callers gate a toast or
+  /// navigation on this method, so blocking on a network round trip would stall
+  /// them (same pattern as NotificationsActionsController).
+  void _refreshRelated() {
     _ref.invalidate(visitsProvider);
+    unawaited(refreshKeepingList(_ref, visitsListControllerProvider));
   }
 }
 

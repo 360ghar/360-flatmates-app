@@ -120,5 +120,95 @@ void main() {
       }
       expect(after, greaterThan(before));
     });
+
+    test('keeps the loaded conversation rows when the refetch fails', () async {
+      var conversationsFailing = false;
+      final container = _containerWithAdapter((options) {
+        if (options.path == '/flatmates/conversations' &&
+            options.method == 'GET') {
+          if (conversationsFailing) {
+            return Response<dynamic>(
+              data: {'detail': 'Service unavailable'},
+              statusCode: 500,
+              requestOptions: options,
+            );
+          }
+          return Response<dynamic>(
+            data: {
+              'items': [
+                {
+                  'id': 1,
+                  'peer': {'id': 2, 'full_name': 'Priya'},
+                },
+              ],
+              'next_cursor': null,
+              'has_more': false,
+            },
+            statusCode: 200,
+            requestOptions: options,
+          );
+        }
+        if (options.path == '/visits' && options.method == 'POST') {
+          return Response<dynamic>(
+            data: {'id': 78},
+            statusCode: 200,
+            requestOptions: options,
+          );
+        }
+        return Response<dynamic>(
+          data: {},
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      // Keep the conversation list alive and loaded, then make its reload fail.
+      final subscription = container.listen(
+        conversationsListControllerProvider,
+        (_, _) {},
+      );
+      addTearDown(subscription.close);
+      await container.read(conversationsListControllerProvider.notifier).load();
+      expect(
+        container.read(conversationsListControllerProvider).valueOrNull!.items,
+        hasLength(1),
+      );
+
+      conversationsFailing = true;
+
+      final locale = await AppLocalizations.delegate.load(const Locale('en'));
+      final visitId = await container
+          .read(visitsActionsControllerProvider)
+          .schedule(
+            propertyId: 42,
+            counterpartyUserId: 2,
+            conversationId: 10,
+            scheduledDate: DateTime.utc(2025, 5, 20, 15),
+            locale: locale,
+          );
+      expect(visitId, 78);
+
+      // The in-place refresh is fire-and-forget; poll (bounded) until the
+      // failure has landed instead of sleeping a fixed delay.
+      for (var attempt = 0; attempt < 100; attempt++) {
+        final pending = container.read(conversationsListControllerProvider);
+        if (pending.valueOrNull?.hasError ?? false) break;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+
+      final state = container.read(conversationsListControllerProvider);
+      expect(
+        state.hasValue,
+        isTrue,
+        reason:
+            'invalidate() would drop the list into a fresh loading/error state',
+      );
+      expect(
+        state.valueOrNull!.items,
+        hasLength(1),
+        reason: 'the conversation row stays on screen after a failed refetch',
+      );
+      expect(state.valueOrNull!.hasError, isTrue);
+    });
   });
 }

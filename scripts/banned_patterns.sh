@@ -117,9 +117,57 @@ fi
 
 # Light-only status colours fail contrast in dark mode (clay on dark paper is
 # about 1.2:1). Use the brightness-aware AppSemanticColors.*For(brightness).
-# Every token below is a light-only constant that has a *For() counterpart, so
-# a raw reference inside a feature or app widget is always the wrong choice.
-LIGHT_ONLY_TOKENS='accent|error|success|warning|info|primary|onPrimary|sky|paper1|paper2|paper3|paperDeep|clay|clayPress|onClay|pine|pineSoft|marigold|danger|warningInk|textPrimary|textSecondary|textTertiary|surface|paper|scaffold|secondarySurface|disabledSurface|coralSoft|successSoft|warningSoft|errorSoft|blueSoft|purpleSoft|greenSoft|yellowSoft|orangeSoft|tealSoft|pinkSoft|greenInk|clayInk|onPine|hairline'
+#
+# Every token below is a light-only constant in
+# lib/core/theme/app_semantic_colors.dart whose value has a brightness-aware
+# counterpart, so a raw reference inside a feature or app widget is always the
+# wrong choice. Most counterparts are named `*For(brightness)`; the rest are
+# named by semantics:
+#   accent, primary, coralMid, purpleMid, pinkMid, orangeMid -> clayFor()
+#   blueMid, tealMid, greenMid                               -> pineFor()
+#   onPrimary                                                -> onClayFor()
+#   error, coralInk                                          -> dangerFor()
+#   success, info                                            -> pineFor()
+#   warning                                                  -> warningInkFor()
+#   ink, textPrimary                                         -> textPrimaryFor()
+#   body, ink2, mutedText, textSecondary                     -> textSecondaryFor()
+#   muted, ink3, textTertiary                                -> textTertiaryFor()
+#   canvas, card, surface, surfaceCard                       -> surfaceFor()
+#   paper, sky, scaffold                                     -> paperFor()/skyFor()
+#   secondarySurface, surfaceSoft, surfaceDim, lavenderBg    -> secondarySurfaceFor()
+#   surfaceStrong, peerBubbleBg                              -> paperDeepFor()/disabledSurfaceFor()
+#   successBg, infoBg, successSoft                           -> successSoftFor()
+#   errorBg, errorSoft, dangerSoft                           -> errorSoftFor()
+#   warningBg, warningSoft, warningSoftBg                    -> warningSoftFor()
+#   accentSoft, primarySoft/Container/Light, primaryDisabled -> coralSoftFor()
+#   primaryActive                                            -> clayPressFor()
+#   blueInk, tealInk                                         -> greenInkFor()
+#   purpleInk, pinkInk, orangeInk                            -> clayInkFor()
+#   starRating                                               -> marigoldFor()
+#   compatHigh, mapMarkerProperty, swipeCardFallbackMid      -> pineFor()
+#   compatLow                                                -> dangerFor()
+#   mapMarkerRoom                                            -> clayFor()
+#   mapMarkerCluster                                         -> textPrimaryFor()
+#   swipeCardFallbackEnd                                     -> greenInkFor()
+#
+# Deliberately absent: light-only constants with no brightness-aware
+# counterpart — mutedSoft (ink4), hairlineSoft (paper4, line2, lineLow,
+# outlineVariant), borderStrong, errorHover, yellowMid (compatMedium),
+# yellowInk, swipeCardFallbackStart — plus frostOverlayLight (paired with
+# frostOverlayDark by an explicit brightness ternary) and scrim/onScrim, which
+# never invert (DESIGN.md §1).
+LIGHT_ONLY_TOKENS='accent|accentSoft'
+LIGHT_ONLY_TOKENS+='|primary|primaryActive|primaryDisabled|primarySoft|primaryContainer|primaryLight|onPrimary'
+LIGHT_ONLY_TOKENS+='|sky|paper|paper1|paper2|paper3|paperDeep|canvas|scaffold'
+LIGHT_ONLY_TOKENS+='|surface|surfaceSoft|surfaceStrong|surfaceCard|card|surfaceDim|secondarySurface|disabledSurface|lavenderBg|peerBubbleBg'
+LIGHT_ONLY_TOKENS+='|ink|body|muted|ink2|ink3|mutedText|textPrimary|textSecondary|textTertiary'
+LIGHT_ONLY_TOKENS+='|clay|clayPress|claySoft|onClay|pine|pineSoft|onPine|marigold|danger|dangerSoft|warningInk|warningSoft|warningSoftBg'
+LIGHT_ONLY_TOKENS+='|coralSoft|coralMid|coralInk|clayInk|greenInk'
+LIGHT_ONLY_TOKENS+='|success|successSoft|successBg|successTextDark|error|errorSoft|errorBg|warning|warningBg|info|infoBg'
+LIGHT_ONLY_TOKENS+='|hairline|blueSoft|blueMid|blueInk|tealSoft|tealMid|tealInk|greenSoft|greenMid'
+LIGHT_ONLY_TOKENS+='|purpleSoft|purpleMid|purpleInk|pinkSoft|pinkMid|pinkInk|orangeSoft|orangeMid|orangeInk|yellowSoft'
+LIGHT_ONLY_TOKENS+='|starRating|compatHigh|compatLow|mapMarkerRoom|mapMarkerProperty|mapMarkerCluster'
+LIGHT_ONLY_TOKENS+='|swipeCardFallbackMid|swipeCardFallbackEnd'
 
 # Deliberate exemption: the share poster renders a PNG for export, so it must
 # keep the fixed light palette instead of following the viewer's theme.

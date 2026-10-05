@@ -175,8 +175,6 @@ class FlatmatesChip extends StatelessWidget {
   }
 
   _ChipColors _resolveColors(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-
     if (!enabled) {
       return _ChipColors(
         background: AppSemanticColors.disabledSurfaceFor(theme.brightness),
@@ -206,9 +204,7 @@ class FlatmatesChip extends StatelessWidget {
       case FlatmatesChipVariant.info:
         return _ChipColors(
           background: AppSemanticColors.paper1For(theme.brightness),
-          foreground: isDark
-              ? AppSemanticColors.darkBody
-              : AppSemanticColors.body,
+          foreground: AppSemanticColors.textSecondaryFor(theme.brightness),
         );
       case FlatmatesChipVariant.filter:
       case FlatmatesChipVariant.choice:
@@ -216,9 +212,7 @@ class FlatmatesChip extends StatelessWidget {
       case FlatmatesChipVariant.action:
         return _ChipColors(
           background: AppSemanticColors.paper2For(theme.brightness),
-          foreground: isDark
-              ? AppSemanticColors.darkBody
-              : AppSemanticColors.body,
+          foreground: AppSemanticColors.textSecondaryFor(theme.brightness),
         );
     }
   }

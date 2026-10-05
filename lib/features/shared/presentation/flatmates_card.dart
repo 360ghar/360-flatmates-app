@@ -85,12 +85,11 @@ class _FlatmatesCardState extends State<FlatmatesCard> {
 
   Widget _buildContent(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final resolvedPadding = widget.padding ?? AppSpacing.cardPadding;
     final resolvedRadius = widget.borderRadius ?? AppRadius.cardBorder;
     final resolvedBg =
         widget.backgroundColor ??
-        (isDark ? AppSemanticColors.darkSurface : AppSemanticColors.canvas);
+        AppSemanticColors.surfaceFor(theme.brightness);
 
     final bool isInteractive = widget.onTap != null;
     final raised = widget.elevation != null && widget.elevation! > 0;

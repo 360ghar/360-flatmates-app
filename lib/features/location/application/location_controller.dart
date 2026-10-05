@@ -116,10 +116,15 @@ class LocationController extends Notifier<LocationState> {
         position.longitude,
       );
 
+      // A successful fix clears any error left by an earlier attempt. The UI
+      // branches on `error` to decide whether to recentre or toast (see
+      // MapViewPage._recenterToUserLocation), so a stale error would hide a
+      // usable location for the rest of the session.
       state = state.copyWith(
         currentPosition: position,
         currentAddress: address,
         isLoading: false,
+        clearError: true,
       );
     } catch (e) {
       debugPrint('LocationController: GPS failed, falling back to IP: $e');
@@ -135,10 +140,13 @@ class LocationController extends Notifier<LocationState> {
           ipData.latitude,
           ipData.longitude,
         );
+        // Same rule as the GPS success path: a usable fallback clears the
+        // error from a previous failed attempt.
         state = state.copyWith(
           isLoading: false,
           currentAddress: address ?? ipData.name,
           selectedLocation: state.selectedLocation ?? ipData,
+          clearError: true,
         );
       } else {
         state = state.copyWith(
