@@ -72,14 +72,20 @@ Build/run the app locally against the same seeded backend (`.env` or `--dart-def
 
 ## Coverage gap
 
-`.maestro/` holds 82 YAML files: 81 feature flows plus `_shared/login.yaml`, a helper that
+`.maestro/flows/` holds 82 YAML files: 81 feature flows plus `_shared/login.yaml`, a helper that
 several flows include (it does run indirectly). `.maestro/e2e.yaml` invokes only 20 top-level
 flows, so the other 61 feature flows never execute in CI — including all 10 onboarding flows,
-all 3 map flows, and 4 of the 11 flows edited by the Paper Diorama PR
-(`auth/02_login_email`, `auth/03_signup_otp`, `auth/04_forgot_password`, `auth/05_set_password`).
+all 3 map flows, and 14 of the 22 files under `.maestro/flows/` that this branch edits (among them
+`auth/02_login_email`, `auth/03_signup_otp`, `auth/04_forgot_password`, `auth/05_set_password`
+and `discover/04_flat_details_carousel`).
+
 A green Maestro job therefore does not mean the suite is green — expanding `e2e.yaml` (or
 adding a second scheduled workflow for the remaining folders) is a follow-up, not part of the
 current fix.
+
+All 83 flow files pass `maestro check-syntax <file>`, Maestro's own flow parser, which needs no
+device. Re-run it when adding flows: it rejects invalid command syntax that YAML parsing accepts
+(`- swipe LEFT` is not a command — the direction goes in the mapping).
 
 ## Current blockers to a green run
 
