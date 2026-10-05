@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 
@@ -9,152 +10,105 @@ enum FlatmatesStepProgressStyle { dots, segments, linear }
 
 /// Dot/segment/linear progress for onboarding, mode selection, listing steps, quiz.
 ///
-/// Replaces ad-hoc progress indicators across the app.
+/// Active parts are clay, the track is ink-3 at 30 % (both follow brightness).
+/// [semanticsLabel] (for example "Step 2 of 4") is read by screen readers.
 class FlatmatesStepProgress extends StatelessWidget {
   const FlatmatesStepProgress({
     required this.currentStep,
     required this.totalSteps,
     super.key,
     this.style = FlatmatesStepProgressStyle.segments,
+    this.semanticsLabel,
   });
 
   const FlatmatesStepProgress.dots({
     required this.currentStep,
     required this.totalSteps,
     super.key,
+    this.semanticsLabel,
   }) : style = FlatmatesStepProgressStyle.dots;
 
   const FlatmatesStepProgress.segments({
     required this.currentStep,
     required this.totalSteps,
     super.key,
+    this.semanticsLabel,
   }) : style = FlatmatesStepProgressStyle.segments;
 
   const FlatmatesStepProgress.linear({
     required this.currentStep,
     required this.totalSteps,
     super.key,
+    this.semanticsLabel,
   }) : style = FlatmatesStepProgressStyle.linear;
 
   final int currentStep;
   final int totalSteps;
   final FlatmatesStepProgressStyle style;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
-    switch (style) {
-      case FlatmatesStepProgressStyle.dots:
-        return _DotProgress(currentStep: currentStep, totalSteps: totalSteps);
-      case FlatmatesStepProgressStyle.segments:
-        return _SegmentProgress(
-          currentStep: currentStep,
-          totalSteps: totalSteps,
-        );
-      case FlatmatesStepProgressStyle.linear:
-        return _LinearProgress(
-          currentStep: currentStep,
-          totalSteps: totalSteps,
-        );
-    }
-  }
-}
-
-class _DotProgress extends StatelessWidget {
-  const _DotProgress({required this.currentStep, required this.totalSteps});
-
-  final int currentStep;
-  final int totalSteps;
-
-  @override
-  Widget build(BuildContext context) {
-    final inactive = AppSemanticColors.hairlineFor(
-      Theme.of(context).brightness,
-    );
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(totalSteps, (index) {
-        final isActive = index == currentStep;
-        final isCompleted = index < currentStep;
-        final color = isActive || isCompleted
-            ? AppSemanticColors.accent
-            : inactive;
-
-        return AnimatedContainer(
-          duration: AppMotion.standard,
-          curve: AppMotion.easeOutCubic,
-          margin: EdgeInsets.only(
-            right: index < totalSteps - 1 ? AppSpacing.sm : 0,
-          ),
-          width: isActive ? 24 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _SegmentProgress extends StatelessWidget {
-  const _SegmentProgress({required this.currentStep, required this.totalSteps});
-
-  final int currentStep;
-  final int totalSteps;
-
-  @override
-  Widget build(BuildContext context) {
-    final inactive = AppSemanticColors.hairlineFor(
-      Theme.of(context).brightness,
+    final brightness = Theme.of(context).brightness;
+    final active = AppSemanticColors.clayFor(brightness);
+    // Ink-3 at 30 %: visible on every paper layer in both themes.
+    final track = AppSemanticColors.textTertiaryFor(
+      brightness,
     ).withValues(alpha: 0.3);
-    return Row(
-      children: List.generate(totalSteps, (index) {
-        final isCompleted = index < currentStep;
-        final isCurrent = index == currentStep;
-        final color = isCompleted || isCurrent
-            ? AppSemanticColors.accent
-            : inactive;
+    final duration = AppMotion.durationOrZero(context, AppMotion.standard);
 
-        return Expanded(
-          child: AnimatedContainer(
-            duration: AppMotion.standard,
-            curve: AppMotion.easeOutCubic,
+    final Widget bar = switch (style) {
+      FlatmatesStepProgressStyle.dots => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(totalSteps, (index) {
+          final isActive = index == currentStep;
+          return AnimatedContainer(
+            duration: duration,
+            curve: AppMotion.paperOut,
             margin: EdgeInsets.only(
-              right: index < totalSteps - 1 ? AppSpacing.xs : 0,
+              right: index < totalSteps - 1 ? AppSpacing.sm : 0,
             ),
-            height: 4,
+            width: isActive ? AppSpacing.lg : AppSpacing.sm,
+            height: AppSpacing.sm,
             decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
+              color: index <= currentStep ? active : track,
+              borderRadius: AppRadius.pillBorder,
             ),
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _LinearProgress extends StatelessWidget {
-  const _LinearProgress({required this.currentStep, required this.totalSteps});
-
-  final int currentStep;
-  final int totalSteps;
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = totalSteps > 0 ? currentStep / totalSteps : 0.0;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(2),
-      child: LinearProgressIndicator(
-        value: progress,
-        minHeight: 4,
-        backgroundColor: AppSemanticColors.hairlineFor(
-          Theme.of(context).brightness,
-        ).withValues(alpha: 0.3),
-        valueColor: const AlwaysStoppedAnimation(AppSemanticColors.accent),
+          );
+        }),
       ),
+      FlatmatesStepProgressStyle.segments => Row(
+        children: List.generate(totalSteps, (index) {
+          return Expanded(
+            child: AnimatedContainer(
+              duration: duration,
+              curve: AppMotion.paperOut,
+              margin: EdgeInsets.only(
+                right: index < totalSteps - 1 ? AppSpacing.xs : 0,
+              ),
+              height: AppSpacing.xs,
+              decoration: BoxDecoration(
+                color: index <= currentStep ? active : track,
+                borderRadius: AppRadius.pillBorder,
+              ),
+            ),
+          );
+        }),
+      ),
+      FlatmatesStepProgressStyle.linear => LinearProgressIndicator(
+        value: totalSteps > 0 ? currentStep / totalSteps : 0.0,
+        minHeight: AppSpacing.xs,
+        borderRadius: AppRadius.pillBorder,
+        backgroundColor: track,
+        valueColor: AlwaysStoppedAnimation(active),
+      ),
+    };
+
+    final label = semanticsLabel;
+    if (label == null) return bar;
+    return Semantics(
+      label: label,
+      child: ExcludeSemantics(child: bar),
     );
   }
 }

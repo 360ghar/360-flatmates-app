@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 
@@ -35,15 +34,10 @@ class FlatmatesTrustBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final color = _resolveColor(theme);
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? AppSpacing.sm : AppSpacing.md,
-        vertical: compact ? AppSpacing.xs : AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: AppRadius.pillBorder,
-      ),
+    // Icon plus type, no pill behind it (DESIGN.md: rank metadata with type,
+    // not tinted chips).
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -56,12 +50,12 @@ class FlatmatesTrustBadge extends StatelessWidget {
           Flexible(
             child: Text(
               label,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
-                fontSize: compact ? 11 : 12,
+                fontSize: compact ? 12 : null,
               ),
             ),
           ),
@@ -73,11 +67,10 @@ class FlatmatesTrustBadge extends StatelessWidget {
   Color _resolveColor(ThemeData theme) {
     switch (variant) {
       case FlatmatesTrustBadgeVariant.verified:
-        return AppSemanticColors.accent;
-      case FlatmatesTrustBadgeVariant.reviewed:
-        return AppSemanticColors.accent;
       case FlatmatesTrustBadgeVariant.safe:
-        return AppSemanticColors.success;
+        return AppSemanticColors.pineFor(theme.brightness);
+      case FlatmatesTrustBadgeVariant.reviewed:
+        return AppSemanticColors.clayFor(theme.brightness);
       case FlatmatesTrustBadgeVariant.privacy:
         return AppSemanticColors.textSecondaryFor(theme.brightness);
     }

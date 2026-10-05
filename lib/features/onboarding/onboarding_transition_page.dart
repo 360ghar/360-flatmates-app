@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/paper/paper_scene.dart';
 
 /// Screen shown between onboarding phase 1 (essentials) and phase 2
 /// (lifestyle & preferences). Purely informational: the user taps continue
@@ -19,41 +20,54 @@ class OnboardingTransitionPage extends ConsumerWidget {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return FlatmatesScreen(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: AppSpacing.horizontalScreen,
-          child: FlatmatesCard(
+    // The neighbourhood scene marks the break between the two phases
+    // (DESIGN.md rule 2). Inside the onboarding FlatmatesScreen.
+    return Material(
+      type: MaterialType.transparency,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 48,
-                  color: AppSemanticColors.accent,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  locale.onboardingTransitionTitle,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  locale.onboardingTransitionBody,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                const PaperScene.hero(height: 200),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screen,
+                    AppSpacing.lg,
+                    AppSpacing.screen,
+                    AppSpacing.lg,
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                FlatmatesButton(
-                  key: const Key('onboarding_transition_next'),
-                  label: locale.onboardingTransitionCta,
-                  fullWidth: true,
-                  onPressed: onContinue,
-                  icon: Icons.arrow_forward_rounded,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        locale.onboardingTransitionTitle,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        locale.onboardingTransitionBody,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      FlatmatesButton(
+                        key: const Key('onboarding_transition_next'),
+                        label: locale.onboardingTransitionCta,
+                        fullWidth: true,
+                        onPressed: onContinue,
+                        icon: Icons.arrow_forward_rounded,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

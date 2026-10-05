@@ -198,7 +198,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeBroadenedRadius =>
-      'No listings within your area — showing flats farther away.';
+      'No listings in your area. Showing flats farther away.';
 
   @override
   String homeBedroomsChip(int count) {
@@ -240,8 +240,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get badgeTrending => 'Trending';
 
   @override
+  String unreadMessagesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread messages',
+      one: '1 unread message',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String monthlyRentLabel(String amount) {
-    return 'Monthly rent: ₹$amount';
+    return 'Monthly rent: $amount';
   }
 
   @override
@@ -601,7 +612,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postListingSubtitle =>
-      'Create a real flatmate listing using the existing 360 Ghar inventory backend.';
+      'Add your room with photos, rent and move-in date.';
 
   @override
   String get postListingBasics => 'Basics';
@@ -779,13 +790,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizCleanliness => 'How clean do you keep things?';
 
   @override
-  String get quizCleanMinimal => 'Minimal — lived-in is fine';
+  String get quizCleanMinimal => 'Minimal: lived-in is fine';
 
   @override
-  String get quizCleanTidy => 'Tidy — things in their place';
+  String get quizCleanTidy => 'Tidy: things in their place';
 
   @override
-  String get quizCleanSpotless => 'Spotless — everything pristine';
+  String get quizCleanSpotless => 'Spotless: everything pristine';
 
   @override
   String get quizFoodHabits => 'What are your food habits?';
@@ -830,7 +841,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizOccasionalGuests => 'Occasional guests are ok';
 
   @override
-  String get quizOpenHouse => 'Open house — always welcome';
+  String get quizOpenHouse => 'Open house: always welcome';
 
   @override
   String get quizParties => 'How about parties at home?';
@@ -854,7 +865,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizOffice => 'Office mostly';
 
   @override
-  String get quizHybrid => 'Hybrid — mix of both';
+  String get quizHybrid => 'Hybrid: mix of both';
 
   @override
   String get quizPets => 'How do you feel about pets?';
@@ -953,7 +964,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tapToSeeMore => 'View full profile';
 
   @override
-  String get whyThisMatchWorks => 'WHY THIS MATCH WORKS';
+  String get whyThisMatchWorks => 'Why this match works';
 
   @override
   String get tapToCollapse => 'Tap to collapse';
@@ -1520,6 +1531,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get visitCancelled => 'Visit cancelled.';
 
   @override
+  String get videoUploadFailed => 'Could not upload the video. Try again.';
+
+  @override
   String get videoTourLabel => 'Video tour (optional)';
 
   @override
@@ -1572,6 +1586,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationUnreadLabel => 'Unread';
 
   @override
   String get notificationEmpty => 'No notifications yet.';
@@ -1719,6 +1736,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noListingsMatchFilters =>
       'No listings match your filters. Try adjusting them.';
+
+  @override
+  String labelWithCount(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get listingStatusUnknown => 'Unknown status';
 
   @override
   String get listingRejected => 'Rejected';
@@ -2432,7 +2457,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoTipNaturalLight =>
-      '• Use natural lighting — open curtains before shooting';
+      '• Use natural light: open the curtains before you shoot';
 
   @override
   String get photoTipFullRoom => '• Show the full room from corner to corner';
@@ -2494,7 +2519,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detectingLocation => 'Detecting location...';
 
   @override
-  String get popularCitiesLabel => 'POPULAR CITIES';
+  String get popularCitiesLabel => 'Popular cities';
 
   @override
   String get noLocationsAvailable => 'No locations available';
@@ -2537,10 +2562,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get swipeCheckBackLater => 'Check back later for new matches';
 
   @override
-  String get swipeLikeLabel => 'LIKE';
+  String get swipeLikeLabel => 'Like';
 
   @override
-  String get swipeNopeLabel => 'PASS';
+  String get swipeNopeLabel => 'Pass';
 
   @override
   String get failedToLoadProfiles => 'Failed to load profiles';
@@ -2856,8 +2881,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String listingSummaryPhotos(int count, String plural) {
-    return '$count photo$plural';
+  String listingSummaryPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2926,7 +2957,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You do not have permission to perform this action.';
 
   @override
-  String get errorNotFound => 'The requested resource was not found.';
+  String get errorNotFound => 'This page or item no longer exists.';
 
   @override
   String get errorValidation => 'Invalid data. Please check your input.';
@@ -3000,15 +3031,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String reviewPhotosAmount(int count, String plural) {
-    return '$count photo$plural';
+  String reviewPhotosAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get invalidListingId => 'Invalid listing ID';
+  String get notFoundTitle => 'We could not find that page';
 
   @override
-  String get invalidConversationId => 'Invalid conversation ID';
+  String get invalidListingId => 'This listing link is broken.';
+
+  @override
+  String get invalidConversationId => 'This chat link is broken.';
 
   @override
   String get youAreOffline => 'You are offline. Check your connection.';
@@ -3085,7 +3125,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchCityOrAreaHint => 'Search city or area';
 
   @override
-  String get suggestionsLabel => 'SUGGESTIONS';
+  String get suggestionsLabel => 'Suggestions';
 
   @override
   String get locationPickerTitle => 'Choose Location';
@@ -3094,13 +3134,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationPickerSearchHint => 'Search area, locality, city...';
 
   @override
-  String get matchingCitiesLabel => 'MATCHING CITIES';
+  String get matchingCitiesLabel => 'Matching cities';
 
   @override
   String get noCitiesFound => 'No cities found';
 
   @override
-  String get moreCitiesLabel => 'MORE CITIES';
+  String get moreCitiesLabel => 'More cities';
 
   @override
   String get searchRadiusLabel => 'Search Radius';
@@ -3203,6 +3243,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get patchReadyMessage =>
       'An update is ready. It will apply the next time you open the app.';
+
+  @override
+  String appVersionLabel(String version) {
+    return 'Version $version';
+  }
 
   @override
   String patchLabel(int number) {
@@ -3383,7 +3428,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactRequestSentToast => 'Contact request sent';
 
   @override
-  String get listingLabel => 'LISTING';
+  String get listingLabel => 'Listing';
 
   @override
   String get liveBadge => 'Live';
@@ -3450,7 +3495,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitFromDetailPageNote =>
-      'Interested in this property — scheduled from listing page.';
+      'Interested in this property. Scheduled from the listing page.';
 
   @override
   String get readMoreCta => 'Read more';
@@ -3807,7 +3852,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String onboardingStepsRemaining(int count) {
-    return '$count steps left';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count steps left',
+      one: '1 step left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3973,4 +4024,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ageBucket46Plus => '46+';
+
+  @override
+  String get emailVerifiedLabel => 'Email verified';
+
+  @override
+  String get onboardingFinishLaterCta => 'Finish later';
+
+  @override
+  String get removePhotoTooltip => 'Remove photo';
+
+  @override
+  String budgetUpToLabel(String amount) {
+    return 'Up to ₹$amount';
+  }
+
+  @override
+  String ageRangeYearsValue(int min, int max) {
+    return '$min – $max yrs';
+  }
+
+  @override
+  String get ventilationAny => 'Any';
+
+  @override
+  String get adjustFiltersCta => 'Adjust filters';
+
+  @override
+  String get clearSearchTooltip => 'Clear search';
+
+  @override
+  String get voteDownHint => 'Vote down';
+
+  @override
+  String get mapRecenterTooltip => 'Go to my location';
+
+  @override
+  String get mapFitAllTooltip => 'Show all listings';
+
+  @override
+  String get mapZoomInTooltip => 'Zoom in';
+
+  @override
+  String get mapZoomOutTooltip => 'Zoom out';
+
+  @override
+  String get ownerFallbackName => 'Owner';
+
+  @override
+  String floorOfLabel(String floor, String total) {
+    return 'Floor $floor of $total';
+  }
+
+  @override
+  String floorNumberLabel(String floor) {
+    return 'Floor $floor';
+  }
 }

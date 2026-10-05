@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_semantic_colors.dart';
+import '../theme/app_spacing.dart';
+import '../../features/shared/presentation/paper/paper_edge_border.dart';
+import '../../features/shared/presentation/paper/paper_surface.dart';
 import '../../l10n/gen/app_localizations.dart';
 
 /// Whether the device currently has a non-none network interface.
@@ -61,44 +64,89 @@ final connectivityProvider = StreamProvider<bool>((ref) async* {
   }
 });
 
+/// Wraps the app and shows an offline strip in the layout flow, above the
+/// app, so it pushes content down instead of covering the app bar.
+///
+/// The strip takes the top safe-area inset; while it is visible the app below
+/// gets that inset removed so it is not applied twice.
+///
+/// The returned tree has the same shape online and offline — only the strip's
+/// visibility and the child's top padding change. Returning `child` directly
+/// when online and a `Column` when offline would make Flutter deactivate and
+/// re-inflate the whole app subtree (Navigator, route state, every open
+/// screen's local state) on each connectivity change, because reconciliation
+/// at this position compares runtime types.
 class OfflineBanner extends ConsumerWidget {
-  const OfflineBanner({super.key});
+  const OfflineBanner({required this.child, super.key});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final connectivity = ref.watch(connectivityProvider);
-    final isOnline = connectivity.valueOrNull ?? true;
+    final isOnline = ref.watch(connectivityProvider).valueOrNull ?? true;
 
-    if (isOnline) return const SizedBox.shrink();
+    // The page colour sits behind the strip, so the scallop cut-outs show
+    // the page paper instead of the bare window.
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Column(
+        children: [
+          // Same slot either way: the strip is only built while offline.
+          if (isOnline) const SizedBox.shrink() else const _OfflineStrip(),
+          Expanded(
+            child: MediaQuery.removePadding(
+              context: context,
+              // The strip already consumed the top inset. Without it the app
+              // keeps the inset, so app bars and scene art still draw under
+              // the status bar exactly as they did before.
+              removeTop: !isOnline,
+              child: child,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+/// Scallop-edged `warning-soft` strip in the page flow (DESIGN.md §8).
+/// [PaperSurface] pads the cut side, so the text clears the scallops.
+///
+/// No animation: the strip appears and disappears with the connectivity
+/// state, so there is nothing for `AppMotion.reduceMotion` to switch off.
+class _OfflineStrip extends StatelessWidget {
+  const _OfflineStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: SafeArea(
-        bottom: false,
-        child: Material(
-          color: AppSemanticColors.error,
+    final ink = AppSemanticColors.warningInkFor(theme.brightness);
+    return Semantics(
+      liveRegion: true,
+      child: PaperSurface(
+        color: AppSemanticColors.warningSoftFor(theme.brightness),
+        elevation: PaperElevation.e0,
+        borderRadius: BorderRadius.zero,
+        edge: PaperEdge.scallop,
+        edgeSide: PaperEdgeSide.bottom,
+        edgeDepth: 6,
+        grain: false,
+        child: SafeArea(
+          bottom: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screen,
+              vertical: AppSpacing.sm,
+            ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.cloud_off_outlined,
-                  size: 18,
-                  color: AppSemanticColors.paper,
-                ),
-                const SizedBox(width: 8),
+                Icon(Icons.cloud_off_rounded, size: 18, color: ink),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     locale.youAreOffline,
-                    style: const TextStyle(
-                      color: AppSemanticColors.paper,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme.textTheme.labelMedium?.copyWith(color: ink),
                   ),
                 ),
               ],

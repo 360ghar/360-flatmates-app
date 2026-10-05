@@ -8,8 +8,6 @@ import '../../core/providers.dart';
 import '../../core/providers/mutable_notifier.dart';
 import '../../core/utils/safe_json_list.dart';
 import '../bootstrap/bootstrap_controller.dart';
-import '../location/application/location_controller.dart';
-import 'application/discover_feed_controller.dart';
 import 'application/move_in_filter.dart';
 import 'application/property_listing_seed_store.dart';
 import 'data/property_listing_dto.dart';
@@ -534,33 +532,38 @@ final selectedPropertyProvider =
       PropertyListing?
     >(() => AutoDisposeMutableNotifier(null));
 
-final discoverListingsProvider = FutureProvider<List<PropertyListing>>((ref) {
-  final profile = ref.watch(
-    bootstrapControllerProvider.select((s) => s.valueOrNull?.profile),
-  );
-  final filters = ref.watch(discoverFiltersProvider);
-  final selectedLocation = ref.watch(
-    locationControllerProvider.select((s) => s.selectedLocation),
-  );
-  final effectiveFilters = filters?.hasGeoLocation == true
-      ? filters
-      : selectedLocation != null
-      ? (filters ?? const DiscoverFilters()).copyWith(
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
-          radiusKm: DiscoverFeedController.defaultLocationRadiusKm,
-        )
-      : filters;
-  return ref
-      .watch(discoverRepositoryProvider)
-      .fetchListings(currentUser: profile, filters: effectiveFilters);
-});
-
 /// Owns the detail-page state for a single listing so that likes can be
 /// applied optimistically (instant heart flip) with rollback on failure,
 /// instead of a full network refetch round-trip.
 class PropertyListingController
     extends FamilyAsyncNotifier<PropertyListing, int> {
+  /// One in-flight GET shared by [build], [_reconcileInBackground] and
+  /// [refetchFromNetwork].
+  ///
+  /// Without it, the first notifier read on a seeded detail page starts the
+  /// build/reconcile fetch, and a pull-to-refresh right after starts a second
+  /// GET in parallel — the slower response then wins and can overwrite fresher
+  /// state and seed with older data.
+  Future<PropertyListing>? _inFlightFetch;
+
+  /// Fetches this listing from the network, coalescing concurrent callers onto
+  /// one request. Errors propagate to every awaiter; the slot is cleared once
+  /// the request settles.
+  Future<PropertyListing> _fetchListingOnce() {
+    final inFlight = _inFlightFetch;
+    if (inFlight != null) return inFlight;
+    final future = ref.read(discoverRepositoryProvider).fetchListing(arg);
+    _inFlightFetch = future;
+    unawaited(
+      future
+          .then<void>((_) {}, onError: (Object _, StackTrace _) {})
+          .whenComplete(() {
+            if (identical(_inFlightFetch, future)) _inFlightFetch = null;
+          }),
+    );
+    return future;
+  }
+
   @override
   FutureOr<PropertyListing> build(int arg) async {
     final seeded = ref.read(propertyListingSeedStoreProvider.notifier).get(arg);
@@ -569,14 +572,15 @@ class PropertyListingController
     // (timeout → false "no internet") or 404 for non-owners; reconcile in the
     // background when the owner is authenticated.
     if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
-      unawaited(_reconcileInBackground(arg));
+      unawaited(_reconcileInBackground());
       return seeded;
     }
 
     try {
-      final fresh = await ref
-          .watch(discoverRepositoryProvider)
-          .fetchListing(arg);
+      // Keep the reactive edge on the repository, but fetch through the shared
+      // single-flight slot so a concurrent refresh cannot race this request.
+      ref.watch(discoverRepositoryProvider);
+      final fresh = await _fetchListingOnce();
       // Keep seed warm for later router rebuilds / owner preview.
       ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
       return fresh;
@@ -588,11 +592,9 @@ class PropertyListingController
     }
   }
 
-  Future<void> _reconcileInBackground(int listingId) async {
+  Future<void> _reconcileInBackground() async {
     try {
-      final fresh = await ref
-          .read(discoverRepositoryProvider)
-          .fetchListing(listingId);
+      final fresh = await _fetchListingOnce();
       ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
       // Only update if this family instance is still alive.
       state = AsyncData(fresh);
@@ -608,6 +610,34 @@ class PropertyListingController
   void seed(PropertyListing listing) {
     ref.read(propertyListingSeedStoreProvider.notifier).put(listing);
     state = AsyncData(listing);
+  }
+
+  /// Fetches the listing from the network (bypassing the seed), stores it as
+  /// the new seed and state, and returns it. Throws on failure; the previous
+  /// state stays.
+  ///
+  /// Shares one GET with [build]/[_reconcileInBackground] when a fetch is
+  /// already in flight, so the two paths never race (see [_inFlightFetch]).
+  Future<PropertyListing> refetchFromNetwork() async {
+    final fresh = await _fetchListingOnce();
+    ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+    state = AsyncData(fresh);
+    return fresh;
+  }
+
+  /// Refetches this listing (for example after a related write).
+  void refresh() => ref.invalidateSelf();
+
+  /// Records the viewer's vote on a society tag, then refetches this listing
+  /// so counts update. Throws on failure so callers can toast.
+  Future<void> voteSocietyTag({
+    required String tag,
+    required String vote,
+  }) async {
+    await ref
+        .read(discoverRepositoryProvider)
+        .voteSocietyTag(listingId: arg, tag: tag, vote: vote);
+    refresh();
   }
 
   /// Toggles the like state optimistically. Returns the conversation_id (or

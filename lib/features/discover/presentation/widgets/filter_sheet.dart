@@ -37,11 +37,12 @@ class FilterSheet extends ConsumerStatefulWidget {
 
 class _FilterSheetState extends ConsumerState<FilterSheet> {
   final _searchController = TextEditingController();
-  bool _initialized = false;
 
   static const double _budgetMin = 5000;
   static const double _budgetMax = 100000;
-  RangeValues _budgetValues = const RangeValues(5000, 50000);
+  // Full range = no budget filter. A narrower default applied a price cap
+  // the user never chose.
+  RangeValues _budgetValues = const RangeValues(_budgetMin, _budgetMax);
 
   String? _selectedRoomType;
   String? _selectedFurnishing;
@@ -193,12 +194,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
     if (value >= 100000) {
       return '₹1,00,000+';
     }
-    final intPart = value.round();
-    final formatted = intPart.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{2})+(?=\d{3})($|\D))'),
-      (m) => '${m[1]},',
-    );
-    return '₹$formatted';
+    return FlatmatesPriceText.formatRupee(value.round());
   }
 
   String? _roomTypeSubtitle() {
@@ -410,7 +406,10 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
         ),
       if (_ageValues.start != _ageMin || _ageValues.end != _ageMax)
         (
-          label: '${_ageValues.start.round()} – ${_ageValues.end.round()} yrs',
+          label: AppLocalizations.of(context).ageRangeYearsValue(
+            _ageValues.start.round(),
+            _ageValues.end.round(),
+          ),
           onRemove: () =>
               setState(() => _ageValues = const RangeValues(_ageMin, _ageMax)),
         ),
@@ -466,49 +465,51 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (!_initialized) {
-      _initialized = true;
-      final existing = ref.read(discoverFiltersProvider);
-      if (existing != null) {
-        _budgetValues = RangeValues(
-          existing.priceMin ?? _budgetMin,
-          existing.priceMax ?? _budgetMax,
-        );
-        _selectedRoomType = switch (existing.sharingType) {
-          'private_room' => 'private',
-          'shared_room' => 'shared',
-          _ => existing.sharingType,
-        };
-        _selectedFurnishing = existing.features.isNotEmpty
-            ? existing.features.first
-            : null;
-        _selectedGender = existing.genderPreference;
-        _selectedMoveIn = existing.moveInTimeline;
-        _selectedPets = existing.pets;
-        _selectedSmoking = existing.smoking;
-        _selectedDrinking = existing.drinking;
-        _selectedKitchenTypes
-          ..clear()
-          ..addAll(existing.kitchenType);
-        _selectedVentilation = existing.ventilationType.isEmpty
-            ? null
-            : existing.ventilationType.first;
-        _selectedAmenities
-          ..clear()
-          ..addAll(existing.amenities);
-        _hasLift = existing.hasLift;
-        _windowsMin = existing.windowsMin;
-        _ageValues = RangeValues(
-          (existing.ageMin ?? _ageMin).toDouble(),
-          (existing.ageMax ?? _ageMax).toDouble(),
-        );
-        if (existing.query != null && existing.query!.isNotEmpty) {
-          _searchController.text = existing.query!;
-        }
+  void initState() {
+    super.initState();
+    // Seed the sheet from the applied filters once (a read, not a write).
+    final existing = ref.read(discoverFiltersProvider);
+    if (existing != null) {
+      _budgetValues = RangeValues(
+        existing.priceMin ?? _budgetMin,
+        existing.priceMax ?? _budgetMax,
+      );
+      _selectedRoomType = switch (existing.sharingType) {
+        'private_room' => 'private',
+        'shared_room' => 'shared',
+        _ => existing.sharingType,
+      };
+      _selectedFurnishing = existing.features.isNotEmpty
+          ? existing.features.first
+          : null;
+      _selectedGender = existing.genderPreference;
+      _selectedMoveIn = existing.moveInTimeline;
+      _selectedPets = existing.pets;
+      _selectedSmoking = existing.smoking;
+      _selectedDrinking = existing.drinking;
+      _selectedKitchenTypes
+        ..clear()
+        ..addAll(existing.kitchenType);
+      _selectedVentilation = existing.ventilationType.isEmpty
+          ? null
+          : existing.ventilationType.first;
+      _selectedAmenities
+        ..clear()
+        ..addAll(existing.amenities);
+      _hasLift = existing.hasLift;
+      _windowsMin = existing.windowsMin;
+      _ageValues = RangeValues(
+        (existing.ageMin ?? _ageMin).toDouble(),
+        (existing.ageMax ?? _ageMax).toDouble(),
+      );
+      if (existing.query != null && existing.query!.isNotEmpty) {
+        _searchController.text = existing.query!;
       }
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final bootstrap = ref.watch(bootstrapControllerProvider);
@@ -557,7 +558,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
       'flatmates_ventilation_options',
       const ['any', 'good', 'average', 'poor'],
       'any',
-      humanizeFlatmatesToken('any'),
+      locale.ventilationAny,
     );
 
     // Full width so the title can truly center in the sheet content area
@@ -568,27 +569,23 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            width: double.infinity,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Text(
+          // A row, not a stack: a long title (Hindi, large text) wraps
+          // instead of running under Clear all.
+          Row(
+            children: [
+              Expanded(
+                child: Text(
                   locale.searchFiltersTitle,
-                  textAlign: TextAlign.center,
                   style: theme.textTheme.headlineSmall,
                 ),
-                if (activeFilters.isNotEmpty)
-                  Positioned(
-                    right: 0,
-                    child: FlatmatesButton.tertiary(
-                      key: const Key('search_clear_filters'),
-                      label: locale.clearAllFilters,
-                      onPressed: _clearAllFilters,
-                    ),
-                  ),
-              ],
-            ),
+              ),
+              if (activeFilters.isNotEmpty)
+                FlatmatesButton.tertiary(
+                  key: const Key('search_clear_filters'),
+                  label: locale.clearAllFilters,
+                  onPressed: _clearAllFilters,
+                ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
           if (showSkeleton)
@@ -597,7 +594,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             Expanded(
               child: Center(
                 child: FlatmatesErrorState(
-                  message: locale.couldNotLoadListing,
+                  message: locale.errorUnknown,
                   onRetry: () =>
                       ref.read(bootstrapControllerProvider.notifier).refresh(),
                 ),
@@ -611,7 +608,6 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   FlatmatesSearchBar(
                     controller: _searchController,
                     hint: locale.homeSearchHint,
-                    trailingIcon: AppIcons.search,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   ActiveFilterChips(filters: activeFilters),
@@ -629,8 +625,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.roomTypeFilterLabel,
                     icon: Icons.bed_outlined,
-                    iconColor: AppSemanticColors.blueMid,
-                    iconBgColor: AppSemanticColors.blueSoft,
+                    iconColor: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: _filterChoice(
                       options: roomOptions,
                       selected: _resolvedSelection(
@@ -648,8 +645,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.furnishingFilterLabel,
                     icon: Icons.chair_outlined,
-                    iconColor: AppSemanticColors.orangeMid,
-                    iconBgColor: AppSemanticColors.orangeSoft,
+                    iconColor: AppSemanticColors.clayFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: _filterChoice(
                       options: furnishingOptions,
                       selected: _resolvedSelection(
@@ -667,8 +665,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.genderFilterLabel,
                     icon: Icons.people_outlined,
-                    iconColor: AppSemanticColors.purpleMid,
-                    iconBgColor: AppSemanticColors.purpleSoft,
+                    iconColor: AppSemanticColors.clayFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: _filterChoice(
                       options: genderOptions,
                       selected: _resolvedSelection(
@@ -686,8 +685,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.moveInFilterLabel,
                     icon: Icons.calendar_today_outlined,
-                    iconColor: AppSemanticColors.tealMid,
-                    iconBgColor: AppSemanticColors.tealSoft,
+                    iconColor: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: CatalogFilterChips(
                       options: moveInOptions,
                       selectedId: _resolvedSelection(
@@ -704,8 +704,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.kitchenTypeLabel,
                     icon: Icons.restaurant_outlined,
-                    iconColor: AppSemanticColors.greenMid,
-                    iconBgColor: AppSemanticColors.greenSoft,
+                    iconColor: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: CatalogFilterChips(
                       options: _catalogOrFallback('flatmates_kitchen_types', [
                         'vegetarian',
@@ -730,8 +731,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.ventilationTypeLabel,
                     icon: Icons.air_outlined,
-                    iconColor: AppSemanticColors.blueMid,
-                    iconBgColor: AppSemanticColors.blueSoft,
+                    iconColor: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: CatalogFilterChips(
                       options: ventilationOptions,
                       selectedId: _resolvedSelection(
@@ -749,8 +751,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.searchAmenitiesFilterLabel,
                     icon: Icons.checklist_outlined,
-                    iconColor: AppSemanticColors.orangeMid,
-                    iconBgColor: AppSemanticColors.orangeSoft,
+                    iconColor: AppSemanticColors.clayFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: CatalogFilterChips(
                       options: _catalogOrFallback(
                         'flatmates_listing_amenities',
@@ -770,8 +773,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.searchWindowsMinLabel,
                     icon: Icons.window_outlined,
-                    iconColor: AppSemanticColors.purpleMid,
-                    iconBgColor: AppSemanticColors.purpleSoft,
+                    iconColor: AppSemanticColors.clayFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: Wrap(
                       spacing: AppSpacing.sm,
                       runSpacing: AppSpacing.sm,
@@ -794,8 +798,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.searchHasLiftLabel,
                     icon: Icons.elevator_outlined,
-                    iconColor: AppSemanticColors.tealMid,
-                    iconBgColor: AppSemanticColors.tealSoft,
+                    iconColor: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: FlatmatesSegmentedControl<bool?>(
                       segments: [
                         (true, locale.prefYes, Icons.check_rounded),
@@ -809,8 +814,9 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                   CompactFilterSection(
                     title: locale.ageRangeLabel,
                     icon: Icons.cake_outlined,
-                    iconColor: AppSemanticColors.greenMid,
-                    iconBgColor: AppSemanticColors.greenSoft,
+                    iconColor: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     child: RangeSlider(
                       values: _ageValues,
                       min: _ageMin,

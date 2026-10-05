@@ -23,7 +23,6 @@ class OnboardingCompletionBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     // Watch the onboarding controller for the actual remaining step count.
     // If the draft hasn't hydrated yet, fall back to the total interactive
@@ -33,73 +32,55 @@ class OnboardingCompletionBanner extends ConsumerWidget {
         ? onboardingState.remainingSteps
         : OnboardingState.totalInteractiveSteps;
 
+    final brightness = theme.brightness;
+    final clay = AppSemanticColors.clayFor(brightness);
+
+    // A clay-soft strip in the page flow. The shell puts it under the status
+    // bar inset and removes that inset from the page below.
     return Material(
-      color: isDark
-          ? AppSemanticColors.darkSurface
-          : AppSemanticColors.accent.withAlpha(12),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: AppSemanticColors.accent.withValues(alpha: 0.2),
-              width: 0.5,
-            ),
+      color: AppSemanticColors.coralSoftFor(brightness),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screen,
+            vertical: AppSpacing.sm,
           ),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screen,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppSemanticColors.accent.withAlpha(20),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.rocket_launch_outlined,
-                color: AppSemanticColors.accent,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    locale.onboardingActionBlockedTitle,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              Icon(Icons.rocket_launch_outlined, color: clay, size: 24),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      locale.onboardingActionBlockedTitle,
+                      style: theme.textTheme.labelMedium,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    remainingSteps > 0
-                        ? locale.onboardingStepsRemaining(remainingSteps)
-                        : locale.onboardingActionBlockedMessage,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
+                    Text(
+                      remainingSteps > 0
+                          ? locale.onboardingStepsRemaining(remainingSteps)
+                          : locale.onboardingActionBlockedMessage,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(brightness),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            FlatmatesButton(
-              key: const Key('onboarding_banner_cta'),
-              label: locale.onboardingActionBlockedCta,
-              onPressed: () => context.go('/onboarding'),
-              icon: Icons.arrow_forward_rounded,
-              height: 40,
-            ),
-          ],
+              const SizedBox(width: AppSpacing.sm),
+              // Flexible so a long label shrinks instead of overflowing.
+              Flexible(
+                child: FlatmatesButton(
+                  key: const Key('onboarding_banner_cta'),
+                  label: locale.onboardingActionBlockedCta,
+                  onPressed: () => context.go('/onboarding'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

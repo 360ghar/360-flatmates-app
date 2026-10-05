@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/paper/paper_scene.dart';
 import '../../../shared/presentation/flatmates_empty_state.dart';
 
 /// Reason why the swipe deck is empty, used to show contextual messaging.
@@ -39,7 +40,7 @@ class SwipeEmptyState extends StatelessWidget {
     return FlatmatesEmptyState(
       title: _title(locale),
       subtitle: _subtitle(locale),
-      icon: _icon,
+      prop: _prop,
       ctaLabel: locale.refreshProfilesCta,
       onCtaTap: onRefresh,
     );
@@ -57,9 +58,11 @@ class SwipeEmptyState extends StatelessWidget {
     SwipeEmptyReason.endOfDeck => locale.swipeEmptyEndOfDeckSubtitle,
   };
 
-  IconData get _icon => switch (reason) {
-    SwipeEmptyReason.noProfiles => Icons.explore_off_rounded,
-    SwipeEmptyReason.allFiltered => Icons.filter_alt_off_rounded,
-    SwipeEmptyReason.endOfDeck => Icons.favorite_border_rounded,
+  /// DESIGN.md §6 props: magnifier when a search finds nothing, heart for
+  /// the likes deck.
+  PaperProp get _prop => switch (reason) {
+    SwipeEmptyReason.noProfiles => PaperProp.magnifier,
+    SwipeEmptyReason.allFiltered => PaperProp.magnifier,
+    SwipeEmptyReason.endOfDeck => PaperProp.heart,
   };
 }

@@ -5,8 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/errors/app_failure.dart';
-import '../chats/chats_repository.dart'
-    show conversationsProvider, peerProfileProvider;
+import '../chats/chats_repository.dart' show peerProfileProvider;
 import '../chats/application/cursor_list_controller.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/theme.dart';
@@ -25,18 +24,6 @@ import 'presentation/widgets/flat_details_location.dart';
 import 'presentation/widgets/flat_details_media.dart';
 import 'presentation/widgets/staggered_card_appear.dart';
 import 'share_listing_card.dart';
-
-// Scoped per listingId so carousel index / contact / schedule flags do not
-// leak across different flat-details navigations.
-final _currentImageIndexProvider = StateProvider.autoDispose.family<int, int>(
-  (ref, listingId) => 0,
-);
-final _contactingProvider = StateProvider.autoDispose.family<bool, int>(
-  (ref, listingId) => false,
-);
-final _schedulingProvider = StateProvider.autoDispose.family<bool, int>(
-  (ref, listingId) => false,
-);
 
 class FlatDetailsPage extends ConsumerStatefulWidget {
   const FlatDetailsPage({
@@ -58,6 +45,11 @@ class FlatDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
+  // Ephemeral page state (setState).
+  int _currentImageIndex = 0;
+  bool _isContacting = false;
+  bool _isScheduling = false;
+
   int? _conversationId;
 
   /// Local listing shown without hitting the network. Non-null when a seed was
@@ -94,17 +86,21 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       _conversationId = null;
       _localListing = widget.seededListing;
       _forceNetwork = false;
+      // GoRouter reuses this page for /flat-details/:id, so the previous
+      // listing's carousel index and in-flight contact/schedule flags must not
+      // leak into the next listing.
+      _currentImageIndex = 0;
+      _isContacting = false;
+      _isScheduling = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final currentImageIndex = ref.watch(
-      _currentImageIndexProvider(widget.listingId),
-    );
-    final isContacting = ref.watch(_contactingProvider(widget.listingId));
-    final isScheduling = ref.watch(_schedulingProvider(widget.listingId));
+    final currentImageIndex = _currentImageIndex;
+    final isContacting = _isContacting;
+    final isScheduling = _isScheduling;
     final currentUserId = ref
         .watch(bootstrapControllerProvider)
         .valueOrNull
@@ -206,12 +202,8 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                 setState(() => _forceNetwork = true);
                 try {
                   final fresh = await ref
-                      .read(discoverRepositoryProvider)
-                      .fetchListing(widget.listingId);
-                  ref
-                      .read(propertyListingSeedStoreProvider.notifier)
-                      .put(fresh);
-                  ref.invalidate(propertyListingProvider(widget.listingId));
+                      .read(propertyListingProvider(widget.listingId).notifier)
+                      .refetchFromNetwork();
                   if (!mounted) return;
                   setState(() {
                     _localListing = fresh;
@@ -234,18 +226,12 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                       listing: listing,
                       currentIndex: currentImageIndex,
                       onPageChanged: (index) =>
-                          ref
-                                  .read(
-                                    _currentImageIndexProvider(
-                                      widget.listingId,
-                                    ).notifier,
-                                  )
-                                  .state =
-                              index,
+                          setState(() => _currentImageIndex = index),
                       onBack: () => context.pop(),
                       onShare: () => _showShareSheet(listing),
+                      // No heart on your own listing.
                       onFavorite: isSelfOwned
-                          ? () {}
+                          ? null
                           : () => _handleShortlist(listing),
                       isFavorite: hasLiked,
                       onOwnerTap: canViewOwner
@@ -255,9 +241,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                               listing: listing,
                               onContact: () => _handleContact(listing),
                               onScheduleVisit: () {
-                                if (ref.read(
-                                  _schedulingProvider(widget.listingId),
-                                )) {
+                                if (_isScheduling) {
                                   return;
                                 }
                                 unawaited(
@@ -272,14 +256,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                                     onLikeSynced: _syncLikeAcrossViews,
                                     setScheduling: (v) {
                                       if (mounted) {
-                                        ref
-                                                .read(
-                                                  _schedulingProvider(
-                                                    widget.listingId,
-                                                  ).notifier,
-                                                )
-                                                .state =
-                                            v;
+                                        setState(() => _isScheduling = v);
                                       }
                                     },
                                   ),
@@ -332,7 +309,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                 : null,
             secondaryOnPressed: hasLiked && !isSelfOwned && !isScheduling
                 ? () {
-                    if (ref.read(_schedulingProvider(widget.listingId))) {
+                    if (_isScheduling) {
                       return;
                     }
                     unawaited(
@@ -346,14 +323,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                         onLikeSynced: _syncLikeAcrossViews,
                         setScheduling: (v) {
                           if (mounted) {
-                            ref
-                                    .read(
-                                      _schedulingProvider(
-                                        widget.listingId,
-                                      ).notifier,
-                                    )
-                                    .state =
-                                v;
+                            setState(() => _isScheduling = v);
                           }
                         },
                       ),
@@ -368,6 +338,9 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                 ? null
                 : () => _handleShortlist(listing),
             tertiarySelected: hasLiked,
+            tertiaryLabel: hasLiked
+                ? locale.unlikeListingTooltip
+                : locale.likeListingTooltip,
             tertiaryButtonKey: const Key('flat_shortlist_button'),
           ),
         ],
@@ -379,7 +352,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     return FullScreenGallery.open(
       context: context,
       images: images,
-      initialIndex: ref.read(_currentImageIndexProvider(widget.listingId)),
+      initialIndex: _currentImageIndex,
       heroTagPrefix: 'flat-gallery-${widget.listingId}',
     );
   }
@@ -394,8 +367,6 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
 
   void _syncLikeAcrossViews() {
     ref.read(discoverFeedControllerProvider.notifier).refresh();
-    ref.invalidate(discoverListingsProvider);
-    ref.invalidate(conversationsProvider);
     // The Liked tab cursor is updated by PropertyListingController. The legacy
     // FutureProviders above are not watched by any tab, so refresh only the
     // cursor controllers for Chats and Likes.
@@ -441,8 +412,8 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
   }
 
   Future<void> _handleContact(PropertyListing listing) async {
-    if (ref.read(_contactingProvider(widget.listingId))) return;
-    ref.read(_contactingProvider(widget.listingId).notifier).state = true;
+    if (_isContacting) return;
+    setState(() => _isContacting = true);
 
     try {
       // Prefer live provider state over the build-time capture so a heart
@@ -481,8 +452,6 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
       }
     }
 
-    if (mounted) {
-      ref.read(_contactingProvider(widget.listingId).notifier).state = false;
-    }
+    if (mounted) setState(() => _isContacting = false);
   }
 }

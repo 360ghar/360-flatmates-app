@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flatmates_app/features/discover/presentation/widgets/discover_header.dart';
+import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
 void main() {
   Widget wrap(Widget child) => MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: Center(child: child)),
   );
 

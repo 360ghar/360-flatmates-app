@@ -26,7 +26,7 @@ class MatchQnANudge extends ConsumerStatefulWidget {
 
 class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
   final _q1Controller = TextEditingController();
-  int _q2Value = 2; // 1-5 scale, default middle
+  int _q2Value = 3; // 1-5 scale, default middle
   final _q3Controller = TextEditingController();
   bool _isSubmitting = false;
 
@@ -93,6 +93,7 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                 TextField(
                   controller: _q1Controller,
                   maxLength: 100,
+                  enabled: !_isSubmitting,
                   decoration: InputDecoration(
                     hintText: locale.qnaQuestion1Hint,
                     counterStyle: theme.textTheme.bodySmall,
@@ -114,9 +115,37 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                   max: 5,
                   divisions: 4,
                   label: _q2Label(locale),
+                  semanticFormatterCallback: (_) => _q2Label(locale),
                   onChanged: _isSubmitting
                       ? null
                       : (v) => setState(() => _q2Value = v.round()),
+                ),
+                // End labels under the slider, so the track keeps its width
+                // on a narrow phone or at large text.
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        locale.qnaVeryPrivate,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        locale.qnaVerySocial,
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

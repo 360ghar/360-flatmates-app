@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/compatibility/compatibility_engine.dart';
 import '../../../core/theme/app_semantic_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/bootstrap_controller.dart';
@@ -123,7 +123,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
 
     final matchColor = matchPercentage != null
         ? _matchColor(brightness, matchPercentage)
-        : AppSemanticColors.success;
+        : AppSemanticColors.pineFor(brightness);
 
     final locationParts = [
       if (localityValue != null && localityValue.trim().isNotEmpty)
@@ -143,14 +143,13 @@ class ChatPeerProfilePage extends ConsumerWidget {
         key: const ValueKey('peer_action_message'),
         icon: Icons.chat_bubble_outline_rounded,
         label: locale.messageCta,
-        color: PeerActionButtonColor.blue,
+        color: PeerActionButtonColor.primary,
         onTap: () => context.pop(),
       ),
       PeerActionButton(
         key: const ValueKey('peer_action_call'),
         icon: Icons.call_outlined,
         label: locale.callCta,
-        color: PeerActionButtonColor.green,
         onTap: phone != null && phone.isNotEmpty
             ? () => _handleCall(context, phone)
             : null,
@@ -169,7 +168,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
         key: const ValueKey('peer_action_report'),
         icon: Icons.flag_outlined,
         label: locale.reportCta,
-        color: PeerActionButtonColor.red,
+        color: PeerActionButtonColor.destructive,
         onTap: () => _handleReport(context, ref, userId),
       ),
     ];
@@ -178,10 +177,11 @@ class ChatPeerProfilePage extends ConsumerWidget {
       body: Stack(
         children: [
           ListView(
+            // Top inset clears the overlaid back button.
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.xl + AppSpacing.sm,
-              AppSpacing.xl,
+              AppSpacing.screen,
+              AppSpacing.s56,
+              AppSpacing.screen,
               AppSpacing.xl,
             ),
             children: [
@@ -195,9 +195,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
               Text(
                 name,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: theme.textTheme.titleLarge,
               ),
               if (ageProfessionParts.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xs),
@@ -220,10 +218,13 @@ class ChatPeerProfilePage extends ConsumerWidget {
                       color: AppSemanticColors.textSecondaryFor(brightness),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      locationParts.join(', '),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppSemanticColors.textSecondaryFor(brightness),
+                    Flexible(
+                      child: Text(
+                        locationParts.join(', '),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(brightness),
+                        ),
                       ),
                     ),
                   ],
@@ -231,20 +232,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
               ],
               if (actionButtons.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: actionButtons
-                      .map(
-                        (b) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xxs,
-                            ),
-                            child: b,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
+                PeerActionRow(children: actionButtons),
               ],
 
               if (contextProperty != null && conversation != null) ...[
@@ -304,34 +292,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
               ),
             ),
           ),
-
-          if (matchPercentage != null)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppSemanticColors.surfaceFor(brightness),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: AppShadows.elevationFor(brightness),
-                  ),
-                  child: Text(
-                    locale.percentMatch(matchPercentage.round()),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: matchColor,
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -405,10 +365,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
     ];
   }
 
-  Color _matchColor(Brightness brightness, double pct) {
-    if (pct >= 70) return AppSemanticColors.success;
-    if (pct >= 40) return AppSemanticColors.warning;
-    if (pct > 0) return AppSemanticColors.error;
-    return AppSemanticColors.textSecondaryFor(brightness);
-  }
+  Color _matchColor(Brightness brightness, double pct) => pct > 0
+      ? compatibilityScoreColor(pct, brightness: brightness)
+      : AppSemanticColors.textSecondaryFor(brightness);
 }

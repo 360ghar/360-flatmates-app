@@ -5,6 +5,28 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/catalog_helpers.dart';
 import '../../../shared/presentation/components.dart';
+import '../../../shared/presentation/visit_date_picker_bounds.dart';
+
+/// Calendar bounds for the "available from" date picker.
+///
+/// [showDatePicker] bounds *calendar dates*, so every value returned here is a
+/// local date-only [DateTime]:
+///
+/// * `first` is today (local).
+/// * `last` is 180 local calendar days later. `Duration(days: 180)` advances
+///   180 x 24 h instead, which lands on 23:00 of the preceding day across a
+///   DST fall-back and would drop the final selectable day.
+/// * `initial` is the listing's stored date, normalized with
+///   `DateUtils.dateOnly(availableFrom.toLocal())`: a listing saved via
+///   `toUtc()` can represent today as the previous UTC date, and the picker
+///   asserts that `initialDate` is inside `[first, last]`.
+///
+/// Pure and injectable so the date math is unit-testable.
+({DateTime first, DateTime last, DateTime initial}) availableFromPickerBounds({
+  required DateTime now,
+  DateTime? availableFrom,
+}) =>
+    visitDatePickerBounds(now: now, preferred: availableFrom, windowDays: 180);
 
 /// Step 6 — About (typical day, gender preference, age range,
 /// non-negotiables, available from date).
@@ -131,13 +153,15 @@ class StepAboutSection extends StatelessWidget {
               FlatmatesButton.secondary(
                 label: locale.selectDateCta,
                 onPressed: () async {
+                  final bounds = availableFromPickerBounds(
+                    now: DateTime.now(),
+                    availableFrom: availableFrom,
+                  );
                   final date = await showDatePicker(
                     context: context,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 180)),
-                    initialDate:
-                        availableFrom ??
-                        DateTime.now().add(const Duration(days: 1)),
+                    firstDate: bounds.first,
+                    lastDate: bounds.last,
+                    initialDate: bounds.initial,
                   );
                   if (date != null) onAvailableFromChanged(date);
                 },

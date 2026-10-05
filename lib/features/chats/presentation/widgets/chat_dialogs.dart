@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
-import '../../../shared/presentation/flatmates_bottom_sheet.dart';
+import '../../../shared/presentation/flatmates_dialog.dart';
 import '../../../shared/presentation/flatmates_toast.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../application/chat_actions_controller.dart';
@@ -18,34 +17,13 @@ class ChatDialogs {
     required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
-    // Per-dialog pending flag: nullify the confirm button on first tap so a
-    // rapid double-tap cannot fire Navigator.pop twice (which would also pop
-    // the underlying chat route) or submit the action twice.
-    var pending = false;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(locale.blockConfirmTitle),
-          content: Text(locale.blockConfirmMessage),
-          actions: [
-            TextButton(
-              onPressed: pending ? null : () => Navigator.pop(ctx, false),
-              child: Text(locale.cancelCta),
-            ),
-            FlatmatesButton(
-              label: locale.blockCta,
-              onPressed: pending
-                  ? null
-                  : () {
-                      setDialogState(() => pending = true);
-                      Navigator.pop(ctx, true);
-                    },
-            ),
-          ],
-        ),
-      ),
+    final confirmed = await FlatmatesDialog.confirm(
+      context,
+      title: locale.blockConfirmTitle,
+      message: locale.blockConfirmMessage,
+      cancelLabel: locale.cancelCta,
+      confirmLabel: locale.blockCta,
+      destructive: true,
     );
     if (confirmed != true || !context.mounted) return;
 
@@ -79,47 +57,40 @@ class ChatDialogs {
   }) async {
     final locale = AppLocalizations.of(context);
     String? selectedReason;
-    var pending = false;
     final reasonLabels = reasons.map((r) => r.resolvedLabel(locale)).toList();
 
-    final confirmed = await showDialog<String>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(locale.reportTitle),
-          content: RadioGroup<String>(
-            groupValue: selectedReason,
-            onChanged: (v) => setDialogState(() => selectedReason = v),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(reasons.length, (idx) {
-                return ListTile(
-                  title: Text(reasonLabels[idx]),
-                  leading: Radio<String>(value: reasons[idx].value),
-                  onTap: () =>
-                      setDialogState(() => selectedReason = reasons[idx].value),
-                  contentPadding: EdgeInsets.zero,
-                );
-              }),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: pending ? null : () => Navigator.pop(ctx),
-              child: Text(locale.cancelCta),
-            ),
-            FlatmatesButton(
-              label: locale.reportCta,
-              onPressed: selectedReason != null && !pending
-                  ? () {
-                      setDialogState(() => pending = true);
-                      Navigator.pop(ctx, selectedReason);
-                    }
-                  : null,
-            ),
-          ],
+    final confirmed = await FlatmatesDialog.custom<String>(
+      context,
+      title: locale.reportTitle,
+      body: (ctx, setDialogState) => RadioGroup<String>(
+        groupValue: selectedReason,
+        onChanged: (v) => setDialogState(() => selectedReason = v),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(reasons.length, (idx) {
+            return ListTile(
+              title: Text(reasonLabels[idx]),
+              leading: Radio<String>(value: reasons[idx].value),
+              onTap: () =>
+                  setDialogState(() => selectedReason = reasons[idx].value),
+              contentPadding: EdgeInsets.zero,
+            );
+          }),
         ),
       ),
+      actions: (ctx, _, close) => [
+        FlatmatesButton.tertiary(
+          label: locale.cancelCta,
+          onPressed: () => close(),
+        ),
+        FlatmatesButton(
+          label: locale.reportCta,
+          destructive: true,
+          onPressed: selectedReason == null
+              ? null
+              : () => close(selectedReason),
+        ),
+      ],
     );
     if (confirmed == null || !context.mounted) return;
 
@@ -149,31 +120,13 @@ class ChatDialogs {
     required ChatActionsController controller,
   }) async {
     final locale = AppLocalizations.of(context);
-    var pending = false;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(locale.unmatchConfirmTitle),
-          content: Text(locale.unmatchConfirmMessage),
-          actions: [
-            TextButton(
-              onPressed: pending ? null : () => Navigator.pop(ctx, false),
-              child: Text(locale.cancelCta),
-            ),
-            FlatmatesButton(
-              label: locale.unmatchCta,
-              onPressed: pending
-                  ? null
-                  : () {
-                      setDialogState(() => pending = true);
-                      Navigator.pop(ctx, true);
-                    },
-            ),
-          ],
-        ),
-      ),
+    final confirmed = await FlatmatesDialog.confirm(
+      context,
+      title: locale.unmatchConfirmTitle,
+      message: locale.unmatchConfirmMessage,
+      cancelLabel: locale.cancelCta,
+      confirmLabel: locale.unmatchCta,
+      destructive: true,
     );
     if (confirmed != true || !context.mounted) return;
 
@@ -199,54 +152,5 @@ class ChatDialogs {
         FlatmatesToast.error(context, locale.failedToUnmatch);
       }
     }
-  }
-
-  static void showChatMenu({
-    required BuildContext context,
-    required VoidCallback onBlock,
-    required VoidCallback onReport,
-    required VoidCallback onUnmatch,
-  }) {
-    final locale = AppLocalizations.of(context);
-    FlatmatesBottomSheet.show(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.flag_outlined),
-              title: Text(locale.reportCta),
-              onTap: () {
-                Navigator.pop(ctx);
-                onReport();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.link_off_outlined),
-              title: Text(locale.unmatchCta),
-              onTap: () {
-                Navigator.pop(ctx);
-                onUnmatch();
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.block_outlined,
-                color: AppSemanticColors.error,
-              ),
-              title: Text(
-                locale.blockCta,
-                style: const TextStyle(color: AppSemanticColors.error),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                onBlock();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

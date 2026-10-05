@@ -198,7 +198,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get homeBroadenedRadius =>
-      'आपके क्षेत्र में कोई लिस्टिंग नहीं — दूर की फ्लैट्स दिखाई जा रही हैं।';
+      'आपके क्षेत्र में कोई लिस्टिंग नहीं। दूर के फ्लैट दिखाए जा रहे हैं।';
 
   @override
   String homeBedroomsChip(int count) {
@@ -240,8 +240,19 @@ class AppLocalizationsHi extends AppLocalizations {
   String get badgeTrending => 'ट्रेंडिंग';
 
   @override
+  String unreadMessagesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count अपठित संदेश',
+      one: '1 अपठित संदेश',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String monthlyRentLabel(String amount) {
-    return 'मासिक किराया: ₹$amount';
+    return 'मासिक किराया: $amount';
   }
 
   @override
@@ -601,7 +612,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get postListingSubtitle =>
-      'मौजूदा 360 Ghar इन्वेंटरी बैकएंड का उपयोग करके असली फ्लैटमेट लिस्टिंग बनाएं।';
+      'फ़ोटो, किराया और शिफ्ट होने की तारीख के साथ अपना कमरा जोड़ें।';
 
   @override
   String get postListingBasics => 'बेसिक्स';
@@ -780,13 +791,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizCleanliness => 'आप कितने साफ-सुथरे रहते हैं?';
 
   @override
-  String get quizCleanMinimal => 'कम — रहने वाला ठीक है';
+  String get quizCleanMinimal => 'कम: रहने वाला ठीक है';
 
   @override
-  String get quizCleanTidy => 'सुव्यवस्थित — हर चीज़ अपनी जगह पर';
+  String get quizCleanTidy => 'सुव्यवस्थित: हर चीज़ अपनी जगह पर';
 
   @override
-  String get quizCleanSpotless => 'बिल्कुल साफ — सब कुछ चमकदार';
+  String get quizCleanSpotless => 'बिल्कुल साफ: सब कुछ चमकदार';
 
   @override
   String get quizFoodHabits => 'आपकी खान-पान की आदतें?';
@@ -831,7 +842,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizOccasionalGuests => 'कभी-कभी मेहमान ठीक हैं';
 
   @override
-  String get quizOpenHouse => 'खुला घर — हमेशा स्वागत है';
+  String get quizOpenHouse => 'खुला घर: हमेशा स्वागत है';
 
   @override
   String get quizParties => 'घर पर पार्टी के बारे में?';
@@ -855,7 +866,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quizOffice => 'ज़्यादातर ऑफिस से';
 
   @override
-  String get quizHybrid => 'हाइब्रिड — दोनों का मिश्रण';
+  String get quizHybrid => 'हाइब्रिड: दोनों का मिश्रण';
 
   @override
   String get quizPets => 'पालतू जानवरों के बारे में?';
@@ -1522,6 +1533,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get visitCancelled => 'विज़िट रद्द की गई।';
 
   @override
+  String get videoUploadFailed =>
+      'वीडियो अपलोड नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
   String get videoTourLabel => 'वीडियो टूर (वैकल्पिक)';
 
   @override
@@ -1574,6 +1589,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'नोटिफिकेशन';
+
+  @override
+  String get notificationUnreadLabel => 'अपठित';
 
   @override
   String get notificationEmpty => 'अभी कोई नोटिफिकेशन नहीं है।';
@@ -1721,6 +1739,14 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get noListingsMatchFilters =>
       'आपके फ़िल्टर्स से कोई लिस्टिंग नहीं मिली। उन्हें बदलकर देखें।';
+
+  @override
+  String labelWithCount(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get listingStatusUnknown => 'अज्ञात स्थिति';
 
   @override
   String get listingRejected => 'अस्वीकृत';
@@ -2435,7 +2461,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get photoTipNaturalLight =>
-      '• प्राकृतिक रोशनी में शूट करें — पर्दे खोल लें';
+      '• प्राकृतिक रोशनी में शूट करें: पर्दे खोल लें';
 
   @override
   String get photoTipFullRoom => '• कमरे को कोने से कोने तक पूरा दिखाएं';
@@ -2871,8 +2897,14 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String listingSummaryPhotos(int count, String plural) {
-    return '$count फ़ोटो$plural';
+  String listingSummaryPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ोटो',
+      one: '1 फ़ोटो',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2941,7 +2973,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorPermission => 'आपको यह क्रिया करने की अनुमति नहीं है।';
 
   @override
-  String get errorNotFound => 'अनुरोधित संसाधन नहीं मिला।';
+  String get errorNotFound => 'यह पेज या आइटम अब मौजूद नहीं है।';
 
   @override
   String get errorValidation => 'अमान्य डेटा। कृपया अपना इनपुट जांचें।';
@@ -3014,15 +3046,24 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String reviewPhotosAmount(int count, String plural) {
-    return '$count फोटो$plural';
+  String reviewPhotosAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ोटो',
+      one: '1 फ़ोटो',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get invalidListingId => 'अमान्य लिस्टिंग ID';
+  String get notFoundTitle => 'हमें वह पेज नहीं मिला';
 
   @override
-  String get invalidConversationId => 'अमान्य वार्तालाप ID';
+  String get invalidListingId => 'यह लिस्टिंग लिंक टूटा हुआ है।';
+
+  @override
+  String get invalidConversationId => 'यह चैट लिंक टूटा हुआ है।';
 
   @override
   String get youAreOffline => 'आप ऑफ़लाइन हैं। अपना कनेक्शन जांचें।';
@@ -3218,6 +3259,11 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get patchReadyMessage =>
       'एक अपडेट तैयार है। यह अगली बार ऐप खोलने पर लागू होगा।';
+
+  @override
+  String appVersionLabel(String version) {
+    return 'संस्करण $version';
+  }
 
   @override
   String patchLabel(int number) {
@@ -3464,7 +3510,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get visitFromDetailPageNote =>
-      'इस प्रॉपर्टी में रुचि — लिस्टिंग पेज से शेड्यूल किया गया।';
+      'इस प्रॉपर्टी में रुचि। लिस्टिंग पेज से शेड्यूल किया गया।';
 
   @override
   String get readMoreCta => 'और पढ़ें';
@@ -3987,4 +4033,60 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get ageBucket46Plus => '46+';
+
+  @override
+  String get emailVerifiedLabel => 'ईमेल सत्यापित';
+
+  @override
+  String get onboardingFinishLaterCta => 'बाद में पूरा करें';
+
+  @override
+  String get removePhotoTooltip => 'फ़ोटो हटाएं';
+
+  @override
+  String budgetUpToLabel(String amount) {
+    return '₹$amount तक';
+  }
+
+  @override
+  String ageRangeYearsValue(int min, int max) {
+    return '$min – $max वर्ष';
+  }
+
+  @override
+  String get ventilationAny => 'कोई भी';
+
+  @override
+  String get adjustFiltersCta => 'फ़िल्टर बदलें';
+
+  @override
+  String get clearSearchTooltip => 'खोज साफ़ करें';
+
+  @override
+  String get voteDownHint => 'नकारात्मक वोट दें';
+
+  @override
+  String get mapRecenterTooltip => 'मेरी लोकेशन पर जाएं';
+
+  @override
+  String get mapFitAllTooltip => 'सभी लिस्टिंग दिखाएं';
+
+  @override
+  String get mapZoomInTooltip => 'ज़ूम इन करें';
+
+  @override
+  String get mapZoomOutTooltip => 'ज़ूम आउट करें';
+
+  @override
+  String get ownerFallbackName => 'मालिक';
+
+  @override
+  String floorOfLabel(String floor, String total) {
+    return 'मंज़िल $floor / $total';
+  }
+
+  @override
+  String floorNumberLabel(String floor) {
+    return 'मंज़िल $floor';
+  }
 }

@@ -11,6 +11,10 @@
 #
 # Signing is handled separately by android/app/key.properties
 # (local) or CI-provided keystore. This script only drives the build.
+#
+# Runs through the pinned Flutter from .fvmrc via fvm when it is on PATH, so the
+# bundle matches the version used by the release and OTA-patch builds. A plain
+# `flutter build` artifact has no Shorebird engine and can never be patched.
 
 set -eu
 
@@ -25,9 +29,17 @@ GOOGLE_IOS_CLIENT_ID="${GOOGLE_IOS_CLIENT_ID:-}"
 
 OUT="build/app/outputs/bundle/release/app-release.aab"
 
+if command -v fvm >/dev/null 2>&1; then
+  FLUTTER="fvm flutter"
+else
+  FLUTTER="flutter"
+  echo "build_aab: fvm not found on PATH; using the plain flutter SDK (its version may not match .fvmrc)." >&2
+fi
+
 echo "Building appbundle for environment: $APP_ENV"
 
-flutter build appbundle --release \
+# shellcheck disable=SC2086  # intentional word-splitting: FLUTTER may be "fvm flutter"
+$FLUTTER build appbundle --release \
   --dart-define=APP_ENV="$APP_ENV" \
   --dart-define=API_BASE_URL="$API_BASE_URL" \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \

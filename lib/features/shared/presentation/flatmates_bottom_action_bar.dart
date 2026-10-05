@@ -4,8 +4,13 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'flatmates_ui.dart';
+import 'test_id.dart';
 
-/// Sticky bottom CTA bar — flat canvas + top hairline (Airbnb reservation language).
+/// Sticky bottom CTA bar on paper-2 with a top hairline.
+///
+/// Up to three actions: an optional icon toggle (for example Like), an
+/// optional secondary (pine-soft fill, never an outline) and the primary.
+/// Buttons have a 48 dp minimum height and grow with the text size.
 class FlatmatesBottomActionBar extends StatelessWidget {
   const FlatmatesBottomActionBar({
     required this.label,
@@ -37,18 +42,32 @@ class FlatmatesBottomActionBar extends StatelessWidget {
   final IconData? tertiaryIcon;
   final VoidCallback? tertiaryOnPressed;
   final Key? tertiaryButtonKey;
+
+  /// Tooltip and screen-reader name of the icon toggle.
   final String? tertiaryLabel;
   final bool tertiarySelected;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-    final surface = isDark
-        ? AppSemanticColors.darkSurface
-        : AppSemanticColors.canvas;
-    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
+
+    final primary = FlatmatesButton(
+      key: primaryButtonKey,
+      label: label,
+      onPressed: onPressed,
+      icon: icon,
+      fullWidth: true,
+    );
+    final secondary = secondaryLabel == null
+        ? null
+        : FlatmatesButton.secondary(
+            key: secondaryButtonKey,
+            label: secondaryLabel!,
+            onPressed: secondaryOnPressed,
+            icon: secondaryIcon,
+            fullWidth: true,
+          );
 
     return Container(
       padding: EdgeInsets.only(
@@ -58,162 +77,66 @@ class FlatmatesBottomActionBar extends StatelessWidget {
         bottom: bottomInset + AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: surface,
-        border: Border(top: BorderSide(color: hairline)),
+        color: AppSemanticColors.surfaceFor(brightness),
+        border: Border(
+          top: BorderSide(color: AppSemanticColors.hairlineFor(brightness)),
+        ),
       ),
-      child: _buildRow(isDark),
-    );
-  }
-
-  Widget _buildRow(bool isDark) {
-    if (tertiaryIcon != null) {
-      return Row(
+      child: Row(
         children: [
-          SizedBox(width: 48, height: 48, child: _tertiaryButtonView(isDark)),
-          const SizedBox(width: AppSpacing.sm),
-          if (secondaryLabel != null) ...[
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: OutlinedButton(
-                  key: secondaryButtonKey,
-                  onPressed: secondaryOnPressed,
-                  style: OutlinedButton.styleFrom(
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: AppRadius.smBorder,
-                    ),
-                    side: BorderSide(
-                      color: isDark
-                          ? AppSemanticColors.darkHairline
-                          : AppSemanticColors.ink,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (secondaryIcon != null) ...[
-                        Icon(secondaryIcon, size: 18),
-                        const SizedBox(width: AppSpacing.sm),
-                      ],
-                      Flexible(
-                        child: Text(
-                          secondaryLabel!,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          if (tertiaryIcon != null) ...[
+            _toggle(brightness),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          if (secondary != null) ...[
+            Expanded(child: secondary),
             const SizedBox(width: AppSpacing.md),
           ],
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: FlatmatesButton(
-                key: primaryButtonKey,
-                label: label,
-                onPressed: onPressed,
-                icon: icon,
-              ),
-            ),
-          ),
+          Expanded(child: primary),
         ],
-      );
-    }
-
-    if (secondaryLabel != null) {
-      return Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                key: secondaryButtonKey,
-                onPressed: secondaryOnPressed,
-                style: OutlinedButton.styleFrom(
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: AppRadius.smBorder,
-                  ),
-                  side: BorderSide(
-                    color: isDark
-                        ? AppSemanticColors.darkHairline
-                        : AppSemanticColors.ink,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (secondaryIcon != null) ...[
-                      Icon(secondaryIcon, size: 18),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Flexible(
-                      child: Text(
-                        secondaryLabel!,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: FlatmatesButton(
-              key: primaryButtonKey,
-              label: label,
-              onPressed: onPressed,
-              icon: icon,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return FlatmatesButton(
-      key: primaryButtonKey,
-      label: label,
-      onPressed: onPressed,
-      icon: icon,
+      ),
     );
   }
 
-  Widget _tertiaryButtonView(bool isDark) {
+  Widget _toggle(Brightness brightness) {
+    final clay = AppSemanticColors.clayFor(brightness);
     final selected = tertiarySelected;
-    return Material(
-      color: Colors.transparent,
+    final button = Material(
+      color: selected
+          ? AppSemanticColors.coralSoftFor(brightness)
+          : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadius.mdBorder,
+        side: BorderSide(
+          color: selected ? clay : AppSemanticColors.hairlineFor(brightness),
+        ),
+      ),
       child: InkWell(
         key: tertiaryButtonKey,
         onTap: tertiaryOnPressed,
-        borderRadius: AppRadius.smBorder,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.smBorder,
-            border: Border.all(
-              color: selected
-                  ? AppSemanticColors.primary
-                  : (isDark
-                        ? AppSemanticColors.darkHairline
-                        : AppSemanticColors.hairline),
-            ),
-            color: selected
-                ? AppSemanticColors.primary.withValues(alpha: 0.08)
-                : null,
-          ),
-          alignment: Alignment.center,
+        customBorder: const RoundedRectangleBorder(
+          borderRadius: AppRadius.mdBorder,
+        ),
+        child: SizedBox.square(
+          dimension: kMinInteractiveDimension,
           child: Icon(
             tertiaryIcon,
             size: 22,
             color: selected
-                ? AppSemanticColors.primary
-                : AppSemanticColors.textTertiaryFor(
-                    isDark ? Brightness.dark : Brightness.light,
-                  ),
+                ? clay
+                : AppSemanticColors.textTertiaryFor(brightness),
           ),
         ),
+      ),
+    );
+    final name = tertiaryLabel;
+    return withTestId(
+      tertiaryButtonKey,
+      Semantics(
+        button: true,
+        toggled: selected,
+        label: name,
+        child: name == null ? button : Tooltip(message: name, child: button),
       ),
     );
   }

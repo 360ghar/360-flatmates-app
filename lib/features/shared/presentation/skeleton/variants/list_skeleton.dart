@@ -19,7 +19,7 @@ class ListItemSkeleton extends StatelessWidget {
           width: 48,
           height: 48,
           color: bone,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.pillBorder,
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(

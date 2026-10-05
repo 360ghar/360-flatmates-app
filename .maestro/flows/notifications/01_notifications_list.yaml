@@ -24,7 +24,9 @@ tags:
 - scroll
 - swipe:
     direction: DOWN
-- back
+# On-screen back button: Maestro's `back` works on Android only.
+- tapOn:
+    id: nav_back_button
 - extendedWaitUntil:
     visible:
       id: post_hub_post_card

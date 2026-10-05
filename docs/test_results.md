@@ -35,6 +35,7 @@
 ### Maestro E2E Tests (`.maestro/`)
 - 82 flows across Auth, Onboarding, Navigation, Listings, Profile, Settings, Chats, Visits, and Notifications
 - `config.yaml`, `e2e.yaml`, `_shared/login.yaml`
+- CI prerequisites (required secrets, seeded non-production backend, config via `--dart-define`): see [maestro_ci.md](maestro_ci.md)
 
 ## Issues Found and Fixed (Phase 5)
 

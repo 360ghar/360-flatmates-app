@@ -74,5 +74,6 @@ abstract final class FlatmatesEndpoints {
 
   // -- Batch operations --
   static const swipesBatchRemove = '/swipes/batch-remove';
+  static const upload = '/upload';
   static const uploadBatchDelete = '/upload/media/batch-delete';
 }

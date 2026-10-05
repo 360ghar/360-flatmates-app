@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_spacing.dart';
+import 'paper/paper_edge_border.dart';
+import 'paper/paper_surface.dart';
 
-/// Consistent toast/snackbar utility with visual differentiation for
-/// success, error, and info messages.
+/// Toasts as paper strips: layer three, scalloped left edge, e3 shadow
+/// (DESIGN.md §8). The icon carries the status colour; text stays ink.
 ///
 /// Usage:
 /// ```dart
@@ -30,27 +32,47 @@ abstract final class FlatmatesToast {
     required String message,
     required _ToastType type,
   }) {
-    final brightness = Theme.of(context).brightness;
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(type._icon(brightness), size: 20, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ),
-          ],
-        ),
-        duration: type._duration,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        padding: EdgeInsets.zero,
         behavior: SnackBarBehavior.floating,
-        backgroundColor: type._backgroundColor(brightness),
-        shape: const RoundedRectangleBorder(borderRadius: AppRadius.cardBorder),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: type._duration,
+        content: Semantics(
+          liveRegion: true,
+          child: PaperSurface(
+            layer: PaperLayer.three,
+            elevation: PaperElevation.e3,
+            edge: PaperEdge.scallop,
+            edgeSide: PaperEdgeSide.left,
+            edgeDepth: 6,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.base,
+              AppSpacing.md,
+            ),
+            child: Row(
+              children: [
+                Icon(type._icon, size: 22, color: type._iconColor(brightness)),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppSemanticColors.textPrimaryFor(brightness),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -65,15 +87,15 @@ extension on _ToastType {
     _ToastType.info => const Duration(seconds: 3),
   };
 
-  IconData _icon(Brightness brightness) => switch (this) {
-    _ToastType.success => Icons.check_circle_outline,
-    _ToastType.error => Icons.error_outline,
-    _ToastType.info => Icons.info_outline,
+  IconData get _icon => switch (this) {
+    _ToastType.success => Icons.check_circle_rounded,
+    _ToastType.error => Icons.error_rounded,
+    _ToastType.info => Icons.info_rounded,
   };
 
-  Color _backgroundColor(Brightness brightness) => switch (this) {
-    _ToastType.success => AppSemanticColors.success,
-    _ToastType.error => AppSemanticColors.error,
-    _ToastType.info => AppSemanticColors.ink,
+  Color _iconColor(Brightness b) => switch (this) {
+    _ToastType.success => AppSemanticColors.pineFor(b),
+    _ToastType.error => AppSemanticColors.dangerFor(b),
+    _ToastType.info => AppSemanticColors.clayFor(b),
   };
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/compatibility/compatibility_engine.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -167,10 +168,17 @@ class _SwipeCardLayer extends StatelessWidget {
 
     // Shadow: the foreground "lifts" as it is dragged away; preloaded cards
     // keep a light elevation so they look ready when they fade in.
-    final double shadowAlpha = foreground ? 0.08 + 0.15 * progress : 0.06;
-    final double shadowBlur = foreground ? 12 + 20 * progress : 10;
-    final double shadowSpread = foreground ? 2 + 6 * progress : 1;
-    final double shadowDy = foreground ? 4 + 8 * progress : 3;
+    // Paper shadows: e2 at rest, lerped toward e3 as the card is dragged
+    // (a lifted sheet), e1 for the cards behind. Never a symmetric bloom.
+    final brightness = Theme.of(context).brightness;
+    final shadows = foreground
+        ? BoxShadow.lerpList(
+                AppShadows.e2(brightness),
+                AppShadows.e3(brightness),
+                progress.clamp(0.0, 1.0),
+              ) ??
+              AppShadows.e2(brightness)
+        : AppShadows.e1(brightness);
 
     final card = RepaintBoundary(
       child: SwipeProfileCard(
@@ -211,16 +219,7 @@ class _SwipeCardLayer extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: AppRadius.cardBorder,
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                              color: Colors.black.withValues(
-                                alpha: shadowAlpha,
-                              ),
-                              blurRadius: shadowBlur,
-                              spreadRadius: shadowSpread,
-                              offset: Offset(0, shadowDy),
-                            ),
-                          ],
+                          boxShadow: shadows,
                         ),
                         child: card,
                       ),
@@ -266,12 +265,6 @@ class _SwipeOverlay extends StatelessWidget {
   final SwipeOverlayAlignment alignment;
   final double opacity;
 
-  Color get _color {
-    return alignment == SwipeOverlayAlignment.like
-        ? AppSemanticColors.success
-        : AppSemanticColors.compatLow;
-  }
-
   IconData get _icon {
     return alignment == SwipeOverlayAlignment.like
         ? Icons.favorite_rounded
@@ -285,39 +278,47 @@ class _SwipeOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLike = alignment == SwipeOverlayAlignment.like;
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final fill = isLike
+        ? AppSemanticColors.pineFor(brightness)
+        : AppSemanticColors.dangerFor(brightness);
+    final onFill = isLike
+        ? AppSemanticColors.onPineFor(brightness)
+        : AppSemanticColors.onClayFor(brightness);
+    // A solid stamp in sentence case: no tracked caps, no glow.
     return Positioned(
-      top: 40,
-      right: isLike ? 24 : null,
-      left: isLike ? null : 24,
+      top: AppSpacing.s40,
+      right: isLike ? AppSpacing.lg : null,
+      left: isLike ? null : AppSpacing.lg,
       child: Opacity(
         opacity: opacity,
         child: Transform.rotate(
           angle: _angle,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              color: _color.withValues(alpha: 0.2),
-              borderRadius: AppRadius.pillBorder,
-              border: Border.all(
-                color: _color.withValues(alpha: 0.6),
-                width: 2,
-              ),
+              color: fill,
+              borderRadius: AppRadius.mdBorder,
+              boxShadow: AppShadows.e2(brightness),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(_icon, color: Colors.white, size: 20),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.base,
+                vertical: AppSpacing.sm,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(_icon, color: onFill, size: 22),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    label,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: onFill,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -339,8 +340,8 @@ class _DirectionalTint extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLike = dragOffset.dx > 0;
     final color = isLike
-        ? AppSemanticColors.success
-        : AppSemanticColors.compatLow;
+        ? AppSemanticColors.pineFor(Theme.of(context).brightness)
+        : AppSemanticColors.dangerFor(Theme.of(context).brightness);
     final alpha = dragProgress * 0.15;
     return Positioned.fill(
       child: IgnorePointer(

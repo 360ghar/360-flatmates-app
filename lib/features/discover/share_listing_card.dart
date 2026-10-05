@@ -6,12 +6,14 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/deep_links/deep_link_service.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../shared/presentation/flatmates_toast.dart';
@@ -29,6 +31,9 @@ class ShareListingCard extends ConsumerStatefulWidget {
   @override
   ConsumerState<ShareListingCard> createState() => _ShareListingCardState();
 }
+
+/// Secondary text on the exported clay card (on-clay at 90 %).
+final _onCard = AppSemanticColors.onClay.withValues(alpha: 0.9);
 
 class _ShareListingCardState extends ConsumerState<ShareListingCard> {
   final _cardKey = GlobalKey();
@@ -64,7 +69,7 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
               color: theme.colorScheme.surfaceContainerHighest.withValues(
                 alpha: 0.5,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.mdBorder,
             ),
             child: Row(
               children: [
@@ -93,19 +98,14 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
           // Clamped to 480 so the captured image isn't excessively wide on tablets.
           RepaintBoundary(
             key: _cardKey,
+            // Exported as an image, so it uses the fixed light brand colours
+            // in both themes, on an opaque fill (no transparent PNG edges).
             child: Container(
               width: MediaQuery.sizeOf(context).width.clamp(0.0, 480.0),
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppSemanticColors.accent.withValues(alpha: 0.95),
-                    AppSemanticColors.accent.withValues(alpha: 0.7),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
+              padding: AppSpacing.edgeXl,
+              decoration: const BoxDecoration(
+                color: AppSemanticColors.clay,
+                borderRadius: AppRadius.xlBorder,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,22 +118,19 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                           imageUrl: l.effectiveMainImageUrl!,
                           width: 28,
                           height: 28,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: AppRadius.smBorder,
                         )
                       else
                         const Icon(
                           Icons.apartment_rounded,
-                          color: Colors.white,
+                          color: AppSemanticColors.onClay,
                           size: 28,
                         ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        '360 FLATMATES',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.6,
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        '360 Flatmates',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: AppSemanticColors.onClay,
                         ),
                       ),
                     ],
@@ -141,10 +138,8 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                   const SizedBox(height: AppSpacing.xl),
                   Text(
                     l.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: AppSemanticColors.onClay,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -152,33 +147,34 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                   const SizedBox(height: AppSpacing.sm),
                   FlatmatesPriceText.hero(
                     amount: l.monthlyRent.toInt(),
-                    period: 'month',
-                    color: Colors.white70,
+                    period: locale.perMonthSuffix,
+                    color: _onCard,
                   ),
                   if (l.locality != null) ...[
-                    const SizedBox(height: AppSpacing.sm - AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
-                          color: Colors.white70,
+                          color: _onCard,
                           size: 16,
                         ),
                         const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          l.locality!,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
+                        Flexible(
+                          child: Text(
+                            l.locality!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: _onCard,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ],
-                  const SizedBox(height: AppSpacing.md + AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.s20),
                   Wrap(
-                    spacing: AppSpacing.xs + AppSpacing.xs,
-                    runSpacing: AppSpacing.xs + AppSpacing.xs,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: l.features.take(3).map((f) {
                       return FlatmatesChip(
                         label: localizedFlatmatesFeatureLabel(locale, f),
@@ -187,69 +183,58 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                     }).toList(),
                   ),
                   if (l.availableFrom != null) ...[
-                    const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      locale.homeMoveInValue(
+                        DateFormat.MMMd(
+                          locale.localeName,
+                        ).format(l.availableFrom!.toLocal()),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        locale.homeMoveInValue(
-                          '${l.availableFrom!.toLocal().day}/${l.availableFrom!.toLocal().month}',
-                        ),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: AppSemanticColors.onClay,
                       ),
                     ),
                   ],
                   const SizedBox(height: AppSpacing.xl),
-                  // QR code of the listing deep link
+                  // QR code of the listing deep link, on white for scanning.
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: AppSemanticColors.surfaceFor(theme.brightness),
-                        borderRadius: BorderRadius.circular(AppSpacing.md),
+                      padding: AppSpacing.edgeMd,
+                      decoration: const BoxDecoration(
+                        color: AppSemanticColors.paper3,
+                        borderRadius: AppRadius.mdBorder,
                       ),
                       child: QrImageView(
                         data: DeepLinkService.listingUrl(l.id),
                         size: 120,
-                        backgroundColor: Colors.white,
+                        backgroundColor: AppSemanticColors.paper3,
                         eyeStyle: const QrEyeStyle(
                           eyeShape: QrEyeShape.square,
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.clay,
                         ),
                         dataModuleStyle: const QrDataModuleStyle(
                           dataModuleShape: QrDataModuleShape.square,
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.clay,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md + AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.s20),
                   Center(
                     child: Text(
                       locale.scanToOpen,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: _onCard,
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.xs),
                   Center(
                     child: Text(
                       locale.downloadToConnect,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 11,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: _onCard,
                       ),
                     ),
                   ),
@@ -264,21 +249,11 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: FlatmatesButton.secondary(
+                  label: locale.shareToWhatsapp,
                   onPressed: _shareToWhatsApp,
-                  icon: const Icon(Icons.chat_rounded),
-                  label: Text(locale.shareToWhatsapp),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF25D366),
-                    side: const BorderSide(color: Color(0xFF25D366)),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  icon: Icons.chat_rounded,
+                  fullWidth: true,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -287,6 +262,7 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                   label: locale.shareListingCta,
                   onPressed: _share,
                   icon: Icons.share_rounded,
+                  fullWidth: true,
                 ),
               ),
             ],

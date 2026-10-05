@@ -20,6 +20,9 @@ tags:
     visible:
       id: profile_save_button
     timeout: 5000
+# The bio lives on the About tab.
+- tapOn:
+    id: profile_tab_about
 - tapOn:
     id: profile_bio_input
 - eraseText

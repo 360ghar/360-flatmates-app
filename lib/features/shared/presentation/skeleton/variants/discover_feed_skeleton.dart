@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_breakpoints.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../skeleton_bone.dart';
@@ -15,9 +16,9 @@ class DiscoverFeedSkeleton extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
+        AppSpacing.screen,
         AppSpacing.lg,
-        AppSpacing.xl,
+        AppSpacing.screen,
         120,
       ),
       children: [
@@ -51,7 +52,7 @@ class DiscoverFeedSkeleton extends StatelessWidget {
               width: 52,
               height: 52,
               color: bone,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.mdBorder,
             ),
           ],
         ),
@@ -82,6 +83,36 @@ class DiscoverFeedSkeleton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// One row of listing-card placeholders (no header, not scrollable).
+///
+/// Same column count as the loaded grid (`AppBreakpoints.cardGridColumns`), so
+/// a wide screen does not reflow when the feed arrives (DESIGN.md §8: the
+/// skeleton has the layout of the loaded view).
+class DiscoverFeedCardsSkeleton extends StatelessWidget {
+  const DiscoverFeedCardsSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bone = SkeletonTokens.bone(Theme.of(context).brightness);
+    final columns = AppBreakpoints.cardGridColumns(
+      MediaQuery.sizeOf(context).width,
+    );
+
+    return SizedBox(
+      height: 320,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var column = 0; column < columns; column++) ...[
+            if (column > 0) const SizedBox(width: AppSpacing.md),
+            _FeedCard(bone: bone),
+          ],
+        ],
+      ),
     );
   }
 }

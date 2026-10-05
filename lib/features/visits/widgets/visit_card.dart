@@ -38,236 +38,121 @@ class VisitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final b = theme.brightness;
+    // Only cards that were given handlers get actions: a past visit keeps
+    // its "confirmed" status but can no longer be changed.
     final hasActions =
-        item.status == 'requested' ||
-        item.status == 'reschedule_suggested' ||
-        item.status == 'confirmed';
+        onCancel != null &&
+        (item.status == 'requested' ||
+            item.status == 'reschedule_suggested' ||
+            item.status == 'confirmed');
+    final meta = theme.textTheme.bodySmall?.copyWith(
+      color: AppSemanticColors.textSecondaryFor(b),
+    );
+    final local = item.scheduledDate.toLocal();
+    final isMeet = item.visitContext == 'flatmate_meet';
 
     return FlatmatesCard(
-      backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+      backgroundColor: AppSemanticColors.surfaceFor(b),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.base,
+        AppSpacing.md,
+        AppSpacing.base,
+        AppSpacing.md,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 28.0,
-                height: 28.0,
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadius.sheet),
-                ),
-                child: const Icon(
-                  Icons.event_available_outlined,
-                  color: AppSemanticColors.accent,
-                  size: AppSpacing.lg,
+              Expanded(
+                child: Text(
+                  item.propertyTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: AppSemanticColors.textPrimaryFor(b),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.propertyTitle,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.xs / 4),
-                    Text(
-                      DateFormat(
-                        'd MMM, h:mm a',
-                        locale.localeName,
-                      ).format(item.scheduledDate.toLocal()),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: AppTypography.badgeSize,
-                        color: AppSemanticColors.textTertiaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                    ),
-                  ],
+              // Flexible: at large text sizes the status ellipsizes instead
+              // of pushing the row past its width.
+              Flexible(
+                child: FlatmatesTrustBadge(
+                  variant: badgeVariant,
+                  label: localizedFlatmatesVisitStatusLabel(
+                    locale,
+                    item.status,
+                  ),
+                  compact: true,
                 ),
-              ),
-              FlatmatesTrustBadge(
-                variant: badgeVariant,
-                label: localizedFlatmatesVisitStatusLabel(locale, item.status),
-                compact: true,
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            DateFormat('EEEE d MMM, h:mm a', locale.localeName).format(local),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.textPrimaryFor(b),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxs),
           Row(
             children: [
               Icon(
-                item.visitContext == 'flatmate_meet'
-                    ? Icons.people_outline
-                    : Icons.meeting_room_outlined,
-                size: AppTypography.microLabelSize,
-                color: AppSemanticColors.textTertiaryFor(theme.brightness),
+                isMeet ? Icons.people_outline : Icons.meeting_room_outlined,
+                size: 16,
+                color: AppSemanticColors.textSecondaryFor(b),
               ),
               const SizedBox(width: AppSpacing.xs),
               Flexible(
                 child: Text(
-                  item.visitContext == 'flatmate_meet'
-                      ? locale.flatmateMeetLabel
-                      : locale.propertyTourLabel,
+                  isMeet ? locale.flatmateMeetLabel : locale.propertyTourLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: AppTypography.badgeSize,
-                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Icon(
-                Icons.calendar_month_outlined,
-                size: AppTypography.microLabelSize,
-                color: AppSemanticColors.textTertiaryFor(theme.brightness),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  DateFormat(
-                    'EEEE',
-                    locale.localeName,
-                  ).format(item.scheduledDate.toLocal()),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: AppTypography.badgeSize,
-                    color: AppSemanticColors.textTertiaryFor(theme.brightness),
-                  ),
+                  style: meta,
                 ),
               ),
             ],
           ),
           if (hasActions) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Row(children: _buildActions(context)),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: _buildActions(),
+            ),
           ],
         ],
       ),
     );
   }
 
-  List<Widget> _buildActions(BuildContext context) {
-    // requested / reschedule_suggested: counterparty must Confirm or Cancel
+  List<Widget> _buildActions() {
+    final cancel = FlatmatesButton.tertiary(
+      label: locale.visitCancelCta,
+      destructive: true,
+      onPressed: busy ? null : onCancel,
+    );
+    // requested / reschedule_suggested: the counterparty confirms or cancels.
     if (item.status == 'requested' || item.status == 'reschedule_suggested') {
       return [
-        _CompactActionChip(
-          label: locale.visitConfirmTitle,
-          onTap: onConfirm,
-          filled: true,
-          busy: busy,
+        FlatmatesButton(
+          label: locale.visitConfirmCta,
+          onPressed: busy ? null : onConfirm,
         ),
-        const SizedBox(width: AppSpacing.xs),
-        _CompactActionChip(
-          label: locale.visitCancelCta,
-          onTap: onCancel,
-          destructive: true,
-          disabled: busy,
-        ),
+        cancel,
       ];
     }
-    // confirmed: Reschedule (suggest new time) + Cancel
+    // confirmed: suggest a new time, or cancel.
     return [
-      _CompactActionChip(
+      FlatmatesButton.secondary(
         label: locale.visitRescheduleCta,
-        onTap: onReschedule,
-        disabled: busy,
+        onPressed: busy ? null : onReschedule,
       ),
-      const SizedBox(width: AppSpacing.xs),
-      _CompactActionChip(
-        label: locale.visitCancelCta,
-        onTap: onCancel,
-        destructive: true,
-        disabled: busy,
-      ),
+      cancel,
     ];
-  }
-}
-
-/// Tiny action chip for visit cards — avoids FlatmatesButton's 40dp minimum.
-class _CompactActionChip extends StatelessWidget {
-  const _CompactActionChip({
-    required this.label,
-    this.onTap,
-    this.filled = false,
-    this.destructive = false,
-    this.busy = false,
-    this.disabled = false,
-  });
-
-  final String label;
-  final VoidCallback? onTap;
-  final bool filled;
-  final bool destructive;
-
-  /// Shows an inline spinner (the action this chip triggers is in flight).
-  final bool busy;
-
-  /// Greys out and ignores taps (another action on the same visit is busy).
-  final bool disabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = destructive
-        ? AppSemanticColors.error
-        : AppSemanticColors.accent;
-    final inactive = busy || disabled;
-    final effectiveAccent = inactive ? accent.withValues(alpha: 0.4) : accent;
-    final foreground = filled ? AppSemanticColors.onPrimary : effectiveAccent;
-
-    return Expanded(
-      child: Semantics(
-        button: true,
-        enabled: !inactive,
-        label: label,
-        child: GestureDetector(
-          onTap: inactive ? null : onTap,
-          child: Container(
-            height: AppSpacing.lg + AppSpacing.md,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: filled ? effectiveAccent : null,
-              border: filled
-                  ? null
-                  : Border.all(color: effectiveAccent.withValues(alpha: 0.5)),
-              borderRadius: BorderRadius.circular(AppRadius.sheet),
-            ),
-            child: busy
-                ? SizedBox(
-                    width: 14.0,
-                    height: 14.0,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(foreground),
-                    ),
-                  )
-                : Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: AppTypography.badgeSize,
-                      fontWeight: AppTypography.buttonMdWeight,
-                      color: foreground,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-          ),
-        ),
-      ),
-    );
   }
 }

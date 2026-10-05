@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/location/location_data.dart';
+import '../../core/theme/app_breakpoints.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -15,6 +16,7 @@ import '../bootstrap/bootstrap_controller.dart';
 import '../location/application/location_controller.dart';
 import '../location/presentation/location_picker_modal.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/paper/paper_scene.dart';
 import 'discover_repository.dart';
 import 'application/discover_feed_controller.dart';
 import 'presentation/widgets/broadened_radius_banner.dart';
@@ -63,6 +65,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
       return;
     }
     await ref.read(locationControllerProvider.notifier).getCurrentLocation();
+    if (!mounted) return;
     final updated = ref.read(locationControllerProvider);
     if (updated.selectedLocation != null) {
       _applyLocationToFeed(updated.selectedLocation!);
@@ -82,9 +85,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   }
 
   void _applyLocationToFeed(LocationData location, {double? radiusKm}) {
-    if (!location.latitude.isFinite ||
-        !location.longitude.isFinite ||
-        (location.latitude == 0 && location.longitude == 0)) {
+    if (!location.hasCoordinates) {
       return;
     }
 
@@ -110,7 +111,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   /// Toggles the like for [item].
   ///
-  /// The optimistic UI update, network call, and `conversationsProvider`
+  /// The optimistic UI update, network call, and conversation-list
   /// invalidation are handled by [DiscoverFeedController.toggleLike]. This
   /// method only shows the success or error toast: it displays the
   /// "contact request sent" toast for a new like (with conversation id if
@@ -185,9 +186,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
         final feedController = ref.read(
           discoverFeedControllerProvider.notifier,
         );
-        if (location.latitude.isFinite &&
-            location.longitude.isFinite &&
-            !(location.latitude == 0 && location.longitude == 0)) {
+        if (location.hasCoordinates) {
           feedController.updateLocationFilter(
             latitude: location.latitude,
             longitude: location.longitude,
@@ -199,7 +198,6 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
           // back to a text filter rather than writing an invalid geo filter.
           feedController.updateTextLocationFilter(location: location.name);
         }
-        ref.invalidate(discoverListingsProvider);
       },
     );
   }
@@ -238,199 +236,185 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
     // Responsive grid columns for the "Picked for you" preview: 2 on mobile,
     // 3 on small tablet, 4 on large tablet/desktop (DESIGN.md breakpoints).
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final crossAxisCount = screenWidth < 600
-        ? 2
-        : screenWidth < 900
-        ? 3
-        : 4;
+    // `cardGridColumns` is also what the loading skeleton uses, so the grid
+    // cannot reflow when the feed arrives.
+    final crossAxisCount = AppBreakpoints.cardGridColumns(
+      MediaQuery.sizeOf(context).width,
+    );
 
     final preview = filtered.take(_homeFeedPreviewCount).toList();
     final showSeeAll =
         filtered.isNotEmpty && (filtered.length > 2 || feedState.hasMore);
 
+    // Mount the section when there are profiles OR the load failed: a failed
+    // load renders its own inline retry, so hiding the section here would make
+    // that retry unreachable.
+    final meetProfilesAsync = ref.watch(homeMeetProfilesProvider);
     final showMeet =
-        (ref.watch(homeMeetProfilesProvider).valueOrNull?.length ?? 0) > 0;
+        (meetProfilesAsync.valueOrNull?.isNotEmpty ?? false) ||
+        meetProfilesAsync.hasError;
     final hasMovingSoon = movingSoonItems(filtered).isNotEmpty;
 
+    // The header and search bar render at once; only the listings section
+    // waits for the feed (a full-page skeleton hid them on every reload).
     return FlatmatesScreen(
-      body: feedState.isLoading && filtered.isEmpty
-          ? const FlatmatesSkeleton.discoverFeed()
-          : RefreshIndicator(
-              onRefresh: () =>
-                  ref.read(discoverFeedControllerProvider.notifier).refresh(),
-              // CustomScrollView + slivers: header sections are adapters;
-              // listing cards are a lazy SliverList (no nested shrinkWrap).
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screen,
-                      AppSpacing.sm,
-                      AppSpacing.screen,
-                      0,
+      body: RefreshIndicator(
+        onRefresh: () =>
+            ref.read(discoverFeedControllerProvider.notifier).refresh(),
+        // CustomScrollView + slivers: header sections are adapters;
+        // listing cards are a lazy SliverList (no nested shrinkWrap).
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.sm,
+                AppSpacing.screen,
+                0,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // Extra L/R inset on the first row only (greeting +
+                  // location + avatar); sections below keep screen gutter.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
                     ),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        // Extra L/R inset on the first row only (greeting +
-                        // location + avatar); sections below keep screen gutter.
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                          ),
-                          child: DiscoverHeader(
-                            greetingLabel: _timeBasedGreetingLabel(locale),
-                            name: displayName,
-                            location: currentLocation,
-                            avatarUrl: profile?.profileImageUrl,
-                            userName: profile?.fullName,
-                            onAvatarTap: () => context.push('/profile'),
-                            onLocationTap: () => _showLocationPicker(
-                              context,
-                              currentLocation: currentLocation,
-                              currentRadiusKm: currentRadiusKm,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.base),
-                        HomeSearchBar(onTap: () => showFiltersSheet(context)),
-                        if (!isSeeker) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          PostYourSpaceCard(
-                            onTap: () => context.push('/post/new'),
-                          ),
-                        ],
-                        if (city != null) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          TrendingNeighborhoodsSection(city: city),
-                        ],
-                        if (showMeet) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          const MeetFlatmatesSection(),
-                        ],
-                        if (hasMovingSoon) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          MovingSoonSection(items: filtered),
-                        ],
-                        if (feedState.isBroadened && filtered.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          BroadenedRadiusBanner(
-                            message: locale.homeBroadenedRadius,
-                          ),
-                        ],
-                        const SizedBox(height: AppSpacing.lg),
-                        HomeSectionHeader(
-                          title: locale.homePickedForYou,
-                          actionLabel: showSeeAll ? locale.seeAllCta : null,
-                          actionKey: const Key('home_picked_for_you_see_all'),
-                          onActionTap: () =>
-                              context.push('/discover/browse-listings'),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        if (filtered.isEmpty && !feedState.isLoading)
-                          feedState.hasError
-                              ? FlatmatesErrorState(
-                                  message: locale.actionFailedRetry,
-                                  onRetry: () => ref
-                                      .read(
-                                        discoverFeedControllerProvider.notifier,
-                                      )
-                                      .refresh(),
-                                )
-                              : FlatmatesEmptyState(
-                                  title: locale.homeNoResults,
-                                  subtitle: locale.homeNoResultsSubtitle,
-                                  icon: Icons.search_off_rounded,
-                                  padHorizontally: false,
-                                  compact: true,
-                                ),
-                      ]),
+                    child: DiscoverHeader(
+                      greetingLabel: _timeBasedGreetingLabel(locale),
+                      name: displayName,
+                      location: currentLocation,
+                      avatarUrl: profile?.profileImageUrl,
+                      userName: profile?.fullName,
+                      onAvatarTap: () => context.push('/profile'),
+                      onLocationTap: () => _showLocationPicker(
+                        context,
+                        currentLocation: currentLocation,
+                        currentRadiusKm: currentRadiusKm,
+                      ),
                     ),
                   ),
-                  if (preview.isNotEmpty)
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.screen,
-                        0,
-                        AppSpacing.screen,
-                        _kBottomNavOffset,
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            // Odd indices are row separators; even indices are
-                            // grid rows of [crossAxisCount] cards. Each card is
-                            // wrapped in Expanded so widths divide evenly and
-                            // stay consistent across full and partial rows.
-                            if (index.isOdd) {
-                              return const SizedBox(height: AppSpacing.md);
-                            }
-                            final rowIndex = index ~/ 2;
-                            final start = rowIndex * crossAxisCount;
-                            final end = min(
-                              start + crossAxisCount,
-                              preview.length,
-                            );
-                            final cells = <Widget>[];
-                            for (var i = start; i < end; i++) {
-                              final item = preview[i];
-                              final badgeLabel = switch (i) {
-                                0 => locale.badgeNew,
-                                1 => locale.badgePopular,
-                                _ => null,
-                              };
-                              cells.add(
-                                Expanded(
-                                  child: StaggeredCardAppear(
-                                    index: i,
-                                    child: DiscoverListingCard(
-                                      cardKey: i == 0
-                                          ? const Key('discover_feed_card_0')
-                                          : null,
-                                      item: item,
-                                      badgeLabel: badgeLabel,
-                                      onTap: () => context.push(
-                                        '/flat-details/${item.id}',
-                                      ),
-                                      onLike: () => _likeDebouncer.run(
-                                        () => _handleLike(item),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                              if (i < end - 1) {
-                                cells.add(const SizedBox(width: AppSpacing.md));
-                              }
-                            }
-                            // Pad the trailing partial row with empty Expanded
-                            // slots so card widths match full rows above.
-                            final missing = crossAxisCount - (end - start);
-                            for (var j = 0; j < missing; j++) {
-                              cells.add(const SizedBox(width: AppSpacing.md));
-                              cells.add(const Expanded(child: SizedBox()));
-                            }
-                            return Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: cells,
-                            );
-                          },
-                          childCount:
-                              ((preview.length + crossAxisCount - 1) ~/
-                                      crossAxisCount) *
-                                  2 -
-                              1,
-                        ),
-                      ),
-                    )
-                  else
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: _kBottomNavOffset),
-                    ),
-                ],
+                  const SizedBox(height: AppSpacing.base),
+                  HomeSearchBar(onTap: () => showFiltersSheet(context)),
+                  if (!isSeeker) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    PostYourSpaceCard(onTap: () => context.push('/post/new')),
+                  ],
+                  if (showMeet) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    const MeetFlatmatesSection(),
+                  ],
+                  if (hasMovingSoon) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    MovingSoonSection(items: filtered),
+                  ],
+                  if (feedState.isBroadened && filtered.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    BroadenedRadiusBanner(message: locale.homeBroadenedRadius),
+                  ],
+                  const SizedBox(height: AppSpacing.lg),
+                  HomeSectionHeader(
+                    title: locale.homePickedForYou,
+                    actionLabel: showSeeAll ? locale.seeAllCta : null,
+                    actionKey: const Key('home_picked_for_you_see_all'),
+                    onActionTap: () =>
+                        context.push('/discover/browse-listings'),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (filtered.isEmpty && feedState.isLoading)
+                    const FlatmatesSkeleton.discoverFeedCards(),
+                  if (filtered.isEmpty && !feedState.isLoading)
+                    feedState.hasError
+                        ? FlatmatesErrorState(
+                            message: locale.actionFailedRetry,
+                            onRetry: () => ref
+                                .read(discoverFeedControllerProvider.notifier)
+                                .refresh(),
+                          )
+                        : FlatmatesEmptyState(
+                            title: locale.homeNoResults,
+                            subtitle: locale.homeNoResultsSubtitle,
+                            prop: PaperProp.magnifier,
+                            padHorizontally: false,
+                            ctaLabel: locale.adjustFiltersCta,
+                            onCtaTap: () => showFiltersSheet(context),
+                          ),
+                ]),
               ),
             ),
+            if (preview.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screen,
+                  0,
+                  AppSpacing.screen,
+                  _kBottomNavOffset,
+                ),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      // Odd indices are row separators; even indices are
+                      // grid rows of [crossAxisCount] cards. Each card is
+                      // wrapped in Expanded so widths divide evenly and
+                      // stay consistent across full and partial rows.
+                      if (index.isOdd) {
+                        return const SizedBox(height: AppSpacing.md);
+                      }
+                      final rowIndex = index ~/ 2;
+                      final start = rowIndex * crossAxisCount;
+                      final end = min(start + crossAxisCount, preview.length);
+                      final cells = <Widget>[];
+                      for (var i = start; i < end; i++) {
+                        final item = preview[i];
+                        cells.add(
+                          Expanded(
+                            child: StaggeredCardAppear(
+                              index: i,
+                              child: DiscoverListingCard(
+                                cardKey: i == 0
+                                    ? const Key('discover_feed_card_0')
+                                    : null,
+                                item: item,
+                                onTap: () =>
+                                    context.push('/flat-details/${item.id}'),
+                                onLike: () =>
+                                    _likeDebouncer.run(() => _handleLike(item)),
+                              ),
+                            ),
+                          ),
+                        );
+                        if (i < end - 1) {
+                          cells.add(const SizedBox(width: AppSpacing.md));
+                        }
+                      }
+                      // Pad the trailing partial row with empty Expanded
+                      // slots so card widths match full rows above.
+                      final missing = crossAxisCount - (end - start);
+                      for (var j = 0; j < missing; j++) {
+                        cells.add(const SizedBox(width: AppSpacing.md));
+                        cells.add(const Expanded(child: SizedBox()));
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: cells,
+                      );
+                    },
+                    childCount:
+                        ((preview.length + crossAxisCount - 1) ~/
+                                crossAxisCount) *
+                            2 -
+                        1,
+                  ),
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: _kBottomNavOffset),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

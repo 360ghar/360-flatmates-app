@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart'
     show GoogleSignInException, GoogleSignInExceptionCode;
-import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show AuthChangeEvent, AuthException;
 
 import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
@@ -32,6 +33,11 @@ final addPhonePromptProvider = NotifierProvider<MutableNotifier<bool>, bool>(
   () => MutableNotifier(false),
 );
 
+/// Supabase auth events. A provider so tests can inject a stream.
+final supabaseAuthEventsProvider = Provider<Stream<AuthChangeEvent>>(
+  (ref) => ref.watch(authRepositoryProvider).authEvents,
+);
+
 class AuthController extends Notifier<AuthState> {
   StreamSubscription<String?>? _tokenSubscription;
 
@@ -45,6 +51,7 @@ class AuthController extends Notifier<AuthState> {
   @override
   AuthState build() {
     _watchTokenClears();
+    _watchSupabaseSignOut();
     Future<void>.microtask(checkSession);
     return const AuthState(status: AuthStatus.checking);
   }
@@ -69,8 +76,14 @@ class AuthController extends Notifier<AuthState> {
   /// case — treating the dead session as live would strand the user on
   /// `authenticated` with no route back to login.
   bool get _hasLiveSession {
-    final session = _repository.currentSession;
-    return session != null && !session.isExpired;
+    try {
+      final session = _repository.currentSession;
+      return session != null && !session.isExpired;
+    } catch (e) {
+      // Supabase not initialised (tests, config error): no live session.
+      debugPrint('AuthController._hasLiveSession: $e');
+      return false;
+    }
   }
 
   void _watchTokenClears() {
@@ -107,6 +120,28 @@ class AuthController extends Notifier<AuthState> {
     ref.onDispose(() {
       _tokenSubscription?.cancel();
     });
+  }
+
+  /// Server-side sign-out or a revoked refresh token arrives as a Supabase
+  /// `signedOut` event. Without this, the app would only notice on the next
+  /// failed request.
+  void _watchSupabaseSignOut() {
+    final sub = ref
+        .read(supabaseAuthEventsProvider)
+        .listen(
+          (event) {
+            if (event != AuthChangeEvent.signedOut) return;
+            final busy = state.status == AuthStatus.submitting;
+            if (!state.isLoggedIn || busy) return;
+            if (_hasLiveSession) return;
+            unawaited(_clearOwnerScopedData());
+            state = const AuthState(status: AuthStatus.unauthenticated);
+          },
+          onError: (Object error) {
+            debugPrint('AuthController._watchSupabaseSignOut error: $error');
+          },
+        );
+    ref.onDispose(sub.cancel);
   }
 
   Future<void> checkSession() async {
@@ -172,13 +207,14 @@ class AuthController extends Notifier<AuthState> {
   /// `'password'` (wrong password on sign-in) → `invalid_credentials`;
   /// otherwise (OTP verify) → `otp_invalid`.
   String _userSafeMessage(Object error, {String? authOp}) {
+    // Every auth catch routes through here, so this one log covers them all.
+    debugPrint('AuthController${authOp == null ? '' : '.$authOp'}: $error');
     if (error is AppFailure) {
       if (error is AuthExpiredFailure && error.serverMessage != null) {
         return 'failure:${error.label}|${error.serverMessage}';
       }
-      if (error is ServerFailure && error.serverMessage != null) {
-        return 'failure:server|${error.serverMessage}';
-      }
+      // 5xx detail is never shown (English-only, may leak internals); the
+      // label below resolves to the localized server error.
       if (error is PermissionFailure && error.serverMessage != null) {
         return 'failure:${error.label}|${error.serverMessage}';
       }
@@ -277,6 +313,41 @@ class AuthController extends Notifier<AuthState> {
       );
       return null;
     }
+  }
+
+  /// Runs the entry step for [identifier]: resolves its status, sends an OTP
+  /// when the next step needs one, and returns the route to open next.
+  /// `route` is null when a step failed (the error is on the state).
+  /// `unverified` is true for an existing account that is not verified.
+  Future<({String? route, bool unverified})> startIdentifierFlow(
+    String identifier,
+  ) async {
+    final status = await checkIdentifierStatus(identifier);
+    if (status == null) return (route: null, unverified: false);
+    ref.read(pendingPhoneProvider.notifier).set(identifier);
+
+    final unverified = status.exists && !status.verified;
+    final encoded = Uri.encodeComponent(identifier);
+    final isEmail = status.channel == AuthChannel.email;
+    final query = isEmail ? 'email=$encoded' : 'phone=$encoded';
+
+    // A verified account with a password logs in with the password screen.
+    if (status.nextStep == IdentifierNextStep.password) {
+      return (route: '/login?$query', unverified: unverified);
+    }
+
+    // Everything else is OTP-first. Unknown identifiers sign up; unverified
+    // accounts also allow creation, because some GoTrue versions reject a
+    // login-only OTP for unconfirmed accounts. shouldCreateUser=true never
+    // duplicates an existing account.
+    final allowCreate = !status.exists || !status.verified;
+    if (isEmail) {
+      final sent = await sendEmailOtp(identifier, isSignup: allowCreate);
+      return (route: sent ? '/otp?$query' : null, unverified: unverified);
+    }
+    await requestOtp(identifier, shouldCreateUser: allowCreate);
+    final failed = state.status == AuthStatus.error;
+    return (route: failed ? null : '/otp?$query', unverified: unverified);
   }
 
   // ---------------------------------------------------------------------------
@@ -680,6 +751,12 @@ class AuthController extends Notifier<AuthState> {
       return false;
     }
   }
+
+  /// Changes the password of the signed-in account (Settings). Leaves
+  /// [state] unchanged: the page shows its own progress, and an auth-state
+  /// change would refresh the router mid-flow.
+  Future<void> changePassword(String newPassword) =>
+      _repository.changePassword(newPassword);
 
   /// Finishes a forgot-password reset while keeping the session created by
   /// the reset OTP verify: the OTP already proved identity, so the user stays

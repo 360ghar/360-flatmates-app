@@ -88,12 +88,20 @@ class NotificationService {
   }
 
   static void _onNotificationTap(NotificationResponse response) {
-    final route = response.payload;
-    if (route == null || route.isEmpty) return;
-    _pendingRoute = route;
+    _setPendingRoute(response.payload);
   }
 
   static String? _pendingRoute;
+
+  /// Called when a tap stores a route, so a running app can navigate at once
+  /// instead of waiting for the next resume or rebuild. Set by `App`.
+  static VoidCallback? onPendingRoute;
+
+  static void _setPendingRoute(String? route) {
+    if (route == null || route.isEmpty) return;
+    _pendingRoute = route;
+    onPendingRoute?.call();
+  }
 
   static String? consumePendingRoute() {
     final route = _pendingRoute;
@@ -269,10 +277,7 @@ class NotificationService {
   }
 
   void _handleMessageTap(RemoteMessage message) {
-    final route = message.data['route'] as String?;
-    if (route != null && route.isNotEmpty) {
-      _pendingRoute = route;
-    }
+    _setPendingRoute(message.data['route'] as String?);
   }
 
   Future<void> _sendTokenToServer(String token) async {

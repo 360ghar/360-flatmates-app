@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `scripts/shorebird_release.sh` — see [docs/shorebird.md](docs/shorebird.md))
 - **Dart SDK:** ^3.9.0
 - **Riverpod:** `flutter_riverpod` ^2.6.1
-- **App ID:** `com.the360ghar.flatmates`
+- **App ID:** `com.the360ghar.flatmates360`
 - **OTA:** Shorebird code push for Dart-only fixes ([docs/shorebird.md](docs/shorebird.md))
 
 ## Commands
@@ -86,7 +86,7 @@ lib/
     map/                        → TileLayerFactory (OSM light / CARTO dark), map controller
     notifications/              → Firebase Messaging (foreground + background)
     storage/                    → SharedPreferences, secure storage, image upload
-    theme/                      → Material 3 theme (Airbnb Rausch), design token constants
+    theme/                      → Material 3 Paper Diorama theme, tokens, PaperTheme extension
     compatibility/              → client-side matching algorithm (6 weighted dimensions)
     deep_links/                 → DeepLinkService (app_links, cold+warm start)
     domain/                     → typed enums
@@ -180,7 +180,7 @@ final selectedProvider = NotifierProvider.autoDispose<
 - `AppFailure` sealed class hierarchy in `core/errors/`: `NetworkFailure`, `AuthExpiredFailure`, `ServerFailure`, `PermissionFailure`, `NotFoundFailure`, `ValidationFailure`, `RateLimitFailure`, `ConflictFailure`, `UploadFailure`, `UnknownFailure`
 - `ErrorPresenter.fromDio()` maps `DioException` → typed `AppFailure` subclass (including field-level 422 parsing)
 - `UserMessageL10n` bridge decouples `AppFailure.userMessage()` from generated l10n
-- `FlatmatesAsyncView` renders `AsyncValue<T>` into loading/data/empty/error states using `AppFailure.userMessage()`
+- `FlatmatesAsyncView` renders `AsyncValue<T>` into loading/data/empty/error states using `AppFailure.userMessage()`. A failed refresh keeps the loaded data on screen (`skipError`); the error view is only for a load that never produced data
 - **Banned in pages:** `error.toString()` (enforced by `scripts/banned_patterns.sh`)
 - **No empty catch blocks.** Every `catch` must at minimum log via `debugPrint('ClassName.methodName: $e')`. In fire-and-forget contexts, use `unawaited()`.
 
@@ -188,7 +188,8 @@ final selectedProvider = NotifierProvider.autoDispose<
 
 - Shared `Dio` client from `core/network/api_client.dart` — all authenticated requests go through this
 - `AuthInterceptor` attaches Bearer token; handles 401 with request queue to prevent token-refresh race conditions
-- `ErrorInterceptor` maps DioException types to user-friendly messages
+- `ApiClient` maps every `DioException` to a typed `AppFailure` via `ErrorPresenter.fromDio` (there is no separate error interceptor). 5xx and upload failures always show localized copy, never backend text.
+- On a server 401 the interceptor passes the rejected token to `getAccessToken(rejectedToken:)`, which forces a refresh; queued requests retry individually.
 - `FlatmatesEndpoints` (`core/config/endpoints.dart`) centralizes all API path constants
 - Backend paths are relative to `AppConfig.apiBaseUrl` (set via `.env` or `--dart-define`)
 
@@ -206,7 +207,8 @@ final selectedProvider = NotifierProvider.autoDispose<
 ### Connectivity / Offline
 
 - `connectivityProvider` (`StreamProvider<bool>` via `connectivity_plus`) monitors network state
-- `OfflineBanner` shown as a Stack overlay above `MaterialApp.router` when offline
+- `OfflineBanner` wraps the app in `MaterialApp.builder` and shows an in-flow strip that pushes content down (not an overlay)
+- Coming back online invalidates the conversation, likes, notification and visit lists (`_refetchAfterReconnect` in `app.dart`)
 
 ### Updates: store releases vs OTA patches
 
@@ -252,11 +254,17 @@ Two invariants that silently break patching if violated:
 5. Missing env vars show `_ConfigErrorApp`; missing Firebase config sets `NotificationService.messagingEnabled = false`
 6. Account deletion: `DeleteAccountPage` → `AuthController.deleteAccount()` → `DELETE /users/me`, then best-effort Supabase sign-out + token clear → `/enter-phone`
 7. Phone held between auth steps via `pendingPhoneProvider` (`MutableNotifier`); post-social “add phone” prompt via `addPhonePromptProvider`
+8. The Supabase session (access + refresh token) is stored in the keychain / keystore by `SecureSessionStorage` (`core/storage/secure_session_storage.dart`), passed to `Supabase.initialize`. It migrates an existing SharedPreferences session on first run, and falls back to SharedPreferences whenever the keychain is unusable — at initialization, when a migration's keychain write fails, or when a later session write fails. A `…-store` marker records which store is authoritative: `secure` means the keychain copy is read and any plaintext duplicate is dropped unread; `prefs` means the plaintext copy is authoritative and is re-migrated once the keychain works again. A secure read failure while the marker says `secure` is treated as "no session", and "not persisted" is logged only when both stores refuse the write. Storage writes are serialized. Sign-out writes a persistent invalidation marker before deleting both credential copies; the marker is the single source of truth (delete wins), and session reads and migration honor it until a new session is persisted successfully.
+9. `AuthController` also listens to Supabase `signedOut` events, so a server-side sign-out routes to login without waiting for a failed request.
 
 ### Theme and localization
 
-- Material 3 with single Airbnb Rausch primary (`#FF385C`), white canvas, ink `#222222`
-- Google Fonts: Inter (open-source substitute for Airbnb Cereal VF)
+- Paper Diorama design system (see DESIGN.md, identical in the web repo): clay primary `#A94A2B`, pine secondary, marigold accent, sky / paper-1..3 layers, directional paper shadows (`AppShadows.e1..e3`)
+- Display type: Gambarino, bundled at `assets/fonts/` and registered under weights 400–800 in `pubspec.yaml` so a bold display style never fakes a bold. Body: platform font. No `google_fonts`.
+- Paper primitives in `features/shared/presentation/paper/`: `PaperSurface`, `PaperEdgeBorder` (torn/scallop), `PaperScene` (layered neighbourhood; pass the page's `ScrollController` as `parallax`, as `enter_phone_page` and the onboarding pages do; off under reduce motion), `PaperSceneHeader`, `PaperIcon` (cut-paper icons, used for the five nav tabs). Scene art `paper_art.dart` is generated by `360-flatmates-web/scripts/generate-paper-art.py`; never edit it by hand.
+- Motion: content is visible from the first frame (entrances rise, never fade from 0); new animations must check `AppMotion.reduceMotion`. Text scale is capped at 2x in `MaterialApp.builder`.
+- Contrast: `test/core/theme/contrast_test.dart` asserts WCAG AA for every text/paper pair and for the status pill pairs (clay-ink / clay-soft, green-ink / pine-soft, danger / danger-soft, warning-ink / warning-soft). Goldens (macOS only) in `test/widget/shared/goldens/`.
+- Large text: rows that put a name beside a time, badge or button stack at text scale 1.5 and above (conversation card, notification card, profile header, blocked user row); `FlatmatesSegmentedControl` wraps into rows when its widest label does not fit. Check new rows at 320 dp and 2x.
 - Design token constant files in `core/theme/`: `AppSpacing`, `AppRadius`, `AppShadows`, `AppMotion`, `AppTypography`, `AppSemanticColors` — barrel-exported via `theme.dart`
 - Light/dark/system theme modes, persisted to SharedPreferences (defaults: **Light mode**, **English** locale)
 - ARB-based l10n: English (`app_en.arb`, template) and Hindi (`app_hi.arb`), generated to `lib/l10n/gen/`
@@ -273,14 +281,14 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - Freezed + json_serializable for domain models. Run `dart run build_runner build --delete-conflicting-outputs` after changes.
 - DTO pattern: when backend JSON doesn't map cleanly to domain models, use a DTO class in the feature's `data/` layer (e.g., `PropertyListingDto` → `PropertyListing`).
 - Shared component library: `Flatmates*` widgets in `features/shared/presentation/` barrel-exported via `components.dart`. Key widgets: `FlatmatesScreen`, `FlatmatesAsyncView`, `FlatmatesNetworkImage`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesSkeleton`, `FlatmatesErrorState`, `FlatmatesEmptyState`, `FlatmatesChromeIconButton`, `FlatmatesLocationChip`. Shell chrome uses solid surfaces + hairline borders (no `BackdropFilter` frost). Two shared files in the same folder are deliberately **not** in the barrel and are imported directly: `profile_sections.dart` (`LifestyleCell`, `LifestyleGrid`, `PreferencesCard`, `SectionHeader`) and `lifestyle_labels.dart` (localized lifestyle dimension names, values and icons — the single source shared by the chat peer profile and the discover owner sheet).
-- Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (0.97). Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
+- Animation patterns: use `AppMotion` tokens for all durations/curves. Press feedback via `Listener` + `AnimatedScale` (`AppMotion.pressScale`, 0.98) with shadow e2 → e1. Do not use `GestureDetector` to detect presses when wrapping interactive children — use `Listener` instead.
 - `FlatmatesEndpoints` centralizes all API path constants — no hardcoded backend paths.
 - Image uploads go through the backend API (Cloudinary) via `ImageUploadService`.
 - Compatibility scoring runs client-side in `core/compatibility/` with 6 weighted dimensions.
 - Chat uses Supabase realtime for the open thread; app-wide events use Realtime Broadcast on `flatmates:user:{id}`. `MessagesController` merges live arrivals with optimistic pending sends and refetches after successful POST.
-- Banned patterns (`scripts/banned_patterns.sh`): no `error.toString()` in pages, no `apiClientProvider` in pages, no `Supabase.instance` in pages, no raw `Image.network` in features, page files under 500 lines.
+- Banned patterns (`scripts/banned_patterns.sh`): ratchets on raw `BorderRadius.circular(<n>)` and `Color(0x…)` outside `core/theme` (count may only go down; raw colours are at 0), no light-only `AppSemanticColors.accent/error/success/warning/info/primary/onPrimary` in `lib/features` or `lib/app` (use `*For(brightness)`), no `error.toString()` in pages, no `apiClientProvider` in pages, no `Supabase.instance` in pages, no raw `Image.network` in features, page files under 500 lines.
 - **Page size: `*_page.dart` under `lib/features/` is capped at 500 lines** (`-gt 500` fails; exactly 500 passes). When a page grows past it, extract to the feature's `presentation/widgets/` — only files *named* `*_page.dart` are subject to the cap, so extracted helpers are unconstrained by it (but `EdgeInsets.all(<int>)` and `Image.network` rules still apply to every file under `lib/features/`). There is **no per-feature barrel** — `components.dart` is shared-only and doesn't even export `profile_sections.dart`, so extracted files are imported directly. Prefer moving code verbatim over rewriting, so the diff stays reviewable. Worked examples: `listing_catalog_options.dart`, `edit_profile_form_state.dart` (`buildEditProfileTabHandlers`), `shared/presentation/lifestyle_labels.dart`.
-- **Business logic in controllers, not widgets.** Examples: `FeedbackController`, `ChatActionsController`, `SwipeDeckController`, `ManageListingsActionsController`, `NotificationsActionsController`.
+- **Business logic in controllers, not widgets.** Examples: `FeedbackController`, `ChatActionsController`, `SwipeDeckController`, `ManageListingsActionsController`, `NotificationsActionsController`, `EditProfileActionsController`, `VisitsActionsController`, `BlockedUsersListController.unblock`, `AuthController.changePassword`.
 - **Local UI state:** ephemeral → `setState` (with `mounted` checks after async); shared/product → `Notifier` / `MutableNotifier`. Do not reintroduce shared `StateProvider`s.
 - **Always use `const` constructors** where possible. Run `dart fix --apply lib/` periodically.
 - **Add `tooltip` to all `IconButton` widgets** for accessibility.
@@ -331,9 +339,9 @@ runtime, so declared inputs buy nothing.
 - Do not add another state-management library.
 - Keep GoRouter as the routing layer.
 - All authenticated requests must flow through the shared Dio client and auth interceptor.
-- Maintain light/dark/system theme support with a single Rausch brand primary.
+- Maintain light/dark/system theme support with the single clay brand primary (DESIGN.md).
 - Keep English and Hindi localization in sync for primary flows.
-- Use meaningful `Key` values on interactive widgets for Maestro stability.
+- Use meaningful string `Key` values on interactive widgets. Maestro's `id:` matches only `Semantics.identifier` (Flutter keys never reach the accessibility layer). `FlatmatesButton`, `FlatmatesMenuItem`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesChromeIconButton`, `FlatmatesSegmentedControl` segments and the action-bar toggle expose their string key as the identifier; wrap any other widget in `withTestId(key, child)` (`shared/presentation/test_id.dart`).
 - Update `docs/` when API surface, architecture, theme/localization strategy, auth flow, or Maestro assumptions change.
 - **Ephemeral UI → `setState`; shared state → `Notifier` / `MutableNotifier`.** Avoid new shared `StateProvider`s. Write shared simple values with `.set` / `.update`, not `.notifier.state =`.
 - **Controllers over direct repository calls** in widgets. Create `application/` layer controllers.

@@ -5,10 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../core/domain/enums.dart';
 import '../core/providers.dart';
 import '../core/storage/app_preferences.dart';
-import '../core/theme/app_semantic_colors.dart';
+import '../core/theme/app_motion.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
 import '../features/onboarding/onboarding_completion_banner.dart';
+import '../features/shared/presentation/paper/paper_art.dart';
+import '../features/shared/presentation/paper/paper_edge_border.dart';
+import '../features/shared/presentation/paper/paper_icon.dart';
+import '../features/shared/presentation/paper/paper_surface.dart';
 import '../l10n/gen/app_localizations.dart';
 
 /// Canonical room-poster check for the backend `profile.mode` string.
@@ -27,7 +31,6 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     // Use select so AppShell only rebuilds when mode changes,
     // not on every bootstrap async lifecycle event.
     final mode =
@@ -37,11 +40,6 @@ class AppShell extends ConsumerWidget {
           ),
         ) ??
         'co_hunter';
-    final isDark = theme.brightness == Brightness.dark;
-    final surface = isDark
-        ? AppSemanticColors.darkSurface
-        : AppSemanticColors.canvas;
-    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
 
     // Show the onboarding completion banner when the user's onboarding is
     // incomplete. The soft gate allows access to Discover, Map, and Profile,
@@ -67,98 +65,123 @@ class AppShell extends ConsumerWidget {
       body: Column(
         children: [
           if (showOnboardingBanner) const OnboardingCompletionBanner(),
-          Expanded(child: navigationShell),
+          // The banner takes the status-bar inset, so the page must not add
+          // it again.
+          // Builder: the context must be inside the Scaffold body, whose
+          // MediaQuery has the keyboard inset removed. The shell's own
+          // context would put the inset back, and every page Scaffold would
+          // resize for the keyboard a second time.
+          Expanded(
+            child: Builder(
+              builder: (context) => MediaQuery.removePadding(
+                context: context,
+                removeTop: showOnboardingBanner,
+                child: navigationShell,
+              ),
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: surface,
-          border: Border(top: BorderSide(color: hairline)),
-        ),
+      // Paper tab strip: layer one with a torn top edge; the active tab
+      // rises one layer (indicator = paper-2, see navigationBarTheme).
+      bottomNavigationBar: PaperSurface(
+        layer: PaperLayer.one,
+        elevation: PaperElevation.e0,
+        edge: PaperEdge.torn,
+        borderRadius: BorderRadius.zero,
         child: SafeArea(
           top: false,
-          child: NavigationBar(
-            height: 64,
-            selectedIndex: navigationShell.currentIndex.clamp(0, 4),
-            onDestinationSelected: (index) {
-              navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            indicatorColor: Colors.transparent,
-            labelPadding: EdgeInsets.zero,
-            destinations: destinations,
+          // Labels scale with the user's text size, but capped so five tabs
+          // still fit on one row without clipping.
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.3,
+            child: NavigationBar(
+              selectedIndex: navigationShell.currentIndex.clamp(0, 4),
+              onDestinationSelected: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              // The indicator slides with the standard paper curve, and not
+              // at all under reduce motion (Material's default is 500 ms).
+              animationDuration: AppMotion.durationOrZero(
+                context,
+                AppMotion.standard,
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              destinations: destinations,
+            ),
           ),
         ),
       ),
     );
   }
 
-  List<NavigationDestination> _buildDestinations(
-    String mode,
-    AppLocalizations locale,
-  ) {
+  List<Widget> _buildDestinations(String mode, AppLocalizations locale) {
     final isRoomPoster = isRoomPosterMode(mode);
 
+    // Cut-paper nav icons shared with the web app. Selected vs unselected
+    // is colour only (clay vs ink-3, from navigationBarTheme).
     return [
-      NavigationDestination(
-        key: const ValueKey('nav_home'),
-        icon: _navIcon('nav_home_tab', Icons.home_outlined),
-        selectedIcon: _navIcon('nav_home_tab_selected', Icons.home_rounded),
-        label: locale.navHome,
+      _tab(
+        'nav_home_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_home'),
+          icon: const PaperIcon(PaperArt.navHome),
+          label: locale.navHome,
+        ),
       ),
       // Slot is shape-stable across modes: the same `NavigationDestination`
       // instance (keyed by `nav_mode`) is always present, only the icon
       // and label change. This stops the destination list from changing
       // shape when the user switches mode, which previously caused the
-      // inner `Semantics(identifier:…)` widgets to be unmounted+remounted
-      // in the same frame as `/tab2`'s body swap — triggering
-      // `!semantics.parentDataDirty`.
-      NavigationDestination(
-        key: const ValueKey('nav_mode'),
-        icon: isRoomPoster
-            ? _navIcon('nav_post_tab', Icons.add_home_outlined)
-            : _navIcon('nav_explore_tab', Icons.map_outlined),
-        selectedIcon: isRoomPoster
-            ? _navIcon('nav_post_tab_selected', Icons.add_home_rounded)
-            : _navIcon('nav_explore_tab_selected', Icons.map_rounded),
-        label: isRoomPoster ? locale.navPost : locale.navExplore,
-      ),
-      NavigationDestination(
-        key: const ValueKey('nav_swipe'),
-        icon: _navIcon('nav_swipe_tab', Icons.swap_horiz_rounded),
-        selectedIcon: _navIcon(
-          'nav_swipe_tab_selected',
-          Icons.swap_horiz_rounded,
+      // inner semantics widgets to be unmounted+remounted in the same frame
+      // as `/tab2`'s body swap — triggering `!semantics.parentDataDirty`.
+      // Only the identifier string changes with the mode.
+      _tab(
+        isRoomPoster ? 'nav_post_tab' : 'nav_explore_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_mode'),
+          icon: isRoomPoster
+              ? const PaperIcon(PaperArt.navPost)
+              : const PaperIcon(PaperArt.navExplore),
+          label: isRoomPoster ? locale.navPost : locale.navExplore,
         ),
-        label: locale.navSwipe,
       ),
-      NavigationDestination(
-        key: const ValueKey('nav_inbox'),
-        icon: _navIcon('nav_inbox_tab', Icons.markunread_outlined),
-        selectedIcon: _navIcon(
-          'nav_inbox_tab_selected',
-          Icons.markunread_rounded,
+      _tab(
+        'nav_swipe_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_swipe'),
+          icon: const PaperIcon(PaperArt.navSwipe),
+          label: locale.navSwipe,
         ),
-        label: locale.navLikesChat,
       ),
-      NavigationDestination(
-        key: const ValueKey('nav_me'),
-        icon: _navIcon('nav_me_tab', Icons.person_outline),
-        selectedIcon: _navIcon('nav_me_tab_selected', Icons.person_rounded),
-        label: locale.navProfile,
+      _tab(
+        'nav_inbox_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_inbox'),
+          icon: const PaperIcon(PaperArt.navChats),
+          label: locale.navLikesChat,
+        ),
+      ),
+      _tab(
+        'nav_me_tab',
+        NavigationDestination(
+          key: const ValueKey('nav_me'),
+          icon: const PaperIcon(PaperArt.navProfile),
+          label: locale.navProfile,
+        ),
       ),
     ];
   }
 
-  /// Semantics.identifier is sufficient for Maestro testing.
-  Widget _navIcon(String identifier, IconData icon) {
-    return Semantics(identifier: identifier, child: Icon(icon));
-  }
+  /// Maestro id on the whole destination. Material merges a destination's
+  /// semantics into one node, which drops an identifier set on the icon.
+  Widget _tab(String identifier, NavigationDestination destination) =>
+      Semantics(identifier: identifier, container: true, child: destination);
 }

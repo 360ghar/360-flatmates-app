@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../location/presentation/map_widgets.dart';
 import '../../../shared/presentation/components.dart';
@@ -85,7 +84,7 @@ class FlatDetailsLocation extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: AppSpacing.horizontalScreen,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -105,34 +104,6 @@ class FlatDetailsLocation extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            // Sector button (commented out — kept for reference)
-            // if ((l.locality ?? l.city)?.trim().isNotEmpty ?? false)
-            //   Flexible(
-            //     child: OutlinedButton.icon(
-            //       key: Key('flat_map_locality_open'),
-            //       onPressed: () => _openInMaps(
-            //         l.latitude!,
-            //         l.longitude!,
-            //         label:
-            //             l.locality ??
-            //             l.city ??
-            //             locale.propertyFallbackLabel,
-            //       ),
-            //       icon: Icon(Icons.place_outlined, size: 18),
-            //       label: Text((l.locality ?? l.city)!),
-            //       style: OutlinedButton.styleFrom(
-            //         foregroundColor: AppSemanticColors.accent,
-            //         side: BorderSide(color: AppSemanticColors.accent),
-            //         shape: RoundedRectangleBorder(
-            //           borderRadius: AppRadius.smBorder,
-            //         ),
-            //         padding: EdgeInsets.symmetric(
-            //           horizontal: AppSpacing.lg,
-            //           vertical: AppSpacing.md,
-            //         ),
-            //       ),
-            //     ),
-            //   ),
             GetDirectionsButton(
               key: const ValueKey('flat_details_get_directions'),
               latitude: l.latitude!,
@@ -149,27 +120,25 @@ class FlatDetailsLocation extends StatelessWidget {
             const SizedBox(height: AppSpacing.screen),
           ],
 
-          // Social proof row
-          Row(
+          // Social proof: wraps on a narrow phone or at large text.
+          Wrap(
+            spacing: AppSpacing.lg,
+            runSpacing: AppSpacing.sm,
             children: [
-              if (l.viewCount > 0) ...[
+              if (l.viewCount > 0)
                 _StatItem(
                   icon: Icons.visibility_outlined,
                   value: compactCount(l.viewCount),
                   label: locale.viewsLabel,
                   isDark: isDark,
                 ),
-                const SizedBox(width: AppSpacing.xl),
-              ],
-              if (l.interestCount > 0) ...[
+              if (l.interestCount > 0)
                 _StatItem(
                   icon: Icons.person_outline,
                   value: compactCount(l.interestCount),
                   label: locale.interestedLabel,
                   isDark: isDark,
                 ),
-                const SizedBox(width: AppSpacing.xl),
-              ],
               if (l.likeCount > 0)
                 _StatItem(
                   icon: Icons.favorite_border,
@@ -186,19 +155,18 @@ class FlatDetailsLocation extends StatelessWidget {
               l.userNextVisitDate != null) ...[
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: AppSpacing.edgeMd,
               decoration: BoxDecoration(
-                color: AppSemanticColors.success.withValues(alpha: 0.1),
+                color: AppSemanticColors.pineSoftFor(theme.brightness),
                 borderRadius: AppRadius.mdBorder,
-                border: Border.all(
-                  color: AppSemanticColors.success.withValues(alpha: 0.3),
-                ),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.check_circle_rounded,
-                    color: AppSemanticColors.success,
+                    color: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     size: 20,
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -209,9 +177,9 @@ class FlatDetailsLocation extends StatelessWidget {
                           locale.localeName,
                         ).format(l.userNextVisitDate!),
                       ),
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppSemanticColors.success,
+                        color: AppSemanticColors.greenInkFor(theme.brightness),
                       ),
                     ),
                   ),
@@ -224,18 +192,20 @@ class FlatDetailsLocation extends StatelessWidget {
           // Safety banner
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: AppSpacing.edgeMd,
             decoration: BoxDecoration(
-              color: AppSemanticColors.accent.withValues(alpha: 0.08),
+              color: AppSemanticColors.coralSoftFor(theme.brightness),
               borderRadius: AppRadius.mdBorder,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
+                Icon(
                   Icons.shield_outlined,
                   size: 18,
-                  color: AppSemanticColors.accent,
+                  color: AppSemanticColors.clayFor(
+                    Theme.of(context).brightness,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -244,21 +214,18 @@ class FlatDetailsLocation extends StatelessWidget {
                     children: [
                       Text(
                         locale.safetyBannerTitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                        style: theme.textTheme.labelMedium?.copyWith(
                           color: AppSemanticColors.textPrimaryFor(
-                            isDark ? Brightness.dark : Brightness.light,
+                            Theme.of(context).brightness,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         locale.safetyBannerBody,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppSemanticColors.textSecondaryFor(
-                            isDark ? Brightness.dark : Brightness.light,
+                            theme.brightness,
                           ),
-                          fontSize: AppTypography.microLabelSize,
                         ),
                       ),
                     ],
@@ -321,67 +288,69 @@ class _SocietyTagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
     final selected = myVote == 'up';
-    return GestureDetector(
-      onTap: () => onVote(tag, 'up'),
-      onLongPress: () => onVote(tag, 'down'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppSemanticColors.accent.withValues(alpha: 0.1)
-              : AppSemanticColors.secondarySurfaceFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-          borderRadius: AppRadius.pillBorder,
-          border: Border.all(
-            color: selected
-                ? AppSemanticColors.accent.withValues(alpha: 0.4)
-                : AppSemanticColors.hairlineFor(
-                    isDark ? Brightness.dark : Brightness.light,
-                  ),
+    final clay = AppSemanticColors.clayFor(brightness);
+    final foreground = selected
+        ? AppSemanticColors.clayInkFor(brightness)
+        : AppSemanticColors.textPrimaryFor(brightness);
+    // Tap votes up, long-press votes down (announced as a long-press hint).
+    return Semantics(
+      button: true,
+      selected: selected,
+      onLongPressHint: AppLocalizations.of(context).voteDownHint,
+      child: Material(
+        color: selected
+            ? AppSemanticColors.coralSoftFor(brightness)
+            : AppSemanticColors.paper2For(brightness),
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.mdBorder,
+          side: BorderSide(
+            color: selected ? clay : AppSemanticColors.hairlineFor(brightness),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              selected ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
-              size: 14,
-              color: selected
-                  ? AppSemanticColors.accent
-                  : AppSemanticColors.textSecondaryFor(
-                      isDark ? Brightness.dark : Brightness.light,
+        child: InkWell(
+          onTap: () => onVote(tag, 'up'),
+          onLongPress: () => onVote(tag, 'down'),
+          customBorder: const RoundedRectangleBorder(
+            borderRadius: AppRadius.mdBorder,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: kMinInteractiveDimension,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    selected ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                    size: 16,
+                    color: selected
+                        ? clay
+                        : AppSemanticColors.textSecondaryFor(brightness),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: foreground,
                     ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: AppTypography.microLabelSize,
-                fontWeight: FontWeight.w600,
-                color: selected
-                    ? AppSemanticColors.accent
-                    : AppSemanticColors.textPrimaryFor(
-                        isDark ? Brightness.dark : Brightness.light,
-                      ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    netVotes.toString(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(brightness),
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 4),
-            Text(
-              netVotes.toString(),
-              style: TextStyle(
-                fontSize: AppTypography.badgeSize,
-                fontWeight: FontWeight.w700,
-                color: AppSemanticColors.textSecondaryFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -411,25 +380,21 @@ class _StatItem extends StatelessWidget {
           icon,
           size: 16,
           color: AppSemanticColors.textTertiaryFor(
-            isDark ? Brightness.dark : Brightness.light,
+            Theme.of(context).brightness,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(
           value,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: AppTypography.bodySmSize,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-        const SizedBox(width: 2),
+        const SizedBox(width: AppSpacing.xs),
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: AppSemanticColors.textTertiaryFor(
-              isDark ? Brightness.dark : Brightness.light,
-            ),
-            fontSize: AppTypography.microLabelSize,
+            color: AppSemanticColors.textTertiaryFor(theme.brightness),
           ),
         ),
       ],

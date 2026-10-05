@@ -216,6 +216,21 @@ class OnboardingController extends Notifier<OnboardingState> {
     await _saveState();
   }
 
+  /// Records that the user wants to hear when [city] opens. Throws on
+  /// failure so the caller can show an error.
+  Future<void> joinWaitlist(String city) async {
+    await ref
+        .read(profileRepositoryProvider)
+        .updateProfile(
+          payload: {
+            'preferences': {
+              'waitlist_city': city,
+              'waitlist_at': DateTime.now().toUtc().toIso8601String(),
+            },
+          },
+        );
+  }
+
   Future<void> submitNonNegotiables(List<String> nonNegotiables) async {
     if (state.isSubmitting) return;
     state = state.copyWith(

@@ -3,9 +3,10 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_motion.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_empty_state.dart';
+import '../../../shared/presentation/paper/paper_scene.dart';
 import '../../../shared/presentation/flatmates_error_state.dart';
 import '../../../shared/presentation/flatmates_skeleton.dart';
 import '../../application/messages_controller.dart';
@@ -83,6 +84,14 @@ class _MessageListState extends ConsumerState<MessageList>
     super.didChangeMetrics();
     // Keyboard open/close changes the viewport; keep the latest message in
     // view so the composer never hides the message the user just sent.
+    // Only when already near the bottom: a user reading older history stays
+    // where they are.
+    if (_scrollController.hasClients) {
+      final position = _scrollController.position;
+      if (position.maxScrollExtent - position.pixels > AppSpacing.s72 * 2) {
+        return;
+      }
+    }
     _scrollToBottom(animated: true);
   }
 
@@ -209,9 +218,30 @@ class _MessageListState extends ConsumerState<MessageList>
 
     final items = messagesState.displayMessages;
     if (items.isEmpty) {
-      return _ChatEmptyCard(
-        title: locale.noMessagesYet,
-        subtitle: locale.noMessagesYetHint,
+      // The empty card must sit inside an always-scrollable list: the
+      // RefreshIndicator above needs a scrollable child, otherwise
+      // pull-to-refresh cannot recover messages realtime missed while the
+      // thread looked empty.
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final emptyCard = _ChatEmptyCard(
+            title: locale.noMessagesYet,
+            subtitle: locale.noMessagesYetHint,
+          );
+          return ListView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            children: [
+              // A viewport-height cell keeps the card centred, exactly as the
+              // non-scrollable layout did.
+              if (constraints.maxHeight.isFinite)
+                SizedBox(height: constraints.maxHeight, child: emptyCard)
+              else
+                emptyCard,
+            ],
+          );
+        },
       );
     }
 
@@ -346,9 +376,8 @@ class _MessageListState extends ConsumerState<MessageList>
   }
 }
 
-/// Telegram-style empty-chat placeholder: a soft-pink rounded card, centered
-/// in the available space and scrollable so it never overflows when the
-/// viewport shrinks (keyboard/emoji picker open). Sized to content only.
+/// Empty thread: the compact scene with the chat prop (DESIGN.md §6),
+/// scrollable so it never overflows when the keyboard or emoji picker opens.
 class _ChatEmptyCard extends StatelessWidget {
   const _ChatEmptyCard({required this.title, required this.subtitle});
 
@@ -357,50 +386,11 @@ class _ChatEmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final brightness = theme.brightness;
-    final card = Container(
-      width: 240,
-      decoration: BoxDecoration(
-        color: brightness == Brightness.dark
-            ? AppSemanticColors.pinkSoftDark
-            : AppSemanticColors.pinkSoft,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.xl,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppSemanticColors.textPrimaryFor(brightness),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppSemanticColors.textSecondaryFor(brightness),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Center(child: card),
-        ),
-      ),
+    return FlatmatesEmptyState(
+      title: title,
+      subtitle: subtitle,
+      prop: PaperProp.chat,
+      expand: true,
     );
   }
 }

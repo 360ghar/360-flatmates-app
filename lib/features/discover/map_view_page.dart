@@ -22,6 +22,7 @@ import 'presentation/widgets/filter_sheet.dart';
 import 'presentation/widgets/map_listing_sheets.dart';
 import 'presentation/widgets/map_listings_bottom_sheet.dart';
 import 'presentation/widgets/map_location_picker.dart';
+import 'presentation/widgets/map_top_bar.dart';
 
 class MapViewPage extends ConsumerStatefulWidget {
   const MapViewPage({super.key});
@@ -97,9 +98,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
   }
 
   void _applyLocationToMap(LocationData location, {double? radiusKm}) {
-    if (!location.latitude.isFinite ||
-        !location.longitude.isFinite ||
-        (location.latitude == 0 && location.longitude == 0)) {
+    if (!location.hasCoordinates) {
       return;
     }
 
@@ -181,27 +180,34 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
         : AppSemanticColors.frostOverlayLight;
 
     if (mapState.isLoading && mapState.listings.isEmpty) {
-      return const Scaffold(body: FlatmatesSkeleton.mapExplore());
+      return const FlatmatesScreen(
+        useSafeArea: false,
+        body: FlatmatesSkeleton.mapExplore(),
+      );
     }
 
     if (mapState.hasError) {
-      return Scaffold(
-        body: SafeArea(
-          child: FlatmatesErrorState(
-            message: locale.couldNotLoadListing,
-            onRetry: () => ref.read(mapListingsProvider.notifier).load(),
-            retryLabel: locale.commonRetry,
-          ),
+      // Pushed as /map it needs a way back; as the Explore tab it does not.
+      return FlatmatesScreen(
+        appBar: Navigator.of(context).canPop()
+            ? const FlatmatesHeader.backTitle(title: '')
+            : null,
+        body: FlatmatesErrorState(
+          message: locale.errorUnknown,
+          onRetry: () => ref.read(mapListingsProvider.notifier).load(),
+          retryLabel: locale.commonRetry,
         ),
       );
     }
 
-    final safeAreaTop = MediaQuery.of(context).padding.top;
-    // Top bar internal height: md (top) + 48 (icon button) + xs (bottom) ≈ 64
-    const topBarContentHeight = AppSpacing.md + 48.0 + AppSpacing.xs;
+    final safeAreaTop = MediaQuery.paddingOf(context).top;
+    // Top bar internal height: md (top) + 48 (icon button) + xs (bottom).
+    const topBarContentHeight =
+        AppSpacing.md + kMinInteractiveDimension + AppSpacing.xs;
     final controlsTopOffset = safeAreaTop + topBarContentHeight + AppSpacing.lg;
 
-    return Scaffold(
+    return FlatmatesScreen(
+      useSafeArea: false,
       body: Stack(
         children: [
           // Full-screen map
@@ -214,54 +220,12 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
             top: 0,
             left: 0,
             right: 0,
-            child: Container(
-              color: frostOverlayColor,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.screen,
-                        AppSpacing.md,
-                        AppSpacing.screen,
-                        AppSpacing.xs,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: FlatmatesLocationChip(
-                                locationName: selectedDisplayText.isNotEmpty
-                                    ? selectedDisplayText
-                                    : null,
-                                placeholder: locale.selectLocationLabel,
-                                dense: true,
-                                onTap: () => _showLocationPicker(context),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          // The map page has no standalone text-search
-                          // surface — search lives inside the filter
-                          // sheet (its top field) — so we expose a single
-                          // filter affordance rather than two duplicate
-                          // buttons. Kept on the right of the location chip.
-                          FlatmatesChromeIconButton(
-                            onPressed: () => _showFilterSheet(context),
-                            icon: AppIcons.filter,
-                            tooltip: locale.searchFiltersTitle,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            child: MapTopBar(
+              backgroundColor: frostOverlayColor,
+              safeAreaTop: safeAreaTop,
+              locationName: selectedDisplayText,
+              onLocationTap: () => _showLocationPicker(context),
+              onFilterTap: () => _showFilterSheet(context),
             ),
           ),
 
@@ -350,7 +314,9 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
                 color:
                     (isDark
                             ? AppSemanticColors.darkSurface
-                            : AppSemanticColors.canvas)
+                            : AppSemanticColors.surfaceFor(
+                                Theme.of(context).brightness,
+                              ))
                         .withValues(alpha: 0.35),
               ),
             ),
@@ -393,7 +359,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     if (index >= 0 && _cardScrollController.hasClients) {
       final viewportWidth = MediaQuery.sizeOf(context).width;
       const itemWidth = kMapCarouselCardWidth;
-      const padding = AppSpacing.md;
+      const padding = kMapCarouselPadding;
       const spacing = AppSpacing.sm;
       const totalItemWidth = itemWidth + spacing;
 
@@ -431,40 +397,67 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
   void _recenterToUserLocation() async {
     final locState = ref.read(locationControllerProvider);
-    if (locState.currentPosition != null) {
-      final pos = locState.currentPosition!;
-      await _mapController?.move(
-        LatLng(pos.latitude, pos.longitude),
-        kDefaultInitialZoom,
-      );
-      ref
-          .read(mapListingsProvider.notifier)
-          .updateLocationFilter(
-            latitude: pos.latitude,
-            longitude: pos.longitude,
-            radiusKm:
-                ref.read(mapListingsProvider).filters.radiusKm ??
-                MapListingsController.defaultLocationRadiusKm,
-          );
-    } else {
-      await ref.read(locationControllerProvider.notifier).getCurrentLocation();
-      final newPos = ref.read(locationControllerProvider).currentPosition;
-      if (newPos != null) {
-        await _mapController?.move(
-          LatLng(newPos.latitude, newPos.longitude),
-          kDefaultInitialZoom,
-        );
-        ref
-            .read(mapListingsProvider.notifier)
-            .updateLocationFilter(
-              latitude: newPos.latitude,
-              longitude: newPos.longitude,
-              radiusKm:
-                  ref.read(mapListingsProvider).filters.radiusKm ??
-                  MapListingsController.defaultLocationRadiusKm,
-            );
-      }
+    final pos = locState.currentPosition;
+    if (pos != null) {
+      await _recenterOn(pos.latitude, pos.longitude);
+      return;
     }
+
+    await ref.read(locationControllerProvider.notifier).getCurrentLocation();
+    // The page can close while locating (it is also pushed as /map).
+    if (!mounted) return;
+
+    // A missing Position does not mean permission was denied: services may be
+    // off, the GPS fix may fail, or another detection may still be in flight.
+    // `currentPosition` is only set by a real GPS fix — every other outcome
+    // lands on the IP fallback, so branch on the state we actually have
+    // instead of claiming a permission problem that granting would not fix.
+    // `error` is cleared by any successful detection (GPS or IP fallback), so
+    // a non-null error here means this attempt resolved nothing at all.
+    final after = ref.read(locationControllerProvider);
+    if (after.isLoading) {
+      // Another detection is still running; do not toast for it.
+      return;
+    }
+    final newPos = after.currentPosition;
+    if (newPos != null) {
+      await _recenterOn(newPos.latitude, newPos.longitude);
+      return;
+    }
+    final fallback = after.selectedLocation;
+    if (after.error == null &&
+        fallback != null &&
+        fallback.latitude.isFinite &&
+        fallback.longitude.isFinite) {
+      // IP fallback: the best fix available, so recentre on it instead of
+      // sending the user to system settings.
+      await _recenterOn(fallback.latitude, fallback.longitude);
+      return;
+    }
+    // No usable fix at all (the IP lookup failed too): generic copy.
+    FlatmatesToast.info(
+      context,
+      AppLocalizations.of(context).couldNotDetectLocation,
+    );
+  }
+
+  /// Moves the map to ([latitude], [longitude]) and re-scopes the map listings
+  /// around it.
+  Future<void> _recenterOn(double latitude, double longitude) async {
+    await _mapController?.move(
+      LatLng(latitude, longitude),
+      kDefaultInitialZoom,
+    );
+    if (!mounted) return;
+    ref
+        .read(mapListingsProvider.notifier)
+        .updateLocationFilter(
+          latitude: latitude,
+          longitude: longitude,
+          radiusKm:
+              ref.read(mapListingsProvider).filters.radiusKm ??
+              MapListingsController.defaultLocationRadiusKm,
+        );
   }
 
   void _fitBoundsToMarkers() {

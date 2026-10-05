@@ -6,7 +6,6 @@ import '../../../../core/compatibility/compatibility_ring.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/components.dart';
 import '../../discover_repository.dart';
@@ -20,7 +19,7 @@ class FlatDetailsHeader extends StatelessWidget {
     required this.onPageChanged,
     required this.onBack,
     required this.onShare,
-    required this.onFavorite,
+    this.onFavorite,
     this.isFavorite = false,
     this.onOwnerTap,
     this.onImageTap,
@@ -33,7 +32,9 @@ class FlatDetailsHeader extends StatelessWidget {
   final ValueChanged<int> onPageChanged;
   final VoidCallback onBack;
   final VoidCallback onShare;
-  final VoidCallback onFavorite;
+
+  /// Null hides the heart (for example on the viewer's own listing).
+  final VoidCallback? onFavorite;
   final bool isFavorite;
   final VoidCallback? onOwnerTap;
   final VoidCallback? onImageTap;
@@ -45,7 +46,6 @@ class FlatDetailsHeader extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final l = listing;
     final images = l.imageUrls;
-    final isDark = theme.brightness == Brightness.dark;
 
     // Content sheet overlaps the carousel bottom by this much, giving the
     // "sheet over hero" look with rounded top corners.
@@ -73,9 +73,9 @@ class FlatDetailsHeader extends StatelessWidget {
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.xl,
-              AppSpacing.xl,
+              AppSpacing.screen,
+              AppSpacing.lg,
+              AppSpacing.screen,
               0,
             ),
             decoration: BoxDecoration(
@@ -89,19 +89,13 @@ class FlatDetailsHeader extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      locale.listingLabel.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.6,
-                        color: AppSemanticColors.textTertiaryFor(
-                          isDark ? Brightness.dark : Brightness.light,
+                    if (l.isLive)
+                      Text(
+                        locale.liveBadge,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppSemanticColors.pineFor(theme.brightness),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    if (l.isLive) _LivePill(isDark: isDark, locale: locale),
                     const Spacer(),
                     if (l.createdAt != null)
                       Text(
@@ -110,7 +104,7 @@ class FlatDetailsHeader extends StatelessWidget {
                         ).format(l.createdAt!),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppSemanticColors.textTertiaryFor(
-                            isDark ? Brightness.dark : Brightness.light,
+                            theme.brightness,
                           ),
                         ),
                       ),
@@ -118,31 +112,19 @@ class FlatDetailsHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
+                // h2 display role (Gambarino), at most two lines.
                 Text(
                   l.title,
-                  style: TextStyle(
-                    fontSize: AppTypography.displayLgSize,
-                    fontWeight: AppTypography.displayLgWeight,
-                    height: AppTypography.displayLgHeight,
-                    letterSpacing: AppTypography.displayLgLetterSpacing,
-                    color: AppSemanticColors.textPrimaryFor(
-                      isDark ? Brightness.dark : Brightness.light,
-                    ),
-                    fontVariations: const [
-                      FontVariation('opsz', 96),
-                      FontVariation('SOFT', 30),
-                      FontVariation('WONK', 0),
-                    ],
-                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
                 FlatmatesPriceText.hero(
                   amount: l.monthlyRent.round(),
-                  period: 'month',
-                  color: AppSemanticColors.textPrimaryFor(
-                    isDark ? Brightness.dark : Brightness.light,
-                  ),
+                  period: AppLocalizations.of(context).perMonthSuffix,
+                  color: AppSemanticColors.textPrimaryFor(theme.brightness),
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
@@ -152,7 +134,7 @@ class FlatDetailsHeader extends StatelessWidget {
                       Icons.location_on_outlined,
                       size: 18,
                       color: AppSemanticColors.textSecondaryFor(
-                        isDark ? Brightness.dark : Brightness.light,
+                        theme.brightness,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -161,7 +143,7 @@ class FlatDetailsHeader extends StatelessWidget {
                         [l.locality, l.city].whereType<String>().join(', '),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppSemanticColors.textSecondaryFor(
-                            isDark ? Brightness.dark : Brightness.light,
+                            theme.brightness,
                           ),
                         ),
                       ),
@@ -197,31 +179,6 @@ class FlatDetailsHeader extends StatelessWidget {
   }
 }
 
-class _LivePill extends StatelessWidget {
-  const _LivePill({required this.isDark, required this.locale});
-  final bool isDark;
-  final AppLocalizations locale;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppSemanticColors.success.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        locale.liveBadge,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: AppSemanticColors.success,
-        ),
-      ),
-    );
-  }
-}
-
 class _OwnerCard extends StatelessWidget {
   const _OwnerCard({
     required this.ownerName,
@@ -241,10 +198,10 @@ class _OwnerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final name = ownerName ?? 'Owner';
+    final name = ownerName ?? locale.ownerFallbackName;
 
     return FlatmatesCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: AppSpacing.edgeMd,
       onTap: onTap,
       child: Row(
         children: [
@@ -271,24 +228,26 @@ class _OwnerCard extends StatelessWidget {
                 FlatmatesAvatar(name: name, imageUrl: ownerImageUrl, size: 40),
               // Match pill sits under the ring, matching owner profile layout.
               if (matchPercentage != null && matchPercentage! > 0) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xxs,
                   ),
                   decoration: BoxDecoration(
                     color: compatibilityScoreColor(
                       matchPercentage!,
+                      brightness: theme.brightness,
                     ).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadius.mdBorder,
                   ),
                   child: Text(
                     locale.percentMatch(matchPercentage!.round()),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: compatibilityScoreColor(matchPercentage!),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: compatibilityScoreColor(
+                        matchPercentage!,
+                        brightness: theme.brightness,
+                      ),
                     ),
                   ),
                 ),
@@ -337,14 +296,13 @@ class _OwnerCard extends StatelessWidget {
       case 'open_to_both':
         return locale.ownerModeOpenToBoth;
       default:
-        return mode;
+        return humanizeFlatmatesToken(mode);
     }
   }
 }
 
-/// Scannable quick-stat pills (gender, sharing type, available from, furnished)
-/// shown below the location row — inspired by the swipe card's quick-stat
-/// overlay. Uses brightness-aware soft pastel fills (not light paper2).
+/// Quick facts (gender, sharing type, available from, furnished) under the
+/// location row, as pine-soft pills from the one palette.
 class _QuickStatPills extends StatelessWidget {
   const _QuickStatPills({required this.listing, required this.locale});
 
@@ -354,132 +312,32 @@ class _QuickStatPills extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = listing;
-    final pills = <_StatPill>[];
-
-    // Gender preference
-    final genderLabel = switch (l.genderPreference) {
-      'male' => locale.genderSuffixMaleOnly,
-      'female' => locale.genderSuffixFemaleOnly,
-      _ => locale.genderSuffixAny,
-    };
-    pills.add(
-      _StatPill(
-        icon: Icons.people_outline_rounded,
-        label: genderLabel,
-        palette: _StatPillPalette.orange,
-      ),
+    ListingMetaItem item(IconData icon, String label) => ListingMetaItem(
+      icon: icon,
+      label: label,
+      chipColor: MetaChipColor.green,
     );
 
-    // Sharing type / room type
-    if (l.sharingType != null && l.sharingType!.isNotEmpty) {
-      pills.add(
-        _StatPill(
-          icon: Icons.meeting_room_outlined,
-          label: localizedFlatmatesSharingTypeLabel(locale, l.sharingType!),
-          palette: _StatPillPalette.purple,
-        ),
-      );
-    }
-
-    // Available from (schedule / move-in fact)
-    final availableLabel = l.availableFrom != null
-        ? DateFormat.yMMMd(locale.localeName).format(l.availableFrom!)
-        : locale.flexibleLabel;
-    pills.add(
-      _StatPill(
-        icon: Icons.event_available_outlined,
-        label: availableLabel,
-        palette: _StatPillPalette.blue,
-      ),
-    );
-
-    // Furnished
-    if (l.isFurnished) {
-      pills.add(
-        _StatPill(
-          icon: Icons.chair_outlined,
-          label: locale.featureFurnished,
-          palette: _StatPillPalette.green,
-        ),
-      );
-    }
-
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: [for (final pill in pills) _StatPillChip(pill: pill)],
-    );
-  }
-}
-
-enum _StatPillPalette { orange, blue, purple, green }
-
-class _StatPill {
-  const _StatPill({
-    required this.icon,
-    required this.label,
-    required this.palette,
-  });
-  final IconData icon;
-  final String label;
-  final _StatPillPalette palette;
-}
-
-class _StatPillChip extends StatelessWidget {
-  const _StatPillChip({required this.pill});
-  final _StatPill pill;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final brightness = theme.brightness;
-    final isDark = brightness == Brightness.dark;
-    final (bg, fg) = _resolve(pill.palette, isDark);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: fg.withValues(alpha: 0.25), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(pill.icon, size: 13, color: fg),
-          const SizedBox(width: 4),
-          Text(
-            pill.label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: fg,
-            ),
+    return FlatmatesListingMetaChips(
+      items: [
+        item(Icons.people_outline_rounded, switch (l.genderPreference) {
+          'male' => locale.genderSuffixMaleOnly,
+          'female' => locale.genderSuffixFemaleOnly,
+          _ => locale.genderSuffixAny,
+        }),
+        if (l.sharingType != null && l.sharingType!.isNotEmpty)
+          item(
+            Icons.meeting_room_outlined,
+            localizedFlatmatesSharingTypeLabel(locale, l.sharingType!),
           ),
-        ],
-      ),
+        item(
+          Icons.event_available_outlined,
+          l.availableFrom != null
+              ? DateFormat.yMMMd(locale.localeName).format(l.availableFrom!)
+              : locale.flexibleLabel,
+        ),
+        if (l.isFurnished) item(Icons.chair_outlined, locale.featureFurnished),
+      ],
     );
-  }
-
-  (Color, Color) _resolve(_StatPillPalette palette, bool isDark) {
-    final brightness = isDark ? Brightness.dark : Brightness.light;
-    return switch (palette) {
-      _StatPillPalette.orange => (
-        AppSemanticColors.orangeSoftFor(brightness),
-        isDark ? AppSemanticColors.orangeMid : AppSemanticColors.orangeInk,
-      ),
-      _StatPillPalette.blue => (
-        AppSemanticColors.blueSoftFor(brightness),
-        isDark ? AppSemanticColors.blueMid : AppSemanticColors.blueInk,
-      ),
-      _StatPillPalette.purple => (
-        AppSemanticColors.purpleSoftFor(brightness),
-        isDark ? AppSemanticColors.purpleMid : AppSemanticColors.purpleInk,
-      ),
-      _StatPillPalette.green => (
-        AppSemanticColors.greenSoftFor(brightness),
-        AppSemanticColors.greenInkFor(brightness),
-      ),
-    };
   }
 }

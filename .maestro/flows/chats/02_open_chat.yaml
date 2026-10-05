@@ -22,7 +22,9 @@ tags:
     visible:
       id: chat_message_input
     timeout: 5000
-- back
+# On-screen back button: Maestro's `back` works on Android only.
+- tapOn:
+    id: nav_back_button
 - extendedWaitUntil:
     visible:
       id: conversation_card_0

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
-import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
+import '../../../shared/presentation/flatmates_button.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import 'edit_profile_dropdown_utils.dart';
+import '../../../shared/presentation/test_id.dart';
 
 class EditProfileContactInfoSection extends StatelessWidget {
   const EditProfileContactInfoSection({
@@ -71,9 +72,13 @@ class EditProfilePhotoSection extends StatelessWidget {
   final bool photoUploading;
   final VoidCallback onPickAndUploadPhoto;
 
+  static const double _photoSize = 120;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final b = theme.brightness;
+    final onPick = photoUploading ? null : onPickAndUploadPhoto;
 
     return FlatmatesCard(
       child: Column(
@@ -87,76 +92,62 @@ class EditProfilePhotoSection extends StatelessWidget {
               label: photoUploading
                   ? locale.profilePhotoUploading
                   : locale.profileChangePhotoSemantic,
+              excludeSemantics: true,
               child: GestureDetector(
-                onTap: photoUploading ? null : onPickAndUploadPhoto,
-                child: Stack(
-                  children: [
-                    AnimatedScale(
-                      scale: photoUploading ? 0.95 : 1.0,
-                      duration: AppMotion.fast,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              AppSemanticColors.accent,
-                              AppSemanticColors.orangeMid,
-                            ],
-                          ),
-                        ),
+                onTap: onPick,
+                child: SizedBox.square(
+                  dimension: _photoSize,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipOval(
                         child: photoUrls.isNotEmpty
-                            ? ClipOval(
-                                child: FlatmatesNetworkImage(
-                                  imageUrl: photoUrls.first,
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                ),
+                            ? FlatmatesNetworkImage(
+                                imageUrl: photoUrls.first,
+                                width: _photoSize,
+                                height: _photoSize,
+                                fit: BoxFit.cover,
                               )
-                            : const Icon(
-                                Icons.person,
-                                size: 48,
-                                color: Colors.white,
+                            : ColoredBox(
+                                color: AppSemanticColors.paperDeepFor(b),
+                                child: Icon(
+                                  Icons.person_rounded,
+                                  size: 48,
+                                  color: AppSemanticColors.textTertiaryFor(b),
+                                ),
                               ),
                       ),
-                    ),
-                    if (photoUploading)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: const BoxDecoration(
+                      if (photoUploading)
+                        DecoratedBox(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.black26,
+                            color: AppSemanticColors.scrim.withValues(
+                              alpha: 0.4,
+                            ),
                           ),
-                          alignment: Alignment.center,
-                          child: const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                          child: const Center(
+                            child: SizedBox.square(
+                              dimension: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppSemanticColors.onScrim,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Center(
+            child: FlatmatesButton.tertiary(
+              key: const Key('edit_profile_change_photo'),
+              label: locale.profileChangePhotoSemantic,
+              icon: Icons.photo_camera_outlined,
+              onPressed: onPick,
             ),
           ),
         ],
@@ -583,11 +574,14 @@ class EditProfileBioSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FlatmatesCard(
-      child: TextField(
-        key: const Key('profile_bio_input'),
-        controller: bioController,
-        maxLines: 4,
-        decoration: InputDecoration(labelText: locale.bioLabel),
+      child: withTestId(
+        const Key('profile_bio_input'),
+        TextField(
+          key: const Key('profile_bio_input'),
+          controller: bioController,
+          maxLines: 4,
+          decoration: InputDecoration(labelText: locale.bioLabel),
+        ),
       ),
     );
   }

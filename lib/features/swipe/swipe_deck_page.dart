@@ -12,6 +12,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../discover/discover_repository.dart';
 import '../shared/presentation/flatmates_error_state.dart';
+import '../shared/presentation/flatmates_screen.dart';
 import '../shared/presentation/flatmates_skeleton.dart';
 import '../shared/presentation/flatmates_toast.dart';
 import 'application/profile_compatibility.dart';
@@ -24,6 +25,7 @@ import 'presentation/widgets/swipe_card_stack.dart';
 import 'presentation/widgets/swipe_deck_header.dart';
 import 'presentation/widgets/swipe_empty_state.dart';
 import 'swipe_repository.dart';
+import '../shared/presentation/test_id.dart';
 
 part 'swipe_deck_actions.dart';
 
@@ -140,7 +142,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
   void _triggerSnapBack(Offset startOffset) {
     _snapBackStartOffset = startOffset;
-    _snapBackController.forward(from: 0);
+    _snapBackController
+      ..duration = AppMotion.durationOrZero(context, _snapBackDuration)
+      ..forward(from: 0);
   }
 
   void _onSnapBackTick() {
@@ -182,7 +186,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       dragOffset: startOffset,
       isAnimating: true,
     );
-    _flyOffController.forward(from: 0);
+    _flyOffController
+      ..duration = AppMotion.durationOrZero(context, _flyOffDuration)
+      ..forward(from: 0);
   }
 
   SwipeProfile? _currentProfile() {
@@ -239,13 +245,14 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         action: pending.action,
       );
     } catch (e) {
+      debugPrint('SwipeDeckPage.persistSwipe: $e');
       controller.rollbackSwipe(pending.profile);
       if (!mounted) return;
       final locale = AppLocalizations.of(context);
       final message = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.actionFailedRetry;
-      FlatmatesToast.info(context, message);
+      FlatmatesToast.error(context, message);
       _resetAfterSwipe();
       return;
     }
@@ -288,19 +295,19 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
 
     final hasSwiped = ref.watch(swipeDeckHasSwipedProvider);
 
+    // Loading and error keep the header, so the layout does not jump and
+    // the filter stays in reach.
     if (deckState.isLoading && profiles.isEmpty) {
-      return const Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xl),
-            child: FlatmatesSkeleton.swipeCard(),
-          ),
+      return _scaffoldWithHeader(
+        const Padding(
+          padding: EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xl),
+          child: FlatmatesSkeleton.swipeCard(),
         ),
       );
     }
     if (deckState.hasError && profiles.isEmpty) {
-      return Scaffold(
-        body: FlatmatesErrorState(
+      return _scaffoldWithHeader(
+        FlatmatesErrorState(
           message: locale.failedToLoadProfiles,
           onRetry: () =>
               ref.read(swipeDeckControllerProvider.notifier).refresh(),
@@ -335,6 +342,17 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final currentIndex = deckState.currentIndex;
 
     if (currentIndex >= visible.length) {
+      // Out of cards because the next page failed: that is an error with a
+      // retry, not "you have seen everyone".
+      if (deckState.hasError && deckState.hasMore) {
+        return _scaffoldWithHeader(
+          FlatmatesErrorState(
+            message: locale.failedToLoadProfiles,
+            onRetry: () =>
+                ref.read(swipeDeckControllerProvider.notifier).loadMore(),
+          ),
+        );
+      }
       return _scaffoldWithHeader(
         SwipeEmptyState(
           reason: SwipeEmptyReason.endOfDeck,
@@ -366,10 +384,14 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
         : null;
 
     final nearEnd = currentIndex >= visible.length - 3;
-    if (nearEnd && deckState.hasMore && !deckState.isLoadingMore) {
+    // No automatic retry after a failed page (that looped while offline);
+    // the error state above retries on demand.
+    if (nearEnd &&
+        deckState.hasMore &&
+        !deckState.isLoadingMore &&
+        !deckState.hasError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
         ref.read(swipeDeckControllerProvider.notifier).loadMore();
       });
     }
@@ -378,7 +400,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
       ValueListenableBuilder<SwipeInteractionState>(
         valueListenable: _interaction,
         builder: (context, interaction, _) {
-          final screenWidth = MediaQuery.of(context).size.width;
+          final screenWidth = MediaQuery.sizeOf(context).width;
           final rotation = calculateRotation(
             interaction.dragOffset,
             screenWidth,
@@ -392,27 +414,30 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
           // the foreground card (revealed after scrolling to the end).
           return Stack(
             children: [
-              SwipeCardStack(
-                key: const Key('swipe_card'),
-                item: item,
-                compatibility: compatibility,
-                nextItem: nextItem,
-                nextCompatibility: nextCompatibility,
-                thirdItem: thirdItem,
-                thirdCompatibility: thirdCompatibility,
-                dragOffset: interaction.dragOffset,
-                dragProgress: progress,
-                currentRotation: rotation,
-                isDragging: interaction.isDragging,
-                onHorizontalDragStart: _onHorizontalDragStart,
-                onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                onHorizontalDragEnd: _onHorizontalDragEnd,
-                actionBar: SwipeActionBar(
-                  onSkip: () => _triggerButtonSwipe(-1),
-                  onLike: () => _triggerButtonSwipe(1),
-                  onUndo: _undoLastSwipe,
-                  canUndo: deckState.lastSwipedProfile != null,
-                  enabled: !interaction.isBusy,
+              withTestId(
+                const Key('swipe_card'),
+                SwipeCardStack(
+                  key: const Key('swipe_card'),
+                  item: item,
+                  compatibility: compatibility,
+                  nextItem: nextItem,
+                  nextCompatibility: nextCompatibility,
+                  thirdItem: thirdItem,
+                  thirdCompatibility: thirdCompatibility,
+                  dragOffset: interaction.dragOffset,
+                  dragProgress: progress,
+                  currentRotation: rotation,
+                  isDragging: interaction.isDragging,
+                  onHorizontalDragStart: _onHorizontalDragStart,
+                  onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                  onHorizontalDragEnd: _onHorizontalDragEnd,
+                  actionBar: SwipeActionBar(
+                    onSkip: () => _triggerButtonSwipe(-1),
+                    onLike: () => _triggerButtonSwipe(1),
+                    onUndo: _undoLastSwipe,
+                    canUndo: deckState.lastSwipedProfile != null,
+                    enabled: !interaction.isBusy,
+                  ),
                 ),
               ),
               if (deckState.isLoadingMore)

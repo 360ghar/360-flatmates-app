@@ -6,7 +6,7 @@ import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../l10n/gen/app_localizations.dart';
-import 'flatmates_ui.dart';
+import 'lifestyle_labels.dart';
 
 typedef PreferenceRow = ({IconData icon, String label, String value});
 
@@ -28,10 +28,6 @@ class PreferencesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
         borderRadius: AppRadius.mdBorder,
-        border: Border.all(
-          color: AppSemanticColors.hairlineFor(theme.brightness),
-          width: 0.5,
-        ),
       ),
       child: Column(
         children: [
@@ -39,13 +35,16 @@ class PreferencesCard extends StatelessWidget {
             if (i > 0) const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Icon(rows[i].icon, size: 16, color: AppSemanticColors.accent),
+                Icon(
+                  rows[i].icon,
+                  size: 16,
+                  color: AppSemanticColors.clayFor(theme.brightness),
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     rows[i].label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 11,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: AppSemanticColors.textTertiaryFor(
                         theme.brightness,
                       ),
@@ -54,8 +53,7 @@ class PreferencesCard extends StatelessWidget {
                 ),
                 Text(
                   rows[i].value,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppSemanticColors.textPrimaryFor(theme.brightness),
                   ),
@@ -69,7 +67,7 @@ class PreferencesCard extends StatelessWidget {
   }
 }
 
-// ── Section header (accent bar + label) ────────────────────────────────
+// ── Section header (label) ─────────────────────────────────────────────
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({super.key, required this.label});
@@ -78,26 +76,15 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      children: [
-        Container(
-          width: 3,
-          height: 16,
-          decoration: const BoxDecoration(
-            color: AppSemanticColors.accent,
-            borderRadius: AppRadius.smBorder,
-          ),
+    // Type only: no decorative bar beside the label.
+    return Semantics(
+      header: true,
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: AppSemanticColors.textSecondaryFor(theme.brightness),
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -106,8 +93,8 @@ class SectionHeader extends StatelessWidget {
 
 typedef LifestyleCell = ({IconData icon, String dim, String value});
 
-/// 2-column icon tile grid for lifestyle preferences. Matches the style used
-/// on the swipe card: paper2 container, accentSoft icon boxes, dim/value text.
+/// 2-column grid for lifestyle preferences: bare clay icon, dimension and
+/// value, on a paper-1 panel.
 class LifestyleGrid extends StatelessWidget {
   const LifestyleGrid({super.key, required this.cells});
 
@@ -124,10 +111,6 @@ class LifestyleGrid extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
         borderRadius: AppRadius.mdBorder,
-        border: Border.all(
-          color: AppSemanticColors.hairlineFor(theme.brightness),
-          width: 0.5,
-        ),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -141,20 +124,10 @@ class LifestyleGrid extends StatelessWidget {
                   width: cellW,
                   child: Row(
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppSemanticColors.coralSoftFor(
-                            theme.brightness,
-                          ),
-                          borderRadius: AppRadius.smBorder,
-                        ),
-                        child: Icon(
-                          cell.icon,
-                          size: 16,
-                          color: AppSemanticColors.accent,
-                        ),
+                      Icon(
+                        cell.icon,
+                        size: 20,
+                        color: AppSemanticColors.clayFor(theme.brightness),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -165,8 +138,7 @@ class LifestyleGrid extends StatelessWidget {
                               cell.dim,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontSize: 10,
+                              style: theme.textTheme.bodySmall?.copyWith(
                                 color: AppSemanticColors.textTertiaryFor(
                                   theme.brightness,
                                 ),
@@ -176,8 +148,7 @@ class LifestyleGrid extends StatelessWidget {
                               cell.value,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontSize: 12,
+                              style: theme.textTheme.bodySmall?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: AppSemanticColors.textPrimaryFor(
                                   theme.brightness,
@@ -266,7 +237,10 @@ class CompatValueChip extends StatelessWidget {
     final theme = Theme.of(context);
     return Flexible(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xxs,
+        ),
         decoration: BoxDecoration(
           color: emphasized
               ? AppSemanticColors.coralSoftFor(theme.brightness)
@@ -274,7 +248,9 @@ class CompatValueChip extends StatelessWidget {
           borderRadius: AppRadius.pillBorder,
           border: Border.all(
             color: emphasized
-                ? AppSemanticColors.accent.withValues(alpha: 0.2)
+                ? AppSemanticColors.clayFor(
+                    theme.brightness,
+                  ).withValues(alpha: 0.2)
                 : AppSemanticColors.hairlineFor(theme.brightness),
             width: 0.5,
           ),
@@ -283,11 +259,10 @@ class CompatValueChip extends StatelessWidget {
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontSize: 10,
+          style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: emphasized ? FontWeight.w600 : FontWeight.w500,
             color: emphasized
-                ? AppSemanticColors.accent
+                ? AppSemanticColors.clayInkFor(theme.brightness)
                 : AppSemanticColors.textSecondaryFor(theme.brightness),
           ),
         ),
@@ -308,7 +283,10 @@ class CompatBreakdownSection extends StatelessWidget {
     if (result.dimensions.isEmpty) return const SizedBox.shrink();
 
     final buckets = dimensionBuckets(result.dimensions);
-    final overallColor = compatibilityScoreColor(result.percentage);
+    final overallColor = compatibilityScoreColor(
+      result.percentage,
+      brightness: Theme.of(context).brightness,
+    );
     final tone = matchToneLabel(locale, result.percentage);
 
     return Container(
@@ -317,10 +295,6 @@ class CompatBreakdownSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
         borderRadius: AppRadius.mdBorder,
-        border: Border.all(
-          color: AppSemanticColors.hairlineFor(theme.brightness),
-          width: 0.5,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,13 +314,12 @@ class CompatBreakdownSection extends StatelessWidget {
                   children: [
                     Text(
                       tone,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: overallColor,
                       ),
                     ),
-                    const SizedBox(height: 2),
+
                     Text(
                       [
                         if (buckets.aligned > 0)
@@ -356,8 +329,7 @@ class CompatBreakdownSection extends StatelessWidget {
                         if (buckets.gaps > 0)
                           locale.compatGapCount(buckets.gaps),
                       ].join(' \u00b7 '),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontSize: 11,
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: AppSemanticColors.textTertiaryFor(
                           theme.brightness,
                         ),
@@ -368,17 +340,23 @@ class CompatBreakdownSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Container(
-            height: 0.5,
-            color: AppSemanticColors.hairlineFor(theme.brightness),
-          ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.lg),
           ...result.dimensions.map((dim) {
             final score = (dim.score / 100).clamp(0.0, 1.0);
-            final color = compatibilityScoreColor(dim.score);
-            final peerLabel = humanizeFlatmatesToken(dim.peerValue);
-            final userLabel = humanizeFlatmatesToken(dim.userValue);
+            final color = compatibilityScoreColor(
+              dim.score,
+              brightness: Theme.of(context).brightness,
+            );
+            final peerLabel = lifestyleValueLabel(
+              locale,
+              dim.key,
+              dim.peerValue,
+            );
+            final userLabel = lifestyleValueLabel(
+              locale,
+              dim.key,
+              dim.userValue,
+            );
             final icon = compatDimensionIcon(dim.key);
             final glyph = dim.score >= 70
                 ? Icons.check_circle_rounded
@@ -387,7 +365,7 @@ class CompatBreakdownSection extends StatelessWidget {
                 : Icons.error_outline;
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: AppSpacing.base),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -406,8 +384,7 @@ class CompatBreakdownSection extends StatelessWidget {
                           compatSummaryLabel(locale, dim.summary),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontSize: 12,
+                          style: theme.textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppSemanticColors.textPrimaryFor(
                               theme.brightness,
@@ -416,40 +393,39 @@ class CompatBreakdownSection extends StatelessWidget {
                         ),
                       ),
                       Icon(glyph, size: 14, color: color),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         '${dim.score.round()}%',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
                           color: color,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       CompatValueChip(label: peerLabel, emphasized: true),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         '\u00b7',
-                        style: TextStyle(
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: AppSemanticColors.textTertiaryFor(
                             theme.brightness,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: AppSpacing.sm),
                       CompatValueChip(
                         label: '${locale.matchSelfFallbackName}: $userLabel',
                         emphasized: false,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.sm),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: AppRadius.xsBorder,
                     child: LinearProgressIndicator(
                       value: score,
                       backgroundColor: color.withValues(alpha: 0.12),

@@ -299,7 +299,6 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
 
     if (!result.didMatch) return;
 
-    ref.invalidate(conversationsProvider);
     unawaited(ref.read(conversationsListControllerProvider.notifier).refresh());
   }
 

@@ -6,15 +6,12 @@ import '../../../core/theme/app_typography.dart';
 import 'flatmates_chrome_icon_button.dart';
 import 'flatmates_ui.dart';
 
-/// Standardized Airbnb-style screen header with back/title/actions/logo variants.
-///
-/// Replaces custom headers in notifications, settings, help, schedule visit,
-/// create listing, search filters, etc.
+/// Screen header with back/title/actions/logo variants.
 ///
 /// Visual language (DESIGN.md):
-/// - Canvas surface, zero elevation, 1px bottom hairline
-/// - Circular outline chrome icon buttons for back/actions
-/// - Left-aligned title at title-md (16/600)
+/// - Sky surface, zero elevation, 1px bottom hairline
+/// - Bare chrome icon buttons for back/actions
+/// - Left-aligned title in the `title` role (17/600)
 enum FlatmatesHeaderVariant { backTitle, logo, titleOnly, titleAction }
 
 class FlatmatesHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -109,17 +106,11 @@ class FlatmatesHeader extends StatelessWidget implements PreferredSizeWidget {
       leading = Padding(
         padding: const EdgeInsets.only(left: AppSpacing.sm),
         child: FlatmatesChromeIconButton(
+          key: const Key('nav_back_button'),
           icon: Icons.arrow_back_rounded,
           tooltip: backTooltip,
-          onPressed: onBack ?? () => Navigator.maybeOf(context)?.pop(),
-        ),
-      );
-    } else if (variant == FlatmatesHeaderVariant.logo) {
-      leading = const Padding(
-        padding: EdgeInsets.only(left: AppSpacing.base),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: FlatmatesLogo(toolbar: true),
+          // maybePop so a PopScope guard (unsaved changes) still runs.
+          onPressed: onBack ?? () => Navigator.maybeOf(context)?.maybePop(),
         ),
       );
     } else {
@@ -128,15 +119,14 @@ class FlatmatesHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       toolbarHeight: toolbarHeight,
-      leadingWidth: _showsBack
-          ? 56
-          : (variant == FlatmatesHeaderVariant.logo ? 88 : null),
+      // 60, not 56: the caller's 8 dp leading padding and the icon button's own
+      // 2 + 2 dp padding come out of this slot, so the back button only keeps
+      // its 48 dp target at 60.
+      leadingWidth: _showsBack ? 60 : null,
       leading: leading,
       automaticallyImplyLeading: false,
       title: titleWidget ?? _buildTitle(context),
-      titleSpacing: _showsBack || variant == FlatmatesHeaderVariant.logo
-          ? AppSpacing.sm
-          : AppSpacing.base,
+      titleSpacing: _showsBack ? AppSpacing.sm : AppSpacing.base,
       centerTitle: centerTitle,
       actions: actions != null && actions!.isNotEmpty
           ? [...actions!, const SizedBox(width: AppSpacing.sm)]
@@ -148,12 +138,9 @@ class FlatmatesHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget? _buildTitle(BuildContext context) {
     final theme = Theme.of(context);
 
+    // The wordmark is wider than a leading slot, so it is always the title.
     if (variant == FlatmatesHeaderVariant.logo) {
-      // Logo lives in leading when no back; with back, show logo as title.
-      if (onBack != null) {
-        return const FlatmatesLogo(toolbar: true);
-      }
-      return null;
+      return const FlatmatesLogo(toolbar: true);
     }
 
     if (title == null || title!.trim().isEmpty) return null;

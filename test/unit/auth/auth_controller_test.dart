@@ -152,6 +152,82 @@ void main() {
     });
   });
 
+  group('startIdentifierFlow', () {
+    Future<(({String? route, bool unverified}), _FlowFake)> run(
+      String identifier,
+      IdentifierStatus status,
+    ) async {
+      final fake = _FlowFake(status);
+      final container = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(fakeAppConfig()),
+          authControllerProvider.overrideWith(() => fake),
+        ],
+      );
+      addTearDown(container.dispose);
+      final result = await container
+          .read(authControllerProvider.notifier)
+          .startIdentifierFlow(identifier);
+      expect(container.read(pendingPhoneProvider), identifier);
+      return (result, fake);
+    }
+
+    IdentifierStatus status({
+      required bool exists,
+      required bool verified,
+      required IdentifierNextStep next,
+      AuthChannel channel = AuthChannel.phone,
+    }) => IdentifierStatus(
+      exists: exists,
+      verified: verified,
+      hasPassword: next == IdentifierNextStep.password,
+      channel: channel,
+      nextStep: next,
+    );
+
+    test('password step opens login and sends no OTP', () async {
+      final (result, fake) = await run(
+        '+919999999999',
+        status(exists: true, verified: true, next: IdentifierNextStep.password),
+      );
+      expect(result.route, '/login?phone=%2B919999999999');
+      expect(result.unverified, isFalse);
+      expect(fake.createUser, isNull);
+    });
+
+    test('unknown phone signs up through OTP', () async {
+      final (result, fake) = await run(
+        '+919999999999',
+        status(exists: false, verified: false, next: IdentifierNextStep.otp),
+      );
+      expect(result.route, '/otp?phone=%2B919999999999');
+      expect(fake.createUser, isTrue);
+    });
+
+    test('verified passwordless phone logs in without creating', () async {
+      final (_, fake) = await run(
+        '+919999999999',
+        status(exists: true, verified: true, next: IdentifierNextStep.otp),
+      );
+      expect(fake.createUser, isFalse);
+    });
+
+    test('unverified email flags the hint and allows creation', () async {
+      final (result, fake) = await run(
+        'a@b.co',
+        status(
+          exists: true,
+          verified: false,
+          next: IdentifierNextStep.otp,
+          channel: AuthChannel.email,
+        ),
+      );
+      expect(result.route, '/otp?email=a%40b.co');
+      expect(result.unverified, isTrue);
+      expect(fake.createUser, isTrue);
+    });
+  });
+
   group('AuthState', () {
     test('isLoggedIn is true when sessionAuthenticated is true', () {
       const state = AuthState(
@@ -212,4 +288,28 @@ void main() {
       expect(status.nextStep, IdentifierNextStep.otp);
     });
   });
+}
+
+class _FlowFake extends FakeAuthController {
+  _FlowFake(this.status);
+
+  final IdentifierStatus status;
+
+  /// The create-user flag of the last OTP request; null when none was sent.
+  bool? createUser;
+
+  @override
+  Future<IdentifierStatus?> checkIdentifierStatus(String identifier) async =>
+      status;
+
+  @override
+  Future<void> requestOtp(String phone, {bool shouldCreateUser = false}) async {
+    createUser = shouldCreateUser;
+  }
+
+  @override
+  Future<bool> sendEmailOtp(String email, {bool isSignup = true}) async {
+    createUser = isSignup;
+    return true;
+  }
 }

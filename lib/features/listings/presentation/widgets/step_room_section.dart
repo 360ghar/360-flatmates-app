@@ -146,6 +146,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
   Widget _buildPhotosStep() {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
+    final clay = AppSemanticColors.clayFor(theme.brightness);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,62 +155,17 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
         if (widget.showPhotosValidation && widget.roomPhotoUrls.isEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  size: 16,
-                  color: AppSemanticColors.error,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  locale.listingPhotosRequired,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.error,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+            child: FlatmatesInlineError(locale.listingPhotosRequired),
           ),
         // Tips toggle (top-right aligned)
         Align(
-          alignment: Alignment.centerRight,
-          child: GestureDetector(
-            onTap: () => setState(() => _showPhotoTips = !_showPhotoTips),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: _showPhotoTips
-                    ? AppSemanticColors.coralSoftFor(theme.brightness)
-                    : AppSemanticColors.disabledSurfaceFor(theme.brightness),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.lightbulb_outline,
-                    size: 16,
-                    color: _showPhotoTips
-                        ? AppSemanticColors.accent
-                        : AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    locale.addPhotosTips,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: _showPhotoTips
-                          ? AppSemanticColors.accent
-                          : AppSemanticColors.textSecondaryFor(
-                              theme.brightness,
-                            ),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          alignment: AlignmentDirectional.centerEnd,
+          child: FlatmatesChip(
+            key: const Key('listing_photo_tips_toggle'),
+            icon: Icons.lightbulb_outline,
+            label: locale.addPhotosTips,
+            selected: _showPhotoTips,
+            onSelected: (v) => setState(() => _showPhotoTips = v),
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -221,7 +177,7 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.s20),
 
         // Tips content (collapsible)
         if (_showPhotoTips) ...[
@@ -229,36 +185,29 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
             width: double.infinity,
             padding: AppSpacing.edgeLg,
             decoration: BoxDecoration(
-              color: AppSemanticColors.coralSoftFor(
-                theme.brightness,
-              ).withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(14),
+              color: AppSemanticColors.paper1For(theme.brightness),
+              borderRadius: AppRadius.mdBorder,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '📸 ${locale.addPhotosTips}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 10),
+                Text(locale.addPhotosTips, style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   locale.photoTipNaturalLight,
                   style: theme.textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   locale.photoTipFullRoom,
                   style: theme.textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   locale.photoTipBathroomBalcony,
                   style: theme.textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   locale.photoTipCleanRoom,
                   style: theme.textTheme.bodyMedium,
@@ -266,24 +215,35 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.s20),
         ],
 
-        // Min photos required indicator
+        // Min photos required indicator. Both children are flex children, so
+        // each gets a finite width: the label takes what is left and the pill
+        // wraps inside its own bound. A non-flex pill in this Row is what used
+        // to overflow by 206 px at 1x and 676 px at 2x on a 320 dp phone.
         Row(
           children: [
-            Text(
-              locale.roomPhotosLabel,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                locale.roomPhotosLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: AppSpacing.sm),
             if (widget.roomPhotoUrls.length < 2)
-              InfoPill(label: locale.minPhotosRequired, highlighted: true),
+              Flexible(
+                child: InfoPill(
+                  label: locale.minPhotosRequired,
+                  highlighted: true,
+                ),
+              ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
 
         // Photo cards — uploaded photos with premium card wrapper
         ...widget.roomPhotoUrls.asMap().entries.map((e) {
@@ -300,21 +260,41 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
                     height: 200,
                     borderRadius: AppRadius.cardBorder,
                   ),
+                  // 48 dp target around a 32 dp scrim disc: readable on any
+                  // photo, in light and dark.
                   Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Material(
-                      color: AppSemanticColors.error,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        onTap: () => widget.onRemovePhoto(e.key),
-                        customBorder: const CircleBorder(),
-                        child: const Padding(
-                          padding: AppSpacing.edgeSm,
-                          child: Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 18,
+                    right: AppSpacing.xs,
+                    top: AppSpacing.xs,
+                    child: Tooltip(
+                      message: locale.removePhotoTooltip,
+                      child: Semantics(
+                        button: true,
+                        label: locale.removePhotoTooltip,
+                        excludeSemantics: true,
+                        child: InkResponse(
+                          key: ValueKey('listing_remove_photo_${e.key}'),
+                          onTap: () => widget.onRemovePhoto(e.key),
+                          radius: kMinInteractiveDimension / 2,
+                          child: SizedBox.square(
+                            dimension: kMinInteractiveDimension,
+                            child: Center(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: AppSemanticColors.scrim.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const SizedBox.square(
+                                  dimension: 32,
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    color: AppSemanticColors.onScrim,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -330,69 +310,33 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
         if (widget.roomPhotoUrls.length < 10)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: GestureDetector(
-              key: const Key('listing_add_photos_tile'),
-              onTap: widget.onPickPhotos,
-              child: DashedBorderContainer(
-                color: AppSemanticColors.hairlineFor(theme.brightness),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 140,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppSemanticColors.coralSoftFor(
-                            theme.brightness,
-                          ).withValues(alpha: 0.4),
-                          shape: BoxShape.circle,
+            child: withTestId(
+              const Key('listing_add_photos_tile'),
+              InkWell(
+                key: const Key('listing_add_photos_tile'),
+                onTap: widget.onPickPhotos,
+                borderRadius: AppRadius.cardBorder,
+                child: DashedBorderContainer(
+                  color: AppSemanticColors.hairlineFor(theme.brightness),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 140,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_a_photo_outlined, color: clay, size: 32),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          locale.addMorePhotosLabel,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: clay,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.camera_alt_outlined,
-                          color: AppSemanticColors.accent,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        locale.addMorePhotosLabel,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppSemanticColors.accent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-
-        // Pagination dots showing photo progress
-        if (widget.roomPhotoUrls.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                (widget.roomPhotoUrls.length / 3).ceil(),
-                (i) {
-                  final isActive = i == 0;
-                  return Container(
-                    width: isActive ? 24 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppSemanticColors.accent
-                          : AppSemanticColors.hairlineFor(theme.brightness),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                },
               ),
             ),
           ),
@@ -406,14 +350,14 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           locale.videoTourHint,
           style: theme.textTheme.bodySmall?.copyWith(
             color: AppSemanticColors.textSecondaryFor(theme.brightness),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         if (widget.videoUploading)
           const Center(
             child: Padding(
@@ -424,26 +368,22 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
         else if (widget.videoTourUrl != null)
           Row(
             children: [
-              const Icon(
-                Icons.videocam_rounded,
-                color: AppSemanticColors.accent,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
+              Icon(Icons.videocam_rounded, color: clay, size: 28),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   locale.videoTourAdded,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppSemanticColors.accent,
+                    color: AppSemanticColors.textPrimaryFor(theme.brightness),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () => widget.onVideoTourUrlChanged(null),
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete_outline_rounded,
-                  color: AppSemanticColors.error,
+                  color: AppSemanticColors.dangerFor(theme.brightness),
                 ),
                 tooltip: locale.removeVideoTourTooltip,
               ),
@@ -451,33 +391,28 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
           )
         else
           Material(
-            color: AppSemanticColors.disabledSurfaceFor(
-              theme.brightness,
-            ).withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
+            color: AppSemanticColors.paper1For(theme.brightness),
+            borderRadius: AppRadius.mdBorder,
             child: InkWell(
-              borderRadius: BorderRadius.circular(14),
+              key: const Key('listing_add_video_tile'),
+              borderRadius: AppRadius.mdBorder,
               onTap: _pickVideoTour,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 16,
+                  vertical: AppSpacing.s20,
+                  horizontal: AppSpacing.base,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.video_call_outlined,
-                      color: AppSemanticColors.accent,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 10),
+                    Icon(Icons.video_call_outlined, color: clay, size: 28),
+                    const SizedBox(width: AppSpacing.md),
                     Flexible(
                       child: Text(
                         locale.addVideoCta,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppSemanticColors.accent,
+                          color: clay,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -517,15 +452,25 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
       result = await service.uploadVideoTour(file);
     } catch (e) {
       debugPrint('StepRoomSection._pickVideoTour failed: $e');
-      if (mounted) widget.onVideoUploadingChanged(false);
+      if (!mounted) return;
+      widget.onVideoUploadingChanged(false);
+      FlatmatesToast.error(
+        context,
+        AppLocalizations.of(context).videoUploadFailed,
+      );
       return;
     }
     if (!mounted) return;
     if (result is UploadSuccess) {
       widget.onVideoTourUrlChanged(result.url);
     } else if (result is UploadFailure) {
+      debugPrint('StepRoomSection._pickVideoTour: ${result.reason}');
       widget.onVideoTourUrlChanged(null);
-      FlatmatesToast.error(context, result.reason);
+      // Never show the raw exception text; it is logged above.
+      FlatmatesToast.error(
+        context,
+        AppLocalizations.of(context).videoUploadFailed,
+      );
     }
     widget.onVideoUploadingChanged(false);
   }

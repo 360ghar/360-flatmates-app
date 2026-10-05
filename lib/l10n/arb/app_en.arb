@@ -85,7 +85,7 @@
   "homePickedSubtitle": "Top flats that match your preferences and vibe",
   "homeNoResults": "No listings match those filters.",
   "homeNoResultsSubtitle": "Try adjusting your filters or search for a different location.",
-  "homeBroadenedRadius": "No listings within your area — showing flats farther away.",
+  "homeBroadenedRadius": "No listings in your area. Showing flats farther away.",
   "homeBedroomsChip": "{count} BHK",
   "@homeBedroomsChip": {
     "placeholders": {
@@ -137,7 +137,15 @@
   "badgeNew": "New",
   "badgePopular": "Popular",
   "badgeTrending": "Trending",
-  "monthlyRentLabel": "Monthly rent: ₹{amount}",
+  "unreadMessagesCount": "{count, plural, =1{1 unread message} other{{count} unread messages}}",
+  "@unreadMessagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyRentLabel": "Monthly rent: {amount}",
   "@monthlyRentLabel": {
     "placeholders": {
       "amount": {
@@ -294,7 +302,7 @@
   "selectDateCta": "Select date",
   "postListingTitle": "Post your space",
   "postListingCta": "List your space in minutes",
-  "postListingSubtitle": "Create a real flatmate listing using the existing 360 Ghar inventory backend.",
+  "postListingSubtitle": "Add your room with photos, rent and move-in date.",
   "postListingBasics": "Basics",
   "postListingPricing": "Pricing",
   "postListingDetails": "Details",
@@ -359,9 +367,9 @@
   "quizFlexible": "Flexible",
   "quizNightOwl": "Night owl (after midnight)",
   "quizCleanliness": "How clean do you keep things?",
-  "quizCleanMinimal": "Minimal — lived-in is fine",
-  "quizCleanTidy": "Tidy — things in their place",
-  "quizCleanSpotless": "Spotless — everything pristine",
+  "quizCleanMinimal": "Minimal: lived-in is fine",
+  "quizCleanTidy": "Tidy: things in their place",
+  "quizCleanSpotless": "Spotless: everything pristine",
   "quizFoodHabits": "What are your food habits?",
   "quizVegetarian": "Vegetarian",
   "quizVegan": "Vegan",
@@ -376,7 +384,7 @@
   "quizGuestsPolicy": "How do you feel about guests?",
   "quizNoGuests": "No overnight guests",
   "quizOccasionalGuests": "Occasional guests are ok",
-  "quizOpenHouse": "Open house — always welcome",
+  "quizOpenHouse": "Open house: always welcome",
   "quizParties": "How about parties at home?",
   "quizPartiesNever": "Never",
   "quizPartiesWeekends": "Occasional weekends",
@@ -384,7 +392,7 @@
   "quizWorkStyle": "What's your work style?",
   "quizWfh": "Work from home mostly",
   "quizOffice": "Office mostly",
-  "quizHybrid": "Hybrid — mix of both",
+  "quizHybrid": "Hybrid: mix of both",
   "quizPets": "How do you feel about pets?",
   "quizNoPets": "No pets",
   "quizHavePets": "I have pets",
@@ -416,7 +424,7 @@
   "lifestyleQuizTitle": "Lifestyle preferences",
   "emptySwipeDeck": "No more profiles to show right now. Check back later!",
   "tapToSeeMore": "View full profile",
-  "whyThisMatchWorks": "WHY THIS MATCH WORKS",
+  "whyThisMatchWorks": "Why this match works",
   "tapToCollapse": "Tap to collapse",
   "aboutMeSection": "About me",
   "noBioYet": "No bio yet.",
@@ -703,6 +711,7 @@
   "visitCancelConfirm": "Are you sure you want to cancel this visit?",
   "visitConfirmed": "Visit confirmed",
   "visitCancelled": "Visit cancelled.",
+  "videoUploadFailed": "Could not upload the video. Try again.",
   "videoTourLabel": "Video tour (optional)",
   "videoTourHint": "15-60 second vertical video, max 50MB",
   "addVideoCta": "Add video tour",
@@ -721,6 +730,7 @@
   "chatPollingInfo": "Messages refresh automatically",
   "flatDetailsTitle": "Flat details",
   "notificationsTitle": "Notifications",
+  "notificationUnreadLabel": "Unread",
   "notificationEmpty": "No notifications yet.",
   "helpSafetyTitle": "Help & Safety",
   "safetyTips": "Safety tips",
@@ -769,6 +779,18 @@
   "editStep": "Edit",
   "filterApplied": "Filters applied",
   "noListingsMatchFilters": "No listings match your filters. Try adjusting them.",
+  "labelWithCount": "{label} ({count})",
+  "@labelWithCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "listingStatusUnknown": "Unknown status",
   "listingRejected": "Rejected",
   "reviewSupportText": "We'll review your listing within 24 hours",
   "reviewStep3Desc": "You'll receive a notification once your listing is approved and live.",
@@ -1036,7 +1058,7 @@
   "addPhotosTitle": "Add Photos",
   "addPhotosTips": "Tips",
   "addPhotosInstruction": "Add clear photos of the room and common areas to get more matches.",
-  "photoTipNaturalLight": "• Use natural lighting — open curtains before shooting",
+  "photoTipNaturalLight": "• Use natural light: open the curtains before you shoot",
   "photoTipFullRoom": "• Show the full room from corner to corner",
   "photoTipBathroomBalcony": "• Include bathroom and balcony if available",
   "photoTipCleanRoom": "• Clean up before taking photos",
@@ -1069,7 +1091,7 @@
   "searchLocationPlaceholder": "Search location",
   "useCurrentLocation": "Use my current location",
   "detectingLocation": "Detecting location...",
-  "popularCitiesLabel": "POPULAR CITIES",
+  "popularCitiesLabel": "Popular cities",
   "noLocationsAvailable": "No locations available",
   "clusterListingsTitle": "Listings in this area",
   "clusterListingsCount": "{count} listings",
@@ -1096,8 +1118,8 @@
   "matchKeepSwiping": "Keep swiping",
   "swipeNoMoreProfiles": "No more profiles",
   "swipeCheckBackLater": "Check back later for new matches",
-  "swipeLikeLabel": "LIKE",
-  "swipeNopeLabel": "PASS",
+  "swipeLikeLabel": "Like",
+  "swipeNopeLabel": "Pass",
   "failedToLoadProfiles": "Failed to load profiles",
   "actionFailedRetry": "Action failed. Please try again.",
   "wifiChipLabel": "WiFi",
@@ -1251,14 +1273,11 @@
       }
     }
   },
-  "listingSummaryPhotos": "{count} photo{plural}",
+  "listingSummaryPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
   "@listingSummaryPhotos": {
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "plural": {
-        "type": "String"
       }
     }
   },
@@ -1317,7 +1336,7 @@
   "errorAuth": "Authentication failed. Please try again.",
   "errorServer": "Server error. Please try again later.",
   "errorPermission": "You do not have permission to perform this action.",
-  "errorNotFound": "The requested resource was not found.",
+  "errorNotFound": "This page or item no longer exists.",
   "errorValidation": "Invalid data. Please check your input.",
   "errorRateLimit": "Too many requests. Please wait a moment and try again.",
   "errorConflict": "A conflict occurred. The data may have changed.",
@@ -1382,19 +1401,20 @@
       }
     }
   },
-  "reviewPhotosAmount": "{count} photo{plural}",
+  "reviewPhotosAmount": "{count, plural, =1{1 photo} other{{count} photos}}",
   "@reviewPhotosAmount": {
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "plural": {
-        "type": "String"
       }
     }
   },
-  "invalidListingId": "Invalid listing ID",
-  "invalidConversationId": "Invalid conversation ID",
+  "notFoundTitle": "We could not find that page",
+  "@notFoundTitle": {
+    "description": "Title of the page shown for an unknown route or deep link."
+  },
+  "invalidListingId": "This listing link is broken.",
+  "invalidConversationId": "This chat link is broken.",
   "youAreOffline": "You are offline. Check your connection.",
   "visitScheduledNotificationFailed": "Visit scheduled! Could not send notification.",
   "bootstrapErrorRetry": "Something went wrong. Tap to retry.",
@@ -1417,12 +1437,12 @@
   "locationOpenAppSettings": "Open App Settings",
   "locationNoMatchFound": "Could not find a matching city nearby. Please select manually.",
   "searchCityOrAreaHint": "Search city or area",
-  "suggestionsLabel": "SUGGESTIONS",
+  "suggestionsLabel": "Suggestions",
   "locationPickerTitle": "Choose Location",
   "locationPickerSearchHint": "Search area, locality, city...",
-  "matchingCitiesLabel": "MATCHING CITIES",
+  "matchingCitiesLabel": "Matching cities",
   "noCitiesFound": "No cities found",
-  "moreCitiesLabel": "MORE CITIES",
+  "moreCitiesLabel": "More cities",
   "searchRadiusLabel": "Search Radius",
   "distanceKmLabel": "{distance} km",
   "@distanceKmLabel": {
@@ -1495,6 +1515,14 @@
   "optionalUpdateCta": "Update now",
   "optionalUpdateLater": "Later",
   "patchReadyMessage": "An update is ready. It will apply the next time you open the app.",
+  "appVersionLabel": "Version {version}",
+  "@appVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "patchLabel": "patch {number}",
   "@patchLabel": {
     "placeholders": {
@@ -1564,7 +1592,7 @@
   "shortlisted": "Liked",
   "shortlistRemoved": "Like removed",
   "contactRequestSentToast": "Contact request sent",
-  "listingLabel": "LISTING",
+  "listingLabel": "Listing",
   "liveBadge": "Live",
   "floorPlanSectionTitle": "Floor Plan",
   "tapToZoomHint": "Tap to zoom",
@@ -1595,7 +1623,7 @@
   "likesLabel": "likes",
   "openChatCta": "Open Chat",
   "visitRequestSent": "Visit request sent!",
-  "visitFromDetailPageNote": "Interested in this property — scheduled from listing page.",
+  "visitFromDetailPageNote": "Interested in this property. Scheduled from the listing page.",
   "readMoreCta": "Read more",
   "showLessCta": "Show less",
   "viewProfileCta": "View Profile",
@@ -1817,7 +1845,7 @@
 
   "onboardingBannerTitle": "Complete your profile to start matching",
   "onboardingBannerCta": "Continue setup",
-  "onboardingStepsRemaining": "{count} steps left",
+  "onboardingStepsRemaining": "{count, plural, =1{1 step left} other{{count} steps left}}",
   "@onboardingStepsRemaining": {
     "placeholders": {
       "count": {
@@ -1902,5 +1930,25 @@
   "ageBucket31_35": "31-35",
   "ageBucket36_40": "36-40",
   "ageBucket41_45": "41-45",
-  "ageBucket46Plus": "46+"
+  "ageBucket46Plus": "46+",
+  "emailVerifiedLabel": "Email verified",
+  "onboardingFinishLaterCta": "Finish later",
+  "removePhotoTooltip": "Remove photo",
+  "budgetUpToLabel": "Up to ₹{amount}",
+  "@budgetUpToLabel": {"placeholders": {"amount": {"type": "String"}}},
+  "ageRangeYearsValue": "{min} – {max} yrs",
+  "@ageRangeYearsValue": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "ventilationAny": "Any",
+  "adjustFiltersCta": "Adjust filters",
+  "clearSearchTooltip": "Clear search",
+  "voteDownHint": "Vote down",
+  "mapRecenterTooltip": "Go to my location",
+  "mapFitAllTooltip": "Show all listings",
+  "mapZoomInTooltip": "Zoom in",
+  "mapZoomOutTooltip": "Zoom out",
+  "ownerFallbackName": "Owner",
+  "floorOfLabel": "Floor {floor} of {total}",
+  "@floorOfLabel": {"placeholders": {"floor": {"type": "String"}, "total": {"type": "String"}}},
+  "floorNumberLabel": "Floor {floor}",
+  "@floorNumberLabel": {"placeholders": {"floor": {"type": "String"}}}
 }

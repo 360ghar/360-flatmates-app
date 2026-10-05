@@ -114,7 +114,6 @@ void _invalidateMatchState(Ref ref) {
 }
 
 void _invalidateConversationState(Ref ref) {
-  ref.invalidate(conversationsProvider);
   ref.invalidate(conversationsListControllerProvider);
 }
 
@@ -122,7 +121,6 @@ void _invalidateConversationState(Ref ref) {
 /// when the thread is mounted so we do not depend on Postgres Changes on
 /// `public.messages`. Also invalidates the one-shot REST seed provider.
 void _refreshConversationThread(Ref ref, int conversationId) {
-  ref.invalidate(messagesProvider(conversationId));
   if (ref.exists(messagesControllerProvider(conversationId))) {
     unawaited(
       ref

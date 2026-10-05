@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
+import 'package:flatmates_app/core/theme/app_theme.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 
@@ -398,37 +399,18 @@ void main() {
   });
 
   group('FlatmatesLogo', () {
-    testWidgets('renders "36" and "FLATMATES" in default mode', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesLogo())),
-      );
-
-      // "36" is rendered inside a RichText (TextSpan), not a plain Text.
-      // The icon also renders as a RichText, so we expect multiple.
-      expect(find.byType(RichText), findsWidgets);
-      expect(find.text('FLATMATES'), findsOneWidget);
-      expect(find.byIcon(Icons.rotate_right_rounded), findsOneWidget);
-    });
-
-    testWidgets('renders compact variant', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesLogo(compact: true))),
-      );
-
-      expect(find.byType(RichText), findsWidgets);
-      expect(find.text('FLATMATES'), findsOneWidget);
-    });
-
-    testWidgets('toolbar variant renders only RichText + icon', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: FlatmatesLogo(toolbar: true))),
-      );
-
-      // Toolbar mode: "36" + icon in RichText, no "FLATMATES" text.
-      expect(find.byType(RichText), findsWidgets);
-      expect(find.text('FLATMATES'), findsNothing);
-      expect(find.byIcon(Icons.rotate_right_rounded), findsOneWidget);
-    });
+    for (final logo in const [
+      FlatmatesLogo(),
+      FlatmatesLogo(compact: true),
+      FlatmatesLogo(toolbar: true),
+    ]) {
+      testWidgets('reads "360 Flatmates" (compact=${logo.compact}, '
+          'toolbar=${logo.toolbar})', (tester) async {
+        await tester.pumpWidget(MaterialApp(home: Scaffold(body: logo)));
+        expect(find.text('360 Flatmates', findRichText: true), findsOneWidget);
+        expect(find.bySemanticsLabel('360 Flatmates'), findsOneWidget);
+      });
+    }
   });
 
   group('FlatmatesButton', () {
@@ -465,7 +447,9 @@ void main() {
       );
 
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.byType(OutlinedButton), findsOneWidget);
+      // Secondary is a soft fill (DESIGN.md §8), never an outline.
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.byType(OutlinedButton), findsNothing);
     });
 
     testWidgets('tertiary variant renders label', (tester) async {
@@ -553,38 +537,7 @@ void main() {
         ),
       );
 
-      final sizedBox = tester.widget<SizedBox>(
-        find
-            .ancestor(
-              of: find.byType(FilledButton),
-              matching: find.byType(SizedBox),
-            )
-            .first,
-      );
-      expect(sizedBox.width, double.infinity);
-    });
-  });
-
-  group('GradientActionButton', () {
-    testWidgets('delegates to FlatmatesButton', (tester) async {
-      var pressed = false;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: GradientActionButton(
-              label: 'Go',
-              onPressed: () => pressed = true,
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Go'), findsOneWidget);
-
-      await tester.tap(find.byType(GradientActionButton));
-      await tester.pumpAndSettle();
-
-      expect(pressed, isTrue);
+      expect(tester.getSize(find.byType(FilledButton)).width, 300);
     });
   });
 
@@ -662,6 +615,59 @@ void main() {
       expect(find.text('Furnished'), findsOneWidget);
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
+
+    testWidgets('wraps its label when its parent bounds it at 2x text scale', (
+      tester,
+    ) async {
+      // Scope: this pins how the pill behaves *inside* a bounded parent. It
+      // hand-builds the flexed row, so it passes for any pill implementation
+      // and is not a call-site regression guard.
+      //
+      // The guard for the real call site is
+      // test/widget/listings/step_room_section_test.dart, which pumps
+      // StepRoomSection itself and fails when its Row stops flexing the pill.
+      //
+      // The pill needs a finite width to wrap against: a plain Row child gets
+      // unbounded width, so the call site (step_room_section.dart) must flex
+      // it.
+      const label = 'Min 2 photos required';
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.build(brightness: Brightness.light),
+          home: const MediaQuery(
+            data: MediaQueryData(
+              size: Size(320, 640),
+              textScaler: TextScaler.linear(2),
+            ),
+            child: Scaffold(
+              body: Center(
+                // The content column of a 320 dp phone (16 dp page gutter).
+                child: SizedBox(
+                  width: 288,
+                  child: Row(
+                    children: [
+                      Expanded(child: Text('Room photos')),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: InfoPill(label: label, highlighted: true),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+
+      final pillWidth = tester.getSize(find.byType(InfoPill)).width;
+      expect(pillWidth, lessThanOrEqualTo(288));
+      // The label wraps inside the pill instead of running past its edge.
+      final labelWidth = tester.getSize(find.text(label)).width;
+      expect(labelWidth, lessThanOrEqualTo(pillWidth));
+    });
   });
 
   group('FlatmatesMenuItem', () {
@@ -733,10 +739,57 @@ void main() {
       );
 
       expect(find.text('Edit'), findsOneWidget);
-      // The icon well should be 32px in dense mode.
-      final containers = tester.widgetList<Container>(find.byType(Container));
-      final iconWell = containers.where((c) => c.constraints?.maxWidth == 32.0);
-      expect(iconWell, isNotEmpty);
+      // The icon slot is 32 wide in dense mode (bare icon, no tile).
+      expect(
+        tester
+            .getSize(
+              find
+                  .ancestor(
+                    of: find.byIcon(Icons.edit),
+                    matching: find.byType(SizedBox),
+                  )
+                  .first,
+            )
+            .width,
+        32,
+      );
+    });
+
+    testWidgets('stays a 48 dp tap target at every text scale', (tester) async {
+      // A scale below 1 shrinks the label's line box, which used to take the
+      // dense row to 43-45 dp.
+      for (final scale in <double>[1, 0.8, 2]) {
+        for (final dense in <bool>[true, false]) {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: MediaQuery(
+                data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                child: Scaffold(
+                  // A Column of rows: the geometry of the real settings lists,
+                  // where a row takes its own height (inside the Scaffold body
+                  // slot on its own it would stretch to the screen).
+                  body: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FlatmatesMenuItem(
+                        label: 'Settings',
+                        icon: Icons.settings_outlined,
+                        dense: dense,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          expect(
+            tester.getSize(find.byType(FlatmatesMenuItem)).height,
+            greaterThanOrEqualTo(48),
+            reason: 'dense=$dense at text scale $scale',
+          );
+        }
+      }
     });
   });
 
@@ -750,7 +803,6 @@ void main() {
               body: 'You have a new message from Priya',
               time: '2m ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
             ),
           ),
@@ -771,7 +823,6 @@ void main() {
               body: 'Hello',
               time: '2m ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
             ),
           ),
@@ -798,7 +849,6 @@ void main() {
               body: 'Hello',
               time: '2d ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
               isRead: true,
             ),
@@ -826,7 +876,6 @@ void main() {
               body: 'Hello',
               time: '2m ago',
               icon: Icons.chat_bubble_outline,
-              iconBgColor: Colors.blue,
               iconColor: Colors.white,
               onTap: () => tapped = true,
             ),

@@ -1,32 +1,28 @@
 import 'package:flutter/material.dart';
 
-/// Canonical border-radius tokens from DESIGN.md (Airbnb soft geometry).
+/// Cut-paper radius tokens. See DESIGN.md §3.
 abstract final class AppRadius {
-  static const double xs = 4;
-  static const double sm = 8;
-  static const double md = 14;
-  static const double lg = 20;
-  static const double xl = 32;
+  static const double cutSm = 6;
+  static const double cutMd = 12;
+  static const double cutLg = 18;
+  static const double cutXl = 28;
   static const double full = 9999;
 
-  /// Alias for property cards / host cards.
-  static const double card = md;
-
-  /// Alias for bottom sheets (soft top corners).
-  static const double sheet = xl;
-
-  /// Pill / full round.
+  // ── Aliases for existing call sites ────────────────────────────────────
+  static const double xs = 4;
+  static const double sm = cutSm;
+  static const double md = cutMd;
+  static const double lg = cutLg;
+  static const double xl = cutXl;
+  static const double card = cutMd;
+  static const double sheet = cutXl;
   static const double pill = full;
 
-  // Convenience BorderRadius
   static const BorderRadius xsBorder = BorderRadius.all(Radius.circular(xs));
   static const BorderRadius smBorder = BorderRadius.all(Radius.circular(sm));
   static const BorderRadius mdBorder = BorderRadius.all(Radius.circular(md));
   static const BorderRadius lgBorder = BorderRadius.all(Radius.circular(lg));
   static const BorderRadius xlBorder = BorderRadius.all(Radius.circular(xl));
-  static const BorderRadius cardBorder = BorderRadius.all(
-    Radius.circular(card),
-  );
   static const BorderRadius sheetBorder = BorderRadius.all(
     Radius.circular(sheet),
   );
@@ -34,7 +30,14 @@ abstract final class AppRadius {
     Radius.circular(pill),
   );
 
-  // Bottom sheet top corners only
+  /// Hand-cut uneven card corners: 12 / 14 / 11 / 13 (TL, TR, BR, BL).
+  static const BorderRadius cardBorder = BorderRadius.only(
+    topLeft: Radius.circular(12),
+    topRight: Radius.circular(14),
+    bottomRight: Radius.circular(11),
+    bottomLeft: Radius.circular(13),
+  );
+
   static const BorderRadius sheetTopBorder = BorderRadius.only(
     topLeft: Radius.circular(sheet),
     topRight: Radius.circular(sheet),

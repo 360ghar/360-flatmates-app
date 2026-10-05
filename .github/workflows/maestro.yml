@@ -16,6 +16,35 @@ jobs:
         with:
           persist-credentials: false
 
+      # Fail fast when a required secret is unset. Without this the APK builds
+      # with empty config, AppConfig.fromEnvironment() throws, bootstrap.dart
+      # renders _ConfigErrorApp, and the first flow dies on a login assertion
+      # ("enter_phone_input" never appears) — which reads like a product bug
+      # instead of the configuration error it is.
+      - name: Preflight — required secrets
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          MAESTRO_PHONE: ${{ secrets.MAESTRO_PHONE }}
+          MAESTRO_PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
+        run: |
+          missing=()
+          for name in API_BASE_URL SUPABASE_URL SUPABASE_PUBLISHABLE_KEY MAESTRO_PHONE MAESTRO_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("$name")
+            fi
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing required repository secret(s): ${missing[*]}"
+            echo "Add them under Settings > Secrets and variables > Actions, then re-run this job."
+            echo "API_BASE_URL must point at a seeded NON-production backend — these flows mutate state (likes, messages, visits, listings, blocks)."
+            exit 1
+          fi
+
+          echo "All required secrets are present."
+
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           flutter-version-file: '.fvmrc'
@@ -57,15 +86,30 @@ jobs:
 
       - run: flutter pub get
 
-      # .env is gitignored; listed as optional dotenv asset for local dev.
+      # .env is gitignored but declared as an asset in pubspec.yaml, so the file
+      # must exist for the build. It is NOT the config source for CI — the app
+      # config arrives through --dart-define on the build step below.
       - name: Stub optional .env asset
         run: |
           if [ ! -f .env ]; then
             printf 'APP_ENV=ci\n' > .env
           fi
 
+      # Config must come from --dart-define: the stub .env above only carries
+      # APP_ENV=ci. A debug APK built without these defines throws in
+      # AppConfig.fromEnvironment() and boots into _ConfigErrorApp, so no flow
+      # can reach the login screen.
       - name: Build debug APK
-        run: flutter build apk --debug
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          flutter build apk --debug \
+            --dart-define=APP_ENV=ci \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       # Grant the runner user access to /dev/kvm so the emulator boots under
       # KVM hardware acceleration (without this the action probes KVM, finds

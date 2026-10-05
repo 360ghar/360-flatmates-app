@@ -5,45 +5,38 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/l10n_bridge.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
-import '../../../chats/chats_repository.dart' show messagesProvider;
 import '../../../shared/presentation/components.dart';
-import '../../../visits/application/visits_list_controller.dart';
-import '../../../visits/visits_repository.dart';
+import '../../../shared/presentation/visit_date_picker_bounds.dart';
+import '../../../visits/application/visits_actions_controller.dart';
 import '../../discover_repository.dart';
 import 'owner_profile_sheet.dart';
 
 Future<TimeOfDay?> showFlatDetailsTimeSlotPicker(BuildContext context) async {
   final locale = AppLocalizations.of(context);
-  return showDialog<TimeOfDay>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(locale.selectTimeSlot),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+  const slots = [
+    TimeOfDay(hour: 10, minute: 0),
+    TimeOfDay(hour: 15, minute: 0),
+    TimeOfDay(hour: 18, minute: 0),
+  ];
+  return FlatmatesDialog.custom<TimeOfDay>(
+    context,
+    title: locale.selectTimeSlot,
+    body: (ctx, _) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (slot, time, icon) in [
+          (slots[0], locale.timeSlotMorningTime, Icons.wb_sunny_outlined),
+          (slots[1], locale.timeSlotAfternoonTime, Icons.wb_cloudy_outlined),
+          (slots[2], locale.timeSlotEveningTime, Icons.nights_stay_outlined),
+        ])
           ListTile(
-            title: Text(locale.timeSlotMorning),
-            subtitle: Text(locale.timeSlotMorningTime),
-            leading: const Icon(Icons.wb_sunny_outlined),
-            onTap: () =>
-                Navigator.of(ctx).pop(const TimeOfDay(hour: 10, minute: 0)),
+            contentPadding: EdgeInsets.zero,
+            title: Text(flatDetailsTimeSlotLabel(locale, slot)),
+            subtitle: Text(time),
+            leading: Icon(icon),
+            onTap: () => Navigator.of(ctx).pop(slot),
           ),
-          ListTile(
-            title: Text(locale.timeSlotAfternoon),
-            subtitle: Text(locale.timeSlotAfternoonTime),
-            leading: const Icon(Icons.wb_cloudy_outlined),
-            onTap: () =>
-                Navigator.of(ctx).pop(const TimeOfDay(hour: 15, minute: 0)),
-          ),
-          ListTile(
-            title: Text(locale.timeSlotEvening),
-            subtitle: Text(locale.timeSlotEveningTime),
-            leading: const Icon(Icons.nights_stay_outlined),
-            onTap: () =>
-                Navigator.of(ctx).pop(const TimeOfDay(hour: 18, minute: 0)),
-          ),
-        ],
-      ),
+      ],
     ),
   );
 }
@@ -66,9 +59,8 @@ Future<void> handleSocietyTagVote({
 }) async {
   try {
     await ref
-        .read(discoverRepositoryProvider)
-        .voteSocietyTag(listingId: listing.id, tag: tag, vote: vote);
-    ref.invalidate(propertyListingProvider(listingId));
+        .read(propertyListingProvider(listingId).notifier)
+        .voteSocietyTag(tag: tag, vote: vote);
   } catch (e) {
     debugPrint('FlatDetailsActions.handleSocietyTagVote: $e');
     if (context.mounted) {
@@ -148,13 +140,13 @@ Future<void> scheduleVisitFromDetails({
   if (currentUserId == null) return;
 
   final locale = AppLocalizations.of(context);
-  final now = DateTime.now();
+  final bounds = visitDatePickerBounds(now: DateTime.now());
 
   final date = await showDatePicker(
     context: context,
-    firstDate: now,
-    lastDate: now.add(const Duration(days: 90)),
-    initialDate: now.add(const Duration(days: 1)),
+    firstDate: bounds.first,
+    lastDate: bounds.last,
+    initialDate: bounds.initial,
   );
   if (date == null || !context.mounted) return;
 
@@ -209,9 +201,13 @@ Future<void> scheduleVisitFromDetails({
       if (!wasLiked) onLikeSynced();
     }
 
+    // Read both notifiers before the await: this widget may be gone after.
+    final listingNotifier = ref.read(
+      propertyListingProvider(listingId).notifier,
+    );
     await ref
-        .read(visitsRepositoryProvider)
-        .scheduleVisitAndNotify(
+        .read(visitsActionsControllerProvider)
+        .schedule(
           propertyId: listing.id,
           counterpartyUserId: ownerId,
           conversationId: cid,
@@ -220,10 +216,7 @@ Future<void> scheduleVisitFromDetails({
           note: locale.visitFromDetailPageNote,
           timeSlotLabel: flatDetailsTimeSlotLabel(locale, timeSlot),
         );
-    ref.invalidate(propertyListingProvider(listingId));
-    ref.invalidate(visitsListControllerProvider);
-    ref.invalidate(visitsProvider);
-    ref.invalidate(messagesProvider(cid));
+    listingNotifier.refresh();
     if (context.mounted) {
       FlatmatesToast.success(context, locale.visitRequestSent);
     }

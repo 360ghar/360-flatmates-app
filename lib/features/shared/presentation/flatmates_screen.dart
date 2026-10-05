@@ -4,7 +4,8 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// Unified page scaffold with safe area, background, optional bottom bar.
-/// Includes a subtle fade-in animation on mount for silky page entry.
+/// On mount the page rises into place; it is fully visible from the first
+/// frame (no fade from transparent).
 ///
 /// Replaces the repeated `Scaffold > SafeArea > ListView/Column` pattern.
 class FlatmatesScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class FlatmatesScreen extends StatefulWidget {
     this.useSafeArea = true,
     this.scrollable = false,
     this.padding,
+    this.scrollController,
   });
 
   final PreferredSizeWidget? appBar;
@@ -31,6 +33,10 @@ class FlatmatesScreen extends StatefulWidget {
   final bool scrollable;
   final EdgeInsetsGeometry? padding;
 
+  /// Controller for the [scrollable] body, for example to drive scene
+  /// parallax.
+  final ScrollController? scrollController;
+
   @override
   State<FlatmatesScreen> createState() => _FlatmatesScreenState();
 }
@@ -38,7 +44,7 @@ class FlatmatesScreen extends StatefulWidget {
 class _FlatmatesScreenState extends State<FlatmatesScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? _controller;
-  Animation<double>? _fadeIn;
+  Animation<double>? _rise;
   bool _reduceMotion = false;
   bool _motionResolved = false;
 
@@ -50,13 +56,10 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
 
     final controller = AnimationController(
       vsync: this,
-      duration: AppMotion.fadeInEntry,
+      duration: AppMotion.slow,
     );
     _controller = controller;
-    _fadeIn = CurvedAnimation(
-      parent: controller,
-      curve: AppMotion.easeOutCubic,
-    );
+    _rise = CurvedAnimation(parent: controller, curve: AppMotion.paperOut);
     controller.forward();
   }
 
@@ -75,6 +78,7 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
             builder: (context, constraints) {
               final verticalPadding = effectivePadding.vertical;
               return SingleChildScrollView(
+                controller: widget.scrollController,
                 padding: effectivePadding,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -93,7 +97,7 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
           );
 
     final body = widget.useSafeArea ? SafeArea(child: content) : content;
-    final fadeIn = _fadeIn;
+    final rise = _rise;
 
     return Scaffold(
       appBar: widget.appBar,
@@ -101,9 +105,16 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
       bottomNavigationBar: widget.bottomNavigationBar,
       bottomSheet: widget.bottomSheet,
       floatingActionButton: widget.floatingActionButton,
-      body: _reduceMotion || fadeIn == null
+      body: _reduceMotion || rise == null
           ? body
-          : FadeTransition(opacity: fadeIn, child: body),
+          : AnimatedBuilder(
+              animation: rise,
+              child: body,
+              builder: (context, child) => Transform.translate(
+                offset: Offset(0, AppMotion.layerRise * (1 - rise.value)),
+                child: child,
+              ),
+            ),
     );
   }
 }

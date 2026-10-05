@@ -20,7 +20,19 @@ tags:
     id: flat_shortlist_button
 - scroll
 - scroll
-- back
+# The two scrolls push the image carousel and its overlaid back button
+# offscreen. `scroll` only goes down, so swipe back up to the top first.
+- swipe:
+    direction: DOWN
+- swipe:
+    direction: DOWN
+# The list sits in a RefreshIndicator, so the second swipe-down overscrolls at
+# the top and can start a refresh. Let that settle before tapping, or the tap
+# races the refresh's setState and the rebuild.
+- waitForAnimationToEnd
+# On-screen back button: Maestro's `back` works on Android only.
+- tapOn:
+    id: flat_back_button
 - extendedWaitUntil:
     visible:
       id: home_search_bar

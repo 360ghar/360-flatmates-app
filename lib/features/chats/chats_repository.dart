@@ -216,6 +216,7 @@ class ChatsRepository {
         final response = await fetchMessages(conversationId);
         emitMessages(response.messages);
       } catch (error, stackTrace) {
+        debugPrint('ChatsRepository.watchMessages refetch failed: $error');
         if (!controller.isClosed && !hasEmittedMessages) {
           controller.addError(error, stackTrace);
         }
@@ -429,28 +430,11 @@ final chatsRepositoryProvider = Provider<ChatsRepository>(
   (ref) => ChatsRepository(ref),
 );
 
-final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchConversations(),
-);
-
-final incomingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchIncomingLikes(),
-);
-
-final outgoingLikesProvider = FutureProvider<List<OutgoingLikeModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchOutgoingLikes(),
-);
-
-final conversationProvider =
-    FutureProvider.family<ConversationSummaryModel, int>(
+final conversationProvider = FutureProvider.autoDispose
+    .family<ConversationSummaryModel, int>(
       (ref, conversationId) =>
           ref.watch(chatsRepositoryProvider).fetchConversation(conversationId),
     );
-
-final messagesProvider = FutureProvider.family<MessageListResponse, int>(
-  (ref, conversationId) =>
-      ref.watch(chatsRepositoryProvider).fetchMessages(conversationId),
-);
 
 final messagesStreamProvider = StreamProvider.family
     .autoDispose<List<ChatMessage>, int>(
@@ -458,12 +442,15 @@ final messagesStreamProvider = StreamProvider.family
           ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
     );
 
-final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
-  (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
-);
+// autoDispose: a failed (null) load must not stay cached for the session.
+final peerProfileProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, int>(
+      (ref, userId) =>
+          ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
+    );
 
-final peerCompatibilityProvider =
-    FutureProvider.family<CompatibilityResult?, int>(
+final peerCompatibilityProvider = FutureProvider.autoDispose
+    .family<CompatibilityResult?, int>(
       (ref, userId) =>
           ref.watch(chatsRepositoryProvider).fetchPeerCompatibility(userId),
     );

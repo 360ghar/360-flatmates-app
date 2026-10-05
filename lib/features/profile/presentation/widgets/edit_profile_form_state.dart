@@ -41,26 +41,6 @@ final editProfileNonNegotiablesProvider =
 final editProfilePhotoUrlsProvider = StateProvider.autoDispose<List<String>>(
   (ref) => const [],
 );
-final editProfileSavingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final editProfilePhotoUploadingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final editProfileDirtyProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final editProfileNativePlaceErrorProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-final editProfileLinkedInErrorProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-
-/// Active edit-profile tab; defaults to Identity (the most-edited fields).
-final editProfileTabProvider = StateProvider.autoDispose<EditProfileTab>(
-  (ref) => EditProfileTab.identity,
-);
 
 /// Assembles the profile-update payload from form state. Values come from the
 /// page-level providers above plus the text controllers owned by the page.

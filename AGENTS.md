@@ -67,9 +67,9 @@ This repository contains the dedicated Flutter mobile client for 360 FlatMates. 
 ## UI Guidance
 
 - Maintain support for light, dark, and system theme modes (default: Light).
-- Use a single brand primary (Airbnb Rausch `#FF385C`). Do not reintroduce multi-palette switching.
+- Use the single clay brand primary from DESIGN.md (Paper Diorama). Do not reintroduce multi-palette switching.
 - Keep English and Hindi localization coverage in sync for all primary user flows (default: English).
-- Use meaningful keys on major interactive widgets so Maestro coverage can remain stable.
+- Use meaningful string keys (`Key('login_submit_button')`) on major interactive widgets. Maestro's `id:` reads only `Semantics.identifier`, never Flutter keys: only the `Flatmates*` components that call `withTestId` expose their string key as the identifier — `FlatmatesButton`, `FlatmatesMenuItem`, `FlatmatesCard`, `FlatmatesChip`, `FlatmatesChromeIconButton`, `FlatmatesSegmentedControl` segments and the `FlatmatesBottomActionBar` toggle. Every other widget, including shared components that only accept a `Key` such as `FlatmatesLocationChip` and `FlatmatesLikeButton`, needs `withTestId(key, child)` (`lib/features/shared/presentation/test_id.dart`).
 - All visual tokens (colors, radii, spacing, typography, shadows, components) must match [DESIGN.md](DESIGN.md). Do not introduce values that contradict the design system.
 - Use design token constant files from `core/theme/` (AppSpacing, AppRadius, AppShadows, AppMotion, AppTypography, AppSemanticColors) barrel-exported via `theme.dart`. Do not use magic numbers.
 - Use `Flatmates*` shared components from `features/shared/presentation/` instead of duplicating Scaffold/SafeArea/ListView/async-state patterns.

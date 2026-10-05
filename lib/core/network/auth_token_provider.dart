@@ -22,7 +22,12 @@ class TransientAuthRefreshException implements Exception {
 }
 
 abstract interface class AuthTokenProvider {
-  Future<String?> getAccessToken();
+  /// Returns a usable access token, refreshing it when it is expired.
+  ///
+  /// Pass [rejectedToken] when the server returned 401 for that token: the
+  /// provider then refreshes even if the JWT still looks unexpired locally
+  /// (revoked session, clock skew), unless another caller already did.
+  Future<String?> getAccessToken({String? rejectedToken});
 
   Future<void> clearSession();
 }
@@ -34,7 +39,7 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
   Future<supabase.Session?>? _refreshInflight;
 
   @override
-  Future<String?> getAccessToken() async {
+  Future<String?> getAccessToken({String? rejectedToken}) async {
     late final supabase.SupabaseClient client;
     try {
       client = supabase.Supabase.instance.client;
@@ -52,9 +57,14 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
       return null;
     }
 
-    if (session.isExpired || _isJwtExpired(session.accessToken)) {
+    // A 401 means the server rejected this token, so the local expiry check is
+    // not enough: refresh for real. A token the server just rejected is never
+    // handed back — the caller would retry with it and 401 again.
+    final rejected =
+        rejectedToken != null && session.accessToken == rejectedToken;
+    if (rejected || session.isExpired || _isJwtExpired(session.accessToken)) {
       try {
-        session = await _refreshSession(client);
+        session = await _refreshSession(client, rejectedToken);
         if (session != null &&
             (session.isExpired || _isJwtExpired(session.accessToken))) {
           await _storage.clear();
@@ -106,10 +116,13 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
   }
 
   // Single-flight: concurrent callers share one Supabase refresh RPC.
-  Future<supabase.Session?> _refreshSession(supabase.SupabaseClient client) {
+  Future<supabase.Session?> _refreshSession(
+    supabase.SupabaseClient client,
+    String? rejectedToken,
+  ) {
     final existing = _refreshInflight;
     if (existing != null) return existing;
-    final future = _doRefresh(client);
+    final future = _doRefresh(client, rejectedToken);
     _refreshInflight = future;
     future.whenComplete(() {
       if (identical(_refreshInflight, future)) {
@@ -119,13 +132,17 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
     return future;
   }
 
-  Future<supabase.Session?> _doRefresh(supabase.SupabaseClient client) async {
+  Future<supabase.Session?> _doRefresh(
+    supabase.SupabaseClient client,
+    String? rejectedToken,
+  ) async {
     // Callers decide to refresh based on an expiry check taken OUTSIDE the
     // single-flight guard, so a refresh that completed while this caller was
     // en route may already have produced a fresh session. Re-check here to
     // avoid a duplicate refresh RPC.
     final current = client.auth.currentSession;
     if (current != null &&
+        current.accessToken != rejectedToken &&
         !current.isExpired &&
         !_isJwtExpired(current.accessToken)) {
       return current;
@@ -135,27 +152,45 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
   }
 }
 
-bool _isJwtExpired(
-  String token, {
-  Duration skew = const Duration(seconds: 10),
-}) {
+/// Reads an integer claim (seconds since epoch) from a JWT payload.
+int? _jwtSeconds(String token, String claim) {
   final parts = token.split('.');
-  if (parts.length < 2) return false;
+  if (parts.length < 2) return null;
   try {
     final payload = jsonDecode(
       utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
     );
-    if (payload is! Map) return false;
-    final exp = payload['exp'];
-    final expiry = exp is num
-        ? exp.toInt()
-        : int.tryParse(exp?.toString() ?? '');
-    if (expiry == null) return false;
-    return DateTime.now()
-        .add(skew)
-        .isAfter(DateTime.fromMillisecondsSinceEpoch(expiry * 1000));
+    if (payload is! Map) return null;
+    final value = payload[claim];
+    return value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
   } catch (e) {
-    debugPrint('_isJwtExpired: failed to decode token: $e');
-    return false;
+    debugPrint('_jwtSeconds: failed to decode token: $e');
+    return null;
   }
+}
+
+bool _isJwtExpired(
+  String token, {
+  Duration skew = const Duration(seconds: 10),
+}) {
+  final expiry = _jwtSeconds(token, 'exp');
+  if (expiry == null) return false;
+  return DateTime.now()
+      .add(skew)
+      .isAfter(DateTime.fromMillisecondsSinceEpoch(expiry * 1000));
+}
+
+/// True when [token] was issued less than [window] ago.
+///
+/// Only a non-negative age counts: a token whose `iat` is at or after [now]
+/// (device clock running behind the server) is *not* recently issued, and a
+/// missing or unreadable `iat` is not either. Treating a future `iat` as
+/// recent would make such a token look freshly minted forever.
+@visibleForTesting
+bool jwtIssuedWithin(String token, Duration window, {DateTime? now}) {
+  final issuedAt = _jwtSeconds(token, 'iat');
+  if (issuedAt == null) return false;
+  final issued = DateTime.fromMillisecondsSinceEpoch(issuedAt * 1000);
+  final age = (now ?? DateTime.now()).difference(issued);
+  return !age.isNegative && age < window;
 }

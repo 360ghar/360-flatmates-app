@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,6 +24,7 @@ import 'application/messages_controller.dart';
 import 'chats_repository.dart';
 import 'domain/chat_report_reason.dart';
 import 'match_qna_nudge.dart';
+import 'presentation/widgets/chat_emoji_config.dart';
 import 'presentation/chat_photo_actions.dart';
 import 'presentation/chat_visit_actions.dart';
 import 'presentation/widgets/chat_app_bar.dart';
@@ -134,8 +136,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   String _peerModeLabel() {
-    final asyncConv = ref.read(conversationProvider(widget.conversationId));
-    final conv = _conversation ?? asyncConv.valueOrNull;
+    final conv =
+        _conversation ??
+        ref.read(conversationProvider(widget.conversationId)).valueOrNull;
     final mode = conv?.peer.mode;
     if (mode == null) return '';
     return localizedFlatmatesModeLabel(AppLocalizations.of(context), mode);
@@ -197,14 +200,13 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       _modeTooltip.remove();
     } catch (e) {
       debugPrint('ChatThreadPage._sendMessage failed: $e');
+      if (!mounted) return;
       _messageController.text = previousText;
       _messageController.selection = previousSelection;
-      if (mounted) {
-        final msg = e is AppFailure
-            ? e.userMessage(locale.toUserMessageL10n())
-            : locale.failedToSendMessage;
-        FlatmatesToast.error(context, msg);
-      }
+      final msg = e is AppFailure
+          ? e.userMessage(locale.toUserMessageL10n())
+          : locale.failedToSendMessage;
+      FlatmatesToast.error(context, msg);
     }
   }
 
@@ -247,18 +249,18 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
         .submitQnA(widget.conversationId, answers);
     if (updated == null) {
       if (mounted) {
-        FlatmatesToast.error(context, locale.commonRetry);
+        FlatmatesToast.error(context, locale.actionFailedRetry);
       }
       // Keep the nudge open so the user can retry.
       return false;
     }
+    // `ref` is unusable once the page is disposed.
+    if (!mounted) return true;
     _markQnANudgeDismissed();
-    if (mounted) {
-      setState(() {
-        _showQnANudge = false;
-        _conversation = updated;
-      });
-    }
+    setState(() {
+      _showQnANudge = false;
+      _conversation = updated;
+    });
     return true;
   }
 
@@ -269,7 +271,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   void _showQnABottomSheet() {
-    final peerName = _conversation?.peer.fullName ?? 'Flatmate';
+    final peerName =
+        _conversation?.peer.fullName ??
+        AppLocalizations.of(context).matchPeerFallbackName;
     FlatmatesBottomSheet.show(
       context: context,
       isScrollControlled: true,
@@ -340,11 +344,16 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
     final isUploadingPhoto = _isUploadingPhoto;
 
     if (_conversation == null && fetchedConversation != null) {
+      // Loading and error keep a Back button.
       if (fetchedConversation.isLoading) {
-        return const FlatmatesScreen(body: FlatmatesSkeleton.chatMessages());
+        return const FlatmatesScreen(
+          appBar: FlatmatesHeader.backTitle(title: ''),
+          body: FlatmatesSkeleton.chatMessages(),
+        );
       }
       if (fetchedConversation.hasError) {
         return FlatmatesScreen(
+          appBar: const FlatmatesHeader.backTitle(title: ''),
           body: FlatmatesErrorState(
             message: locale.errorUnknown,
             onRetry: () =>
@@ -367,7 +376,6 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       appBar: ChatAppBar(
         conversation: conversation,
         avatarLink: _avatarLink,
-        reportReasons: _reportReasons,
         onBlock: _blockUser,
         onReport: _reportUser,
         onUnmatch: _unmatch,
@@ -382,13 +390,17 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
       ),
       body: Column(
         children: [
+          // Hidden while typing (keyboard or emoji picker) so it cannot
+          // squeeze the message list off a small screen.
           if ((conversation?.qna?.hasAnyAnswers ?? false) &&
-              conversation != null)
+              conversation != null &&
+              !showEmoji &&
+              MediaQuery.viewInsetsOf(context).bottom == 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
+                AppSpacing.screen,
                 AppSpacing.md,
-                AppSpacing.xl,
+                AppSpacing.screen,
                 0,
               ),
               child: ChatQnAAnswersCard(
@@ -400,21 +412,30 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
           if (!hasSentFirstMessage && _showQnANudge)
             ChatQnANudgeCard(onTap: _showQnABottomSheet),
           Expanded(
-            child: MessageList(
-              messagesState: messagesState,
-              currentUserId: currentUserId,
-              conversation: conversation,
-              visitsAsync: visits,
-              conversationId: widget.conversationId,
-              onConfirmVisit: (visit) => confirmVisitFromChat(
-                context: context,
-                ref: ref,
-                visit: visit,
-              ),
-              onRescheduleVisit: (visit) => rescheduleVisitFromChat(
-                context: context,
-                ref: ref,
-                visit: visit,
+            // Pull down to fetch the latest messages if realtime missed any.
+            child: RefreshIndicator(
+              color: AppSemanticColors.clayFor(Theme.of(context).brightness),
+              onRefresh: () => ref
+                  .read(
+                    messagesControllerProvider(widget.conversationId).notifier,
+                  )
+                  .refetchLatest(),
+              child: MessageList(
+                messagesState: messagesState,
+                currentUserId: currentUserId,
+                conversation: conversation,
+                visitsAsync: visits,
+                conversationId: widget.conversationId,
+                onConfirmVisit: (visit) => confirmVisitFromChat(
+                  context: context,
+                  ref: ref,
+                  visit: visit,
+                ),
+                onRescheduleVisit: (visit) => rescheduleVisitFromChat(
+                  context: context,
+                  ref: ref,
+                  visit: visit,
+                ),
               ),
             ),
           ),
@@ -453,7 +474,10 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
           if (showEmoji)
             SafeArea(
               top: false,
-              child: EmojiPicker(textEditingController: _messageController),
+              child: EmojiPicker(
+                textEditingController: _messageController,
+                config: chatEmojiPickerConfig(context),
+              ),
             ),
         ],
       ),

@@ -9,28 +9,16 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:smart_auth/smart_auth.dart';
 
 import '../auth_controller.dart';
-import '../data/auth_repository.dart' show IdentifierNextStep;
 import '../identifier.dart';
 import '../last_auth_method.dart';
 import '../../../core/errors/l10n_bridge.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
+import '../../shared/presentation/paper/paper_scene.dart';
 import 'widgets/terms_checkbox.dart';
-
-/// Whether the user has accepted the terms checkbox.
-final _termsAcceptedProvider = StateProvider.autoDispose<bool>((ref) => true);
-
-/// Local "submitting" guard while the identifier-status round trip runs. The
-/// shared [authControllerProvider] also goes to `submitting`, but this closes
-/// the async gap between `checkIdentifierStatus` returning and the follow-up
-/// OTP request resolving so the CTA stays disabled across both steps.
-final _isSubmittingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
-/// Bumped on every identifier keystroke so autofill-hint selection (email vs
-/// phone) re-evaluates without a `setState` in a ConsumerStatefulWidget.
-final _identifierRevProvider = StateProvider.autoDispose<int>((ref) => 0);
 
 class EnterPhonePage extends ConsumerStatefulWidget {
   const EnterPhonePage({super.key});
@@ -41,9 +29,19 @@ class EnterPhonePage extends ConsumerStatefulWidget {
 
 class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   final _controller = TextEditingController();
+
+  /// Drives the scene parallax as the form scrolls.
+  final _scroll = ScrollController();
   final _identifierFocusNode = FocusNode();
   final _smartAuth = SmartAuth.instance;
   bool _phoneHintShown = false;
+
+  /// Terms start accepted; the checkbox gates every sign-in action.
+  bool _termsAccepted = true;
+
+  /// Closes the async gap between the identifier check and the follow-up
+  /// OTP request, so the CTA stays disabled across both steps.
+  bool _isSubmitting = false;
 
   bool get _looksLikeEmail => looksLikeEmail(_controller.text);
 
@@ -60,6 +58,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
 
   @override
   void dispose() {
+    _scroll.dispose();
     _controller.dispose();
     _identifierFocusNode.dispose();
     super.dispose();
@@ -98,113 +97,40 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
   }
 
   Future<void> _onContinue() async {
-    if (ref.read(_isSubmittingProvider)) return;
+    if (_isSubmitting) return;
     // Phone numbers are normalized to E.164 by the shared identifier rules.
     final identifier = normalizeIdentifier(_controller.text);
     if (identifier.isEmpty) return;
 
-    ref.read(_isSubmittingProvider.notifier).state = true;
+    setState(() => _isSubmitting = true);
     try {
-      final notifier = ref.read(authControllerProvider.notifier);
-      final status = await notifier.checkIdentifierStatus(identifier);
+      final result = await ref
+          .read(authControllerProvider.notifier)
+          .startIdentifierFlow(identifier);
       if (!mounted) return;
-      if (status == null) {
-        final err = ref.read(authControllerProvider).errorMessage;
-        if (err != null && err.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                resolveAuthError(err, AppLocalizations.of(context)),
-              ),
-            ),
-          );
-        }
+      final locale = AppLocalizations.of(context);
+      final route = result.route;
+      if (route == null) {
+        // The failure is already on the auth state, and `build` renders it as
+        // a FlatmatesInlineError — one presentation per error, no toast.
         return;
       }
-
-      ref.read(pendingPhoneProvider.notifier).set(identifier);
-
-      if (status.exists && !status.verified && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).unverifiedAccountHint),
-          ),
-        );
+      if (result.unverified) {
+        FlatmatesToast.info(context, locale.unverifiedAccountHint);
       }
-
-      final encodedIdentifier = Uri.encodeComponent(identifier);
-      if (status.channel == AuthChannel.email) {
-        // Consume next_step: a verified email that has a password logs in with
-        // the password screen; everything else is OTP-first.
-        if (status.nextStep == IdentifierNextStep.password) {
-          unawaited(context.push('/login?email=$encodedIdentifier'));
-          return;
-        }
-        // OTP-first for verified-passwordless and unknown (signup) emails.
-        // Unverified existing accounts also allow creation: some GoTrue
-        // versions reject a login-only OTP for unconfirmed accounts, and
-        // shouldCreateUser=true never duplicates an existing account.
-        final sent = await notifier.sendEmailOtp(
-          identifier,
-          isSignup: !status.exists || !status.verified,
-        );
-        if (sent && mounted) {
-          unawaited(context.push('/otp?email=$encodedIdentifier'));
-        }
-        return;
-      }
-
-      // Phone channel.
-      if (status.nextStep == IdentifierNextStep.password) {
-        // Existing verified account with a password → password login.
-        unawaited(context.push('/login?phone=$encodedIdentifier'));
-      } else if (status.exists) {
-        // Existing but passwordless/unverified account → OTP-first login.
-        // Allow creation for unverified accounts: some GoTrue versions reject
-        // a login-only OTP for unconfirmed accounts; an existing account is
-        // never duplicated by shouldCreateUser=true.
-        await notifier.requestOtp(
-          identifier,
-          shouldCreateUser: !status.verified,
-        );
-        if (mounted &&
-            ref.read(authControllerProvider).status != AuthStatus.error) {
-          unawaited(context.push('/otp?phone=$encodedIdentifier'));
-        }
-      } else {
-        // Unknown → OTP-first signup.
-        await notifier.requestOtp(identifier, shouldCreateUser: true);
-        if (mounted &&
-            ref.read(authControllerProvider).status != AuthStatus.error) {
-          unawaited(context.push('/otp?phone=$encodedIdentifier'));
-        }
-      }
+      unawaited(context.push(route));
     } finally {
-      if (mounted) {
-        ref.read(_isSubmittingProvider.notifier).state = false;
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  Future<void> _onGoogle() async {
-    final ok = await ref
-        .read(authControllerProvider.notifier)
-        .signInWithGoogle();
-    // On success the router redirect chain takes over (incl. /add-phone).
-    if (!ok && mounted) {
-      // Error surfaced via auth state below.
-    }
-  }
+  // On success the router redirect chain takes over (incl. /add-phone); an
+  // error shows from the auth state.
+  void _onGoogle() =>
+      unawaited(ref.read(authControllerProvider.notifier).signInWithGoogle());
 
-  Future<void> _onApple() async {
-    final ok = await ref
-        .read(authControllerProvider.notifier)
-        .signInWithApple();
-    // On success the router redirect chain takes over (incl. /add-phone).
-    if (!ok && mounted) {
-      // Error surfaced via auth state below.
-    }
-  }
+  void _onApple() =>
+      unawaited(ref.read(authControllerProvider.notifier).signInWithApple());
 
   @override
   Widget build(BuildContext context) {
@@ -212,143 +138,161 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
     final lastMethod = ref.watch(lastAuthMethodProvider);
-    final termsAccepted = ref.watch(_termsAcceptedProvider);
-    // Re-read on each keystroke so autofill hints track email-vs-phone input.
-    ref.watch(_identifierRevProvider);
-    final isBusy =
-        auth.status == AuthStatus.submitting ||
-        ref.watch(_isSubmittingProvider);
+    final termsAccepted = _termsAccepted;
+    final isBusy = auth.status == AuthStatus.submitting || _isSubmitting;
 
     // Root auth entry — no top chrome; title lives in the body.
+    // The neighbourhood scene owns the top of the first screen; the form
+    // sits below it on the page.
     return FlatmatesScreen(
       scrollable: true,
+      scrollController: _scroll,
+      useSafeArea: false,
+      padding: EdgeInsets.zero,
+      backgroundColor: AppSemanticColors.paper1For(theme.brightness),
       body: AutofillGroup(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(locale.authEntryTitle, style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(locale.authEntrySubtitle),
-            if (lastMethod != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                locale.lastUsedMethodHint(
-                  _methodLabel(lastMethod.method, locale),
-                ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                ),
+            PaperSceneHeader(parallax: _scroll),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.base,
+                AppSpacing.screen,
+                AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
               ),
-            ],
-            const SizedBox(height: AppSpacing.screen),
-            FlatmatesButton.google(
-              key: const Key('auth_google_button'),
-              label: locale.continueWithGoogleCta,
-              fullWidth: true,
-              onPressed: (isBusy || !termsAccepted) ? null : _onGoogle,
-            ),
-            // Sign in with Apple — iOS only, as prominent as Google. Apple
-            // requires it on iOS apps that offer Google sign-in.
-            if (Platform.isIOS) ...[
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                height: 52,
-                child: AbsorbPointer(
-                  absorbing: isBusy || !termsAccepted,
-                  child: Opacity(
-                    opacity: (isBusy || !termsAccepted) ? 0.5 : 1,
-                    child: SignInWithAppleButton(
-                      key: const Key('auth_apple_button'),
-                      onPressed: _onApple,
-                      style: theme.brightness == Brightness.dark
-                          ? SignInWithAppleButtonStyle.white
-                          : SignInWithAppleButtonStyle.black,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                  ),
-                  child: Text(
-                    locale.authDividerOr,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                  ),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FlatmatesCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    key: const Key('enter_phone_input'),
-                    controller: _controller,
-                    focusNode: _identifierFocusNode,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: _looksLikeEmail
-                        ? const [AutofillHints.email]
-                        : const [
-                            AutofillHints.telephoneNumber,
-                            AutofillHints.email,
-                          ],
-                    onChanged: (_) =>
-                        ref.read(_identifierRevProvider.notifier).state++,
-                    onTap: _requestPhoneHint,
-                    onSubmitted: (_) =>
-                        (isBusy || !termsAccepted) ? null : _onContinue(),
-                    decoration: InputDecoration(
-                      labelText: locale.identifierLabel,
+                  Text(
+                    locale.authEntryTitle,
+                    style: theme.textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(locale.authEntrySubtitle),
+                  if (lastMethod != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      locale.lastUsedMethodHint(
+                        _methodLabel(lastMethod.method, locale),
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.screen),
+                  FlatmatesButton.google(
+                    key: const Key('auth_google_button'),
+                    label: locale.continueWithGoogleCta,
+                    fullWidth: true,
+                    onPressed: (isBusy || !termsAccepted) ? null : _onGoogle,
+                  ),
+                  // Sign in with Apple — iOS only, as prominent as Google. Apple
+                  // requires it on iOS apps that offer Google sign-in.
+                  if (Platform.isIOS) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: 48,
+                      child: AbsorbPointer(
+                        absorbing: isBusy || !termsAccepted,
+                        child: Opacity(
+                          opacity: (isBusy || !termsAccepted) ? 0.5 : 1,
+                          // The package button has a fixed height (48, the
+                          // same as Google); keep its label inside it at
+                          // large text sizes.
+                          child: MediaQuery.withClampedTextScaling(
+                            maxScaleFactor: 1.3,
+                            child: SignInWithAppleButton(
+                              key: const Key('auth_apple_button'),
+                              height: 48,
+                              borderRadius: AppRadius.mdBorder,
+                              onPressed: _onApple,
+                              style: theme.brightness == Brightness.dark
+                                  ? SignInWithAppleButtonStyle.white
+                                  : SignInWithAppleButtonStyle.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.base),
+                  // Spacing, not rules, separates the two sign-in routes.
+                  Center(
+                    child: Text(
+                      locale.authDividerOr,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(
+                          theme.brightness,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      FlatmatesTrustBadge(
-                        label: locale.yourNumberIsPrivate,
-                        variant: FlatmatesTrustBadgeVariant.privacy,
-                        compact: true,
-                      ),
-                    ],
+                  const SizedBox(height: AppSpacing.base),
+                  FlatmatesCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        withTestId(
+                          const Key('enter_phone_input'),
+                          TextField(
+                            key: const Key('enter_phone_input'),
+                            controller: _controller,
+                            focusNode: _identifierFocusNode,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: _looksLikeEmail
+                                ? const [AutofillHints.email]
+                                : const [
+                                    AutofillHints.telephoneNumber,
+                                    AutofillHints.email,
+                                  ],
+                            // Rebuild so autofill hints track email vs phone.
+                            onChanged: (_) => setState(() {}),
+                            onTap: _requestPhoneHint,
+                            onSubmitted: (_) => (isBusy || !termsAccepted)
+                                ? null
+                                : _onContinue(),
+                            decoration: InputDecoration(
+                              labelText: locale.identifierLabel,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        FlatmatesTrustBadge(
+                          label: locale.yourNumberIsPrivate,
+                          variant: FlatmatesTrustBadgeVariant.privacy,
+                          compact: true,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TermsCheckbox(
+                          accepted: termsAccepted,
+                          onChanged: (v) => setState(() => _termsAccepted = v),
+                          locale: locale,
+                          theme: theme,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  TermsCheckbox(
-                    accepted: termsAccepted,
-                    onChanged: (v) =>
-                        ref.read(_termsAcceptedProvider.notifier).state = v,
-                    locale: locale,
-                    theme: theme,
+                  if (auth.status == AuthStatus.error &&
+                      auth.errorMessage != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    FlatmatesInlineError(
+                      resolveAuthError(auth.errorMessage, locale),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.screen),
+                  FlatmatesButton(
+                    key: const Key('enter_phone_continue_cta'),
+                    label: locale.continueCta,
+                    fullWidth: true,
+                    onPressed: (isBusy || !termsAccepted) ? null : _onContinue,
                   ),
                 ],
               ),
-            ),
-            if (auth.status == AuthStatus.error &&
-                auth.errorMessage != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                resolveAuthError(auth.errorMessage, locale),
-                style: const TextStyle(color: AppSemanticColors.error),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.screen),
-            FlatmatesButton(
-              key: const Key('enter_phone_continue_cta'),
-              label: locale.continueCta,
-              fullWidth: true,
-              onPressed: (isBusy || !termsAccepted) ? null : _onContinue,
             ),
           ],
         ),

@@ -80,6 +80,18 @@ final class AuthRepository {
   SupabaseClient get _supabase => Supabase.instance.client;
 
   Session? get currentSession => _supabase.auth.currentSession;
+
+  /// Supabase auth events (sign-out, token refresh, …). Empty when Supabase
+  /// is not initialised, for example in unit tests.
+  Stream<AuthChangeEvent> get authEvents {
+    try {
+      return _supabase.auth.onAuthStateChange.map((change) => change.event);
+    } catch (e) {
+      debugPrint('AuthRepository.authEvents unavailable: $e');
+      return const Stream.empty();
+    }
+  }
+
   String? get currentPhone => currentSession?.user.phone;
   String? get currentEmail => currentSession?.user.email;
 

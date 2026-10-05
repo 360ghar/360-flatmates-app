@@ -71,22 +71,26 @@ class _PasswordRuleItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final pine = AppSemanticColors.pineFor(theme.brightness);
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
           passed ? Icons.check_circle : Icons.close,
           size: 18,
-          color: passed ? AppSemanticColors.success : AppSemanticColors.error,
+          color: passed ? pine : AppSemanticColors.dangerFor(theme.brightness),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: passed
-                ? AppSemanticColors.success
-                : AppSemanticColors.textSecondaryFor(theme.brightness),
-            fontWeight: passed ? FontWeight.w600 : FontWeight.normal,
+        Flexible(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: passed
+                  ? pine
+                  : AppSemanticColors.textSecondaryFor(theme.brightness),
+              fontWeight: passed ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ],

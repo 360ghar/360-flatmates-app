@@ -65,6 +65,9 @@ class FlatmatesAsyncView<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return value.when(
+      // A failed refresh keeps the loaded data on screen; the error view is
+      // only for a load that never produced data.
+      skipError: true,
       data: (d) {
         if (_checkEmpty(d) && empty != null) {
           return empty!;

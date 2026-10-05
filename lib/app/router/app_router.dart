@@ -55,6 +55,7 @@ import '../../features/shared/presentation/flatmates_bottom_sheet.dart';
 import '../../features/swipe/swipe_deck_page.dart';
 import '../../features/swipe/match_celebration_screen.dart';
 import '../../features/swipe/match_qna_nudge.dart';
+import 'not_found_page.dart';
 import '../../features/profile/legal_content_page.dart';
 import '../../features/visits/schedule_visit_page.dart';
 import '../../features/visits/visits_page.dart';
@@ -120,6 +121,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
+    errorBuilder: (context, state) => const NotFoundPage(),
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
       final bootstrap = ref.read(bootstrapControllerProvider);
@@ -135,28 +137,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isSetPassword = location == '/set-password';
       final isOnboarding = location == '/onboarding';
       final isCompleteProfile = location == '/complete-profile';
-      final isDeepLink =
-          location.startsWith('/chats/') ||
-          location.startsWith('/flat-details/') ||
-          location.startsWith('/user-profile/') ||
-          location.startsWith('/flatmates/listing/') ||
-          location.startsWith('/flatmates/chat/') ||
-          location.startsWith('/listing-review/') ||
-          location.startsWith('/manage-listings') ||
-          location == '/notifications' ||
-          location == '/notification-settings' ||
-          location == '/schedule-visit' ||
-          location.startsWith('/help-safety') ||
-          location == '/privacy-policy' ||
-          location == '/terms-of-service' ||
-          location == '/change-password' ||
-          location == '/delete-account' ||
-          location == '/blocked-users' ||
-          location == '/match-celebration' ||
-          location == '/waitlist' ||
-          location == '/change-location' ||
-          location == '/location-search' ||
-          location == '/map';
 
       if (auth.status == AuthStatus.checking) {
         return isSplash ? null : '/splash';
@@ -277,11 +257,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/discover';
       }
 
-      // Allow deep link paths through when user is authenticated
-      if (isDeepLink) {
-        return null;
-      }
-
       return null;
     },
     routes: [
@@ -349,7 +324,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null) {
             final locale = AppLocalizations.of(context);
-            return Scaffold(body: Center(child: Text(locale.invalidListingId)));
+            return NotFoundPage(message: locale.invalidListingId);
           }
           final seededListing = state.extra is PropertyListing
               ? state.extra as PropertyListing
@@ -368,10 +343,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final userId = int.tryParse(state.pathParameters['userId'] ?? '');
-          if (userId == null) {
-            final locale = AppLocalizations.of(context);
-            return Scaffold(body: Center(child: Text(locale.errorUnknown)));
-          }
+          if (userId == null) return const NotFoundPage();
           return ChatPeerProfilePage(
             userId: userId,
             conversation: state.extra is ConversationSummaryModel
@@ -508,9 +480,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final conversationId = extra?['conversationId'] as int?;
-          final userName = extra?['userName'] as String? ?? 'You';
+          final locale = AppLocalizations.of(context);
+          final userName =
+              extra?['userName'] as String? ?? locale.matchSelfFallbackName;
           final userImageUrl = extra?['userImageUrl'] as String?;
-          final peerName = extra?['peerName'] as String? ?? 'Flatmate';
+          final peerName =
+              extra?['peerName'] as String? ?? locale.matchPeerFallbackName;
           final peerImageUrl = extra?['peerImageUrl'] as String?;
           return MatchCelebrationScreen(
             userName: userName,
@@ -553,7 +528,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null) {
             final locale = AppLocalizations.of(context);
-            return Scaffold(body: Center(child: Text(locale.invalidListingId)));
+            return NotFoundPage(message: locale.invalidListingId);
           }
           final seededListing = state.extra is PropertyListing
               ? state.extra as PropertyListing
@@ -630,10 +605,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       final id = int.tryParse(state.pathParameters['id'] ?? '');
                       if (id == null) {
                         final locale = AppLocalizations.of(context);
-                        return Scaffold(
-                          body: Center(
-                            child: Text(locale.invalidConversationId),
-                          ),
+                        return NotFoundPage(
+                          message: locale.invalidConversationId,
                         );
                       }
                       return ChatThreadPage(

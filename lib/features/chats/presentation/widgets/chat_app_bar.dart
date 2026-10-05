@@ -9,13 +9,11 @@ import '../../../shared/presentation/flatmates_bottom_sheet.dart';
 import '../../../shared/presentation/flatmates_chrome_icon_button.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../chats_repository.dart';
-import '../../domain/chat_report_reason.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatAppBar({
     required this.conversation,
     this.avatarLink,
-    required this.reportReasons,
     required this.onBlock,
     required this.onReport,
     required this.onUnmatch,
@@ -30,7 +28,6 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Shared with the floating mode tooltip so its tail points at this avatar.
   /// Optional — defaults to an unlinked [LayerLink] when no tooltip is used.
   final LayerLink? avatarLink;
-  final List<ChatReportReason> reportReasons;
   final VoidCallback onBlock;
   final VoidCallback onReport;
   final VoidCallback onUnmatch;
@@ -68,13 +65,19 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
             ),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.block_outlined,
-                color: AppSemanticColors.error,
+                color: AppSemanticColors.dangerFor(
+                  Theme.of(context).brightness,
+                ),
               ),
               title: Text(
                 locale.blockCta,
-                style: const TextStyle(color: AppSemanticColors.error),
+                style: TextStyle(
+                  color: AppSemanticColors.dangerFor(
+                    Theme.of(context).brightness,
+                  ),
+                ),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -97,56 +100,51 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: toolbarHeight,
       titleSpacing: 0,
-      leadingWidth: 56,
+      // 60, not 56: the leading padding (8) and the icon button's own
+      // horizontal padding (2 + 2) come out of the slot, so the back button
+      // only keeps its 48 dp target at 60.
+      leadingWidth: 60,
       automaticallyImplyLeading: false,
       leading: Padding(
         padding: const EdgeInsets.only(left: AppSpacing.sm),
         child: FlatmatesChromeIconButton(
+          key: const Key('nav_back_button'),
           icon: Icons.arrow_back_rounded,
           onPressed: () => context.pop(),
           tooltip: locale.backCta,
         ),
       ),
-      title: GestureDetector(
-        key: const Key('chat_peer_header'),
-        behavior: HitTestBehavior.opaque,
-        onTap: onPeerTap,
-        child: Row(
-          children: [
-            CompositedTransformTarget(
-              link: avatarLink ?? LayerLink(),
-              child: FlatmatesAvatar(
-                name: conversation?.peer.fullName,
-                imageUrl: conversation?.peer.profileImageUrl,
-                size: 36,
+      title: Semantics(
+        button: true,
+        child: GestureDetector(
+          key: const Key('chat_peer_header'),
+          behavior: HitTestBehavior.opaque,
+          onTap: onPeerTap,
+          child: Row(
+            children: [
+              CompositedTransformTarget(
+                link: avatarLink ?? LayerLink(),
+                child: FlatmatesAvatar(
+                  name: conversation?.peer.fullName,
+                  imageUrl: conversation?.peer.profileImageUrl,
+                  size: 36,
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          conversation?.peer.fullName ?? locale.chatsTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontSize: AppTypography.titleMdSize,
-                            fontWeight: AppTypography.titleMdWeight,
-                            height: AppTypography.titleMdHeight,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  conversation?.peer.fullName ?? locale.chatsTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: AppTypography.titleMdSize,
+                    fontWeight: AppTypography.titleMdWeight,
+                    height: AppTypography.titleMdHeight,
                   ),
-                ],
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [

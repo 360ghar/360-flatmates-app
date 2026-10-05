@@ -1,7 +1,6 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/compatibility/compatibility_engine.dart';
@@ -9,6 +8,8 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
+import '../../../shared/presentation/lifestyle_labels.dart';
+import '../../../shared/presentation/paper/paper_scene.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../../shared/presentation/flatmates_video_tour_player.dart';
@@ -116,36 +117,17 @@ class _HeroCarouselState extends State<HeroCarousel> {
                         onPageChanged: (i) => setState(() => _index = i),
                         itemBuilder: (context, i) {
                           final imageUrl = widget.images[i];
-                          return Stack(
+                          // One decode per photo (a blurred copy under it
+                          // was never visible).
+                          return FlatmatesNetworkImage(
                             key: ValueKey<String>(
                               '${widget.item.id}:$imageUrl',
                             ),
-                            fit: StackFit.expand,
-                            children: [
-                              ImageFiltered(
-                                imageFilter: ui.ImageFilter.blur(
-                                  sigmaX: 15,
-                                  sigmaY: 15,
-                                ),
-                                child: FlatmatesNetworkImage(
-                                  imageUrl: imageUrl,
-                                  width: imageWidth,
-                                  height: imageHeight,
-                                  fit: BoxFit.cover,
-                                  fallbackName: widget.name,
-                                ),
-                              ),
-                              Container(
-                                color: Colors.black.withValues(alpha: 0.2),
-                              ),
-                              FlatmatesNetworkImage(
-                                imageUrl: imageUrl,
-                                width: imageWidth,
-                                height: imageHeight,
-                                fit: BoxFit.cover,
-                                fallbackName: widget.name,
-                              ),
-                            ],
+                            imageUrl: imageUrl,
+                            width: imageWidth,
+                            height: imageHeight,
+                            fit: BoxFit.cover,
+                            fallbackName: widget.name,
                           );
                         },
                       )
@@ -158,10 +140,10 @@ class _HeroCarouselState extends State<HeroCarousel> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.transparent,
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.35),
-                        Colors.black.withValues(alpha: 0.78),
+                        AppSemanticColors.scrim.withValues(alpha: 0),
+                        AppSemanticColors.scrim.withValues(alpha: 0),
+                        AppSemanticColors.scrim.withValues(alpha: 0.35),
+                        AppSemanticColors.scrim.withValues(alpha: 0.78),
                       ],
                       stops: const [0.0, 0.4, 0.7, 1.0],
                     ),
@@ -207,31 +189,7 @@ class _HeroCarouselState extends State<HeroCarousel> {
                     ),
                   ),
                 ),
-              if (hasImages && widget.images.length > 1)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: widget.showStatsOverlay ? 150 : 90,
-                  child: Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(widget.images.length, (i) {
-                        final active = i == _index;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withValues(
-                              alpha: active ? 1.0 : 0.4,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ),
+              // One photo position indicator: the counter pill above.
               Positioned(
                 left: AppSpacing.lg,
                 right: AppSpacing.lg,
@@ -257,57 +215,13 @@ class PremiumPhotoFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = initialsFromName(name);
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.swipeCardFallbackStart,
-            AppSemanticColors.swipeCardFallbackMid,
-            AppSemanticColors.swipeCardFallbackEnd,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.2),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              name ?? '',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+    // No photo: the paper scene with the heart prop. The name is already in
+    // the overlay at the bottom of the card.
+    return ColoredBox(
+      color: AppSemanticColors.skyFor(Theme.of(context).brightness),
+      child: const Align(
+        alignment: Alignment(0, -0.4),
+        child: PaperScene.compact(prop: PaperProp.heart),
       ),
     );
   }
@@ -354,68 +268,53 @@ class MatchPill extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final hasReliableScore = percentage > 0;
     final color = hasReliableScore
-        ? compatibilityScoreColor(percentage)
-        : AppSemanticColors.accent;
-    final pctLabel = hasReliableScore ? '${percentage.round()}%' : 'New';
+        ? compatibilityScoreColor(
+            percentage,
+            brightness: Theme.of(context).brightness,
+          )
+        : AppSemanticColors.clayFor(Theme.of(context).brightness);
+    final pctLabel = hasReliableScore
+        ? '${percentage.round()}%'
+        : locale.badgeNew;
     final tone = hasReliableScore && showTone
         ? matchToneLabel(locale, percentage)
         : null;
 
-    return ClipRRect(
-      borderRadius: AppRadius.pillBorder,
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.35),
-            borderRadius: AppRadius.pillBorder,
-            border: Border.all(color: color.withValues(alpha: 0.5), width: 0.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+    final theme = Theme.of(context);
+    return _ScrimPill(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: color,
-                    ),
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    pctLabel,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: hasReliableScore ? 11 : 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              if (tone != null)
-                Text(
-                  tone,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Icon(Icons.favorite_rounded, size: 14, color: color),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                pctLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppSemanticColors.onScrim,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
+              ),
             ],
           ),
-        ),
+          if (tone != null)
+            Text(
+              tone,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppSemanticColors.onScrim,
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-// ── Photo counter pill (frosted glass) ──────────────────────────────────
+// ── Photo counter pill ──────────────────────────────────────────────────
 
 class PhotoCounterPill extends StatelessWidget {
   const PhotoCounterPill({
@@ -429,35 +328,43 @@ class PhotoCounterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: AppRadius.pillBorder,
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.35),
-            borderRadius: AppRadius.pillBorder,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 0.5,
-            ),
-          ),
-          child: Text(
-            '$current/$total',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+    return _ScrimPill(
+      child: Text(
+        '$current/$total',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: AppSemanticColors.onScrim,
+          fontWeight: FontWeight.w600,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
     );
   }
 }
 
-// ── Generic frosted pill (used by mode chip) ────────────────────────────
+/// Solid scrim pill over the photo: no blur (DESIGN.md forbids frosted
+/// chrome), 13 sp text.
+class _ScrimPill extends StatelessWidget {
+  const _ScrimPill({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppSemanticColors.scrim.withValues(alpha: 0.6),
+        borderRadius: AppRadius.pillBorder,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xxs,
+        ),
+        child: child,
+      ),
+    );
+  }
+}
 
 class _FrostedPill extends StatelessWidget {
   const _FrostedPill({required this.icon, required this.label});
@@ -467,36 +374,22 @@ class _FrostedPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: AppRadius.pillBorder,
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.35),
-            borderRadius: AppRadius.pillBorder,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 0.5,
+    return _ScrimPill(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppSemanticColors.onScrim),
+          const SizedBox(width: AppSpacing.xs),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppSemanticColors.onScrim,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 11, color: Colors.white),
-              const SizedBox(width: 3),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -513,9 +406,19 @@ class HeroInfoOverlay extends StatelessWidget {
   final SwipeProfile item;
   final List<QuickStatPill> quickStats;
 
+  /// Tight shadow so white text reads on any photo.
+  static final _textShadow = [
+    Shadow(
+      color: AppSemanticColors.scrim.withValues(alpha: 0.5),
+      blurRadius: 4,
+      offset: const Offset(0, 1),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final name = item.fullName ?? '';
     // Backend omits exact age on peer payloads; fall back to the
     // privacy-bucketed range so the hero line still shows an age.
@@ -540,63 +443,37 @@ class HeroInfoOverlay extends StatelessWidget {
       children: [
         Text(
           nameWithAge,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            height: 1.2,
-            shadows: [
-              Shadow(
-                color: Colors.black26,
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: AppSemanticColors.onScrim,
+            shadows: _textShadow,
           ),
         ),
         if (item.profession != null && item.profession!.isNotEmpty) ...[
-          const SizedBox(height: 1),
           Text(
             item.profession!,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.85),
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              shadows: const [
-                Shadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppSemanticColors.onScrim,
+              shadows: _textShadow,
             ),
           ),
         ],
         if (location.isNotEmpty) ...[
-          const SizedBox(height: 2),
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.location_on_outlined,
-                size: 12,
-                color: Colors.white.withValues(alpha: 0.85),
+                size: 14,
+                color: AppSemanticColors.onScrim,
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: AppSpacing.xs),
               Flexible(
                 child: Text(
                   location,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 11,
-                    shadows: const [
-                      Shadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppSemanticColors.onScrim,
+                    shadows: _textShadow,
                   ),
                 ),
               ),
@@ -670,7 +547,7 @@ List<QuickStatPill> buildQuickStatPills({
   if (availableFrom != null && availableFrom.isNotEmpty) {
     final dt = DateTime.tryParse(availableFrom);
     final label = dt != null
-        ? '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}'
+        ? DateFormat.yMMMd(locale.localeName).format(dt)
         : humanizeFlatmatesToken(availableFrom);
     pills.add(
       QuickStatPill(icon: Icons.event_available_outlined, label: label),
@@ -769,12 +646,11 @@ class CompactPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: AppSemanticColors.accent),
+          Icon(icon, size: 13, color: AppSemanticColors.clayFor(brightness)),
           const SizedBox(width: 4),
           Text(
             label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
+            style: theme.textTheme.bodySmall?.copyWith(
               color: AppSemanticColors.textSecondaryFor(brightness),
             ),
           ),
@@ -813,9 +689,7 @@ class AboutSection extends StatelessWidget {
         if (hasBio)
           Text(
             bio!,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 14,
-              height: 1.6,
+            style: theme.textTheme.bodyLarge?.copyWith(
               color: AppSemanticColors.textSecondaryFor(theme.brightness),
             ),
           ),
@@ -857,49 +731,61 @@ class LifestylePreferencesSection extends StatelessWidget {
         (
           icon: Icons.bedtime_outlined,
           dim: locale.lifestyleDimSleep,
-          value: humanizeFlatmatesToken(item.sleepSchedule!),
+          value: lifestyleValueLabel(
+            locale,
+            'sleep_schedule',
+            item.sleepSchedule!,
+          ),
         ),
       if (_nonEmpty(item.cleanliness))
         (
           icon: Icons.cleaning_services_outlined,
           dim: locale.lifestyleDimCleanliness,
-          value: humanizeFlatmatesToken(item.cleanliness!),
+          value: lifestyleValueLabel(locale, 'cleanliness', item.cleanliness!),
         ),
       if (_nonEmpty(item.foodHabits))
         (
           icon: Icons.restaurant_outlined,
           dim: locale.lifestyleDimFood,
-          value: humanizeFlatmatesToken(item.foodHabits!),
+          value: lifestyleValueLabel(locale, 'food_habits', item.foodHabits!),
         ),
       if (_nonEmpty(item.smoking))
         (
           icon: Icons.smoking_rooms_outlined,
           dim: locale.smokingLabel,
-          value: humanizeFlatmatesToken(item.smoking!),
+          value: lifestyleValueLabel(locale, 'smoking', item.smoking!),
         ),
       if (_nonEmpty(item.drinking))
         (
           icon: Icons.local_bar_outlined,
           dim: locale.drinkingLabel,
-          value: humanizeFlatmatesToken(item.drinking!),
+          value: lifestyleValueLabel(locale, 'drinking', item.drinking!),
         ),
       if (_nonEmpty(item.guestsPolicy))
         (
           icon: Icons.groups_outlined,
           dim: locale.lifestyleDimGuests,
-          value: humanizeFlatmatesToken(item.guestsPolicy!),
+          value: lifestyleValueLabel(
+            locale,
+            'guests_policy',
+            item.guestsPolicy!,
+          ),
         ),
       if (_nonEmpty(item.workStyle))
         (
           icon: Icons.work_outline_rounded,
           dim: locale.lifestyleDimWork,
-          value: humanizeFlatmatesToken(item.workStyle!),
+          value: lifestyleValueLabel(locale, 'work_style', item.workStyle!),
         ),
       if (_nonEmpty(item.partyHabit))
         (
           icon: Icons.celebration_outlined,
           dim: locale.lifestyleDimParty,
-          value: humanizeFlatmatesToken(item.partyHabit!),
+          value: lifestyleValueLabel(
+            locale,
+            'parties_at_home',
+            item.partyHabit!,
+          ),
         ),
     ];
 
@@ -974,7 +860,7 @@ class DealBreakersSection extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final bg = AppSemanticColors.warningSoftFor(theme.brightness);
-    const fg = AppSemanticColors.warning;
+    final fg = AppSemanticColors.warningInkFor(theme.brightness);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -983,8 +869,7 @@ class DealBreakersSection extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           locale.dealBreakersSectionSubtitle,
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontSize: 11,
+          style: theme.textTheme.bodySmall?.copyWith(
             color: AppSemanticColors.textTertiaryFor(theme.brightness),
           ),
         ),
@@ -1018,12 +903,11 @@ class DealBreakersSection extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.shield_outlined, size: 13, color: fg),
+                      Icon(Icons.shield_outlined, size: 13, color: fg),
                       const SizedBox(width: 4),
                       Text(
                         humanizeFlatmatesToken(nn),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 11,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: fg,
                         ),
@@ -1101,8 +985,8 @@ class ThePlaceSection extends StatelessWidget {
     String? floorLabel;
     if (floor != null && floor!.isNotEmpty) {
       floorLabel = (totalFloors != null && totalFloors!.isNotEmpty)
-          ? 'Floor $floor of $totalFloors'
-          : 'Floor $floor';
+          ? locale.floorOfLabel(floor!, totalFloors!)
+          : locale.floorNumberLabel(floor!);
     }
     final combinedConfig = [
       flatConfig,
@@ -1130,14 +1014,13 @@ class ThePlaceSection extends StatelessWidget {
           DetailRow(
             icon: Icons.event_available_outlined,
             text:
-                '${locale.availableFromLabel}: ${_formatAvailable(availableFrom!)}',
+                '${locale.availableFromLabel}: ${_formatAvailable(availableFrom!, locale)}',
           ),
         if (societyVibes.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
             locale.societyVibesLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
+            style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: AppSemanticColors.textTertiaryFor(theme.brightness),
             ),
@@ -1149,8 +1032,7 @@ class ThePlaceSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             locale.roomFeaturesLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
+            style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: AppSemanticColors.textTertiaryFor(theme.brightness),
             ),
@@ -1166,12 +1048,10 @@ class ThePlaceSection extends StatelessWidget {
     );
   }
 
-  String _formatAvailable(String raw) {
+  String _formatAvailable(String raw, AppLocalizations locale) {
     final dt = DateTime.tryParse(raw);
     if (dt == null) return humanizeFlatmatesToken(raw);
-    final m = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    return '${dt.year}-$m-$d';
+    return DateFormat.yMMMd(locale.localeName).format(dt);
   }
 }
 
@@ -1200,7 +1080,6 @@ class DetailRow extends StatelessWidget {
             child: Text(
               text,
               style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 12,
                 color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
@@ -1251,33 +1130,38 @@ class _AmenitiesChipsState extends State<AmenitiesChips> {
             ),
             child: Text(
               humanizeFlatmatesToken(label),
-              style: theme.textTheme.labelSmall?.copyWith(
-                fontSize: 11,
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
           ),
         if (hasMore)
-          Listener(
-            onPointerDown: (_) => setState(() => _expanded = !_expanded),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppSemanticColors.coralSoftFor(theme.brightness),
-                borderRadius: AppRadius.pillBorder,
-                border: Border.all(
-                  color: AppSemanticColors.accent.withValues(alpha: 0.25),
-                  width: 0.5,
+          // A real 48 dp button (was a pointer-down Listener that also
+          // fired when a scroll started).
+          Semantics(
+            button: true,
+            expanded: _expanded,
+            child: InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              borderRadius: AppRadius.mdBorder,
+              child: Container(
+                constraints: const BoxConstraints(
+                  minHeight: kMinInteractiveDimension,
                 ),
-              ),
-              child: Text(
-                _expanded
-                    ? locale.showLessCta
-                    : locale.andNMore(widget.labels.length - _maxCollapsed),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppSemanticColors.accent,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppSemanticColors.coralSoftFor(theme.brightness),
+                  borderRadius: AppRadius.mdBorder,
+                ),
+                child: Text(
+                  _expanded
+                      ? locale.showLessCta
+                      : locale.andNMore(widget.labels.length - _maxCollapsed),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppSemanticColors.clayInkFor(theme.brightness),
+                  ),
                 ),
               ),
             ),
@@ -1321,8 +1205,7 @@ class ExistingFlatmatesRow extends StatelessWidget {
                     flatmates[i]['name'] ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 12,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1331,8 +1214,7 @@ class ExistingFlatmatesRow extends StatelessWidget {
                       flatmates[i]['profession'] ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontSize: 10,
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: AppSemanticColors.textTertiaryFor(
                           theme.brightness,
                         ),
@@ -1386,8 +1268,7 @@ class CostsSection extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${locale.estimatedTotalLabel} · ${locale.perMonthSuffix}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
                 ),
@@ -1395,10 +1276,9 @@ class CostsSection extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 FlatmatesPriceText.formatRupee(total.round()),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppSemanticColors.accent,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: AppSemanticColors.clayInkFor(theme.brightness),
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -1446,7 +1326,6 @@ class CostLineItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: 13,
                     color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
                 ),
@@ -1455,7 +1334,6 @@ class CostLineItem extends StatelessWidget {
               Text(
                 value,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppSemanticColors.textPrimaryFor(theme.brightness),
                 ),
@@ -1493,23 +1371,22 @@ class CompactMatchChip extends StatelessWidget {
         color: AppSemanticColors.successSoftFor(brightness),
         borderRadius: AppRadius.pillBorder,
         border: Border.all(
-          color: AppSemanticColors.success.withValues(alpha: 0.2),
+          color: AppSemanticColors.pineFor(brightness).withValues(alpha: 0.2),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.check_circle_rounded,
             size: 14,
-            color: AppSemanticColors.success,
+            color: AppSemanticColors.pineFor(brightness),
           ),
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppSemanticColors.greenInkFor(brightness),
-              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),

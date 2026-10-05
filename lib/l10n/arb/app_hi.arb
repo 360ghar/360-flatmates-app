@@ -85,7 +85,7 @@
   "homePickedSubtitle": "आपकी पसंद और वाइब से मेल खाने वाले फ्लैट्स",
   "homeNoResults": "इन फ़िल्टर्स से कोई लिस्टिंग नहीं मिली।",
   "homeNoResultsSubtitle": "अपने फ़िल्टर बदलकर देखें या किसी अन्य लोकेशन के लिए खोजें।",
-  "homeBroadenedRadius": "आपके क्षेत्र में कोई लिस्टिंग नहीं — दूर की फ्लैट्स दिखाई जा रही हैं।",
+  "homeBroadenedRadius": "आपके क्षेत्र में कोई लिस्टिंग नहीं। दूर के फ्लैट दिखाए जा रहे हैं।",
   "homeBedroomsChip": "{count} BHK",
   "@homeBedroomsChip": {
     "placeholders": {
@@ -137,7 +137,15 @@
   "badgeNew": "नया",
   "badgePopular": "लोकप्रिय",
   "badgeTrending": "ट्रेंडिंग",
-  "monthlyRentLabel": "मासिक किराया: ₹{amount}",
+  "unreadMessagesCount": "{count, plural, =1{1 अपठित संदेश} other{{count} अपठित संदेश}}",
+  "@unreadMessagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyRentLabel": "मासिक किराया: {amount}",
   "@monthlyRentLabel": {
     "placeholders": {
       "amount": {
@@ -294,7 +302,7 @@
   "selectDateCta": "तारीख चुनें",
   "postListingTitle": "अपना स्पेस पोस्ट करें",
   "postListingCta": "कुछ ही मिनटों में अपना स्पेस लिस्ट करें",
-  "postListingSubtitle": "मौजूदा 360 Ghar इन्वेंटरी बैकएंड का उपयोग करके असली फ्लैटमेट लिस्टिंग बनाएं।",
+  "postListingSubtitle": "फ़ोटो, किराया और शिफ्ट होने की तारीख के साथ अपना कमरा जोड़ें।",
   "postListingBasics": "बेसिक्स",
   "postListingPricing": "प्राइसिंग",
   "postListingDetails": "डिटेल्स",
@@ -359,9 +367,9 @@
   "quizFlexible": "लचीला",
   "quizNightOwl": "रात को जागने वाला (आधी रात के बाद)",
   "quizCleanliness": "आप कितने साफ-सुथरे रहते हैं?",
-  "quizCleanMinimal": "कम — रहने वाला ठीक है",
-  "quizCleanTidy": "सुव्यवस्थित — हर चीज़ अपनी जगह पर",
-  "quizCleanSpotless": "बिल्कुल साफ — सब कुछ चमकदार",
+  "quizCleanMinimal": "कम: रहने वाला ठीक है",
+  "quizCleanTidy": "सुव्यवस्थित: हर चीज़ अपनी जगह पर",
+  "quizCleanSpotless": "बिल्कुल साफ: सब कुछ चमकदार",
   "quizFoodHabits": "आपकी खान-पान की आदतें?",
   "quizVegetarian": "शाकाहारी",
   "quizVegan": "वीगन",
@@ -376,7 +384,7 @@
   "quizGuestsPolicy": "मेहमानों के बारे में आपका क्या विचार है?",
   "quizNoGuests": "रात को मेहमान नहीं",
   "quizOccasionalGuests": "कभी-कभी मेहमान ठीक हैं",
-  "quizOpenHouse": "खुला घर — हमेशा स्वागत है",
+  "quizOpenHouse": "खुला घर: हमेशा स्वागत है",
   "quizParties": "घर पर पार्टी के बारे में?",
   "quizPartiesNever": "कभी नहीं",
   "quizPartiesWeekends": "कभी-कभी वीकेंड पर",
@@ -384,7 +392,7 @@
   "quizWorkStyle": "आपका वर्क स्टाइल क्या है?",
   "quizWfh": "ज़्यादातर घर से काम",
   "quizOffice": "ज़्यादातर ऑफिस से",
-  "quizHybrid": "हाइब्रिड — दोनों का मिश्रण",
+  "quizHybrid": "हाइब्रिड: दोनों का मिश्रण",
   "quizPets": "पालतू जानवरों के बारे में?",
   "quizNoPets": "कोई पालतू नहीं",
   "quizHavePets": "मेरे पालतू हैं",
@@ -689,6 +697,7 @@
   "visitCancelConfirm": "क्या आप वाकई इस विज़िट को रद्द करना चाहते हैं?",
   "visitConfirmed": "विज़िट पुष्ट",
   "visitCancelled": "विज़िट रद्द की गई।",
+  "videoUploadFailed": "वीडियो अपलोड नहीं हो सका। फिर से कोशिश करें।",
   "videoTourLabel": "वीडियो टूर (वैकल्पिक)",
   "videoTourHint": "15-60 सेकंड का वर्टिकल वीडियो, अधिकतम 50MB",
   "addVideoCta": "वीडियो टूर जोड़ें",
@@ -707,6 +716,7 @@
   "chatPollingInfo": "मैसेज अपने आप रिफ्रेश होते हैं",
   "flatDetailsTitle": "फ्लैट विवरण",
   "notificationsTitle": "नोटिफिकेशन",
+  "notificationUnreadLabel": "अपठित",
   "notificationEmpty": "अभी कोई नोटिफिकेशन नहीं है।",
   "helpSafetyTitle": "सहायता और सुरक्षा",
   "safetyTips": "सुरक्षा सुझाव",
@@ -755,6 +765,18 @@
   "editStep": "संपादित करें",
   "filterApplied": "फ़िल्टर लागू किए गए",
   "noListingsMatchFilters": "आपके फ़िल्टर्स से कोई लिस्टिंग नहीं मिली। उन्हें बदलकर देखें।",
+  "labelWithCount": "{label} ({count})",
+  "@labelWithCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "listingStatusUnknown": "अज्ञात स्थिति",
   "listingRejected": "अस्वीकृत",
   "reviewSupportText": "हम 24 घंटे के भीतर आपकी लिस्टिंग की समीक्षा करेंगे",
   "reviewStep3Desc": "आपकी लिस्टिंग स्वीकृत और लाइव होने पर आपको सूचना मिलेगी।",
@@ -1029,7 +1051,7 @@
   "addPhotosTitle": "फ़ोटो जोड़ें",
   "addPhotosTips": "सुझाव",
   "addPhotosInstruction": "ज़्यादा मैच पाने के लिए कमरे और कॉमन एरिया की साफ़ फ़ोटो जोड़ें।",
-  "photoTipNaturalLight": "• प्राकृतिक रोशनी में शूट करें — पर्दे खोल लें",
+  "photoTipNaturalLight": "• प्राकृतिक रोशनी में शूट करें: पर्दे खोल लें",
   "photoTipFullRoom": "• कमरे को कोने से कोने तक पूरा दिखाएं",
   "photoTipBathroomBalcony": "• उपलब्ध हो तो बाथरूम और बालकनी भी दिखाएं",
   "photoTipCleanRoom": "• फ़ोटो लेने से पहले कमरा साफ़ कर लें",
@@ -1244,14 +1266,11 @@
       }
     }
   },
-  "listingSummaryPhotos": "{count} फ़ोटो{plural}",
+  "listingSummaryPhotos": "{count, plural, =1{1 फ़ोटो} other{{count} फ़ोटो}}",
   "@listingSummaryPhotos": {
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "plural": {
-        "type": "String"
       }
     }
   },
@@ -1310,7 +1329,7 @@
   "errorAuth": "प्रमाणीकरण विफल। कृपया पुनः प्रयास करें।",
   "errorServer": "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।",
   "errorPermission": "आपको यह क्रिया करने की अनुमति नहीं है।",
-  "errorNotFound": "अनुरोधित संसाधन नहीं मिला।",
+  "errorNotFound": "यह पेज या आइटम अब मौजूद नहीं है।",
   "errorValidation": "अमान्य डेटा। कृपया अपना इनपुट जांचें।",
   "errorRateLimit": "बहुत अधिक अनुरोध। कृपया थोड़ी देर प्रतीक्षा करें और पुनः प्रयास करें।",
   "errorConflict": "एक विरोधाभास हुआ। डेटा बदल गया होगा।",
@@ -1375,19 +1394,17 @@
       }
     }
   },
-  "reviewPhotosAmount": "{count} फोटो{plural}",
+  "reviewPhotosAmount": "{count, plural, =1{1 फ़ोटो} other{{count} फ़ोटो}}",
   "@reviewPhotosAmount": {
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "plural": {
-        "type": "String"
       }
     }
   },
-  "invalidListingId": "अमान्य लिस्टिंग ID",
-  "invalidConversationId": "अमान्य वार्तालाप ID",
+  "notFoundTitle": "हमें वह पेज नहीं मिला",
+  "invalidListingId": "यह लिस्टिंग लिंक टूटा हुआ है।",
+  "invalidConversationId": "यह चैट लिंक टूटा हुआ है।",
   "youAreOffline": "आप ऑफ़लाइन हैं। अपना कनेक्शन जांचें।",
   "visitScheduledNotificationFailed": "यात्रा शेड्यूल की गई! सूचना भेजी नहीं जा सकी।",
   "bootstrapErrorRetry": "कुछ गलत हो गया। पुनः प्रयास करें।",
@@ -1488,6 +1505,14 @@
   "optionalUpdateCta": "अभी अपडेट करें",
   "optionalUpdateLater": "बाद में",
   "patchReadyMessage": "एक अपडेट तैयार है। यह अगली बार ऐप खोलने पर लागू होगा।",
+  "appVersionLabel": "संस्करण {version}",
+  "@appVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "patchLabel": "पैच {number}",
   "maintenanceTitle": "मेंटेनेंस चल रहा है",
   "maintenanceMessage": "हम चीज़ें बेहतर बना रहे हैं। कृपया कुछ देर बाद दोबारा देखें।",
@@ -1571,7 +1596,7 @@
   "likesLabel": "पसंद",
   "openChatCta": "चैट खोलें",
   "visitRequestSent": "विज़िट अनुरोध भेजा गया!",
-  "visitFromDetailPageNote": "इस प्रॉपर्टी में रुचि — लिस्टिंग पेज से शेड्यूल किया गया।",
+  "visitFromDetailPageNote": "इस प्रॉपर्टी में रुचि। लिस्टिंग पेज से शेड्यूल किया गया।",
   "readMoreCta": "और पढ़ें",
   "showLessCta": "कम दिखाएं",
   "viewProfileCta": "प्रोफ़ाइल देखें",
@@ -1870,5 +1895,21 @@
   "ageBucket31_35": "31-35",
   "ageBucket36_40": "36-40",
   "ageBucket41_45": "41-45",
-  "ageBucket46Plus": "46+"
+  "ageBucket46Plus": "46+",
+  "emailVerifiedLabel": "ईमेल सत्यापित",
+  "onboardingFinishLaterCta": "बाद में पूरा करें",
+  "removePhotoTooltip": "फ़ोटो हटाएं",
+  "budgetUpToLabel": "₹{amount} तक",
+  "ageRangeYearsValue": "{min} – {max} वर्ष",
+  "ventilationAny": "कोई भी",
+  "adjustFiltersCta": "फ़िल्टर बदलें",
+  "clearSearchTooltip": "खोज साफ़ करें",
+  "voteDownHint": "नकारात्मक वोट दें",
+  "mapRecenterTooltip": "मेरी लोकेशन पर जाएं",
+  "mapFitAllTooltip": "सभी लिस्टिंग दिखाएं",
+  "mapZoomInTooltip": "ज़ूम इन करें",
+  "mapZoomOutTooltip": "ज़ूम आउट करें",
+  "ownerFallbackName": "मालिक",
+  "floorOfLabel": "मंज़िल {floor} / {total}",
+  "floorNumberLabel": "मंज़िल {floor}"
 }
