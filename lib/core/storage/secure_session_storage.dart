@@ -108,16 +108,24 @@ class SecureSessionStorage extends LocalStorage {
       return;
     }
 
-    final legacy = _prefs.getString(persistSessionKey);
-    if (legacy != null) {
-      await _migrateLegacySession(legacy);
+    if (_store == _storeSecure) {
+      // The marker names the keychain, so this is not a fresh install even if
+      // the install marker is missing: never wipe the session it points at.
+      //
+      // The marker is the single source of truth, so a plaintext copy here is
+      // a leftover duplicate — a delete that failed, or a state an older build
+      // left behind — and must never be read: migrating it would write a stale
+      // token over the newer keychain session and roll the account back. Drop
+      // it when the platform allows; if that delete fails again the copy stays
+      // unread, which is what matters.
+      await _prefsDelete();
       await _writeInstallMarker();
       return;
     }
 
-    if (_store == _storeSecure) {
-      // The marker names the keychain, so this is not a fresh install even if
-      // the install marker is missing: never wipe the session it points at.
+    final legacy = _prefs.getString(persistSessionKey);
+    if (legacy != null) {
+      await _migrateLegacySession(legacy);
       await _writeInstallMarker();
       return;
     }
@@ -206,16 +214,32 @@ class SecureSessionStorage extends LocalStorage {
         // Order: credentials first, then the marker that names their store,
         // then the signed-out marker is cleared. The marker never points at a
         // store that does not hold the session yet.
+        //
+        // Invariant: the marker is the single source of truth, and a plaintext
+        // copy is never left live while the marker names the keychain. The
+        // next launch would read that plaintext, and migrating it would write
+        // the older copy over the newer keychain token — a session rollback to
+        // whatever account the plaintext belongs to.
         var inKeychain = false;
+        var plaintextLeftBehind = false;
         if (_store != _storePrefs) {
           inKeychain = await _secureWrite(persistSessionString);
           if (inKeychain && await _writeStoreMarker(_storeSecure)) {
-            _store = _storeSecure;
-            await _prefsDelete();
-            await _clearSignedOutMarker();
-            return;
-          }
-          if (inKeychain) {
+            if (await _prefsDelete()) {
+              _store = _storeSecure;
+              await _clearSignedOutMarker();
+              return;
+            }
+            // The plaintext copy survived the delete, so the marker must not
+            // stay on `secure`. Fall through to the fallback below, which
+            // rewrites the plaintext with this session and records `prefs`:
+            // the plaintext stays authoritative, but marked as such.
+            plaintextLeftBehind = true;
+            debugPrint(
+              'SecureSessionStorage.persistSession: plaintext session could '
+              'not be removed; keeping it as the source of truth',
+            );
+          } else if (inKeychain) {
             // The marker is not durable, so a later launch cannot tell where
             // this session lives. Keep the plaintext copy as the source of
             // truth as well, instead of leaving a keychain-only session.
@@ -236,13 +260,22 @@ class SecureSessionStorage extends LocalStorage {
         // Nothing durable was written. The user stays signed in for this run
         // either way; supabase_flutter ignores this future, so the failure has
         // to be visible in the logs.
-        debugPrint(
-          inKeychain
-              ? 'SecureSessionStorage.persistSession: session is only in the '
-                    'keychain; its store marker could not be written'
-              : 'SecureSessionStorage.persistSession: session was not '
-                    'persisted',
-        );
+        if (plaintextLeftBehind) {
+          debugPrint(
+            'SecureSessionStorage.persistSession: the stale plaintext copy '
+            'could not be replaced; the keychain copy stays authoritative and '
+            'the plaintext is never read',
+          );
+        } else if (inKeychain) {
+          debugPrint(
+            'SecureSessionStorage.persistSession: session is only in the '
+            'keychain; its store marker could not be written',
+          );
+        } else {
+          debugPrint(
+            'SecureSessionStorage.persistSession: session was not persisted',
+          );
+        }
       });
 
   /// A new session was stored, so the signed-out marker no longer applies.

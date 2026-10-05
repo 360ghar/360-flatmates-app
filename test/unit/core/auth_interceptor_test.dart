@@ -99,6 +99,40 @@ void main() {
       expect(handler.nextCalled, isTrue);
     });
 
+    test('a throwing clearSession still releases the queue', () async {
+      final tokenProvider = _ThrowingClearTokenProvider();
+      final dio = Dio();
+      final interceptor = AuthInterceptor(
+        tokenProvider: tokenProvider,
+        dio: dio,
+      );
+
+      final first = _RecordingErrorHandler();
+      final queued = _RecordingErrorHandler();
+      final a = interceptor.onError(_unauthorized('/a', 'old'), first);
+      final b = interceptor.onError(_unauthorized('/b', 'old'), queued);
+
+      // Bounded on purpose: if the queue is never drained, this times out
+      // instead of hanging the suite.
+      await expectLater(
+        Future.wait([a, b]).timeout(const Duration(seconds: 5)),
+        completes,
+      );
+
+      // This request still surfaces the 401...
+      expect(first.nextCalled, isTrue);
+      expect(first.capturedError?.response?.statusCode, 401);
+      // ...and the queued request is released with the same error rather than
+      // left waiting on a completer nobody completes.
+      expect(queued.nextCalled, isTrue);
+      expect(queued.capturedError?.response?.statusCode, 401);
+      expect(
+        queued.capturedError?.error,
+        'Session expired. Please sign in again.',
+      );
+      expect(tokenProvider.clearSessionCalled, isTrue);
+    });
+
     test('does not retry when _retried is already true', () async {
       final tokenProvider = _FakeTokenProvider(token: 'new-token');
       final dio = Dio();
@@ -293,6 +327,21 @@ class _GatedTokenProvider implements AuthTokenProvider {
 
   @override
   Future<void> clearSession() async => clearSessionCalled = true;
+}
+
+/// Reports the session as gone (no token) but throws when the session is
+/// cleared — the keychain delete can fail, for example iOS error -25308.
+class _ThrowingClearTokenProvider implements AuthTokenProvider {
+  bool clearSessionCalled = false;
+
+  @override
+  Future<String?> getAccessToken({String? rejectedToken}) async => null;
+
+  @override
+  Future<void> clearSession() async {
+    clearSessionCalled = true;
+    throw StateError('keychain unavailable');
+  }
 }
 
 /// Throws a non-transient error while [throwing] is true, then hands out a

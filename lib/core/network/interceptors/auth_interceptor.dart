@@ -100,15 +100,22 @@ final class AuthInterceptor extends Interceptor {
       }
 
       if (newToken == null || newToken.isEmpty) {
-        // No new token — session is genuinely gone. Clear and surface a 401.
+        // No new token — session is genuinely gone. Drain the queue before
+        // touching the session store: clearing it deletes from the keychain
+        // and can throw (for example iOS error -25308), and a throw here would
+        // leave every queued request waiting on a completer nobody completes.
         _finishRefresh(false);
-        await _tokenProvider.clearSession();
         _failQueueWith(
           'Session expired. Please sign in again.',
           type: DioExceptionType.badResponse,
           statusCode: 401,
           stackTrace: err.stackTrace,
         );
+        try {
+          await _tokenProvider.clearSession();
+        } catch (e) {
+          debugPrint('AuthInterceptor.onError: clearSession failed: $e');
+        }
         handler.next(
           DioException(
             requestOptions: err.requestOptions,

@@ -4,6 +4,10 @@ import 'package:flatmates_app/core/storage/secure_session_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// Platform interface of a transitive dependency, used only for the test-only
+// store fake at the bottom of this file.
+// ignore: depend_on_referenced_packages
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 void main() {
   const key = 'sb-abc-auth-token';
@@ -204,6 +208,69 @@ void main() {
     expect(await storage.accessToken(), 'keychain-copy');
   });
 
+  test('the store marker wins over a leftover plaintext copy', () async {
+    // A build with the failed-delete bug left this state behind: the marker
+    // names the keychain, the keychain holds the newer session, and the stale
+    // plaintext copy is still in SharedPreferences. Reading that copy and
+    // migrating it would sign the user back in as the older account.
+    SharedPreferences.setMockInitialValues({
+      installMarkerKey: true,
+      storeKey: 'secure',
+      key: 'old-account',
+    });
+    FlutterSecureStorage.setMockInitialValues({key: 'new-account'});
+
+    final storage = SecureSessionStorage(persistSessionKey: key);
+    await storage.initialize();
+
+    expect(await storage.accessToken(), 'new-account');
+    expect(await const FlutterSecureStorage().read(key: key), 'new-account');
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(key), isNull);
+    expect(prefs.getString(storeKey), 'secure');
+  });
+
+  test(
+    'a failed plaintext delete never leaves the marker naming the keychain',
+    () async {
+      SharedPreferences.setMockInitialValues({installMarkerKey: true});
+      final store = _FailingRemovePrefsStore(
+        SharedPreferencesStorePlatform.instance,
+      );
+      SharedPreferencesStorePlatform.instance = store;
+      SharedPreferences.resetStatic();
+      FlutterSecureStorage.setMockInitialValues({});
+
+      final storage = SecureSessionStorage(persistSessionKey: key);
+      await storage.initialize();
+
+      // The stale copy a failed delete leaves behind, while the marker already
+      // names the keychain.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, 'old-account');
+
+      // The platform rejects the plaintext delete for the rest of this test.
+      store.failRemove = true;
+      await storage.persistSession('new-account');
+
+      // The marker must not say `secure` while the plaintext copy is live: the
+      // next launch reads that copy and migrates it over the newer keychain
+      // token.
+      expect(prefs.getString(storeKey), 'prefs');
+      expect(prefs.getString(key), 'new-account');
+      expect(await storage.accessToken(), 'new-account');
+
+      // The end-to-end invariant: a restart never resurrects the old session.
+      store.failRemove = false;
+      SharedPreferences.resetStatic();
+      final restarted = SecureSessionStorage(persistSessionKey: key);
+      await restarted.initialize();
+
+      expect(await restarted.accessToken(), 'new-account');
+      expect(await const FlutterSecureStorage().read(key: key), 'new-account');
+    },
+  );
+
   test('a signed-out marker suppresses a leftover keychain session', () async {
     SharedPreferences.setMockInitialValues({
       installMarkerKey: true,
@@ -389,4 +456,29 @@ class _FailingDeleteStorage extends FlutterSecureStorage {
     await writeGate?.future;
     await super.write(key: key, value: value);
   }
+}
+
+/// Wraps the installed SharedPreferences platform store and can make `remove`
+/// fail, so a test can simulate a plaintext delete that never reaches the
+/// platform (the store keeps the value while `SharedPreferences.remove`
+/// reports false).
+class _FailingRemovePrefsStore extends SharedPreferencesStorePlatform {
+  _FailingRemovePrefsStore(this._delegate);
+
+  final SharedPreferencesStorePlatform _delegate;
+  bool failRemove = false;
+
+  @override
+  Future<bool> remove(String key) async =>
+      failRemove ? false : _delegate.remove(key);
+
+  @override
+  Future<bool> setValue(String valueType, String key, Object value) =>
+      _delegate.setValue(valueType, key, value);
+
+  @override
+  Future<bool> clear() => _delegate.clear();
+
+  @override
+  Future<Map<String, Object>> getAll() => _delegate.getAll();
 }
