@@ -22,6 +22,7 @@ class NotificationsActionsController {
     try {
       await _repository.markAsRead(notificationId);
       _markLocally((list) => list.markReadLocally(notificationId));
+      _ref.invalidate(notificationsUnreadCountProvider);
       _reloadKeepingList();
     } catch (e) {
       debugPrint('NotificationsActionsController.markRead: $e');
@@ -33,6 +34,7 @@ class NotificationsActionsController {
     try {
       await _repository.markAllAsRead();
       _markLocally((list) => list.markAllReadLocally());
+      _ref.invalidate(notificationsUnreadCountProvider);
       _reloadKeepingList();
     } catch (e) {
       debugPrint('NotificationsActionsController.markAllRead: $e');

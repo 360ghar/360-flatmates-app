@@ -1,0 +1,251 @@
+{
+  "compatibility": {
+    "color": "green",
+    "dimensions": [
+      {
+        "match": false,
+        "name": "sleep_schedule",
+        "peer_value": "early_bird",
+        "score": 70.0,
+        "summary": "Close sleep schedules",
+        "user_value": "flexible",
+        "weight": 0.2
+      },
+      {
+        "match": true,
+        "name": "cleanliness",
+        "peer_value": "tidy",
+        "score": 100.0,
+        "summary": "Both tidy",
+        "user_value": "tidy",
+        "weight": 0.3
+      }
+    ],
+    "overall_percentage": 82.5,
+    "peer_id": 2,
+    "summary": [
+      "Both tidy"
+    ],
+    "user_id": 7
+  },
+  "detail": {
+    "age_bucket": "25-30",
+    "bio": "Early riser, tidy, cooks on weekends.",
+    "budget_max": 25000.5,
+    "budget_min": 12000.0,
+    "city": "Bengaluru",
+    "cleanliness": "tidy",
+    "drinking": "occasionally",
+    "food_habits": "vegetarian",
+    "full_name": "Rahul S",
+    "gender": "female",
+    "gender_preference": "any",
+    "guests_policy": "occasional_ok",
+    "has_pets": false,
+    "id": 3,
+    "linkedin_url": null,
+    "listing": {
+      "amenities": [
+        "Gym",
+        "Lift"
+      ],
+      "area_sqft": 1200.0,
+      "available_from": "2026-11-01",
+      "balconies": 1,
+      "bathrooms": null,
+      "bedrooms": 2,
+      "city": "Bengaluru",
+      "features": [
+        "furnished",
+        "wifi"
+      ],
+      "floor_number": 3,
+      "image_urls": [
+        "https://cdn.example.com/p42/main.jpg",
+        "https://cdn.example.com/p42/bed.jpg"
+      ],
+      "landmark": "Forum Mall",
+      "latitude": 12.9352,
+      "locality": "Koramangala",
+      "longitude": 77.6245,
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "maintenance_charges": 1500.5,
+      "monthly_rent": 24000.0,
+      "property_id": 42,
+      "room_type": "private_room",
+      "security_deposit": 48000.0,
+      "sub_locality": "5th Block",
+      "title": "Sunny room in Koramangala",
+      "total_floors": 8,
+      "video_tour_url": null,
+      "virtual_tour_url": null
+    },
+    "locality": "HSR Layout",
+    "match_percentage": null,
+    "mode": "room_poster",
+    "move_in_timeline": "within_1_month",
+    "native_place": "Pune",
+    "non_negotiables": [
+      "no_smoking",
+      "no_parties"
+    ],
+    "party_habit": "occasional_weekends",
+    "profession": "Designer",
+    "profile_image_url": "https://cdn.example.com/u/3.jpg",
+    "sleep_schedule": "early_bird",
+    "smoking": "never",
+    "top_matches": [],
+    "work_style": "hybrid"
+  },
+  "detail_no_listing": {
+    "age_bucket": "25-30",
+    "bio": "Early riser, tidy, cooks on weekends.",
+    "budget_max": 25000.5,
+    "budget_min": 12000.0,
+    "city": "Bengaluru",
+    "cleanliness": "tidy",
+    "drinking": "occasionally",
+    "food_habits": "vegetarian",
+    "full_name": "Priya P",
+    "gender": "female",
+    "gender_preference": "any",
+    "guests_policy": "occasional_ok",
+    "has_pets": false,
+    "id": 2,
+    "linkedin_url": null,
+    "listing": null,
+    "locality": "HSR Layout",
+    "match_percentage": 85.0,
+    "mode": "co_hunter",
+    "move_in_timeline": "within_1_month",
+    "native_place": "Pune",
+    "non_negotiables": [
+      "no_smoking",
+      "no_parties"
+    ],
+    "party_habit": "occasional_weekends",
+    "profession": "Designer",
+    "profile_image_url": "https://cdn.example.com/u/2.jpg",
+    "sleep_schedule": "early_bird",
+    "smoking": "never",
+    "top_matches": [
+      "Same sleep schedule",
+      "Both vegetarian"
+    ],
+    "work_style": "hybrid"
+  },
+  "page": {
+    "has_more": true,
+    "items": [
+      {
+        "age_bucket": "25-30",
+        "bio": "Early riser, tidy, cooks on weekends.",
+        "budget_max": 25000.5,
+        "budget_min": 12000.0,
+        "city": "Bengaluru",
+        "cleanliness": "tidy",
+        "drinking": "occasionally",
+        "food_habits": "vegetarian",
+        "full_name": "Priya P",
+        "gender": "female",
+        "gender_preference": "any",
+        "guests_policy": "occasional_ok",
+        "has_pets": false,
+        "id": 2,
+        "linkedin_url": null,
+        "listing": null,
+        "locality": "HSR Layout",
+        "match_percentage": 85.0,
+        "mode": "co_hunter",
+        "move_in_timeline": "within_1_month",
+        "native_place": "Pune",
+        "non_negotiables": [
+          "no_smoking",
+          "no_parties"
+        ],
+        "party_habit": "occasional_weekends",
+        "profession": "Designer",
+        "profile_image_url": "https://cdn.example.com/u/2.jpg",
+        "sleep_schedule": "early_bird",
+        "smoking": "never",
+        "top_matches": [
+          "Same sleep schedule",
+          "Both vegetarian"
+        ],
+        "work_style": "hybrid"
+      },
+      {
+        "age_bucket": "25-30",
+        "bio": "Early riser, tidy, cooks on weekends.",
+        "budget_max": 25000.5,
+        "budget_min": 12000.0,
+        "city": "Bengaluru",
+        "cleanliness": "tidy",
+        "drinking": "occasionally",
+        "food_habits": "vegetarian",
+        "full_name": "Rahul S",
+        "gender": "female",
+        "gender_preference": "any",
+        "guests_policy": "occasional_ok",
+        "has_pets": false,
+        "id": 3,
+        "linkedin_url": null,
+        "listing": {
+          "amenities": [
+            "Gym",
+            "Lift"
+          ],
+          "area_sqft": 1200.0,
+          "available_from": "2026-11-01",
+          "balconies": 1,
+          "bathrooms": null,
+          "bedrooms": 2,
+          "city": "Bengaluru",
+          "features": [
+            "furnished",
+            "wifi"
+          ],
+          "floor_number": 3,
+          "image_urls": [
+            "https://cdn.example.com/p42/main.jpg",
+            "https://cdn.example.com/p42/bed.jpg"
+          ],
+          "landmark": "Forum Mall",
+          "latitude": 12.9352,
+          "locality": "Koramangala",
+          "longitude": 77.6245,
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "maintenance_charges": 1500.5,
+          "monthly_rent": 24000.0,
+          "property_id": 42,
+          "room_type": "private_room",
+          "security_deposit": 48000.0,
+          "sub_locality": "5th Block",
+          "title": "Sunny room in Koramangala",
+          "total_floors": 8,
+          "video_tour_url": null,
+          "virtual_tour_url": null
+        },
+        "locality": "HSR Layout",
+        "match_percentage": null,
+        "mode": "room_poster",
+        "move_in_timeline": "within_1_month",
+        "native_place": "Pune",
+        "non_negotiables": [
+          "no_smoking",
+          "no_parties"
+        ],
+        "party_habit": "occasional_weekends",
+        "profession": "Designer",
+        "profile_image_url": "https://cdn.example.com/u/3.jpg",
+        "sleep_schedule": "early_bird",
+        "smoking": "never",
+        "top_matches": [],
+        "work_style": "hybrid"
+      }
+    ],
+    "limit": 20,
+    "next_cursor": "eyJrIjpbMTc2MCwyXSwiZiI6ImFiYzEyMyJ9",
+    "total": null
+  }
+}

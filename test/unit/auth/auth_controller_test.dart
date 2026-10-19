@@ -228,6 +228,35 @@ void main() {
     });
   });
 
+  group('startIdentifierFlow with an unknown status', () {
+    test('an unknown channel is read from the identifier, an unknown step '
+        'goes to OTP', () async {
+      final fake = _FlowFake(
+        IdentifierStatus.fromJson(const {
+          'exists': true,
+          'verified': true,
+          'has_password': true,
+          'channel': 'telegram',
+          'next_step': 'passkey',
+        }),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(fakeAppConfig()),
+          authControllerProvider.overrideWith(() => fake),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container
+          .read(authControllerProvider.notifier)
+          .startIdentifierFlow('a@b.co');
+
+      expect(result.route, '/otp?email=a%40b.co');
+      expect(fake.createUser, isFalse);
+    });
+  });
+
   group('AuthState', () {
     test('isLoggedIn is true when sessionAuthenticated is true', () {
       const state = AuthState(
@@ -282,10 +311,15 @@ void main() {
       expect(status.nextStep, IdentifierNextStep.otp);
     });
 
-    test('fromJson defaults to phone channel when channel is missing', () {
-      final status = IdentifierStatus.fromJson(const {});
-      expect(status.channel, AuthChannel.phone);
-      expect(status.nextStep, IdentifierNextStep.otp);
+    test('fromJson maps a missing or unknown channel and step to null', () {
+      for (final json in <Map<String, dynamic>>[
+        const {},
+        const {'channel': 'telegram', 'next_step': 'passkey'},
+      ]) {
+        final status = IdentifierStatus.fromJson(json);
+        expect(status.channel, isNull);
+        expect(status.nextStep, isNull);
+      }
     });
   });
 }

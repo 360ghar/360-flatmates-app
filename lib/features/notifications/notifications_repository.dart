@@ -26,16 +26,23 @@ class NotificationModel {
   final int? referenceId; // conversation_id, listing_id, visit_id etc.
   final String? route;
 
+  /// Throws [FormatException] when `created_at` is not readable, so the list
+  /// parser skips the row instead of dating it at the epoch.
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.tryParse(json['created_at']?.toString() ?? '');
+    if (createdAt == null) {
+      throw FormatException(
+        'notification ${json['id']} has no readable created_at: '
+        '${json['created_at']}',
+      );
+    }
     return NotificationModel(
       id: json['id']?.toString() ?? '',
       type: json['type'] as String? ?? 'general',
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
       isRead: json['is_read'] as bool? ?? false,
-      createdAt:
-          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0),
+      createdAt: createdAt,
       referenceId: (json['reference_id'] as num?)?.toInt(),
       route: json['route']?.toString(),
     );
@@ -70,10 +77,18 @@ class NotificationsRepository {
     );
   }
 
-  /// Backwards-compatible helper that returns the first page as a list.
-  Future<List<NotificationModel>> fetchNotifications() async {
-    final page = await fetchNotificationsPage();
-    return page.items;
+  /// `GET /flatmates/notifications/unread-count`: the number of unread
+  /// notifications across every page, not only the pages loaded.
+  Future<int> fetchUnreadCount() async {
+    final response = await _ref
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.notificationsUnreadCount);
+    final data = response.data;
+    final count = data is Map ? (data['unread_count'] as num?)?.toInt() : null;
+    if (count == null || count < 0) {
+      throw const FormatException('unread-count has no unread_count');
+    }
+    return count;
   }
 
   Future<void> markAsRead(String notificationId) async {
@@ -97,4 +112,10 @@ class NotificationsRepository {
 
 final notificationsRepositoryProvider = Provider<NotificationsRepository>(
   (ref) => NotificationsRepository(ref),
+);
+
+/// The unread count of the signed-in account. Dropped when the page closes, so
+/// it is read again when the page opens.
+final notificationsUnreadCountProvider = FutureProvider.autoDispose<int>(
+  (ref) => ref.watch(notificationsRepositoryProvider).fetchUnreadCount(),
 );

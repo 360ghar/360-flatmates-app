@@ -11,6 +11,58 @@ import 'paper_edge_border.dart';
 /// Foreground props for the compact scene. See DESIGN.md §6.
 enum PaperProp { house, chat, heart, magnifier, bell, rainCloud }
 
+/// The fit maths every scene layer paints with — one definition, shared by
+/// [_ShapePainter] and the foldable-geometry tests.
+abstract final class PaperSceneFit {
+  /// Topmost canvas y any hero layer paints, in canvas units (cloudB's crown).
+  ///
+  /// [BoxFit.cover] never crops above this line. Everything above it is sky the
+  /// parent already paints, so clamping there is invisible, while cropping past
+  /// it slices visible art. Derived from the generated art, so a regenerated
+  /// canvas stays correct.
+  static final double heroArtTop = <PaperShape>[
+    PaperArt.sun,
+    PaperArt.cloudA,
+    PaperArt.cloudB,
+    PaperArt.hillsFar,
+    PaperArt.townFar,
+    PaperArt.hillsNear,
+    PaperArt.townWindows,
+    PaperArt.townNear,
+    PaperArt.tree,
+  ].map((shape) => shape.path().getBounds().top).reduce(math.min);
+
+  /// The uniform scale and translation that map [canvas] into [box] for [fit].
+  ///
+  /// Cover is bottom-right anchored: the ground meets the bottom edge, and a
+  /// narrow phone still shows the sun and the tree (both sit on the right).
+  ///
+  /// The one clamp is on the top edge. A box wider than the 1200 x 360 hero
+  /// canvas — the open Duo at 855 / 951 dp, a 200 dp header — makes the scale
+  /// width-driven, so a bottom-anchored cover crops the top: at 855 x 200 that
+  /// was 26 dp of the sun and all but 5 dp of cloudB. Raising [dy] to
+  /// `-heroArtTop * scale` keeps every layer's art on screen and crops only
+  /// the empty sky above it. On a phone the width never drives the scale, so
+  /// this is a no-op there (466 x 240 and below render pixel-identically).
+  static ({double scale, Offset offset}) transform(
+    Size canvas,
+    Size box,
+    BoxFit fit,
+  ) {
+    final cover = fit == BoxFit.cover;
+    final scale = cover
+        ? math.max(box.width / canvas.width, box.height / canvas.height)
+        : math.min(box.width / canvas.width, box.height / canvas.height);
+    final dx = cover
+        ? box.width - canvas.width * scale
+        : (box.width - canvas.width * scale) / 2;
+    final dy = cover
+        ? math.max(box.height - canvas.height * scale, -heroArtTop * scale)
+        : (box.height - canvas.height * scale) / 2;
+    return (scale: scale, offset: Offset(dx, dy));
+  }
+}
+
 /// The cut-paper neighbourhood: the signature artifact (DESIGN.md §6).
 ///
 /// Each layer paints once into its own [RepaintBoundary]; parallax and the
@@ -255,21 +307,10 @@ class _ShapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final src = shape.size;
-    final scale = fit == BoxFit.cover
-        ? math.max(size.width / src.width, size.height / src.height)
-        : math.min(size.width / src.width, size.height / src.height);
-    // Cover: bottom-right, so the ground meets the bottom edge and a narrow
-    // phone still shows the sun and the tree (both sit on the right).
-    final dx = fit == BoxFit.cover
-        ? size.width - src.width * scale
-        : (size.width - src.width * scale) / 2;
-    final dy = fit == BoxFit.cover
-        ? size.height - src.height * scale
-        : (size.height - src.height * scale) / 2;
+    final fit = PaperSceneFit.transform(shape.size, size, this.fit);
     final matrix = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(scale, scale, 1, 1);
+      ..translateByDouble(fit.offset.dx, fit.offset.dy, 0, 1)
+      ..scaleByDouble(fit.scale, fit.scale, 1, 1);
     final path = (_paths[shape] ??= shape.path()).transform(matrix.storage);
 
     // One light source, top-left: a tight shadow down and to the right.

@@ -20,13 +20,6 @@ class ListingReviewBody extends ConsumerWidget {
   final PropertyListing listing;
   final int listingId;
 
-  String? get _moderationReason {
-    final raw = listing.preferences?['moderation_reason'];
-    if (raw is! String) return null;
-    final trimmed = raw.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
-
   void _openListing(BuildContext context, WidgetRef ref) {
     // Keep seed durable before push so GoRouter rebuilds / lost `extra` still
     // render the under-review preview instead of a 404 error screen.
@@ -41,7 +34,6 @@ class ListingReviewBody extends ConsumerWidget {
     final b = theme.brightness;
     final isLive = listing.isLive;
     final isRejected = listing.isRejected;
-    final moderationReason = _moderationReason;
 
     final title = isLive ? locale.listingLive : locale.listingUnderReviewTitle;
 
@@ -91,9 +83,9 @@ class ListingReviewBody extends ConsumerWidget {
           const _ReviewProgress(done: 1),
         if (isRejected) ...[
           const SizedBox(height: AppSpacing.lg),
-          _RejectionCard(
-            reason: moderationReason ?? locale.rejectionDetailText,
-          ),
+          // The server hides moderation_reason from the owner (contract
+          // changelog 1.9): the card carries the generic guidance only.
+          _RejectionCard(reason: locale.rejectionDetailText),
         ],
         const SizedBox(height: AppSpacing.xl),
         if (!isLive && !isRejected) ...[

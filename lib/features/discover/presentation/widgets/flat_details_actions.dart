@@ -80,7 +80,7 @@ void handleOwnerTap({
   required VoidCallback onContact,
   VoidCallback? onScheduleVisit,
 }) {
-  final ownerId = listing.owner?.id ?? listing.ownerId;
+  final ownerId = listing.ownerId;
   if (ownerId == null) {
     debugPrint(
       'FlatDetailsActions.handleOwnerTap: no ownerId on listing ${listing.id}',
@@ -101,11 +101,9 @@ void handleOwnerTap({
   }
 
   final locale = AppLocalizations.of(context);
-  final ownerName = listing.owner?.fullName.trim().isNotEmpty == true
-      ? listing.owner!.fullName
-      : (listing.ownerName?.trim().isNotEmpty == true
-            ? listing.ownerName!
-            : locale.ownerFallbackLabel);
+  final ownerName = listing.ownerName?.trim().isNotEmpty == true
+      ? listing.ownerName!
+      : locale.ownerFallbackLabel;
 
   OwnerProfileSheet.show(
     context: context,
@@ -167,7 +165,7 @@ Future<void> scheduleVisitFromDetails({
     return;
   }
 
-  final ownerId = listing.owner?.id ?? listing.ownerId;
+  final ownerId = listing.ownerId;
   if (ownerId == null) return;
 
   setScheduling(true);

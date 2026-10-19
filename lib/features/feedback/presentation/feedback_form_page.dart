@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/l10n_bridge.dart';
 import '../../../core/theme/app_semantic_colors.dart';
@@ -33,8 +34,8 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _submitting = false;
-  String _bugType = 'functionality_bug';
-  String _severity = 'medium';
+  BugType _bugType = BugType.functionalityBug;
+  BugSeverity _severity = BugSeverity.medium;
 
   bool get _isBug => widget.type == FeedbackType.bug;
 
@@ -62,8 +63,8 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
         await controller.submitBugReport(
           title: title,
           description: description,
-          bugType: _bugType,
-          severity: _severity,
+          bugType: _bugType.wire,
+          severity: _severity.wire,
         );
       } else {
         await controller.submitFeatureRequest(
@@ -137,7 +138,7 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   if (_isBug) ...[
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<BugType>(
                       key: const Key('feedback_bug_type_field'),
                       // Long labels ellipsize instead of overflowing at 2x.
                       isExpanded: true,
@@ -153,7 +154,7 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
                       },
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<BugSeverity>(
                       key: const Key('feedback_severity_field'),
                       // Long labels ellipsize instead of overflowing at 2x.
                       isExpanded: true,
@@ -207,35 +208,35 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
     );
   }
 
-  List<DropdownMenuItem<String>> _bugTypeItems(AppLocalizations locale) {
+  List<DropdownMenuItem<BugType>> _bugTypeItems(AppLocalizations locale) {
     return [
       DropdownMenuItem(
-        value: 'functionality_bug',
+        value: BugType.functionalityBug,
         child: Text(
           locale.feedbackBugTypeFunctionality,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       DropdownMenuItem(
-        value: 'ui_bug',
+        value: BugType.uiBug,
         child: Text(locale.feedbackBugTypeUi, overflow: TextOverflow.ellipsis),
       ),
       DropdownMenuItem(
-        value: 'performance_issue',
+        value: BugType.performanceIssue,
         child: Text(
           locale.feedbackBugTypePerformance,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       DropdownMenuItem(
-        value: 'crash',
+        value: BugType.crash,
         child: Text(
           locale.feedbackBugTypeCrash,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       DropdownMenuItem(
-        value: 'other',
+        value: BugType.other,
         child: Text(
           locale.feedbackBugTypeOther,
           overflow: TextOverflow.ellipsis,
@@ -244,31 +245,31 @@ class _FeedbackFormPageState extends ConsumerState<FeedbackFormPage> {
     ];
   }
 
-  List<DropdownMenuItem<String>> _severityItems(AppLocalizations locale) {
+  List<DropdownMenuItem<BugSeverity>> _severityItems(AppLocalizations locale) {
     return [
       DropdownMenuItem(
-        value: 'low',
+        value: BugSeverity.low,
         child: Text(
           locale.feedbackSeverityLow,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       DropdownMenuItem(
-        value: 'medium',
+        value: BugSeverity.medium,
         child: Text(
           locale.feedbackSeverityMedium,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       DropdownMenuItem(
-        value: 'high',
+        value: BugSeverity.high,
         child: Text(
           locale.feedbackSeverityHigh,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       DropdownMenuItem(
-        value: 'critical',
+        value: BugSeverity.critical,
         child: Text(
           locale.feedbackSeverityCritical,
           overflow: TextOverflow.ellipsis,

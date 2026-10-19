@@ -78,48 +78,6 @@ class NotificationSettingsPage extends ConsumerWidget {
                   endIndent: AppSpacing.base,
                 ),
                 _NotifToggle(
-                  icon: Icons.calendar_today_outlined,
-                  title: locale.notifVisitReminders,
-                  subtitle: locale.notifVisitRemindersDesc,
-                  value: settings.notifVisitReminders,
-                  onChanged: (v) => ref
-                      .read(settingsControllerProvider.notifier)
-                      .updateNotifVisitReminders(v),
-                ),
-                const Divider(
-                  height: 1,
-                  indent: _NotifToggle.labelInset,
-                  endIndent: AppSpacing.base,
-                ),
-                _NotifToggle(
-                  icon: Icons.favorite_border,
-                  title: locale.notifNewMatches,
-                  subtitle: locale.notifNewMatchesDesc,
-                  value: settings.notifNewMatches,
-                  onChanged: (v) => ref
-                      .read(settingsControllerProvider.notifier)
-                      .updateNotifNewMatches(v),
-                ),
-                const Divider(
-                  height: 1,
-                  indent: _NotifToggle.labelInset,
-                  endIndent: AppSpacing.base,
-                ),
-                _NotifToggle(
-                  icon: Icons.home_outlined,
-                  title: locale.notifListingUpdates,
-                  subtitle: locale.notifListingUpdatesDesc,
-                  value: settings.notifListingUpdates,
-                  onChanged: (v) => ref
-                      .read(settingsControllerProvider.notifier)
-                      .updateNotifListingUpdates(v),
-                ),
-                const Divider(
-                  height: 1,
-                  indent: _NotifToggle.labelInset,
-                  endIndent: AppSpacing.base,
-                ),
-                _NotifToggle(
                   icon: Icons.local_offer_outlined,
                   title: locale.notifPromotions,
                   subtitle: locale.notifPromotionsDesc,

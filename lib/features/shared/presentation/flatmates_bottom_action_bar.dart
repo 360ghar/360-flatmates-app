@@ -50,7 +50,11 @@ class FlatmatesBottomActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    // The bar spans the full width, so it owns the horizontal insets too: on a
+    // foldable iPhone Duo the status bar sits on the right edge with an 84 dp
+    // inset, and a landscape phone has a notch on one side. `viewPadding` (not
+    // `padding`) so the bar still clears them while the keyboard is up.
+    final viewPadding = MediaQuery.viewPaddingOf(context);
 
     final primary = FlatmatesButton(
       key: primaryButtonKey,
@@ -71,10 +75,10 @@ class FlatmatesBottomActionBar extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.only(
-        left: AppSpacing.screen,
-        right: AppSpacing.screen,
+        left: AppSpacing.screen + viewPadding.left,
+        right: AppSpacing.screen + viewPadding.right,
         top: AppSpacing.md,
-        bottom: bottomInset + AppSpacing.md,
+        bottom: viewPadding.bottom + AppSpacing.md,
       ),
       decoration: BoxDecoration(
         color: AppSemanticColors.surfaceFor(brightness),

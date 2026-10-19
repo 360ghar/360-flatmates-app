@@ -20,21 +20,19 @@ String displayOwnName(
   return parts.sublist(0, parts.length - 1).join(' ');
 }
 
-/// City only when [hideExactLocation]; else locality + city + state.
+/// City only when [hideExactLocation]; else locality + city. (The profile has
+/// no state: the backend profile schemas do not carry one.)
 String? displayOwnLocation({
   String? city,
-  String? state,
   String? locality,
   required bool hideExactLocation,
 }) {
   final cityTrim = city?.trim() ?? '';
-  final stateTrim = state?.trim() ?? '';
   final localityTrim = locality?.trim() ?? '';
   if (hideExactLocation) return cityTrim.isEmpty ? null : cityTrim;
   final parts = <String>[
     if (localityTrim.isNotEmpty) localityTrim,
     if (cityTrim.isNotEmpty) cityTrim,
-    if (stateTrim.isNotEmpty) stateTrim,
   ];
   return parts.isEmpty ? null : parts.join(', ');
 }

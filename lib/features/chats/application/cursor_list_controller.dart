@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../chats_repository.dart';
 
 /// Generic controller base for cursor-paginated list endpoints.
@@ -331,7 +332,7 @@ class OutgoingLikesController extends CursorListController<OutgoingLikeModel> {
   @override
   bool matchesItem(OutgoingLikeModel a, OutgoingLikeModel b) {
     if (a.targetType != b.targetType) return false;
-    if (a.targetType == 'property') {
+    if (a.targetType == SwipeTargetType.property) {
       return a.property?.id == b.property?.id;
     }
     return a.peer?.id == b.peer?.id;

@@ -183,10 +183,12 @@ class _MessageListState extends ConsumerState<MessageList>
   }
 
   bool _isMessageFromToday(DateTime createdAt) {
+    // `created_at` is UTC; "today" is the user's local day.
+    final local = createdAt.toLocal();
     final now = DateTime.now();
-    return createdAt.year == now.year &&
-        createdAt.month == now.month &&
-        createdAt.day == now.day;
+    return local.year == now.year &&
+        local.month == now.month &&
+        local.day == now.day;
   }
 
   /// Approximate height of a chat bubble; used to nudge the scroll offset
@@ -355,7 +357,8 @@ class _MessageListState extends ConsumerState<MessageList>
                   : shiftedIndex - 1)
             : shiftedIndex;
         final item = items[itemIndex];
-        final isMine = item.senderId == currentUserId;
+        // A message with no sender is a system notice, never a bubble.
+        final isMine = !item.isSystem && item.senderId == currentUserId;
         final visit = item.visitId == null ? null : visitsById[item.visitId];
         final bubble = ChatMessageBubble(
           message: item,

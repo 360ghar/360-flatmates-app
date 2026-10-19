@@ -13,6 +13,7 @@ class MapTopBar extends StatelessWidget {
   const MapTopBar({
     required this.backgroundColor,
     required this.safeAreaTop,
+    this.safeAreaRight = 0,
     required this.locationName,
     required this.onLocationTap,
     required this.onFilterTap,
@@ -21,6 +22,11 @@ class MapTopBar extends StatelessWidget {
 
   final Color backgroundColor;
   final double safeAreaTop;
+
+  /// Right-edge safe area (84 dp on the foldable Duo, where the status bar runs
+  /// down the right edge). The bar's tinted surface stays full-bleed; only its
+  /// content — the filter button above all — moves clear of the inset.
+  final double safeAreaRight;
 
   /// Empty means "no location selected" — the chip shows its placeholder.
   final String locationName;
@@ -40,10 +46,10 @@ class MapTopBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 AppSpacing.screen,
                 AppSpacing.md,
-                AppSpacing.screen,
+                AppSpacing.screen + safeAreaRight,
                 AppSpacing.xs,
               ),
               child: Row(

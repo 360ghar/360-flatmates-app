@@ -384,10 +384,14 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
       );
     } catch (e) {
       if (!context.mounted) return;
+      // 409 LISTING_STATUS_CONFLICT (an owner can resume only a listing that
+      // is paused and not waiting for review) has its own copy by code.
       final msg = e is AppFailure
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.failedToUpdateListingStatus;
       FlatmatesToast.error(context, msg);
+      // The list may show a stale state: reload it.
+      ref.invalidate(myListingsListControllerProvider);
     }
   }
 }

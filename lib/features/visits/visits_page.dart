@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
 import '../shared/presentation/flatmates_async_view.dart';
-import '../shared/presentation/flatmates_dialog.dart';
 import '../shared/presentation/flatmates_empty_state.dart';
 import '../shared/presentation/flatmates_header.dart';
 import '../shared/presentation/flatmates_screen.dart';
@@ -22,6 +22,7 @@ import 'application/visits_actions_controller.dart';
 import 'application/visits_list_controller.dart';
 import 'visits_repository.dart';
 import 'widgets/visit_card.dart';
+import 'widgets/visit_reason_dialog.dart';
 
 class VisitsPage extends ConsumerStatefulWidget {
   const VisitsPage({super.key});
@@ -76,10 +77,10 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
           final requested = <VisitItem>[];
           final past = <VisitItem>[];
           for (final v in items) {
-            if (v.status == 'confirmed' && !isPastDated(v)) {
+            if (v.status == VisitStatus.confirmed && !isPastDated(v)) {
               upcoming.add(v);
-            } else if ((v.status == 'requested' ||
-                    v.status == 'reschedule_suggested') &&
+            } else if ((v.status == VisitStatus.requested ||
+                    v.status == VisitStatus.rescheduleSuggested) &&
                 !isPastDated(v)) {
               // Both need counterparty confirm (or cancel).
               requested.add(v);
@@ -217,19 +218,14 @@ class _VisitsPageState extends ConsumerState<VisitsPage> {
 
   Future<void> _cancelVisit(VisitItem item) async {
     final locale = AppLocalizations.of(context);
-    final confirmed = await FlatmatesDialog.confirm(
-      context,
-      title: locale.visitCancelCta,
-      message: locale.visitCancelConfirm,
-      cancelLabel: locale.cancelCta,
-      confirmLabel: locale.visitCancelCta,
-      destructive: true,
-    );
-    if (confirmed != true || !mounted) return;
+    final reason = await askVisitCancelReason(context);
+    if (reason == null || !mounted) return;
     if (!_beginAction(item.id)) return;
 
     try {
-      await ref.read(visitsActionsControllerProvider).cancel(item);
+      await ref
+          .read(visitsActionsControllerProvider)
+          .cancel(item, reason: reason);
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitCancelled);
     } catch (e) {

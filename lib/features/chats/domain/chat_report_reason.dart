@@ -1,8 +1,10 @@
+import '../../../core/domain/wire_enums.dart';
 import '../../../l10n/gen/app_localizations.dart';
 
 class ChatReportReason {
   const ChatReportReason({required this.value, this.catalogLabel});
 
+  /// The `UserReportReason` wire value sent as `reason`.
   final String value;
   final String? catalogLabel;
 
@@ -10,22 +12,22 @@ class ChatReportReason {
     if (catalogLabel != null && catalogLabel!.isNotEmpty) {
       return catalogLabel!;
     }
-    return switch (value) {
-      'fake_profile' => locale.reportFakeProfile,
-      'spam' => locale.reportSpam,
-      'inappropriate' => locale.reportInappropriate,
-      'uncomfortable' => locale.reportUncomfortable,
-      _ => locale.reportOther,
+    return switch (UserReportReason.fromJson(value)) {
+      UserReportReason.fakeProfile => locale.reportFakeProfile,
+      UserReportReason.spam => locale.reportSpam,
+      UserReportReason.abuse => locale.reportAbuse,
+      UserReportReason.inappropriate => locale.reportInappropriate,
+      UserReportReason.other || null => locale.reportOther,
     };
   }
 
+  /// The reasons the backend accepts, used when the bootstrap has no
+  /// `flatmates_report_reasons` catalog. The ids are the `UserReportReason`
+  /// wire values, which are also the seeded catalog ids.
   static List<ChatReportReason> defaults() {
-    return const [
-      ChatReportReason(value: 'fake_profile'),
-      ChatReportReason(value: 'spam'),
-      ChatReportReason(value: 'inappropriate'),
-      ChatReportReason(value: 'uncomfortable'),
-      ChatReportReason(value: 'other'),
+    return [
+      for (final reason in UserReportReason.values)
+        ChatReportReason(value: reason.wire),
     ];
   }
 }

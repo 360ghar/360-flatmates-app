@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/compatibility/compatibility_engine.dart';
 import '../../../core/compatibility/compatibility_ring.dart';
+import '../../../core/theme/app_breakpoints.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
@@ -95,6 +96,10 @@ typedef LifestyleCell = ({IconData icon, String dim, String value});
 
 /// 2-column grid for lifestyle preferences: bare clay icon, dimension and
 /// value, on a paper-1 panel.
+///
+/// The column count comes from [AppBreakpoints.lifestyleColumns]: 2 on phones
+/// (320 dp is still exactly 2), 4 from 600 dp. The [Wrap] reflows whenever a
+/// cell is wider than the panel, so a 4-column grid degrades gracefully.
 class LifestyleGrid extends StatelessWidget {
   const LifestyleGrid({super.key, required this.cells});
 
@@ -114,7 +119,9 @@ class LifestyleGrid extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final cellW = (constraints.maxWidth - AppSpacing.sm) / 2;
+          final columns = AppBreakpoints.lifestyleColumns(constraints.maxWidth);
+          final cellW =
+              (constraints.maxWidth - AppSpacing.sm * (columns - 1)) / columns;
           return Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/providers.dart';
 import '../../core/storage/app_preferences.dart';
-import 'domain/auth_state.dart';
 
 /// Persisted record of the last auth method (and a masked identifier hint)
 /// the user successfully signed in with, used to pre-select / highlight that
@@ -44,7 +44,7 @@ final class LastAuthMethodStore {
   final AppPreferences _prefs;
 
   LastAuthRecord? read() {
-    final method = AuthMethodWire.fromWire(
+    final method = AuthMethod.fromJson(
       _prefs.getString(PrefKeys.lastAuthMethod),
     );
     if (method == null) return null;
@@ -55,7 +55,7 @@ final class LastAuthMethodStore {
   }
 
   Future<void> write(AuthMethod method, {String? identifier}) async {
-    await _prefs.setString(PrefKeys.lastAuthMethod, method.wireValue);
+    await _prefs.setString(PrefKeys.lastAuthMethod, method.wire);
     if (identifier != null && identifier.trim().isNotEmpty) {
       await _prefs.setString(
         PrefKeys.lastAuthIdentifier,

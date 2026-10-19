@@ -6,17 +6,22 @@ import 'package:flatmates_app/core/errors/error_presenter.dart';
 
 /// A minimal [UserMessageL10n] for testing — each field is a distinct string
 /// so we can assert which message was returned.
-const _testL10n = UserMessageL10n(
+String Function(int) _wait(String prefix) =>
+    (int seconds) => '$prefix $seconds s';
+
+final _testL10n = UserMessageL10n(
   errorNetwork: 'Network error',
   errorTimeout: 'Timeout error',
   errorCannotReachServer: 'Unreachable error',
   errorAuthExpired: 'Auth expired',
   errorAuth: 'Auth error',
   errorServer: 'Server error',
+  errorServerWait: _wait('Server wait'),
   errorPermission: 'Permission error',
   errorNotFound: 'Not found',
   errorValidation: 'Validation error',
   errorRateLimit: 'Rate limit',
+  errorRateLimitWait: _wait('Rate limit wait'),
   errorConflict: 'Conflict',
   errorUpload: 'Upload error',
   errorOtpInvalid: 'OTP invalid',
@@ -248,7 +253,19 @@ void main() {
           requestOptions: RequestOptions(path: '/test'),
           statusCode: 422,
           data: {
-            'detail': {'email': 'Invalid email'},
+            'error': {
+              'code': 'VALIDATION_ERROR',
+              'message': 'Request validation failed',
+              'details': {
+                'fields': [
+                  {
+                    'field': 'body.email',
+                    'msg': 'Invalid email',
+                    'type': 'value_error',
+                  },
+                ],
+              },
+            },
           },
         ),
       );
@@ -256,6 +273,7 @@ void main() {
       expect(failure, isA<ValidationFailure>());
       final validation = failure as ValidationFailure;
       expect(validation.fieldMessages['email'], 'Invalid email');
+      expect(validation.code, 'VALIDATION_ERROR');
     });
 
     test('429 badResponse maps to RateLimitFailure', () {
@@ -308,7 +326,25 @@ void main() {
       expect(failure, isA<ValidationFailure>());
     });
 
-    test('extracts server message from detail string', () {
+    test('extracts the server message from the error envelope', () {
+      final exception = DioException(
+        type: DioExceptionType.badResponse,
+        requestOptions: RequestOptions(path: '/test'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/test'),
+          statusCode: 401,
+          data: {
+            'error': {'code': 'TOKEN_EXPIRED', 'message': 'Token expired'},
+          },
+        ),
+      );
+      final failure = ErrorPresenter.fromDio(exception);
+      expect(failure, isA<AuthExpiredFailure>());
+      expect((failure as AuthExpiredFailure).serverMessage, 'Token expired');
+      expect(failure.code, 'TOKEN_EXPIRED');
+    });
+
+    test('a body that is not an envelope gives no server message', () {
       final exception = DioException(
         type: DioExceptionType.badResponse,
         requestOptions: RequestOptions(path: '/test'),
@@ -320,7 +356,7 @@ void main() {
       );
       final failure = ErrorPresenter.fromDio(exception);
       expect(failure, isA<AuthExpiredFailure>());
-      expect((failure as AuthExpiredFailure).serverMessage, 'Token expired');
+      expect((failure as AuthExpiredFailure).serverMessage, isNull);
     });
   });
 }

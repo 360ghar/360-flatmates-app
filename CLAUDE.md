@@ -33,7 +33,16 @@ flutter run
 npx serve-sim                  # → http://localhost:3200 — stream simulator to browser for agent testing
 
 # Code generation (run after changing freezed/json_serializable models)
+# Use the pinned Flutter (.fvmrc, 3.44.6): `fvm dart run ...` or put
+# ~/fvm/versions/3.44.6/bin first in PATH. The global Flutter 3.47 fails with
+# "Missing implementation of visitDotShorthandPropertyAccess" (docs/api_contract.md).
 dart run build_runner build --delete-conflicting-outputs
+
+# Backend contract: enums and fixtures (see docs/api_contract.md)
+python3 tool/gen_enums.py
+uv run --project ../../360ghar/360ghar-backend python tool/api_fixtures.py
+bash scripts/contract_sync.sh   # both of the above, then fails if the committed files were stale
+flutter test test/contract
 
 # Quality (run before every commit)
 dart format .
@@ -99,7 +108,7 @@ lib/
     onboarding/                 → multi-step state machine with draft persistence
     discover/                   → listing feed + map + search filters
     swipe/                      → Tinder-like card deck with deal-breaker filtering
-    chats/                      → conversations + messages (Supabase realtime + optimistic send)
+    chats/                      → conversations + messages (REST pages, Broadcast refetch, optimistic send)
     listings/                   → multi-step listing builder + manage
     visits/                     → schedule/confirm/reschedule visits (under /profile/visits)
     notifications/              → notification list + route resolver
@@ -285,7 +294,7 @@ spacing, border radii, component behavior, and per-screen layout specs.
 - `FlatmatesEndpoints` centralizes all API path constants — no hardcoded backend paths.
 - Image uploads go through the backend API (Cloudinary) via `ImageUploadService`.
 - Compatibility scoring runs client-side in `core/compatibility/` with 6 weighted dimensions.
-- Chat uses Supabase realtime for the open thread; app-wide events use Realtime Broadcast on `flatmates:user:{id}`. `MessagesController` merges live arrivals with optimistic pending sends and refetches after successful POST.
+- Chat reads `GET /flatmates/conversations/{id}/messages` (CursorPage, `cursor` for older pages). There is no table stream on `public.messages`: the open thread refetches when Realtime Broadcast on `flatmates:user:{id}` delivers `new_message` or `conversation_updated`. `MessagesController` merges refetched rows with optimistic pending sends and refetches after a successful POST.
 - Banned patterns (`scripts/banned_patterns.sh`): ratchets on raw `BorderRadius.circular(<n>)` and `Color(0x…)` outside `core/theme` (count may only go down; raw colours are at 0), no light-only `AppSemanticColors.accent/error/success/warning/info/primary/onPrimary` in `lib/features` or `lib/app` (use `*For(brightness)`), no `error.toString()` in pages, no `apiClientProvider` in pages, no `Supabase.instance` in pages, no raw `Image.network` in features, page files under 500 lines.
 - **Page size: `*_page.dart` under `lib/features/` is capped at 500 lines** (`-gt 500` fails; exactly 500 passes). When a page grows past it, extract to the feature's `presentation/widgets/` — only files *named* `*_page.dart` are subject to the cap, so extracted helpers are unconstrained by it (but `EdgeInsets.all(<int>)` and `Image.network` rules still apply to every file under `lib/features/`). There is **no per-feature barrel** — `components.dart` is shared-only and doesn't even export `profile_sections.dart`, so extracted files are imported directly. Prefer moving code verbatim over rewriting, so the diff stays reviewable. Worked examples: `listing_catalog_options.dart`, `edit_profile_form_state.dart` (`buildEditProfileTabHandlers`), `shared/presentation/lifestyle_labels.dart`.
 - **Business logic in controllers, not widgets.** Examples: `FeedbackController`, `ChatActionsController`, `SwipeDeckController`, `ManageListingsActionsController`, `NotificationsActionsController`, `EditProfileActionsController`, `VisitsActionsController`, `BlockedUsersListController.unblock`, `AuthController.changePassword`.

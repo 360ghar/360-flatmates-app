@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../core/domain/wire_enums.dart';
+import '../../../core/network/flatmates_realtime_events.dart';
 import '../../../core/utils/safe_json_list.dart';
 
 part 'bootstrap_models.freezed.dart';
@@ -34,7 +36,7 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
     String? email,
     String? profileImageUrl,
     String? mode,
-    @Default('draft') String profileStatus,
+    FlatmatesProfileStatus? profileStatus,
     @Default(false) bool onboardingCompleted,
     String? bio,
     int? age,
@@ -43,7 +45,6 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
     double? budgetMax,
     String? moveInTimeline,
     String? city,
-    String? state,
     String? locality,
     String? sleepSchedule,
     String? cleanliness,
@@ -71,7 +72,7 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
       email: json['email'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
       mode: json['mode'] as String?,
-      profileStatus: json['profile_status'] as String? ?? 'draft',
+      profileStatus: FlatmatesProfileStatus.fromJson(json['profile_status']),
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
       bio: json['bio'] as String?,
       age: (json['age'] as num?)?.toInt(),
@@ -81,7 +82,6 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
       budgetMax: (json['budget_max'] as num?)?.toDouble(),
       moveInTimeline: json['move_in_timeline'] as String?,
       city: json['city'] as String?,
-      state: json['state'] as String?,
       locality: json['locality'] as String?,
       sleepSchedule: json['sleep_schedule'] as String?,
       cleanliness: json['cleanliness'] as String?,
@@ -132,18 +132,13 @@ class FlatmatesRealtimeConfig {
     );
   }
 
-  /// Client fallback when bootstrap omits `realtime` (older backends).
+  /// Client fallback when bootstrap omits `realtime`. The bootstrap list wins
+  /// whenever it is present, so a new backend event is subscribed without an
+  /// app release; the one fallback list is [kFlatmatesRealtimeEvents].
   factory FlatmatesRealtimeConfig.fallbackForUser(int userId) {
     return FlatmatesRealtimeConfig(
       channel: 'flatmates:user:$userId',
-      events: const [
-        'new_match',
-        'new_message',
-        'conversation_updated',
-        'visit_updated',
-        'listing_status_changed',
-        'new_notification',
-      ],
+      events: kFlatmatesRealtimeEvents,
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
+import '../../core/domain/wire_enums.dart';
 import '../../core/providers.dart';
 import '../../core/providers/mutable_notifier.dart';
 import '../../core/utils/safe_json_list.dart';
@@ -11,7 +12,9 @@ import '../bootstrap/bootstrap_controller.dart';
 import 'application/move_in_filter.dart';
 import 'application/property_listing_seed_store.dart';
 import 'data/property_listing_dto.dart';
+import 'domain/listing_lifestyle.dart';
 import 'domain/property_listing.dart';
+import 'domain/society_tag_vote.dart';
 import '../chats/application/cursor_list_controller.dart';
 import '../chats/chats_repository.dart';
 
@@ -220,8 +223,8 @@ class DiscoverRepository {
     DiscoverFilters? filters,
   }) async {
     final queryParameters = <String, dynamic>{
-      'property_type': 'flatmate',
-      'purpose': 'rent',
+      'property_type': PropertyType.flatmate.wire,
+      'purpose': PropertyPurpose.rent.wire,
       'limit': limit,
     };
     if (cursor != null && cursor.isNotEmpty) {
@@ -232,7 +235,8 @@ class DiscoverRepository {
       queryParameters['lat'] = f.latitude!.toStringAsFixed(6);
       queryParameters['lng'] = f.longitude!.toStringAsFixed(6);
       if (f.radiusKm != null) {
-        queryParameters['radius'] = f.radiusKm!.round();
+        // `radius` is an integer from 1 to 100 (km).
+        queryParameters['radius'] = f.radiusKm!.round().clamp(1, 100);
       }
     }
     if (filters != null && !filters.isEmpty) {
@@ -249,11 +253,17 @@ class DiscoverRepository {
       if (filters.priceMax != null) {
         queryParameters['price_max'] = filters.priceMax;
       }
-      if (filters.sharingType != null) {
-        queryParameters['sharing_type'] = filters.sharingType;
+      // Enum-typed keys carry the wire value only; a value this build does not
+      // know is left out (an unknown value is a 422).
+      final sharingType = ListingSharingType.fromJson(filters.sharingType);
+      if (sharingType != null) {
+        queryParameters['sharing_type'] = sharingType.wire;
       }
-      if (filters.genderPreference != null) {
-        queryParameters['gender_preference'] = filters.genderPreference;
+      final genderPreference = ListingGenderPreference.fromJson(
+        filters.genderPreference,
+      );
+      if (genderPreference != null) {
+        queryParameters['gender_preference'] = genderPreference.wire;
       }
       if (filters.bedrooms != null) {
         queryParameters['bedrooms_min'] = filters.bedrooms;
@@ -262,14 +272,24 @@ class DiscoverRepository {
       if (filters.features.isNotEmpty) {
         queryParameters['features'] = filters.features;
       }
-      if (filters.furnishing.isNotEmpty) {
-        queryParameters['furnishing'] = filters.furnishing;
+      final furnishing = [
+        for (final v in filters.furnishing) ?FurnishingLevel.fromJson(v)?.wire,
+      ];
+      if (furnishing.isNotEmpty) {
+        queryParameters['furnishing'] = furnishing;
       }
-      if (filters.kitchenType.isNotEmpty) {
-        queryParameters['kitchen_type'] = filters.kitchenType;
+      final kitchenType = [
+        for (final v in filters.kitchenType) ?KitchenType.fromJson(v)?.wire,
+      ];
+      if (kitchenType.isNotEmpty) {
+        queryParameters['kitchen_type'] = kitchenType;
       }
-      if (filters.ventilationType.isNotEmpty) {
-        queryParameters['ventilation_type'] = filters.ventilationType;
+      final ventilationType = [
+        for (final v in filters.ventilationType)
+          ?VentilationType.fromJson(v)?.wire,
+      ];
+      if (ventilationType.isNotEmpty) {
+        queryParameters['ventilation_type'] = ventilationType;
       }
       if (filters.amenities.isNotEmpty) {
         queryParameters['amenities'] = filters.amenities;
@@ -348,8 +368,8 @@ class DiscoverRepository {
         .post(
           FlatmatesEndpoints.swipes,
           data: {
-            'target_type': 'property',
-            'action': liked ? 'like' : 'pass',
+            'target_type': SwipeTargetType.property.wire,
+            'action': (liked ? SwipeAction.like : SwipeAction.pass).wire,
             'property_id': propertyId,
           },
         );
@@ -363,44 +383,20 @@ class DiscoverRepository {
         : null;
   }
 
-  Future<void> voteSocietyTag({
+  /// Records the vote and returns the counts the server answers with
+  /// (`SocietyTagVoteOut`), or null when the body is not readable.
+  Future<SocietyTagVote?> voteSocietyTag({
     required int listingId,
     required String tag,
     required String vote,
   }) async {
-    await _ref
+    final response = await _ref
         .read(apiClientProvider)
         .post(
           FlatmatesEndpoints.societyTagVotes(listingId),
           data: {'tag': tag, 'vote': vote},
         );
-  }
-
-  Future<Map<String, dynamic>> scheduleVisit({
-    required int propertyId,
-    required int counterpartyUserId,
-    required int conversationId,
-    required DateTime scheduledDate,
-    String? note,
-  }) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .post(
-          FlatmatesEndpoints.visits,
-          data: {
-            'property_id': propertyId,
-            'scheduled_date': scheduledDate.toUtc().toIso8601String(),
-            'visit_context': 'flatmate_meet',
-            'counterparty_user_id': counterpartyUserId,
-            'conversation_id': conversationId,
-            if (note != null && note.trim().isNotEmpty)
-              'special_requirements': note.trim(),
-          },
-        );
-    final data = Map<String, dynamic>.from(
-      response.data is Map ? response.data : const {},
-    );
-    return data;
+    return SocietyTagVote.fromJson(response.data);
   }
 
   List<String> _extractUserNonNegotiables(Map<String, dynamic>? preferences) {
@@ -479,10 +475,7 @@ class DiscoverRepository {
             }
             break;
           case 'no_pets':
-            final hasPets =
-                listing.preferences?['has_pets'] == true ||
-                listing.preferences?['pets'] == true;
-            if (hasPets) return false;
+            if (listingHasPets(listing.preferences)) return false;
             break;
           case 'gender_female_only':
             if (listing.genderPreference != null &&
@@ -499,9 +492,7 @@ class DiscoverRepository {
             }
             break;
           case 'no_parties':
-            final listingParties =
-                listing.preferences?['parties'] ?? 'occasional';
-            if (listingParties == 'party_friendly') return false;
+            if (listingIsPartyFriendly(listing.preferences)) return false;
             break;
           case 'min_tidy':
             final listingCleanliness =
@@ -628,16 +619,23 @@ class PropertyListingController
   /// Refetches this listing (for example after a related write).
   void refresh() => ref.invalidateSelf();
 
-  /// Records the viewer's vote on a society tag, then refetches this listing
-  /// so counts update. Throws on failure so callers can toast.
+  /// Records the viewer's vote on a society tag and keeps the counts the
+  /// server answers with (the listing payload has none). Throws on failure so
+  /// callers can toast.
   Future<void> voteSocietyTag({
     required String tag,
     required String vote,
   }) async {
-    await ref
+    final result = await ref
         .read(discoverRepositoryProvider)
         .voteSocietyTag(listingId: arg, tag: tag, vote: vote);
-    refresh();
+    final current = state.valueOrNull;
+    if (result == null || current == null) return;
+    state = AsyncData(
+      current.copyWith(
+        societyTagVotes: {...current.societyTagVotes, result.tag: result},
+      ),
+    );
   }
 
   /// Toggles the like state optimistically. Returns the conversation_id (or

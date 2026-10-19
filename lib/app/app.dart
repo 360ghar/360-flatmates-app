@@ -22,9 +22,9 @@ import '../features/chats/application/cursor_list_controller.dart';
 import '../features/notifications/notifications_list_controller.dart';
 import '../features/visits/application/visits_list_controller.dart';
 import '../features/notifications/notification_route_resolver.dart';
-import '../features/onboarding/onboarding_controller.dart';
 import '../features/settings/settings_controller.dart';
 import '../l10n/gen/app_localizations.dart';
+import 'account_scope.dart';
 import 'router/app_router.dart';
 
 class App extends ConsumerStatefulWidget {
@@ -305,6 +305,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       if (isLoggedIn == wasLoggedIn) return;
 
       if (isLoggedIn) {
+        // The settings read the server values of the account that signed in.
+        unawaited(ref.read(settingsControllerProvider.notifier).load());
         _logLoginSafely();
         _initializeNotificationsSafely();
         // Realtime needs the numeric profile id from bootstrap — connect
@@ -316,8 +318,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
         ref.read(flatmatesRealtimeServiceProvider).disconnect();
         ref.read(pendingPhoneProvider.notifier).set(null);
         ref.read(addPhonePromptProvider.notifier).set(false);
-        unawaited(_clearOnboardingDraftThenInvalidate());
         ref.read(bootstrapControllerProvider.notifier).clear();
+        _clearAccountScopedStateAfterFrame();
       }
     });
 
@@ -447,14 +449,19 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _clearOnboardingDraftThenInvalidate() async {
-    try {
-      await ref.read(onboardingDraftStorageProvider).clear();
-      if (!mounted) return;
-      ref.invalidate(onboardingControllerProvider);
-    } catch (error) {
-      debugPrint('App.logout clear onboarding draft failed: $error');
-    }
+  /// Drops the signed-out account's data from memory and disk (see
+  /// [clearAccountScopedState]). Runs after the frame: the router has left the
+  /// signed-in screens by then, so the providers it invalidates have no
+  /// listener to refetch them with no session.
+  void _clearAccountScopedStateAfterFrame() {
+    final container = ProviderScope.containerOf(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        clearAccountScopedState(container).catchError((Object error) {
+          debugPrint('App.logout clear account state failed: $error');
+        }),
+      );
+    });
   }
 
   void _navigateFromPendingNotification(GoRouter router) {

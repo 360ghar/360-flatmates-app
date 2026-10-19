@@ -12,9 +12,8 @@ class BlockedUsersRepository {
 
   final ApiClient _apiClient;
 
-  /// Fetches a single page of the user's blocked users using cursor pagination.
-  /// The backend wraps all list endpoints in
-  /// `{ items, next_cursor, has_more, limit }`.
+  /// Fetches a single page of the user's blocked users using cursor pagination
+  /// (`{ items, next_cursor, has_more, limit, total }`).
   Future<({List<BlockedUser> items, String? nextCursor, bool hasMore})>
   getBlockedUsersPage({String? cursor, int limit = 20}) async {
     final queryParameters = <String, dynamic>{'limit': limit};
@@ -37,12 +36,13 @@ class BlockedUsersRepository {
   Future<List<BlockedUser>> getBlockedUsers() async {
     final all = <BlockedUser>[];
     String? cursor;
-    do {
-      final page = await getBlockedUsersPage(cursor: cursor);
+    while (true) {
+      final page = await getBlockedUsersPage(cursor: cursor, limit: 100);
       all.addAll(page.items);
-      cursor = page.nextCursor;
-      if (page.items.isEmpty) break;
-    } while (cursor != null && cursor.isNotEmpty);
+      final next = page.nextCursor;
+      if (!page.hasMore || next == null || next.isEmpty) break;
+      cursor = next;
+    }
     return all;
   }
 

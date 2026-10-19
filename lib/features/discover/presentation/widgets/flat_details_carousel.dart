@@ -105,6 +105,11 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
     final images = widget.images;
     final currentIndex = widget.currentIndex;
     final reduce = AppMotion.reduceMotion(context);
+    // The Duo's status bar runs down the right edge. The photo stays
+    // full-bleed under it (edge-to-edge is the point of a hero carousel), but
+    // the chrome has to clear it: at 16 dp the share and shortlist buttons sit
+    // inside an 84 dp system region and cannot be tapped.
+    final safeAreaRight = MediaQuery.paddingOf(context).right;
 
     return SizedBox(
       height: heroHeight,
@@ -200,7 +205,7 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
           Positioned(
             top: MediaQuery.paddingOf(context).top + AppSpacing.xs,
             left: AppSpacing.base,
-            right: AppSpacing.base,
+            right: AppSpacing.base + safeAreaRight,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -248,7 +253,8 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
             Positioned(
               bottom: AppSpacing.md + widget.bottomInset,
               left: 0,
-              right: 0,
+              // Centred in the safe area, not the raw width.
+              right: safeAreaRight,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

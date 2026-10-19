@@ -28,9 +28,10 @@ mixin _$BugReportRequest {
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   @JsonKey(name: 'app_version', includeIfNull: false)
-  String? get appVersion => throw _privateConstructorUsedError;
+  String? get appVersion => throw _privateConstructorUsedError; // An object (`dict[str, Any]` on the backend), for example
+  // `{os, os_version, model}`; a string is a 422.
   @JsonKey(name: 'device_info', includeIfNull: false)
-  String? get deviceInfo => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get deviceInfo => throw _privateConstructorUsedError;
   @JsonKey(includeIfNull: false)
   List<String>? get tags => throw _privateConstructorUsedError;
 
@@ -58,7 +59,8 @@ abstract class $BugReportRequestCopyWith<$Res> {
     String title,
     String description,
     @JsonKey(name: 'app_version', includeIfNull: false) String? appVersion,
-    @JsonKey(name: 'device_info', includeIfNull: false) String? deviceInfo,
+    @JsonKey(name: 'device_info', includeIfNull: false)
+    Map<String, dynamic>? deviceInfo,
     @JsonKey(includeIfNull: false) List<String>? tags,
   });
 }
@@ -116,7 +118,7 @@ class _$BugReportRequestCopyWithImpl<$Res, $Val extends BugReportRequest>
             deviceInfo: freezed == deviceInfo
                 ? _value.deviceInfo
                 : deviceInfo // ignore: cast_nullable_to_non_nullable
-                      as String?,
+                      as Map<String, dynamic>?,
             tags: freezed == tags
                 ? _value.tags
                 : tags // ignore: cast_nullable_to_non_nullable
@@ -143,7 +145,8 @@ abstract class _$$BugReportRequestImplCopyWith<$Res>
     String title,
     String description,
     @JsonKey(name: 'app_version', includeIfNull: false) String? appVersion,
-    @JsonKey(name: 'device_info', includeIfNull: false) String? deviceInfo,
+    @JsonKey(name: 'device_info', includeIfNull: false)
+    Map<String, dynamic>? deviceInfo,
     @JsonKey(includeIfNull: false) List<String>? tags,
   });
 }
@@ -198,9 +201,9 @@ class __$$BugReportRequestImplCopyWithImpl<$Res>
             : appVersion // ignore: cast_nullable_to_non_nullable
                   as String?,
         deviceInfo: freezed == deviceInfo
-            ? _value.deviceInfo
+            ? _value._deviceInfo
             : deviceInfo // ignore: cast_nullable_to_non_nullable
-                  as String?,
+                  as Map<String, dynamic>?,
         tags: freezed == tags
             ? _value._tags
             : tags // ignore: cast_nullable_to_non_nullable
@@ -220,9 +223,11 @@ class _$BugReportRequestImpl implements _BugReportRequest {
     required this.title,
     required this.description,
     @JsonKey(name: 'app_version', includeIfNull: false) this.appVersion,
-    @JsonKey(name: 'device_info', includeIfNull: false) this.deviceInfo,
+    @JsonKey(name: 'device_info', includeIfNull: false)
+    final Map<String, dynamic>? deviceInfo,
     @JsonKey(includeIfNull: false) final List<String>? tags,
-  }) : _tags = tags;
+  }) : _deviceInfo = deviceInfo,
+       _tags = tags;
 
   factory _$BugReportRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$BugReportRequestImplFromJson(json);
@@ -241,9 +246,21 @@ class _$BugReportRequestImpl implements _BugReportRequest {
   @override
   @JsonKey(name: 'app_version', includeIfNull: false)
   final String? appVersion;
+  // An object (`dict[str, Any]` on the backend), for example
+  // `{os, os_version, model}`; a string is a 422.
+  final Map<String, dynamic>? _deviceInfo;
+  // An object (`dict[str, Any]` on the backend), for example
+  // `{os, os_version, model}`; a string is a 422.
   @override
   @JsonKey(name: 'device_info', includeIfNull: false)
-  final String? deviceInfo;
+  Map<String, dynamic>? get deviceInfo {
+    final value = _deviceInfo;
+    if (value == null) return null;
+    if (_deviceInfo is EqualUnmodifiableMapView) return _deviceInfo;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   final List<String>? _tags;
   @override
   @JsonKey(includeIfNull: false)
@@ -274,8 +291,10 @@ class _$BugReportRequestImpl implements _BugReportRequest {
                 other.description == description) &&
             (identical(other.appVersion, appVersion) ||
                 other.appVersion == appVersion) &&
-            (identical(other.deviceInfo, deviceInfo) ||
-                other.deviceInfo == deviceInfo) &&
+            const DeepCollectionEquality().equals(
+              other._deviceInfo,
+              _deviceInfo,
+            ) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
@@ -289,7 +308,7 @@ class _$BugReportRequestImpl implements _BugReportRequest {
     title,
     description,
     appVersion,
-    deviceInfo,
+    const DeepCollectionEquality().hash(_deviceInfo),
     const DeepCollectionEquality().hash(_tags),
   );
 
@@ -320,7 +339,7 @@ abstract class _BugReportRequest implements BugReportRequest {
     @JsonKey(name: 'app_version', includeIfNull: false)
     final String? appVersion,
     @JsonKey(name: 'device_info', includeIfNull: false)
-    final String? deviceInfo,
+    final Map<String, dynamic>? deviceInfo,
     @JsonKey(includeIfNull: false) final List<String>? tags,
   }) = _$BugReportRequestImpl;
 
@@ -340,10 +359,11 @@ abstract class _BugReportRequest implements BugReportRequest {
   String get description;
   @override
   @JsonKey(name: 'app_version', includeIfNull: false)
-  String? get appVersion;
+  String? get appVersion; // An object (`dict[str, Any]` on the backend), for example
+  // `{os, os_version, model}`; a string is a 422.
   @override
   @JsonKey(name: 'device_info', includeIfNull: false)
-  String? get deviceInfo;
+  Map<String, dynamic>? get deviceInfo;
   @override
   @JsonKey(includeIfNull: false)
   List<String>? get tags;

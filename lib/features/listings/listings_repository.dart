@@ -1,17 +1,31 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
+import '../../core/storage/app_preferences.dart';
 import '../../core/utils/paged_envelope.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../discover/data/property_listing_dto.dart';
 import '../discover/discover_repository.dart';
 import '../discover/domain/property_listing.dart';
+
+/// The address a listing gets when the owner types no street: society,
+/// locality and city, joined by commas. The form sends it as `full_address`, and
+/// reads a stored `full_address` equal to it back as "no street typed".
+String composeListingAddress({
+  String? subLocality,
+  String? locality,
+  String? city,
+}) => [
+  if (subLocality != null && subLocality.trim().isNotEmpty) subLocality.trim(),
+  if (locality != null && locality.trim().isNotEmpty) locality.trim(),
+  if (city != null && city.trim().isNotEmpty) city.trim(),
+].join(', ');
 
 class ListingCreateRequest {
   const ListingCreateRequest({
@@ -25,7 +39,6 @@ class ListingCreateRequest {
     required this.maintenanceCharges,
     required this.areaSqft,
     required this.bedrooms,
-    required this.bathrooms,
     required this.features,
     required this.tags,
     required this.mainImageUrl,
@@ -36,6 +49,8 @@ class ListingCreateRequest {
     required this.societyType,
     required this.societyAmenities,
     required this.societyVibeTags,
+    this.bathrooms,
+    this.furnishingLevel,
     this.videoTourUrl,
     this.fullAddress,
     this.floorNumber,
@@ -66,6 +81,9 @@ class ListingCreateRequest {
   final double? maintenanceCharges;
   final double? areaSqft;
   final int? bedrooms;
+
+  /// Null when the owner has not entered a count: the form has no control for
+  /// it, and a placeholder stored as real listing data is worse than none.
   final int? bathrooms;
   final List<String> features;
   final List<String> tags;
@@ -77,6 +95,11 @@ class ListingCreateRequest {
   final String societyType;
   final List<String> societyAmenities;
   final List<String> societyVibeTags;
+
+  /// The furnishing level of the room, from the furnishing the owner picked.
+  /// Sent as `listing_preferences.rooms[].furnishing_level` (the server derives
+  /// the listing `furnishing_level` from the rooms) and as `furnishing_level`.
+  final FurnishingLevel? furnishingLevel;
   final String? videoTourUrl;
 
   /// Street / full address collected in the form. Prefer over composed location.
@@ -84,8 +107,9 @@ class ListingCreateRequest {
   final int? floorNumber;
   final int? totalFloors;
 
-  /// Preferred roommate age range and hard filters — stored under
-  /// [listing_preferences] (backend `ListingPreferences` allows extra keys).
+  /// Preferred roommate age range and hard filters. The backend keeps only the
+  /// public `listing_preferences` keys of an owner write, so these are sent but
+  /// not stored today (see the handoff note).
   final int? ageMin;
   final int? ageMax;
   final List<String> nonNegotiables;
@@ -95,7 +119,7 @@ class ListingCreateRequest {
   final double? maidCost;
 
   /// One-time setup cost. Sent TOP-LEVEL per the backend contract
-  /// (`setup_cost`); older rows also carry it under listing_preferences.
+  /// (`setup_cost`).
   final double? setupCost;
   final String? kitchenType;
   final String? ventilationType;
@@ -104,63 +128,82 @@ class ListingCreateRequest {
   final double? otherCharges;
   final String? otherChargesDescription;
 
-  Map<String, dynamic> toJson() {
-    final composedAddress = [
-      if (subLocality != null && subLocality!.trim().isNotEmpty)
-        subLocality!.trim(),
-      if (locality != null && locality!.trim().isNotEmpty) locality!.trim(),
-      if (city != null && city!.trim().isNotEmpty) city!.trim(),
-    ].join(', ');
+  /// Top-level keys the form has a control for. On update, a blank control
+  /// clears the stored value, so these are sent as an explicit `null` (or an
+  /// empty list). Every other null key is left out: the form did not touch it
+  /// (`area_sqft`, `bathrooms`, ...), and an absent key keeps its value.
+  static const _clearableOnUpdate = {
+    'description',
+    'city',
+    'locality',
+    'sub_locality',
+    'full_address',
+    'floor_number',
+    'total_floors',
+    'security_deposit',
+    'maintenance_charges',
+    'available_from',
+    'kitchen_type',
+    'ventilation_type',
+    'windows_count',
+    'ventilation_shafts',
+    'setup_cost',
+    'other_charges',
+    'other_charges_description',
+    'video_tour_url',
+    'furnishing_level',
+    'main_image_url',
+  };
+
+  /// A date as `YYYY-MM-DD`, the format of every date-only field. The date is
+  /// the one the owner picked (local), not a UTC conversion of it.
+  static String dateOnly(DateTime date) {
+    final local = date.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '${local.year.toString().padLeft(4, '0')}-$month-$day';
+  }
+
+  /// Every field with its form value. A blank control is `null` (or an empty
+  /// list). [toJson] and [toUpdateJson] decide which of them are sent.
+  Map<String, dynamic> _fields() {
+    final composedAddress = composeListingAddress(
+      subLocality: subLocality,
+      locality: locality,
+      city: city,
+    );
     final street = fullAddress?.trim();
     final resolvedAddress = (street != null && street.isNotEmpty)
         ? street
         : composedAddress;
 
+    // Only the keys the backend keeps for an owner write belong here. The
+    // five preference fields the contract declares top-level (gender,
+    // sharing type, society type, amenities, vibe tags) go top-level below.
+    // The street address is the typed `full_address` field, not a preference.
     final preferences = <String, dynamic>{
-      'gender_preference': genderPreference,
-      'sharing_type': sharingType,
-      'society_type': societyType,
-      'society_amenities': societyAmenities,
-      'society_vibes': societyVibeTags,
+      'video_tour_url': videoTourUrl,
+      if (furnishingLevel != null)
+        'rooms': [
+          {'furnishing_level': furnishingLevel!.wire},
+        ]
+      else
+        'rooms': const <Map<String, dynamic>>[],
+      if (ageMin != null) 'preferred_age_min': ageMin,
+      if (ageMax != null) 'preferred_age_max': ageMax,
+      if (nonNegotiables.isNotEmpty) 'non_negotiables': nonNegotiables,
+      if (electricityIncluded != null && electricityIncluded!.isNotEmpty)
+        'electricity_included': electricityIncluded,
+      'electricity_est': ?electricityEst,
+      'cook_cost': ?cookCost,
+      'maid_cost': ?maidCost,
     };
-
-    if (videoTourUrl != null) {
-      preferences['video_tour_url'] = videoTourUrl;
-    }
-    if (ageMin != null) {
-      preferences['preferred_age_min'] = ageMin;
-    }
-    if (ageMax != null) {
-      preferences['preferred_age_max'] = ageMax;
-    }
-    if (nonNegotiables.isNotEmpty) {
-      preferences['non_negotiables'] = nonNegotiables;
-    }
-    if (electricityIncluded != null && electricityIncluded!.isNotEmpty) {
-      preferences['electricity_included'] = electricityIncluded;
-    }
-    if (electricityEst != null) {
-      preferences['electricity_est'] = electricityEst;
-    }
-    if (cookCost != null) {
-      preferences['cook_cost'] = cookCost;
-    }
-    if (maidCost != null) {
-      preferences['maid_cost'] = maidCost;
-    }
-    // setup_cost is a top-level contract field now; kept out of
-    // listing_preferences so create/update payloads stay canonical.
-    // Keep street address in preferences too so edit restore can rehydrate
-    // the form field without losing the top-level Property.full_address.
-    if (street != null && street.isNotEmpty) {
-      preferences['full_address'] = street;
-    }
 
     return {
       'title': title,
       'description': description,
-      'property_type': 'flatmate',
-      'purpose': 'rent',
+      'property_type': PropertyType.flatmate.wire,
+      'purpose': PropertyPurpose.rent.wire,
       'base_price': monthlyRent,
       'monthly_rent': monthlyRent,
       'city': city,
@@ -174,19 +217,58 @@ class ListingCreateRequest {
       'total_floors': totalFloors,
       'security_deposit': securityDeposit,
       'maintenance_charges': maintenanceCharges,
-      'features': features.isEmpty ? null : features,
-      'tags': tags.isEmpty ? null : tags,
+      'features': features,
+      'tags': tags,
       'main_image_url': mainImageUrl,
-      'image_urls': imageUrls.isEmpty ? null : imageUrls,
-      'available_from': availableFrom?.toUtc().toIso8601String(),
-      'kitchen_type': kitchenType,
-      'ventilation_type': ventilationType,
+      'image_urls': imageUrls,
+      'available_from': availableFrom == null ? null : dateOnly(availableFrom!),
+      'kitchen_type': KitchenType.fromJson(kitchenType)?.wire,
+      'ventilation_type': VentilationType.fromJson(ventilationType)?.wire,
       'windows_count': windowsCount,
       'ventilation_shafts': ventilationShafts,
       'setup_cost': setupCost,
       'other_charges': otherCharges,
       'other_charges_description': otherChargesDescription,
+      'video_tour_url': videoTourUrl,
+      'furnishing_level': furnishingLevel?.wire,
+      'gender_preference': ListingGenderPreference.fromJson(
+        genderPreference,
+      )?.wire,
+      'sharing_type': ListingSharingType.fromJson(sharingType)?.wire,
+      'society_type': societyType,
+      'society_amenities': societyAmenities,
+      'society_vibe_tags': societyVibeTags,
       'listing_preferences': preferences,
+    };
+  }
+
+  /// The `POST /properties` body: only the keys that have a value.
+  Map<String, dynamic> toJson() {
+    final fields = _fields();
+    final preferences = Map<String, dynamic>.from(
+      fields['listing_preferences'] as Map,
+    )..removeWhere((_, value) => value == null);
+    // A new listing has no rooms to clear.
+    if (furnishingLevel == null) preferences.remove('rooms');
+    return {
+      for (final entry in fields.entries)
+        if (entry.value != null &&
+            !(entry.value is List && (entry.value as List).isEmpty))
+          entry.key: entry.key == 'listing_preferences'
+              ? preferences
+              : entry.value,
+    };
+  }
+
+  /// The `PUT /properties/{id}` body (a patch). A blank control sends an
+  /// explicit `null` (an empty list for a list) so the stored value is
+  /// cleared; a key the form never touches is left out.
+  Map<String, dynamic> toUpdateJson() {
+    final fields = _fields();
+    return {
+      for (final entry in fields.entries)
+        if (entry.value != null || _clearableOnUpdate.contains(entry.key))
+          entry.key: entry.value,
     };
   }
 }
@@ -196,24 +278,17 @@ class ListingsRepository {
 
   final Ref _ref;
 
-  /// Serializes durable cache read/merge/write so a first-page fetch cannot
-  /// finish after [cacheOwnerListing] and clobber a newly seeded row.
-  Future<void> _cacheChain = Future<void>.value();
+  /// Owner listings seen this session, per signed-in account. Kept in memory
+  /// only: `GET /properties/me` answers `Cache-Control: private, no-store`, so
+  /// its rows are never written to disk. The cache keeps a just-created
+  /// pending listing on screen if the next server page lags, and serves the
+  /// last rows on a transient failure. It is dropped on sign-out and when the
+  /// account changes.
+  final Map<int, List<PropertyListing>> _memoryCache = {};
 
-  /// Disk key always written so cold start works even before bootstrap resolves.
-  static const _latestCacheKey = 'my_listings_cache_latest_v1';
-
-  Future<T> _withCacheLock<T>(Future<T> Function() action) {
-    final done = Completer<T>();
-    _cacheChain = _cacheChain.catchError((Object _) {}).then((_) async {
-      try {
-        done.complete(await action());
-      } catch (e, st) {
-        done.completeError(e, st);
-      }
-    });
-    return done.future;
-  }
+  /// Prefix of the keys an earlier build wrote to disk (a cache with no
+  /// account scope and no schema version). They are deleted, never read.
+  static const _legacyDiskKeyPrefix = PrefKeys.legacyListingsCachePrefix;
 
   Future<({int? id, PropertyListing? listing})> createListing(
     ListingCreateRequest request,
@@ -230,11 +305,12 @@ class ListingsRepository {
     int listingId,
     ListingCreateRequest request,
   ) async {
-    final body = Map<String, dynamic>.from(request.toJson())
-      ..removeWhere((_, value) => value == null);
     final response = await _ref
         .watch(apiClientProvider)
-        .put(FlatmatesEndpoints.property(listingId), data: body);
+        .put(
+          FlatmatesEndpoints.property(listingId),
+          data: request.toUpdateJson(),
+        );
     return _parseListingMutationResponse(response.data, fallbackId: listingId);
   }
 
@@ -283,15 +359,10 @@ class ListingsRepository {
     return (id: id, listing: listing);
   }
 
-  Map<String, dynamic> _asResponseMap(dynamic rawData) {
-    if (rawData is! Map) return const {};
-    final root = Map<String, dynamic>.from(rawData);
-    final nested = root['data'];
-    if (nested is Map && root['id'] == null) {
-      return Map<String, dynamic>.from(nested);
-    }
-    return root;
-  }
+  /// The listing the server returns, directly (the contract has no `data`
+  /// wrapper).
+  Map<String, dynamic> _asResponseMap(dynamic rawData) =>
+      rawData is Map ? Map<String, dynamic>.from(rawData) : const {};
 
   int? _parseId(dynamic raw) {
     if (raw is num) return raw.toInt();
@@ -337,16 +408,12 @@ class ListingsRepository {
       // First page merge: keep cache-only rows when more pages exist.
       // When hasMore is false the first page is the full owner set, so prune
       // stale active cache-only rows (pending/rejected extras still kept).
-      final merged = await _withCacheLock(() async {
-        final cached = _readListingsCache();
-        final next = _mergeServerAndCache(
-          page.items,
-          cached,
-          preserveAllCacheOnly: page.hasMore,
-        );
-        await _writeListingsCache(next);
-        return next;
-      });
+      final merged = _mergeServerAndCache(
+        page.items,
+        _readListingsCache(),
+        preserveAllCacheOnly: page.hasMore,
+      );
+      _writeListingsCache(merged);
 
       debugPrint(
         'ListingsRepository.fetchMyListingsPage: server=${page.items.length} '
@@ -384,8 +451,8 @@ class ListingsRepository {
     return false;
   }
 
-  /// Backwards-compatible helper aggregating all pages into a single list.
-  Future<List<PropertyListing>> fetchMyListings({int limit = 20}) async {
+  /// Every listing of the owner: follows `next_cursor` until the list ends.
+  Future<List<PropertyListing>> fetchMyListings({int limit = 100}) async {
     final allItems = <PropertyListing>[];
     String? cursor;
     var pageIndex = 0;
@@ -412,30 +479,25 @@ class ListingsRepository {
     }
     if (allItems.isNotEmpty) {
       // Full reconciliation: server order is authoritative; drop orphans.
-      await _withCacheLock(() => _writeListingsCache(allItems));
+      _writeListingsCache(allItems);
     }
     return allItems;
   }
 
-  /// Upserts a listing into the durable owner cache (used right after create).
-  ///
-  /// **Must be awaited** before list refresh so a concurrent empty server page
-  /// cannot race past an unfinished write.
+  /// Upserts a listing into the owner cache (used right after create), so a
+  /// server page that lags behind the create does not drop it.
   Future<void> cacheOwnerListing(PropertyListing listing) async {
     if (listing.id <= 0) return;
-    await _withCacheLock(() async {
-      final existing = _readListingsCache();
-      final next = _mergeServerAndCache(
-        [listing],
-        existing,
-        preserveAllCacheOnly: true,
-      );
-      await _writeListingsCache(next);
-      debugPrint(
-        'ListingsRepository.cacheOwnerListing: cached id=${listing.id} '
-        'total=${next.length}',
-      );
-    });
+    final next = _mergeServerAndCache(
+      [listing],
+      _readListingsCache(),
+      preserveAllCacheOnly: true,
+    );
+    _writeListingsCache(next);
+    debugPrint(
+      'ListingsRepository.cacheOwnerListing: cached id=${listing.id} '
+      'total=${next.length}',
+    );
   }
 
   /// Server rows win on id collision.
@@ -464,25 +526,18 @@ class ListingsRepository {
     return [...extras, ...server];
   }
 
-  /// Clears durable owner-listing cache (call on sign-out / account switch).
-  ///
-  /// Serialized through [_withCacheLock] so an in-flight first-page merge or
-  /// [cacheOwnerListing] cannot finish after the wipe and repopulate disk with
-  /// the previous owner's listings.
+  /// Clears the owner cache (call on sign-out / account switch) and deletes
+  /// any listing cache an earlier build left on disk.
   Future<void> clearOwnerListingsCache() async {
-    await _withCacheLock(() async {
-      try {
-        final prefs = _ref.read(appPreferencesProvider);
-        // Wipe latest + any user-scoped keys still known from bootstrap.
-        for (final key in _cacheKeys()) {
-          await prefs.remove(key);
-        }
-        // Bootstrap may already be gone at sign-out; still wipe the latest key.
-        await prefs.remove(_latestCacheKey);
-      } catch (e) {
-        debugPrint('ListingsRepository.clearOwnerListingsCache: $e');
+    _memoryCache.clear();
+    try {
+      final prefs = _ref.read(appPreferencesProvider);
+      for (final key in prefs.keys.toList()) {
+        if (key.startsWith(_legacyDiskKeyPrefix)) await prefs.remove(key);
       }
-    });
+    } catch (e) {
+      debugPrint('ListingsRepository.clearOwnerListingsCache: $e');
+    }
   }
 
   int? get _cacheUserId {
@@ -496,68 +551,42 @@ class ListingsRepository {
     }
   }
 
-  List<String> _cacheKeys() {
-    final keys = <String>[_latestCacheKey];
-    final userId = _cacheUserId;
-    if (userId != null) {
-      keys.add('my_listings_cache_v1_$userId');
-    }
-    return keys;
-  }
-
+  /// The rows cached for the signed-in account, or none when the account is
+  /// not known yet. Rows of any other account are dropped.
   List<PropertyListing> _readListingsCache() {
-    try {
-      final prefs = _ref.read(appPreferencesProvider);
-      // Prefer user-scoped key, then latest (covers cold start before bootstrap).
-      final userId = _cacheUserId;
-      final orderedKeys = <String>[
-        if (userId != null && userId > 0) 'my_listings_cache_v1_$userId',
-        _latestCacheKey,
-      ];
-      for (final key in orderedKeys) {
-        final raw = prefs.getString(key);
-        if (raw == null || raw.isEmpty) continue;
-        try {
-          final decoded = jsonDecode(raw);
-          if (decoded is! List) continue;
-          final items = PropertyListingDto.fromJsonList(decoded);
-          if (items.isNotEmpty) return items;
-        } catch (e) {
-          debugPrint('ListingsRepository._readListingsCache($key): $e');
-        }
-      }
-    } catch (e) {
-      // Tests / early bootstrap without AppPreferences override.
-      debugPrint('ListingsRepository._readListingsCache unavailable: $e');
-    }
-    return const [];
+    final userId = _cacheUserId;
+    if (userId == null) return const [];
+    _memoryCache.removeWhere((owner, _) => owner != userId);
+    return _memoryCache[userId] ?? const [];
   }
 
-  Future<void> _writeListingsCache(List<PropertyListing> listings) async {
-    try {
-      final prefs = _ref.read(appPreferencesProvider);
-      final payload = listings
+  void _writeListingsCache(List<PropertyListing> listings) {
+    final userId = _cacheUserId;
+    if (userId == null) return;
+    _memoryCache
+      ..clear()
+      ..[userId] = listings
           .where((item) => item.id > 0)
-          .map(PropertyListingDto.toCacheJson)
           .toList(growable: false);
-      final encoded = jsonEncode(payload);
-      for (final key in _cacheKeys()) {
-        await prefs.setString(key, encoded);
-      }
-    } catch (e) {
-      debugPrint('ListingsRepository._writeListingsCache: $e');
-    }
   }
 
+  /// Pauses a live listing, or resumes a paused one: a PUT whose only key is
+  /// `listing_preferences.moderation_status` is the owner toggle. [paused] is
+  /// the current state (true sends `live`, false sends `paused`).
+  ///
+  /// The server accepts `live` only from `paused` with no review flag; any
+  /// other state is a 409 `LISTING_STATUS_CONFLICT`. A toggle does not send the
+  /// listing back to review (a content edit does).
   Future<void> togglePause(int listingId, {required bool paused}) async {
+    final next = paused
+        ? ListingModerationStatus.live
+        : ListingModerationStatus.paused;
     await _ref
         .watch(apiClientProvider)
         .put(
           FlatmatesEndpoints.property(listingId),
           data: {
-            'listing_preferences': {
-              'moderation_status': paused ? 'live' : 'paused',
-            },
+            'listing_preferences': {'moderation_status': next.wire},
           },
         );
   }

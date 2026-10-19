@@ -1,0 +1,120 @@
+{
+  "bad_request": {
+    "error": {
+      "code": "BAD_REQUEST",
+      "details": {},
+      "message": "Conversation is not active"
+    }
+  },
+  "conflict": {
+    "error": {
+      "code": "VISIT_CONFLICT",
+      "details": {},
+      "message": "You already have a visit then."
+    }
+  },
+  "forbidden": {
+    "error": {
+      "code": "FORBIDDEN",
+      "details": {},
+      "message": "You cannot do that."
+    }
+  },
+  "inactive": {
+    "error": {
+      "code": "USER_INACTIVE",
+      "details": {},
+      "message": "This account is deactivated."
+    }
+  },
+  "listing_status_conflict": {
+    "error": {
+      "code": "LISTING_STATUS_CONFLICT",
+      "details": {},
+      "message": "The listing cannot be resumed in this state."
+    }
+  },
+  "not_found": {
+    "error": {
+      "code": "MATCH_NOT_FOUND",
+      "details": {},
+      "message": "There is no active match."
+    }
+  },
+  "profile_not_found": {
+    "error": {
+      "code": "PROFILE_NOT_FOUND",
+      "details": {},
+      "message": "Profile not found."
+    }
+  },
+  "profile_status_locked": {
+    "error": {
+      "code": "PROFILE_STATUS_LOCKED",
+      "details": {},
+      "message": "The profile status is set by moderation."
+    }
+  },
+  "rate_limited": {
+    "error": {
+      "code": "RATE_LIMIT_EXCEEDED",
+      "details": {},
+      "message": "Too many requests."
+    }
+  },
+  "server": {
+    "error": {
+      "code": "INTERNAL_ERROR",
+      "details": {},
+      "message": "An unexpected error occurred"
+    }
+  },
+  "unauthorized": {
+    "error": {
+      "code": "TOKEN_INVALID",
+      "details": {},
+      "message": "The token is not valid."
+    }
+  },
+  "unavailable": {
+    "error": {
+      "code": "SERVICE_UNAVAILABLE",
+      "details": {},
+      "message": "The service is busy. Try again soon."
+    }
+  },
+  "validation": {
+    "error": {
+      "code": "VALIDATION_ERROR",
+      "details": {
+        "fields": [
+          {
+            "field": "body.reason",
+            "msg": "String should have at least 1 character",
+            "type": "string_too_short"
+          },
+          {
+            "field": "body.full_name",
+            "msg": "Field required",
+            "type": "missing"
+          },
+          {
+            "field": "query.limit",
+            "msg": "Input should be less than or equal to 100",
+            "type": "less_than_equal"
+          }
+        ]
+      },
+      "message": "Request validation failed"
+    }
+  },
+  "validation_no_fields": {
+    "error": {
+      "code": "INVALID_CURSOR",
+      "details": {
+        "fields": []
+      },
+      "message": "Cursor does not match"
+    }
+  }
+}

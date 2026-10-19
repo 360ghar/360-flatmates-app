@@ -25,7 +25,10 @@ class BugReportRequest with _$BugReportRequest {
     required String title,
     required String description,
     @JsonKey(name: 'app_version', includeIfNull: false) String? appVersion,
-    @JsonKey(name: 'device_info', includeIfNull: false) String? deviceInfo,
+    // An object (`dict[str, Any]` on the backend), for example
+    // `{os, os_version, model}`; a string is a 422.
+    @JsonKey(name: 'device_info', includeIfNull: false)
+    Map<String, dynamic>? deviceInfo,
     @JsonKey(includeIfNull: false) List<String>? tags,
   }) = _BugReportRequest;
 

@@ -1010,7 +1010,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportInappropriate => 'Inappropriate content';
 
   @override
-  String get reportUncomfortable => 'Uncomfortable interaction';
+  String get reportAbuse => 'Abuse';
 
   @override
   String get reportOther => 'Other';
@@ -1523,6 +1523,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get visitCancelConfirm =>
       'Are you sure you want to cancel this visit?';
+
+  @override
+  String get visitCancelReasonLabel => 'Reason for cancelling';
 
   @override
   String get visitConfirmed => 'Visit confirmed';
@@ -2967,6 +2970,61 @@ class AppLocalizationsEn extends AppLocalizations {
       'Too many requests. Please wait a moment and try again.';
 
   @override
+  String errorRateLimitWait(num seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: '$seconds seconds',
+      one: '1 second',
+    );
+    return 'Too many requests. Try again in $_temp0.';
+  }
+
+  @override
+  String errorServerWait(num seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: '$seconds seconds',
+      one: '1 second',
+    );
+    return 'The server is temporarily unavailable. Try again in $_temp0.';
+  }
+
+  @override
+  String get errorCodeProfileNotFound => 'This profile is no longer available.';
+
+  @override
+  String get errorCodeMatchNotFound =>
+      'You are no longer matched with this person.';
+
+  @override
+  String get errorCodeProfileStatusLocked =>
+      'Your profile status cannot change while it is paused or under review.';
+
+  @override
+  String get errorCodeListingNotFound => 'This listing is no longer available.';
+
+  @override
+  String get errorCodeBlockNotFound =>
+      'This person is not on your blocked list.';
+
+  @override
+  String get errorCodeVisitConflict => 'You already have a visit at this time.';
+
+  @override
+  String get errorCodeVisitNotCancellable =>
+      'This visit can no longer be cancelled.';
+
+  @override
+  String get errorCodeVisitNotReschedulable =>
+      'This visit can no longer be rescheduled.';
+
+  @override
+  String get errorCodeUserInactive =>
+      'Your account is not active. Contact support for help.';
+
+  @override
   String get errorConflict => 'A conflict occurred. The data may have changed.';
 
   @override
@@ -3679,6 +3737,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listingUpdatedToast => 'Listing updated successfully.';
+
+  @override
+  String get listingUpdatedInReviewToast =>
+      'Listing updated. It is back in review before it goes live again.';
+
+  @override
+  String get listingStatusConflict =>
+      'This listing cannot change status right now. It may be under review or paused by a moderator.';
 
   @override
   String get discardListingTitle => 'Discard changes?';

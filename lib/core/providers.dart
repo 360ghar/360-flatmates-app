@@ -31,7 +31,10 @@ final authTokenProviderProvider = Provider<AuthTokenProvider>(
 );
 
 final onboardingDraftStorageProvider = Provider<OnboardingDraftStorage>((ref) {
-  return OnboardingDraftStorage(ref.watch(appPreferencesProvider));
+  return OnboardingDraftStorage(
+    ref.watch(appPreferencesProvider),
+    accountId: currentAuthUserId,
+  );
 });
 
 final apiClientProvider = Provider<ApiClient>(

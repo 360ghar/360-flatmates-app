@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../bootstrap/bootstrap_controller.dart';
 import '../../../bootstrap/catalog_helpers.dart';
@@ -143,9 +142,8 @@ class _OwnerProfileBody extends StatelessWidget {
     final imageUrl = peerData?['profile_image_url'] as String?;
     final mode = peerData?['mode'] as String?;
     final city = peerData?['city'] as String?;
-    final age = peerData?['age'];
+    final ageBucket = (peerData?['age_bucket'] as String?)?.trim();
     final profession = peerData?['profession'] as String?;
-    final phone = peerData?['phone_number'] as String?;
     final bio = peerData?['bio'] as String?;
     final matchPercentage =
         (peerData?['match_percentage'] as num?)?.toDouble() ?? 0;
@@ -228,14 +226,6 @@ class _OwnerProfileBody extends StatelessWidget {
         label: locale.messageCta,
         color: PeerActionButtonColor.primary,
         onTap: onSendMessage,
-      ),
-      PeerActionButton(
-        key: const ValueKey('owner_action_call'),
-        icon: Icons.call_outlined,
-        label: locale.callCta,
-        onTap: phone != null && phone.isNotEmpty
-            ? () => _launchCall(phone)
-            : null,
       ),
       PeerActionButton(
         key: const ValueKey('owner_action_schedule'),
@@ -327,12 +317,14 @@ class _OwnerProfileBody extends StatelessWidget {
                           child: Text(locale.commonRetry),
                         ),
                     ],
-                    if (age != null || profession != null)
+                    if ((ageBucket != null && ageBucket.isNotEmpty) ||
+                        profession != null)
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.xs),
                         child: Text(
                           [
-                            if (age != null) '$age years',
+                            if (ageBucket != null && ageBucket.isNotEmpty)
+                              localizedFlatmatesAgeBucket(locale, ageBucket),
                             ?profession,
                           ].join(' · '),
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -480,18 +472,6 @@ class _OwnerProfileBody extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _launchCall(String phone) async {
-    final uri = Uri.parse('tel:$phone');
-    try {
-      final launched = await launchUrl(uri);
-      if (!launched) {
-        debugPrint('OwnerProfileSheet._launchCall: launchUrl returned false');
-      }
-    } catch (e) {
-      debugPrint('OwnerProfileSheet._launchCall: $e');
-    }
   }
 
   List<Widget> _preferencesSection(

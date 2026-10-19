@@ -42,7 +42,6 @@ class ProfilePage extends ConsumerWidget {
           );
           final location = displayOwnLocation(
             city: profile.city,
-            state: profile.state,
             locality: profile.locality,
             hideExactLocation: settings.hideExactLocation,
           );

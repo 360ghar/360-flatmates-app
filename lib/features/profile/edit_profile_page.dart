@@ -39,8 +39,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _linkedInController = TextEditingController();
 
   bool _initialized = false;
-  bool _hasEmail = false;
-  bool _hasPhone = false;
 
   // Ephemeral page state (setState; never read outside this page).
   bool _saving = false;
@@ -114,8 +112,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     if (_initialized) return;
     _initialized = true;
     _seedControllers(profile);
-    _hasEmail = profile.email?.isNotEmpty == true;
-    _hasPhone = profile.phone?.isNotEmpty == true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       editProfileSeedProviders(profile);
@@ -369,8 +365,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 linkedInController: _linkedInController,
                 nativePlaceError: _nativePlaceError,
                 linkedInError: _linkedInError,
-                hasEmail: _hasEmail,
-                hasPhone: _hasPhone,
                 onPickAndUploadPhoto: _pickAndUploadPhoto,
               ),
             ),
@@ -431,8 +425,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         cityController: _cityController,
         localityController: _localityController,
         bioController: _bioController,
-        emailController: _emailController,
-        phoneController: _phoneController,
         nativePlaceController: _nativePlaceController,
         linkedInController: _linkedInController,
         existingPreferences:
@@ -442,8 +434,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ?.profile
                 .preferences ??
             const {},
-        hasEmail: _hasEmail,
-        hasPhone: _hasPhone,
       );
       await ref.read(editProfileActionsControllerProvider).save(payload);
       if (!mounted) return;

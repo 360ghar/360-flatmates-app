@@ -44,56 +44,6 @@ enum AuthStage {
   }
 }
 
-/// The auth method last used by the user, mirrored to the backend via
-/// `POST /api/v1/auth/last-method` and remembered locally to pre-select it.
-enum AuthMethod {
-  google,
-  apple,
-  emailPassword,
-  phonePassword,
-  phoneOtp,
-  emailOtp,
-}
-
-extension AuthMethodWire on AuthMethod {
-  /// Backend wire value for `POST /api/v1/auth/last-method`.
-  String get wireValue {
-    switch (this) {
-      case AuthMethod.google:
-        return 'google';
-      case AuthMethod.apple:
-        return 'apple';
-      case AuthMethod.emailPassword:
-        return 'email_password';
-      case AuthMethod.phonePassword:
-        return 'phone_password';
-      case AuthMethod.phoneOtp:
-        return 'phone_otp';
-      case AuthMethod.emailOtp:
-        return 'email_otp';
-    }
-  }
-
-  static AuthMethod? fromWire(String? value) {
-    switch (value) {
-      case 'google':
-        return AuthMethod.google;
-      case 'apple':
-        return AuthMethod.apple;
-      case 'email_password':
-        return AuthMethod.emailPassword;
-      case 'phone_password':
-        return AuthMethod.phonePassword;
-      case 'phone_otp':
-        return AuthMethod.phoneOtp;
-      case 'email_otp':
-        return AuthMethod.emailOtp;
-      default:
-        return null;
-    }
-  }
-}
-
 @Freezed()
 class AuthState with _$AuthState {
   const AuthState._();

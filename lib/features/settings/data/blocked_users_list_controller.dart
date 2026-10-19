@@ -21,7 +21,8 @@ class BlockedUsersListController extends CursorListController<BlockedUser> {
       a.blockedUserId == b.blockedUserId;
 
   /// Unblocks [blockedUserId], then reloads this list and the chat and
-  /// likes lists: the unblock restores that user's likes and conversations.
+  /// likes lists. The pair stays closed after an unblock (no match, no
+  /// conversation) until both users like each other again.
   Future<void> unblock(int blockedUserId) async {
     await ref.read(blockedUsersRepositoryProvider).unblockUser(blockedUserId);
     // refresh(), not invalidateSelf(): a failed reload keeps the rows already

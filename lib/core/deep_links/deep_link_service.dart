@@ -4,12 +4,17 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
-/// Parses incoming HTTP deep links and routes them via GoRouter.
+/// Parses incoming deep links and routes them via GoRouter.
 ///
-/// Supported paths:
+/// HTTPS links (path based):
 ///   /flatmates/listing/{id}  → /flat-details/{id}
 ///   /flatmates/chat/{id}     → /chats/{id}
 ///   /flatmates?city={city}   → /waitlist?city={city}
+///
+/// Custom-scheme links (`com.the360ghar.flatmates360://{entity}/{id}`). The
+/// entity is the URI host and the id is the first path segment:
+///   chat/{id}                → /chats/{id}
+///   listing/{id}             → /flat-details/{id}
 class DeepLinkService {
   DeepLinkService({required GoRouter router}) : _router = router;
 
@@ -89,6 +94,9 @@ class DeepLinkService {
   /// Returns `null` if the path does not match any known pattern
   /// or contains an invalid resource ID.
   static String? _mapPath(Uri uri) {
+    if (uri.hasScheme && uri.scheme != 'https' && uri.scheme != 'http') {
+      return _mapSchemeLink(uri);
+    }
     final path = uri.path;
     if (path == '/flatmates') {
       final city = uri.queryParameters['city']?.trim();
@@ -116,6 +124,20 @@ class DeepLinkService {
     return null;
   }
 
+  /// Maps `scheme://chat/42` and `scheme://listing/42`: the entity is the host
+  /// and the id is the first path segment.
+  static String? _mapSchemeLink(Uri uri) {
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    if (segments.isEmpty) return null;
+    final id = segments.first;
+    if (!_isValidId(id)) return null;
+    return switch (uri.host) {
+      'listing' => '/flat-details/$id',
+      'chat' => '/chats/$id',
+      _ => null,
+    };
+  }
+
   /// Ensure the ID is a valid positive integer (not zero, not negative, no
   /// leading zeros beyond a single zero, no overflow).
   static bool _isValidId(String raw) {
@@ -128,6 +150,14 @@ class DeepLinkService {
 
   @visibleForTesting
   static String? internalPathForUri(Uri uri) => _mapPath(uri);
+
+  /// The in-app route of a backend route (a push `data.route` or a
+  /// notification `route`, for example `/flatmates/chat/42`), or null when the
+  /// route is not one of the shareable links.
+  static String? internalPathForRoute(String route) {
+    final uri = Uri.tryParse(route);
+    return uri == null ? null : _mapPath(uri);
+  }
 
   /// Builds a public deep link URL for a listing.
   static String listingUrl(int listingId) =>

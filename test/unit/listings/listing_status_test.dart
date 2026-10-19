@@ -66,9 +66,16 @@ void main() {
       expect(listingStatus(listing), 'paused');
     });
 
-    test('expired status is correctly identified', () {
+    test('a status word that is not a moderation status is not expired', () {
+      // `expired` is derived from expires_at or the auto-pause reason: it is
+      // not a status the backend sends.
       final listing = _listing(status: 'expired');
-      expect(listingStatus(listing), 'expired');
+      expect(listingStatus(listing), 'active');
+    });
+
+    test('rejected status is correctly identified', () {
+      final listing = _listing(status: 'rejected');
+      expect(listingStatus(listing), 'rejected');
     });
 
     test('expired by past expiresAt date is correctly identified', () {
@@ -77,13 +84,13 @@ void main() {
     });
 
     test(
-      'expired by auto_paused_reason preference is correctly identified',
+      'an admin-only auto_paused_reason key does not make a listing expired',
       () {
         final listing = _listing(
-          status: 'live',
-          preferences: {'auto_paused_reason': 'expired_move_in_date'},
+          status: 'paused',
+          preferences: {'auto_paused_reason': 'stale_listing'},
         );
-        expect(listingStatus(listing), 'expired');
+        expect(listingStatus(listing), 'paused');
       },
     );
 
@@ -92,9 +99,10 @@ void main() {
       expect(listingStatus(listing), 'pending_review');
     });
 
-    test('under_review status maps to pending_review', () {
+    test('under_review is not a backend status: it maps to active', () {
       final listing = _listing(status: 'under_review');
-      expect(listingStatus(listing), 'pending_review');
+      expect(listingStatus(listing), 'active');
+      expect(listing.isUnderReview, isFalse);
     });
 
     test(
@@ -129,9 +137,10 @@ void main() {
       expect(listingMatchesTab(listing, 'active'), isTrue);
     });
 
-    test('draft tab matches draft listing', () {
+    test('draft tab does not match a listing the owner has nothing to fix', () {
       final listing = _listing(status: 'draft');
-      expect(listingMatchesTab(listing, 'draft'), isTrue);
+      expect(listingMatchesTab(listing, 'draft'), isFalse);
+      expect(listingMatchesTab(listing, 'active'), isTrue);
     });
 
     test('draft tab matches rejected listing', () {
@@ -139,13 +148,13 @@ void main() {
       expect(listingMatchesTab(listing, 'draft'), isTrue);
     });
 
-    test('expired tab matches expired listing', () {
-      final listing = _listing(status: 'expired');
+    test('expired tab matches a listing past its expiry date', () {
+      final listing = _listing(status: 'live', expiresAt: DateTime(2020));
       expect(listingMatchesTab(listing, 'expired'), isTrue);
     });
 
-    test('active tab does not match expired listing', () {
-      final listing = _listing(status: 'expired');
+    test('active tab does not match a listing past its expiry date', () {
+      final listing = _listing(status: 'live', expiresAt: DateTime(2020));
       expect(listingMatchesTab(listing, 'active'), isFalse);
     });
 

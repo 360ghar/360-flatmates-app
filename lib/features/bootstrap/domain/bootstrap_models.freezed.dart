@@ -216,7 +216,8 @@ mixin _$FlatmatesProfileModel {
   String? get email => throw _privateConstructorUsedError;
   String? get profileImageUrl => throw _privateConstructorUsedError;
   String? get mode => throw _privateConstructorUsedError;
-  String get profileStatus => throw _privateConstructorUsedError;
+  FlatmatesProfileStatus? get profileStatus =>
+      throw _privateConstructorUsedError;
   bool get onboardingCompleted => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
@@ -225,7 +226,6 @@ mixin _$FlatmatesProfileModel {
   double? get budgetMax => throw _privateConstructorUsedError;
   String? get moveInTimeline => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
-  String? get state => throw _privateConstructorUsedError;
   String? get locality => throw _privateConstructorUsedError;
   String? get sleepSchedule => throw _privateConstructorUsedError;
   String? get cleanliness => throw _privateConstructorUsedError;
@@ -262,7 +262,7 @@ abstract class $FlatmatesProfileModelCopyWith<$Res> {
     String? email,
     String? profileImageUrl,
     String? mode,
-    String profileStatus,
+    FlatmatesProfileStatus? profileStatus,
     bool onboardingCompleted,
     String? bio,
     int? age,
@@ -271,7 +271,6 @@ abstract class $FlatmatesProfileModelCopyWith<$Res> {
     double? budgetMax,
     String? moveInTimeline,
     String? city,
-    String? state,
     String? locality,
     String? sleepSchedule,
     String? cleanliness,
@@ -313,7 +312,7 @@ class _$FlatmatesProfileModelCopyWithImpl<
     Object? email = freezed,
     Object? profileImageUrl = freezed,
     Object? mode = freezed,
-    Object? profileStatus = null,
+    Object? profileStatus = freezed,
     Object? onboardingCompleted = null,
     Object? bio = freezed,
     Object? age = freezed,
@@ -322,7 +321,6 @@ class _$FlatmatesProfileModelCopyWithImpl<
     Object? budgetMax = freezed,
     Object? moveInTimeline = freezed,
     Object? city = freezed,
-    Object? state = freezed,
     Object? locality = freezed,
     Object? sleepSchedule = freezed,
     Object? cleanliness = freezed,
@@ -364,10 +362,10 @@ class _$FlatmatesProfileModelCopyWithImpl<
                 ? _value.mode
                 : mode // ignore: cast_nullable_to_non_nullable
                       as String?,
-            profileStatus: null == profileStatus
+            profileStatus: freezed == profileStatus
                 ? _value.profileStatus
                 : profileStatus // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as FlatmatesProfileStatus?,
             onboardingCompleted: null == onboardingCompleted
                 ? _value.onboardingCompleted
                 : onboardingCompleted // ignore: cast_nullable_to_non_nullable
@@ -399,10 +397,6 @@ class _$FlatmatesProfileModelCopyWithImpl<
             city: freezed == city
                 ? _value.city
                 : city // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            state: freezed == state
-                ? _value.state
-                : state // ignore: cast_nullable_to_non_nullable
                       as String?,
             locality: freezed == locality
                 ? _value.locality
@@ -482,7 +476,7 @@ abstract class _$$FlatmatesProfileModelImplCopyWith<$Res>
     String? email,
     String? profileImageUrl,
     String? mode,
-    String profileStatus,
+    FlatmatesProfileStatus? profileStatus,
     bool onboardingCompleted,
     String? bio,
     int? age,
@@ -491,7 +485,6 @@ abstract class _$$FlatmatesProfileModelImplCopyWith<$Res>
     double? budgetMax,
     String? moveInTimeline,
     String? city,
-    String? state,
     String? locality,
     String? sleepSchedule,
     String? cleanliness,
@@ -530,7 +523,7 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
     Object? email = freezed,
     Object? profileImageUrl = freezed,
     Object? mode = freezed,
-    Object? profileStatus = null,
+    Object? profileStatus = freezed,
     Object? onboardingCompleted = null,
     Object? bio = freezed,
     Object? age = freezed,
@@ -539,7 +532,6 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
     Object? budgetMax = freezed,
     Object? moveInTimeline = freezed,
     Object? city = freezed,
-    Object? state = freezed,
     Object? locality = freezed,
     Object? sleepSchedule = freezed,
     Object? cleanliness = freezed,
@@ -581,10 +573,10 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
             ? _value.mode
             : mode // ignore: cast_nullable_to_non_nullable
                   as String?,
-        profileStatus: null == profileStatus
+        profileStatus: freezed == profileStatus
             ? _value.profileStatus
             : profileStatus // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as FlatmatesProfileStatus?,
         onboardingCompleted: null == onboardingCompleted
             ? _value.onboardingCompleted
             : onboardingCompleted // ignore: cast_nullable_to_non_nullable
@@ -616,10 +608,6 @@ class __$$FlatmatesProfileModelImplCopyWithImpl<$Res>
         city: freezed == city
             ? _value.city
             : city // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        state: freezed == state
-            ? _value.state
-            : state // ignore: cast_nullable_to_non_nullable
                   as String?,
         locality: freezed == locality
             ? _value.locality
@@ -692,7 +680,7 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
     this.email,
     this.profileImageUrl,
     this.mode,
-    this.profileStatus = 'draft',
+    this.profileStatus,
     this.onboardingCompleted = false,
     this.bio,
     this.age,
@@ -701,7 +689,6 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
     this.budgetMax,
     this.moveInTimeline,
     this.city,
-    this.state,
     this.locality,
     this.sleepSchedule,
     this.cleanliness,
@@ -732,8 +719,7 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
   @override
   final String? mode;
   @override
-  @JsonKey()
-  final String profileStatus;
+  final FlatmatesProfileStatus? profileStatus;
   @override
   @JsonKey()
   final bool onboardingCompleted;
@@ -751,8 +737,6 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
   final String? moveInTimeline;
   @override
   final String? city;
-  @override
-  final String? state;
   @override
   final String? locality;
   @override
@@ -790,7 +774,7 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
 
   @override
   String toString() {
-    return 'FlatmatesProfileModel(id: $id, fullName: $fullName, phone: $phone, email: $email, profileImageUrl: $profileImageUrl, mode: $mode, profileStatus: $profileStatus, onboardingCompleted: $onboardingCompleted, bio: $bio, age: $age, profession: $profession, budgetMin: $budgetMin, budgetMax: $budgetMax, moveInTimeline: $moveInTimeline, city: $city, state: $state, locality: $locality, sleepSchedule: $sleepSchedule, cleanliness: $cleanliness, foodHabits: $foodHabits, smoking: $smoking, drinking: $drinking, guestsPolicy: $guestsPolicy, workStyle: $workStyle, gender: $gender, genderPreference: $genderPreference, nativePlace: $nativePlace, linkedInUrl: $linkedInUrl, ageBucket: $ageBucket, preferences: $preferences)';
+    return 'FlatmatesProfileModel(id: $id, fullName: $fullName, phone: $phone, email: $email, profileImageUrl: $profileImageUrl, mode: $mode, profileStatus: $profileStatus, onboardingCompleted: $onboardingCompleted, bio: $bio, age: $age, profession: $profession, budgetMin: $budgetMin, budgetMax: $budgetMax, moveInTimeline: $moveInTimeline, city: $city, locality: $locality, sleepSchedule: $sleepSchedule, cleanliness: $cleanliness, foodHabits: $foodHabits, smoking: $smoking, drinking: $drinking, guestsPolicy: $guestsPolicy, workStyle: $workStyle, gender: $gender, genderPreference: $genderPreference, nativePlace: $nativePlace, linkedInUrl: $linkedInUrl, ageBucket: $ageBucket, preferences: $preferences)';
   }
 
   @override
@@ -821,7 +805,6 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
             (identical(other.moveInTimeline, moveInTimeline) ||
                 other.moveInTimeline == moveInTimeline) &&
             (identical(other.city, city) || other.city == city) &&
-            (identical(other.state, state) || other.state == state) &&
             (identical(other.locality, locality) ||
                 other.locality == locality) &&
             (identical(other.sleepSchedule, sleepSchedule) ||
@@ -870,7 +853,6 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
     budgetMax,
     moveInTimeline,
     city,
-    state,
     locality,
     sleepSchedule,
     cleanliness,
@@ -908,7 +890,7 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
     final String? email,
     final String? profileImageUrl,
     final String? mode,
-    final String profileStatus,
+    final FlatmatesProfileStatus? profileStatus,
     final bool onboardingCompleted,
     final String? bio,
     final int? age,
@@ -917,7 +899,6 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
     final double? budgetMax,
     final String? moveInTimeline,
     final String? city,
-    final String? state,
     final String? locality,
     final String? sleepSchedule,
     final String? cleanliness,
@@ -948,7 +929,7 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
   @override
   String? get mode;
   @override
-  String get profileStatus;
+  FlatmatesProfileStatus? get profileStatus;
   @override
   bool get onboardingCompleted;
   @override
@@ -965,8 +946,6 @@ abstract class _FlatmatesProfileModel extends FlatmatesProfileModel {
   String? get moveInTimeline;
   @override
   String? get city;
-  @override
-  String? get state;
   @override
   String? get locality;
   @override

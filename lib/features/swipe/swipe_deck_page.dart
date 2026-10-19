@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_motion.dart';
@@ -39,7 +40,7 @@ class _PendingSwipe {
   const _PendingSwipe({required this.profile, required this.action});
 
   final SwipeProfile profile;
-  final String action;
+  final SwipeAction action;
 }
 
 class SwipeDeckPage extends ConsumerStatefulWidget {
@@ -129,7 +130,9 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final width = MediaQuery.of(context).size.width;
     final dx = interaction.dragOffset.dx;
     final vx = details.velocity.pixelsPerSecond.dx;
-    if (dx.abs() > width * 0.20) {
+    // A fixed travel distance, not a share of the viewport: see
+    // [kSwipeCommitDistance].
+    if (dx.abs() > kSwipeCommitDistance) {
       _triggerFlyOff(interaction.dragOffset);
     } else if (vx.abs() > 800) {
       _triggerFlyOff(
@@ -167,6 +170,12 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
   void _triggerButtonSwipe(int directionX) {
     if (_interaction.value.isBusy) return;
     _snapBackController.stop();
+    // Stays proportional to the viewport, unlike the drag commit distance: this
+    // is the kick that starts the fly-off animation, and the fly-off target
+    // (`screenSize.width * 1.5` in [_onFlyOffTick]) is proportional too. Keeping
+    // both a fraction of the same width preserves the animation's shape at every
+    // size; a fixed kick would be a visible nudge on a phone and an
+    // imperceptible one on the 951 dp foldable.
     final screenWidth = MediaQuery.of(context).size.width;
     final startOffset = Offset(directionX * screenWidth * 0.25, 0);
     _beginSwipe(directionX: directionX, startOffset: startOffset);
@@ -179,7 +188,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     _flyOffStartOffset = startOffset;
     _pendingSwipe = _PendingSwipe(
       profile: profile,
-      action: directionX > 0 ? 'like' : 'pass',
+      action: directionX > 0 ? SwipeAction.like : SwipeAction.pass,
     );
     unawaited(HapticFeedback.mediumImpact());
     _interaction.value = SwipeInteractionState(
@@ -260,7 +269,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     if (!mounted) return;
 
     final locale = AppLocalizations.of(context);
-    final isLikeAction = pending.action == 'like';
+    final isLikeAction = pending.action == SwipeAction.like;
     final didMatch = swipeResult.didMatch;
 
     if (isLikeAction && didMatch) {
@@ -405,10 +414,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
             interaction.dragOffset,
             screenWidth,
           );
-          final progress = calculateDragProgress(
-            interaction.dragOffset,
-            screenWidth,
-          );
+          final progress = calculateDragProgress(interaction.dragOffset);
           // Card stack fills the full body so the profile is complete on first
           // paint. Skip / Undo / Like live as trailing scroll content inside
           // the foreground card (revealed after scrolling to the end).

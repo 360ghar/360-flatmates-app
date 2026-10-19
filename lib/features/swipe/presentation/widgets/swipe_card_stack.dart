@@ -370,8 +370,24 @@ double calculateRotation(Offset dragOffset, double screenWidth) {
   return rotationFactor * maxDegrees * math.pi / 180;
 }
 
-double calculateDragProgress(Offset dragOffset, double screenWidth) {
-  return (dragOffset.dx.abs() / (screenWidth * 0.20)).clamp(0.0, 1.0);
+/// Finger travel that commits a swipe, in logical points.
+///
+/// A fixed distance, not a fraction of the viewport: 20 % of the width is
+/// 93 dp on a 466 dp phone but 190 dp on the 951 dp foldable, so the same flick
+/// that commits on a phone snapped back on the foldable. 96 dp keeps the phone
+/// feel (93 dp before) and makes every display commit at the same drag.
+///
+/// Also the denominator of [calculateDragProgress], so the next card is fully
+/// faded in exactly when a drag is far enough to commit.
+const double kSwipeCommitDistance = AppSpacing.xxl * 2;
+
+/// How far through a swipe the drag is, 0..1.
+///
+/// Measured against [kSwipeCommitDistance] rather than the viewport, so
+/// progress 1.0 and "this drag would commit" are the same point on every
+/// display.
+double calculateDragProgress(Offset dragOffset) {
+  return (dragOffset.dx.abs() / kSwipeCommitDistance).clamp(0.0, 1.0);
 }
 
 /// Layer visibility for the single-card-at-rest deck.

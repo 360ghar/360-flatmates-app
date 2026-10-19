@@ -1,65 +1,45 @@
+import '../../../core/domain/wire_enums.dart';
 import '../../discover/domain/property_listing.dart';
 
-/// Derives the effective status of a listing from its raw fields.
+/// Derives the manage-listings bucket of a listing from its raw fields.
 ///
 /// Shared by the post hub (tab counts) and the manage listings page so both
 /// always agree on which bucket a listing falls into.
 ///
 /// Backend has two different "status" concepts:
-/// - `listing_preferences.moderation_status` (pending_review / live / rejected / …)
-/// - top-level `Property.status` lifecycle (`available`, `sold`, `rented`, …)
+/// - `listing_preferences.moderation_status`, a `ListingModerationStatus`
+///   (`pending_review`, `live`, `paused`, `rejected`)
+/// - top-level `Property.status` lifecycle (`available`, `sold`, `rented`, ...)
 ///
 /// The DTO prefers moderation_status, then falls back to Property.status.
-/// When moderation_status is missing, fallback `"available"` must still map
-/// into a manage tab — otherwise newly created pending listings disappear
-/// from Active / Draft / Expired entirely.
+///
+/// Returns `expired` (a past `expires_at`), `paused`, `pending_review`, `rejected` or `active`.
+/// A lifecycle value, or one this build does not know, is `active`: an owner
+/// listing never falls into a gap that matches no manage tab.
 String listingStatus(PropertyListing listing) {
-  final status = listing.status ?? listing.propertyStatus ?? '';
+  // `expires_at` is a public key. The auto-pause keys are admin-only, so an
+  // auto-paused listing reads as `paused`; Resume then answers 409.
   final expiresAt = listing.expiresAt;
-  final expiredByReview =
-      listing.preferences?['auto_paused_reason'] == 'expired_move_in_date';
-  if (expiredByReview ||
-      expiresAt != null && expiresAt.isBefore(DateTime.now()) ||
-      status == 'expired') {
+  if (expiresAt != null && expiresAt.isBefore(DateTime.now())) {
     return 'expired';
   }
-  if (status == 'paused') return 'paused';
-  if (status == 'pending_review' || status == 'under_review') {
-    return 'pending_review';
-  }
-  if (status == 'draft' || status == 'rejected') return status;
-  // Moderation "live"/"approved", lifecycle "available", or explicit availability.
-  // Also treat empty / unknown lifecycle noise as active so owner listings never
-  // fall into a gap that matches no manage tab.
-  if (status == 'live' ||
-      status == 'approved' ||
-      status == 'available' ||
-      status == 'under_offer' ||
-      status == 'maintenance' ||
-      listing.isAvailable ||
-      status.isEmpty) {
-    return 'active';
-  }
-  // Terminal lifecycle states that are not the flatmates "expired" bucket
-  // still surface under Active so the owner can find and edit them.
-  if (status == 'sold' || status == 'rented') {
-    return 'active';
-  }
-  // Unknown values: prefer Active over orphaning the card from every tab.
-  return 'active';
+  return switch (listing.moderationStatus) {
+    ListingModerationStatus.paused => 'paused',
+    ListingModerationStatus.pendingReview => 'pending_review',
+    ListingModerationStatus.rejected => 'rejected',
+    ListingModerationStatus.live || null => 'active',
+  };
 }
 
 /// Whether [listing] belongs to the given manage tab
-/// ('active', 'draft' or 'expired').
+/// ('active', 'draft' or 'expired'). The `draft` tab holds the listings the
+/// owner has to fix (rejected).
 bool listingMatchesTab(PropertyListing listing, String tab) {
   final status = listingStatus(listing);
   return switch (tab) {
     'active' =>
-      status == 'active' ||
-          status == 'paused' ||
-          status == 'pending_review' ||
-          status == 'under_review',
-    'draft' => status == 'draft' || status == 'rejected',
+      status == 'active' || status == 'paused' || status == 'pending_review',
+    'draft' => status == 'rejected',
     'expired' => status == 'expired',
     _ => false,
   };

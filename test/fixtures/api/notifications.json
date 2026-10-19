@@ -1,0 +1,76 @@
+{
+  "marked_read": {
+    "updated": 3
+  },
+  "one": {
+    "body": "Priya sent you a message",
+    "created_at": "2026-09-30T10:15:02Z",
+    "id": "n-1",
+    "is_read": true,
+    "reference_id": 10,
+    "route": "/flatmates/chat/10",
+    "title": "New message",
+    "type": "flatmate_new_message"
+  },
+  "page": {
+    "has_more": true,
+    "items": [
+      {
+        "body": "Priya sent you a message",
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": "n-1",
+        "is_read": false,
+        "reference_id": 10,
+        "route": "/flatmates/chat/10",
+        "title": "New message",
+        "type": "flatmate_new_message"
+      },
+      {
+        "body": "Welcome to 360 FlatMates",
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": "n-2",
+        "is_read": true,
+        "reference_id": null,
+        "route": null,
+        "title": "Welcome",
+        "type": "general"
+      }
+    ],
+    "limit": 20,
+    "next_cursor": "eyJrIjpbIjIwMjYtMDktMzAiLCJuLTIiXSwiZiI6ImFiYyJ9",
+    "total": null
+  },
+  "push_message": {
+    "android_channel_id": "flatmates_messages",
+    "data": {
+      "_meta": "{\"type_key\":\"flatmate_new_message\",\"channel\":\"push\",\"priority\":\"high\"}",
+      "conversation_id": "10",
+      "route": "/flatmates/chat/10",
+      "type_key": "flatmate_new_message"
+    }
+  },
+  "push_promotion": {
+    "android_channel_id": "flatmates_messages",
+    "data": {
+      "_meta": "{\"type_key\":\"promotion_generic\",\"channel\":\"push\",\"priority\":\"high\"}",
+      "type_key": "promotion_generic"
+    }
+  },
+  "push_type_only": {
+    "android_channel_id": "flatmates_messages",
+    "data": {
+      "_meta": "{\"type_key\":\"flatmate_visit_scheduled\",\"channel\":\"push\",\"priority\":\"high\"}",
+      "type_key": "flatmate_visit_scheduled"
+    }
+  },
+  "registration": {
+    "app_key": "flatmates",
+    "app_version": "1.0.9",
+    "last_seen": "2026-09-30T10:15:02Z",
+    "locale": "en_IN",
+    "platform": "ios"
+  },
+  "unread_count": {
+    "unread_count": 2
+  }
+}

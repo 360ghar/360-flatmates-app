@@ -44,7 +44,14 @@ class MapListingsState {
 
 class MapListingsController extends Notifier<MapListingsState> {
   static const double defaultLocationRadiusKm = 10.0;
-  static const int _pageSize = 50;
+
+  /// Rows per request (the API takes at most 100).
+  static const int _pageSize = 100;
+
+  /// The map reads every page of the area, up to this many requests.
+  /// ponytail: a cap of 500 pins; cluster or load by viewport when an area
+  /// holds more.
+  static const int _maxPages = 5;
 
   int _filterVersion = 0;
   bool _isLoadingActive = false;
@@ -105,11 +112,21 @@ class MapListingsController extends Notifier<MapListingsState> {
           .valueOrNull
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
-      final newListings = await repo.fetchListings(
-        currentUser: profile,
-        filters: state.filters,
-        limit: _pageSize,
-      );
+      // A map shows every listing of the area: follow `next_cursor`. The
+      // cursor is bound to the filters, which stay the same on every page.
+      final newListings = <PropertyListing>[];
+      String? cursor;
+      for (var page = 0; page < _maxPages; page++) {
+        final result = await repo.fetchListingsPage(
+          cursor: cursor,
+          currentUser: profile,
+          filters: state.filters,
+          limit: _pageSize,
+        );
+        newListings.addAll(result.items);
+        cursor = result.nextCursor;
+        if (cursor == null || cursor.isEmpty) break;
+      }
 
       if (myVersion != _filterVersion) {
         // Stale result — filters changed during the request.

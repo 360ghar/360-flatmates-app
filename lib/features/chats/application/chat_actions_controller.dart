@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../settings/data/blocked_users_list_controller.dart';
 import '../chats_repository.dart';
 import 'cursor_list_controller.dart';
 
@@ -13,13 +14,19 @@ class ChatActionsController {
   Future<void> blockUser(int peerId) async {
     await _repository.blockUser(peerId);
     // Blocking removes the conversation and any pending likes from the peer,
-    // so refresh the lists the user returns to after blocking.
+    // so refresh the lists the user returns to after blocking. The blocked
+    // list gains the peer: drop it so Settings reads the new row.
+    _ref.invalidate(blockedUsersListControllerProvider);
     await invalidateChatListControllers(_ref);
   }
 
   Future<void> reportUser(int peerId, String reason) async {
     await _repository.reportUser(peerId, reason);
   }
+
+  /// The phone of a matched peer from the match contact route, or null when
+  /// the match has none (or is closed). Never reads a phone from a peer payload.
+  Future<String?> matchPhone(int peerId) => _repository.fetchMatchPhone(peerId);
 
   Future<void> unmatchConversation(int conversationId, int peerId) async {
     await _repository.unmatchConversation(conversationId, peerId);

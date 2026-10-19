@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flatmates_app/core/config/app_config.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/core/network/auth_token_provider.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/core/storage/app_preferences.dart';
@@ -119,12 +120,11 @@ BootstrapData fakeBootstrapData() => const BootstrapData(
     phone: '+919999999999',
     email: 'test@example.com',
     mode: 'co_hunter',
-    profileStatus: 'active',
+    profileStatus: FlatmatesProfileStatus.active,
     onboardingCompleted: true,
     age: 25,
     profession: 'Engineer',
     city: 'Bangalore',
-    state: 'Karnataka',
     locality: 'Koramangala',
   ),
   catalogs: [

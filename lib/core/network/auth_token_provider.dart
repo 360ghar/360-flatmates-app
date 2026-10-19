@@ -8,6 +8,18 @@ import '../storage/auth_token_storage.dart';
 
 typedef AuthException = supabase.AuthException;
 
+/// The id of the signed-in auth user (the Supabase user id), or null when no
+/// one is signed in or the auth client is not started. Local stores use it to
+/// tell one account from another.
+String? currentAuthUserId() {
+  try {
+    return supabase.Supabase.instance.client.auth.currentUser?.id;
+  } catch (_) {
+    // The auth client is not started (a test, or before bootstrap): no user.
+    return null;
+  }
+}
+
 /// Thrown by [AuthTokenProvider.getAccessToken] when a token refresh attempt
 /// failed for a transient reason (e.g. network timeout) and the local session
 /// is otherwise present. Callers should treat the current request as

@@ -51,6 +51,10 @@ class FlatDetailsHeader extends StatelessWidget {
     // "sheet over hero" look with rounded top corners.
     const sheetOverlap = 20.0;
 
+    // The carousel is full-bleed; the sheet over it is not. Everything in the
+    // sheet clears the Duo's right-edge status bar.
+    final safeAreaRight = MediaQuery.paddingOf(context).right;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -72,10 +76,10 @@ class FlatDetailsHeader extends StatelessWidget {
           offset: const Offset(0, -sheetOverlap),
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppSpacing.screen,
               AppSpacing.lg,
-              AppSpacing.screen,
+              AppSpacing.screen + safeAreaRight,
               0,
             ),
             decoration: BoxDecoration(
@@ -101,7 +105,7 @@ class FlatDetailsHeader extends StatelessWidget {
                       Text(
                         DateFormat.yMMMd(
                           locale.localeName,
-                        ).format(l.createdAt!),
+                        ).format(l.createdAt!.toLocal()),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppSemanticColors.textTertiaryFor(
                             theme.brightness,
@@ -159,8 +163,6 @@ class FlatDetailsHeader extends StatelessWidget {
 
                 _OwnerCard(
                   ownerName: l.ownerName,
-                  ownerImageUrl: l.owner?.profileImageUrl,
-                  ownerMode: l.owner?.mode,
                   onTap: onOwnerTap,
                   matchPercentage: matchPercentage,
                 ),
@@ -180,17 +182,9 @@ class FlatDetailsHeader extends StatelessWidget {
 }
 
 class _OwnerCard extends StatelessWidget {
-  const _OwnerCard({
-    required this.ownerName,
-    this.ownerImageUrl,
-    this.ownerMode,
-    this.onTap,
-    this.matchPercentage,
-  });
+  const _OwnerCard({required this.ownerName, this.onTap, this.matchPercentage});
 
   final String? ownerName;
-  final String? ownerImageUrl;
-  final String? ownerMode;
   final VoidCallback? onTap;
   final double? matchPercentage;
 
@@ -217,15 +211,11 @@ class _OwnerCard extends StatelessWidget {
                       size: 52,
                       strokeWidth: 3,
                     ),
-                    FlatmatesAvatar(
-                      name: name,
-                      imageUrl: ownerImageUrl,
-                      size: 40,
-                    ),
+                    FlatmatesAvatar(name: name, size: 40),
                   ],
                 )
               else
-                FlatmatesAvatar(name: name, imageUrl: ownerImageUrl, size: 40),
+                FlatmatesAvatar(name: name, size: 40),
               // Match pill sits under the ring, matching owner profile layout.
               if (matchPercentage != null && matchPercentage! > 0) ...[
                 const SizedBox(height: AppSpacing.xs),
@@ -265,15 +255,6 @@ class _OwnerCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (ownerMode != null)
-                  Text(
-                    _localizedMode(ownerMode!, locale),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -285,19 +266,6 @@ class _OwnerCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _localizedMode(String mode, AppLocalizations locale) {
-    switch (mode) {
-      case 'co_hunter':
-        return locale.ownerModeCoHunter;
-      case 'room_poster':
-        return locale.ownerModeRoomPoster;
-      case 'open_to_both':
-        return locale.ownerModeOpenToBoth;
-      default:
-        return humanizeFlatmatesToken(mode);
-    }
   }
 }
 

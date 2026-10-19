@@ -10,21 +10,19 @@ import '../../../shared/presentation/flatmates_network_image.dart';
 import 'edit_profile_dropdown_utils.dart';
 import '../../../shared/presentation/test_id.dart';
 
+/// The email and phone of the sign-in account. Read-only: the profile route
+/// does not take them, and an email or phone change goes through sign-in.
 class EditProfileContactInfoSection extends StatelessWidget {
   const EditProfileContactInfoSection({
     required this.locale,
     required this.emailController,
     required this.phoneController,
-    required this.hasEmail,
-    required this.hasPhone,
     super.key,
   });
 
   final AppLocalizations locale;
   final TextEditingController emailController;
   final TextEditingController phoneController;
-  final bool hasEmail;
-  final bool hasPhone;
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +30,23 @@ class EditProfileContactInfoSection extends StatelessWidget {
       child: Column(
         children: [
           TextField(
-            readOnly: hasEmail,
+            readOnly: true,
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: locale.emailLabel,
-              hintText: hasEmail ? null : locale.emailNotAvailable,
+              hintText: locale.emailNotAvailable,
               prefixIcon: const Icon(Icons.email_outlined, size: 20),
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           TextField(
-            readOnly: hasPhone,
+            readOnly: true,
             controller: phoneController,
             keyboardType: TextInputType.phone,
             decoration: InputDecoration(
               labelText: locale.phoneNumberLabel,
-              hintText: hasPhone ? null : locale.phoneNotAvailable,
+              hintText: locale.phoneNotAvailable,
               prefixIcon: const Icon(Icons.phone_outlined, size: 20),
             ),
           ),

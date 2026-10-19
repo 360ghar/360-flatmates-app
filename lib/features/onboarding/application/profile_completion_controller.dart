@@ -110,20 +110,9 @@ class ProfileCompletionController {
         'responseDob=${updated['date_of_birth']} '
         'responseName=${updated['full_name']}',
       );
+      // `date_of_birth` is a date-only field (`YYYY-MM-DD`): the API takes no
+      // datetime for it, so there is no second attempt with another format.
       putLooksOk = responseMatchesPayload(userPayload, updated);
-
-      // Second attempt with ISO datetime if date-only body looked empty.
-      if (!putLooksOk && needsDob && dob != null) {
-        final retryPayload = Map<String, dynamic>.from(userPayload);
-        retryPayload['date_of_birth'] = '${_isoDate(dob)}T00:00:00.000Z';
-        final retried = await repo.updateUser(payload: retryPayload);
-        debugPrint(
-          'ProfileCompletionController._submit PUT retry datetime '
-          'responseDob=${retried['date_of_birth']} '
-          'responseName=${retried['full_name']}',
-        );
-        putLooksOk = responseMatchesPayload(retryPayload, retried);
-      }
     }
 
     // ── 3) Re-read auth-state with retries ───────────────────────────

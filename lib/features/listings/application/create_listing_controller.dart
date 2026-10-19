@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/storage/image_upload_service.dart' as uploads;
 import '../../discover/application/discover_feed_controller.dart';
@@ -73,7 +74,7 @@ class CreateListingController {
       listing = PropertyListing(
         id: id,
         ownerId: null,
-        propertyType: 'flatmate',
+        propertyType: PropertyType.flatmate.wire,
         title: request.title,
         description: request.description,
         city: request.city,

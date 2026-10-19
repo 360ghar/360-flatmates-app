@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/l10n_bridge.dart';
+import '../../../../core/theme/app_breakpoints.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -108,12 +109,22 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
     final hasImage =
         item.effectiveMainImageUrl != null &&
         item.effectiveMainImageUrl!.trim().isNotEmpty;
+    // The photo and the row floor grow with the viewport, so the reading
+    // column is not a 110 dp stamp beside 570 dp of single-line text.
+    final thumbSize = AppBreakpoints.browseThumbSize(
+      MediaQuery.sizeOf(context).width,
+    );
+    // One line only while the row is phone-width; the reading column has room
+    // for the two lines the title actually needs.
+    final titleLines = AppBreakpoints.isMedium(MediaQuery.sizeOf(context).width)
+        ? 2
+        : 1;
     // FlatmatesCard owns press feedback (scale 0.98, e2 -> e1), grain and
     // the clip to the hand-cut corners.
     return ConstrainedBox(
-      // Content may grow past 110 (meta wrap / text scale); the floor
+      // Content may grow past the thumb (meta wrap / text scale); the floor
       // matches the browse skeleton.
-      constraints: const BoxConstraints(minHeight: 110),
+      constraints: BoxConstraints(minHeight: thumbSize),
       child: FlatmatesCard(
         onTap: () => context.push('/flat-details/${item.id}'),
         padding: EdgeInsets.zero,
@@ -121,8 +132,8 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 110,
-              height: 110,
+              width: thumbSize,
+              height: thumbSize,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -133,8 +144,8 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
                     child: hasImage
                         ? FlatmatesNetworkImage(
                             imageUrl: item.effectiveMainImageUrl!,
-                            width: 110,
-                            height: 110,
+                            width: thumbSize,
+                            height: thumbSize,
                             fit: BoxFit.cover,
                           )
                         : ColoredBox(
@@ -204,7 +215,7 @@ class _BrowseListingsCardState extends ConsumerState<BrowseListingsCard> {
                         fontWeight: FontWeight.w600,
                         height: 1.3,
                       ),
-                      maxLines: 1,
+                      maxLines: titleLines,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (titleLocation.isNotEmpty) ...[

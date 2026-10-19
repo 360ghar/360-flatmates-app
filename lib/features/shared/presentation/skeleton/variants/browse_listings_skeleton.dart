@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_breakpoints.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../skeleton_bone.dart';
@@ -17,6 +18,13 @@ class BrowseListingsSkeleton extends StatelessWidget {
     final bone = SkeletonTokens.bone(brightness);
     final soft = SkeletonTokens.boneSoft(brightness);
     final surface = SkeletonTokens.surface(brightness);
+    // The row floor and the photo edge both grow with the viewport, exactly as
+    // the loaded card's do. A hard 110 dp here under-reserved the row by 30 dp
+    // from 600 and 50 dp from 900, so the list jumped the moment data arrived —
+    // the reflow this skeleton exists to prevent (DESIGN.md §8).
+    final thumb = AppBreakpoints.browseThumbSize(
+      MediaQuery.sizeOf(context).width,
+    );
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(
@@ -29,7 +37,7 @@ class BrowseListingsSkeleton extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (_, _) {
         return Container(
-          height: 110,
+          height: thumb,
           decoration: BoxDecoration(
             color: surface,
             borderRadius: AppRadius.cardBorder,
@@ -37,8 +45,8 @@ class BrowseListingsSkeleton extends StatelessWidget {
           child: Row(
             children: [
               FlatmatesSkeletonBone(
-                width: 110,
-                height: 110,
+                width: thumb,
+                height: thumb,
                 color: bone,
                 borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(AppRadius.card),

@@ -1,0 +1,1287 @@
+{
+  "cancelled": {
+    "actual_date": null,
+    "agent_id": null,
+    "agents": null,
+    "cancellation_reason": "Plans changed",
+    "conversation_id": 10,
+    "counterparty_user": {
+      "avatar_url": "https://cdn.example.com/u/2.jpg",
+      "display_name": "Priya P",
+      "id": 2
+    },
+    "counterparty_user_id": 2,
+    "created_at": "2026-09-30T10:15:02Z",
+    "follow_up_date": null,
+    "follow_up_required": false,
+    "id": 5,
+    "interest_level": null,
+    "match_id": 4,
+    "property": {
+      "age_of_property": null,
+      "amenities": [
+        {
+          "category": "recreation",
+          "icon": "dumbbell",
+          "id": 11,
+          "title": "Gym"
+        },
+        {
+          "category": "utilities",
+          "icon": "lift",
+          "id": 12,
+          "title": "Lift"
+        }
+      ],
+      "area_sqft": 1200.0,
+      "area_type": null,
+      "available_from": "2026-11-01",
+      "balconies": null,
+      "base_price": 24000.0,
+      "bathrooms": null,
+      "bedrooms": 2,
+      "builder_name": null,
+      "calendar_data": null,
+      "city": "Bengaluru",
+      "compatibility_score": null,
+      "country": "India",
+      "created_at": "2026-09-30T10:15:02Z",
+      "current_lease_id": null,
+      "current_tenant_id": null,
+      "daily_rate": null,
+      "description": "Corner room, attached balcony.",
+      "distance_km": null,
+      "features": [
+        "furnished",
+        "wifi"
+      ],
+      "floor_number": null,
+      "floor_plan_url": null,
+      "floor_plans": [
+        {
+          "caption": null,
+          "display_order": 3,
+          "id": 423,
+          "image_category": "floor_plan",
+          "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "full_address": null,
+      "furnishing_level": "furnished",
+      "google_street_view_url": null,
+      "grace_period_days": null,
+      "id": 42,
+      "images": [
+        {
+          "caption": null,
+          "display_order": 1,
+          "id": 421,
+          "image_category": "room",
+          "image_url": "https://cdn.example.com/p42/room-1.jpg",
+          "is_main_image": true,
+          "property_id": 42
+        },
+        {
+          "caption": null,
+          "display_order": 2,
+          "id": 422,
+          "image_category": "kitchen",
+          "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "interest_count": 3,
+      "is_available": true,
+      "is_managed": false,
+      "kitchen_type": "vegetarian",
+      "landmark": null,
+      "late_fee_policy": null,
+      "latitude": 12.9352,
+      "like_count": 14,
+      "liked": null,
+      "listing_preferences": {
+        "cleanliness": null,
+        "expires_at": null,
+        "food_habits": null,
+        "gender_preference": "any",
+        "guests_policy": null,
+        "moderation_status": "live",
+        "parties_at_home": "occasional_weekends",
+        "pets": "no",
+        "rooms": [
+          {
+            "furnishing_level": "furnished"
+          }
+        ],
+        "sharing_type": "private_room",
+        "smoking_drinking": null,
+        "society_amenities": [
+          "Gym"
+        ],
+        "society_type": "gated",
+        "society_vibe_tags": [
+          "quiet",
+          "family"
+        ]
+      },
+      "locality": "Koramangala",
+      "longitude": 77.6245,
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "maintenance_charges": 1500.0,
+      "management_status": null,
+      "max_occupancy": null,
+      "minimum_stay_days": null,
+      "monthly_rent": 24000.0,
+      "nightly_rate": null,
+      "other_charges": null,
+      "other_charges_description": null,
+      "owner_contact": "+911800000360",
+      "owner_id": 9,
+      "owner_name": "Rahul S",
+      "parking_spaces": null,
+      "payment_due_day": null,
+      "pincode": null,
+      "price_per_sqft": 20.0,
+      "property_type": "flatmate",
+      "purpose": "rent",
+      "search_keywords": null,
+      "security_deposit": 48000.0,
+      "setup_cost": null,
+      "state": null,
+      "status": "available",
+      "sub_locality": "5th Block",
+      "tags": null,
+      "title": "Sunny room in Koramangala",
+      "total_floors": null,
+      "updated_at": "2026-09-30T10:15:02Z",
+      "ventilation_shafts": null,
+      "ventilation_type": "good",
+      "video_tour_url": null,
+      "video_urls": null,
+      "view_count": 120,
+      "virtual_tour_url": null,
+      "windows_count": 3
+    },
+    "property_id": 42,
+    "rescheduled_from": null,
+    "scheduled_date": "2026-10-04T05:30:00Z",
+    "special_requirements": null,
+    "status": "cancelled",
+    "time_slot_label": "Morning (9 to 12)",
+    "updated_at": "2026-09-30T10:15:02Z",
+    "user": {
+      "avatar_url": "https://cdn.example.com/u/7.jpg",
+      "display_name": "Asha Verma",
+      "id": 7
+    },
+    "user_id": 7,
+    "visit_context": "flatmate_meet",
+    "visit_notes": null,
+    "visitor_feedback": null
+  },
+  "confirmed": {
+    "actual_date": null,
+    "agent_id": null,
+    "agents": null,
+    "cancellation_reason": null,
+    "conversation_id": 10,
+    "counterparty_user": {
+      "avatar_url": "https://cdn.example.com/u/2.jpg",
+      "display_name": "Priya P",
+      "id": 2
+    },
+    "counterparty_user_id": 2,
+    "created_at": "2026-09-30T10:15:02Z",
+    "follow_up_date": null,
+    "follow_up_required": false,
+    "id": 5,
+    "interest_level": null,
+    "match_id": 4,
+    "property": {
+      "age_of_property": null,
+      "amenities": [
+        {
+          "category": "recreation",
+          "icon": "dumbbell",
+          "id": 11,
+          "title": "Gym"
+        },
+        {
+          "category": "utilities",
+          "icon": "lift",
+          "id": 12,
+          "title": "Lift"
+        }
+      ],
+      "area_sqft": 1200.0,
+      "area_type": null,
+      "available_from": "2026-11-01",
+      "balconies": null,
+      "base_price": 24000.0,
+      "bathrooms": null,
+      "bedrooms": 2,
+      "builder_name": null,
+      "calendar_data": null,
+      "city": "Bengaluru",
+      "compatibility_score": null,
+      "country": "India",
+      "created_at": "2026-09-30T10:15:02Z",
+      "current_lease_id": null,
+      "current_tenant_id": null,
+      "daily_rate": null,
+      "description": "Corner room, attached balcony.",
+      "distance_km": null,
+      "features": [
+        "furnished",
+        "wifi"
+      ],
+      "floor_number": null,
+      "floor_plan_url": null,
+      "floor_plans": [
+        {
+          "caption": null,
+          "display_order": 3,
+          "id": 423,
+          "image_category": "floor_plan",
+          "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "full_address": null,
+      "furnishing_level": "furnished",
+      "google_street_view_url": null,
+      "grace_period_days": null,
+      "id": 42,
+      "images": [
+        {
+          "caption": null,
+          "display_order": 1,
+          "id": 421,
+          "image_category": "room",
+          "image_url": "https://cdn.example.com/p42/room-1.jpg",
+          "is_main_image": true,
+          "property_id": 42
+        },
+        {
+          "caption": null,
+          "display_order": 2,
+          "id": 422,
+          "image_category": "kitchen",
+          "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "interest_count": 3,
+      "is_available": true,
+      "is_managed": false,
+      "kitchen_type": "vegetarian",
+      "landmark": null,
+      "late_fee_policy": null,
+      "latitude": 12.9352,
+      "like_count": 14,
+      "liked": null,
+      "listing_preferences": {
+        "cleanliness": null,
+        "expires_at": null,
+        "food_habits": null,
+        "gender_preference": "any",
+        "guests_policy": null,
+        "moderation_status": "live",
+        "parties_at_home": "occasional_weekends",
+        "pets": "no",
+        "rooms": [
+          {
+            "furnishing_level": "furnished"
+          }
+        ],
+        "sharing_type": "private_room",
+        "smoking_drinking": null,
+        "society_amenities": [
+          "Gym"
+        ],
+        "society_type": "gated",
+        "society_vibe_tags": [
+          "quiet",
+          "family"
+        ]
+      },
+      "locality": "Koramangala",
+      "longitude": 77.6245,
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "maintenance_charges": 1500.0,
+      "management_status": null,
+      "max_occupancy": null,
+      "minimum_stay_days": null,
+      "monthly_rent": 24000.0,
+      "nightly_rate": null,
+      "other_charges": null,
+      "other_charges_description": null,
+      "owner_contact": "+911800000360",
+      "owner_id": 9,
+      "owner_name": "Rahul S",
+      "parking_spaces": null,
+      "payment_due_day": null,
+      "pincode": null,
+      "price_per_sqft": 20.0,
+      "property_type": "flatmate",
+      "purpose": "rent",
+      "search_keywords": null,
+      "security_deposit": 48000.0,
+      "setup_cost": null,
+      "state": null,
+      "status": "available",
+      "sub_locality": "5th Block",
+      "tags": null,
+      "title": "Sunny room in Koramangala",
+      "total_floors": null,
+      "updated_at": "2026-09-30T10:15:02Z",
+      "ventilation_shafts": null,
+      "ventilation_type": "good",
+      "video_tour_url": null,
+      "video_urls": null,
+      "view_count": 120,
+      "virtual_tour_url": null,
+      "windows_count": 3
+    },
+    "property_id": 42,
+    "rescheduled_from": null,
+    "scheduled_date": "2026-10-04T05:30:00Z",
+    "special_requirements": null,
+    "status": "confirmed",
+    "time_slot_label": "Morning (9 to 12)",
+    "updated_at": "2026-09-30T10:15:02Z",
+    "user": {
+      "avatar_url": "https://cdn.example.com/u/7.jpg",
+      "display_name": "Asha Verma",
+      "id": 7
+    },
+    "user_id": 7,
+    "visit_context": "flatmate_meet",
+    "visit_notes": null,
+    "visitor_feedback": null
+  },
+  "created": {
+    "actual_date": null,
+    "agent_id": null,
+    "agents": null,
+    "cancellation_reason": null,
+    "conversation_id": 10,
+    "counterparty_user": {
+      "avatar_url": "https://cdn.example.com/u/2.jpg",
+      "display_name": "Priya P",
+      "id": 2
+    },
+    "counterparty_user_id": 2,
+    "created_at": "2026-09-30T10:15:02Z",
+    "follow_up_date": null,
+    "follow_up_required": false,
+    "id": 8,
+    "interest_level": null,
+    "match_id": 4,
+    "property": {
+      "age_of_property": null,
+      "amenities": [
+        {
+          "category": "recreation",
+          "icon": "dumbbell",
+          "id": 11,
+          "title": "Gym"
+        },
+        {
+          "category": "utilities",
+          "icon": "lift",
+          "id": 12,
+          "title": "Lift"
+        }
+      ],
+      "area_sqft": 1200.0,
+      "area_type": null,
+      "available_from": "2026-11-01",
+      "balconies": null,
+      "base_price": 24000.0,
+      "bathrooms": null,
+      "bedrooms": 2,
+      "builder_name": null,
+      "calendar_data": null,
+      "city": "Bengaluru",
+      "compatibility_score": null,
+      "country": "India",
+      "created_at": "2026-09-30T10:15:02Z",
+      "current_lease_id": null,
+      "current_tenant_id": null,
+      "daily_rate": null,
+      "description": "Corner room, attached balcony.",
+      "distance_km": null,
+      "features": [
+        "furnished",
+        "wifi"
+      ],
+      "floor_number": null,
+      "floor_plan_url": null,
+      "floor_plans": [
+        {
+          "caption": null,
+          "display_order": 3,
+          "id": 423,
+          "image_category": "floor_plan",
+          "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "full_address": null,
+      "furnishing_level": "furnished",
+      "google_street_view_url": null,
+      "grace_period_days": null,
+      "id": 42,
+      "images": [
+        {
+          "caption": null,
+          "display_order": 1,
+          "id": 421,
+          "image_category": "room",
+          "image_url": "https://cdn.example.com/p42/room-1.jpg",
+          "is_main_image": true,
+          "property_id": 42
+        },
+        {
+          "caption": null,
+          "display_order": 2,
+          "id": 422,
+          "image_category": "kitchen",
+          "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "interest_count": 3,
+      "is_available": true,
+      "is_managed": false,
+      "kitchen_type": "vegetarian",
+      "landmark": null,
+      "late_fee_policy": null,
+      "latitude": 12.9352,
+      "like_count": 14,
+      "liked": null,
+      "listing_preferences": {
+        "cleanliness": null,
+        "expires_at": null,
+        "food_habits": null,
+        "gender_preference": "any",
+        "guests_policy": null,
+        "moderation_status": "live",
+        "parties_at_home": "occasional_weekends",
+        "pets": "no",
+        "rooms": [
+          {
+            "furnishing_level": "furnished"
+          }
+        ],
+        "sharing_type": "private_room",
+        "smoking_drinking": null,
+        "society_amenities": [
+          "Gym"
+        ],
+        "society_type": "gated",
+        "society_vibe_tags": [
+          "quiet",
+          "family"
+        ]
+      },
+      "locality": "Koramangala",
+      "longitude": 77.6245,
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "maintenance_charges": 1500.0,
+      "management_status": null,
+      "max_occupancy": null,
+      "minimum_stay_days": null,
+      "monthly_rent": 24000.0,
+      "nightly_rate": null,
+      "other_charges": null,
+      "other_charges_description": null,
+      "owner_contact": "+911800000360",
+      "owner_id": 9,
+      "owner_name": "Rahul S",
+      "parking_spaces": null,
+      "payment_due_day": null,
+      "pincode": null,
+      "price_per_sqft": 20.0,
+      "property_type": "flatmate",
+      "purpose": "rent",
+      "search_keywords": null,
+      "security_deposit": 48000.0,
+      "setup_cost": null,
+      "state": null,
+      "status": "available",
+      "sub_locality": "5th Block",
+      "tags": null,
+      "title": "Sunny room in Koramangala",
+      "total_floors": null,
+      "updated_at": "2026-09-30T10:15:02Z",
+      "ventilation_shafts": null,
+      "ventilation_type": "good",
+      "video_tour_url": null,
+      "video_urls": null,
+      "view_count": 120,
+      "virtual_tour_url": null,
+      "windows_count": 3
+    },
+    "property_id": 42,
+    "rescheduled_from": null,
+    "scheduled_date": "2026-10-04T05:30:00Z",
+    "special_requirements": null,
+    "status": "requested",
+    "time_slot_label": "Morning (9 to 12)",
+    "updated_at": "2026-09-30T10:15:02Z",
+    "user": {
+      "avatar_url": "https://cdn.example.com/u/7.jpg",
+      "display_name": "Asha Verma",
+      "id": 7
+    },
+    "user_id": 7,
+    "visit_context": "flatmate_meet",
+    "visit_notes": null,
+    "visitor_feedback": null
+  },
+  "list_page": {
+    "has_more": true,
+    "items": [
+      {
+        "actual_date": null,
+        "agent_id": null,
+        "agents": null,
+        "cancellation_reason": null,
+        "conversation_id": 10,
+        "counterparty_user": {
+          "avatar_url": "https://cdn.example.com/u/2.jpg",
+          "display_name": "Priya P",
+          "id": 2
+        },
+        "counterparty_user_id": 2,
+        "created_at": "2026-09-30T10:15:02Z",
+        "follow_up_date": null,
+        "follow_up_required": false,
+        "id": 5,
+        "interest_level": null,
+        "match_id": 4,
+        "property": {
+          "age_of_property": null,
+          "amenities": [
+            {
+              "category": "recreation",
+              "icon": "dumbbell",
+              "id": 11,
+              "title": "Gym"
+            },
+            {
+              "category": "utilities",
+              "icon": "lift",
+              "id": 12,
+              "title": "Lift"
+            }
+          ],
+          "area_sqft": 1200.0,
+          "area_type": null,
+          "available_from": "2026-11-01",
+          "balconies": null,
+          "base_price": 24000.0,
+          "bathrooms": null,
+          "bedrooms": 2,
+          "builder_name": null,
+          "calendar_data": null,
+          "city": "Bengaluru",
+          "compatibility_score": null,
+          "country": "India",
+          "created_at": "2026-09-30T10:15:02Z",
+          "current_lease_id": null,
+          "current_tenant_id": null,
+          "daily_rate": null,
+          "description": "Corner room, attached balcony.",
+          "distance_km": null,
+          "features": [
+            "furnished",
+            "wifi"
+          ],
+          "floor_number": null,
+          "floor_plan_url": null,
+          "floor_plans": [
+            {
+              "caption": null,
+              "display_order": 3,
+              "id": 423,
+              "image_category": "floor_plan",
+              "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+              "is_main_image": false,
+              "property_id": 42
+            }
+          ],
+          "full_address": null,
+          "furnishing_level": "furnished",
+          "google_street_view_url": null,
+          "grace_period_days": null,
+          "id": 42,
+          "images": [
+            {
+              "caption": null,
+              "display_order": 1,
+              "id": 421,
+              "image_category": "room",
+              "image_url": "https://cdn.example.com/p42/room-1.jpg",
+              "is_main_image": true,
+              "property_id": 42
+            },
+            {
+              "caption": null,
+              "display_order": 2,
+              "id": 422,
+              "image_category": "kitchen",
+              "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+              "is_main_image": false,
+              "property_id": 42
+            }
+          ],
+          "interest_count": 3,
+          "is_available": true,
+          "is_managed": false,
+          "kitchen_type": "vegetarian",
+          "landmark": null,
+          "late_fee_policy": null,
+          "latitude": 12.9352,
+          "like_count": 14,
+          "liked": null,
+          "listing_preferences": {
+            "cleanliness": null,
+            "expires_at": null,
+            "food_habits": null,
+            "gender_preference": "any",
+            "guests_policy": null,
+            "moderation_status": "live",
+            "parties_at_home": "occasional_weekends",
+            "pets": "no",
+            "rooms": [
+              {
+                "furnishing_level": "furnished"
+              }
+            ],
+            "sharing_type": "private_room",
+            "smoking_drinking": null,
+            "society_amenities": [
+              "Gym"
+            ],
+            "society_type": "gated",
+            "society_vibe_tags": [
+              "quiet",
+              "family"
+            ]
+          },
+          "locality": "Koramangala",
+          "longitude": 77.6245,
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "maintenance_charges": 1500.0,
+          "management_status": null,
+          "max_occupancy": null,
+          "minimum_stay_days": null,
+          "monthly_rent": 24000.0,
+          "nightly_rate": null,
+          "other_charges": null,
+          "other_charges_description": null,
+          "owner_contact": "+911800000360",
+          "owner_id": 9,
+          "owner_name": "Rahul S",
+          "parking_spaces": null,
+          "payment_due_day": null,
+          "pincode": null,
+          "price_per_sqft": 20.0,
+          "property_type": "flatmate",
+          "purpose": "rent",
+          "search_keywords": null,
+          "security_deposit": 48000.0,
+          "setup_cost": null,
+          "state": null,
+          "status": "available",
+          "sub_locality": "5th Block",
+          "tags": null,
+          "title": "Sunny room in Koramangala",
+          "total_floors": null,
+          "updated_at": "2026-09-30T10:15:02Z",
+          "ventilation_shafts": null,
+          "ventilation_type": "good",
+          "video_tour_url": null,
+          "video_urls": null,
+          "view_count": 120,
+          "virtual_tour_url": null,
+          "windows_count": 3
+        },
+        "property_id": 42,
+        "rescheduled_from": null,
+        "scheduled_date": "2026-10-04T05:30:00Z",
+        "special_requirements": null,
+        "status": "requested",
+        "time_slot_label": "Morning (9 to 12)",
+        "updated_at": "2026-09-30T10:15:02Z",
+        "user": {
+          "avatar_url": "https://cdn.example.com/u/7.jpg",
+          "display_name": "Asha Verma",
+          "id": 7
+        },
+        "user_id": 7,
+        "visit_context": "flatmate_meet",
+        "visit_notes": null,
+        "visitor_feedback": null
+      },
+      {
+        "actual_date": null,
+        "agent_id": null,
+        "agents": null,
+        "cancellation_reason": null,
+        "conversation_id": null,
+        "counterparty_user": null,
+        "counterparty_user_id": null,
+        "created_at": "2026-09-30T10:15:02Z",
+        "follow_up_date": null,
+        "follow_up_required": false,
+        "id": 6,
+        "interest_level": null,
+        "match_id": null,
+        "property": {
+          "age_of_property": null,
+          "amenities": [
+            {
+              "category": "recreation",
+              "icon": "dumbbell",
+              "id": 11,
+              "title": "Gym"
+            },
+            {
+              "category": "utilities",
+              "icon": "lift",
+              "id": 12,
+              "title": "Lift"
+            }
+          ],
+          "area_sqft": 1200.0,
+          "area_type": null,
+          "available_from": "2026-11-01",
+          "balconies": null,
+          "base_price": 24000.0,
+          "bathrooms": null,
+          "bedrooms": 2,
+          "builder_name": null,
+          "calendar_data": null,
+          "city": "Bengaluru",
+          "compatibility_score": null,
+          "country": "India",
+          "created_at": "2026-09-30T10:15:02Z",
+          "current_lease_id": null,
+          "current_tenant_id": null,
+          "daily_rate": null,
+          "description": "Corner room, attached balcony.",
+          "distance_km": null,
+          "features": [
+            "furnished",
+            "wifi"
+          ],
+          "floor_number": null,
+          "floor_plan_url": null,
+          "floor_plans": [
+            {
+              "caption": null,
+              "display_order": 3,
+              "id": 423,
+              "image_category": "floor_plan",
+              "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+              "is_main_image": false,
+              "property_id": 42
+            }
+          ],
+          "full_address": null,
+          "furnishing_level": "furnished",
+          "google_street_view_url": null,
+          "grace_period_days": null,
+          "id": 42,
+          "images": [
+            {
+              "caption": null,
+              "display_order": 1,
+              "id": 421,
+              "image_category": "room",
+              "image_url": "https://cdn.example.com/p42/room-1.jpg",
+              "is_main_image": true,
+              "property_id": 42
+            },
+            {
+              "caption": null,
+              "display_order": 2,
+              "id": 422,
+              "image_category": "kitchen",
+              "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+              "is_main_image": false,
+              "property_id": 42
+            }
+          ],
+          "interest_count": 3,
+          "is_available": true,
+          "is_managed": false,
+          "kitchen_type": "vegetarian",
+          "landmark": null,
+          "late_fee_policy": null,
+          "latitude": 12.9352,
+          "like_count": 14,
+          "liked": null,
+          "listing_preferences": {
+            "cleanliness": null,
+            "expires_at": null,
+            "food_habits": null,
+            "gender_preference": "any",
+            "guests_policy": null,
+            "moderation_status": "live",
+            "parties_at_home": "occasional_weekends",
+            "pets": "no",
+            "rooms": [
+              {
+                "furnishing_level": "furnished"
+              }
+            ],
+            "sharing_type": "private_room",
+            "smoking_drinking": null,
+            "society_amenities": [
+              "Gym"
+            ],
+            "society_type": "gated",
+            "society_vibe_tags": [
+              "quiet",
+              "family"
+            ]
+          },
+          "locality": "Koramangala",
+          "longitude": 77.6245,
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "maintenance_charges": 1500.0,
+          "management_status": null,
+          "max_occupancy": null,
+          "minimum_stay_days": null,
+          "monthly_rent": 24000.0,
+          "nightly_rate": null,
+          "other_charges": null,
+          "other_charges_description": null,
+          "owner_contact": "+911800000360",
+          "owner_id": 9,
+          "owner_name": "Rahul S",
+          "parking_spaces": null,
+          "payment_due_day": null,
+          "pincode": null,
+          "price_per_sqft": 20.0,
+          "property_type": "flatmate",
+          "purpose": "rent",
+          "search_keywords": null,
+          "security_deposit": 48000.0,
+          "setup_cost": null,
+          "state": null,
+          "status": "available",
+          "sub_locality": "5th Block",
+          "tags": null,
+          "title": "Sunny room in Koramangala",
+          "total_floors": null,
+          "updated_at": "2026-09-30T10:15:02Z",
+          "ventilation_shafts": null,
+          "ventilation_type": "good",
+          "video_tour_url": null,
+          "video_urls": null,
+          "view_count": 120,
+          "virtual_tour_url": null,
+          "windows_count": 3
+        },
+        "property_id": 42,
+        "rescheduled_from": null,
+        "scheduled_date": "2026-10-04T05:30:00Z",
+        "special_requirements": null,
+        "status": "confirmed",
+        "time_slot_label": null,
+        "updated_at": "2026-09-30T10:15:02Z",
+        "user": {
+          "avatar_url": "https://cdn.example.com/u/7.jpg",
+          "display_name": "Asha Verma",
+          "id": 7
+        },
+        "user_id": 7,
+        "visit_context": "property_tour",
+        "visit_notes": null,
+        "visitor_feedback": null
+      },
+      {
+        "actual_date": null,
+        "agent_id": null,
+        "agents": null,
+        "cancellation_reason": null,
+        "conversation_id": 10,
+        "counterparty_user": {
+          "avatar_url": "https://cdn.example.com/u/2.jpg",
+          "display_name": "Priya P",
+          "id": 2
+        },
+        "counterparty_user_id": 2,
+        "created_at": "2026-09-30T10:15:02Z",
+        "follow_up_date": null,
+        "follow_up_required": false,
+        "id": 7,
+        "interest_level": null,
+        "match_id": 4,
+        "property": {
+          "age_of_property": null,
+          "amenities": [
+            {
+              "category": "recreation",
+              "icon": "dumbbell",
+              "id": 11,
+              "title": "Gym"
+            },
+            {
+              "category": "utilities",
+              "icon": "lift",
+              "id": 12,
+              "title": "Lift"
+            }
+          ],
+          "area_sqft": 1200.0,
+          "area_type": null,
+          "available_from": "2026-11-01",
+          "balconies": null,
+          "base_price": 24000.0,
+          "bathrooms": null,
+          "bedrooms": 2,
+          "builder_name": null,
+          "calendar_data": null,
+          "city": "Bengaluru",
+          "compatibility_score": null,
+          "country": "India",
+          "created_at": "2026-09-30T10:15:02Z",
+          "current_lease_id": null,
+          "current_tenant_id": null,
+          "daily_rate": null,
+          "description": "Corner room, attached balcony.",
+          "distance_km": null,
+          "features": [
+            "furnished",
+            "wifi"
+          ],
+          "floor_number": null,
+          "floor_plan_url": null,
+          "floor_plans": [
+            {
+              "caption": null,
+              "display_order": 3,
+              "id": 423,
+              "image_category": "floor_plan",
+              "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+              "is_main_image": false,
+              "property_id": 42
+            }
+          ],
+          "full_address": null,
+          "furnishing_level": "furnished",
+          "google_street_view_url": null,
+          "grace_period_days": null,
+          "id": 42,
+          "images": [
+            {
+              "caption": null,
+              "display_order": 1,
+              "id": 421,
+              "image_category": "room",
+              "image_url": "https://cdn.example.com/p42/room-1.jpg",
+              "is_main_image": true,
+              "property_id": 42
+            },
+            {
+              "caption": null,
+              "display_order": 2,
+              "id": 422,
+              "image_category": "kitchen",
+              "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+              "is_main_image": false,
+              "property_id": 42
+            }
+          ],
+          "interest_count": 3,
+          "is_available": true,
+          "is_managed": false,
+          "kitchen_type": "vegetarian",
+          "landmark": null,
+          "late_fee_policy": null,
+          "latitude": 12.9352,
+          "like_count": 14,
+          "liked": null,
+          "listing_preferences": {
+            "cleanliness": null,
+            "expires_at": null,
+            "food_habits": null,
+            "gender_preference": "any",
+            "guests_policy": null,
+            "moderation_status": "live",
+            "parties_at_home": "occasional_weekends",
+            "pets": "no",
+            "rooms": [
+              {
+                "furnishing_level": "furnished"
+              }
+            ],
+            "sharing_type": "private_room",
+            "smoking_drinking": null,
+            "society_amenities": [
+              "Gym"
+            ],
+            "society_type": "gated",
+            "society_vibe_tags": [
+              "quiet",
+              "family"
+            ]
+          },
+          "locality": "Koramangala",
+          "longitude": 77.6245,
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "maintenance_charges": 1500.0,
+          "management_status": null,
+          "max_occupancy": null,
+          "minimum_stay_days": null,
+          "monthly_rent": 24000.0,
+          "nightly_rate": null,
+          "other_charges": null,
+          "other_charges_description": null,
+          "owner_contact": "+911800000360",
+          "owner_id": 9,
+          "owner_name": "Rahul S",
+          "parking_spaces": null,
+          "payment_due_day": null,
+          "pincode": null,
+          "price_per_sqft": 20.0,
+          "property_type": "flatmate",
+          "purpose": "rent",
+          "search_keywords": null,
+          "security_deposit": 48000.0,
+          "setup_cost": null,
+          "state": null,
+          "status": "available",
+          "sub_locality": "5th Block",
+          "tags": null,
+          "title": "Sunny room in Koramangala",
+          "total_floors": null,
+          "updated_at": "2026-09-30T10:15:02Z",
+          "ventilation_shafts": null,
+          "ventilation_type": "good",
+          "video_tour_url": null,
+          "video_urls": null,
+          "view_count": 120,
+          "virtual_tour_url": null,
+          "windows_count": 3
+        },
+        "property_id": 42,
+        "rescheduled_from": null,
+        "scheduled_date": "2026-09-01T09:00:00Z",
+        "special_requirements": null,
+        "status": "completed",
+        "time_slot_label": "Morning (9 to 12)",
+        "updated_at": "2026-09-30T10:15:02Z",
+        "user": {
+          "avatar_url": "https://cdn.example.com/u/7.jpg",
+          "display_name": "Asha Verma",
+          "id": 7
+        },
+        "user_id": 7,
+        "visit_context": "flatmate_meet",
+        "visit_notes": null,
+        "visitor_feedback": null
+      }
+    ],
+    "limit": 100,
+    "next_cursor": "eyJrIjpbIjIwMjYtMDktMzAiLDVdLCJmIjoiYWJjIn0",
+    "total": null
+  },
+  "rescheduled": {
+    "actual_date": null,
+    "agent_id": null,
+    "agents": null,
+    "cancellation_reason": "Traffic",
+    "conversation_id": 10,
+    "counterparty_user": {
+      "avatar_url": "https://cdn.example.com/u/2.jpg",
+      "display_name": "Priya P",
+      "id": 2
+    },
+    "counterparty_user_id": 2,
+    "created_at": "2026-09-30T10:15:02Z",
+    "follow_up_date": null,
+    "follow_up_required": false,
+    "id": 5,
+    "interest_level": null,
+    "match_id": 4,
+    "property": {
+      "age_of_property": null,
+      "amenities": [
+        {
+          "category": "recreation",
+          "icon": "dumbbell",
+          "id": 11,
+          "title": "Gym"
+        },
+        {
+          "category": "utilities",
+          "icon": "lift",
+          "id": 12,
+          "title": "Lift"
+        }
+      ],
+      "area_sqft": 1200.0,
+      "area_type": null,
+      "available_from": "2026-11-01",
+      "balconies": null,
+      "base_price": 24000.0,
+      "bathrooms": null,
+      "bedrooms": 2,
+      "builder_name": null,
+      "calendar_data": null,
+      "city": "Bengaluru",
+      "compatibility_score": null,
+      "country": "India",
+      "created_at": "2026-09-30T10:15:02Z",
+      "current_lease_id": null,
+      "current_tenant_id": null,
+      "daily_rate": null,
+      "description": "Corner room, attached balcony.",
+      "distance_km": null,
+      "features": [
+        "furnished",
+        "wifi"
+      ],
+      "floor_number": null,
+      "floor_plan_url": null,
+      "floor_plans": [
+        {
+          "caption": null,
+          "display_order": 3,
+          "id": 423,
+          "image_category": "floor_plan",
+          "image_url": "https://cdn.example.com/p42/floor_plan-3.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "full_address": null,
+      "furnishing_level": "furnished",
+      "google_street_view_url": null,
+      "grace_period_days": null,
+      "id": 42,
+      "images": [
+        {
+          "caption": null,
+          "display_order": 1,
+          "id": 421,
+          "image_category": "room",
+          "image_url": "https://cdn.example.com/p42/room-1.jpg",
+          "is_main_image": true,
+          "property_id": 42
+        },
+        {
+          "caption": null,
+          "display_order": 2,
+          "id": 422,
+          "image_category": "kitchen",
+          "image_url": "https://cdn.example.com/p42/kitchen-2.jpg",
+          "is_main_image": false,
+          "property_id": 42
+        }
+      ],
+      "interest_count": 3,
+      "is_available": true,
+      "is_managed": false,
+      "kitchen_type": "vegetarian",
+      "landmark": null,
+      "late_fee_policy": null,
+      "latitude": 12.9352,
+      "like_count": 14,
+      "liked": null,
+      "listing_preferences": {
+        "cleanliness": null,
+        "expires_at": null,
+        "food_habits": null,
+        "gender_preference": "any",
+        "guests_policy": null,
+        "moderation_status": "live",
+        "parties_at_home": "occasional_weekends",
+        "pets": "no",
+        "rooms": [
+          {
+            "furnishing_level": "furnished"
+          }
+        ],
+        "sharing_type": "private_room",
+        "smoking_drinking": null,
+        "society_amenities": [
+          "Gym"
+        ],
+        "society_type": "gated",
+        "society_vibe_tags": [
+          "quiet",
+          "family"
+        ]
+      },
+      "locality": "Koramangala",
+      "longitude": 77.6245,
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "maintenance_charges": 1500.0,
+      "management_status": null,
+      "max_occupancy": null,
+      "minimum_stay_days": null,
+      "monthly_rent": 24000.0,
+      "nightly_rate": null,
+      "other_charges": null,
+      "other_charges_description": null,
+      "owner_contact": "+911800000360",
+      "owner_id": 9,
+      "owner_name": "Rahul S",
+      "parking_spaces": null,
+      "payment_due_day": null,
+      "pincode": null,
+      "price_per_sqft": 20.0,
+      "property_type": "flatmate",
+      "purpose": "rent",
+      "search_keywords": null,
+      "security_deposit": 48000.0,
+      "setup_cost": null,
+      "state": null,
+      "status": "available",
+      "sub_locality": "5th Block",
+      "tags": null,
+      "title": "Sunny room in Koramangala",
+      "total_floors": null,
+      "updated_at": "2026-09-30T10:15:02Z",
+      "ventilation_shafts": null,
+      "ventilation_type": "good",
+      "video_tour_url": null,
+      "video_urls": null,
+      "view_count": 120,
+      "virtual_tour_url": null,
+      "windows_count": 3
+    },
+    "property_id": 42,
+    "rescheduled_from": "2026-10-04T05:30:00Z",
+    "scheduled_date": "2026-10-06T09:00:00Z",
+    "special_requirements": null,
+    "status": "reschedule_suggested",
+    "time_slot_label": "Morning (9 to 12)",
+    "updated_at": "2026-09-30T10:15:02Z",
+    "user": {
+      "avatar_url": "https://cdn.example.com/u/7.jpg",
+      "display_name": "Asha Verma",
+      "id": 7
+    },
+    "user_id": 7,
+    "visit_context": "flatmate_meet",
+    "visit_notes": null,
+    "visitor_feedback": null
+  }
+}

@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/compatibility/compatibility_engine.dart';
+import '../../../../core/theme/app_breakpoints.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -20,9 +23,46 @@ import 'swipe_card_components.dart';
 ///
 /// When [trailing] is set, the card block is min-height constrained to the
 /// viewport so actions stay below the fold until the user scrolls.
-/// Taller hero for the swipe card so images read edge-to-edge without feeling
-/// cropped or letterboxed.
+///
+/// Phone hero height: images read edge-to-edge without feeling cropped or
+/// letterboxed at the 466 / 669 / 678 dp poses.
 const double _swipeCardHeroHeight = 460;
+
+/// Hero *shape* (width / height) once the viewport is wide.
+///
+/// A wide card kept the phone's fixed 460 dp hero, so the open foldable
+/// (951 dp) turned the photo into a 2:1 letterbox that showed only ~37 % of a
+/// portrait photo's height. Bounding the aspect ratio instead of the height
+/// keeps the hero reading as a photo at every width: 4:3 is the flattest shape
+/// that still reads as a photo rather than a strip.
+const double _swipeCardHeroAspectRatio = 4 / 3;
+
+/// Hero height for the swipe card, resolved from the card's own width.
+///
+/// - Below [AppBreakpoints.expanded] (466, 669 and 678 dp — every phone pose)
+///   this is [_swipeCardHeroHeight], so the phone layout is unchanged.
+/// - From [expanded] up the hero is [cardWidth] at
+///   [_swipeCardHeroAspectRatio], so a 919 dp card gets a 689 dp photo instead
+///   of a 460 dp strip.
+/// - The viewport height caps it, less one [AppSpacing.section] of breathing
+///   room: the wide pose is the *landscape* foldable (951 × 669), where a 4:3
+///   hero at full card width would be taller than the screen and could never be
+///   seen whole. The cap keeps the hero inside the viewport and leaves the top
+///   of the profile visible below it, so the card still reads as scrollable.
+/// - The phone height is a floor, so a short window never shrinks the hero
+///   below what a phone already rendered.
+double swipeCardHeroHeight({
+  required double viewportWidth,
+  required double viewportHeight,
+  required double cardWidth,
+}) {
+  if (!AppBreakpoints.isExpanded(viewportWidth)) {
+    return _swipeCardHeroHeight;
+  }
+  final aspectHeight = cardWidth / _swipeCardHeroAspectRatio;
+  final viewportCap = viewportHeight - AppSpacing.section;
+  return math.max(_swipeCardHeroHeight, math.min(aspectHeight, viewportCap));
+}
 
 class SwipeProfileCard extends StatelessWidget {
   const SwipeProfileCard({
@@ -40,17 +80,7 @@ class SwipeProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = _SwipeProfileSections(
-      item: item,
-      compatibility: compatibility,
-      showStatsOnHero: true,
-      heroHeight: _swipeCardHeroHeight,
-    );
-
-    final profileCard = FlatmatesCard(
-      padding: EdgeInsets.zero,
-      child: ClipRRect(borderRadius: AppRadius.cardBorder, child: sections),
-    );
+    final viewport = MediaQuery.sizeOf(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
@@ -59,6 +89,27 @@ class SwipeProfileCard extends StatelessWidget {
           final maxHeight = constraints.maxHeight;
           final forceBelowFold =
               trailing != null && maxHeight.isFinite && maxHeight > 0;
+
+          // The hero height depends on the card's own width, which is only
+          // known here (the page may cap the card: `FlatmatesScreen` bounds the
+          // body at `AppBreakpoints.contentMaxWidth`), so the sections are
+          // built inside the builder rather than from the viewport width.
+          final profileCard = FlatmatesCard(
+            padding: EdgeInsets.zero,
+            child: ClipRRect(
+              borderRadius: AppRadius.cardBorder,
+              child: _SwipeProfileSections(
+                item: item,
+                compatibility: compatibility,
+                showStatsOnHero: true,
+                heroHeight: swipeCardHeroHeight(
+                  viewportWidth: viewport.width,
+                  viewportHeight: viewport.height,
+                  cardWidth: constraints.maxWidth,
+                ),
+              ),
+            ),
+          );
 
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -191,19 +242,6 @@ class _SwipeProfileSections extends StatelessWidget {
       return null;
     }
 
-    List<Map<String, String>> flatmatesList() {
-      final v = details['existing_flatmates'];
-      if (v is! List) return const [];
-      return v
-          .whereType<Map>()
-          .map(
-            (m) => Map<String, String>.from(
-              m.map((k, val) => MapEntry(k.toString(), val?.toString() ?? '')),
-            ),
-          )
-          .toList();
-    }
-
     final allImages = <String>{
       if (item.profileImageUrl != null &&
           item.profileImageUrl!.trim().isNotEmpty)
@@ -217,12 +255,9 @@ class _SwipeProfileSections extends StatelessWidget {
     final totalFloors = str('total_floors');
     final societyName = str('society_name');
     final furnishing = strList('furnishing');
-    final societyAmenities = strList('society_amenities');
     final flatAmenities = strList('flat_amenities');
-    final societyVibes = strList('society_vibes');
     final roomFeatures = strList('room_features');
     final availableFrom = str('available_from');
-    final existingFlatmates = flatmatesList();
     final videoTourUrl = str('video_tour_url');
     // Only real listing rent — never fall back to seeker budget (would mislabel costs).
     final monthlyRent = dbl('monthly_rent');
@@ -237,9 +272,7 @@ class _SwipeProfileSections extends StatelessWidget {
         (roomType != null && roomType.isNotEmpty) ||
         (flatConfig != null && flatConfig.isNotEmpty) ||
         (floor != null && floor.isNotEmpty) ||
-        societyAmenities.isNotEmpty ||
         flatAmenities.isNotEmpty ||
-        societyVibes.isNotEmpty ||
         roomFeatures.isNotEmpty ||
         (availableFrom != null && availableFrom.isNotEmpty) ||
         (lat != null && lng != null);
@@ -307,7 +340,6 @@ class _SwipeProfileSections extends StatelessWidget {
                   roomType: roomType,
                   flatConfig: flatConfig,
                   floor: floor,
-                  societyAmenities: societyAmenities,
                   flatAmenities: flatAmenities,
                   lat: lat,
                   lng: lng,
@@ -315,17 +347,10 @@ class _SwipeProfileSections extends StatelessWidget {
                       item.locality ??
                       item.city ??
                       locale.propertyFallbackLabel,
-                  societyVibes: societyVibes,
                   roomFeatures: roomFeatures,
                   availableFrom: availableFrom,
                   totalFloors: totalFloors,
                 ),
-              if (existingFlatmates.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.xl),
-                SectionHeader(label: locale.peopleSectionTitle),
-                const SizedBox(height: AppSpacing.sm),
-                ExistingFlatmatesRow(flatmates: existingFlatmates),
-              ],
               if (monthlyRent != null) ...[
                 const SizedBox(height: AppSpacing.xl),
                 CostsSection(
@@ -365,12 +390,10 @@ class _PlaceBlock extends StatelessWidget {
     required this.roomType,
     required this.flatConfig,
     required this.floor,
-    required this.societyAmenities,
     required this.flatAmenities,
     required this.lat,
     required this.lng,
     required this.fallbackLabel,
-    this.societyVibes = const [],
     this.roomFeatures = const [],
     this.availableFrom,
     this.totalFloors,
@@ -382,12 +405,10 @@ class _PlaceBlock extends StatelessWidget {
   final String? roomType;
   final String? flatConfig;
   final String? floor;
-  final List<String> societyAmenities;
   final List<String> flatAmenities;
   final double? lat;
   final double? lng;
   final String fallbackLabel;
-  final List<String> societyVibes;
   final List<String> roomFeatures;
   final String? availableFrom;
   final String? totalFloors;
@@ -404,12 +425,10 @@ class _PlaceBlock extends StatelessWidget {
           roomType: roomType,
           flatConfig: flatConfig,
           floor: floor,
-          societyAmenities: societyAmenities,
           flatAmenities: flatAmenities,
           lat: lat,
           lng: lng,
           fallbackLabel: fallbackLabel,
-          societyVibes: societyVibes,
           roomFeatures: roomFeatures,
           availableFrom: availableFrom,
           totalFloors: totalFloors,

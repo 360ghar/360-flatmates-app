@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
 import '../../core/providers/mutable_notifier.dart';
@@ -384,20 +385,16 @@ class OnboardingController extends Notifier<OnboardingState> {
     return null;
   }
 
-  static const _profileLifestyleValues = <String, Set<String>>{
-    'sleep_schedule': {'early_bird', 'flexible', 'night_owl'},
-    'cleanliness': {'minimal', 'tidy', 'spotless'},
-    'food_habits': {
-      'vegetarian',
-      'vegan',
-      'non_vegetarian',
-      'eggetarian',
-      'no_preference',
-    },
-    'smoking': {'never', 'occasionally', 'regularly'},
-    'drinking': {'never', 'occasionally', 'regularly'},
-    'guests_policy': {'no_overnight_guests', 'occasional_ok', 'open_house'},
-    'work_style': {'wfh', 'office', 'hybrid'},
+  /// The wire values of the enum-typed profile fields, from the generated
+  /// wire enums (`tool/gen_enums.py`). A value outside them is a 422.
+  static final _profileLifestyleValues = <String, Set<String>>{
+    'sleep_schedule': {for (final v in SleepSchedule.values) v.wire},
+    'cleanliness': {for (final v in Cleanliness.values) v.wire},
+    'food_habits': {for (final v in FoodHabits.values) v.wire},
+    'smoking': {for (final v in FlatmatesSmokingType.values) v.wire},
+    'drinking': {for (final v in FlatmatesDrinkingType.values) v.wire},
+    'guests_policy': {for (final v in GuestsPolicy.values) v.wire},
+    'work_style': {for (final v in WorkStyle.values) v.wire},
   };
 
   static const _legacyProfileLifestyleAliases = <String, Map<String, String>>{

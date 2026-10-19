@@ -6,91 +6,57 @@ import '../../../core/providers.dart';
 
 /// Remote notification preferences from `GET/PUT /users/notification-settings`.
 ///
-/// Backend schema: push_notifications, visit_reminders, property_updates,
-/// promotional_emails, plus a free-form [categories] map (`extra=allow`).
+/// The contract has four keys and no others: `push_notifications`,
+/// `email_notifications`, `sms_notifications` and `promotional_emails`. A PUT
+/// with any other key is a 422, so [toJson] writes these four only.
 class RemoteNotificationSettings {
   const RemoteNotificationSettings({
     this.emailNotifications = true,
     this.pushNotifications = true,
     this.smsNotifications = false,
-    this.visitReminders = true,
-    this.propertyUpdates = true,
     this.promotionalEmails = false,
-    this.onboarding = true,
-    this.digest = true,
-    this.categories = const {},
-    this.raw = const {},
   });
 
   final bool emailNotifications;
   final bool pushNotifications;
   final bool smsNotifications;
-  final bool visitReminders;
-  final bool propertyUpdates;
   final bool promotionalEmails;
-  final bool onboarding;
-  final bool digest;
-  final Map<String, bool> categories;
-
-  /// Full JSON as returned by the API so PUTs can preserve unknown fields.
-  final Map<String, dynamic> raw;
 
   factory RemoteNotificationSettings.fromJson(Map<String, dynamic> json) {
-    final categoriesRaw = json['categories'];
-    final categories = <String, bool>{};
-    if (categoriesRaw is Map) {
-      for (final entry in categoriesRaw.entries) {
-        categories[entry.key.toString()] = entry.value == true;
-      }
-    }
     return RemoteNotificationSettings(
       emailNotifications: json['email_notifications'] as bool? ?? true,
       pushNotifications: json['push_notifications'] as bool? ?? true,
       smsNotifications: json['sms_notifications'] as bool? ?? false,
-      visitReminders: json['visit_reminders'] as bool? ?? true,
-      propertyUpdates: json['property_updates'] as bool? ?? true,
       promotionalEmails: json['promotional_emails'] as bool? ?? false,
-      onboarding: json['onboarding'] as bool? ?? true,
-      digest: json['digest'] as bool? ?? true,
-      categories: categories,
-      raw: Map<String, dynamic>.from(json),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    final payload = Map<String, dynamic>.from(raw);
-    payload.addAll({
-      'email_notifications': emailNotifications,
-      'push_notifications': pushNotifications,
-      'sms_notifications': smsNotifications,
-      'visit_reminders': visitReminders,
-      'property_updates': propertyUpdates,
-      'promotional_emails': promotionalEmails,
-      'onboarding': onboarding,
-      'digest': digest,
-      'categories': categories,
-    });
-    return payload;
-  }
+  Map<String, dynamic> toJson() => {
+    'email_notifications': emailNotifications,
+    'push_notifications': pushNotifications,
+    'sms_notifications': smsNotifications,
+    'promotional_emails': promotionalEmails,
+  };
 }
 
 /// Remote privacy preferences from `GET/PUT /users/privacy-settings`.
+///
+/// `PUT` is a partial update (`PrivacySettingsPatch`): send only the keys that
+/// changed, never null.
 class RemotePrivacySettings {
   const RemotePrivacySettings({
     this.profileVisibility = 'public',
     this.locationSharing = true,
     this.contactSharing = true,
     this.searchHistoryTracking = true,
-    this.raw = const {},
+    this.hideLastName = false,
   });
 
   final String profileVisibility;
   final bool locationSharing;
   final bool contactSharing;
   final bool searchHistoryTracking;
-
-  /// Full JSON as returned by the API so PUTs can preserve unknown fields.
-  final Map<String, dynamic> raw;
+  final bool hideLastName;
 
   factory RemotePrivacySettings.fromJson(Map<String, dynamic> json) {
     return RemotePrivacySettings(
@@ -98,19 +64,8 @@ class RemotePrivacySettings {
       locationSharing: json['location_sharing'] as bool? ?? true,
       contactSharing: json['contact_sharing'] as bool? ?? true,
       searchHistoryTracking: json['search_history_tracking'] as bool? ?? true,
-      raw: Map<String, dynamic>.from(json),
+      hideLastName: json['hide_last_name'] as bool? ?? false,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    final payload = Map<String, dynamic>.from(raw);
-    payload.addAll({
-      'profile_visibility': profileVisibility,
-      'location_sharing': locationSharing,
-      'contact_sharing': contactSharing,
-      'search_history_tracking': searchHistoryTracking,
-    });
-    return payload;
   }
 }
 
@@ -130,10 +85,13 @@ class SettingsRepository {
     return RemoteNotificationSettings.fromJson(data);
   }
 
-  Future<void> updateNotificationSettings(Map<String, dynamic> payload) async {
+  /// `PUT /users/notification-settings`: the four contract keys only.
+  Future<void> updateNotificationSettings(
+    RemoteNotificationSettings settings,
+  ) async {
     await _apiClient.put(
       FlatmatesEndpoints.notificationSettings,
-      data: payload,
+      data: settings.toJson(),
     );
   }
 
@@ -145,16 +103,9 @@ class SettingsRepository {
     return RemotePrivacySettings.fromJson(data);
   }
 
-  Future<void> updatePrivacySettings(Map<String, dynamic> payload) async {
-    await _apiClient.put(FlatmatesEndpoints.privacySettings, data: payload);
-  }
-
-  /// Compat endpoint that accepts an arbitrary dict (e.g. `hide_last_name`).
-  Future<void> updatePrivacySettingsCompat(Map<String, dynamic> payload) async {
-    await _apiClient.put(
-      FlatmatesEndpoints.privacySettingsCompat,
-      data: payload,
-    );
+  /// `PUT /users/privacy-settings` with only the keys in [patch].
+  Future<void> updatePrivacySettings(Map<String, bool> patch) async {
+    await _apiClient.put(FlatmatesEndpoints.privacySettings, data: patch);
   }
 }
 

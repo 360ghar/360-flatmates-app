@@ -155,7 +155,14 @@ void main() {
           if (options.data is Map) {
             capturedData = Map<String, dynamic>.from(options.data as Map);
           }
-          return _ok({'ok': true});
+          return _ok({
+            'property_id': 42,
+            'tag': 'safe',
+            'current_vote': 'up',
+            'upvotes': 2,
+            'downvotes': 0,
+            'disputed': false,
+          });
         }
         return _ok({});
       });
@@ -172,7 +179,13 @@ void main() {
       );
 
       final repo = container.read(discoverRepositoryProvider);
-      await repo.voteSocietyTag(listingId: 42, tag: 'safe', vote: 'up');
+      final result = await repo.voteSocietyTag(
+        listingId: 42,
+        tag: 'safe',
+        vote: 'up',
+      );
+      expect(result?.upvotes, 2);
+      expect(result?.currentVote, 'up');
 
       expect(capturedPath, '/flatmates/listings/42/society-tags/votes');
       expect(capturedData['tag'], 'safe');

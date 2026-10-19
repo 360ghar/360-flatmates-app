@@ -176,7 +176,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     required int? currentUserId,
   }) {
     final hasLiked = listing.liked ?? false;
-    final ownerId = listing.owner?.id ?? listing.ownerId;
+    final ownerId = listing.ownerId;
     // When seed omits owner_id (sparse POST body), treat as self-owned so
     // contact/like stay disabled on the poster's own under-review preview.
     final isSelfOwned =
@@ -282,7 +282,6 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                     index: 3,
                     child: FlatDetailsLocation(
                       listing: listing,
-                      currentUserId: currentUserId,
                       onVoteSocietyTag: (tag, vote) => handleSocietyTagVote(
                         ref: ref,
                         context: context,

@@ -1,11 +1,18 @@
+import '../../core/deep_links/deep_link_service.dart';
+
 /// Shared deep-link remapping for in-app notification taps and push payloads.
 ///
-/// Backend / FCM may still emit legacy shell paths (`/visits`, `/post`). The
-/// app shell mounts visits under profile and listing creation under `/post/new`.
+/// The backend sends the shareable link paths of the deep-link registry
+/// (`/flatmates/chat/{id}`, `/flatmates/listing/{id}`), which are mapped to the
+/// in-app routes (`/chats/{id}`, `/flat-details/{id}`). It may still emit
+/// legacy shell paths (`/visits`, `/post`). The app shell mounts visits under
+/// profile and listing creation under `/post/new`.
 String? resolveNotificationDeepLink(String route) {
   if (!route.startsWith('/')) return null;
   final uri = Uri.tryParse(route);
   if (uri == null) return null;
+  final linked = DeepLinkService.internalPathForRoute(route);
+  if (linked != null) return linked;
   final path = uri.path;
   final query = uri.hasQuery ? '?${uri.query}' : '';
   if (path == '/post') return '/post/new$query';
