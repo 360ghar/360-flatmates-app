@@ -23,9 +23,10 @@ class MapTopBar extends StatelessWidget {
   final Color backgroundColor;
   final double safeAreaTop;
 
-  /// Right-edge safe area (84 dp on the foldable Duo, where the status bar runs
-  /// down the right edge). The bar's tinted surface stays full-bleed; only its
-  /// content — the filter button above all — moves clear of the inset.
+  /// Right-edge safe area, read from the platform. It measures 0 on the Duo
+  /// (whose real inset is 82 dp on top), but a landscape notch does carry one,
+  /// so the bar keeps clearing it. The bar's tinted surface stays full-bleed;
+  /// only its content — the filter button above all — moves clear of the inset.
   final double safeAreaRight;
 
   /// Empty means "no location selected" — the chip shows its placeholder.

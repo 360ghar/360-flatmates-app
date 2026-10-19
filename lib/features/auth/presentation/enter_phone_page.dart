@@ -159,9 +159,12 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
             PaperSceneHeader(parallax: _scroll),
             // The neighbourhood scene above stays full-bleed, so this subtree
             // carries its own insets instead of relying on a page-level
-            // SafeArea. On the iPhone Duo the status bar is an 84 dp
-            // *right-edge* inset, and a bottom-only compensation leaves the
-            // form (and its CTA) under the clock and battery.
+            // SafeArea. The Duo's real inset is 82 dp on **top** (measured; an
+            // earlier revision of this comment claimed 84 dp on the right,
+            // which the device does not report). The top is covered by
+            // `PaperSceneHeader`, which consumes `paddingOf(context).top`, so
+            // this padding only has to add the left/right/bottom the form sits
+            // against.
             Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.screen + viewPadding.left,

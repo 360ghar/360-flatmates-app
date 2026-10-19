@@ -197,9 +197,10 @@ class AppShell extends ConsumerWidget {
   ///
   /// The caller pins this to `AppBreakpoints.railWidth`, so the reading column
   /// beside it is deterministic. `SafeArea` handles only the bottom inset:
-  /// [NavigationRail] applies its own left/right safe area internally, and in
-  /// the Duo's landscape poses the right edge is the status bar (84 dp) — that
-  /// inset belongs to the page, not to the rail on the far left.
+  /// [NavigationRail] applies its own left/right safe area internally. On the
+  /// Duo that right inset measures zero (the real one is 82 dp on top), but
+  /// leaving the rail to manage it is correct for any device that does carry
+  /// one, and it keeps the page's inset separate from the rail on the far left.
   Widget _rail(BuildContext context, List<_NavSlot> slots) {
     final brightness = Theme.of(context).brightness;
     return PaperSurface(

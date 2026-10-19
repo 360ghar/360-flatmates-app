@@ -105,10 +105,11 @@ class _FlatDetailsCarouselState extends State<FlatDetailsCarousel> {
     final images = widget.images;
     final currentIndex = widget.currentIndex;
     final reduce = AppMotion.reduceMotion(context);
-    // The Duo's status bar runs down the right edge. The photo stays
-    // full-bleed under it (edge-to-edge is the point of a hero carousel), but
-    // the chrome has to clear it: at 16 dp the share and shortlist buttons sit
-    // inside an 84 dp system region and cannot be tapped.
+    // A notched phone in landscape puts system UI on the right edge, so the
+    // chrome clears whatever the platform reports. The photo stays full-bleed
+    // under it (edge-to-edge is the point of a hero carousel) while the share
+    // and shortlist buttons stay tappable. On the Duo this measures 0 — its
+    // real inset is 82 dp on top — so this is a no-op there.
     final safeAreaRight = MediaQuery.paddingOf(context).right;
 
     return SizedBox(

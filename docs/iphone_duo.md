@@ -30,14 +30,43 @@ therefore cannot tell you how far the device is open.
 
 ### Safe area — the important part
 
-Safe area is **bottom 34 pt, right 84 pt** in every pose. There is no top
-inset: the status bar and camera move to the **right edge**, and system bars
-become vertical.
+> **Corrected.** An earlier revision of this document claimed an **84 pt
+> right-edge** inset and no top inset, on the theory that the Duo moves its
+> status bar and camera to the right edge. **That was wrong.** It came from the
+> research pass rather than from the device, and it sent the inset work at the
+> right edge while the real inset sat on top. The measurements below are taken
+> from the running app.
 
-The 84 pt right inset is the dominant constraint on this device and the thing
-most likely to be missed. `SafeArea` handles it automatically; the pages that
-pass `useSafeArea: false` to `FlatmatesScreen` and hand-roll their own insets
-are the ones to check. See §5.
+Safe area is **top 82 pt and bottom 34 pt**, with **no right inset**. Measured
+on the booted iOS 27.1 Duo simulator, open portrait, from the running app's own
+widget tree — the `MediaQueryData` the framework received from the platform:
+
+```text
+size: Size(669.0, 951.0), devicePixelRatio: 3.0,
+padding: EdgeInsets(0.0, 82.0, 0.0, 34.0)
+```
+
+`EdgeInsets(left, top, right, bottom)`. Three independent checks agree:
+
+- the platform reports a zero right inset, and no Dart code hardcodes 82 or 84
+  anywhere in `lib/`;
+- Apple's own Settings app on the same simulator draws the same horizontal
+  top-right status bar the app does — there are no vertical right-edge system
+  bars to make room for;
+- the app's own applied padding resolves to `EdgeInsets(16, 16, 16, 58)`, which
+  is `screen + 0` on both sides and `lg + 34` on the bottom, i.e. it found the
+  34 pt bottom inset and nothing on the right.
+
+So the Duo is an ordinary notched phone as far as insets go. The risk is the
+**top**: `SafeArea` handles it, and `PaperSceneHeader` consumes it explicitly
+(`EdgeInsets.only(top: paddingOf(context).top)`), so a page that passes
+`useSafeArea: false` and hand-rolls only a bottom inset is the one to check.
+
+Only [open portrait] was measurable. `simctl` exposes no fold control
+(`screenConfig geometry` accepts only each panel's native mode, so the other
+three poses are rejected as `No mode found`), and the pose toggle otherwise
+needs the DeviceHub toolbar. Treat the folded and landscape insets as
+unverified.
 
 ---
 
@@ -145,8 +174,8 @@ own verification step.
 ## 5. Rules for new UI
 
 - **Use `FlatmatesScreen`.** It gives you `SafeArea` and the reading column.
-  If you pass `useSafeArea: false`, you own **all four** insets — including the
-  84 pt right edge.
+  If you pass `useSafeArea: false`, you own **all four** insets — the real one on
+  this device is the **82 pt top** edge.
 - **Do not size from the full viewport width** for anything that is content.
   `width * 0.75` on a 951 pt display is 713 pt of chat bubble.
 - **Cap modals.** Sheets are capped at 640 and dialogs at 560 via

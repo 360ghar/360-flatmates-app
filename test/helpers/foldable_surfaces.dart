@@ -25,19 +25,40 @@ import 'package:flutter_test/flutter_test.dart';
 ///   `NavigationBar` for the 96 dp `NavigationRail`, so the usable page width
 ///   becomes 855 dp, not 951.
 ///
-/// ## Why the insets look wrong
+/// ## The safe area (measured, not assumed)
 ///
-/// On the Duo the status bar runs down the **right edge**, not across the top,
-/// so every pose carries a **84 pt right inset** and a **34 pt bottom inset**
-/// (the home indicator) — and no top inset. That 84 pt is the single most
-/// distinctive thing about the device and it is invisible to any test that
-/// only sets a surface size: `tester.view.physicalSize` alone leaves the
-/// padding at zero, so a page that ignores the inset looks correct in the
-/// test and is broken on the device. Use [mediaQueryFor] or [duoSafeArea] to
-/// put the inset back.
+/// An earlier pass recorded this device as carrying an **84 pt right-edge
+/// inset** and no top inset, on the theory that the Duo moves its status bar
+/// and camera to the right edge. **That is wrong**, and it was wrong in a way
+/// that mattered: it sent the whole inset workstream at the right edge while
+/// the real inset sat on top.
 ///
-/// Source: the device geometry recorded in `AppBreakpoints` and `AppShell`
-/// (both already cite 466 / 669 / 951), extended with the measured safe area.
+/// Measured on the booted iOS 27.1 Duo simulator, open portrait, from the
+/// running app's own widget tree (`MediaQueryData` as the framework received
+/// it from the platform):
+///
+/// ```text
+/// size: Size(669.0, 951.0), devicePixelRatio: 3.0,
+/// padding: EdgeInsets(0.0, 82.0, 0.0, 34.0)
+/// ```
+///
+/// `EdgeInsets(left, top, right, bottom)`, so the truth is **top 82, bottom
+/// 34, right 0**. Two independent checks agree:
+///
+/// * the platform reports a zero right inset, and no Dart code hardcodes 82 or
+///   84 anywhere in `lib/`;
+/// * Apple's own Settings app on the same simulator draws the same horizontal
+///   top-right status bar the app does — there are no vertical right-edge
+///   system bars to make room for.
+///
+/// So the device is an ordinary notched phone as far as insets go. The pages
+/// that hand-roll their insets must cover the **top**, not the right.
+///
+/// The folded and landscape poses were not measurable: `simctl` exposes no
+/// fold control (`screenConfig geometry` accepts only each panel's native
+/// mode), so the pose toggle needs the DeviceHub toolbar. [openPortrait] is
+/// therefore the only pose whose insets are measurements; the others reuse
+/// them as a conservative stand-in.
 abstract final class FoldableSurfaces {
   /// Folded, portrait. The smallest pose the app has to lay out.
   static const Size foldedPortrait = Size(466, 678);
@@ -74,15 +95,25 @@ abstract final class FoldableSurfaces {
   /// maintenance.
   static const List<Size> extremes = [foldedPortrait, openLandscape];
 
-  /// Width of the status bar / right-edge inset, in logical points.
-  static const double rightInset = 84;
+  /// Height of the status bar / camera inset, in logical points.
+  ///
+  /// Measured at [openPortrait]. This is the Duo's real constraint.
+  static const double topInset = 82;
+
+  /// Width of the right-edge inset, in logical points.
+  ///
+  /// **Zero.** The device reports no right inset (see the class doc). Kept as a
+  /// named constant so the right-edge assertions read explicitly rather than
+  /// silently vanishing, and so a future device that does have one has a
+  /// single place to change.
+  static const double rightInset = 0;
 
   /// Height of the home indicator inset, in logical points.
   static const double bottomInset = 34;
 
-  /// The Duo's safe area: bottom 34 pt, right 84 pt, nothing on top or left.
+  /// The Duo's safe area: top 82 pt, bottom 34 pt, nothing on either side.
   static const EdgeInsets duoSafeArea = EdgeInsets.only(
-    right: rightInset,
+    top: topInset,
     bottom: bottomInset,
   );
 
@@ -100,16 +131,22 @@ abstract final class FoldableSurfaces {
   static double pageWidthFor(Size size) =>
       size.width >= 900 ? size.width - railWidth : size.width;
 
-  /// The x coordinate content must not cross on the right: the surface width
-  /// minus the 84 pt status-bar inset.
+  /// The x coordinate content must not cross on the right.
   ///
-  /// `tester.getRect(someContent).right <= safeRightEdgeFor(size)` is the
-  /// right-inset assertion. Note the reading column
-  /// (`AppBreakpoints.contentMaxWidth` = 720, centred) already satisfies it at
-  /// 951 dp — 115.5 + 720 = 835.5 < 867 — so the wide pose hides a page that
-  /// ignores the inset. Test the inset at [openPortrait] or
-  /// [foldedPortrait], where nothing caps the width.
+  /// With [rightInset] measured at zero this is simply the surface edge, so the
+  /// assertion degenerates to "content does not overflow the screen". That is
+  /// still worth keeping — it is a real invariant — but it is **not** the
+  /// inset test it was originally written as. The Duo's actual inset is on top:
+  /// assert against [topInset] for the check that catches a page laying its
+  /// content under the status bar.
   static double safeRightEdgeFor(Size size) => size.width - rightInset;
+
+  /// The y coordinate content must not cross on the top: the status-bar inset.
+  ///
+  /// This is the assertion the right-edge version was meant to be. A page that
+  /// passes `useSafeArea: false` to `FlatmatesScreen` and hand-rolls only a
+  /// bottom inset puts its first line under the camera at 82 dp.
+  static double safeTopEdgeFor(Size size) => topInset;
 
   /// A [MediaQueryData] for [size] carrying the Duo's real insets.
   ///

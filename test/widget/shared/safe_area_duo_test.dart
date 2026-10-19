@@ -11,19 +11,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-/// The iPhone Duo's safe area in every pose: the status bar is a **right-edge**
-/// inset, not a top one. 84 dp of the right edge belongs to the system.
-const EdgeInsets _duoInset = EdgeInsets.only(right: 84, bottom: 34);
+/// The iPhone Duo's safe area, **as measured** on the booted iOS 27.1
+/// simulator: the status bar and camera are on the **top** edge (82 dp) and the
+/// home indicator is on the bottom (34 dp). There is no right-edge inset.
+///
+/// This file previously asserted an 84 dp *right-edge* inset on the theory that
+/// the Duo moves its system bars to the right edge. That was wrong — see the
+/// correction note in `foldable_surfaces.dart`. The assertions below now drive
+/// the real inset.
+const EdgeInsets _duoInset = EdgeInsets.only(top: 82, bottom: 34);
 
 /// Folded portrait — the pose where the reading column cap (720) does not
-/// apply, so a page's content really does reach the right edge.
+/// apply, so a page's content really does reach the screen edges.
 const Size _foldedPortrait = Size(466, 678);
 
 /// Open landscape — 951 dp, the pose that renders the 96 dp rail. Content is
 /// inside the 720 dp reading column here.
 const Size _openLandscape = Size(951, 669);
 
-const double _rightInset = 84;
+const double _topInset = 82;
+const double _rightInset = 0;
 const double _bottomInset = 34;
 
 /// Pumps [page] at an exact logical viewport size with an exact safe area.
@@ -60,12 +67,12 @@ void main() {
     resetTestAppPreferences();
   });
 
-  group('EnterPhonePage — right-edge inset', () {
+  group('EnterPhonePage — safe-area insets', () {
     // The page opts out of SafeArea (`useSafeArea: false`) so the cut-paper
     // scene can bleed under the status bar, and hand-rolls the insets for the
-    // form below it. It compensated bottom only, which on a Duo left the
-    // identifier field and the Continue CTA under the clock and battery.
-    testWidgets('the form clears the 84 dp right inset', (tester) async {
+    // form below it. It compensated bottom only, which left the identifier
+    // field and the Continue CTA under the status bar.
+    testWidgets('the form stays inside the surface', (tester) async {
       await _pumpPage(
         tester,
         page: const EnterPhonePage(),
@@ -75,7 +82,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
 
-      // 466 - 84 = 382 is where the system UI starts.
+      // The Duo reports no right inset, so the safe edge is the surface edge.
       const safeRightEdge = 466 - _rightInset;
 
       final field = tester.getRect(find.byType(TextField));
@@ -88,9 +95,44 @@ void main() {
       expect(tester.getRect(cta.first).right, lessThanOrEqualTo(safeRightEdge));
     });
 
-    testWidgets('the form reserves the right and bottom insets', (
-      tester,
-    ) async {
+    testWidgets('the page clears the 82 dp TOP inset', (tester) async {
+      // The inset that actually bites on this device. The page is full-bleed
+      // by design, so the scene bleeds under the status bar and must reserve
+      // the inset itself — `PaperSceneHeader` does it with
+      // `EdgeInsets.only(top: paddingOf(context).top)`.
+      await _pumpPage(
+        tester,
+        page: const EnterPhonePage(),
+        size: _foldedPortrait,
+        padding: _duoInset,
+      );
+
+      expect(tester.takeException(), isNull);
+
+      // 1. The mechanism is pinned: something in the page reserves exactly the
+      //    platform's top inset.
+      final reservedTop = tester
+          .widgetList<Padding>(find.byType(Padding))
+          .map((p) => p.padding)
+          .whereType<EdgeInsets>()
+          .map((e) => e.top);
+      expect(
+        reservedTop,
+        contains(_topInset),
+        reason: 'the scene must reserve the top inset explicitly',
+      );
+
+      // 2. And the visible result: the page title sits below the camera.
+      final title = find.text('Welcome');
+      expect(title, findsOneWidget);
+      expect(
+        tester.getRect(title).top,
+        greaterThanOrEqualTo(_topInset),
+        reason: 'the title must not sit under the status bar',
+      );
+    });
+
+    testWidgets('the form reserves the bottom inset', (tester) async {
       await _pumpPage(
         tester,
         page: const EnterPhonePage(),
@@ -108,7 +150,9 @@ void main() {
           .map((p) => p.padding)
           .whereType<EdgeInsets>();
 
-      // The form's own padding carries both insets on top of the 16 dp gutter.
+      // The form's own padding carries the bottom inset on top of the 16 dp
+      // gutter. This is the exact padding the running app applied on the Duo
+      // simulator: EdgeInsets(16.0, 16.0, 16.0, 58.0).
       expect(
         paddings,
         contains(

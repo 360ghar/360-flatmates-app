@@ -23,24 +23,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../helpers/foldable_surfaces.dart';
 import '../../helpers/test_helpers.dart';
 
-/// The iPhone Duo puts its status bar on the **right edge**, so every pose
-/// carries an 84 pt right safe-area inset and nothing on top.
+/// Asserts that every page keeps its content inside the surface, with the
+/// Duo's measured safe area applied.
 ///
-/// A page that reads only `MediaQuery.paddingOf(context).top` — or that sets
-/// `FlatmatesScreen(useSafeArea: false)` and hand-rolls
-/// `EdgeInsets.symmetric(horizontal: AppSpacing.screen)` — lays its content
-/// under the status bar. This file asserts the correct behaviour: content
-/// stays left of `width - 84`.
+/// ## What this file used to claim, and why it changed
 ///
-/// ## Why the obvious test does not catch it
+/// This file was written on the premise that the Duo puts its status bar on the
+/// **right edge**, giving every pose an 84 pt right inset and nothing on top.
+/// **That premise is false.** Measured on the booted simulator, the device
+/// reports `padding: EdgeInsets(0.0, 82.0, 0.0, 34.0)` — the inset is 82 pt on
+/// **top**, and there is none on the right. Apple's own Settings app draws the
+/// same horizontal top-right status bar the app does.
+///
+/// So the right-edge assertions here are now weaker than they look: with
+/// `FoldableSurfaces.rightInset` measured at zero, "content stays left of the
+/// safe edge" reduces to "content does not overflow the screen". That is still a
+/// real invariant worth pinning, so the file stays — but it is **not** the
+/// inset test the name suggests. The inset test that catches the real bug is
+/// the top-edge one in `safe_area_duo_test.dart`.
+///
+/// ## Why the pages still get asserted at three poses
 ///
 /// `FlatmatesScreen` caps its body at a 720 dp reading column and centres it,
-/// so at 951 dp the content already ends at 115.5 + 720 = 835.5 dp — comfortably
-/// left of the 867 dp safe edge. **The widest Duo pose hides the bug.** The
-/// inset only bites at [FoldableSurfaces.openPortrait] (669 dp) and
-/// [FoldableSurfaces.foldedPortrait] (466 dp), where nothing caps the width.
-/// That is why every page is asserted at all three poses, and why the
-/// open-landscape group is kept as an explicit control rather than dropped.
+/// so at 951 dp content ends at 115.5 + 720 = 835.5 dp — nowhere near the
+/// surface edge. The narrow poses are where a page that sizes from the raw
+/// viewport width shows up, so all three are kept.
 ///
 /// ## Scope
 ///
