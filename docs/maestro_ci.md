@@ -13,19 +13,18 @@ uploads `maestro-report` as an artifact.
 
 | Secret | Purpose |
 |---|---|
-| `API_BASE_URL` | `--dart-define`; backend base URL. Must be a seeded **non-production** environment — the flows mutate state. |
-| `SUPABASE_URL` | `--dart-define`; Supabase project URL. |
-| `SUPABASE_PUBLISHABLE_KEY` | `--dart-define`; Supabase publishable key. |
+| `MAESTRO_API_BASE_URL` | `--dart-define=API_BASE_URL`; backend base URL. Must be a seeded **non-production** environment: the flows mutate state. |
+| `MAESTRO_SUPABASE_URL` | `--dart-define=SUPABASE_URL`; Supabase project URL of that environment. |
+| `MAESTRO_SUPABASE_PUBLISHABLE_KEY` | `--dart-define=SUPABASE_PUBLISHABLE_KEY`; publishable key of that environment. |
 | `MAESTRO_PHONE` | Phone number of the seeded, already-onboarded `room_poster` account (E.164), passed to Maestro as `${MAESTRO_PHONE}`. |
 | `MAESTRO_PASSWORD` | Password for that account, passed as `${MAESTRO_PASSWORD}`. |
 
-The first three names are the same secrets the release workflows already use
-(`android-release.yml`, `ios-release.yml`, `shorebird-patch.yml`); `MAESTRO_PHONE` and
-`MAESTRO_PASSWORD` are Maestro-specific and must be created separately.
+These are deliberately separate from the release secrets (`API_BASE_URL`, `SUPABASE_URL`,
+`SUPABASE_PUBLISHABLE_KEY`), which point at production.
 
-A preflight step runs before the Flutter and Maestro installs and fails the job with
-`::error::Missing required repository secret(s): <names>` when any of the five is empty, so a
-missing secret reads as a configuration error instead of a login assertion failure later.
+A preflight step runs first. When any of the five secrets is empty it prints
+`::notice::Skipping Maestro flows. Missing repository secret(s): <names>` and every later step
+is skipped, so the job passes without running flows instead of failing on a config error.
 
 ## App config comes from `--dart-define`
 
@@ -89,7 +88,7 @@ device. Re-run it when adding flows: it rejects invalid command syntax that YAML
 
 ## Current blockers to a green run
 
-1. `MAESTRO_PHONE` and `MAESTRO_PASSWORD` repository secrets do not exist yet — the user
-   creates them.
-2. The seeded non-production backend must be reachable from CI at the `API_BASE_URL` secret's
+1. The five `MAESTRO_*` repository secrets do not exist yet; the user creates them. Until then
+   the job skips.
+2. The seeded non-production backend must be reachable from CI at the `MAESTRO_API_BASE_URL` secret's
    value, with the seed data listed above.
