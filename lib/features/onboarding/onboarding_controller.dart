@@ -219,11 +219,21 @@ class OnboardingController extends Notifier<OnboardingState> {
   /// Records that the user wants to hear when [city] opens. Throws on
   /// failure so the caller can show an error.
   Future<void> joinWaitlist(String city) async {
+    // `preferences` is replaced wholesale by the API, so carry the existing
+    // keys (non-negotiables and so on) along with the waitlist ones.
+    final existing =
+        ref
+            .read(bootstrapControllerProvider)
+            .valueOrNull
+            ?.profile
+            .preferences ??
+        const <String, dynamic>{};
     await ref
         .read(profileRepositoryProvider)
         .updateProfile(
           payload: {
             'preferences': {
+              ...existing,
               'waitlist_city': city,
               'waitlist_at': DateTime.now().toUtc().toIso8601String(),
             },

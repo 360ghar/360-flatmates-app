@@ -93,7 +93,12 @@ final class RefreshingAuthTokenProvider implements AuthTokenProvider {
 
     final token = session?.accessToken;
     if (token != null && token.isNotEmpty) {
-      await _storage.save(token);
+      // A sign-out can land while this refresh was in flight. Saving then
+      // would put the token back in storage after the delete, so persist only
+      // while the session this token came from is still the current one.
+      if (client.auth.currentSession?.accessToken == token) {
+        await _storage.save(token);
+      }
       return token;
     }
 

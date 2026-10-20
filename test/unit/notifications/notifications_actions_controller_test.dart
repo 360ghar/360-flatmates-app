@@ -70,6 +70,7 @@ Future<void> _waitUntil(
     if (predicate(container.read(notificationsListControllerProvider))) return;
     await Future<void>.delayed(const Duration(milliseconds: 10));
   }
+  fail('Timed out waiting for the notifications list state.');
 }
 
 void main() {

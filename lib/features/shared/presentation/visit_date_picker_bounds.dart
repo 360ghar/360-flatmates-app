@@ -21,7 +21,8 @@ import 'package:flutter/material.dart';
   DateTime? preferred,
   int windowDays = 90,
 }) {
-  final first = DateUtils.dateOnly(now);
+  // `now` may be UTC; the picker works on local calendar days.
+  final first = DateUtils.dateOnly(now.toLocal());
   final last = DateTime(first.year, first.month, first.day + windowDays);
   final wanted = preferred == null
       ? DateTime(first.year, first.month, first.day + 1)

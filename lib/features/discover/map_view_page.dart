@@ -424,11 +424,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
       await _recenterOn(newPos.latitude, newPos.longitude);
       return;
     }
-    final fallback = after.selectedLocation;
-    if (after.error == null &&
-        fallback != null &&
-        fallback.latitude.isFinite &&
-        fallback.longitude.isFinite) {
+    // `ipLocation`, not `selectedLocation`: the latter may hold a manually
+    // chosen city that this detection did not produce.
+    final fallback = after.ipLocation;
+    if (after.error == null && fallback != null && fallback.hasCoordinates) {
       // IP fallback: the best fix available, so recentre on it instead of
       // sending the user to system settings.
       await _recenterOn(fallback.latitude, fallback.longitude);

@@ -168,6 +168,7 @@ LIGHT_ONLY_TOKENS+='|hairline|blueSoft|blueMid|blueInk|tealSoft|tealMid|tealInk|
 LIGHT_ONLY_TOKENS+='|purpleSoft|purpleMid|purpleInk|pinkSoft|pinkMid|pinkInk|orangeSoft|orangeMid|orangeInk|yellowSoft'
 LIGHT_ONLY_TOKENS+='|starRating|compatHigh|compatLow|mapMarkerRoom|mapMarkerProperty|mapMarkerCluster'
 LIGHT_ONLY_TOKENS+='|swipeCardFallbackMid|swipeCardFallbackEnd'
+LIGHT_ONLY_TOKENS+='|darkHeading|line|border'
 
 # Deliberate exemption: the share poster renders a PNG for export, so it must
 # keep the fixed light palette instead of following the viewer's theme.
