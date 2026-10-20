@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,8 +17,9 @@ class ChatActionsController {
     await _repository.blockUser(peerId);
     // Blocking removes the conversation and any pending likes from the peer,
     // so refresh the lists the user returns to after blocking. The blocked
-    // list gains the peer: drop it so Settings reads the new row.
-    _ref.invalidate(blockedUsersListControllerProvider);
+    // list gains the peer: refresh it in place so a failed refetch keeps the
+    // rows Settings already shows.
+    unawaited(refreshKeepingList(_ref, blockedUsersListControllerProvider));
     await invalidateChatListControllers(_ref);
   }
 

@@ -85,7 +85,10 @@ void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
 
   final typeKey =
       _stringAt(data, const ['type_key']) ??
-      _stringAt(data, const ['data', 'type_key']);
+      _stringAt(data, const ['data', 'type_key']) ??
+      // Older realtime payloads name the notification with `type`.
+      _stringAt(data, const ['type']) ??
+      _stringAt(data, const ['data', 'type']);
 
   switch (typeKey) {
     case 'flatmate_new_message':

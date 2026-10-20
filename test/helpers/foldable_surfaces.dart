@@ -97,7 +97,8 @@ abstract final class FoldableSurfaces {
 
   /// Height of the status bar / camera inset, in logical points.
   ///
-  /// Measured at [openPortrait]. This is the Duo's real constraint.
+  /// Measured at [openPortrait] only. The other poses are applied as a
+  /// conservative synthetic value: their real insets are unverified.
   static const double topInset = 82;
 
   /// Width of the right-edge inset, in logical points.
@@ -140,13 +141,6 @@ abstract final class FoldableSurfaces {
   /// assert against [topInset] for the check that catches a page laying its
   /// content under the status bar.
   static double safeRightEdgeFor(Size size) => size.width - rightInset;
-
-  /// The y coordinate content must not cross on the top: the status-bar inset.
-  ///
-  /// This is the assertion the right-edge version was meant to be. A page that
-  /// passes `useSafeArea: false` to `FlatmatesScreen` and hand-rolls only a
-  /// bottom inset puts its first line under the camera at 82 dp.
-  static double safeTopEdgeFor(Size size) => topInset;
 
   /// A [MediaQueryData] for [size] carrying the Duo's real insets.
   ///

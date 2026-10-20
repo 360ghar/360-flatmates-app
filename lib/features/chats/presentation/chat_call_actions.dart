@@ -39,9 +39,9 @@ Future<void> callMatchedPeer({
     return;
   }
   final uri = Uri(scheme: 'tel', path: phone);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else if (context.mounted) {
+  // `launchUrl` can return false even after `canLaunchUrl` said yes.
+  final launched = await canLaunchUrl(uri) && await launchUrl(uri);
+  if (!launched && context.mounted) {
     FlatmatesToast.info(context, locale.phoneNotAvailable);
   }
 }

@@ -14,6 +14,10 @@ class SettingsController extends Notifier<SettingsState> {
   /// keys, so the two with no switch here (email, sms) keep their value.
   RemoteNotificationSettings _lastNotif = const RemoteNotificationSettings();
 
+  /// Bumped by [resetAccountSettings]. A [load] that started under an earlier
+  /// value belongs to the account that signed out, so it must not write.
+  int _accountGeneration = 0;
+
   @override
   SettingsState build() {
     Future.microtask(() => load());
@@ -25,6 +29,7 @@ class SettingsController extends Notifier<SettingsState> {
   SettingsRepository get _repo => ref.read(settingsRepositoryProvider);
 
   Future<void> load() async {
+    final generation = _accountGeneration;
     try {
       final themeRaw = _prefs.getString(PrefKeys.themeMode);
       final languageCode = _prefs.getString(PrefKeys.localeLanguageCode);
@@ -55,8 +60,8 @@ class SettingsController extends Notifier<SettingsState> {
       );
 
       // Best-effort remote merge — local prefs already applied above.
-      await _mergeRemoteNotificationSettings();
-      await _mergeRemotePrivacySettings();
+      await _mergeRemoteNotificationSettings(generation);
+      await _mergeRemotePrivacySettings(generation);
     } catch (e) {
       debugPrint('SettingsController.load: $e');
       state = state.copyWith(loadFailed: true);
@@ -68,6 +73,7 @@ class SettingsController extends Notifier<SettingsState> {
   /// language belong to the device and stay. [load] reads the next account's
   /// values from the server after sign-in.
   void resetAccountSettings() {
+    _accountGeneration++;
     _lastNotif = const RemoteNotificationSettings();
     state = state.copyWith(
       hideLastName: false,
@@ -77,9 +83,10 @@ class SettingsController extends Notifier<SettingsState> {
     );
   }
 
-  Future<void> _mergeRemoteNotificationSettings() async {
+  Future<void> _mergeRemoteNotificationSettings(int generation) async {
     try {
       final remote = await _repo.fetchNotificationSettings();
+      if (generation != _accountGeneration) return;
       _lastNotif = remote;
 
       await Future.wait([
@@ -96,9 +103,10 @@ class SettingsController extends Notifier<SettingsState> {
     }
   }
 
-  Future<void> _mergeRemotePrivacySettings() async {
+  Future<void> _mergeRemotePrivacySettings(int generation) async {
     try {
       final remote = await _repo.fetchPrivacySettings();
+      if (generation != _accountGeneration) return;
 
       final hideExactLocation = !remote.locationSharing;
       // hide_last_name is a typed PrivacySettings key: the server value wins.

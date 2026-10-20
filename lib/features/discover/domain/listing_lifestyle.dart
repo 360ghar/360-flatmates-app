@@ -5,10 +5,13 @@
 /// `pets` values that say pets live in (or are welcome in) the flat.
 const _petsValues = {'have_pets', 'has_pets', 'pet_friendly', 'yes', 'true'};
 
-/// Whether the listing says pets are in the flat. `pets` is a string; any other
-/// type is not a statement about pets.
+/// Whether the listing says pets are in the flat. `pets` is a string; legacy rows may
+/// hold a boolean. Any other type is not a statement about pets.
 bool listingHasPets(Map<String, dynamic>? preferences) {
+  // Older rows stored booleans (`pets: true`, `has_pets: true`).
+  if (preferences?['has_pets'] == true) return true;
   final value = preferences?['pets'];
+  if (value is bool) return value;
   if (value is! String) return false;
   return _petsValues.contains(value.trim().toLowerCase());
 }

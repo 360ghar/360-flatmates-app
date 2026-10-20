@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -29,8 +30,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 WORKSPACE = REPO.parents[1] / "360ghar"
 OUT = REPO / "lib" / "core" / "domain" / "wire_enums.dart"
+# scripts/contract_sync.sh passes the selected checkout in BACKEND_DIR.
+BACKEND = Path(os.environ.get("BACKEND_DIR") or WORKSPACE / "360ghar-backend").resolve()
 DEFAULT_SOURCES = (
-    WORKSPACE / "360ghar-backend" / "docs" / "openapi.json",
+    BACKEND / "docs" / "openapi.json",
     WORKSPACE / "contract-audit" / "enums.json",
 )
 

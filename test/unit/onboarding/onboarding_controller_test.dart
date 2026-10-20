@@ -1,13 +1,67 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
+import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import 'package:flatmates_app/features/onboarding/onboarding_controller.dart';
+import 'package:flatmates_app/features/profile/profile_repository.dart';
+
+class _BootstrapWithPreferences extends BootstrapController {
+  @override
+  Future<BootstrapData?> build() async => const BootstrapData(
+    profile: FlatmatesProfileModel(
+      id: 1,
+      preferences: {
+        'non_negotiables': ['pets'],
+      },
+    ),
+  );
+}
+
+class _RecordingProfileRepository extends ProfileRepository {
+  _RecordingProfileRepository(super.ref);
+
+  Map<String, dynamic>? payload;
+
+  @override
+  Future<FlatmatesProfileModel> updateProfile({
+    required Map<String, dynamic> payload,
+  }) async {
+    this.payload = payload;
+    return const FlatmatesProfileModel(id: 1);
+  }
+}
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     resetTestAppPreferences();
+  });
+
+  test('joinWaitlist keeps the profile preferences it already has', () async {
+    late _RecordingProfileRepository repository;
+    final container = ProviderContainer(
+      overrides: [
+        bootstrapControllerProvider.overrideWith(_BootstrapWithPreferences.new),
+        profileRepositoryProvider.overrideWith((ref) {
+          repository = _RecordingProfileRepository(ref);
+          return repository;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container.read(bootstrapControllerProvider.future);
+
+    await container
+        .read(onboardingControllerProvider.notifier)
+        .joinWaitlist('Pune');
+
+    final preferences =
+        repository.payload!['preferences'] as Map<String, dynamic>;
+    expect(preferences['non_negotiables'], ['pets']);
+    expect(preferences['waitlist_city'], 'Pune');
+    expect(preferences, contains('waitlist_at'));
   });
 
   group('OnboardingStep.previousStep', () {

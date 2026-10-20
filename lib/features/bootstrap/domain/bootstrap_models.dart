@@ -36,6 +36,7 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
     String? email,
     String? profileImageUrl,
     String? mode,
+    @Default(FlatmatesProfileStatus.draft)
     FlatmatesProfileStatus? profileStatus,
     @Default(false) bool onboardingCompleted,
     String? bio,
@@ -72,7 +73,11 @@ class FlatmatesProfileModel with _$FlatmatesProfileModel {
       email: json['email'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
       mode: json['mode'] as String?,
-      profileStatus: FlatmatesProfileStatus.fromJson(json['profile_status']),
+      // A missing status is a draft, as before; an unknown value from a newer
+      // backend stays null so callers do not mistake it for a draft.
+      profileStatus: json['profile_status'] == null
+          ? FlatmatesProfileStatus.draft
+          : FlatmatesProfileStatus.fromJson(json['profile_status']),
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
       bio: json['bio'] as String?,
       age: (json['age'] as num?)?.toInt(),

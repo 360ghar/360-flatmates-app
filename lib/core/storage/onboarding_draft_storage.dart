@@ -33,7 +33,9 @@ class OnboardingDraftStorage {
         );
         return null;
       }
-      if (stored['account'] != _accountId()) {
+      // A draft saved with no account (or read with none) is never restored.
+      final account = _accountId();
+      if (account == null || stored['account'] != account) {
         debugPrint(
           '[OnboardingDraftStorage] dropped a draft of another account',
         );

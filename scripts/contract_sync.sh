@@ -14,7 +14,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-BACKEND="${BACKEND_DIR:-../../360ghar/360ghar-backend}"
+BACKEND="$(cd "${BACKEND_DIR:-../../360ghar/360ghar-backend}" && pwd)"
+export BACKEND_DIR="$BACKEND"
 SNAP="$(mktemp -d)"
 trap 'rm -rf "$SNAP"' EXIT
 

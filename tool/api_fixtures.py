@@ -19,12 +19,16 @@ parses them with the app's models. `tool/gen_enums.py` writes the wire enums the
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
 
 APP = Path(__file__).resolve().parents[1]
-BACKEND = APP.parents[1] / "360ghar" / "360ghar-backend"
+# scripts/contract_sync.sh passes the selected checkout in BACKEND_DIR.
+BACKEND = Path(
+    os.environ.get("BACKEND_DIR") or APP.parents[1] / "360ghar" / "360ghar-backend"
+).resolve()
 OUT = APP / "test" / "fixtures" / "api"
 sys.path.insert(0, str(BACKEND))
 sys.path.insert(0, str(Path(__file__).resolve().parent))

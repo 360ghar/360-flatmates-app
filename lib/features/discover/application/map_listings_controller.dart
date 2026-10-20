@@ -49,8 +49,8 @@ class MapListingsController extends Notifier<MapListingsState> {
   static const int _pageSize = 100;
 
   /// The map reads every page of the area, up to this many requests.
-  /// ponytail: a cap of 500 pins; cluster or load by viewport when an area
-  /// holds more.
+  /// Note: that caps the map at 500 pins; cluster or load by viewport when an
+  /// area holds more.
   static const int _maxPages = 5;
 
   int _filterVersion = 0;
@@ -115,17 +115,26 @@ class MapListingsController extends Notifier<MapListingsState> {
       // A map shows every listing of the area: follow `next_cursor`. The
       // cursor is bound to the filters, which stay the same on every page.
       final newListings = <PropertyListing>[];
+      // One snapshot for every page: a cursor is bound to the filters that
+      // produced it, and the map location can change between awaits.
+      final filters = state.filters;
       String? cursor;
       for (var page = 0; page < _maxPages; page++) {
         final result = await repo.fetchListingsPage(
           cursor: cursor,
           currentUser: profile,
-          filters: state.filters,
+          filters: filters,
           limit: _pageSize,
         );
         newListings.addAll(result.items);
         cursor = result.nextCursor;
         if (cursor == null || cursor.isEmpty) break;
+        if (page == _maxPages - 1) {
+          debugPrint(
+            'MapListingsController.load: stopped at $_maxPages pages; '
+            'the area holds more listings than the map shows',
+          );
+        }
       }
 
       if (myVersion != _filterVersion) {

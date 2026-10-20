@@ -33,6 +33,9 @@ import '../features/visits/visits_repository.dart';
 /// Call it when the session ends (sign-out, a deleted account, an expired
 /// session), not while the user is signed in.
 Future<void> clearAccountScopedState(ProviderContainer container) async {
+  // First, so a settings load still in flight for the old account stops before
+  // the preferences are cleared and cannot write them back afterwards.
+  container.read(settingsControllerProvider.notifier).resetAccountSettings();
   try {
     await container.read(appPreferencesProvider).clearAccountData();
   } catch (e) {

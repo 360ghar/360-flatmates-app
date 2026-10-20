@@ -17,10 +17,10 @@ class LocationSelector extends StatelessWidget {
 
   /// Cap on the label's width at a [width]-wide viewport.
   ///
-  /// A phone keeps the 160 dp the bar was designed around. From
-  /// [AppBreakpoints.medium] up the cap follows the viewport instead of
-  /// staying at 160: on the open Duo's 855 dp bar the selected locality was
-  /// truncated at 160 dp with 700 dp of the bar sitting empty. It stops at
+  /// Half the viewport width, floored at the 160 dp the bar was designed around
+  /// (so it only grows past 160 dp above 320 dp wide, including the 466 dp
+  /// folded layout). On the open Duo's 855 dp bar the selected locality was
+  /// truncated at 160 dp with 700 dp of the bar sitting empty. The cap stops at
   /// half the reading column, so the label can never crowd the trailing
   /// chevron on a desktop-width viewport.
   ///

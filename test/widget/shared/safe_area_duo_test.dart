@@ -4,6 +4,7 @@ import 'package:flatmates_app/features/auth/presentation/enter_phone_page.dart';
 import 'package:flatmates_app/features/auth/presentation/splash_page.dart';
 import 'package:flatmates_app/features/profile/profile_page.dart';
 import 'package:flatmates_app/features/shared/presentation/components.dart';
+import 'package:flatmates_app/features/shared/presentation/paper/paper_scene.dart';
 import 'package:flatmates_app/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,10 @@ import '../../helpers/test_helpers.dart';
 /// the Duo moves its system bars to the right edge. That was wrong — see the
 /// correction note in `foldable_surfaces.dart`. The assertions below now drive
 /// the real inset.
+///
+/// The insets were measured in open portrait only. The folded and landscape
+/// tests below reuse them as a conservative synthetic fixture, not as measured
+/// geometry for those poses.
 const EdgeInsets _duoInset = EdgeInsets.only(top: 82, bottom: 34);
 
 /// Folded portrait — the pose where the reading column cap (720) does not
@@ -112,7 +117,12 @@ void main() {
       // 1. The mechanism is pinned: something in the page reserves exactly the
       //    platform's top inset.
       final reservedTop = tester
-          .widgetList<Padding>(find.byType(Padding))
+          .widgetList<Padding>(
+            find.descendant(
+              of: find.byType(PaperSceneHeader),
+              matching: find.byType(Padding),
+            ),
+          )
           .map((p) => p.padding)
           .whereType<EdgeInsets>()
           .map((e) => e.top);

@@ -680,7 +680,7 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
     this.email,
     this.profileImageUrl,
     this.mode,
-    this.profileStatus,
+    this.profileStatus = FlatmatesProfileStatus.draft,
     this.onboardingCompleted = false,
     this.bio,
     this.age,
@@ -719,6 +719,7 @@ class _$FlatmatesProfileModelImpl extends _FlatmatesProfileModel {
   @override
   final String? mode;
   @override
+  @JsonKey()
   final FlatmatesProfileStatus? profileStatus;
   @override
   @JsonKey()

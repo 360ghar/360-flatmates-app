@@ -109,13 +109,15 @@ class DeepLinkService {
       return '/discover';
     }
 
-    final listingMatch = RegExp(r'^/flatmates/listing/(\d+)').firstMatch(path);
+    final listingMatch = RegExp(
+      r'^/flatmates/listing/(\d+)/?$',
+    ).firstMatch(path);
     if (listingMatch != null) {
       final raw = listingMatch.group(1)!;
       if (_isValidId(raw)) return '/flat-details/$raw';
     }
 
-    final chatMatch = RegExp(r'^/flatmates/chat/(\d+)').firstMatch(path);
+    final chatMatch = RegExp(r'^/flatmates/chat/(\d+)/?$').firstMatch(path);
     if (chatMatch != null) {
       final raw = chatMatch.group(1)!;
       if (_isValidId(raw)) return '/chats/$raw';

@@ -59,7 +59,7 @@ padding: EdgeInsets(0.0, 82.0, 0.0, 34.0)
 
 So the Duo is an ordinary notched phone as far as insets go. The risk is the
 **top**: `SafeArea` handles it, and `PaperSceneHeader` consumes it explicitly
-(`EdgeInsets.only(top: paddingOf(context).top)`), so a page that passes
+(`EdgeInsets.only(top: MediaQuery.paddingOf(context).top)`), so a page that passes
 `useSafeArea: false` and hand-rolls only a bottom inset is the one to check.
 
 Only [open portrait] was measurable. `simctl` exposes no fold control
@@ -174,8 +174,9 @@ own verification step.
 ## 5. Rules for new UI
 
 - **Use `FlatmatesScreen`.** It gives you `SafeArea` and the reading column.
-  If you pass `useSafeArea: false`, you own **all four** insets — the real one on
-  this device is the **82 pt top** edge.
+  If you pass `useSafeArea: false`, you own **all four** insets. The one measured inset
+  on this device is the **82 pt top** edge in open portrait; the folded and
+  landscape poses are unverified, so do not assume that value there.
 - **Do not size from the full viewport width** for anything that is content.
   `width * 0.75` on a 951 pt display is 713 pt of chat bubble.
 - **Cap modals.** Sheets are capped at 640 and dialogs at 560 via
