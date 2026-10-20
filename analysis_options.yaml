@@ -5,8 +5,6 @@ analyzer:
     - "**/*.g.dart"
     # Local iOS builds check out SwiftPM sources (with Dart files) here.
     - "build/**"
-    - android/**
-    - ios/**
   errors:
     missing_return: error
     dead_code: warning
