@@ -42,7 +42,9 @@ class AnalyticsService {
     // process may still exit after this callback, so they stay fatal: recording
     // them as non-fatal would drop real process crashes from crash-free metrics.
     PlatformDispatcher.instance.onError = (error, stack) {
-      debugPrint('Uncaught async error: $error');
+      // Release builds keep the error text off the device log; Crashlytics
+      // below carries it.
+      if (kDebugMode) debugPrint('Uncaught async error: $error');
       crashlytics.recordError(error, stack, fatal: true);
       return true;
     };
