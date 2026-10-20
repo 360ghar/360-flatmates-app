@@ -163,11 +163,12 @@ class FlatmatesChip extends StatelessWidget {
 
     if (actionable) {
       // No selected state: it submits something, so announce a button.
-      return Semantics(button: true, enabled: enabled, child: chip);
+      return Semantics(button: true, enabled: onTap != null, child: chip);
     }
 
     if (!selectable) return chip;
     return Semantics(
+      enabled: onTap != null,
       selected: selected,
       inMutuallyExclusiveGroup: variant == FlatmatesChipVariant.choice,
       child: chip,

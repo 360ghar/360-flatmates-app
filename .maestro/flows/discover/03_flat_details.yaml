@@ -29,7 +29,10 @@ tags:
 # The list sits in a RefreshIndicator, so the second swipe-down overscrolls at
 # the top and can start a refresh. Let that settle before tapping, or the tap
 # races the refresh's setState and the rebuild.
-- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: flat_back_button
+    timeout: 5000
 # On-screen back button: Maestro's `back` works on Android only.
 - tapOn:
     id: flat_back_button

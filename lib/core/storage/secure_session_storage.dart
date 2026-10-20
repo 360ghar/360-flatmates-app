@@ -125,8 +125,11 @@ class SecureSessionStorage extends LocalStorage {
 
     final legacy = _prefs.getString(persistSessionKey);
     if (legacy != null) {
-      await _migrateLegacySession(legacy);
+      // Marker first: the migration deletes the plaintext copy, and a stop
+      // between that delete and a later marker write would make the next
+      // launch read the keychain session as a fresh-install leftover.
       await _writeInstallMarker();
+      await _migrateLegacySession(legacy);
       return;
     }
 

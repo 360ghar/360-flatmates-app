@@ -84,6 +84,19 @@ void main() {
       }
     });
 
+    test('a UTC instant keeps its local calendar date, whatever the zone', () {
+      // 02:00 UTC is still the previous evening in the Americas (the CI zone),
+      // so the UTC and local calendar dates differ there. The window is wide
+      // enough that the local date is selectable.
+      final stored = DateTime.utc(2026, 10, 5, 2);
+      final bounds = availableFromPickerBounds(
+        now: DateTime(2026, 10, 1, 9),
+        availableFrom: stored,
+      );
+
+      expect(bounds.initial, DateUtils.dateOnly(stored.toLocal()));
+    });
+
     test('an older listing date is clamped to today', () {
       final bounds = availableFromPickerBounds(
         now: DateTime(2026, 10, 5, 9, 30),

@@ -69,8 +69,10 @@ class _FlatmatesSkeletonShimmerState extends State<FlatmatesSkeletonShimmer>
       child: widget.child,
     );
 
+    // Reduced motion can switch on mid-pulse; the stopped transition would
+    // hold whatever opacity it had, so drop it.
     final opacity = _opacity;
-    if (opacity == null) return labeled;
+    if (opacity == null || AppMotion.reduceMotion(context)) return labeled;
     return FadeTransition(opacity: opacity, child: labeled);
   }
 }

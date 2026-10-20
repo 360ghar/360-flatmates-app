@@ -3,6 +3,17 @@ import 'package:flatmates_app/core/storage/secure_kv_store.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+class _CountingStore extends SecureKvStore {
+  const _CountingStore(this.writes);
+  final List<String> writes;
+
+  @override
+  Future<void> writeString({required String key, required String value}) {
+    writes.add(value);
+    return super.writeString(key: key, value: value);
+  }
+}
+
 void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
@@ -19,6 +30,18 @@ void main() {
     expect(events, ['t1', null]);
     expect(await storage.read(), isNull);
     await subscription.cancel();
+    storage.dispose();
+  });
+
+  test('saving the same token twice writes to storage once', () async {
+    final writes = <String>[];
+    final storage = AuthTokenStorage(_CountingStore(writes));
+
+    await storage.save('t1');
+    await storage.save('t1');
+    await storage.save('t2');
+
+    expect(writes, ['t1', 't2']);
     storage.dispose();
   });
 

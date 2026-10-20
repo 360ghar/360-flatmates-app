@@ -96,11 +96,21 @@ class _FlatmatesLocationChipState extends State<FlatmatesLocationChip> {
         onPointerCancel: (_) => setState(() => _pressed = false),
         child: GestureDetector(
           onTap: widget.onTap,
-          child: AnimatedScale(
-            scale: _pressed && !reduce ? AppMotion.pressScale : 1.0,
-            duration: AppMotion.fast,
-            curve: AppMotion.paperOut,
-            child: chip,
+          behavior: HitTestBehavior.opaque,
+          // The chip draws about 28-36 dp high; the hit area is held at 48 dp
+          // without growing the drawn chip.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Center(
+              widthFactor: 1,
+              heightFactor: 1,
+              child: AnimatedScale(
+                scale: _pressed && !reduce ? AppMotion.pressScale : 1.0,
+                duration: AppMotion.fast,
+                curve: AppMotion.paperOut,
+                child: chip,
+              ),
+            ),
           ),
         ),
       ),
