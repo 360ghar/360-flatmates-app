@@ -7,7 +7,7 @@
     "hi": {"path": "/System/Library/Fonts/Kohinoor.ttc", "index": 2}
   },
   "backgrounds": {"pine": "backgrounds/pine.jpg", "clay": "backgrounds/clay.jpg", "night": "backgrounds/night.jpg", "wide": "backgrounds/wide.jpg"},
-  "locales": {"en": {"ios": "en-GB", "android": "en-IN"}, "hi": {"ios": "hi", "android": "hi-IN"}},
+  "locales": {"en": {"ios": "en-US", "android": "en-IN"}, "hi": {"ios": "hi", "android": "hi-IN"}},
   "ios_sizes": {"iphone69": [1320, 2868], "iphone65": [1284, 2778]},
   "play_size": [1080, 1920],
   "feature_shots": ["02_swipe", "01_discover"],
