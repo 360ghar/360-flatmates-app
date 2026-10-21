@@ -7,7 +7,8 @@
 # run unless ALLOW_PLAIN_BUNDLE=1 is set, for local or QA bundles only.
 #
 # Usage:
-#   . ./scripts/load_env.sh && ./scripts/verify_env.sh && ./scripts/build_aab.sh
+#   . ./scripts/load_env.sh && ./scripts/verify_env.sh && \
+#     ALLOW_PLAIN_BUNDLE=1 ./scripts/build_aab.sh
 #
 # Required env vars: APP_ENV, API_BASE_URL, SUPABASE_URL,
 #   SUPABASE_PUBLISHABLE_KEY, GOOGLE_WEB_CLIENT_ID

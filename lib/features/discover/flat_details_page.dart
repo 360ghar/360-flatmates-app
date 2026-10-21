@@ -293,12 +293,13 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                         );
                         // A seeded page does not watch the provider, so copy
                         // the vote counts the server answered with.
+                        if (!mounted) return;
                         final seeded = _localListing;
                         final votes = ref
                             .read(propertyListingProvider(widget.listingId))
                             .valueOrNull
                             ?.societyTagVotes;
-                        if (!mounted || seeded == null || votes == null) return;
+                        if (seeded == null || votes == null) return;
                         setState(
                           () => _localListing = seeded.copyWith(
                             societyTagVotes: votes,

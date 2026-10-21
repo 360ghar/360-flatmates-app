@@ -67,8 +67,8 @@ void main() {
     });
 
     test('a status word that is not a moderation status is not expired', () {
-      // `expired` is derived from expires_at or the auto-pause reason: it is
-      // not a status the backend sends.
+      // `expired` is derived from `expires_at` only: it is not a status the
+      // backend sends.
       final listing = _listing(status: 'expired');
       expect(listingStatus(listing), 'active');
     });

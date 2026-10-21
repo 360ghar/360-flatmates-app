@@ -66,6 +66,12 @@ void main() {
         expect(parsed, isNotNull, reason: name);
         expect(parsed!.code, codeOf(name), reason: name);
         expect(parsed.message, messageOf(name), reason: name);
+        final details = ((errors[name] as Map)['error'] as Map)['details'];
+        expect(
+          parsed.details,
+          details is Map ? details : isEmpty,
+          reason: '$name details',
+        );
       }
     });
 

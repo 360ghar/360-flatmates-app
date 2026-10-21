@@ -76,6 +76,8 @@ PropertyListing _listing({required int id, String title = 'Listing'}) {
     'title': title,
     'monthly_rent': 12000,
     'is_available': false,
+    // A conflicting lifecycle status: the moderation status must win.
+    'status': 'available',
     'listing_preferences': {'moderation_status': 'pending_review'},
   });
 }

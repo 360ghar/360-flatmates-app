@@ -99,7 +99,8 @@ diverge; do not collapse them.
 screens: without it, text runs the full 951 pt.
 
 It applies to both the scrollable and non-scrollable paths, sets **width
-only** (never height), and is a no-op below 1024 dp — at 466, 669 and 678 dp
+only** (never height), and is a no-op whenever the available width already fits within the 720 dp cap
+(the 951 dp open-landscape pose is capped) — at 466, 669 and 678 dp
 the rendering is pixel-identical to before.
 
 ### The navigation rail

@@ -17,7 +17,19 @@ cd "$(dirname "$0")/.."
 BACKEND="$(cd "${BACKEND_DIR:-../../360ghar/360ghar-backend}" && pwd)"
 export BACKEND_DIR="$BACKEND"
 SNAP="$(mktemp -d)"
-trap 'rm -rf "$SNAP"' EXIT
+GENERATED=0
+# A generator failure after the fixtures were cleared must not leave the tree
+# without them: restore the snapshot unless generation finished.
+cleanup() {
+  status=$?
+  if [ "$GENERATED" -ne 1 ] && [ "$status" -ne 0 ]; then
+    rm -rf test/fixtures/api
+    cp -R "$SNAP/api" test/fixtures/api
+    cp "$SNAP/wire_enums.dart" lib/core/domain/wire_enums.dart
+  fi
+  rm -rf "$SNAP"
+}
+trap cleanup EXIT
 
 cp lib/core/domain/wire_enums.dart "$SNAP/wire_enums.dart"
 cp -R test/fixtures/api "$SNAP/api"
@@ -29,6 +41,7 @@ find test/fixtures/api -name '*.json' -delete
 python3 tool/gen_enums.py
 uv run --project "$BACKEND" python tool/api_fixtures.py
 dart format lib/core/domain/wire_enums.dart
+GENERATED=1
 
 STALE=0
 diff -q "$SNAP/wire_enums.dart" lib/core/domain/wire_enums.dart || STALE=1

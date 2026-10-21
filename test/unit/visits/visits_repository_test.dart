@@ -188,6 +188,7 @@ void main() {
               ),
               _visit(3, extra: {'status': 'cancelled'}),
               _visit(4, extra: {'status': 'reschedule_suggested'}),
+              _visit(5, extra: {'status': 'completed'}),
             ],
             'next_cursor': null,
             'has_more': false,
@@ -208,6 +209,7 @@ void main() {
         VisitStatus.requested,
         VisitStatus.cancelled,
         VisitStatus.rescheduleSuggested,
+        VisitStatus.completed,
       ]);
       expect(visits[0].propertyTitle, 'Flat A');
       expect(visits[1].visitContext, VisitContext.propertyTour);

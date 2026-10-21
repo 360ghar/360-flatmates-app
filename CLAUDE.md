@@ -42,7 +42,7 @@ dart run build_runner build --delete-conflicting-outputs
 # contract_sync.sh runs both generators (tool/gen_enums.py, tool/api_fixtures.py)
 # and fails if the committed files were stale. Run it alone: running the
 # generators first would regenerate the stale files before it compares them.
-# It imports the backend, so give it the local test database (never a hosted one).
+# It imports the backend schemas only (no app start-up, no database).
 bash scripts/contract_sync.sh
 flutter test test/contract
 
