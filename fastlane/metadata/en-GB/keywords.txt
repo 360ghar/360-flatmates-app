@@ -1,0 +1,1 @@
+rent,pg,coliving,hostel,bachelor,apartment,roomie,bangalore,hyderabad,pune,mumbai,chennai,delhi

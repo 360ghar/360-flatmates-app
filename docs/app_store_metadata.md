@@ -1,12 +1,16 @@
 # App Store & Play Store Metadata
 
+> The store-ready copy and images now live in `fastlane/metadata/` (iOS `deliver`, `metadata/android` for `supply`)
+> and `fastlane/screenshots/`. Edit those files; this page keeps the rationale. Rebuild images with
+> `tool/store_screenshots/compose.py`. Store name is **360 FlatMates** (capital M) in the app and both stores.
+
 ## App Name
 
 360 FlatMates
 
 ## Short Description / Subtitle (30 chars, App Store)
 
-Compatible flatmates & flats
+Find rooms & shared flats (title: `360 FlatMates: Roommate Finder`)
 
 ## Promotional Text (170 chars max, App Store)
 
@@ -71,7 +75,7 @@ Download 360 FlatMates and stop hoping for a good flatmate. Start matching with 
 
 ## Keywords (App Store, 100 chars max)
 
-flatmate,roommate,rent,flat,room,pg,coliving,bangalore,gurgaon,share,apartment,housing
+rent,pg,coliving,hostel,bachelor,apartment,roomie,bangalore,hyderabad,pune,mumbai,chennai,delhi
 
 ## Category
 

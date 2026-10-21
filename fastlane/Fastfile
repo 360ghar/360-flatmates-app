@@ -1,0 +1,39 @@
+# Store metadata and screenshots only. These lanes never upload a binary.
+# App Store: set APP_STORE_CONNECT_KEY_ID, APP_STORE_CONNECT_ISSUER_ID and
+#   APP_STORE_CONNECT_KEY_PATH (path to the .p8 file).
+# Play: set SUPPLY_JSON_KEY to the service-account JSON path.
+
+platform :ios do
+  desc "Validate (validate: true) or push iOS metadata and screenshots"
+  lane :metadata do |options|
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_filepath: ENV.fetch("APP_STORE_CONNECT_KEY_PATH")
+    )
+    deliver(
+      api_key: api_key,
+      metadata_path: "fastlane/metadata",
+      screenshots_path: "fastlane/screenshots",
+      skip_binary_upload: true,
+      skip_app_version_update: true,
+      submit_for_review: false,
+      force: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end
+
+platform :android do
+  desc "Validate (validate: true) or push Play listing text and images"
+  lane :metadata do |options|
+    supply(
+      track: "production",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      validate_only: options[:validate] == true
+    )
+  end
+end
