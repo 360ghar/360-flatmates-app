@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/errors/app_failure.dart';
+import '../../core/providers.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
@@ -109,6 +112,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
             timeSlotLabel: timeSlotLabel,
           );
       visitCreated = true;
+      unawaited(ref.read(reviewPrompterProvider).onSuccess());
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitRequestSent);
       context.pop();

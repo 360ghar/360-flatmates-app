@@ -51,6 +51,7 @@ dependencies:
   video_player: ^2.11.1
   emoji_picker_flutter: ^4.4.0
   shorebird_code_push: ^2.0.7
+  in_app_review: ^2.0.12
 
 
 
@@ -64,6 +65,7 @@ dev_dependencies:
   json_serializable: ^6.9.4
   flutter_lints: ^6.0.0
 
+  shared_preferences_platform_interface: any
 flutter:
   generate: true
   uses-material-design: true

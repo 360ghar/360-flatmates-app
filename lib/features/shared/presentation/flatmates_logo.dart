@@ -35,7 +35,7 @@ class FlatmatesLogo extends StatelessWidget {
     );
 
     return Semantics(
-      label: '360 Flatmates',
+      label: '360 FlatMates',
       excludeSemantics: true,
       child: Text.rich(
         TextSpan(
@@ -45,7 +45,7 @@ class FlatmatesLogo extends StatelessWidget {
               style: style(number, AppSemanticColors.clayFor(b)),
             ),
             TextSpan(
-              text: 'Flatmates',
+              text: 'FlatMates',
               style: style(word, AppSemanticColors.textPrimaryFor(b)),
             ),
           ],

@@ -128,7 +128,7 @@ class _ShareListingCardState extends ConsumerState<ShareListingCard> {
                         ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        '360 Flatmates',
+                        '360 FlatMates',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: AppSemanticColors.onClay,
                         ),

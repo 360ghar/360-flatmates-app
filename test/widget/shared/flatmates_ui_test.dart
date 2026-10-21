@@ -404,11 +404,11 @@ void main() {
       FlatmatesLogo(compact: true),
       FlatmatesLogo(toolbar: true),
     ]) {
-      testWidgets('reads "360 Flatmates" (compact=${logo.compact}, '
+      testWidgets('reads "360 FlatMates" (compact=${logo.compact}, '
           'toolbar=${logo.toolbar})', (tester) async {
         await tester.pumpWidget(MaterialApp(home: Scaffold(body: logo)));
-        expect(find.text('360 Flatmates', findRichText: true), findsOneWidget);
-        expect(find.bySemanticsLabel('360 Flatmates'), findsOneWidget);
+        expect(find.text('360 FlatMates', findRichText: true), findsOneWidget);
+        expect(find.bySemanticsLabel('360 FlatMates'), findsOneWidget);
       });
     }
   });
