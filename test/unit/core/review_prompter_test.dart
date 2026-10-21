@@ -59,12 +59,14 @@ void main() {
     expect(review.requests, 2);
   });
 
-  test('prompt: false counts but does not ask', () async {
+  test('recordSuccess counts but does not ask; maybePrompt asks', () async {
     final p = build();
-    await p.onSuccess(prompt: false);
-    await p.onSuccess(prompt: false);
+    await p.recordSuccess();
+    await p.recordSuccess();
     expect(review.requests, 0);
-    await p.onSuccess();
+    await p.maybePrompt();
+    expect(review.requests, 1);
+    await p.maybePrompt();
     expect(review.requests, 1);
   });
 

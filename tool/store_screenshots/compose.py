@@ -7,6 +7,7 @@ Input : raw PNGs (390x844 logical at 3x, safe-area insets applied) from
 Output: iPhone 6.9" and 6.5", Play phone and Play feature graphic.
 
   STORE_SHOTS_OUT=/abs/raw python3 tool/store_screenshots/compose.py tool/store_screenshots/config.json
+Setup: pip install -r tool/store_screenshots/requirements.txt (Pillow needs libraqm for Hindi).
 
 Raw PNGs come from: STORE_SHOTS_OUT=/abs/raw STORE_PHOTOS_DIR=/abs/photos flutter test test/store_screenshots
 (run one --plain-name per shot: the image cache breaks after the first test in a process).
@@ -151,7 +152,7 @@ def main(cfg_path):
     root = os.path.abspath(os.path.join(base, cfg["repo_root"]))
     for spec in cfg["fonts"].values():
         spec["path"] = os.path.join(base, spec["path"])
-    raw = lambda n, lang: os.path.join(os.environ.get("STORE_SHOTS_OUT", cfg["raw_dir"]), f"{n}_{lang}.png")
+    raw = lambda n, lang: os.path.join(os.environ.get("STORE_SHOTS_OUT", os.path.join(base, cfg["raw_dir"])), f"{n}_{lang}.png")
     for lang, loc in cfg["locales"].items():
         for i, s in enumerate(cfg["shots"], 1):
             cap = s["caption"][lang]

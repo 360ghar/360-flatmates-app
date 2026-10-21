@@ -30,25 +30,30 @@ final class ReviewPrompter {
       successes >= minSuccesses &&
       (lastPromptAt == null || now.difference(lastPromptAt) >= cooldown);
 
-  /// Counts one success moment. When [prompt] is true and a prompt is due,
-  /// shows the native review sheet. Never throws.
-  Future<void> onSuccess({bool prompt = true}) {
-    // One at a time: two hooks must not both read the same "due" state.
-    final run = _queue.then((_) => _onSuccess(prompt));
+  Future<void> _queue = Future<void>.value();
+
+  // One at a time: two hooks must not both read the same "due" state.
+  Future<void> _enqueue(Future<void> Function() job) {
+    final run = _queue.then((_) => job());
     _queue = run;
     return run;
   }
 
-  Future<void> _queue = Future<void>.value();
+  int get _successes =>
+      int.tryParse(_prefs.getString(PrefKeys.reviewSuccessCount) ?? '') ?? 0;
 
-  Future<void> _onSuccess(bool prompt) async {
+  /// Counts one success moment without asking. Never throws.
+  Future<void> recordSuccess() => _enqueue(() async {
     try {
-      final successes =
-          (int.tryParse(_prefs.getString(PrefKeys.reviewSuccessCount) ?? '') ??
-              0) +
-          1;
-      await _prefs.setString(PrefKeys.reviewSuccessCount, '$successes');
-      if (!prompt) return;
+      await _prefs.setString(PrefKeys.reviewSuccessCount, '${_successes + 1}');
+    } catch (e) {
+      debugPrint('ReviewPrompter.recordSuccess: $e');
+    }
+  });
+
+  /// Shows the native review sheet when a prompt is due. Never throws.
+  Future<void> maybePrompt() => _enqueue(() async {
+    try {
       final last = int.tryParse(
         _prefs.getString(PrefKeys.reviewLastPromptAt) ?? '',
       );
@@ -56,15 +61,24 @@ final class ReviewPrompter {
       final lastAt = last == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(last);
-      if (!isDue(successes, lastAt, now)) return;
+      if (!isDue(_successes, lastAt, now)) return;
       if (!await _review.isAvailable()) return;
-      await _prefs.setString(
+      // Persist first: if the write fails, ask nothing, so a broken store
+      // cannot cause a prompt on every success.
+      final saved = await _prefs.setString(
         PrefKeys.reviewLastPromptAt,
         '${now.millisecondsSinceEpoch}',
       );
+      if (!saved) return;
       await _review.requestReview();
     } catch (e) {
-      debugPrint('ReviewPrompter.onSuccess: $e');
+      debugPrint('ReviewPrompter.maybePrompt: $e');
     }
+  });
+
+  /// Counts one success moment, then asks when due.
+  Future<void> onSuccess() async {
+    await recordSuccess();
+    await maybePrompt();
   }
 }

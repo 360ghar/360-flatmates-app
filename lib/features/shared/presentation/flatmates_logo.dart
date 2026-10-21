@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_typography.dart';
 
-/// Brand wordmark, same as the web logo: "360" in clay and "Flatmates" in
+/// Brand wordmark, same as the web logo: "360" in clay and "FlatMates" in
 /// ink, both Gambarino, on one baseline. Sentence case, no tracking.
 class FlatmatesLogo extends StatelessWidget {
   const FlatmatesLogo({

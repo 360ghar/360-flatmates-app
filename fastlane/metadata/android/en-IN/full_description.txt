@@ -2,7 +2,7 @@ Finding a flatmate should not feel like a gamble. Most of us scroll through endl
 
 COMPATIBILITY MATCHING
 
-Every profile shows a compatibility score across six areas: sleep schedule, cleanliness, food, smoking and drinking, guests, and work style. You see the score before you send a message.
+Every profile shows a compatibility score across seven areas: sleep schedule, cleanliness, food, smoking, drinking, guests, and work style. You see the score before you send a message.
 
 FLATS AND FLATMATES, YOUR WAY
 
@@ -30,7 +30,7 @@ Got a spare room? The step-by-step builder takes you through room details, ameni
 
 SAFETY AND TRUST
 
-Phone numbers are verified at sign-in. Block or report anyone at any time. You can hide your last name or your exact location. Visit the room before you pay, and keep the conversation in the app until you trust the person.
+Phone numbers are verified when you add them. Block or report anyone at any time. You can hide your last name or your exact location. Visit the room before you pay, and keep the conversation in the app until you trust the person.
 
 BUILT FOR INDIA
 
@@ -38,7 +38,7 @@ Available in English and Hindi. Works across Bangalore, Hyderabad, Pune, Chennai
 
 HOW IT WORKS
 
-1. Sign up with your phone number
+1. Sign up with your phone, email, Google or Apple
 2. Say what you are looking for
 3. Take the lifestyle quiz
 4. Set your budget and move-in date

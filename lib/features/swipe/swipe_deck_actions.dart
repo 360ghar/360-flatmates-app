@@ -11,6 +11,8 @@ extension _SwipeDeckActions on _SwipeDeckPageState {
         .valueOrNull
         ?.profile;
     final locale = AppLocalizations.of(context);
+    // Count the match when it happens, so leaving the screen any way counts.
+    unawaited(ref.read(reviewPrompterProvider).recordSuccess());
     pushMatchCelebration(
       context,
       userName: userProfile?.fullName ?? locale.matchSelfFallbackName,

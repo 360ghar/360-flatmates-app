@@ -34,7 +34,7 @@ platform :android do
       track: "production",
       skip_upload_apk: true,
       skip_upload_aab: true,
-      skip_upload_changelogs: true,
+      skip_upload_changelogs: true, # changelogs ship with the release upload, not here,
       validate_only: options[:validate] == true
     )
   end

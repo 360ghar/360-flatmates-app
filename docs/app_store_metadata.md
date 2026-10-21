@@ -2,7 +2,7 @@
 
 > The store-ready copy and images now live in `fastlane/metadata/` (iOS `deliver`, `metadata/android` for `supply`)
 > and `fastlane/screenshots/`. Edit those files; this page keeps the rationale. Rebuild images with
-> `tool/store_screenshots/compose.py`. Store name is **360 FlatMates** (capital M) in the app and both stores.
+> `tool/store_screenshots/compose.py`. The app brand is **360 FlatMates** (capital M); store listing titles are set per locale in `fastlane/metadata/`.
 
 ## App Name
 

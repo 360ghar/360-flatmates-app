@@ -493,13 +493,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             peerName: peerName,
             peerImageUrl: peerImageUrl,
             onOpenChat: () {
-              // Count the match only: the Q&A sheet opens next.
-              unawaited(
-                ProviderScope.containerOf(
-                  context,
-                  listen: false,
-                ).read(reviewPrompterProvider).onSuccess(prompt: false),
-              );
               if (conversationId != null) {
                 // Match celebration is also a root-navigator page. Go to the
                 // existing shell branch instead of pushing a second shell.
@@ -529,7 +522,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ProviderScope.containerOf(
                   context,
                   listen: false,
-                ).read(reviewPrompterProvider).onSuccess(),
+                ).read(reviewPrompterProvider).maybePrompt(),
               );
               context.pop();
             },

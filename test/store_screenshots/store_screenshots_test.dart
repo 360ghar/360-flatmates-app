@@ -104,7 +104,7 @@ Map<String, dynamic> _listing(int id) => {
   'floor_number': 3,
   'total_floors': 5,
   'features': ['wifi', 'parking', 'lift', 'furnished'],
-  'available_from': '2026-11-01T00:00:00Z',
+  'available_from': '2027-03-01T00:00:00Z',
   'status': 'live',
   'interest_count': 5,
   'view_count': 120,
