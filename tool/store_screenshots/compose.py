@@ -7,7 +7,7 @@ Input : raw PNGs (390x844 logical at 3x, safe-area insets applied) from
 Output: iPhone 6.9" and 6.5", Play phone and Play feature graphic.
 
   STORE_SHOTS_OUT=/abs/raw python3 tool/store_screenshots/compose.py tool/store_screenshots/config.json
-Setup: pip install -r tool/store_screenshots/requirements.txt (Pillow needs libraqm for Hindi).
+Setup: pip install -r tool/store_screenshots/requirements.txt (Pillow needs libraqm for Hindi: brew install libraqm).
 
 Raw PNGs come from: STORE_SHOTS_OUT=/abs/raw STORE_PHOTOS_DIR=/abs/photos flutter test test/store_screenshots
 (run one --plain-name per shot: the image cache breaks after the first test in a process).

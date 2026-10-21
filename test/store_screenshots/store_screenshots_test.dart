@@ -181,7 +181,7 @@ Map<String, dynamic> _conv(int id) => {
   },
   'source': 'profile_match',
   'status': 'active',
-  'last_message_preview': 'Is the room still available from November?',
+  'last_message_preview': 'Is the room still available from March?',
   'last_message_at': '2026-10-20T09:30:00Z',
   'matched_at': '2026-10-19T09:30:00Z',
   'unread_count': 0,
@@ -245,7 +245,7 @@ Object? _route(RequestOptions o) {
         _msg(
           4,
           201,
-          'Is the room still available from November?',
+          'Is the room still available from March?',
           '2026-10-20T09:30:00Z',
         ),
         _msg(
