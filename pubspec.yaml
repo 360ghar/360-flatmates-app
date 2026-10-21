@@ -1,7 +1,7 @@
 name: flatmates_app
 description: "360 FlatMates"
 publish_to: 'none'
-version: 1.0.9+18
+version: 1.1.0+19
 
 environment:
   sdk: ^3.9.0
