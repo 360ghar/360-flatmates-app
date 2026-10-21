@@ -120,6 +120,9 @@ class MapListingsController extends Notifier<MapListingsState> {
       final filters = state.filters;
       String? cursor;
       for (var page = 0; page < _maxPages; page++) {
+        // A newer filter started while the last page loaded: this result is
+        // stale, so stop paging with the old filters.
+        if (myVersion != _filterVersion) break;
         final result = await repo.fetchListingsPage(
           cursor: cursor,
           currentUser: profile,

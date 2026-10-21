@@ -149,9 +149,10 @@ class ConversationSummaryModel with _$ConversationSummaryModel {
   bool get isProfileMatch => source == ConversationSource.profileMatch;
 
   /// Whether the peer's phone may be asked for: a mutual match that is still
-  /// open. The server decides; a blocked or unmatched pair answers 404.
-  bool get canCall =>
-      isProfileMatch && (status == null || status == ConversationStatus.active);
+  /// open. A missing or unknown status is not open: the call is offered only
+  /// when the status says `active`. The server still decides; a blocked or
+  /// unmatched pair answers 404.
+  bool get canCall => isProfileMatch && status == ConversationStatus.active;
   const factory ConversationSummaryModel({
     required int id,
     ConversationSource? source,

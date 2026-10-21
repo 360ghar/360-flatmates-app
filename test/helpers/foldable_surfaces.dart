@@ -163,7 +163,7 @@ abstract final class FoldableSurfaces {
   static MediaQueryData mediaQueryFor(
     Size size, {
     EdgeInsets padding = duoSafeArea,
-    EdgeInsets viewPadding = duoSafeArea,
+    EdgeInsets? viewPadding,
     EdgeInsets viewInsets = EdgeInsets.zero,
     TextScaler textScaler = TextScaler.noScaling,
     bool disableAnimations = false,
@@ -173,7 +173,7 @@ abstract final class FoldableSurfaces {
     // `viewPadding` is read by widgets that hand-roll their insets
     // (`FlatmatesBottomActionBar` uses `viewPaddingOf(context).bottom`), so it
     // has to carry the same numbers as `padding` or the two disagree.
-    viewPadding: viewPadding,
+    viewPadding: viewPadding ?? padding,
     viewInsets: viewInsets,
     textScaler: textScaler,
     disableAnimations: disableAnimations,

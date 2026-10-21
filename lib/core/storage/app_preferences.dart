@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract final class PrefKeys {
@@ -98,9 +99,23 @@ final class AppPreferences {
   /// Removes every key that belongs to the signed-in account (see
   /// [PrefKeys.isAccountKey]). Called on sign-out, so the next account on this
   /// device starts empty.
+  ///
+  /// Every key is tried even when one fails, so one bad key does not leave the
+  /// rest of the account's data behind. Throws when any key could not be
+  /// removed, so the caller can retry.
   Future<void> clearAccountData() async {
+    final failed = <String>[];
     for (final key in _prefs.getKeys().toList()) {
-      if (PrefKeys.isAccountKey(key)) await _prefs.remove(key);
+      if (!PrefKeys.isAccountKey(key)) continue;
+      try {
+        if (!await _prefs.remove(key)) failed.add(key);
+      } catch (e) {
+        debugPrint('AppPreferences.clearAccountData: $key: $e');
+        failed.add(key);
+      }
+    }
+    if (failed.isNotEmpty) {
+      throw StateError('Could not remove account keys: ${failed.join(', ')}');
     }
   }
 

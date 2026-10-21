@@ -73,9 +73,14 @@ class VisitsActionsController {
   /// Puts the visit the server returned into the list on screen, then
   /// reconciles with a background reload.
   void _applyServerVisit(VisitItem old, VisitItem fresh) {
-    _ref
-        .read(visitsListControllerProvider.notifier)
-        .upsertOptimistically(old.withServerState(fresh));
+    // Only a list that is already on screen needs the row; reading the provider
+    // otherwise would create it and start a fetch nobody asked for. The row
+    // keeps its place: a status change does not reorder the server's list.
+    if (_ref.exists(visitsListControllerProvider)) {
+      _ref
+          .read(visitsListControllerProvider.notifier)
+          .replaceInPlace(old.withServerState(fresh));
+    }
     _refreshRelated();
   }
 

@@ -30,6 +30,7 @@ void main() {
         PrefKeys.onboardingDraft: '{"v":1,"account":"user-a","data":{}}',
         PrefKeys.flatmatesOnboardingCompletedUserId: '7',
         PrefKeys.profileCompletionLocalUserId: '7',
+        PrefKeys.pendingPasswordSetup: true,
         PrefKeys.qnaNudgeDismissed(42): true,
         '${PrefKeys.legacyListingsCachePrefix}_v1': '[]',
       });
@@ -87,6 +88,7 @@ void main() {
         PrefKeys.onboardingDraft,
         PrefKeys.flatmatesOnboardingCompletedUserId,
         PrefKeys.profileCompletionLocalUserId,
+        PrefKeys.pendingPasswordSetup,
         PrefKeys.qnaNudgeDismissed(42),
         '${PrefKeys.legacyListingsCachePrefix}_v1',
       ]) {

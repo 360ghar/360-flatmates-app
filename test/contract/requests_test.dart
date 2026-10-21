@@ -365,7 +365,7 @@ void main() {
       expectBodyMatchesContract(body, 'MessageCreate');
       // The API takes `text` or `image` from a client: `visit_request` is a
       // 422 (the schema lists it, the validator refuses it).
-      expect(body['message_type'], isIn(['text', 'image']));
+      expect(body['message_type'], 'text');
       // The visit the server created (fixture visits.created has id 8).
       expect((body['metadata'] as Map)['visit_id'], 8);
     });

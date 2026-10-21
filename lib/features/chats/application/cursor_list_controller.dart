@@ -181,6 +181,19 @@ abstract class CursorListController<T>
     state = AsyncValue.data(current.copyWith(items: [item, ...items]));
   }
 
+  /// Replaces the rendered row that matches [item] where it stands, keeping the
+  /// list order the server gave. Does nothing when no row matches.
+  void replaceInPlace(T item) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final index = current.items.indexWhere((e) => matchesItem(e, item));
+    if (index < 0) return;
+    final items = [...current.items]..[index] = item;
+    final pending = _optimisticItems.indexWhere((e) => matchesItem(e, item));
+    if (pending >= 0) _optimisticItems[pending] = item;
+    state = AsyncValue.data(current.copyWith(items: items));
+  }
+
   /// Optimistically remove [item] from the rendered list (e.g. after the
   /// user blocks or unmatches a conversation). The caller is still
   /// responsible for the corresponding API mutation + provider

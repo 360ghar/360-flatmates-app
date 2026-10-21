@@ -28,6 +28,7 @@ void main() {
       expect(english, isNotNull, reason: '$code has English copy');
       expect(english, isNotEmpty);
       expect(hindi, isNotNull, reason: '$code has Hindi copy');
+      expect(hindi, isNotEmpty, reason: '$code has non-empty Hindi copy');
       expect(hindi, isNot(english), reason: '$code is translated');
     }
   });

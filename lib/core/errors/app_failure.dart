@@ -131,7 +131,7 @@ final class ServerFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      retryAfter != null && retryAfter!.inSeconds > 0
+      statusCode == 503 && retryAfter != null && retryAfter!.inSeconds > 0
       ? l10n.errorServerWait(retryAfter!.inSeconds)
       : l10n.errorServer;
 }

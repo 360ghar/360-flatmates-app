@@ -24,6 +24,7 @@ class FlatmatesScreen extends StatefulWidget {
     this.floatingActionButton,
     this.backgroundColor,
     this.useSafeArea = true,
+    this.fullBleed = false,
     this.scrollable = false,
     this.padding,
     this.scrollController,
@@ -36,6 +37,10 @@ class FlatmatesScreen extends StatefulWidget {
   final Widget? floatingActionButton;
   final Color? backgroundColor;
   final bool useSafeArea;
+
+  /// Skips the reading-column cap, for a surface that is not text, such as the
+  /// map. Fixed per page: toggling it at runtime would rebuild the body.
+  final bool fullBleed;
   final bool scrollable;
   final EdgeInsetsGeometry? padding;
 
@@ -139,7 +144,7 @@ class _FlatmatesScreenState extends State<FlatmatesScreen>
             child: widget.body,
           );
 
-    final capped = _capped(context, content);
+    final capped = widget.fullBleed ? content : _capped(context, content);
     final body = widget.useSafeArea ? SafeArea(child: capped) : capped;
     final rise = _rise;
 

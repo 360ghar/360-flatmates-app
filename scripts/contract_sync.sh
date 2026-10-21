@@ -22,6 +22,10 @@ trap 'rm -rf "$SNAP"' EXIT
 cp lib/core/domain/wire_enums.dart "$SNAP/wire_enums.dart"
 cp -R test/fixtures/api "$SNAP/api"
 
+# The generator only writes the current groups, so clear the old files first or
+# an obsolete fixture would survive in both trees and pass the comparison.
+find test/fixtures/api -name '*.json' -delete
+
 python3 tool/gen_enums.py
 uv run --project "$BACKEND" python tool/api_fixtures.py
 dart format lib/core/domain/wire_enums.dart

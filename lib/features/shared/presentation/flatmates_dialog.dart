@@ -92,7 +92,10 @@ abstract final class FlatmatesDialog {
               // A Dialog with only insetPadding stretches to the viewport,
               // which is 951 dp on the open iPhone Duo. The cap keeps the
               // paper panel a readable width and centres it.
+              // Keeps the Material minimum (280 dp) so a short confirmation
+              // does not shrink to a sliver.
               constraints: const BoxConstraints(
+                minWidth: 280,
                 maxWidth: AppBreakpoints.dialogMaxWidth,
               ),
               insetPadding: const EdgeInsets.all(AppSpacing.lg),

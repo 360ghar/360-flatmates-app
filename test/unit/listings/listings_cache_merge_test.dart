@@ -43,7 +43,19 @@ class _EmptyPageAdapter implements HttpClientAdapter {
 
 class _AccountBootstrap extends FakeBootstrapController {
   _AccountBootstrap(this.profileId);
-  final int profileId;
+  int profileId;
+
+  /// Signs another account in on the same container.
+  void switchAccount(int id) {
+    profileId = id;
+    final data = fakeBootstrapData();
+    state = AsyncValue.data(
+      BootstrapData(
+        profile: data.profile.copyWith(id: id),
+        catalogs: data.catalogs,
+      ),
+    );
+  }
 
   @override
   Future<BootstrapData?> build() async {
@@ -161,16 +173,16 @@ void main() {
     });
 
     test('is scoped to the signed-in account', () async {
-      final first = await _container(accountId: 7);
-      await first
-          .read(listingsRepositoryProvider)
-          .cacheOwnerListing(_listing(id: 42));
+      final container = await _container(accountId: 7);
+      final repo = container.read(listingsRepositoryProvider);
+      await repo.cacheOwnerListing(_listing(id: 42));
 
-      // Another account has its own repository and never sees the rows.
-      final second = await _container(accountId: 8);
-      final page = await second
-          .read(listingsRepositoryProvider)
-          .fetchMyListingsPage();
+      // The same repository and container, another account signed in: it
+      // must not read the rows the first account cached.
+      (container.read(bootstrapControllerProvider.notifier)
+              as _AccountBootstrap)
+          .switchAccount(8);
+      final page = await repo.fetchMyListingsPage();
 
       expect(page.items, isEmpty);
     });

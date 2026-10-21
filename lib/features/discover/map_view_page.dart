@@ -212,6 +212,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
     return FlatmatesScreen(
       useSafeArea: false,
+      fullBleed: true,
       body: Stack(
         children: [
           // Full-screen map

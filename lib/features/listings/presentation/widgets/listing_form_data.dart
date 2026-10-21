@@ -185,7 +185,13 @@ ListingEditScalars populateListingControllers({
     ..addAll(restoredFurnishingPicks(listing));
   roomFeatures
     ..clear()
-    ..addAll(listing.features.where((f) => f != 'video_tour'));
+    // The furnishing chips own `furnished` and `semi_furnished`: keeping them
+    // here too would stay on the listing after the owner unticks the chip.
+    ..addAll(
+      listing.features.where(
+        (f) => f != 'video_tour' && !roomFurnishing.contains(f),
+      ),
+    );
   societyAmenities
     ..clear()
     ..addAll((prefs['society_amenities'] as List?)?.cast<String>() ?? const []);

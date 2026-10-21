@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flatmates_app/core/deep_links/deep_link_service.dart';
 import 'package:flatmates_app/core/notifications/notification_service.dart';
 import 'package:flatmates_app/features/notifications/notification_route_resolver.dart';
@@ -56,6 +58,23 @@ void main() {
         ),
         isFalse,
       );
+      // The enabled paths: a switch that is on never suppresses its own type.
+      expect(
+        foregroundPushAllowed(
+          message['type_key'] as String?,
+          messagesOn: true,
+          promotionsOn: false,
+        ),
+        isTrue,
+      );
+      expect(
+        foregroundPushAllowed(
+          promotion['type_key'] as String?,
+          messagesOn: false,
+          promotionsOn: true,
+        ),
+        isTrue,
+      );
       // No switch for a visit: always shown.
       expect(
         foregroundPushAllowed(
@@ -78,7 +97,10 @@ void main() {
       );
 
       expect(data['_meta'], isA<String>());
-      expect(data['_meta'] as String, startsWith('{'));
+      // It decodes to a JSON object, not just text that starts with a brace.
+      final meta = jsonDecode(data['_meta'] as String);
+      expect(meta, isA<Map<String, dynamic>>());
+      expect(meta, isNotEmpty);
     });
   });
 

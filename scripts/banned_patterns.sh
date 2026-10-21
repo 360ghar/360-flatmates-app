@@ -188,7 +188,13 @@ fi
 # 11. A peer phone: the peer payloads carry none. A phone is read only from the
 # match contact route, and only chat_call_actions.dart starts a call.
 echo -n "  peer phone reads and tel: calls outside the match call... "
-HITS=$(grep -rEn "phone_number|phoneNumber([^A-Za-z]|$)|'tel:|\"tel:|scheme: 'tel'" lib/features lib/app lib/core --include='*.dart' | grep -v "^lib/features/chats/presentation/chat_call_actions.dart:" | grep -v "autofill\|AutofillHints" || true)
+# Phone reads are banned everywhere, the sanctioned file included: it gets the
+# number from the match contact route, never from a peer payload field.
+READS=$(grep -rEn "phone_number|phoneNumber([^A-Za-z]|$)" lib/features lib/app lib/core --include='*.dart' | grep -v "autofill\|AutofillHints" || true)
+# Only chat_call_actions.dart starts a call. Either quote style, with or
+# without spaces, in a `tel:` literal or a `scheme: 'tel'` argument.
+CALLS=$(grep -rEn "['\"]tel:|scheme: *['\"]tel['\"]" lib/features lib/app lib/core --include='*.dart' | grep -v "^lib/features/chats/presentation/chat_call_actions.dart:" || true)
+HITS=$(printf '%s\n%s' "$READS" "$CALLS" | grep . || true)
 COUNT=$(printf '%s\n' "$HITS" | grep -c . || true)
 if [ "$COUNT" -gt 0 ]; then
   echo "FAIL ($COUNT; use callMatchedPeer, which reads GET /flatmates/matches/{id}/contact)"

@@ -36,10 +36,17 @@ Future<void> clearAccountScopedState(ProviderContainer container) async {
   // First, so a settings load still in flight for the old account stops before
   // the preferences are cleared and cannot write them back afterwards.
   container.read(settingsControllerProvider.notifier).resetAccountSettings();
-  try {
-    await container.read(appPreferencesProvider).clearAccountData();
-  } catch (e) {
-    debugPrint('clearAccountScopedState: preferences: $e');
+  // One retry: a failed remove usually clears on the second pass. A second
+  // failure is logged, and the next sign-in's load overwrites these values.
+  for (var attempt = 0; attempt < 2; attempt++) {
+    try {
+      await container.read(appPreferencesProvider).clearAccountData();
+      break;
+    } catch (e) {
+      debugPrint(
+        'clearAccountScopedState: preferences (try ${attempt + 1}): $e',
+      );
+    }
   }
   try {
     // The owner listings cache of the repository lives in memory only.

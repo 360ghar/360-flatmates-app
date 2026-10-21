@@ -95,7 +95,9 @@ class DeepLinkService {
   /// or contains an invalid resource ID.
   static String? _mapPath(Uri uri) {
     if (uri.hasScheme && uri.scheme != 'https' && uri.scheme != 'http') {
-      return _mapSchemeLink(uri);
+      // Only this app's own schemes (AndroidManifest and Info.plist): a link
+      // with any other scheme is not ours to route.
+      return _appSchemes.contains(uri.scheme) ? _mapSchemeLink(uri) : null;
     }
     final path = uri.path;
     if (path == '/flatmates') {
@@ -125,6 +127,11 @@ class DeepLinkService {
 
     return null;
   }
+
+  static const _appSchemes = {
+    'com.the360ghar.flatmates360',
+    'com.the360ghar.flatmates',
+  };
 
   /// Maps `scheme://chat/42` and `scheme://listing/42`: the entity is the host
   /// and the id is the first path segment.

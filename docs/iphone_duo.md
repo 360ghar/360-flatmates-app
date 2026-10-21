@@ -108,7 +108,7 @@ At `isExpanded` the shell renders a `NavigationRail` instead of the bottom
 `NavigationBar`. Same five destinations, same mode-dependent slot 2, same
 icons and labels.
 
-**The rail must keep the five Maestro identifiers** (`nav_home`,
+**The rail must keep the five Maestro identifiers** (`nav_home_tab`,
 `nav_post_tab`/`nav_explore_tab`, `nav_swipe_tab`, `nav_inbox_tab`,
 `nav_me_tab`). Maestro's `id:` reads `Semantics.identifier`, not Flutter keys,
 so losing them breaks the 82 flows in `.maestro/`.
@@ -250,7 +250,7 @@ The iPhone Duo simulator is the only place to see the real thing.
 xcrun simctl list devices | grep -i duo     # find the UDID
 xcrun simctl boot <udid>
 npx serve-sim                               # stream the simulator to a browser
-/Users/sakshammittal/fvm/versions/3.44.6/bin/flutter run -d <udid>
+fvm flutter run -d <udid>
 ```
 
 Use the pinned Flutter: the global 3.47 fails on this repo with

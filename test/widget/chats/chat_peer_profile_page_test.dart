@@ -40,6 +40,7 @@ void main() {
         conversation: const ConversationSummaryModel(
           id: 1,
           source: ConversationSource.profileMatch,
+          status: ConversationStatus.active,
           peer: _peer,
         ),
       );

@@ -91,7 +91,8 @@ void main() {
       expect(
         recorder.requests.any(
           (r) =>
-              r.method == 'POST' && r.path.startsWith('/users/me/onboarding'),
+              r.method == 'POST' &&
+              r.path == '/users/me/onboarding?app=flatmates',
         ),
         isTrue,
       );

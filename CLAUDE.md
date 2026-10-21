@@ -39,9 +39,11 @@ npx serve-sim                  # → http://localhost:3200 — stream simulator 
 dart run build_runner build --delete-conflicting-outputs
 
 # Backend contract: enums and fixtures (see docs/api_contract.md)
-python3 tool/gen_enums.py
-uv run --project ../../360ghar/360ghar-backend python tool/api_fixtures.py
-bash scripts/contract_sync.sh   # both of the above, then fails if the committed files were stale
+# contract_sync.sh runs both generators (tool/gen_enums.py, tool/api_fixtures.py)
+# and fails if the committed files were stale. Run it alone: running the
+# generators first would regenerate the stale files before it compares them.
+# It imports the backend, so give it the local test database (never a hosted one).
+bash scripts/contract_sync.sh
 flutter test test/contract
 
 # Quality (run before every commit)

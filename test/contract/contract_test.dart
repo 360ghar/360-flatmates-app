@@ -87,6 +87,12 @@ void main() {
       expect(profile.profileStatus, FlatmatesProfileStatus.paused);
     });
 
+    test('a missing profile status is a draft', () {
+      final profile = FlatmatesProfileModel.fromJson({'id': 1});
+
+      expect(profile.profileStatus, FlatmatesProfileStatus.draft);
+    });
+
     test('a profile status this build does not know is null', () {
       final profile = FlatmatesProfileModel.fromJson({
         'id': 1,
@@ -103,21 +109,24 @@ void main() {
       expect(FlatmatesProfileModel.fromJson(json).city, 'Bengaluru');
     });
 
-    test('GET and PUT /users/me return SelfUser: name and date of birth', () {
-      final self = apiFixture('bootstrap', 'self_user');
+    test(
+      'the SelfUser fixture carries the name and the date-only birth date',
+      () {
+        final self = apiFixture('bootstrap', 'self_user');
 
-      // The profile completion reads these two keys of the response.
-      expect(self['full_name'], 'Asha Verma');
-      expect(self['date_of_birth'], '1996-04-12');
-      // A date-only field: the app sends and reads YYYY-MM-DD.
-      expect(
-        RegExp(
-          r'^\d{4}-\d{2}-\d{2}$',
-        ).hasMatch(self['date_of_birth'] as String),
-        isTrue,
-      );
-      expect(DateTime.parse(self['date_of_birth'] as String).year, 1996);
-    });
+        // The profile completion reads these two keys of the response.
+        expect(self['full_name'], 'Asha Verma');
+        expect(self['date_of_birth'], '1996-04-12');
+        // A date-only field: the app sends and reads YYYY-MM-DD.
+        expect(
+          RegExp(
+            r'^\d{4}-\d{2}-\d{2}$',
+          ).hasMatch(self['date_of_birth'] as String),
+          isTrue,
+        );
+        expect(DateTime.parse(self['date_of_birth'] as String).year, 1996);
+      },
+    );
 
     test('auth-state stages the app routes on', () {
       expect(apiFixture('bootstrap', 'auth_state')['stage'], 'active');
@@ -218,6 +227,19 @@ void main() {
         ..['status'] = 'blocked';
 
       expect(ConversationSummaryModel.fromJson(json).canCall, isFalse);
+    });
+
+    test('a missing or unknown status cannot be called', () {
+      for (final status in [null, 'not_a_status', 'closed']) {
+        final json = apiFixtureItems('conversations', 'list_page').first
+          ..['status'] = status;
+
+        expect(
+          ConversationSummaryModel.fromJson(json).canCall,
+          isFalse,
+          reason: 'status $status',
+        );
+      }
     });
 
     test('reads the message page, system notice and visit card', () {

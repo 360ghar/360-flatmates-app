@@ -14,6 +14,11 @@ class SettingsController extends Notifier<SettingsState> {
   /// keys, so the two with no switch here (email, sms) keep their value.
   RemoteNotificationSettings _lastNotif = const RemoteNotificationSettings();
 
+  /// Whether [_lastNotif] came from the server for this account. Until it
+  /// does, its email and sms values are defaults, and a PUT built from them
+  /// would overwrite the account's real ones.
+  bool _lastNotifKnown = false;
+
   /// Bumped by [resetAccountSettings]. A [load] that started under an earlier
   /// value belongs to the account that signed out, so it must not write.
   int _accountGeneration = 0;
@@ -74,6 +79,7 @@ class SettingsController extends Notifier<SettingsState> {
   /// values from the server after sign-in.
   void resetAccountSettings() {
     _accountGeneration++;
+    _lastNotifKnown = false;
     _lastNotif = const RemoteNotificationSettings();
     state = state.copyWith(
       hideLastName: false,
@@ -88,6 +94,7 @@ class SettingsController extends Notifier<SettingsState> {
       final remote = await _repo.fetchNotificationSettings();
       if (generation != _accountGeneration) return;
       _lastNotif = remote;
+      _lastNotifKnown = true;
 
       await Future.wait([
         _prefs.setBool(PrefKeys.notifNewMessages, remote.pushNotifications),
@@ -185,32 +192,35 @@ class SettingsController extends Notifier<SettingsState> {
     _pushNotificationRemote();
   }
 
-  void _pushNotificationRemote() {
-    // push_notifications is the messages switch, promotional_emails the
-    // promotions switch; email and sms keep the last value the server sent.
-    final settings = RemoteNotificationSettings(
-      pushNotifications: state.notifNewMessages,
-      promotionalEmails: state.notifPromotions,
-      emailNotifications: _lastNotif.emailNotifications,
-      smsNotifications: _lastNotif.smsNotifications,
-    );
-    _lastNotif = settings;
-    unawaited(_syncNotificationRemote(settings));
+  void _pushNotificationRemote() => unawaited(_syncNotificationRemote());
+
+  Future<void> _syncNotificationRemote() async {
+    final generation = _accountGeneration;
+    try {
+      // push_notifications is the messages switch, promotional_emails the
+      // promotions switch; email and sms keep the last value the server sent.
+      if (!_lastNotifKnown) {
+        final remote = await _repo.fetchNotificationSettings();
+        if (generation != _accountGeneration) return;
+        _lastNotif = remote;
+        _lastNotifKnown = true;
+      }
+      final settings = RemoteNotificationSettings(
+        pushNotifications: state.notifNewMessages,
+        promotionalEmails: state.notifPromotions,
+        emailNotifications: _lastNotif.emailNotifications,
+        smsNotifications: _lastNotif.smsNotifications,
+      );
+      _lastNotif = settings;
+      await _repo.updateNotificationSettings(settings);
+    } catch (e) {
+      debugPrint('SettingsController._pushNotificationRemote: $e');
+    }
   }
 
   /// Writes only the privacy keys that changed.
   void _pushPrivacyRemote(Map<String, bool> patch) {
     unawaited(_syncPrivacyRemote(patch));
-  }
-
-  Future<void> _syncNotificationRemote(
-    RemoteNotificationSettings settings,
-  ) async {
-    try {
-      await _repo.updateNotificationSettings(settings);
-    } catch (e) {
-      debugPrint('SettingsController._pushNotificationRemote: $e');
-    }
   }
 
   Future<void> _syncPrivacyRemote(Map<String, bool> patch) async {

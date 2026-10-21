@@ -390,8 +390,9 @@ class _ManageListingPageState extends ConsumerState<ManageListingPage> {
           ? e.userMessage(locale.toUserMessageL10n())
           : locale.failedToUpdateListingStatus;
       FlatmatesToast.error(context, msg);
-      // The list may show a stale state: reload it.
-      ref.invalidate(myListingsListControllerProvider);
+      // The list may show a stale state: reload it in place, so a failed
+      // reload keeps the rows on screen.
+      unawaited(ref.read(myListingsListControllerProvider.notifier).refresh());
     }
   }
 }

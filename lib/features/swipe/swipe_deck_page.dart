@@ -132,7 +132,7 @@ class _SwipeDeckPageState extends ConsumerState<SwipeDeckPage>
     final vx = details.velocity.pixelsPerSecond.dx;
     // A fixed travel distance, not a share of the viewport: see
     // [kSwipeCommitDistance].
-    if (dx.abs() > kSwipeCommitDistance) {
+    if (dx.abs() >= kSwipeCommitDistance) {
       _triggerFlyOff(interaction.dragOffset);
     } else if (vx.abs() > 800) {
       _triggerFlyOff(

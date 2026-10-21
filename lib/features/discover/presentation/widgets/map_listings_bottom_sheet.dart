@@ -97,7 +97,10 @@ class MapListingsBottomSheet extends ConsumerWidget {
         // the card size and the "nearest centre" maths below.
         final viewportWidth = constraints.maxWidth;
         final cardWidth = mapCarouselCardWidth(viewportWidth);
-        final cardHeight = mapCarouselCardHeight(context, cardWidth);
+        // The compact empty state needs a short band, not a full card.
+        final cardHeight = listings.isEmpty
+            ? AppSpacing.scaled(context, 96)
+            : mapCarouselCardHeight(context, cardWidth);
         const handleHeight = AppSpacing.sm * 2 + AppSpacing.xs;
         final titleHeight = AppSpacing.scaled(context, 22) + AppSpacing.sm;
         final contentHeight =

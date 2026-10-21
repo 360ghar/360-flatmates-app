@@ -86,11 +86,13 @@ void main() {
     test(
       'an admin-only auto_paused_reason key does not make a listing expired',
       () {
+        // A live listing, so the status itself decides nothing: only the
+        // ignored key could change the answer.
         final listing = _listing(
-          status: 'paused',
-          preferences: {'auto_paused_reason': 'stale_listing'},
+          status: 'live',
+          preferences: {'auto_paused_reason': 'expired'},
         );
-        expect(listingStatus(listing), 'paused');
+        expect(listingStatus(listing), 'active');
       },
     );
 
