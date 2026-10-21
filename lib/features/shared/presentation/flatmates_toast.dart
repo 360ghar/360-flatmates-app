@@ -39,6 +39,8 @@ abstract final class FlatmatesToast {
       SnackBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        // The default hard-edge clip would slice the paper surface's shadow.
+        clipBehavior: Clip.none,
         padding: EdgeInsets.zero,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

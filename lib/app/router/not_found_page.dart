@@ -25,17 +25,18 @@ class NotFoundPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    return Scaffold(
+    // `FlatmatesScreen`, not a bare `Scaffold`: it owns the safe area and the
+    // reading column, so the CTA is not stretched across the full width of a
+    // foldable iPhone Duo's inner display.
+    return FlatmatesScreen(
       appBar: AppBar(leading: BackButton(onPressed: () => _leave(context))),
-      body: SafeArea(
-        child: FlatmatesEmptyState(
-          prop: PaperProp.rainCloud,
-          title: locale.notFoundTitle,
-          subtitle: message ?? locale.errorNotFound,
-          ctaLabel: locale.navHome,
-          onCtaTap: () => context.go('/discover'),
-          expand: true,
-        ),
+      body: FlatmatesEmptyState(
+        prop: PaperProp.rainCloud,
+        title: locale.notFoundTitle,
+        subtitle: message ?? locale.errorNotFound,
+        ctaLabel: locale.navHome,
+        onCtaTap: () => context.go('/discover'),
+        expand: true,
       ),
     );
   }

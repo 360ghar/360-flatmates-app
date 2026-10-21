@@ -8,10 +8,31 @@ import 'package:flatmates_app/features/shared/presentation/paper/paper_surface.d
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/foldable_surfaces.dart';
 import '../../helpers/golden_fonts.dart';
 
 // Goldens render per-OS; they are generated and checked on macOS only.
 final _skip = !Platform.isMacOS;
+
+/// The foldable poses this file adds, and the slug that marks their PNGs as
+/// the foldable ones.
+///
+/// Deliberately the two *extreme* Duo poses
+/// ([FoldableSurfaces.extremes]) rather than all four. A golden is a byte
+/// comparison, so every variant is a permanent maintenance cost, and the two
+/// middle poses add no new layout: the paper primitives are a vertical
+/// `ListView`, so width is the only axis that changes anything, and 669 dp
+/// sits inside the same `AppBreakpoints` branch as the 390 dp phone baseline
+/// (below `medium`, no reading column) while 678 dp sits inside the same one
+/// as 466 dp. 466 and 951 are the narrowest and widest the app can ever be.
+///
+/// The existing `paper_primitives_<brightness>.png` at 390 x 900 is the phone
+/// baseline and is left exactly as it is: same size, same file name, same
+/// bytes.
+const _foldablePoses = <(Size, String)>[
+  (FoldableSurfaces.foldedPortrait, 'duo_folded_466x678'),
+  (FoldableSurfaces.openLandscape, 'duo_open_landscape_951x669'),
+];
 
 Widget _frame(Brightness b, Widget child) => MaterialApp(
   debugShowCheckedModeBanner: false,
@@ -75,6 +96,8 @@ Widget _primitives() => ListView(
 void main() {
   setUpAll(loadGoldenFonts);
 
+  // The phone baseline. Do not change the size or the file names: these PNGs
+  // are committed and must stay byte-identical.
   for (final b in Brightness.values) {
     testWidgets('paper primitives (${b.name})', skip: _skip, (tester) async {
       tester.view.physicalSize = const Size(390, 900);
@@ -87,5 +110,22 @@ void main() {
         matchesGoldenFile('goldens/paper_primitives_${b.name}.png'),
       );
     });
+  }
+
+  // The foldable axis, as siblings rather than a replacement.
+  for (final (size, slug) in _foldablePoses) {
+    for (final b in Brightness.values) {
+      testWidgets('paper primitives $slug (${b.name})', skip: _skip, (
+        tester,
+      ) async {
+        FoldableSurfaces.useSurface(tester, size);
+        await tester.pumpWidget(_frame(b, _primitives()));
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(MaterialApp),
+          matchesGoldenFile('goldens/paper_primitives_${slug}_${b.name}.png'),
+        );
+      });
+    }
   }
 }

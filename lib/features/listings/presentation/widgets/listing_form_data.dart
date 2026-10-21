@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/domain/wire_enums.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../discover/domain/property_listing.dart';
 import '../../listings_repository.dart';
@@ -100,6 +101,11 @@ typedef ListingEditScalars = ({
   /// Preferred flatmate age range, or null when the listing has none.
   double? ageMin,
   double? ageMax,
+
+  /// A stored furnishing level the furnishing chips cannot show: `unfurnished`
+  /// (the chips are `furnished` and `semi_furnished`). Saving keeps it unless
+  /// the owner picks a chip, so an edit does not clear it.
+  FurnishingLevel? keptFurnishingLevel,
 });
 
 /// Populates [controllers] and the mutable [sets] in place from [listing] for
@@ -125,6 +131,7 @@ ListingEditScalars populateListingControllers({
   required TextEditingController otherChargesDescription,
   required TextEditingController windowsCount,
   required TextEditingController ventilationShafts,
+  required Set<String> roomFurnishing,
   required Set<String> roomFeatures,
   required Set<String> societyAmenities,
   required Set<String> societyVibeTags,
@@ -137,7 +144,7 @@ ListingEditScalars populateListingControllers({
   final prefs = listing.preferences ?? const <String, dynamic>{};
   // Society/building name lives in sub_locality, not the composed title.
   society.text = listing.subLocality ?? _stripConfigPrefix(listing.title);
-  address.text = prefs['full_address'] as String? ?? '';
+  address.text = _typedStreet(listing);
   city.text = listing.city ?? '';
   locality.text = listing.locality ?? '';
   rent.text = listing.monthlyRent.toStringAsFixed(0);
@@ -173,15 +180,26 @@ ListingEditScalars populateListingControllers({
   if (prefs['maid_cost'] is num) {
     maidCost.text = (prefs['maid_cost'] as num).toDouble().toStringAsFixed(0);
   }
+  roomFurnishing
+    ..clear()
+    ..addAll(restoredFurnishingPicks(listing));
   roomFeatures
     ..clear()
-    ..addAll(listing.features.where((f) => f != 'video_tour'));
+    // The furnishing chips own `furnished` and `semi_furnished`: keeping them
+    // here too would stay on the listing after the owner unticks the chip.
+    ..addAll(
+      listing.features.where(
+        (f) => f != 'video_tour' && !roomFurnishing.contains(f),
+      ),
+    );
   societyAmenities
     ..clear()
     ..addAll((prefs['society_amenities'] as List?)?.cast<String>() ?? const []);
   societyVibeTags
     ..clear()
-    ..addAll((prefs['society_vibes'] as List?)?.cast<String>() ?? listing.tags);
+    ..addAll(
+      (prefs['society_vibe_tags'] as List?)?.cast<String>() ?? listing.tags,
+    );
   roomPhotoUrls
     ..clear()
     ..addAll(listing.imageUrls);
@@ -207,7 +225,39 @@ ListingEditScalars populateListingControllers({
         : electricityIncluded,
     ageMin: _parseAgePreference(prefs['preferred_age_min']),
     ageMax: _parseAgePreference(prefs['preferred_age_max']),
+    keptFurnishingLevel:
+        listing.furnishingLevel == FurnishingLevel.unfurnished.wire
+        ? FurnishingLevel.unfurnished
+        : null,
   );
+}
+
+/// The furnishing chips (`furnished`, `semi_furnished`) the stored listing says
+/// were picked: those in its `features`, plus its `furnishing_level` (the
+/// server derives it from the rooms). Without this the form opens with no pick,
+/// and saving it sends `furnishing_level: null`, which clears the stored level.
+@visibleForTesting
+Set<String> restoredFurnishingPicks(PropertyListing listing) => {
+  for (final level in const [
+    FurnishingLevel.furnished,
+    FurnishingLevel.semiFurnished,
+  ])
+    if (listing.features.contains(level.wire) ||
+        listing.furnishingLevel == level.wire)
+      level.wire,
+};
+
+/// The street the owner typed, from the typed `full_address` field. A stored
+/// address equal to the composed society, locality and city is what the form
+/// sends when no street was typed, so it reads back as empty.
+String _typedStreet(PropertyListing listing) {
+  final saved = listing.fullAddress?.trim() ?? '';
+  final composed = composeListingAddress(
+    subLocality: listing.subLocality,
+    locality: listing.locality,
+    city: listing.city,
+  );
+  return saved == composed ? '' : saved;
 }
 
 /// Parses one preferred-age preference defensively.
@@ -271,6 +321,7 @@ class ListingFormData {
     required this.ageMax,
     required this.nonNegotiables,
     required this.availableFrom,
+    this.keptFurnishingLevel,
   });
 
   // Location
@@ -316,6 +367,9 @@ class ListingFormData {
   final double ageMax;
   final Set<String> nonNegotiables;
   final DateTime? availableFrom;
+
+  /// The stored level the chips cannot show (see [ListingEditScalars]).
+  final FurnishingLevel? keptFurnishingLevel;
 
   /// Convenience getters for trimmed text values.
   String get society => societyController.text.trim();
@@ -381,6 +435,21 @@ class ListingFormData {
   /// (location, ≥2 photos, valid rent / electricity when separate).
   bool get canPublish => canProceed(0) && canProceed(3) && canProceed(5);
 
+  /// The furnishing level the owner's picks say, or null when they say none.
+  /// `furnished` and `semi_furnished` are the picks that carry a level. No pick
+  /// is not `unfurnished`: the owner may simply not have answered. A stored
+  /// `unfurnished` (no chip shows it) is kept while the owner picks nothing.
+  FurnishingLevel? get furnishingLevel {
+    for (final level in const [
+      FurnishingLevel.furnished,
+      FurnishingLevel.semiFurnished,
+      FurnishingLevel.unfurnished,
+    ]) {
+      if (roomFurnishing.contains(level.wire)) return level;
+    }
+    return keptFurnishingLevel;
+  }
+
   /// Build the [ListingCreateRequest] from current form state.
   ListingCreateRequest toRequest() {
     final features = [
@@ -404,9 +473,10 @@ class ListingFormData {
       maintenanceCharges: double.tryParse(maintenance),
       areaSqft: null,
       bedrooms: bedrooms,
-      // Form has no bathrooms control; default matches draft submit path.
-      bathrooms: 1,
+      // The form has no bathrooms control, so none is sent: a placeholder would
+      // be stored and shown as real listing data.
       features: features,
+      furnishingLevel: furnishingLevel,
       tags: societyVibeTags.toList(growable: false),
       mainImageUrl: roomPhotoUrls.isNotEmpty ? roomPhotoUrls.first : null,
       imageUrls: roomPhotoUrls,

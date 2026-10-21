@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/features/chats/chats_repository.dart';
 import 'package:flatmates_app/features/shared/presentation/flatmates_ui.dart';
 import 'package:flatmates_app/features/visits/schedule_visit_page.dart';
@@ -10,7 +12,7 @@ void main() {
   group('ScheduleVisitPage', () {
     const conversation = ConversationSummaryModel(
       id: 10,
-      source: 'match',
+      source: ConversationSource.profileMatch,
       peer: ChatPeer(id: 2, fullName: 'Priya Patel'),
       contextProperty: ChatPropertyContext(
         id: 42,
@@ -82,6 +84,38 @@ void main() {
         find.byKey(const Key('visit_send_request_button')),
       );
       expect(sendButton.onPressed, isNotNull);
+    });
+
+    testWidgets('the matched-on date is the local day of a late-evening UTC '
+        'value', (tester) async {
+      // 23:30 UTC is already the next day in any zone east of UTC (IST, for
+      // one). The date must be the viewer's local day, not the UTC day.
+      final matchedAt = DateTime.utc(2026, 3, 5, 23, 30);
+      final expected = DateFormat(
+        'd MMM yyyy',
+        'en',
+      ).format(matchedAt.toLocal());
+      await tester.pumpWidget(
+        testableWidget(
+          child: ScheduleVisitPage(
+            conversation: ConversationSummaryModel(
+              id: 10,
+              source: ConversationSource.profileMatch,
+              peer: const ChatPeer(id: 2, fullName: 'Priya Patel'),
+              contextProperty: const ChatPropertyContext(
+                id: 42,
+                title: 'Modern 2BHK in Koramangala',
+                monthlyRent: 24000.0,
+              ),
+              matchedAt: matchedAt,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.textContaining(expected), findsOneWidget);
     });
   });
 }

@@ -18,23 +18,32 @@ class VisitsActionsController {
   VisitsRepository get _repository => _ref.read(visitsRepositoryProvider);
 
   Future<void> confirm(VisitItem item) async {
-    await _repository.confirmVisit(item.id);
-    _refreshRelated();
+    final fresh = await _repository.confirmVisit(item.id);
+    _applyServerVisit(item, fresh);
   }
 
-  Future<void> cancel(VisitItem item) async {
-    await _repository.cancelVisit(item.id);
-    _refreshRelated();
+  /// Cancels with [reason] (required by the cancel route).
+  Future<void> cancel(VisitItem item, {required String reason}) async {
+    final fresh = await _repository.cancelVisit(item.id, reason: reason);
+    _applyServerVisit(item, fresh);
   }
 
-  Future<void> reschedule(VisitItem item, DateTime newDate) async {
-    await _repository.rescheduleVisit(item.id, newDate);
-    _refreshRelated();
+  Future<void> reschedule(
+    VisitItem item,
+    DateTime newDate, {
+    String? reason,
+  }) async {
+    final fresh = await _repository.rescheduleVisit(
+      item.id,
+      newDate,
+      reason: reason,
+    );
+    _applyServerVisit(item, fresh);
   }
 
   /// Requests a visit and posts the chat notification, then refreshes the
-  /// visit lists. Returns the new visit id. Throws on failure.
-  Future<int> schedule({
+  /// visit lists. Returns the created visit. Throws on failure.
+  Future<VisitItem> schedule({
     required int propertyId,
     required int counterpartyUserId,
     required int conversationId,
@@ -43,7 +52,7 @@ class VisitsActionsController {
     String? note,
     String? timeSlotLabel,
   }) async {
-    final visitId = await _repository.scheduleVisitAndNotify(
+    final visit = await _repository.scheduleVisitAndNotify(
       propertyId: propertyId,
       counterpartyUserId: counterpartyUserId,
       conversationId: conversationId,
@@ -53,12 +62,26 @@ class VisitsActionsController {
       timeSlotLabel: timeSlotLabel,
     );
     _refreshRelated();
-    // The visit request posts a `visit_request` chat message, so the
+    // The visit request posts a visit-request chat message, so the
     // conversation list's preview and timestamp are stale. Refresh it in place
     // (`refreshKeepingList`) instead of invalidating it: a failed refetch keeps
     // the conversations already on screen rather than dropping the list.
     unawaited(refreshKeepingList(_ref, conversationsListControllerProvider));
-    return visitId;
+    return visit;
+  }
+
+  /// Puts the visit the server returned into the list on screen, then
+  /// reconciles with a background reload.
+  void _applyServerVisit(VisitItem old, VisitItem fresh) {
+    // Only a list that is already on screen needs the row; reading the provider
+    // otherwise would create it and start a fetch nobody asked for. The row
+    // keeps its place: a status change does not reorder the server's list.
+    if (_ref.exists(visitsListControllerProvider)) {
+      _ref
+          .read(visitsListControllerProvider.notifier)
+          .replaceInPlace(old.withServerState(fresh));
+    }
+    _refreshRelated();
   }
 
   /// Refreshes the visit data after a status change.

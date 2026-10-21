@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_breakpoints.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'flatmates_button.dart';
@@ -88,6 +89,15 @@ abstract final class FlatmatesDialog {
             return Dialog(
               backgroundColor: Colors.transparent,
               elevation: 0,
+              // A Dialog with only insetPadding stretches to the viewport,
+              // which is 951 dp on the open iPhone Duo. The cap keeps the
+              // paper panel a readable width and centres it.
+              // Keeps the Material minimum (280 dp) so a short confirmation
+              // does not shrink to a sliver.
+              constraints: const BoxConstraints(
+                minWidth: 280,
+                maxWidth: AppBreakpoints.dialogMaxWidth,
+              ),
               insetPadding: const EdgeInsets.all(AppSpacing.lg),
               child: PaperSurface(
                 layer: PaperLayer.three,

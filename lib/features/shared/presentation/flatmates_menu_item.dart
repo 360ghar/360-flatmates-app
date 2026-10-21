@@ -63,66 +63,71 @@ class _FlatmatesMenuItemState extends State<FlatmatesMenuItem> {
       onPointerDown: (_) => _setPressed(true),
       onPointerUp: (_) => _setPressed(false),
       onPointerCancel: (_) => _setPressed(false),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: AppRadius.mdBorder,
-        splashColor: clay.withValues(alpha: 0.05),
-        highlightColor: clay.withValues(alpha: 0.03),
-        child: AnimatedScale(
-          scale: _pressed ? AppMotion.pressScale : 1.0,
-          duration: AppMotion.fast,
-          curve: AppMotion.paperOut,
-          // The row measures 48 dp at 1x, but a text scale below 1 shrinks the
-          // label's line box and takes the tap target with it. Hold the 48 dp
-          // minimum at every scale.
-          child: Container(
-            constraints: const BoxConstraints(minHeight: AppSpacing.xxl),
-            padding: EdgeInsets.symmetric(
-              horizontal: FlatmatesMenuItem._hPad(dense),
-              vertical: dense ? AppSpacing.md : AppSpacing.base,
-            ),
-            child: Row(
-              children: [
-                // Bare icon (no tinted tile), in a fixed-width slot so
-                // labels align down the list.
-                SizedBox(
-                  width: FlatmatesMenuItem._iconSlot(dense),
-                  child: Icon(
-                    widget.icon,
-                    size: dense ? 20 : 22,
-                    color: widget.isDestructive ? danger : clay,
+      child: Semantics(
+        button: true,
+        enabled: widget.onTap != null,
+        container: true,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: AppRadius.mdBorder,
+          splashColor: clay.withValues(alpha: 0.05),
+          highlightColor: clay.withValues(alpha: 0.03),
+          child: AnimatedScale(
+            scale: _pressed ? AppMotion.pressScale : 1.0,
+            duration: AppMotion.fast,
+            curve: AppMotion.paperOut,
+            // The row measures 48 dp at 1x, but a text scale below 1 shrinks the
+            // label's line box and takes the tap target with it. Hold the 48 dp
+            // minimum at every scale.
+            child: Container(
+              constraints: const BoxConstraints(minHeight: AppSpacing.xxl),
+              padding: EdgeInsets.symmetric(
+                horizontal: FlatmatesMenuItem._hPad(dense),
+                vertical: dense ? AppSpacing.md : AppSpacing.base,
+              ),
+              child: Row(
+                children: [
+                  // Bare icon (no tinted tile), in a fixed-width slot so
+                  // labels align down the list.
+                  SizedBox(
+                    width: FlatmatesMenuItem._iconSlot(dense),
+                    child: Icon(
+                      widget.icon,
+                      size: dense ? 20 : 22,
+                      color: widget.isDestructive ? danger : clay,
+                    ),
                   ),
-                ),
-                const SizedBox(width: FlatmatesMenuItem._iconGap),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.label,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: widget.isDestructive ? danger : null,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (widget.subtitle != null)
+                  const SizedBox(width: FlatmatesMenuItem._iconGap),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          widget.subtitle!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppSemanticColors.textSecondaryFor(
-                              brightness,
-                            ),
+                          widget.label,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: widget.isDestructive ? danger : null,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                    ],
+                        if (widget.subtitle != null)
+                          Text(
+                            widget.subtitle!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppSemanticColors.textSecondaryFor(
+                                brightness,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: AppSemanticColors.textTertiaryFor(brightness),
-                ),
-              ],
+                  Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: AppSemanticColors.textTertiaryFor(brightness),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -10,7 +10,11 @@ import 'package:flatmates_app/features/settings/data/settings_repository.dart';
 import 'package:flatmates_app/features/settings/settings_controller.dart';
 
 class _FakeSettingsRepository implements SettingsRepository {
-  _FakeSettingsRepository();
+  _FakeSettingsRepository({this.remotePrivacy = const {}});
+
+  final Map<String, dynamic> remotePrivacy;
+  final notificationWrites = <Map<String, dynamic>>[];
+  final privacyWrites = <Map<String, bool>>[];
 
   @override
   Future<RemoteNotificationSettings> fetchNotificationSettings() async {
@@ -18,23 +22,24 @@ class _FakeSettingsRepository implements SettingsRepository {
   }
 
   @override
-  Future<void> updateNotificationSettings(Map<String, dynamic> payload) async {}
-
-  @override
-  Future<RemotePrivacySettings> fetchPrivacySettings() async {
-    return RemotePrivacySettings.fromJson(const {});
+  Future<void> updateNotificationSettings(
+    RemoteNotificationSettings settings,
+  ) async {
+    notificationWrites.add(settings.toJson());
   }
 
   @override
-  Future<void> updatePrivacySettings(Map<String, dynamic> payload) async {}
+  Future<RemotePrivacySettings> fetchPrivacySettings() async {
+    return RemotePrivacySettings.fromJson(remotePrivacy);
+  }
 
   @override
-  Future<void> updatePrivacySettingsCompat(
-    Map<String, dynamic> payload,
-  ) async {}
+  Future<void> updatePrivacySettings(Map<String, bool> patch) async {
+    privacyWrites.add(patch);
+  }
 }
 
-ProviderContainer _container() {
+ProviderContainer _container([_FakeSettingsRepository? repository]) {
   final container = ProviderContainer(
     overrides: [
       appConfigProvider.overrideWithValue(fakeAppConfig()),
@@ -43,7 +48,9 @@ ProviderContainer _container() {
         // This is set up in setUp via SharedPreferences.setMockInitialValues.
         _cachedPrefs!,
       ),
-      settingsRepositoryProvider.overrideWithValue(_FakeSettingsRepository()),
+      settingsRepositoryProvider.overrideWithValue(
+        repository ?? _FakeSettingsRepository(),
+      ),
       settingsControllerProvider.overrideWith(() => SettingsController()),
     ],
   );
@@ -117,7 +124,7 @@ void main() {
     });
 
     test(
-      'updateAllNotificationSettings updates all notification toggles',
+      'updateAllNotificationSettings updates the notification switches',
       () async {
         final container = _container();
         final notifier = container.read(settingsControllerProvider.notifier);
@@ -127,29 +134,77 @@ void main() {
 
         final state = container.read(settingsControllerProvider);
         expect(state.notifNewMessages, isFalse);
-        expect(state.notifVisitReminders, isFalse);
-        expect(state.notifNewMatches, isFalse);
-        expect(state.notifListingUpdates, isFalse);
         expect(state.notifPromotions, isFalse);
       },
     );
 
-    test('updateAllNotificationSettings(true) turns every toggle on', () async {
+    test('updateAllNotificationSettings(true) turns every switch on', () async {
       final container = _container();
       final notifier = container.read(settingsControllerProvider.notifier);
       await notifier.load();
 
-      // First turn everything off.
       await notifier.updateAllNotificationSettings(false);
-      // Then turn everything on.
       await notifier.updateAllNotificationSettings(true);
 
       final state = container.read(settingsControllerProvider);
       expect(state.notifNewMessages, isTrue);
-      expect(state.notifVisitReminders, isTrue);
-      expect(state.notifNewMatches, isTrue);
-      expect(state.notifListingUpdates, isTrue);
       expect(state.notifPromotions, isTrue);
+    });
+
+    test('a notification save sends the four contract keys only', () async {
+      final repository = _FakeSettingsRepository();
+      final container = _container(repository);
+      final notifier = container.read(settingsControllerProvider.notifier);
+      await notifier.load();
+
+      await notifier.updateNotifPromotions(true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.notificationWrites, isNotEmpty);
+      for (final body in repository.notificationWrites) {
+        // Any other key (visit_reminders, property_updates, onboarding,
+        // digest, categories, ...) is a 422 for the whole request.
+        expect(body.keys, {
+          'push_notifications',
+          'email_notifications',
+          'sms_notifications',
+          'promotional_emails',
+        });
+      }
+      expect(repository.notificationWrites.last['promotional_emails'], isTrue);
+    });
+
+    test(
+      'hide_last_name is written to and read from privacy-settings',
+      () async {
+        final repository = _FakeSettingsRepository(
+          remotePrivacy: const {'hide_last_name': true},
+        );
+        final container = _container(repository);
+        final notifier = container.read(settingsControllerProvider.notifier);
+        await notifier.load();
+
+        // The server value wins over the local default.
+        expect(container.read(settingsControllerProvider).hideLastName, isTrue);
+
+        await notifier.updateHideLastName(false);
+        await Future<void>.delayed(Duration.zero);
+
+        // A privacy write is a partial update: only the changed key.
+        expect(repository.privacyWrites.last, {'hide_last_name': false});
+      },
+    );
+
+    test('hide exact location writes location_sharing only', () async {
+      final repository = _FakeSettingsRepository();
+      final container = _container(repository);
+      final notifier = container.read(settingsControllerProvider.notifier);
+      await notifier.load();
+
+      await notifier.updateHideExactLocation(true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.privacyWrites.last, {'location_sharing': false});
     });
   });
 }

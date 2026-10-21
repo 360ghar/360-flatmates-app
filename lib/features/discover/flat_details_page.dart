@@ -176,7 +176,7 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
     required int? currentUserId,
   }) {
     final hasLiked = listing.liked ?? false;
-    final ownerId = listing.owner?.id ?? listing.ownerId;
+    final ownerId = listing.ownerId;
     // When seed omits owner_id (sparse POST body), treat as self-owned so
     // contact/like stay disabled on the poster's own under-review preview.
     final isSelfOwned =
@@ -282,15 +282,30 @@ class _FlatDetailsPageState extends ConsumerState<FlatDetailsPage> {
                     index: 3,
                     child: FlatDetailsLocation(
                       listing: listing,
-                      currentUserId: currentUserId,
-                      onVoteSocietyTag: (tag, vote) => handleSocietyTagVote(
-                        ref: ref,
-                        context: context,
-                        listing: listing,
-                        tag: tag,
-                        vote: vote,
-                        listingId: widget.listingId,
-                      ),
+                      onVoteSocietyTag: (tag, vote) async {
+                        await handleSocietyTagVote(
+                          ref: ref,
+                          context: context,
+                          listing: listing,
+                          tag: tag,
+                          vote: vote,
+                          listingId: widget.listingId,
+                        );
+                        // A seeded page does not watch the provider, so copy
+                        // the vote counts the server answered with.
+                        if (!mounted) return;
+                        final seeded = _localListing;
+                        final votes = ref
+                            .read(propertyListingProvider(widget.listingId))
+                            .valueOrNull
+                            ?.societyTagVotes;
+                        if (seeded == null || votes == null) return;
+                        setState(
+                          () => _localListing = seeded.copyWith(
+                            societyTagVotes: votes,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

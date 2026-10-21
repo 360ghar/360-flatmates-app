@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart'
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthChangeEvent, AuthException;
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/providers.dart';
@@ -16,6 +17,7 @@ import '../discover/application/property_listing_seed_store.dart';
 import '../listings/listings_repository.dart';
 import 'data/auth_repository.dart';
 import 'domain/auth_state.dart';
+import 'identifier.dart';
 import 'last_auth_method.dart';
 
 export 'domain/auth_state.dart';
@@ -328,10 +330,14 @@ class AuthController extends Notifier<AuthState> {
 
     final unverified = status.exists && !status.verified;
     final encoded = Uri.encodeComponent(identifier);
-    final isEmail = status.channel == AuthChannel.email;
+    // A channel this build does not know: read it off what the user typed.
+    final isEmail = status.channel == null
+        ? looksLikeEmail(identifier)
+        : status.channel == AuthChannel.email;
     final query = isEmail ? 'email=$encoded' : 'phone=$encoded';
 
-    // A verified account with a password logs in with the password screen.
+    // A verified account with a password logs in with the password screen. A
+    // next step this build does not know (null) falls through to OTP.
     if (status.nextStep == IdentifierNextStep.password) {
       return (route: '/login?$query', unverified: unverified);
     }

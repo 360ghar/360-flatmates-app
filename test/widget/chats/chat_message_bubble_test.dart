@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/core/theme/app_spacing.dart';
 import 'package:flatmates_app/core/theme/app_theme.dart';
 import 'package:flatmates_app/features/chats/chats_repository.dart';
@@ -12,16 +13,16 @@ import '../../helpers/test_helpers.dart';
 VisitItem _visit() => VisitItem(
   id: 7,
   propertyTitle: 'Modern 2BHK',
-  status: 'requested',
+  status: VisitStatus.requested,
   scheduledDate: DateTime(2025, 5, 20, 11),
-  visitContext: 'incoming',
+  visitContext: VisitContext.flatmateMeet,
 );
 
 ChatMessage _visitRequestMessage() => ChatMessage(
   id: 200,
   conversationId: 10,
   senderId: 2,
-  messageType: 'visit_request',
+  messageType: MessageType.visitRequest,
   createdAt: DateTime(2025, 5, 15, 14, 30),
 );
 
@@ -58,7 +59,7 @@ void main() {
         id: 101,
         conversationId: 10,
         senderId: 2,
-        messageType: 'image',
+        messageType: MessageType.image,
         createdAt: DateTime(2025, 5, 15, 14, 31),
         attachmentUrl: 'https://example.com/photo.jpg',
       );

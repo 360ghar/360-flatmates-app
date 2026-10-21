@@ -14,15 +14,19 @@ void main() {
   });
 
   group('NotificationSettingsPage', () {
-    testWidgets('renders all five notification toggles', (tester) async {
+    testWidgets('renders the two notification switches the backend has', (
+      tester,
+    ) async {
       final widget = await testableWidgetAsync(
         child: const NotificationSettingsPage(),
       );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
-      // Five SwitchListTile widgets for the five notification toggles.
-      expect(find.byType(SwitchListTile), findsNWidgets(5));
+      // Messages (push_notifications) and promotions (promotional_emails).
+      // The visit-reminder, new-match and listing-update switches have no
+      // backend key: a save with one is a 422.
+      expect(find.byType(SwitchListTile), findsNWidgets(2));
     });
 
     testWidgets('Disable All turns every toggle off and shows a toast', (

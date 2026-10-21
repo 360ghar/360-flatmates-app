@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/listings/listings_repository.dart';
@@ -276,13 +277,155 @@ void main() {
       expect(sentData!['features'], ['wifi', 'parking']);
       expect(sentData!['tags'], ['furnished']);
       expect(sentData!['main_image_url'], 'https://example.com/photo.jpg');
+      // The five society and preference fields are top-level contract keys,
+      // and the vibe key is society_vibe_tags (not society_vibes).
+      expect(sentData!['gender_preference'], 'any');
+      expect(sentData!['sharing_type'], 'private_room');
+      expect(sentData!['society_type'], 'gated');
+      expect(sentData!['society_amenities'], ['gym']);
+      expect(sentData!['society_vibe_tags'], ['quiet']);
+      expect(sentData!.containsKey('society_vibes'), isFalse);
       final prefs = sentData!['listing_preferences'] as Map<String, dynamic>;
-      expect(prefs['gender_preference'], 'any');
-      expect(prefs['sharing_type'], 'private_room');
-      expect(prefs['society_type'], 'gated');
-      expect(prefs['society_amenities'], ['gym']);
-      expect(prefs['society_vibes'], ['quiet']);
+      expect(prefs.containsKey('society_vibes'), isFalse);
     });
+
+    test(
+      'a response in the old {data: ...} wrapper is not unwrapped',
+      () async {
+        final container = _containerWithAdapter(
+          (options) => Response<dynamic>(
+            data: {
+              'data': {'id': 42},
+            },
+            statusCode: 201,
+            requestOptions: options,
+          ),
+        );
+
+        final result = await container
+            .read(listingsRepositoryProvider)
+            .createListing(
+              const ListingCreateRequest(
+                title: 'Wrapped response',
+                description: null,
+                city: 'Bangalore',
+                locality: 'Koramangala',
+                subLocality: '',
+                monthlyRent: 15000,
+                securityDeposit: null,
+                maintenanceCharges: null,
+                areaSqft: null,
+                bedrooms: 1,
+                features: [],
+                tags: [],
+                mainImageUrl: null,
+                imageUrls: [],
+                availableFrom: null,
+                genderPreference: 'any',
+                sharingType: 'private_room',
+                societyType: 'standalone',
+                societyAmenities: [],
+                societyVibeTags: [],
+              ),
+            );
+
+        // The contract returns the listing itself, so there is no id here.
+        expect(result.id, isNull);
+        expect(result.listing, isNull);
+      },
+    );
+
+    test('sends no bathrooms when the owner entered none', () async {
+      Map<String, dynamic>? sentData;
+      final container = _containerWithAdapter((options) {
+        sentData = Map<String, dynamic>.from(options.data as Map);
+        return Response<dynamic>(
+          data: {'id': 43},
+          statusCode: 201,
+          requestOptions: options,
+        );
+      });
+
+      await container
+          .read(listingsRepositoryProvider)
+          .createListing(
+            const ListingCreateRequest(
+              title: 'No bathrooms entered',
+              description: null,
+              city: 'Bangalore',
+              locality: 'Koramangala',
+              subLocality: '',
+              monthlyRent: 15000,
+              securityDeposit: null,
+              maintenanceCharges: null,
+              areaSqft: null,
+              bedrooms: 1,
+              features: [],
+              tags: [],
+              mainImageUrl: null,
+              imageUrls: [],
+              availableFrom: null,
+              genderPreference: 'any',
+              sharingType: 'private_room',
+              societyType: 'standalone',
+              societyAmenities: [],
+              societyVibeTags: [],
+            ),
+          );
+
+      // A placeholder would be stored and shown as real listing data.
+      expect(sentData!.containsKey('bathrooms'), isFalse);
+    });
+
+    test(
+      'sends the date-only available_from and the furnishing level',
+      () async {
+        Map<String, dynamic>? sentData;
+        final container = _containerWithAdapter((options) {
+          sentData = Map<String, dynamic>.from(options.data as Map);
+          return Response<dynamic>(
+            data: {'id': 44},
+            statusCode: 201,
+            requestOptions: options,
+          );
+        });
+
+        await container
+            .read(listingsRepositoryProvider)
+            .createListing(
+              ListingCreateRequest(
+                title: 'Furnished room',
+                description: null,
+                city: 'Bangalore',
+                locality: 'Koramangala',
+                subLocality: '',
+                monthlyRent: 15000,
+                securityDeposit: null,
+                maintenanceCharges: null,
+                areaSqft: null,
+                bedrooms: 1,
+                features: const ['furnished'],
+                tags: const [],
+                mainImageUrl: null,
+                imageUrls: const [],
+                availableFrom: DateTime(2026, 11, 3),
+                genderPreference: 'any',
+                sharingType: 'private_room',
+                societyType: 'standalone',
+                societyAmenities: const [],
+                societyVibeTags: const [],
+                furnishingLevel: FurnishingLevel.furnished,
+              ),
+            );
+
+        expect(sentData!['available_from'], '2026-11-03');
+        expect(sentData!['furnishing_level'], 'furnished');
+        final prefs = sentData!['listing_preferences'] as Map<String, dynamic>;
+        expect(prefs['rooms'], [
+          {'furnishing_level': 'furnished'},
+        ]);
+      },
+    );
   });
 
   group('ListingsRepository.updateListing', () {
@@ -336,10 +479,64 @@ void main() {
       expect(result.id, 99);
       expect(sentData!['title'], 'Updated Listing');
       expect(sentData!['monthly_rent'], 18000);
-      // Null fields should be stripped by updateListing.
-      expect(sentData!.containsKey('description'), isFalse);
-      expect(sentData!.containsKey('security_deposit'), isFalse);
-      expect(sentData!.containsKey('main_image_url'), isFalse);
+      // A control the owner cleared sends an explicit null, so the server
+      // clears the stored value.
+      expect(sentData!.containsKey('description'), isTrue);
+      expect(sentData!['description'], isNull);
+      expect(sentData!.containsKey('security_deposit'), isTrue);
+      expect(sentData!['security_deposit'], isNull);
+      expect(sentData!.containsKey('main_image_url'), isTrue);
+      expect(sentData!['main_image_url'], isNull);
+      // Keys with a value are sent as they are.
+      expect(sentData!['area_sqft'], 1000);
+      expect(sentData!['bathrooms'], 1);
+    });
+
+    test('leaves out keys the form has no control for', () async {
+      Map<String, dynamic>? sentData;
+      final container = _containerWithAdapter((options) {
+        sentData = Map<String, dynamic>.from(options.data as Map);
+        return Response<dynamic>(
+          data: {'id': 99},
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      await container
+          .read(listingsRepositoryProvider)
+          .updateListing(
+            99,
+            const ListingCreateRequest(
+              title: 'Updated Listing',
+              description: 'Text',
+              city: 'Bangalore',
+              locality: 'Indiranagar',
+              subLocality: '',
+              monthlyRent: 18000,
+              securityDeposit: null,
+              maintenanceCharges: null,
+              areaSqft: null,
+              bedrooms: 1,
+              features: [],
+              tags: [],
+              mainImageUrl: null,
+              imageUrls: [],
+              availableFrom: null,
+              genderPreference: 'any',
+              sharingType: 'shared_room',
+              societyType: 'standalone',
+              societyAmenities: [],
+              societyVibeTags: [],
+            ),
+          );
+
+      // The form has no area or bathrooms control: the stored values stay.
+      expect(sentData!.containsKey('area_sqft'), isFalse);
+      expect(sentData!.containsKey('bathrooms'), isFalse);
+      // Cleared controls are explicit nulls.
+      expect(sentData!.containsKey('security_deposit'), isTrue);
+      expect(sentData!['security_deposit'], isNull);
     });
   });
 }

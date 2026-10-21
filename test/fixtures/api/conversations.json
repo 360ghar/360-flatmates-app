@@ -1,0 +1,411 @@
+{
+  "created": {
+    "context_property": {
+      "city": "Bengaluru",
+      "id": 42,
+      "locality": "Koramangala",
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "monthly_rent": 24000.0,
+      "owner_image_url": null,
+      "owner_name": "Rahul S",
+      "title": "Sunny room in Koramangala"
+    },
+    "id": 12,
+    "last_message_at": "2026-09-30T10:15:02Z",
+    "last_message_preview": "Hey! Is the room still available?",
+    "matched_at": "2026-09-30T10:15:02Z",
+    "peer": {
+      "age_bucket": "25-30",
+      "bio": "Early riser, tidy, cooks on weekends.",
+      "budget_max": 25000.5,
+      "budget_min": 12000.0,
+      "city": "Bengaluru",
+      "cleanliness": "tidy",
+      "drinking": "occasionally",
+      "food_habits": "vegetarian",
+      "full_name": "Priya P",
+      "gender": "female",
+      "gender_preference": "any",
+      "guests_policy": "occasional_ok",
+      "has_pets": false,
+      "id": 2,
+      "linkedin_url": null,
+      "listing": null,
+      "locality": "HSR Layout",
+      "match_percentage": 85.0,
+      "mode": "co_hunter",
+      "move_in_timeline": "within_1_month",
+      "native_place": "Pune",
+      "non_negotiables": [
+        "no_smoking",
+        "no_parties"
+      ],
+      "party_habit": "occasional_weekends",
+      "profession": "Designer",
+      "profile_image_url": "https://cdn.example.com/u/2.jpg",
+      "sleep_schedule": "early_bird",
+      "smoking": "never",
+      "top_matches": [
+        "Same sleep schedule",
+        "Both vegetarian"
+      ],
+      "work_style": "hybrid"
+    },
+    "qna": null,
+    "source": "listing_interest",
+    "status": "active",
+    "unread_count": 2
+  },
+  "detail": {
+    "context_property": {
+      "city": "Bengaluru",
+      "id": 42,
+      "locality": "Koramangala",
+      "main_image_url": "https://cdn.example.com/p42/main.jpg",
+      "monthly_rent": 24000.0,
+      "owner_image_url": null,
+      "owner_name": "Rahul S",
+      "title": "Sunny room in Koramangala"
+    },
+    "id": 10,
+    "last_message_at": "2026-09-30T10:15:02Z",
+    "last_message_preview": "Hey! Is the room still available?",
+    "matched_at": "2026-09-30T10:15:02Z",
+    "peer": {
+      "age_bucket": "25-30",
+      "bio": "Early riser, tidy, cooks on weekends.",
+      "budget_max": 25000.5,
+      "budget_min": 12000.0,
+      "city": "Bengaluru",
+      "cleanliness": "tidy",
+      "drinking": "occasionally",
+      "food_habits": "vegetarian",
+      "full_name": "Priya P",
+      "gender": "female",
+      "gender_preference": "any",
+      "guests_policy": "occasional_ok",
+      "has_pets": false,
+      "id": 2,
+      "linkedin_url": null,
+      "listing": null,
+      "locality": "HSR Layout",
+      "match_percentage": 85.0,
+      "mode": "co_hunter",
+      "move_in_timeline": "within_1_month",
+      "native_place": "Pune",
+      "non_negotiables": [
+        "no_smoking",
+        "no_parties"
+      ],
+      "party_habit": "occasional_weekends",
+      "profession": "Designer",
+      "profile_image_url": "https://cdn.example.com/u/2.jpg",
+      "sleep_schedule": "early_bird",
+      "smoking": "never",
+      "top_matches": [
+        "Same sleep schedule",
+        "Both vegetarian"
+      ],
+      "work_style": "hybrid"
+    },
+    "qna": {
+      "both_answered": false,
+      "current_user": {
+        "q1": "A calm place",
+        "q2": "Balanced",
+        "q3": null,
+        "user_id": 7
+      },
+      "peer": {
+        "q1": "Tidy",
+        "q2": "Social",
+        "q3": "Clean",
+        "user_id": 2
+      }
+    },
+    "source": "profile_match",
+    "status": "active",
+    "unread_count": 2
+  },
+  "list_page": {
+    "has_more": true,
+    "items": [
+      {
+        "context_property": {
+          "city": "Bengaluru",
+          "id": 42,
+          "locality": "Koramangala",
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "monthly_rent": 24000.0,
+          "owner_image_url": null,
+          "owner_name": "Rahul S",
+          "title": "Sunny room in Koramangala"
+        },
+        "id": 10,
+        "last_message_at": "2026-09-30T10:15:02Z",
+        "last_message_preview": "Hey! Is the room still available?",
+        "matched_at": "2026-09-30T10:15:02Z",
+        "peer": {
+          "age_bucket": "25-30",
+          "bio": "Early riser, tidy, cooks on weekends.",
+          "budget_max": 25000.5,
+          "budget_min": 12000.0,
+          "city": "Bengaluru",
+          "cleanliness": "tidy",
+          "drinking": "occasionally",
+          "food_habits": "vegetarian",
+          "full_name": "Priya P",
+          "gender": "female",
+          "gender_preference": "any",
+          "guests_policy": "occasional_ok",
+          "has_pets": false,
+          "id": 2,
+          "linkedin_url": null,
+          "listing": null,
+          "locality": "HSR Layout",
+          "match_percentage": 85.0,
+          "mode": "co_hunter",
+          "move_in_timeline": "within_1_month",
+          "native_place": "Pune",
+          "non_negotiables": [
+            "no_smoking",
+            "no_parties"
+          ],
+          "party_habit": "occasional_weekends",
+          "profession": "Designer",
+          "profile_image_url": "https://cdn.example.com/u/2.jpg",
+          "sleep_schedule": "early_bird",
+          "smoking": "never",
+          "top_matches": [
+            "Same sleep schedule",
+            "Both vegetarian"
+          ],
+          "work_style": "hybrid"
+        },
+        "qna": {
+          "both_answered": false,
+          "current_user": {
+            "q1": "A calm place",
+            "q2": "Balanced",
+            "q3": null,
+            "user_id": 7
+          },
+          "peer": {
+            "q1": "Tidy",
+            "q2": "Social",
+            "q3": "Clean",
+            "user_id": 2
+          }
+        },
+        "source": "profile_match",
+        "status": "active",
+        "unread_count": 2
+      },
+      {
+        "context_property": {
+          "city": "Bengaluru",
+          "id": 42,
+          "locality": "Koramangala",
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "monthly_rent": 24000.0,
+          "owner_image_url": null,
+          "owner_name": "Rahul S",
+          "title": "Sunny room in Koramangala"
+        },
+        "id": 11,
+        "last_message_at": null,
+        "last_message_preview": null,
+        "matched_at": null,
+        "peer": {
+          "age_bucket": "25-30",
+          "bio": "Early riser, tidy, cooks on weekends.",
+          "budget_max": 25000.5,
+          "budget_min": 12000.0,
+          "city": "Bengaluru",
+          "cleanliness": "tidy",
+          "drinking": "occasionally",
+          "food_habits": "vegetarian",
+          "full_name": "Rahul S",
+          "gender": "female",
+          "gender_preference": "any",
+          "guests_policy": "occasional_ok",
+          "has_pets": false,
+          "id": 3,
+          "linkedin_url": null,
+          "listing": {
+            "amenities": [
+              "Gym",
+              "Lift"
+            ],
+            "area_sqft": 1200.0,
+            "available_from": "2026-11-01",
+            "balconies": 1,
+            "bathrooms": null,
+            "bedrooms": 2,
+            "city": "Bengaluru",
+            "features": [
+              "furnished",
+              "wifi"
+            ],
+            "floor_number": 3,
+            "image_urls": [
+              "https://cdn.example.com/p42/main.jpg",
+              "https://cdn.example.com/p42/bed.jpg"
+            ],
+            "landmark": "Forum Mall",
+            "latitude": 12.9352,
+            "locality": "Koramangala",
+            "longitude": 77.6245,
+            "main_image_url": "https://cdn.example.com/p42/main.jpg",
+            "maintenance_charges": 1500.5,
+            "monthly_rent": 24000.0,
+            "property_id": 42,
+            "room_type": "private_room",
+            "security_deposit": 48000.0,
+            "sub_locality": "5th Block",
+            "title": "Sunny room in Koramangala",
+            "total_floors": 8,
+            "video_tour_url": null,
+            "virtual_tour_url": null
+          },
+          "locality": "HSR Layout",
+          "match_percentage": null,
+          "mode": "room_poster",
+          "move_in_timeline": "within_1_month",
+          "native_place": "Pune",
+          "non_negotiables": [
+            "no_smoking",
+            "no_parties"
+          ],
+          "party_habit": "occasional_weekends",
+          "profession": "Designer",
+          "profile_image_url": "https://cdn.example.com/u/3.jpg",
+          "sleep_schedule": "early_bird",
+          "smoking": "never",
+          "top_matches": [],
+          "work_style": "hybrid"
+        },
+        "qna": null,
+        "source": "listing_interest",
+        "status": "active",
+        "unread_count": 0
+      }
+    ],
+    "limit": 20,
+    "next_cursor": "eyJrIjpbIjIwMjYtMDktMzAiLDEwXSwiZiI6ImFiYyJ9",
+    "total": null
+  },
+  "message_created": {
+    "attachment_url": null,
+    "body": "On my way",
+    "conversation_id": 10,
+    "created_at": "2026-09-30T10:15:02Z",
+    "id": 105,
+    "message_type": "text",
+    "metadata": null,
+    "read_at": null,
+    "sender_id": 7
+  },
+  "messages_last_page": {
+    "has_more": false,
+    "items": [
+      {
+        "attachment_url": null,
+        "body": "Hey! Is the room still available?",
+        "conversation_id": 10,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 1,
+        "message_type": "text",
+        "metadata": null,
+        "read_at": null,
+        "sender_id": 2
+      }
+    ],
+    "limit": 50,
+    "next_cursor": null,
+    "total": null
+  },
+  "messages_page": {
+    "has_more": true,
+    "items": [
+      {
+        "attachment_url": null,
+        "body": "Hey! Is the room still available?",
+        "conversation_id": 10,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 100,
+        "message_type": "text",
+        "metadata": null,
+        "read_at": null,
+        "sender_id": 2
+      },
+      {
+        "attachment_url": null,
+        "body": "Yes, come over on Saturday.",
+        "conversation_id": 10,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 101,
+        "message_type": "text",
+        "metadata": null,
+        "read_at": null,
+        "sender_id": 7
+      },
+      {
+        "attachment_url": null,
+        "body": "Visit requested for Morning (9 to 12)",
+        "conversation_id": 10,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 102,
+        "message_type": "text",
+        "metadata": {
+          "scheduled_date": "2026-10-04T05:30:00Z",
+          "status": "requested",
+          "time_slot_label": "Morning (9 to 12)",
+          "visit_id": 5
+        },
+        "read_at": null,
+        "sender_id": 7
+      },
+      {
+        "attachment_url": null,
+        "body": "Priya left the conversation.",
+        "conversation_id": 10,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 103,
+        "message_type": "system",
+        "metadata": null,
+        "read_at": null,
+        "sender_id": null
+      },
+      {
+        "attachment_url": "https://cdn.example.com/c/10/photo.jpg",
+        "body": null,
+        "conversation_id": 10,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 104,
+        "message_type": "image",
+        "metadata": null,
+        "read_at": null,
+        "sender_id": 2
+      }
+    ],
+    "limit": 50,
+    "next_cursor": "eyJrIjpbMTAwLDEwMF0sImYiOiJhYmMifQ",
+    "total": null
+  },
+  "qna_state": {
+    "both_answered": true,
+    "current_user": {
+      "q1": "A calm place",
+      "q2": "Balanced",
+      "q3": "Tidy",
+      "user_id": 7
+    },
+    "peer": {
+      "q1": "Quiet",
+      "q2": "Social",
+      "q3": "Clean",
+      "user_id": 2
+    }
+  }
+}

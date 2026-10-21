@@ -97,7 +97,14 @@ class _FlatmatesErrorStateState extends State<FlatmatesErrorState>
         ? body
         : SlideTransition(position: rise, child: body);
 
-    // Scrolls when height is short (keyboard, small phone, large text).
-    return Center(child: SingleChildScrollView(child: content));
+    // Scrolls when height is short (keyboard, small phone, large text). Under
+    // an unbounded height (a sheet column, a list) there is nothing to scroll
+    // within, and a scroll view there would assert, so it lays out plainly.
+    // `primary: false` keeps it off the page's PrimaryScrollController.
+    return LayoutBuilder(
+      builder: (context, constraints) => constraints.hasBoundedHeight
+          ? Center(child: SingleChildScrollView(primary: false, child: content))
+          : content,
+    );
   }
 }

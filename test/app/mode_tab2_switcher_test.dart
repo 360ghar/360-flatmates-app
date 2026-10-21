@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_helpers.dart';
 import 'package:flatmates_app/app/router/app_router.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/features/bootstrap/bootstrap_controller.dart';
 import 'package:flatmates_app/features/listings/post_hub_page.dart';
 import 'package:flatmates_app/features/discover/map_view_page.dart';
@@ -57,7 +58,7 @@ class _RoomPosterBootstrapController extends FakeBootstrapController {
           id: 1,
           fullName: 'Room Poster',
           mode: 'room_poster',
-          profileStatus: 'active',
+          profileStatus: FlatmatesProfileStatus.active,
           onboardingCompleted: true,
         ),
       ),

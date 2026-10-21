@@ -55,15 +55,17 @@ ProviderContainer _containerWithAdapter(
 
 void main() {
   group('ChatsRepository.fetchMessages', () {
-    test('uses before_id and MessageListResponse envelope', () async {
-      int? beforeId;
+    test('sends cursor (not before_id) and reads the CursorPage', () async {
+      String? cursor;
       String? path;
+      Map<String, dynamic>? query;
       final container = _containerWithAdapter((options) {
         path = options.path;
-        beforeId = options.queryParameters['before_id'] as int?;
+        query = options.queryParameters;
+        cursor = options.queryParameters['cursor'] as String?;
         return Response<dynamic>(
           data: {
-            'messages': [
+            'items': [
               {
                 'id': 50,
                 'conversation_id': 10,
@@ -75,14 +77,16 @@ void main() {
               {
                 'id': 60,
                 'conversation_id': 10,
-                'sender_id': 1,
-                'body': 'newer',
-                'message_type': 'text',
+                'sender_id': null,
+                'body': 'System notice',
+                'message_type': 'system',
                 'created_at': '2025-05-15T14:00:00Z',
               },
             ],
-            'total': 2,
+            'next_cursor': 'opaque-older',
             'has_more': true,
+            'limit': 50,
+            'total': null,
           },
           statusCode: 200,
           requestOptions: options,
@@ -90,25 +94,59 @@ void main() {
       });
 
       final repo = container.read(chatsRepositoryProvider);
-      final response = await repo.fetchMessages(10, beforeId: 100);
+      final page = await repo.fetchMessages(10, cursor: 'opaque-newer');
 
       expect(path, '/flatmates/conversations/10/messages');
-      expect(beforeId, 100);
-      expect(response.messages.length, 2);
-      expect(response.hasMore, isTrue);
-      expect(response.total, 2);
-      // Chronological page: index 0 is oldest — used as next before_id.
-      expect(response.nextBeforeId, 50);
+      expect(cursor, 'opaque-newer');
+      expect(query, isNot(contains('before_id')));
+      expect(page.messages.length, 2);
+      expect(page.hasMore, isTrue);
+      // The cursor of the older page is passed back unchanged.
+      expect(page.nextCursor, 'opaque-older');
+      // A null sender stays null: it is a system notice, not user 0.
+      expect(page.messages.first.senderId, 2);
+      expect(page.messages.last.senderId, isNull);
+      expect(page.messages.last.isSystem, isTrue);
     });
 
-    test('ignores CursorPage-shaped payloads', () async {
+    test('has no next cursor on the last page', () async {
       final container = _containerWithAdapter((options) {
-        // Backend contract for messages is { messages, total, has_more }.
-        // A CursorPage-shaped payload ({ items, next_cursor }) has no
-        // `messages` key, so messages should be empty.
         return Response<dynamic>(
           data: {
             'items': [
+              {
+                'id': 1,
+                'conversation_id': 10,
+                'sender_id': 1,
+                'body': 'first',
+                'message_type': 'text',
+                'created_at': '2025-05-15T13:00:00Z',
+              },
+            ],
+            'next_cursor': null,
+            'has_more': false,
+            'limit': 50,
+            'total': null,
+          },
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      final page = await container
+          .read(chatsRepositoryProvider)
+          .fetchMessages(10);
+
+      expect(page.hasMore, isFalse);
+      expect(page.nextCursor, isNull);
+    });
+
+    test('ignores the old messages envelope', () async {
+      final container = _containerWithAdapter((options) {
+        // The removed shape ({messages, total, has_more}) has no `items`.
+        return Response<dynamic>(
+          data: {
+            'messages': [
               {
                 'id': 50,
                 'conversation_id': 10,
@@ -116,36 +154,6 @@ void main() {
                 'body': 'should be ignored',
                 'message_type': 'text',
                 'created_at': '2025-05-15T13:00:00Z',
-              },
-            ],
-            'next_cursor': 'abc',
-          },
-          statusCode: 200,
-          requestOptions: options,
-        );
-      });
-
-      final repo = container.read(chatsRepositoryProvider);
-      final response = await repo.fetchMessages(10);
-
-      expect(response.messages, isEmpty);
-      expect(response.hasMore, isFalse);
-    });
-  });
-
-  group('ChatsRepository.watchMessages', () {
-    test('emits the REST seed page', () async {
-      final container = _containerWithAdapter((options) {
-        return Response<dynamic>(
-          data: {
-            'messages': [
-              {
-                'id': 100,
-                'conversation_id': 10,
-                'sender_id': 1,
-                'body': 'seed',
-                'message_type': 'text',
-                'created_at': '2025-05-15T14:30:00Z',
               },
             ],
             'total': 1,
@@ -156,13 +164,170 @@ void main() {
         );
       });
 
-      final repo = container.read(chatsRepositoryProvider);
-      final stream = repo.watchMessages(10);
-      final first = await stream.first;
+      final page = await container
+          .read(chatsRepositoryProvider)
+          .fetchMessages(10);
 
-      expect(first.length, 1);
-      expect(first.first.id, 100);
-      expect(first.first.body, 'seed');
+      expect(page.messages, isEmpty);
+    });
+  });
+
+  group('ChatsRepository.fetchMatchPhone', () {
+    Map<String, dynamic> match(int id, int peerId, String status) => {
+      'id': id,
+      'status': status,
+      'peer': {'id': peerId, 'full_name': 'Peer $peerId'},
+    };
+
+    test('reads the phone from the match contact route only', () async {
+      final paths = <String>[];
+      final container = _containerWithAdapter((options) {
+        paths.add(options.path);
+        if (options.path == '/flatmates/matches') {
+          return Response<dynamic>(
+            data: {
+              'items': [match(8, 7, 'active'), match(9, 3, 'active')],
+              'next_cursor': null,
+              'has_more': false,
+              'limit': 100,
+              'total': null,
+            },
+            statusCode: 200,
+            requestOptions: options,
+          );
+        }
+        return Response<dynamic>(
+          data: {'match_id': 9, 'peer_user_id': 3, 'phone': '+919800000003'},
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      final phone = await container
+          .read(chatsRepositoryProvider)
+          .fetchMatchPhone(3);
+
+      expect(phone, '+919800000003');
+      expect(paths, ['/flatmates/matches', '/flatmates/matches/9/contact']);
+    });
+
+    test('follows next_cursor to find the match', () async {
+      final cursors = <String?>[];
+      final container = _containerWithAdapter((options) {
+        if (options.path == '/flatmates/matches') {
+          final cursor = options.queryParameters['cursor'] as String?;
+          cursors.add(cursor);
+          return Response<dynamic>(
+            data: cursor == null
+                ? {
+                    'items': [match(1, 2, 'active')],
+                    'next_cursor': 'page-2',
+                    'has_more': true,
+                    'limit': 100,
+                    'total': null,
+                  }
+                : {
+                    'items': [match(5, 7, 'active')],
+                    'next_cursor': null,
+                    'has_more': false,
+                    'limit': 100,
+                    'total': null,
+                  },
+            statusCode: 200,
+            requestOptions: options,
+          );
+        }
+        return Response<dynamic>(
+          data: {'match_id': 5, 'peer_user_id': 7, 'phone': '+919800000007'},
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      final phone = await container
+          .read(chatsRepositoryProvider)
+          .fetchMatchPhone(7);
+
+      expect(phone, '+919800000007');
+      expect(cursors, [null, 'page-2']);
+    });
+
+    test('has no phone for a peer without an active match', () async {
+      final paths = <String>[];
+      final container = _containerWithAdapter((options) {
+        paths.add(options.path);
+        return Response<dynamic>(
+          data: {
+            'items': [match(8, 7, 'blocked'), match(9, 3, 'unmatched')],
+            'next_cursor': null,
+            'has_more': false,
+            'limit': 100,
+            'total': null,
+          },
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      final repo = container.read(chatsRepositoryProvider);
+
+      expect(await repo.fetchMatchPhone(7), isNull);
+      expect(await repo.fetchMatchPhone(3), isNull);
+      expect(await repo.fetchMatchPhone(99), isNull);
+      // No contact call is made without an active match.
+      expect(paths.where((p) => p.endsWith('/contact')), isEmpty);
+    });
+
+    test('maps a 404 MATCH_NOT_FOUND to no phone', () async {
+      final container = _containerWithAdapter((options) {
+        if (options.path == '/flatmates/matches') {
+          return Response<dynamic>(
+            data: {
+              'items': [match(8, 7, 'active')],
+              'next_cursor': null,
+              'has_more': false,
+              'limit': 100,
+              'total': null,
+            },
+            statusCode: 200,
+            requestOptions: options,
+          );
+        }
+        return Response<dynamic>(
+          data: {
+            'error': {'code': 'MATCH_NOT_FOUND', 'message': 'No active match'},
+          },
+          statusCode: 404,
+          requestOptions: options,
+        );
+      });
+
+      final phone = await container
+          .read(chatsRepositoryProvider)
+          .fetchMatchPhone(7);
+
+      expect(phone, isNull);
+    });
+  });
+
+  group('ChatsRepository.unmatchConversation', () {
+    test('posts /flatmates/unmatch with the peer id and no block', () async {
+      String? path;
+      Map<String, dynamic>? sentData;
+      final container = _containerWithAdapter((options) {
+        path = options.path;
+        sentData = Map<String, dynamic>.from(options.data as Map);
+        return Response<dynamic>(
+          data: {'id': 4, 'status': 'unmatched'},
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      await container.read(chatsRepositoryProvider).unmatchConversation(10, 7);
+
+      expect(path, '/flatmates/unmatch');
+      expect(sentData, {'peer_user_id': 7});
     });
   });
 

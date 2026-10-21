@@ -23,11 +23,9 @@ mixin _$ChatPeer {
   String? get mode => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
   String? get locality => throw _privateConstructorUsedError;
-  int? get age => throw _privateConstructorUsedError;
   String? get ageBucket => throw _privateConstructorUsedError;
   String? get profession => throw _privateConstructorUsedError;
   double? get matchPercentage => throw _privateConstructorUsedError;
-  String? get phoneNumber => throw _privateConstructorUsedError;
 
   /// Create a copy of ChatPeer
   /// with the given fields replaced by the non-null parameter values.
@@ -48,11 +46,9 @@ abstract class $ChatPeerCopyWith<$Res> {
     String? mode,
     String? city,
     String? locality,
-    int? age,
     String? ageBucket,
     String? profession,
     double? matchPercentage,
-    String? phoneNumber,
   });
 }
 
@@ -77,11 +73,9 @@ class _$ChatPeerCopyWithImpl<$Res, $Val extends ChatPeer>
     Object? mode = freezed,
     Object? city = freezed,
     Object? locality = freezed,
-    Object? age = freezed,
     Object? ageBucket = freezed,
     Object? profession = freezed,
     Object? matchPercentage = freezed,
-    Object? phoneNumber = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -109,10 +103,6 @@ class _$ChatPeerCopyWithImpl<$Res, $Val extends ChatPeer>
                 ? _value.locality
                 : locality // ignore: cast_nullable_to_non_nullable
                       as String?,
-            age: freezed == age
-                ? _value.age
-                : age // ignore: cast_nullable_to_non_nullable
-                      as int?,
             ageBucket: freezed == ageBucket
                 ? _value.ageBucket
                 : ageBucket // ignore: cast_nullable_to_non_nullable
@@ -125,10 +115,6 @@ class _$ChatPeerCopyWithImpl<$Res, $Val extends ChatPeer>
                 ? _value.matchPercentage
                 : matchPercentage // ignore: cast_nullable_to_non_nullable
                       as double?,
-            phoneNumber: freezed == phoneNumber
-                ? _value.phoneNumber
-                : phoneNumber // ignore: cast_nullable_to_non_nullable
-                      as String?,
           )
           as $Val,
     );
@@ -151,11 +137,9 @@ abstract class _$$ChatPeerImplCopyWith<$Res>
     String? mode,
     String? city,
     String? locality,
-    int? age,
     String? ageBucket,
     String? profession,
     double? matchPercentage,
-    String? phoneNumber,
   });
 }
 
@@ -179,11 +163,9 @@ class __$$ChatPeerImplCopyWithImpl<$Res>
     Object? mode = freezed,
     Object? city = freezed,
     Object? locality = freezed,
-    Object? age = freezed,
     Object? ageBucket = freezed,
     Object? profession = freezed,
     Object? matchPercentage = freezed,
-    Object? phoneNumber = freezed,
   }) {
     return _then(
       _$ChatPeerImpl(
@@ -211,10 +193,6 @@ class __$$ChatPeerImplCopyWithImpl<$Res>
             ? _value.locality
             : locality // ignore: cast_nullable_to_non_nullable
                   as String?,
-        age: freezed == age
-            ? _value.age
-            : age // ignore: cast_nullable_to_non_nullable
-                  as int?,
         ageBucket: freezed == ageBucket
             ? _value.ageBucket
             : ageBucket // ignore: cast_nullable_to_non_nullable
@@ -227,10 +205,6 @@ class __$$ChatPeerImplCopyWithImpl<$Res>
             ? _value.matchPercentage
             : matchPercentage // ignore: cast_nullable_to_non_nullable
                   as double?,
-        phoneNumber: freezed == phoneNumber
-            ? _value.phoneNumber
-            : phoneNumber // ignore: cast_nullable_to_non_nullable
-                  as String?,
       ),
     );
   }
@@ -246,11 +220,9 @@ class _$ChatPeerImpl extends _ChatPeer {
     this.mode,
     this.city,
     this.locality,
-    this.age,
     this.ageBucket,
     this.profession,
     this.matchPercentage,
-    this.phoneNumber,
   }) : super._();
 
   @override
@@ -267,19 +239,15 @@ class _$ChatPeerImpl extends _ChatPeer {
   @override
   final String? locality;
   @override
-  final int? age;
-  @override
   final String? ageBucket;
   @override
   final String? profession;
   @override
   final double? matchPercentage;
-  @override
-  final String? phoneNumber;
 
   @override
   String toString() {
-    return 'ChatPeer(id: $id, fullName: $fullName, profileImageUrl: $profileImageUrl, mode: $mode, city: $city, locality: $locality, age: $age, ageBucket: $ageBucket, profession: $profession, matchPercentage: $matchPercentage, phoneNumber: $phoneNumber)';
+    return 'ChatPeer(id: $id, fullName: $fullName, profileImageUrl: $profileImageUrl, mode: $mode, city: $city, locality: $locality, ageBucket: $ageBucket, profession: $profession, matchPercentage: $matchPercentage)';
   }
 
   @override
@@ -296,15 +264,12 @@ class _$ChatPeerImpl extends _ChatPeer {
             (identical(other.city, city) || other.city == city) &&
             (identical(other.locality, locality) ||
                 other.locality == locality) &&
-            (identical(other.age, age) || other.age == age) &&
             (identical(other.ageBucket, ageBucket) ||
                 other.ageBucket == ageBucket) &&
             (identical(other.profession, profession) ||
                 other.profession == profession) &&
             (identical(other.matchPercentage, matchPercentage) ||
-                other.matchPercentage == matchPercentage) &&
-            (identical(other.phoneNumber, phoneNumber) ||
-                other.phoneNumber == phoneNumber));
+                other.matchPercentage == matchPercentage));
   }
 
   @override
@@ -316,11 +281,9 @@ class _$ChatPeerImpl extends _ChatPeer {
     mode,
     city,
     locality,
-    age,
     ageBucket,
     profession,
     matchPercentage,
-    phoneNumber,
   );
 
   /// Create a copy of ChatPeer
@@ -340,11 +303,9 @@ abstract class _ChatPeer extends ChatPeer {
     final String? mode,
     final String? city,
     final String? locality,
-    final int? age,
     final String? ageBucket,
     final String? profession,
     final double? matchPercentage,
-    final String? phoneNumber,
   }) = _$ChatPeerImpl;
   const _ChatPeer._() : super._();
 
@@ -361,15 +322,11 @@ abstract class _ChatPeer extends ChatPeer {
   @override
   String? get locality;
   @override
-  int? get age;
-  @override
   String? get ageBucket;
   @override
   String? get profession;
   @override
   double? get matchPercentage;
-  @override
-  String? get phoneNumber;
 
   /// Create a copy of ChatPeer
   /// with the given fields replaced by the non-null parameter values.
@@ -686,8 +643,8 @@ abstract class _ChatPropertyContext extends ChatPropertyContext {
 /// @nodoc
 mixin _$ConversationSummaryModel {
   int get id => throw _privateConstructorUsedError;
-  String get source => throw _privateConstructorUsedError;
-  String get status => throw _privateConstructorUsedError;
+  ConversationSource? get source => throw _privateConstructorUsedError;
+  ConversationStatus? get status => throw _privateConstructorUsedError;
   ChatPeer get peer => throw _privateConstructorUsedError;
   ChatPropertyContext? get contextProperty =>
       throw _privateConstructorUsedError;
@@ -713,8 +670,8 @@ abstract class $ConversationSummaryModelCopyWith<$Res> {
   @useResult
   $Res call({
     int id,
-    String source,
-    String status,
+    ConversationSource? source,
+    ConversationStatus? status,
     ChatPeer peer,
     ChatPropertyContext? contextProperty,
     String? lastMessagePreview,
@@ -747,8 +704,8 @@ class _$ConversationSummaryModelCopyWithImpl<
   @override
   $Res call({
     Object? id = null,
-    Object? source = null,
-    Object? status = null,
+    Object? source = freezed,
+    Object? status = freezed,
     Object? peer = null,
     Object? contextProperty = freezed,
     Object? lastMessagePreview = freezed,
@@ -763,14 +720,14 @@ class _$ConversationSummaryModelCopyWithImpl<
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as int,
-            source: null == source
+            source: freezed == source
                 ? _value.source
                 : source // ignore: cast_nullable_to_non_nullable
-                      as String,
-            status: null == status
+                      as ConversationSource?,
+            status: freezed == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as ConversationStatus?,
             peer: null == peer
                 ? _value.peer
                 : peer // ignore: cast_nullable_to_non_nullable
@@ -840,8 +797,8 @@ abstract class _$$ConversationSummaryModelImplCopyWith<$Res>
   @useResult
   $Res call({
     int id,
-    String source,
-    String status,
+    ConversationSource? source,
+    ConversationStatus? status,
     ChatPeer peer,
     ChatPropertyContext? contextProperty,
     String? lastMessagePreview,
@@ -876,8 +833,8 @@ class __$$ConversationSummaryModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? source = null,
-    Object? status = null,
+    Object? source = freezed,
+    Object? status = freezed,
     Object? peer = null,
     Object? contextProperty = freezed,
     Object? lastMessagePreview = freezed,
@@ -892,14 +849,14 @@ class __$$ConversationSummaryModelImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as int,
-        source: null == source
+        source: freezed == source
             ? _value.source
             : source // ignore: cast_nullable_to_non_nullable
-                  as String,
-        status: null == status
+                  as ConversationSource?,
+        status: freezed == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as ConversationStatus?,
         peer: null == peer
             ? _value.peer
             : peer // ignore: cast_nullable_to_non_nullable
@@ -938,8 +895,8 @@ class __$$ConversationSummaryModelImplCopyWithImpl<$Res>
 class _$ConversationSummaryModelImpl extends _ConversationSummaryModel {
   const _$ConversationSummaryModelImpl({
     required this.id,
-    this.source = 'listing_interest',
-    this.status = 'active',
+    this.source,
+    this.status,
     required this.peer,
     this.contextProperty,
     this.lastMessagePreview,
@@ -952,11 +909,9 @@ class _$ConversationSummaryModelImpl extends _ConversationSummaryModel {
   @override
   final int id;
   @override
-  @JsonKey()
-  final String source;
+  final ConversationSource? source;
   @override
-  @JsonKey()
-  final String status;
+  final ConversationStatus? status;
   @override
   final ChatPeer peer;
   @override
@@ -1030,8 +985,8 @@ class _$ConversationSummaryModelImpl extends _ConversationSummaryModel {
 abstract class _ConversationSummaryModel extends ConversationSummaryModel {
   const factory _ConversationSummaryModel({
     required final int id,
-    final String source,
-    final String status,
+    final ConversationSource? source,
+    final ConversationStatus? status,
     required final ChatPeer peer,
     final ChatPropertyContext? contextProperty,
     final String? lastMessagePreview,
@@ -1045,9 +1000,9 @@ abstract class _ConversationSummaryModel extends ConversationSummaryModel {
   @override
   int get id;
   @override
-  String get source;
+  ConversationSource? get source;
   @override
-  String get status;
+  ConversationStatus? get status;
   @override
   ChatPeer get peer;
   @override
@@ -1075,9 +1030,11 @@ abstract class _ConversationSummaryModel extends ConversationSummaryModel {
 mixin _$ChatMessage {
   int get id => throw _privateConstructorUsedError;
   int get conversationId => throw _privateConstructorUsedError;
-  int get senderId => throw _privateConstructorUsedError;
+
+  /// Null for a system message or a message whose sender was deleted.
+  int? get senderId => throw _privateConstructorUsedError;
   String? get body => throw _privateConstructorUsedError;
-  String get messageType => throw _privateConstructorUsedError;
+  MessageType? get messageType => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get readAt => throw _privateConstructorUsedError;
   String? get attachmentUrl => throw _privateConstructorUsedError;
@@ -1100,9 +1057,9 @@ abstract class $ChatMessageCopyWith<$Res> {
   $Res call({
     int id,
     int conversationId,
-    int senderId,
+    int? senderId,
     String? body,
-    String messageType,
+    MessageType? messageType,
     DateTime createdAt,
     DateTime? readAt,
     String? attachmentUrl,
@@ -1127,9 +1084,9 @@ class _$ChatMessageCopyWithImpl<$Res, $Val extends ChatMessage>
   $Res call({
     Object? id = null,
     Object? conversationId = null,
-    Object? senderId = null,
+    Object? senderId = freezed,
     Object? body = freezed,
-    Object? messageType = null,
+    Object? messageType = freezed,
     Object? createdAt = null,
     Object? readAt = freezed,
     Object? attachmentUrl = freezed,
@@ -1145,18 +1102,18 @@ class _$ChatMessageCopyWithImpl<$Res, $Val extends ChatMessage>
                 ? _value.conversationId
                 : conversationId // ignore: cast_nullable_to_non_nullable
                       as int,
-            senderId: null == senderId
+            senderId: freezed == senderId
                 ? _value.senderId
                 : senderId // ignore: cast_nullable_to_non_nullable
-                      as int,
+                      as int?,
             body: freezed == body
                 ? _value.body
                 : body // ignore: cast_nullable_to_non_nullable
                       as String?,
-            messageType: null == messageType
+            messageType: freezed == messageType
                 ? _value.messageType
                 : messageType // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as MessageType?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1191,9 +1148,9 @@ abstract class _$$ChatMessageImplCopyWith<$Res>
   $Res call({
     int id,
     int conversationId,
-    int senderId,
+    int? senderId,
     String? body,
-    String messageType,
+    MessageType? messageType,
     DateTime createdAt,
     DateTime? readAt,
     String? attachmentUrl,
@@ -1217,9 +1174,9 @@ class __$$ChatMessageImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? conversationId = null,
-    Object? senderId = null,
+    Object? senderId = freezed,
     Object? body = freezed,
-    Object? messageType = null,
+    Object? messageType = freezed,
     Object? createdAt = null,
     Object? readAt = freezed,
     Object? attachmentUrl = freezed,
@@ -1235,18 +1192,18 @@ class __$$ChatMessageImplCopyWithImpl<$Res>
             ? _value.conversationId
             : conversationId // ignore: cast_nullable_to_non_nullable
                   as int,
-        senderId: null == senderId
+        senderId: freezed == senderId
             ? _value.senderId
             : senderId // ignore: cast_nullable_to_non_nullable
-                  as int,
+                  as int?,
         body: freezed == body
             ? _value.body
             : body // ignore: cast_nullable_to_non_nullable
                   as String?,
-        messageType: null == messageType
+        messageType: freezed == messageType
             ? _value.messageType
             : messageType // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as MessageType?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1274,9 +1231,9 @@ class _$ChatMessageImpl extends _ChatMessage {
   const _$ChatMessageImpl({
     required this.id,
     required this.conversationId,
-    required this.senderId,
+    this.senderId,
     this.body,
-    this.messageType = 'text',
+    this.messageType,
     required this.createdAt,
     this.readAt,
     this.attachmentUrl,
@@ -1288,13 +1245,14 @@ class _$ChatMessageImpl extends _ChatMessage {
   final int id;
   @override
   final int conversationId;
+
+  /// Null for a system message or a message whose sender was deleted.
   @override
-  final int senderId;
+  final int? senderId;
   @override
   final String? body;
   @override
-  @JsonKey()
-  final String messageType;
+  final MessageType? messageType;
   @override
   final DateTime createdAt;
   @override
@@ -1363,9 +1321,9 @@ abstract class _ChatMessage extends ChatMessage {
   const factory _ChatMessage({
     required final int id,
     required final int conversationId,
-    required final int senderId,
+    final int? senderId,
     final String? body,
-    final String messageType,
+    final MessageType? messageType,
     required final DateTime createdAt,
     final DateTime? readAt,
     final String? attachmentUrl,
@@ -1377,12 +1335,14 @@ abstract class _ChatMessage extends ChatMessage {
   int get id;
   @override
   int get conversationId;
+
+  /// Null for a system message or a message whose sender was deleted.
   @override
-  int get senderId;
+  int? get senderId;
   @override
   String? get body;
   @override
-  String get messageType;
+  MessageType? get messageType;
   @override
   DateTime get createdAt;
   @override

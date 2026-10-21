@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import '../../../core/utils/safe_json_list.dart';
 import '../domain/property_listing.dart';
 
 class PropertyListingDto {
@@ -23,43 +22,12 @@ class PropertyListingDto {
               .toList()
         : <String>[];
 
-    final ownerJson = _asStringKeyMapOrNull(json['owner']);
-
     final parsedImages = _parseImages(json);
     final parsedImageUrls = parsedImages
         .map((img) => img.imageUrl)
         .toList(growable: false);
 
     final parsedAmenities = _parseAmenities(json);
-
-    final rawSocietyTagVotes = preferences['society_tag_vote_counts'];
-    final societyTagVoteCounts = <String, Map<String, int>>{};
-    if (rawSocietyTagVotes is Map) {
-      rawSocietyTagVotes.forEach((tag, counts) {
-        if (counts is Map) {
-          societyTagVoteCounts[tag.toString()] = {
-            'up': _asInt(counts['up']) ?? 0,
-            'down': _asInt(counts['down']) ?? 0,
-          };
-        }
-      });
-    }
-
-    // Backend shape: { "userId": { "tag": "up|down" } }. Flatten to
-    // "$userId:$tag" -> vote so UI can look up the current user's vote per tag.
-    final rawUserVotes = preferences['society_tag_user_votes'];
-    final societyTagUserVotes = <String, String>{};
-    if (rawUserVotes is Map) {
-      rawUserVotes.forEach((userId, value) {
-        if (value is Map) {
-          value.forEach((tag, vote) {
-            societyTagUserVotes['$userId:$tag'] = vote.toString();
-          });
-        } else if (value != null) {
-          societyTagUserVotes[userId.toString()] = value.toString();
-        }
-      });
-    }
 
     final moderationStatus = _asString(preferences['moderation_status']);
     final lifecycleStatus = _asString(json['status']);
@@ -112,14 +80,6 @@ class PropertyListingDto {
       expiresAt: DateTime.tryParse(
         (json['expires_at'] ?? preferences['expires_at'])?.toString() ?? '',
       ),
-      owner: ownerJson != null
-          ? PropertyOwner(
-              id: _asInt(ownerJson['id']) ?? 0,
-              fullName: _asString(ownerJson['full_name']) ?? '',
-              profileImageUrl: _asString(ownerJson['profile_image_url']),
-              mode: _asString(ownerJson['mode']),
-            )
-          : null,
       distanceKm: _asDouble(json['distance_km']),
       liked: _asBool(json['liked']),
       userHasScheduledVisit: _asBool(json['user_has_scheduled_visit']),
@@ -138,13 +98,11 @@ class PropertyListingDto {
       ventilationType: _asString(json['ventilation_type']),
       windowsCount: _asInt(json['windows_count']),
       ventilationShafts: _asInt(json['ventilation_shafts']),
-      // setup_cost was historically written under listing_preferences; keep
-      // the preference fallback so pre-contract listings still restore it.
-      setupCost:
-          _asDouble(json['setup_cost']) ?? _asDouble(preferences['setup_cost']),
+      setupCost: _asDouble(json['setup_cost']),
       otherCharges: _asDouble(json['other_charges']),
       otherChargesDescription: _asString(json['other_charges_description']),
       furnishingLevel: _asString(json['furnishing_level']),
+      fullAddress: _asString(json['full_address']),
       hasLift:
           _asBool(json['has_lift']) ??
           (features.any(
@@ -154,68 +112,7 @@ class PropertyListingDto {
           )),
       images: parsedImages,
       amenities: parsedAmenities,
-      societyTagVoteCounts: societyTagVoteCounts,
-      societyTagUserVotes: societyTagUserVotes,
     );
-  }
-
-  /// Compact cache representation so Manage listings survive process death
-  /// until the next successful `/properties/me` reconcile.
-  static Map<String, dynamic> toCacheJson(PropertyListing listing) {
-    final preferences = Map<String, dynamic>.from(listing.preferences ?? {});
-    if (listing.status != null &&
-        preferences['moderation_status'] == null &&
-        listing.status!.isNotEmpty) {
-      preferences['moderation_status'] = listing.status;
-    }
-    return {
-      'id': listing.id,
-      'owner_id': listing.ownerId,
-      'property_type': listing.propertyType,
-      'title': listing.title,
-      'description': listing.description,
-      'city': listing.city,
-      'state': listing.state,
-      'locality': listing.locality,
-      'sub_locality': listing.subLocality,
-      'latitude': listing.latitude,
-      'longitude': listing.longitude,
-      'monthly_rent': listing.monthlyRent,
-      'main_image_url': listing.mainImageUrl,
-      'image_urls': listing.imageUrls,
-      'area_sqft': listing.areaSqft,
-      'bedrooms': listing.bedrooms,
-      'bathrooms': listing.bathrooms,
-      'features': listing.features,
-      'tags': listing.tags,
-      'owner_name': listing.ownerName,
-      'available_from': listing.availableFrom?.toUtc().toIso8601String(),
-      'interest_count': listing.interestCount,
-      'view_count': listing.viewCount,
-      'like_count': listing.likeCount,
-      'is_available': listing.isAvailable,
-      'security_deposit': listing.securityDeposit,
-      'maintenance_charges': listing.maintenanceCharges,
-      'created_at': listing.createdAt?.toUtc().toIso8601String(),
-      'listing_preferences': preferences,
-      'status': listing.propertyStatus,
-      'expires_at': listing.expiresAt?.toUtc().toIso8601String(),
-      'floor_number': listing.floorNumber,
-      'total_floors': listing.totalFloors,
-      'kitchen_type': listing.kitchenType,
-      'ventilation_type': listing.ventilationType,
-      'windows_count': listing.windowsCount,
-      'ventilation_shafts': listing.ventilationShafts,
-      'setup_cost': listing.setupCost,
-      'other_charges': listing.otherCharges,
-      'other_charges_description': listing.otherChargesDescription,
-      'furnishing_level': listing.furnishingLevel,
-      'has_lift': listing.hasLift,
-    };
-  }
-
-  static List<PropertyListing> fromJsonList(List<dynamic> list) {
-    return safeJsonList(list, fromJson, label: 'propertyListings');
   }
 
   static List<PropertyImageInfo> _parseImages(Map<String, dynamic> json) {
@@ -317,11 +214,6 @@ class PropertyListingDto {
       }
     }
     return <String, dynamic>{};
-  }
-
-  static Map<String, dynamic>? _asStringKeyMapOrNull(Object? raw) {
-    if (raw is! Map) return null;
-    return Map<String, dynamic>.from(raw);
   }
 
   static String? _asString(Object? raw) {

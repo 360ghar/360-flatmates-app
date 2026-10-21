@@ -56,6 +56,17 @@ ProviderContainer _containerWithAdapter(
   return container;
 }
 
+/// The visit `POST /visits` answers with (201).
+Map<String, dynamic> _visit(int id) => {
+  'id': id,
+  'property_id': 42,
+  'user_id': 1,
+  'scheduled_date': '2025-05-20T15:00:00Z',
+  'status': 'requested',
+  'visit_context': 'flatmate_meet',
+  'property': {'id': 42, 'title': 'Flat A'},
+};
+
 void main() {
   group('VisitsActionsController.schedule', () {
     test('refreshes the conversations list after the visit message', () async {
@@ -64,8 +75,8 @@ void main() {
         requests.add('${options.method} ${options.path}');
         if (options.path == '/visits' && options.method == 'POST') {
           return Response<dynamic>(
-            data: {'id': 77},
-            statusCode: 200,
+            data: _visit(77),
+            statusCode: 201,
             requestOptions: options,
           );
         }
@@ -96,7 +107,7 @@ void main() {
           .length;
 
       final locale = await AppLocalizations.delegate.load(const Locale('en'));
-      final visitId = await container
+      final visit = await container
           .read(visitsActionsControllerProvider)
           .schedule(
             propertyId: 42,
@@ -105,7 +116,7 @@ void main() {
             scheduledDate: DateTime.utc(2025, 5, 20, 15),
             locale: locale,
           );
-      expect(visitId, 77);
+      expect(visit.id, 77);
       // The visit request posts a chat message; without the invalidation the
       // retained conversation list kept the old preview and timestamp. The
       // refetch is fire-and-forget, so poll (bounded) rather than sleep.
@@ -128,7 +139,12 @@ void main() {
             options.method == 'GET') {
           if (conversationsFailing) {
             return Response<dynamic>(
-              data: {'detail': 'Service unavailable'},
+              data: {
+                'error': {
+                  'code': 'INTERNAL_ERROR',
+                  'message': 'Service unavailable',
+                },
+              },
               statusCode: 500,
               requestOptions: options,
             );
@@ -150,8 +166,8 @@ void main() {
         }
         if (options.path == '/visits' && options.method == 'POST') {
           return Response<dynamic>(
-            data: {'id': 78},
-            statusCode: 200,
+            data: _visit(78),
+            statusCode: 201,
             requestOptions: options,
           );
         }
@@ -177,7 +193,7 @@ void main() {
       conversationsFailing = true;
 
       final locale = await AppLocalizations.delegate.load(const Locale('en'));
-      final visitId = await container
+      final visit = await container
           .read(visitsActionsControllerProvider)
           .schedule(
             propertyId: 42,
@@ -186,7 +202,7 @@ void main() {
             scheduledDate: DateTime.utc(2025, 5, 20, 15),
             locale: locale,
           );
-      expect(visitId, 78);
+      expect(visit.id, 78);
 
       // The in-place refresh is fire-and-forget; poll (bounded) until the
       // failure has landed instead of sleeping a fixed delay.

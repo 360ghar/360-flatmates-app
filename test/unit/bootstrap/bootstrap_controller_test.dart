@@ -148,7 +148,9 @@ void main() {
               ..dio.httpClientAdapter = _ScriptedAdapter((options) {
                 if (failNext) {
                   return Response<dynamic>(
-                    data: {'detail': 'boom'},
+                    data: {
+                      'error': {'code': 'INTERNAL_ERROR', 'message': 'boom'},
+                    },
                     statusCode: 500,
                     requestOptions: options,
                   );

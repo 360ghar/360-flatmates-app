@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/chats/application/cursor_list_controller.dart';
 import '../../features/chats/application/messages_controller.dart';
-import '../../features/chats/chats_repository.dart';
 import '../../features/notifications/notifications_list_controller.dart';
+import '../../features/notifications/notifications_repository.dart';
 import '../../features/visits/application/visits_list_controller.dart';
 import '../../features/visits/visits_repository.dart';
 import 'flatmates_realtime_service.dart';
@@ -81,11 +81,14 @@ void routeFlatmatesRealtimeEvent(Ref ref, FlatmatesRealtimeEvent event) {
 
 void _routeNotificationEvent(Ref ref, Map<String, dynamic> data) {
   ref.invalidate(notificationsListControllerProvider);
+  ref.invalidate(notificationsUnreadCountProvider);
 
   final typeKey =
       _stringAt(data, const ['type_key']) ??
       _stringAt(data, const ['data', 'type_key']) ??
-      _stringAt(data, const ['type']);
+      // Older realtime payloads name the notification with `type`.
+      _stringAt(data, const ['type']) ??
+      _stringAt(data, const ['data', 'type']);
 
   switch (typeKey) {
     case 'flatmate_new_message':
@@ -117,9 +120,9 @@ void _invalidateConversationState(Ref ref) {
   ref.invalidate(conversationsListControllerProvider);
 }
 
-/// Refresh open-thread state via HTTP. Prefer [MessagesController.refetchLatest]
-/// when the thread is mounted so we do not depend on Postgres Changes on
-/// `public.messages`. Also invalidates the one-shot REST seed provider.
+/// Refreshes an open thread over HTTP when the user channel broadcasts a
+/// message event for it. A thread that is not open reads the newest page when
+/// it is opened, so there is nothing to refresh.
 void _refreshConversationThread(Ref ref, int conversationId) {
   if (ref.exists(messagesControllerProvider(conversationId))) {
     unawaited(
@@ -127,9 +130,6 @@ void _refreshConversationThread(Ref ref, int conversationId) {
           .read(messagesControllerProvider(conversationId).notifier)
           .refetchLatest(),
     );
-  } else {
-    // Thread not open: drop stream cache so the next open re-seeds from HTTP.
-    ref.invalidate(messagesStreamProvider(conversationId));
   }
 }
 
@@ -138,14 +138,17 @@ void _invalidateLikeState(Ref ref) {
   ref.invalidate(outgoingLikesListControllerProvider);
 }
 
+/// The conversation id of an in-app route (`/chats/{id}`) or a push route
+/// (`/flatmates/chat/{id}`).
 int? conversationIdFromRoute(String? route) {
   if (route == null) return null;
   final uri = Uri.tryParse(route);
   if (uri == null) return null;
   final segments = uri.pathSegments;
-  final chatsIndex = segments.indexOf('chats');
-  if (chatsIndex < 0 || chatsIndex + 1 >= segments.length) return null;
-  return int.tryParse(segments[chatsIndex + 1]);
+  var index = segments.indexOf('chats');
+  if (index < 0) index = segments.indexOf('chat');
+  if (index < 0 || index + 1 >= segments.length) return null;
+  return int.tryParse(segments[index + 1]);
 }
 
 String? _stringAt(Map<String, dynamic> data, List<String> path) {

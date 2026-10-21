@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../helpers/test_helpers.dart';
 import 'package:flatmates_app/core/providers.dart';
@@ -23,7 +24,7 @@ class _RecordingFeedbackRepository implements FeedbackRepository {
     required String bugType,
     required String severity,
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) async {
     lastRequest = BugReportRequest(
       source: 'mobile',
@@ -41,7 +42,7 @@ class _RecordingFeedbackRepository implements FeedbackRepository {
     required String description,
     String severity = 'medium',
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) async {
     lastRequest = BugReportRequest(
       source: 'mobile',
@@ -89,6 +90,14 @@ Future<Widget> _routedTestWidget({
 
 void main() {
   setUp(() {
+    // The controller reads the app version for the report.
+    PackageInfo.setMockInitialValues(
+      appName: 'FlatMates',
+      packageName: 'com.the360ghar.flatmates360',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: '',
+    );
     SharedPreferences.setMockInitialValues({});
     resetTestAppPreferences();
   });

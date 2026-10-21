@@ -1011,7 +1011,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get reportInappropriate => 'अनुचित सामग्री';
 
   @override
-  String get reportUncomfortable => 'असहज इंटरैक्शन';
+  String get reportAbuse => 'दुर्व्यवहार';
 
   @override
   String get reportOther => 'अन्य';
@@ -1525,6 +1525,9 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get visitCancelConfirm =>
       'क्या आप वाकई इस विज़िट को रद्द करना चाहते हैं?';
+
+  @override
+  String get visitCancelReasonLabel => 'रद्द करने का कारण';
 
   @override
   String get visitConfirmed => 'विज़िट पुष्ट';
@@ -2983,6 +2986,60 @@ class AppLocalizationsHi extends AppLocalizations {
       'बहुत अधिक अनुरोध। कृपया थोड़ी देर प्रतीक्षा करें और पुनः प्रयास करें।';
 
   @override
+  String errorRateLimitWait(num seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: '$seconds सेकंड',
+      one: '1 सेकंड',
+    );
+    return 'बहुत अधिक अनुरोध। $_temp0 में पुनः प्रयास करें।';
+  }
+
+  @override
+  String errorServerWait(num seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: '$seconds सेकंड',
+      one: '1 सेकंड',
+    );
+    return 'सर्वर अस्थायी रूप से उपलब्ध नहीं है। $_temp0 में पुनः प्रयास करें।';
+  }
+
+  @override
+  String get errorCodeProfileNotFound => 'यह प्रोफ़ाइल अब उपलब्ध नहीं है।';
+
+  @override
+  String get errorCodeMatchNotFound => 'आप अब इस व्यक्ति से मैच नहीं हैं।';
+
+  @override
+  String get errorCodeProfileStatusLocked =>
+      'आपकी प्रोफ़ाइल रोकी गई है या समीक्षा में है, इसलिए उसकी स्थिति अभी नहीं बदली जा सकती।';
+
+  @override
+  String get errorCodeListingNotFound => 'यह लिस्टिंग अब उपलब्ध नहीं है।';
+
+  @override
+  String get errorCodeBlockNotFound =>
+      'यह व्यक्ति आपकी ब्लॉक सूची में नहीं है।';
+
+  @override
+  String get errorCodeVisitConflict => 'इस समय आपकी पहले से एक विज़िट तय है।';
+
+  @override
+  String get errorCodeVisitNotCancellable =>
+      'यह विज़िट अब रद्द नहीं की जा सकती।';
+
+  @override
+  String get errorCodeVisitNotReschedulable =>
+      'इस विज़िट का समय अब नहीं बदला जा सकता।';
+
+  @override
+  String get errorCodeUserInactive =>
+      'आपका खाता सक्रिय नहीं है। मदद के लिए सहायता से संपर्क करें।';
+
+  @override
   String get errorConflict => 'एक विरोधाभास हुआ। डेटा बदल गया होगा।';
 
   @override
@@ -3694,6 +3751,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get listingUpdatedToast => 'लिस्टिंग सफलतापूर्वक अपडेट हो गई।';
+
+  @override
+  String get listingUpdatedInReviewToast =>
+      'लिस्टिंग अपडेट हो गई। दोबारा लाइव होने से पहले यह फिर से समीक्षा में है।';
+
+  @override
+  String get listingStatusConflict =>
+      'इस लिस्टिंग की स्थिति अभी बदली नहीं जा सकती। यह समीक्षा में हो सकती है या मॉडरेटर ने रोकी हो सकती है।';
 
   @override
   String get discardListingTitle => 'बदलाव छोड़ें?';

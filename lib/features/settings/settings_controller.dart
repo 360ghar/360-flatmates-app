@@ -10,11 +10,18 @@ import 'domain/settings_state.dart';
 export 'domain/settings_state.dart';
 
 class SettingsController extends Notifier<SettingsState> {
-  /// Last known remote notification payload so PUTs do not wipe unknown keys.
-  Map<String, dynamic> _lastNotifPayload = {};
+  /// Last known remote notification settings. The PUT sends all four contract
+  /// keys, so the two with no switch here (email, sms) keep their value.
+  RemoteNotificationSettings _lastNotif = const RemoteNotificationSettings();
 
-  /// Last known remote privacy payload so PUTs do not wipe unknown keys.
-  Map<String, dynamic> _lastPrivacyPayload = {};
+  /// Whether [_lastNotif] came from the server for this account. Until it
+  /// does, its email and sms values are defaults, and a PUT built from them
+  /// would overwrite the account's real ones.
+  bool _lastNotifKnown = false;
+
+  /// Bumped by [resetAccountSettings]. A [load] that started under an earlier
+  /// value belongs to the account that signed out, so it must not write.
+  int _accountGeneration = 0;
 
   @override
   SettingsState build() {
@@ -27,6 +34,7 @@ class SettingsController extends Notifier<SettingsState> {
   SettingsRepository get _repo => ref.read(settingsRepositoryProvider);
 
   Future<void> load() async {
+    final generation = _accountGeneration;
     try {
       final themeRaw = _prefs.getString(PrefKeys.themeMode);
       final languageCode = _prefs.getString(PrefKeys.localeLanguageCode);
@@ -48,18 +56,6 @@ class SettingsController extends Notifier<SettingsState> {
           PrefKeys.notifNewMessages,
           true,
         ),
-        notifVisitReminders: _prefs.getBoolOrDefault(
-          PrefKeys.notifVisitReminders,
-          true,
-        ),
-        notifNewMatches: _prefs.getBoolOrDefault(
-          PrefKeys.notifNewMatches,
-          true,
-        ),
-        notifListingUpdates: _prefs.getBoolOrDefault(
-          PrefKeys.notifListingUpdates,
-          true,
-        ),
         notifPromotions: _prefs.getBoolOrDefault(
           PrefKeys.notifPromotions,
           false,
@@ -69,58 +65,59 @@ class SettingsController extends Notifier<SettingsState> {
       );
 
       // Best-effort remote merge — local prefs already applied above.
-      await _mergeRemoteNotificationSettings();
-      await _mergeRemotePrivacySettings();
+      await _mergeRemoteNotificationSettings(generation);
+      await _mergeRemotePrivacySettings(generation);
     } catch (e) {
       debugPrint('SettingsController.load: $e');
       state = state.copyWith(loadFailed: true);
     }
   }
 
-  Future<void> _mergeRemoteNotificationSettings() async {
+  /// Forgets the account-level values (the privacy and notification switches)
+  /// when the user signs out, so the next account does not see them. Theme and
+  /// language belong to the device and stay. [load] reads the next account's
+  /// values from the server after sign-in.
+  void resetAccountSettings() {
+    _accountGeneration++;
+    _lastNotifKnown = false;
+    _lastNotif = const RemoteNotificationSettings();
+    state = state.copyWith(
+      hideLastName: false,
+      hideExactLocation: false,
+      notifNewMessages: true,
+      notifPromotions: false,
+    );
+  }
+
+  Future<void> _mergeRemoteNotificationSettings(int generation) async {
     try {
       final remote = await _repo.fetchNotificationSettings();
-      _lastNotifPayload = remote.toJson();
-
-      final categories = remote.categories;
-      final notifNewMessages = remote.pushNotifications;
-      final notifVisitReminders = remote.visitReminders;
-      final notifListingUpdates = remote.propertyUpdates;
-      final notifPromotions = remote.promotionalEmails;
-      final notifNewMatches = categories['new_matches'] ?? true;
+      if (generation != _accountGeneration) return;
+      _lastNotif = remote;
+      _lastNotifKnown = true;
 
       await Future.wait([
-        _prefs.setBool(PrefKeys.notifNewMessages, notifNewMessages),
-        _prefs.setBool(PrefKeys.notifVisitReminders, notifVisitReminders),
-        _prefs.setBool(PrefKeys.notifListingUpdates, notifListingUpdates),
-        _prefs.setBool(PrefKeys.notifPromotions, notifPromotions),
-        _prefs.setBool(PrefKeys.notifNewMatches, notifNewMatches),
+        _prefs.setBool(PrefKeys.notifNewMessages, remote.pushNotifications),
+        _prefs.setBool(PrefKeys.notifPromotions, remote.promotionalEmails),
       ]);
 
       state = state.copyWith(
-        notifNewMessages: notifNewMessages,
-        notifVisitReminders: notifVisitReminders,
-        notifListingUpdates: notifListingUpdates,
-        notifPromotions: notifPromotions,
-        notifNewMatches: notifNewMatches,
+        notifNewMessages: remote.pushNotifications,
+        notifPromotions: remote.promotionalEmails,
       );
     } catch (e) {
       debugPrint('SettingsController._mergeRemoteNotificationSettings: $e');
     }
   }
 
-  Future<void> _mergeRemotePrivacySettings() async {
+  Future<void> _mergeRemotePrivacySettings(int generation) async {
     try {
       final remote = await _repo.fetchPrivacySettings();
-      _lastPrivacyPayload = remote.toJson();
+      if (generation != _accountGeneration) return;
 
       final hideExactLocation = !remote.locationSharing;
-      // hide_last_name is not on the typed PrivacySettings schema (stripped on
-      // GET); keep local prefs as source of truth, but honor raw if present.
-      final hideLastNameRaw = remote.raw['hide_last_name'];
-      final hideLastName = hideLastNameRaw is bool
-          ? hideLastNameRaw
-          : state.hideLastName;
+      // hide_last_name is a typed PrivacySettings key: the server value wins.
+      final hideLastName = remote.hideLastName;
 
       await Future.wait([
         _prefs.setBool(PrefKeys.hideExactLocation, hideExactLocation),
@@ -165,36 +162,18 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> updateHideLastName(bool value) async {
     await _prefs.setBool(PrefKeys.hideLastName, value);
     state = state.copyWith(hideLastName: value);
-    _pushPrivacyRemote();
+    _pushPrivacyRemote({'hide_last_name': value});
   }
 
   Future<void> updateHideExactLocation(bool value) async {
     await _prefs.setBool(PrefKeys.hideExactLocation, value);
     state = state.copyWith(hideExactLocation: value);
-    _pushPrivacyRemote();
+    _pushPrivacyRemote({'location_sharing': !value});
   }
 
   Future<void> updateNotifNewMessages(bool value) async {
     await _prefs.setBool(PrefKeys.notifNewMessages, value);
     state = state.copyWith(notifNewMessages: value);
-    _pushNotificationRemote();
-  }
-
-  Future<void> updateNotifVisitReminders(bool value) async {
-    await _prefs.setBool(PrefKeys.notifVisitReminders, value);
-    state = state.copyWith(notifVisitReminders: value);
-    _pushNotificationRemote();
-  }
-
-  Future<void> updateNotifNewMatches(bool value) async {
-    await _prefs.setBool(PrefKeys.notifNewMatches, value);
-    state = state.copyWith(notifNewMatches: value);
-    _pushNotificationRemote();
-  }
-
-  Future<void> updateNotifListingUpdates(bool value) async {
-    await _prefs.setBool(PrefKeys.notifListingUpdates, value);
-    state = state.copyWith(notifListingUpdates: value);
     _pushNotificationRemote();
   }
 
@@ -207,85 +186,46 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> updateAllNotificationSettings(bool value) async {
     await Future.wait([
       _prefs.setBool(PrefKeys.notifNewMessages, value),
-      _prefs.setBool(PrefKeys.notifVisitReminders, value),
-      _prefs.setBool(PrefKeys.notifNewMatches, value),
-      _prefs.setBool(PrefKeys.notifListingUpdates, value),
       _prefs.setBool(PrefKeys.notifPromotions, value),
     ]);
-    state = state.copyWith(
-      notifNewMessages: value,
-      notifVisitReminders: value,
-      notifNewMatches: value,
-      notifListingUpdates: value,
-      notifPromotions: value,
-    );
+    state = state.copyWith(notifNewMessages: value, notifPromotions: value);
     _pushNotificationRemote();
   }
 
-  /// Builds the remote notification payload from current local state.
-  Map<String, dynamic> _buildNotificationPayload() {
-    final s = state;
-    final categories = <String, dynamic>{
-      ...?(_lastNotifPayload['categories'] is Map
-          ? Map<String, dynamic>.from(_lastNotifPayload['categories'] as Map)
-          : null),
-      'visit_reminders': s.notifVisitReminders,
-      'property_updates': s.notifListingUpdates,
-      'promotions': s.notifPromotions,
-      'new_matches': s.notifNewMatches,
-    };
+  void _pushNotificationRemote() => unawaited(_syncNotificationRemote());
 
-    // push_notifications tracks messages; keep it true when messages are on
-    // regardless of match toggle (matches live under categories.new_matches).
-    final payload = Map<String, dynamic>.from(_lastNotifPayload)
-      ..addAll({
-        'push_notifications': s.notifNewMessages,
-        'visit_reminders': s.notifVisitReminders,
-        'property_updates': s.notifListingUpdates,
-        'promotional_emails': s.notifPromotions,
-        'categories': categories,
-      });
-    return payload;
-  }
-
-  /// Builds privacy payload including `hide_last_name` for the compat endpoint.
-  Map<String, dynamic> _buildPrivacyPayload() {
-    final s = state;
-    return Map<String, dynamic>.from(_lastPrivacyPayload)..addAll({
-      'profile_visibility':
-          _lastPrivacyPayload['profile_visibility'] ?? 'public',
-      'location_sharing': !s.hideExactLocation,
-      'contact_sharing': _lastPrivacyPayload['contact_sharing'] ?? true,
-      'search_history_tracking':
-          _lastPrivacyPayload['search_history_tracking'] ?? true,
-      'hide_last_name': s.hideLastName,
-    });
-  }
-
-  void _pushNotificationRemote() {
-    final payload = _buildNotificationPayload();
-    _lastNotifPayload = payload;
-    unawaited(_syncNotificationRemote(payload));
-  }
-
-  void _pushPrivacyRemote() {
-    final payload = _buildPrivacyPayload();
-    _lastPrivacyPayload = payload;
-    // Use compat PUT so hide_last_name is accepted (typed schema strips it).
-    unawaited(_syncPrivacyRemote(payload));
-  }
-
-  Future<void> _syncNotificationRemote(Map<String, dynamic> payload) async {
+  Future<void> _syncNotificationRemote() async {
+    final generation = _accountGeneration;
     try {
-      await _repo.updateNotificationSettings(payload);
+      // push_notifications is the messages switch, promotional_emails the
+      // promotions switch; email and sms keep the last value the server sent.
+      if (!_lastNotifKnown) {
+        final remote = await _repo.fetchNotificationSettings();
+        if (generation != _accountGeneration) return;
+        _lastNotif = remote;
+        _lastNotifKnown = true;
+      }
+      final settings = RemoteNotificationSettings(
+        pushNotifications: state.notifNewMessages,
+        promotionalEmails: state.notifPromotions,
+        emailNotifications: _lastNotif.emailNotifications,
+        smsNotifications: _lastNotif.smsNotifications,
+      );
+      _lastNotif = settings;
+      await _repo.updateNotificationSettings(settings);
     } catch (e) {
       debugPrint('SettingsController._pushNotificationRemote: $e');
     }
   }
 
-  Future<void> _syncPrivacyRemote(Map<String, dynamic> payload) async {
+  /// Writes only the privacy keys that changed.
+  void _pushPrivacyRemote(Map<String, bool> patch) {
+    unawaited(_syncPrivacyRemote(patch));
+  }
+
+  Future<void> _syncPrivacyRemote(Map<String, bool> patch) async {
     try {
-      await _repo.updatePrivacySettingsCompat(payload);
+      await _repo.updatePrivacySettings(patch);
     } catch (e) {
       debugPrint('SettingsController._pushPrivacyRemote: $e');
     }

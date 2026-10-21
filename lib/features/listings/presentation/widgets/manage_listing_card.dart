@@ -9,6 +9,7 @@ import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
+import 'full_width_media_height.dart';
 import 'manage_stats_widgets.dart';
 
 /// Property card with image, info row, owner info, and stats action grid.
@@ -52,22 +53,35 @@ class ManageListingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Full-width image at top with status chip overlay
-          Stack(
-            children: [
-              if (listing.effectiveMainImageUrl != null)
-                SizedBox(
-                  height: 160,
-                  width: double.infinity,
-                  child: FlatmatesNetworkImage(
-                    imageUrl: listing.effectiveMainImageUrl!,
-                    height: 160,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              else
-                _buildPlaceholderImage(fullWidth: true),
-            ],
+          // Full-width image at top. The height follows the measured card
+          // width: a fixed 160 dp is a 4.3:1 strip on the 688 dp card inside
+          // the open Duo's 720 dp reading column.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final photoHeight = fullWidthMediaHeight(
+                width: constraints.maxWidth,
+                compactHeight: _compactPhotoHeight,
+              );
+              return Stack(
+                children: [
+                  if (listing.effectiveMainImageUrl != null)
+                    SizedBox(
+                      height: photoHeight,
+                      width: double.infinity,
+                      child: FlatmatesNetworkImage(
+                        imageUrl: listing.effectiveMainImageUrl!,
+                        height: photoHeight,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    _buildPlaceholderImage(
+                      fullWidth: true,
+                      height: photoHeight,
+                    ),
+                ],
+              );
+            },
           ),
 
           // Info below image
@@ -298,23 +312,29 @@ class ManageListingCard extends StatelessWidget {
   bool get _isUnderReview =>
       status == 'pending_review' || status == 'under_review';
 
+  /// A rejected listing cannot be paused or resumed (the server answers 409
+  /// `LISTING_STATUS_CONFLICT`): the slot opens the review page, which shows
+  /// the generic guidance and the edit-and-resubmit action (the server hides
+  /// the moderator's reason from the owner).
+  bool get _isRejected => status == 'rejected';
+
   String get _primaryStatusActionLabel {
     if (_isExpired) return locale.renewAction;
-    if (_isUnderReview) return locale.reviewAction;
+    if (_isUnderReview || _isRejected) return locale.reviewAction;
     if (_isPaused) return locale.resumeAction;
     return locale.pauseListingCta;
   }
 
   IconData get _primaryStatusActionIcon {
     if (_isExpired) return Icons.refresh;
-    if (_isUnderReview) return Icons.rate_review_outlined;
+    if (_isUnderReview || _isRejected) return Icons.rate_review_outlined;
     if (_isPaused) return Icons.play_circle_outline;
     return Icons.pause_circle_outline;
   }
 
   VoidCallback? get _primaryStatusActionTap {
     if (_isExpired) return onRenew;
-    if (_isUnderReview) return onReview;
+    if (_isUnderReview || _isRejected) return onReview;
     if (isPausing) return null;
     return () => onTogglePause(listing.id, _isPaused);
   }
@@ -343,10 +363,14 @@ class ManageListingCard extends StatelessWidget {
     return locale.expiresInDays(days);
   }
 
-  Widget _buildPlaceholderImage({bool fullWidth = false}) {
+  /// Listing photo height on the compact card. The height the card was drawn
+  /// at on a 466 dp phone, and the floor [fullWidthMediaHeight] clamps to.
+  static const double _compactPhotoHeight = 160;
+
+  Widget _buildPlaceholderImage({bool fullWidth = false, double? height}) {
     return Container(
       width: fullWidth ? double.infinity : 80,
-      height: fullWidth ? 160 : 80,
+      height: height ?? (fullWidth ? _compactPhotoHeight : 80),
       decoration: BoxDecoration(
         color: AppSemanticColors.paperDeepFor(theme.brightness),
         borderRadius: fullWidth ? BorderRadius.zero : AppRadius.mdBorder,

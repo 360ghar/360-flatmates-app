@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_breakpoints.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
@@ -63,63 +64,74 @@ class FlatmatesBottomSheet extends StatelessWidget {
       duration: AppMotion.durationOrZero(context, AppMotion.bottomSheet),
       curve: AppMotion.easeOutQuart,
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: PaperSurface(
-          elevation: PaperElevation.e3,
-          edge: PaperEdge.torn,
-          borderRadius: BorderRadius.zero,
-          padding: const EdgeInsets.only(
-            left: AppSpacing.screen,
-            right: AppSpacing.screen,
-            top: AppSpacing.sm,
-            bottom: AppSpacing.lg,
+      // heightFactor 1 keeps the sheet as tall as its content, so it stays
+      // anchored to the bottom of the route while the width cap centres it
+      // horizontally. Without the cap a 951 dp viewport stretched the sheet
+      // edge to edge.
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: AppBreakpoints.sheetMaxWidth,
+            maxHeight: maxHeight,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.hairlineFor(theme.brightness),
-                  borderRadius: AppRadius.pillBorder,
-                ),
-              ),
-              // Header row
-              if (title != null || actions != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (title != null)
-                              Text(
-                                title!,
-                                style: theme.textTheme.headlineSmall,
-                              ),
-                            if (subtitle != null) ...[
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                subtitle!,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      ...?actions,
-                    ],
+          child: PaperSurface(
+            elevation: PaperElevation.e3,
+            edge: PaperEdge.torn,
+            borderRadius: BorderRadius.zero,
+            padding: const EdgeInsets.only(
+              left: AppSpacing.screen,
+              right: AppSpacing.screen,
+              top: AppSpacing.sm,
+              bottom: AppSpacing.lg,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppSemanticColors.hairlineFor(theme.brightness),
+                    borderRadius: AppRadius.pillBorder,
                   ),
                 ),
-              // Content
-              Flexible(child: child),
-            ],
+                // Header row
+                if (title != null || actions != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (title != null)
+                                Text(
+                                  title!,
+                                  style: theme.textTheme.headlineSmall,
+                                ),
+                              if (subtitle != null) ...[
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  subtitle!,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        ...?actions,
+                      ],
+                    ),
+                  ),
+                // Content
+                Flexible(child: child),
+              ],
+            ),
           ),
         ),
       ),

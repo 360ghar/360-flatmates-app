@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
+import 'api_error_envelope.dart';
 import 'app_failure.dart';
 
 /// Converts a [DioException] (from the network layer) into a typed
@@ -57,166 +58,118 @@ final class ErrorPresenter {
     };
   }
 
+  /// Maps an HTTP error status to a typed failure. The text and the code come
+  /// from the error envelope only (`{"error": {"code", "message", "details"}}`).
   static AppFailure _fromStatusCode(
     int? statusCode,
     DioException e,
     StackTrace? st,
   ) {
-    final serverMessage = _extractServerMessage(e);
+    final envelope = ApiErrorEnvelope.tryParse(e.response?.data);
+    final serverMessage = _nonEmpty(envelope?.message);
+    final code = envelope?.code;
     return switch (statusCode) {
-      400 => _fromBadRequest(e, st),
+      400 => _fromBadRequest(envelope, e, st),
       401 => AuthExpiredFailure(
         serverMessage: serverMessage,
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
       403 => PermissionFailure(
         serverMessage: serverMessage,
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
       404 => NotFoundFailure(
         serverMessage: serverMessage,
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
       409 => ConflictFailure(
         serverMessage: serverMessage,
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
-      422 => _fromValidationResponse(e, st),
+      422 => _fromValidationResponse(envelope, e, st),
       429 => RateLimitFailure(
         serverMessage: serverMessage,
+        retryAfter: _retryAfter(e),
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
       _ when (statusCode ?? 500) >= 500 => ServerFailure(
         statusCode: statusCode,
         serverMessage: serverMessage,
+        retryAfter: _retryAfter(e),
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
       _ => UnknownFailure(
         serverMessage: serverMessage,
+        code: code,
         underlyingError: e,
         stackTrace: st,
       ),
     };
   }
 
-  static String? _extractServerMessage(DioException e) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      final detail = data['detail'];
-      if (detail is String && detail.isNotEmpty) {
-        return detail;
-      }
-      if (detail is Map<String, dynamic>) {
-        final message = detail['message'];
-        if (message is String && message.isNotEmpty) {
-          return message;
-        }
-      }
-      final message = data['message'];
-      if (message is String && message.isNotEmpty) {
-        return message;
-      }
-    }
-    return null;
+  static String? _nonEmpty(String? value) =>
+      value == null || value.trim().isEmpty ? null : value;
+
+  /// The `Retry-After` header in seconds, when the server sent one (429 and
+  /// 503). An HTTP-date value is ignored: the backend sends seconds.
+  static Duration? _retryAfter(DioException e) {
+    final raw = e.response?.headers.value('retry-after');
+    final seconds = raw == null ? null : int.tryParse(raw.trim());
+    if (seconds == null || seconds < 0) return null;
+    return Duration(seconds: seconds);
   }
 
-  static AppFailure _fromBadRequest(DioException e, StackTrace? st) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      final errorObj = data['error'];
-      if (errorObj is Map<String, dynamic>) {
-        final message = errorObj['message'];
-        if (message is String && message.isNotEmpty) {
-          return ValidationFailure(
-            fieldMessages: {'detail': message},
-            underlyingError: e,
-            stackTrace: st,
-          );
-        }
-      }
-      final detail = data['detail'];
-      if (detail is String && detail.isNotEmpty) {
-        return ValidationFailure(
-          fieldMessages: {'detail': detail},
-          underlyingError: e,
-          stackTrace: st,
-        );
-      }
-    }
-    return ValidationFailure(underlyingError: e, stackTrace: st);
+  /// A 400 carries one message in the envelope; there are no field errors.
+  static AppFailure _fromBadRequest(
+    ApiErrorEnvelope? envelope,
+    DioException e,
+    StackTrace? st,
+  ) {
+    final message = _nonEmpty(envelope?.message);
+    return ValidationFailure(
+      fieldMessages: message == null ? const {} : {'detail': message},
+      code: envelope?.code,
+      underlyingError: e,
+      stackTrace: st,
+    );
   }
 
-  /// Attempts to extract field-level validation errors from a 422 response.
-  static AppFailure _fromValidationResponse(DioException e, StackTrace? st) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      // Common backend patterns: {"detail": {...}} or {"errors": {...}}
-      final detail = data['detail'];
-      final errors = data['errors'];
-
-      if (detail is Map<String, dynamic>) {
-        return ValidationFailure(
-          fieldMessages: detail.map((k, v) => MapEntry(k, v.toString())),
-          underlyingError: e,
-          stackTrace: st,
-        );
-      }
-      if (errors is Map<String, dynamic>) {
-        return ValidationFailure(
-          fieldMessages: errors.map((k, v) => MapEntry(k, v.toString())),
-          underlyingError: e,
-          stackTrace: st,
-        );
-      }
-      if (detail is List) {
-        final fieldMessages = <String, String>{};
-        for (var i = 0; i < detail.length; i++) {
-          final item = detail[i];
-          if (item is Map<String, dynamic>) {
-            final message = item['msg'];
-            final text = (message is String && message.isNotEmpty)
-                ? message
-                : (item['type']?.toString() ?? 'detail_$i');
-            fieldMessages[_validationFieldName(item['loc'], i)] = text;
-          } else if (item != null) {
-            fieldMessages['detail_$i'] = item.toString();
-          }
-        }
-        if (fieldMessages.isNotEmpty) {
-          return ValidationFailure(
-            fieldMessages: fieldMessages,
-            underlyingError: e,
-            stackTrace: st,
-          );
-        }
-      }
-      if (detail is String) {
-        return ValidationFailure(
-          fieldMessages: {'detail': detail},
-          underlyingError: e,
-          stackTrace: st,
-        );
-      }
+  /// A 422 lists its field errors in `error.details.fields`
+  /// (`{field, msg, type}`). With no field named, the envelope message is used
+  /// unless it is the generic `VALIDATION_ERROR` text.
+  static AppFailure _fromValidationResponse(
+    ApiErrorEnvelope? envelope,
+    DioException e,
+    StackTrace? st,
+  ) {
+    final fieldMessages = <String, String>{};
+    for (final error in envelope?.fields ?? const <ApiFieldError>[]) {
+      fieldMessages.putIfAbsent(error.formField, () => error.msg);
     }
-    return ValidationFailure(underlyingError: e, stackTrace: st);
-  }
-
-  static String _validationFieldName(Object? location, int fallbackIndex) {
-    if (location is List) {
-      final parts = location
-          .map((part) => part.toString())
-          .where((part) => part.isNotEmpty && part != 'body')
-          .toList(growable: false);
-      if (parts.isNotEmpty) return parts.join('.');
+    final message = _nonEmpty(envelope?.message);
+    if (fieldMessages.isEmpty &&
+        message != null &&
+        envelope?.code != 'VALIDATION_ERROR') {
+      fieldMessages['detail'] = message;
     }
-    if (location is String && location.isNotEmpty) return location;
-    return 'detail_$fallbackIndex';
+    return ValidationFailure(
+      fieldMessages: fieldMessages,
+      code: envelope?.code,
+      underlyingError: e,
+      stackTrace: st,
+    );
   }
 
   static AppFailure _fromConnectionError(DioException e, StackTrace? st) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,8 +11,16 @@ import 'package:flatmates_app/features/location/application/location_controller.
 class _ScriptedLocationController extends LocationController {
   LocationData? ipResult;
 
+  /// When set, the IP lookup waits for it, so a test can hold a detection open.
+  Completer<void>? gate;
+  int ipCalls = 0;
+
   @override
-  Future<LocationData?> getIpLocation() async => ipResult;
+  Future<LocationData?> getIpLocation() async {
+    ipCalls++;
+    await gate?.future;
+    return ipResult;
+  }
 }
 
 ProviderContainer _container(_ScriptedLocationController controller) {
@@ -75,6 +85,59 @@ void main() {
         container.read(locationControllerProvider).error,
         LocationError.couldNotDetect,
       );
+    });
+
+    test('a concurrent call joins the running detection', () async {
+      final controller = _ScriptedLocationController()
+        ..ipResult = fallback
+        ..gate = Completer<void>();
+      final container = _container(controller);
+      final notifier = container.read(locationControllerProvider.notifier);
+
+      final first = notifier.getCurrentLocation();
+      final second = notifier.getCurrentLocation();
+      var secondDone = false;
+      unawaited(second.then((_) => secondDone = true));
+      await Future<void>.delayed(Duration.zero);
+      expect(secondDone, isFalse, reason: 'the detection is still running');
+
+      controller.gate!.complete();
+      await Future.wait([first, second]);
+
+      expect(controller.ipCalls, 1, reason: 'one detection, not two');
+      expect(container.read(locationControllerProvider).ipLocation, fallback);
+    });
+
+    test('a 0,0 IP result is a failed detection', () async {
+      final controller = _ScriptedLocationController()
+        ..ipResult = const LocationData(name: '', latitude: 0, longitude: 0);
+      final container = _container(controller);
+
+      await container
+          .read(locationControllerProvider.notifier)
+          .getCurrentLocation();
+
+      final state = container.read(locationControllerProvider);
+      expect(state.error, LocationError.couldNotDetect);
+      expect(state.ipLocation, isNull);
+    });
+
+    test('the IP fix is kept apart from a manually chosen city', () async {
+      const manual = LocationData(
+        name: 'Pune',
+        latitude: 18.5204,
+        longitude: 73.8567,
+      );
+      final controller = _ScriptedLocationController()..ipResult = fallback;
+      final container = _container(controller);
+      final notifier = container.read(locationControllerProvider.notifier);
+
+      notifier.selectLocation(manual);
+      await notifier.getCurrentLocation();
+
+      final state = container.read(locationControllerProvider);
+      expect(state.selectedLocation, manual);
+      expect(state.ipLocation, fallback);
     });
   });
 }

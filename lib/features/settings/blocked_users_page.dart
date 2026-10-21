@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
-import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../chats/application/cursor_list_controller.dart';
@@ -150,15 +149,6 @@ class _BlockedUserRow extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              if (user.location != null) ...[
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  user.location!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

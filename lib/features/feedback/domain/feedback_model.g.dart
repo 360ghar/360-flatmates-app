@@ -15,7 +15,7 @@ _$BugReportRequestImpl _$$BugReportRequestImplFromJson(
   title: json['title'] as String,
   description: json['description'] as String,
   appVersion: json['app_version'] as String?,
-  deviceInfo: json['device_info'] as String?,
+  deviceInfo: json['device_info'] as Map<String, dynamic>?,
   tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 

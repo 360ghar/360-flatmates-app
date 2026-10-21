@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/chats/application/cursor_list_controller.dart';
@@ -57,7 +58,7 @@ ProviderContainer _containerWithAdapter(
 OutgoingLikeModel _peerLike(int peerId, {int id = -1}) {
   return OutgoingLikeModel(
     id: id,
-    targetType: 'user',
+    targetType: SwipeTargetType.user,
     peer: ChatPeer(id: peerId, fullName: 'Peer $peerId'),
     createdAt: DateTime(2025, 5, 15),
   );

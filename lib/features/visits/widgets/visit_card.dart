@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/theme.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/flatmates_card.dart';
 import '../../shared/presentation/flatmates_trust_badge.dart';
@@ -43,14 +44,14 @@ class VisitCard extends StatelessWidget {
     // its "confirmed" status but can no longer be changed.
     final hasActions =
         onCancel != null &&
-        (item.status == 'requested' ||
-            item.status == 'reschedule_suggested' ||
-            item.status == 'confirmed');
+        (item.status == VisitStatus.requested ||
+            item.status == VisitStatus.rescheduleSuggested ||
+            item.status == VisitStatus.confirmed);
     final meta = theme.textTheme.bodySmall?.copyWith(
       color: AppSemanticColors.textSecondaryFor(b),
     );
     final local = item.scheduledDate.toLocal();
-    final isMeet = item.visitContext == 'flatmate_meet';
+    final isMeet = item.visitContext == VisitContext.flatmateMeet;
 
     return FlatmatesCard(
       backgroundColor: AppSemanticColors.surfaceFor(b),
@@ -79,16 +80,18 @@ class VisitCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               // Flexible: at large text sizes the status ellipsizes instead
               // of pushing the row past its width.
-              Flexible(
-                child: FlatmatesTrustBadge(
-                  variant: badgeVariant,
-                  label: localizedFlatmatesVisitStatusLabel(
-                    locale,
-                    item.status,
+              // A status this build does not know has no label: no badge.
+              if (item.status != null)
+                Flexible(
+                  child: FlatmatesTrustBadge(
+                    variant: badgeVariant,
+                    label: localizedFlatmatesVisitStatusLabel(
+                      locale,
+                      item.status!.wire,
+                    ),
+                    compact: true,
                   ),
-                  compact: true,
                 ),
-              ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -98,6 +101,16 @@ class VisitCard extends StatelessWidget {
               color: AppSemanticColors.textPrimaryFor(b),
             ),
           ),
+          if (item.timeSlotLabel != null) ...[
+            const SizedBox(height: AppSpacing.xxs),
+            Text(
+              item.timeSlotLabel!,
+              key: const ValueKey('visit_time_slot_label'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: meta,
+            ),
+          ],
           const SizedBox(height: AppSpacing.xxs),
           Row(
             children: [
@@ -137,7 +150,8 @@ class VisitCard extends StatelessWidget {
       onPressed: busy ? null : onCancel,
     );
     // requested / reschedule_suggested: the counterparty confirms or cancels.
-    if (item.status == 'requested' || item.status == 'reschedule_suggested') {
+    if (item.status == VisitStatus.requested ||
+        item.status == VisitStatus.rescheduleSuggested) {
       return [
         FlatmatesButton(
           label: locale.visitConfirmCta,

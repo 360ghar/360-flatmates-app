@@ -30,7 +30,12 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
     final isLong = (desc?.length ?? 0) > 120;
 
     return Padding(
-      padding: AppSpacing.horizontalScreen,
+      // Trailing inset clears the Duo's right-edge status bar; the page body
+      // is not wrapped in a SafeArea so the carousel above can stay full-bleed.
+      padding: EdgeInsets.only(
+        left: AppSpacing.screen,
+        right: AppSpacing.screen + MediaQuery.paddingOf(context).right,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -101,7 +106,9 @@ class _FlatDetailsAboutState extends State<FlatDetailsAbout> {
                   icon: Icons.schedule_outlined,
                   label: locale.postedOnLabel,
                   value: l.createdAt != null
-                      ? DateFormat.yMMMd(locale.localeName).format(l.createdAt!)
+                      ? DateFormat.yMMMd(
+                          locale.localeName,
+                        ).format(l.createdAt!.toLocal())
                       : locale.recentlyLabel,
                 ),
               ),

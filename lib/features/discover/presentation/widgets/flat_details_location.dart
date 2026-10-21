@@ -9,6 +9,7 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../../location/presentation/map_widgets.dart';
 import '../../../shared/presentation/components.dart';
 import '../../domain/property_listing.dart';
+import 'details_media_band.dart';
 
 /// Opens the property location in an external maps app (view-only, distinct
 /// from `GetDirectionsButton` which launches turn-by-turn directions).
@@ -67,13 +68,11 @@ Future<void> _openInMaps(
 class FlatDetailsLocation extends StatelessWidget {
   const FlatDetailsLocation({
     required this.listing,
-    required this.currentUserId,
     required this.onVoteSocietyTag,
     super.key,
   });
 
   final PropertyListing listing;
-  final int? currentUserId;
   final void Function(String tag, String vote) onVoteSocietyTag;
 
   @override
@@ -84,7 +83,12 @@ class FlatDetailsLocation extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: AppSpacing.horizontalScreen,
+      // Trailing inset clears the Duo's right-edge status bar; the page body
+      // is not wrapped in a SafeArea so the carousel above can stay full-bleed.
+      padding: EdgeInsets.only(
+        left: AppSpacing.screen,
+        right: AppSpacing.screen + MediaQuery.paddingOf(context).right,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -92,15 +96,19 @@ class FlatDetailsLocation extends StatelessWidget {
           if (l.latitude != null && l.longitude != null) ...[
             FlatmatesSectionHeader(title: locale.locationSectionTitle),
             const SizedBox(height: AppSpacing.sm),
-            MiniMapView(
-              latitude: l.latitude!,
-              longitude: l.longitude!,
-              height: 220,
-              markerLabel: l.locality ?? l.city,
-              onTap: () => _openInMaps(
-                l.latitude!,
-                l.longitude!,
-                label: l.locality ?? l.city ?? locale.propertyFallbackLabel,
+            // The band follows the content column, not the viewport: a fixed
+            // 220 dp frame letterboxes the map once the reading column widens.
+            LayoutBuilder(
+              builder: (context, constraints) => MiniMapView(
+                latitude: l.latitude!,
+                longitude: l.longitude!,
+                height: detailsMediaBandHeight(constraints.maxWidth),
+                markerLabel: l.locality ?? l.city,
+                onTap: () => _openInMaps(
+                  l.latitude!,
+                  l.longitude!,
+                  label: l.locality ?? l.city ?? locale.propertyFallbackLabel,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -112,8 +120,8 @@ class FlatDetailsLocation extends StatelessWidget {
             const SizedBox(height: AppSpacing.screen),
           ],
 
-          // Society / Vibe tags
-          if (l.societyTagVoteCounts.isNotEmpty) ...[
+          // Society / Vibe tags: the owner's tags; counts appear after a vote.
+          if (l.societyVibeTags.isNotEmpty) ...[
             FlatmatesSectionHeader(title: locale.societyVibeSectionTitle),
             const SizedBox(height: AppSpacing.sm),
             _buildSocietyTagChips(l, isDark),
@@ -175,7 +183,7 @@ class FlatDetailsLocation extends StatelessWidget {
                       locale.visitScheduledBanner(
                         DateFormat.yMMMd(
                           locale.localeName,
-                        ).format(l.userNextVisitDate!),
+                        ).format(l.userNextVisitDate!.toLocal()),
                       ),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
@@ -246,21 +254,13 @@ class FlatDetailsLocation extends StatelessWidget {
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
-      children: l.societyTagVoteCounts.entries.map((entry) {
-        final tag = entry.key;
-        final counts = entry.value;
-        final up = counts['up'] ?? 0;
-        final netVotes = up - (counts['down'] ?? 0);
-        final myVote = currentUserId != null
-            ? (l.societyTagUserVotes['$currentUserId:$tag'] ??
-                  l.societyTagUserVotes[currentUserId.toString()])
-            : null;
-        final label = humanizeFlatmatesToken(tag);
+      children: l.societyVibeTags.map((tag) {
+        final result = l.societyTagVotes[tag];
         return _SocietyTagChip(
           tag: tag,
-          label: label,
-          netVotes: netVotes,
-          myVote: myVote,
+          label: humanizeFlatmatesToken(tag),
+          netVotes: result?.netVotes,
+          myVote: result?.currentVote,
           onVote: onVoteSocietyTag,
           isDark: isDark,
         );
@@ -281,7 +281,9 @@ class _SocietyTagChip extends StatelessWidget {
 
   final String tag;
   final String label;
-  final int netVotes;
+
+  /// Null until the viewer votes: the server sends no counts before that.
+  final int? netVotes;
   final String? myVote;
   final void Function(String tag, String vote) onVote;
   final bool isDark;
@@ -339,14 +341,16 @@ class _SocietyTagChip extends StatelessWidget {
                       color: foreground,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    netVotes.toString(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(brightness),
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                  if (netVotes != null) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      netVotes.toString(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(brightness),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

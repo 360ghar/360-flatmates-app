@@ -1,9 +1,14 @@
 #!/bin/sh
-# Builds the signed Play Store App Bundle (.aab) using configuration sourced
-# from the environment (via scripts/load_env.sh or CI secrets).
+# Builds a signed App Bundle (.aab) with plain `flutter build`, using
+# configuration sourced from the environment (via scripts/load_env.sh or CI
+# secrets). The bundle has no Shorebird engine and can NEVER receive an OTA
+# patch, so it is not a store artifact: store builds use
+# scripts/shorebird_release.sh or the v* tag workflows. The script refuses to
+# run unless ALLOW_PLAIN_BUNDLE=1 is set, for local or QA bundles only.
 #
 # Usage:
-#   . ./scripts/load_env.sh && ./scripts/verify_env.sh && ./scripts/build_aab.sh
+#   . ./scripts/load_env.sh && ./scripts/verify_env.sh && \
+#     ALLOW_PLAIN_BUNDLE=1 ./scripts/build_aab.sh
 #
 # Required env vars: APP_ENV, API_BASE_URL, SUPABASE_URL,
 #   SUPABASE_PUBLISHABLE_KEY, GOOGLE_WEB_CLIENT_ID
@@ -17,6 +22,12 @@
 # `flutter build` artifact has no Shorebird engine and can never be patched.
 
 set -eu
+
+if [ "${ALLOW_PLAIN_BUNDLE:-}" != "1" ]; then
+  echo "build_aab: refusing to build a plain-Flutter bundle: it can never receive a Shorebird patch." >&2
+  echo "build_aab: use scripts/shorebird_release.sh for store builds, or set ALLOW_PLAIN_BUNDLE=1 for a local or QA bundle." >&2
+  exit 1
+fi
 
 : "${APP_ENV:?required: set APP_ENV (dev|staging|prod)}"
 : "${API_BASE_URL:?required: set API_BASE_URL}"

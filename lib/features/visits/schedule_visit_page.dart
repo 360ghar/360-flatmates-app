@@ -196,7 +196,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
                             DateFormat(
                               'd MMM yyyy',
                               locale.localeName,
-                            ).format(conversation.matchedAt!),
+                            ).format(conversation.matchedAt!.toLocal()),
                           ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppSemanticColors.textSecondaryFor(

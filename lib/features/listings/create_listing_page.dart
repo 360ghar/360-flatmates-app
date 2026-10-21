@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/catalog_helpers.dart';
@@ -44,6 +45,10 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
   final _societyVibeTags = <String>{};
   String _roomType = 'private_room';
   final _roomFurnishing = <String>{};
+
+  /// A stored `unfurnished` level the furnishing chips cannot show; kept on
+  /// save unless the owner picks a chip.
+  FurnishingLevel? _keptFurnishingLevel;
   final _roomFeatures = <String>{};
   final _roomPhotoUrls = <String>[];
   String? _videoTourUrl;
@@ -111,6 +116,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         otherChargesDescription: _otherChargesDescriptionController,
         windowsCount: _windowsController,
         ventilationShafts: _ventilationShaftsController,
+        roomFurnishing: _roomFurnishing,
         roomFeatures: _roomFeatures,
         societyAmenities: _societyAmenities,
         societyVibeTags: _societyVibeTags,
@@ -130,6 +136,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
         _electricityIncluded = scalars.electricityIncluded;
         _videoTourUrl = scalars.videoTourUrl;
         _availableFrom = scalars.availableFrom;
+        _keptFurnishingLevel = scalars.keptFurnishingLevel;
         // Clamp to the slider range (18-50) so an odd stored value cannot
         // assert in RangeSlider.
         final min = (scalars.ageMin ?? _ageMin).clamp(18.0, 50.0);
@@ -415,6 +422,7 @@ class _CreateListingPageState extends ConsumerState<CreateListingPage> {
     ageMax: _ageMax,
     nonNegotiables: _nonNegotiables,
     availableFrom: _availableFrom,
+    keptFurnishingLevel: _keptFurnishingLevel,
   );
 
   void _onFieldChanged() {

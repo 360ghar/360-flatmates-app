@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../chats_repository.dart';
 
 /// Generic controller base for cursor-paginated list endpoints.
@@ -180,6 +181,19 @@ abstract class CursorListController<T>
     state = AsyncValue.data(current.copyWith(items: [item, ...items]));
   }
 
+  /// Replaces the rendered row that matches [item] where it stands, keeping the
+  /// list order the server gave. Does nothing when no row matches.
+  void replaceInPlace(T item) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final index = current.items.indexWhere((e) => matchesItem(e, item));
+    if (index < 0) return;
+    final items = [...current.items]..[index] = item;
+    final pending = _optimisticItems.indexWhere((e) => matchesItem(e, item));
+    if (pending >= 0) _optimisticItems[pending] = item;
+    state = AsyncValue.data(current.copyWith(items: items));
+  }
+
   /// Optimistically remove [item] from the rendered list (e.g. after the
   /// user blocks or unmatches a conversation). The caller is still
   /// responsible for the corresponding API mutation + provider
@@ -331,7 +345,7 @@ class OutgoingLikesController extends CursorListController<OutgoingLikeModel> {
   @override
   bool matchesItem(OutgoingLikeModel a, OutgoingLikeModel b) {
     if (a.targetType != b.targetType) return false;
-    if (a.targetType == 'property') {
+    if (a.targetType == SwipeTargetType.property) {
       return a.property?.id == b.property?.id;
     }
     return a.peer?.id == b.peer?.id;

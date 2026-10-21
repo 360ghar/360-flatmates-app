@@ -17,7 +17,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onBlock,
     required this.onReport,
     required this.onUnmatch,
-    required this.onCall,
+    this.onCall,
     required this.onScheduleVisit,
     this.onPeerTap,
     super.key,
@@ -31,7 +31,9 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onBlock;
   final VoidCallback onReport;
   final VoidCallback onUnmatch;
-  final VoidCallback onCall;
+
+  /// Null hides the call button: only an open match has a phone to call.
+  final VoidCallback? onCall;
   final VoidCallback onScheduleVisit;
   final VoidCallback? onPeerTap;
 
@@ -148,12 +150,13 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        FlatmatesChromeIconButton(
-          key: const Key('chat_call_button'),
-          onPressed: onCall,
-          icon: Icons.call_outlined,
-          tooltip: locale.callCta,
-        ),
+        if (onCall != null)
+          FlatmatesChromeIconButton(
+            key: const Key('chat_call_button'),
+            onPressed: onCall,
+            icon: Icons.call_outlined,
+            tooltip: locale.callCta,
+          ),
         if (conversation?.contextProperty != null)
           FlatmatesChromeIconButton(
             key: const Key('chat_schedule_visit_button'),

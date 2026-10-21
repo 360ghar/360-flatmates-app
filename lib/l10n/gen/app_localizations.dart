@@ -1958,11 +1958,11 @@ abstract class AppLocalizations {
   /// **'Inappropriate content'**
   String get reportInappropriate;
 
-  /// No description provided for @reportUncomfortable.
+  /// No description provided for @reportAbuse.
   ///
   /// In en, this message translates to:
-  /// **'Uncomfortable interaction'**
-  String get reportUncomfortable;
+  /// **'Abuse'**
+  String get reportAbuse;
 
   /// No description provided for @reportOther.
   ///
@@ -2911,6 +2911,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to cancel this visit?'**
   String get visitCancelConfirm;
+
+  /// No description provided for @visitCancelReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for cancelling'**
+  String get visitCancelReasonLabel;
 
   /// No description provided for @visitConfirmed.
   ///
@@ -5588,6 +5594,72 @@ abstract class AppLocalizations {
   /// **'Too many requests. Please wait a moment and try again.'**
   String get errorRateLimit;
 
+  /// No description provided for @errorRateLimitWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Try again in {seconds, plural, =1{1 second} other{{seconds} seconds}}.'**
+  String errorRateLimitWait(num seconds);
+
+  /// No description provided for @errorServerWait.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is temporarily unavailable. Try again in {seconds, plural, =1{1 second} other{{seconds} seconds}}.'**
+  String errorServerWait(num seconds);
+
+  /// No description provided for @errorCodeProfileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile is no longer available.'**
+  String get errorCodeProfileNotFound;
+
+  /// No description provided for @errorCodeMatchNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'You are no longer matched with this person.'**
+  String get errorCodeMatchNotFound;
+
+  /// No description provided for @errorCodeProfileStatusLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile status cannot change while it is paused or under review.'**
+  String get errorCodeProfileStatusLocked;
+
+  /// No description provided for @errorCodeListingNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This listing is no longer available.'**
+  String get errorCodeListingNotFound;
+
+  /// No description provided for @errorCodeBlockNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This person is not on your blocked list.'**
+  String get errorCodeBlockNotFound;
+
+  /// No description provided for @errorCodeVisitConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a visit at this time.'**
+  String get errorCodeVisitConflict;
+
+  /// No description provided for @errorCodeVisitNotCancellable.
+  ///
+  /// In en, this message translates to:
+  /// **'This visit can no longer be cancelled.'**
+  String get errorCodeVisitNotCancellable;
+
+  /// No description provided for @errorCodeVisitNotReschedulable.
+  ///
+  /// In en, this message translates to:
+  /// **'This visit can no longer be rescheduled.'**
+  String get errorCodeVisitNotReschedulable;
+
+  /// No description provided for @errorCodeUserInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is not active. Contact support for help.'**
+  String get errorCodeUserInactive;
+
   /// No description provided for @errorConflict.
   ///
   /// In en, this message translates to:
@@ -6853,6 +6925,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Listing updated successfully.'**
   String get listingUpdatedToast;
+
+  /// No description provided for @listingUpdatedInReviewToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing updated. It is back in review before it goes live again.'**
+  String get listingUpdatedInReviewToast;
+
+  /// No description provided for @listingStatusConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This listing cannot change status right now. It may be under review or paused by a moderator.'**
+  String get listingStatusConflict;
 
   /// No description provided for @discardListingTitle.
   ///

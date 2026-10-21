@@ -74,8 +74,12 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final theme = Theme.of(context);
     final listHubBg = AppSemanticColors.secondarySurfaceFor(theme.brightness);
 
+    // The server counts every page; the rows on screen cover the gap before
+    // the count answers (or when it fails).
+    final unreadCount = ref.watch(notificationsUnreadCountProvider).valueOrNull;
     final hasUnread =
-        notificationsState.valueOrNull?.items.any((n) => !n.isRead) ?? false;
+        (unreadCount ?? 0) > 0 ||
+        (notificationsState.valueOrNull?.items.any((n) => !n.isRead) ?? false);
 
     return FlatmatesScreen(
       backgroundColor: listHubBg,

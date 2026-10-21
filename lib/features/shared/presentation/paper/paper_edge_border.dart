@@ -109,6 +109,13 @@ class PaperEdgeBorder extends ShapeBorder {
           x0 += tornTileWidth;
         }
       case PaperEdge.scallop:
+        // A zero-depth scallop has no height to arc over (and `along / 0`
+        // would throw below): draw the straight edge.
+        if (depth <= 0) {
+          p.lineTo(0, 0);
+          p.lineTo(along, 0);
+          return;
+        }
         // Semicircles bulging outward (towards y = 0), sitting on y = depth.
         final count = math.max(1, (along / (depth * 2)).round());
         final w = along / count;

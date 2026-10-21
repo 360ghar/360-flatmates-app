@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/endpoints.dart';
+import '../../../core/domain/wire_enums.dart';
 import '../../../core/providers.dart';
 import '../domain/feedback_model.dart';
 
@@ -22,7 +23,7 @@ class FeedbackRepository {
     required String bugType,
     required String severity,
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) {
     return _submit(
       BugReportRequest(
@@ -45,12 +46,12 @@ class FeedbackRepository {
     required String description,
     String severity = 'medium',
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) {
     return _submit(
       BugReportRequest(
         source: 'mobile',
-        bugType: 'feature_request',
+        bugType: BugType.featureRequest.wire,
         severity: severity,
         title: title,
         description: description,

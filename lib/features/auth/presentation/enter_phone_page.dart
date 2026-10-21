@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:smart_auth/smart_auth.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../auth_controller.dart';
 import '../identifier.dart';
 import '../last_auth_method.dart';
@@ -140,6 +141,7 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
     final lastMethod = ref.watch(lastAuthMethodProvider);
     final termsAccepted = _termsAccepted;
     final isBusy = auth.status == AuthStatus.submitting || _isSubmitting;
+    final viewPadding = MediaQuery.paddingOf(context);
 
     // Root auth entry — no top chrome; title lives in the body.
     // The neighbourhood scene owns the top of the first screen; the form
@@ -155,12 +157,20 @@ class _EnterPhonePageState extends ConsumerState<EnterPhonePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PaperSceneHeader(parallax: _scroll),
+            // The neighbourhood scene above stays full-bleed, so this subtree
+            // carries its own insets instead of relying on a page-level
+            // SafeArea. The Duo's real inset is 82 dp on **top** (measured; an
+            // earlier revision of this comment claimed 84 dp on the right,
+            // which the device does not report). The top is covered by
+            // `PaperSceneHeader`, which consumes `paddingOf(context).top`, so
+            // this padding only has to add the left/right/bottom the form sits
+            // against.
             Padding(
               padding: EdgeInsets.fromLTRB(
-                AppSpacing.screen,
+                AppSpacing.screen + viewPadding.left,
                 AppSpacing.base,
-                AppSpacing.screen,
-                AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
+                AppSpacing.screen + viewPadding.right,
+                AppSpacing.lg + viewPadding.bottom,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

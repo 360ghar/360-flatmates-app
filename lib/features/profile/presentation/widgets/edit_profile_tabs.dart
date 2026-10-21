@@ -108,8 +108,6 @@ Widget buildEditProfileTabBody({
   required TextEditingController linkedInController,
   String? nativePlaceError,
   String? linkedInError,
-  required bool hasEmail,
-  required bool hasPhone,
   required VoidCallback onPickAndUploadPhoto,
 }) {
   switch (tab) {
@@ -127,8 +125,6 @@ Widget buildEditProfileTabBody({
             locale: locale,
             emailController: emailController,
             phoneController: phoneController,
-            hasEmail: hasEmail,
-            hasPhone: hasPhone,
           ),
           const SizedBox(height: AppSpacing.xl),
           EditProfileBasicInfoSection(

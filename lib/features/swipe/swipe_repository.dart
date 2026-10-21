@@ -1,8 +1,10 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/endpoints.dart';
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
@@ -34,7 +36,6 @@ class SwipeProfile {
     required this.hasPets,
     required this.partyHabit,
     required this.listingDetails,
-    this.age,
     this.ageBucket,
     this.profession,
     this.smoking,
@@ -62,82 +63,43 @@ class SwipeProfile {
   final List<String> nonNegotiables;
   final bool hasPets;
   final String? partyHabit;
-  final int? age;
   final String? profession;
 
-  /// Privacy-bucketed age range sent by the backend on peer payloads
-  /// (`age_bucket`, e.g. "18-24"); exact `age` may be omitted.
+  /// Privacy-bucketed age range of the peer (`age_bucket`, e.g. "18-24"). A
+  /// peer payload never carries an exact age.
   final String? ageBucket;
 
-  /// Split lifestyle values (F1 profile split). Derived from the legacy
-  /// combined `smoking_drinking` value in [fromJson] when the split fields
-  /// are absent so pre-split rows still filter correctly.
+  /// Lifestyle values of the peer: `never`, `occasionally` or `regularly`.
   final String? smoking;
   final String? drinking;
 
-  /// Extra listing detail fields from the API response.
-  /// Expected keys:
-  ///   - 'society_name' (`String`)
-  ///   - 'society_type' (`String`)
-  ///   - 'society_amenities' (`List<String>`)
-  ///   - 'society_vibes' (`List<String>`)
+  /// Listing detail of the peer, read from the `listing` object of the peer
+  /// payload (`PeerListingSummary`; null when the peer has no live listing).
+  /// Keys:
+  ///   - 'society_name' (`String`, the listing `sub_locality`)
   ///   - 'room_type' (`String`)
-  ///   - 'furnishing' (`List<String>`)
-  ///   - 'room_features' (`List<String>`)
+  ///   - 'furnishing' (`List<String>`, the furnishing ids among `features`)
+  ///   - 'room_features' (`List<String>`, the listing `features`)
   ///   - 'flat_config' (`String`, e.g. "2 BHK")
-  ///   - 'floor' (`String`)
-  ///   - 'total_floors' (`String`)
-  ///   - 'flat_amenities' (`List<String>`)
-  ///   - 'monthly_rent' (`double`)
-  ///   - 'security_deposit' (`double`)
-  ///   - 'maintenance' (`double`)
-  ///   - 'existing_flatmates' (`List<Map<String, String>>`)
-  ///     each with keys: 'name', 'profession', 'lifestyle_chips'
+  ///   - 'floor' / 'total_floors' (`int`)
+  ///   - 'flat_amenities' (`List<String>`, the listing `amenities`)
+  ///   - 'monthly_rent' / 'security_deposit' / 'maintenance' (`double`)
+  ///   - 'available_from' (`String`, YYYY-MM-DD)
+  ///   - 'video_tour_url' (`String`)
+  ///   - 'latitude' / 'longitude' (`double`)
   final Map<String, dynamic> listingDetails;
 
   factory SwipeProfile.fromJson(Map<String, dynamic> json) {
-    // Extract known listing detail keys from the JSON response, if present.
-    final listingKeys = <String>[
-      'society_name',
-      'society_type',
-      'society_amenities',
-      'society_vibes',
-      'room_type',
-      'furnishing',
-      'room_features',
-      'flat_config',
-      'floor',
-      'total_floors',
-      'flat_amenities',
-      'monthly_rent',
-      'security_deposit',
-      'maintenance',
-      'kitchen_type',
-      'ventilation_type',
-      'windows_count',
-      'ventilation_shafts',
-      'setup_cost',
-      'other_charges',
-      'other_charges_description',
-      'furnishing_level',
-      'existing_flatmates',
-      'available_from',
-      'video_tour_url',
-      'latitude',
-      'longitude',
-    ];
-    final details = <String, dynamic>{};
-    for (final key in listingKeys) {
-      if (json.containsKey(key)) {
-        details[key] = json[key];
-      }
-    }
+    final listing = json['listing'];
+    final details = listing is Map
+        ? listingDetailsFromListing(Map<String, dynamic>.from(listing))
+        : const <String, dynamic>{};
 
     return SwipeProfile(
       id: (json['id'] as num?)?.toInt() ?? 0,
       fullName: json['full_name'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
-      imageUrls: _parseImageUrls(json['image_urls']),
+      imageUrls: _parseImageUrls(listing is Map ? listing['image_urls'] : null),
       mode: json['mode'] as String?,
       city: json['city'] as String?,
       locality: json['locality'] as String?,
@@ -160,37 +122,50 @@ class SwipeProfile {
       hasPets: json['has_pets'] as bool? ?? false,
       partyHabit: json['party_habit'] as String?,
       listingDetails: details,
-      age: (json['age'] as num?)?.toInt(),
       ageBucket: json['age_bucket'] as String?,
       profession: json['profession'] as String?,
-      smoking: _smokingValue(
-        json['smoking'] as String?,
-        json['smoking_drinking'] as String?,
-      ),
-      drinking: _drinkingValue(
-        json['drinking'] as String?,
-        json['smoking_drinking'] as String?,
-      ),
+      smoking: json['smoking'] as String?,
+      drinking: json['drinking'] as String?,
     );
   }
 
-  static String? _smokingValue(String? split, String? combined) {
-    if (split != null && split.trim().isNotEmpty) return split.trim();
-    return switch (combined) {
-      'smoke_outside' || 'both_fine' => 'regularly',
-      _ => null,
+  /// Maps a `PeerListingSummary` to the keys [listingDetails] documents.
+  /// Keys with no value are left out.
+  @visibleForTesting
+  static Map<String, dynamic> listingDetailsFromListing(
+    Map<String, dynamic> listing,
+  ) {
+    List<String> strings(Object? raw) => raw is List
+        ? raw.map((e) => e.toString()).where((e) => e.isNotEmpty).toList()
+        : const <String>[];
+    final features = strings(listing['features']);
+    final furnishing = [
+      for (final f in features)
+        if (FurnishingLevel.values.any((level) => level.wire == f)) f,
+    ];
+    final bedrooms = (listing['bedrooms'] as num?)?.toInt();
+    final entries = <String, Object?>{
+      'society_name': listing['sub_locality'],
+      'room_type': listing['room_type'],
+      'furnishing': furnishing.isEmpty ? null : furnishing,
+      'room_features': features.isEmpty ? null : features,
+      'flat_config': bedrooms == null ? null : '$bedrooms BHK',
+      'floor': listing['floor_number'],
+      'total_floors': listing['total_floors'],
+      'flat_amenities': strings(listing['amenities']).isEmpty
+          ? null
+          : strings(listing['amenities']),
+      'monthly_rent': listing['monthly_rent'],
+      'security_deposit': listing['security_deposit'],
+      'maintenance': listing['maintenance_charges'],
+      'available_from': listing['available_from'],
+      'video_tour_url': listing['video_tour_url'],
+      'latitude': listing['latitude'],
+      'longitude': listing['longitude'],
     };
-  }
-
-  static String? _drinkingValue(String? split, String? combined) {
-    if (split != null && split.trim().isNotEmpty) return split.trim();
-    return switch (combined) {
-      'drink_occasionally' => 'occasionally',
-      // 'both_fine' resolves to occasional drinking, matching the web
-      // onboarding-store migration (smoking 'regularly' + drinking
-      // 'occasionally') so both surfaces agree on the legacy value.
-      'both_fine' => 'occasionally',
-      _ => null,
+    return {
+      for (final entry in entries.entries)
+        if (entry.value != null) entry.key: entry.value,
     };
   }
 
@@ -207,11 +182,17 @@ class SwipeProfile {
   }
 }
 
+/// The body of `POST /flatmates/swipes` (201).
 class SwipeResult {
-  const SwipeResult({required this.didMatch, this.conversationId});
+  const SwipeResult({
+    required this.didMatch,
+    this.conversationId,
+    this.matchId,
+  });
 
   final bool didMatch;
   final int? conversationId;
+  final int? matchId;
 }
 
 class SwipeRepository {
@@ -243,26 +224,33 @@ class SwipeRepository {
       if (userNonNegotiables.isNotEmpty) {
         queryParams['non_negotiables'] = userNonNegotiables.join(',');
       }
-      if (userProfile?.genderPreference != null &&
-          userProfile!.genderPreference != 'any') {
-        queryParams['gender_preference'] = userProfile.genderPreference;
+      // `gender_preference` is declared on the route (any, male, female) and
+      // the server filters peers by it. `any` means no filter; a value this
+      // build does not know is not sent.
+      final genderPreference = ListingGenderPreference.fromJson(
+        userProfile?.genderPreference,
+      );
+      if (genderPreference != null &&
+          genderPreference != ListingGenderPreference.any) {
+        queryParams['gender_preference'] = genderPreference.wire;
       }
       final moveIn = moveInFilterQueryValue(filters?.moveInTimeline);
       if (moveIn != null) {
         queryParams['move_in'] = moveIn;
       }
+      // `age_min` and `age_max` are integers from 18 to 100.
       if (filters?.ageMin != null) {
-        queryParams['age_min'] = filters!.ageMin;
+        queryParams['age_min'] = filters!.ageMin!.clamp(18, 100);
       }
       if (filters?.ageMax != null) {
-        queryParams['age_max'] = filters!.ageMax;
+        queryParams['age_max'] = filters!.ageMax!.clamp(18, 100);
       }
       if (filters?.hasGeoLocation ?? false) {
         final f = filters!;
         queryParams['lat'] = f.latitude!.toStringAsFixed(6);
         queryParams['lng'] = f.longitude!.toStringAsFixed(6);
         if (f.radiusKm != null) {
-          queryParams['radius'] = f.radiusKm!.round();
+          queryParams['radius'] = f.radiusKm!.round().clamp(1, 100);
         }
       }
 
@@ -322,14 +310,6 @@ class SwipeRepository {
       // and the error UI can render a typed, localized message.
       throw UnknownFailure(underlyingError: e, stackTrace: st);
     }
-  }
-
-  /// Backwards-compatible helper returning the first page as a list.
-  Future<List<SwipeProfile>> fetchSwipeProfiles({
-    DiscoverFilters? filters,
-  }) async {
-    final page = await fetchSwipeProfilesPage(filters: filters);
-    return page.items;
   }
 
   /// Applies the explicit smoking / drinking lifestyle filters to peer
@@ -471,15 +451,15 @@ class SwipeRepository {
 
   Future<SwipeResult> swipeProfile({
     required int targetUserId,
-    required String action,
+    required SwipeAction action,
   }) async {
     final response = await _ref
         .read(apiClientProvider)
         .post(
           FlatmatesEndpoints.swipes,
           data: {
-            'target_type': 'user',
-            'action': action,
+            'target_type': SwipeTargetType.user.wire,
+            'action': action.wire,
             'target_user_id': targetUserId,
           },
         );
@@ -489,9 +469,12 @@ class SwipeRepository {
     return SwipeResult(
       didMatch: data['did_match'] as bool? ?? false,
       conversationId: (data['conversation_id'] as num?)?.toInt(),
+      matchId: (data['match_id'] as num?)?.toInt(),
     );
   }
 
+  /// `POST /flatmates/profile-views`. The API accepts 0 to 3600 seconds, so a
+  /// longer view is sent as 3600 instead of being dropped with a 422.
   Future<void> recordProfileView({
     required int targetUserId,
     required int durationSeconds,
@@ -504,27 +487,21 @@ class SwipeRepository {
           FlatmatesEndpoints.profileViews,
           data: {
             'target_user_id': targetUserId,
-            'duration_seconds': durationSeconds,
+            'duration_seconds': clampProfileViewSeconds(durationSeconds),
             'source': source,
-            'scroll_depth_percent': scrollDepthPercent,
+            if (scrollDepthPercent != null)
+              'scroll_depth_percent': scrollDepthPercent.clamp(0, 100),
           },
         );
   }
-
-  /// `POST /swipes/batch-remove` — undoes multiple likes/swipes in one
-  /// request. The backend expects a list of property ids and returns a
-  /// confirmation envelope (`{ message }`). Errors propagate via the
-  /// shared [ApiClient] -> [ErrorPresenter] pipeline.
-  Future<void> batchRemoveSwipes(List<int> propertyIds) async {
-    if (propertyIds.isEmpty) return;
-    await _ref
-        .read(apiClientProvider)
-        .post(
-          FlatmatesEndpoints.swipesBatchRemove,
-          data: {'property_ids': propertyIds},
-        );
-  }
 }
+
+/// Longest view the API accepts (`ProfileViewEventCreate.duration_seconds`).
+const int kMaxProfileViewSeconds = 3600;
+
+/// [seconds] limited to the 0 to 3600 the API accepts.
+int clampProfileViewSeconds(int seconds) =>
+    seconds.clamp(0, kMaxProfileViewSeconds);
 
 final swipeRepositoryProvider = Provider<SwipeRepository>(
   (ref) => SwipeRepository(ref),

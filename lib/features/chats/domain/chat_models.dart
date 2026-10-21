@@ -1,13 +1,30 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../discover/data/property_listing_dto.dart';
 import '../../discover/domain/property_listing.dart';
 
 part 'chat_models.freezed.dart';
 
+/// A timestamp the API always sends (`created_at`). A row without a readable
+/// one throws, so the list parser skips it: a row stamped with the current time
+/// or the epoch would sort and read wrong with no sign of it.
+DateTime _requiredTimestamp(Map<String, dynamic> json, String key) {
+  final value = DateTime.tryParse(json[key]?.toString() ?? '');
+  if (value == null) {
+    throw FormatException(
+      'row ${json['id']} has no readable $key: ${json[key]}',
+    );
+  }
+  return value;
+}
+
 @Freezed()
 class ChatPeer with _$ChatPeer {
   const ChatPeer._();
+
+  // No phone and no exact age here: a peer payload never carries them. The
+  // phone of a matched peer comes from the match contact route only.
   const factory ChatPeer({
     required int id,
     @Default('Flatmate') String fullName,
@@ -15,11 +32,9 @@ class ChatPeer with _$ChatPeer {
     String? mode,
     String? city,
     String? locality,
-    int? age,
     String? ageBucket,
     String? profession,
     double? matchPercentage,
-    String? phoneNumber,
   }) = _ChatPeer;
 
   factory ChatPeer.fromJson(Map<String, dynamic> json) {
@@ -30,11 +45,9 @@ class ChatPeer with _$ChatPeer {
       mode: json['mode'] as String?,
       city: json['city'] as String?,
       locality: json['locality'] as String?,
-      age: (json['age'] as num?)?.toInt(),
       ageBucket: json['age_bucket'] as String?,
       profession: json['profession'] as String?,
       matchPercentage: (json['match_percentage'] as num?)?.toDouble(),
-      phoneNumber: json['phone_number'] as String?,
     );
   }
 }
@@ -130,10 +143,20 @@ class ConversationQnAState {
 @Freezed()
 class ConversationSummaryModel with _$ConversationSummaryModel {
   const ConversationSummaryModel._();
+
+  /// A conversation opened by a mutual like of two profiles. Only these have a
+  /// match, so only these can show the peer's phone.
+  bool get isProfileMatch => source == ConversationSource.profileMatch;
+
+  /// Whether the peer's phone may be asked for: a mutual match that is still
+  /// open. A missing or unknown status is not open: the call is offered only
+  /// when the status says `active`. The server still decides; a blocked or
+  /// unmatched pair answers 404.
+  bool get canCall => isProfileMatch && status == ConversationStatus.active;
   const factory ConversationSummaryModel({
     required int id,
-    @Default('listing_interest') String source,
-    @Default('active') String status,
+    ConversationSource? source,
+    ConversationStatus? status,
     required ChatPeer peer,
     ChatPropertyContext? contextProperty,
     String? lastMessagePreview,
@@ -146,8 +169,8 @@ class ConversationSummaryModel with _$ConversationSummaryModel {
   factory ConversationSummaryModel.fromJson(Map<String, dynamic> json) {
     return ConversationSummaryModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      source: json['source'] as String? ?? 'listing_interest',
-      status: json['status'] as String? ?? 'active',
+      source: ConversationSource.fromJson(json['source']),
+      status: ConversationStatus.fromJson(json['status']),
       peer: ChatPeer.fromJson(
         Map<String, dynamic>.from(json['peer'] as Map? ?? const {}),
       ),
@@ -171,19 +194,60 @@ class ConversationSummaryModel with _$ConversationSummaryModel {
   }
 }
 
-/// Paginated message envelope returned by
-/// `GET /flatmates/conversations/{id}/messages`.
+/// A row of `GET /flatmates/matches`.
+class MatchSummaryModel {
+  const MatchSummaryModel({
+    required this.id,
+    required this.status,
+    required this.peer,
+  });
+
+  final int id;
+  final UserMatchStatus? status;
+  final ChatPeer peer;
+
+  factory MatchSummaryModel.fromJson(Map<String, dynamic> json) {
+    return MatchSummaryModel(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      status: UserMatchStatus.fromJson(json['status']),
+      peer: ChatPeer.fromJson(
+        Map<String, dynamic>.from(json['peer'] as Map? ?? const {}),
+      ),
+    );
+  }
+}
+
+/// `GET /flatmates/matches/{match_id}/contact`: the phone of the other user of
+/// an active match. The only place a peer phone is served.
+class MatchContactModel {
+  const MatchContactModel({
+    required this.matchId,
+    required this.peerUserId,
+    this.phone,
+  });
+
+  final int matchId;
+  final int peerUserId;
+  final String? phone;
+
+  factory MatchContactModel.fromJson(Map<String, dynamic> json) {
+    return MatchContactModel(
+      matchId: (json['match_id'] as num?)?.toInt() ?? 0,
+      peerUserId: (json['peer_user_id'] as num?)?.toInt() ?? 0,
+      phone: json['phone'] as String?,
+    );
+  }
+}
+
+/// One page of `GET /flatmates/conversations/{id}/messages` (a CursorPage).
 ///
-/// Unlike conversations/likes (CursorPage with `items`/`next_cursor`), messages
-/// use keyset pagination:
-/// `{ messages: MessageOut[], total: int, has_more: bool }` with query
-/// `before_id` (oldest message id on the current page for the next older page).
-class MessageListResponse {
-  const MessageListResponse({
+/// [messages] is chronological (oldest first). [nextCursor] is the opaque
+/// cursor of the next OLDER page, or null at the start of the thread.
+class MessagesPage {
+  const MessagesPage({
     required this.messages,
     required this.hasMore,
-    this.nextBeforeId,
-    this.total,
+    this.nextCursor,
   });
 
   final List<ChatMessage> messages;
@@ -191,12 +255,8 @@ class MessageListResponse {
   /// Whether older messages exist before [messages].
   final bool hasMore;
 
-  /// Pass as `before_id` on the next page request; `null` when at the start
-  /// of the thread or when [messages] is empty.
-  final int? nextBeforeId;
-
-  /// Count of messages in this page (backend `total` field).
-  final int? total;
+  /// Pass back unchanged as `cursor` to load the older page.
+  final String? nextCursor;
 }
 
 class IncomingLikeModel {
@@ -223,9 +283,7 @@ class IncomingLikeModel {
           : ChatPropertyContext.fromJson(
               Map<String, dynamic>.from(json['context_property'] as Map),
             ),
-      createdAt:
-          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      createdAt: _requiredTimestamp(json, 'created_at'),
     );
   }
 }
@@ -241,16 +299,18 @@ class OutgoingLikeModel {
   });
 
   final int id;
-  final String targetType;
+
+  /// Null for a target type this build does not know.
+  final SwipeTargetType? targetType;
   final ChatPeer? peer;
   final PropertyListing? property;
   final ChatPropertyContext? contextProperty;
   final DateTime createdAt;
 
   factory OutgoingLikeModel.fromJson(Map<String, dynamic> json) {
-    final targetType = json['target_type'] as String? ?? 'user';
+    final targetType = SwipeTargetType.fromJson(json['target_type']);
     PropertyListing? property;
-    if (targetType == 'property' && json['property'] is Map) {
+    if (targetType == SwipeTargetType.property && json['property'] is Map) {
       // Outgoing property likes are always liked from the owner's perspective.
       // Force true so Liked-tab hearts and toggle-unlike never depend on a
       // missing/mis-typed `liked` field from the payload.
@@ -261,27 +321,23 @@ class OutgoingLikeModel {
     return OutgoingLikeModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
       targetType: targetType,
-      peer: targetType == 'property'
-          ? null
-          : ChatPeer.fromJson(
-              Map<String, dynamic>.from(json['peer'] as Map? ?? const {}),
-            ),
+      peer: targetType == SwipeTargetType.user && json['peer'] is Map
+          ? ChatPeer.fromJson(Map<String, dynamic>.from(json['peer'] as Map))
+          : null,
       property: property,
       contextProperty: json['context_property'] == null
           ? null
           : ChatPropertyContext.fromJson(
               Map<String, dynamic>.from(json['context_property'] as Map),
             ),
-      createdAt:
-          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      createdAt: _requiredTimestamp(json, 'created_at'),
     );
   }
 
   factory OutgoingLikeModel.fromPropertyListing(PropertyListing property) {
     return OutgoingLikeModel(
       id: -property.id,
-      targetType: 'property',
+      targetType: SwipeTargetType.property,
       property: property.copyWith(liked: true),
       createdAt: DateTime.now().toUtc(),
     );
@@ -294,16 +350,30 @@ class ChatMessage with _$ChatMessage {
   const factory ChatMessage({
     required int id,
     required int conversationId,
-    required int senderId,
+
+    /// Null for a system message or a message whose sender was deleted.
+    int? senderId,
     String? body,
-    @Default('text') String messageType,
+    MessageType? messageType,
     required DateTime createdAt,
     DateTime? readAt,
     String? attachmentUrl,
     @Default(<String, dynamic>{}) Map<String, dynamic> metadata,
   }) = _ChatMessage;
 
+  /// A message with no sender, or of the `system` type, is shown as a notice
+  /// and never as a bubble of either side.
+  bool get isSystem => senderId == null || messageType == MessageType.system;
+
   int? get visitId => (metadata['visit_id'] as num?)?.toInt();
+
+  /// A visit-request card. The API accepts only `text` and `image` from a
+  /// client (`message_type` `visit_request` is a 422), so the app sends the
+  /// request as a text message with the visit in its metadata. A message of
+  /// the `visit_request` type (older rows) is a card too.
+  bool get isVisitRequest =>
+      messageType == MessageType.visitRequest ||
+      (messageType == MessageType.text && visitId != null);
 
   DateTime? get visitScheduledDate =>
       DateTime.tryParse(metadata['scheduled_date']?.toString() ?? '');
@@ -317,12 +387,10 @@ class ChatMessage with _$ChatMessage {
     return ChatMessage(
       id: (json['id'] as num?)?.toInt() ?? 0,
       conversationId: (json['conversation_id'] as num?)?.toInt() ?? 0,
-      senderId: (json['sender_id'] as num?)?.toInt() ?? 0,
+      senderId: (json['sender_id'] as num?)?.toInt(),
       body: json['body'] as String?,
-      messageType: json['message_type'] as String? ?? 'text',
-      createdAt:
-          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
-          DateTime.now(),
+      messageType: MessageType.fromJson(json['message_type']),
+      createdAt: _requiredTimestamp(json, 'created_at'),
       readAt: json['read_at'] != null
           ? DateTime.tryParse(json['read_at'].toString())
           : null,

@@ -20,6 +20,15 @@ import '../../swipe_repository.dart';
 /// Default hero height for the swipe card and profile sheet.
 const double kDefaultHeroHeight = 320;
 
+/// [value] when it is a usable layout dimension, else null.
+///
+/// A null dimension is what tells `FlatmatesNetworkImage` to size the photo
+/// from its own constraints; a 0 or infinite one would instead reach Cloudinary
+/// as a nonsense `w_`/`h_` (both are floored to 50) and as a bogus mem-cache
+/// size, so the hero never passes one.
+double? _usableDimension(double value) =>
+    value.isFinite && value > 0 ? value : null;
+
 // ── Hero photo carousel ─────────────────────────────────────────────────
 
 class HeroCarousel extends StatefulWidget {
@@ -97,12 +106,18 @@ class _HeroCarouselState extends State<HeroCarousel> {
       height: widget.heroHeight,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final imageWidth = constraints.maxWidth.isFinite
-              ? constraints.maxWidth
-              : null;
-          final imageHeight = constraints.maxHeight.isFinite
-              ? constraints.maxHeight
-              : null;
+          // Request box = the rect the hero actually paints, so a wide card
+          // asks for the pixels it shows instead of a size it then upscales.
+          //
+          // `FlatmatesNetworkImage` turns these into the Cloudinary `w_`/`h_`
+          // parameters *and* `memCacheWidth/Height`, doubling both for high-DPR
+          // screens, so the request is 2× the painted rect per axis. Its
+          // `c_limit` delivery is additionally bounded by this box, which is
+          // what keeps a tall crop cheap: asking for the cover box of a
+          // portrait photo in a wide hero (2× of 919 × 1225) would decode
+          // ~4.5 M px per photo, and the stack preloads three per card.
+          final imageWidth = _usableDimension(constraints.maxWidth);
+          final imageHeight = _usableDimension(constraints.maxHeight);
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -420,13 +435,10 @@ class HeroInfoOverlay extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final name = item.fullName ?? '';
-    // Backend omits exact age on peer payloads; fall back to the
-    // privacy-bucketed range so the hero line still shows an age.
-    final ageLabel =
-        item.age?.toString() ??
-        (item.ageBucket != null && item.ageBucket!.trim().isNotEmpty
-            ? localizedFlatmatesAgeBucket(locale, item.ageBucket)
-            : null);
+    // A peer payload carries the privacy-bucketed age range only.
+    final ageLabel = item.ageBucket != null && item.ageBucket!.trim().isNotEmpty
+        ? localizedFlatmatesAgeBucket(locale, item.ageBucket)
+        : null;
     final nameWithAge = ageLabel == null
         ? name
         : name.isEmpty
@@ -946,12 +958,10 @@ class ThePlaceSection extends StatelessWidget {
     required this.roomType,
     required this.flatConfig,
     required this.floor,
-    required this.societyAmenities,
     required this.flatAmenities,
     required this.lat,
     required this.lng,
     required this.fallbackLabel,
-    this.societyVibes = const [],
     this.roomFeatures = const [],
     this.availableFrom,
     this.totalFloors,
@@ -963,12 +973,10 @@ class ThePlaceSection extends StatelessWidget {
   final String? roomType;
   final String? flatConfig;
   final String? floor;
-  final List<String> societyAmenities;
   final List<String> flatAmenities;
   final double? lat;
   final double? lng;
   final String fallbackLabel;
-  final List<String> societyVibes;
   final List<String> roomFeatures;
   final String? availableFrom;
   final String? totalFloors;
@@ -992,7 +1000,6 @@ class ThePlaceSection extends StatelessWidget {
       flatConfig,
       floorLabel,
     ].whereType<String>().where((e) => e.isNotEmpty).join(' · ');
-    final allAmenities = <String>[...societyAmenities, ...flatAmenities];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1016,18 +1023,6 @@ class ThePlaceSection extends StatelessWidget {
             text:
                 '${locale.availableFromLabel}: ${_formatAvailable(availableFrom!, locale)}',
           ),
-        if (societyVibes.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            locale.societyVibesLabel,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppSemanticColors.textTertiaryFor(theme.brightness),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          AmenitiesChips(labels: societyVibes),
-        ],
         if (roomFeatures.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -1040,9 +1035,9 @@ class ThePlaceSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           AmenitiesChips(labels: roomFeatures),
         ],
-        if (allAmenities.isNotEmpty) ...[
+        if (flatAmenities.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
-          AmenitiesChips(labels: allAmenities),
+          AmenitiesChips(labels: flatAmenities),
         ],
       ],
     );
@@ -1167,65 +1162,6 @@ class _AmenitiesChipsState extends State<AmenitiesChips> {
             ),
           ),
       ],
-    );
-  }
-}
-
-// ── Existing flatmates horizontal scroll row ────────────────────────────
-
-class ExistingFlatmatesRow extends StatelessWidget {
-  const ExistingFlatmatesRow({super.key, required this.flatmates});
-  final List<Map<String, String>> flatmates;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (var i = 0; i < flatmates.length; i++) ...[
-            if (i > 0) const SizedBox(width: AppSpacing.md),
-            Container(
-              width: 110,
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
-                borderRadius: AppRadius.mdBorder,
-                border: Border.all(
-                  color: AppSemanticColors.hairlineFor(theme.brightness),
-                  width: 0.5,
-                ),
-              ),
-              child: Column(
-                children: [
-                  FlatmatesAvatar(name: flatmates[i]['name'] ?? '', size: 36),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    flatmates[i]['name'] ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if ((flatmates[i]['profession'] ?? '').isNotEmpty)
-                    Text(
-                      flatmates[i]['profession'] ?? '',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppSemanticColors.textTertiaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

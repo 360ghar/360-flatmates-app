@@ -4,7 +4,12 @@
 /// l10n. Controllers and repositories throw or return these instead of raw
 /// strings or DioExceptions.
 sealed class AppFailure {
-  const AppFailure({this.underlyingError, this.stackTrace});
+  const AppFailure({this.code, this.underlyingError, this.stackTrace});
+
+  /// The backend `error.code` (for example `LISTING_STATUS_CONFLICT`), or null
+  /// when the failure did not come from an error envelope. Branch on this, not
+  /// on the message text.
+  final String? code;
 
   /// The original error, if any. Used for logging/crash reporting only.
   final Object? underlyingError;
@@ -66,6 +71,7 @@ final class NetworkFailure extends AppFailure {
 final class AuthExpiredFailure extends AppFailure {
   const AuthExpiredFailure({
     this.serverMessage,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -77,7 +83,7 @@ final class AuthExpiredFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      serverMessage ?? l10n.errorAuthExpired;
+      l10n.forCode(code) ?? serverMessage ?? l10n.errorAuthExpired;
 }
 
 /// Authentication-specific failure from the identity provider (e.g. Supabase
@@ -86,6 +92,7 @@ final class AuthExpiredFailure extends AppFailure {
 final class AuthFailure extends AppFailure {
   const AuthFailure({
     this.serverMessage,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -104,11 +111,16 @@ final class ServerFailure extends AppFailure {
   const ServerFailure({
     this.statusCode,
     this.serverMessage,
+    this.retryAfter,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
 
   final int? statusCode;
+
+  /// The `Retry-After` header of a 503, when the server sent one.
+  final Duration? retryAfter;
 
   /// Backend detail, kept for logs. Not shown: 5xx text is English-only and
   /// can leak internals.
@@ -118,13 +130,17 @@ final class ServerFailure extends AppFailure {
   String get label => 'server($statusCode)';
 
   @override
-  String userMessage(UserMessageL10n l10n) => l10n.errorServer;
+  String userMessage(UserMessageL10n l10n) =>
+      statusCode == 503 && retryAfter != null && retryAfter!.inSeconds > 0
+      ? l10n.errorServerWait(retryAfter!.inSeconds)
+      : l10n.errorServer;
 }
 
 /// 403 Forbidden — user lacks permission.
 final class PermissionFailure extends AppFailure {
   const PermissionFailure({
     this.serverMessage,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -136,13 +152,14 @@ final class PermissionFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      serverMessage ?? l10n.errorPermission;
+      l10n.forCode(code) ?? serverMessage ?? l10n.errorPermission;
 }
 
 /// 404 Not Found.
 final class NotFoundFailure extends AppFailure {
   const NotFoundFailure({
     this.serverMessage,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -154,13 +171,14 @@ final class NotFoundFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      serverMessage ?? l10n.errorNotFound;
+      l10n.forCode(code) ?? serverMessage ?? l10n.errorNotFound;
 }
 
 /// 422 / field-level validation errors from backend.
 final class ValidationFailure extends AppFailure {
   const ValidationFailure({
     this.fieldMessages = const {},
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -174,6 +192,8 @@ final class ValidationFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) {
+    final byCode = l10n.forCode(code);
+    if (byCode != null) return byCode;
     if (fieldMessages.isNotEmpty) {
       return fieldMessages.values.join('\n');
     }
@@ -185,24 +205,32 @@ final class ValidationFailure extends AppFailure {
 final class RateLimitFailure extends AppFailure {
   const RateLimitFailure({
     this.serverMessage,
+    this.retryAfter,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
 
   final String? serverMessage;
 
+  /// The `Retry-After` header of the 429, when the server sent one.
+  final Duration? retryAfter;
+
   @override
   String get label => 'rate_limit';
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      serverMessage ?? l10n.errorRateLimit;
+      retryAfter != null && retryAfter!.inSeconds > 0
+      ? l10n.errorRateLimitWait(retryAfter!.inSeconds)
+      : l10n.forCode(code) ?? serverMessage ?? l10n.errorRateLimit;
 }
 
 /// Conflict (409).
 final class ConflictFailure extends AppFailure {
   const ConflictFailure({
     this.serverMessage,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -214,7 +242,7 @@ final class ConflictFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      serverMessage ?? l10n.errorConflict;
+      l10n.forCode(code) ?? serverMessage ?? l10n.errorConflict;
 }
 
 /// Upload-specific failures.
@@ -236,6 +264,7 @@ final class UploadFailure extends AppFailure {
 final class UnknownFailure extends AppFailure {
   const UnknownFailure({
     this.serverMessage,
+    super.code,
     super.underlyingError,
     super.stackTrace,
   });
@@ -247,7 +276,7 @@ final class UnknownFailure extends AppFailure {
 
   @override
   String userMessage(UserMessageL10n l10n) =>
-      serverMessage ?? l10n.errorUnknown;
+      l10n.forCode(code) ?? serverMessage ?? l10n.errorUnknown;
 }
 
 /// Localized strings contract for error messages.
@@ -262,15 +291,18 @@ class UserMessageL10n {
     required this.errorAuthExpired,
     required this.errorAuth,
     required this.errorServer,
+    required this.errorServerWait,
     required this.errorPermission,
     required this.errorNotFound,
     required this.errorValidation,
     required this.errorRateLimit,
+    required this.errorRateLimitWait,
     required this.errorConflict,
     required this.errorUpload,
     required this.errorOtpInvalid,
     required this.errorAuthSessionMissing,
     required this.errorUnknown,
+    this.codeMessages = const {},
   });
 
   final String errorNetwork;
@@ -279,13 +311,29 @@ class UserMessageL10n {
   final String errorAuthExpired;
   final String errorAuth;
   final String errorServer;
+
+  /// The localized wait text for a 503 that carries `Retry-After`. The value
+  /// is the wait in seconds.
+  final String Function(int seconds) errorServerWait;
   final String errorPermission;
   final String errorNotFound;
   final String errorValidation;
   final String errorRateLimit;
+
+  /// The localized wait text for a 429 that carries `Retry-After`. The value
+  /// is the wait in seconds.
+  final String Function(int seconds) errorRateLimitWait;
   final String errorConflict;
   final String errorUpload;
   final String errorOtpInvalid;
   final String errorAuthSessionMissing;
   final String errorUnknown;
+
+  /// Localized text of the backend error codes the app has copy for, by
+  /// `error.code` (for example `PROFILE_NOT_FOUND`). The backend message is
+  /// English only, so a code with copy here wins over it.
+  final Map<String, String> codeMessages;
+
+  /// The localized text of [code], or null when the app has none.
+  String? forCode(String? code) => code == null ? null : codeMessages[code];
 }

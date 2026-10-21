@@ -5,6 +5,12 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+# The flows mutate one shared backend (messages, visits, listings, blocks), so
+# two pull-request runs must not overlap.
+concurrency:
+  group: maestro-e2e
+  cancel-in-progress: false
+
 jobs:
   maestro_test:
     name: Run Maestro Flows (Android)
@@ -33,7 +39,9 @@ jobs:
         run: |
           missing=()
           for name in MAESTRO_API_BASE_URL MAESTRO_SUPABASE_URL MAESTRO_SUPABASE_PUBLISHABLE_KEY MAESTRO_PHONE MAESTRO_PASSWORD; do
-            if [ -z "${!name:-}" ]; then
+            value="${!name:-}"
+            # A whitespace-only secret counts as unset.
+            if [ -z "${value//[[:space:]]/}" ]; then
               missing+=("$name")
             fi
           done

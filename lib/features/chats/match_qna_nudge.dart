@@ -37,8 +37,8 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
     super.dispose();
   }
 
-  String _q2Label(AppLocalizations locale) {
-    return switch (_q2Value) {
+  String _q2Label(AppLocalizations locale, [int? value]) {
+    return switch (value ?? _q2Value) {
       1 => locale.qnaVeryPrivate,
       2 => locale.qnaMostlyPrivate,
       3 => locale.qnaBalanced,
@@ -115,7 +115,9 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                   max: 5,
                   divisions: 4,
                   label: _q2Label(locale),
-                  semanticFormatterCallback: (_) => _q2Label(locale),
+                  // Screen readers pass the value being announced, which can be ahead of
+                  // the state while a drag or increment is in flight.
+                  semanticFormatterCallback: (v) => _q2Label(locale, v.round()),
                   onChanged: _isSubmitting
                       ? null
                       : (v) => setState(() => _q2Value = v.round()),

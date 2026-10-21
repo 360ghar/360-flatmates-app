@@ -10,6 +10,15 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import 'flatmates_card.dart';
 
+/// Fraction of the viewport height a portrait tour video may occupy.
+///
+/// The frame follows the video's own aspect ratio, so a 9:16 tour in a
+/// full-width card on a wide screen asks for 855 x 1520 dp — taller than the
+/// viewport, and taller than the page's reading column is wide. Capping the
+/// height keeps the whole frame on screen (the frame narrows instead of
+/// cropping: a vertical video must never be cropped).
+const double kVideoTourMaxViewportFraction = 0.6;
+
 class FlatmatesVideoTourPlayer extends StatefulWidget {
   const FlatmatesVideoTourPlayer({
     required this.videoUrl,
@@ -106,6 +115,11 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    // A portrait frame is height-driven: cap it against the viewport so the
+    // whole video is visible at once, and centre the narrower frame in the
+    // card instead of letting it hug the left edge.
+    final maxFrameHeight =
+        MediaQuery.sizeOf(context).height * kVideoTourMaxViewportFraction;
 
     return FlatmatesCard(
       padding: AppSpacing.edgeMd,
@@ -123,68 +137,74 @@ class _FlatmatesVideoTourPlayerState extends State<FlatmatesVideoTourPlayer> {
               color: AppSemanticColors.secondarySurfaceFor(theme.brightness),
               child: InkWell(
                 onTap: _ready ? _toggleAudio : null,
-                child: AspectRatio(
-                  aspectRatio: _ready && _controller.value.aspectRatio > 0
-                      ? _controller.value.aspectRatio
-                      : 9 / 16,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (_ready)
-                        VideoPlayer(_controller)
-                      else
-                        Center(
-                          child: _error == null
-                              ? const CircularProgressIndicator()
-                              : Icon(
-                                  Icons.videocam_off_outlined,
-                                  color: AppSemanticColors.textTertiaryFor(
-                                    theme.brightness,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: maxFrameHeight),
+                    child: AspectRatio(
+                      aspectRatio: _ready && _controller.value.aspectRatio > 0
+                          ? _controller.value.aspectRatio
+                          : 9 / 16,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (_ready)
+                            VideoPlayer(_controller)
+                          else
+                            Center(
+                              child: _error == null
+                                  ? const CircularProgressIndicator()
+                                  : Icon(
+                                      Icons.videocam_off_outlined,
+                                      color: AppSemanticColors.textTertiaryFor(
+                                        theme.brightness,
+                                      ),
+                                    ),
+                            ),
+                          if (_ready)
+                            Positioned(
+                              right: AppSpacing.sm,
+                              bottom: AppSpacing.sm,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: AppSemanticColors.scrim.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  borderRadius: AppRadius.pillBorder,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: AppSpacing.xs,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _muted
+                                            ? Icons.volume_off_rounded
+                                            : Icons.volume_up_rounded,
+                                        size: 16,
+                                        color: AppSemanticColors.onScrim,
+                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      Text(
+                                        _muted
+                                            ? locale.tapToUnmute
+                                            : locale.soundOn,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: AppSemanticColors.onScrim,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                        ),
-                      if (_ready)
-                        Positioned(
-                          right: AppSpacing.sm,
-                          bottom: AppSpacing.sm,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: AppSemanticColors.scrim.withValues(
-                                alpha: 0.6,
-                              ),
-                              borderRadius: AppRadius.pillBorder,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sm,
-                                vertical: AppSpacing.xs,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    _muted
-                                        ? Icons.volume_off_rounded
-                                        : Icons.volume_up_rounded,
-                                    size: 16,
-                                    color: AppSemanticColors.onScrim,
-                                  ),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Text(
-                                    _muted
-                                        ? locale.tapToUnmute
-                                        : locale.soundOn,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppSemanticColors.onScrim,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
                               ),
                             ),
-                          ),
-                        ),
-                    ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

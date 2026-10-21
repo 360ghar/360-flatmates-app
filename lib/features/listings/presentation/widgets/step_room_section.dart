@@ -9,6 +9,15 @@ import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/catalog_helpers.dart';
 import '../../../shared/presentation/components.dart';
 import 'dashed_border_container.dart';
+import 'full_width_media_height.dart';
+
+/// Uploaded-photo height on the compact card — the 200 dp the step was drawn
+/// at on a 466 dp phone, and the floor [fullWidthMediaHeight] clamps to.
+const double _compactRoomPhotoHeight = 200;
+
+/// Add-photo tile height on the compact card, on the same basis as
+/// [_compactRoomPhotoHeight].
+const double _compactAddTileHeight = 140;
 
 /// Step 2 + Step 3 — Room type, furnishing, features, photos, video tour.
 ///
@@ -254,11 +263,19 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
               padding: EdgeInsets.zero,
               child: Stack(
                 children: [
-                  FlatmatesNetworkImage(
-                    imageUrl: e.value,
-                    width: double.infinity,
-                    height: 200,
-                    borderRadius: AppRadius.cardBorder,
+                  // The photo height follows the measured card width: a fixed
+                  // 200 dp is a 3.4:1 letterbox strip on the 688 dp card
+                  // inside the open Duo's 720 dp reading column.
+                  LayoutBuilder(
+                    builder: (context, constraints) => FlatmatesNetworkImage(
+                      imageUrl: e.value,
+                      width: double.infinity,
+                      height: fullWidthMediaHeight(
+                        width: constraints.maxWidth,
+                        compactHeight: _compactRoomPhotoHeight,
+                      ),
+                      borderRadius: AppRadius.cardBorder,
+                    ),
                   ),
                   // 48 dp target around a 32 dp scrim disc: readable on any
                   // photo, in light and dark.
@@ -316,24 +333,35 @@ class _StepRoomSectionState extends ConsumerState<StepRoomSection> {
                 key: const Key('listing_add_photos_tile'),
                 onTap: widget.onPickPhotos,
                 borderRadius: AppRadius.cardBorder,
-                child: DashedBorderContainer(
-                  color: AppSemanticColors.hairlineFor(theme.brightness),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 140,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_a_photo_outlined, color: clay, size: 32),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          locale.addMorePhotosLabel,
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => DashedBorderContainer(
+                    color: AppSemanticColors.hairlineFor(theme.brightness),
+                    child: SizedBox(
+                      width: double.infinity,
+                      // Same width-derived height as the photo cards above, so
+                      // the tile keeps the cards' proportions on a wide card.
+                      height: fullWidthMediaHeight(
+                        width: constraints.maxWidth,
+                        compactHeight: _compactAddTileHeight,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_a_photo_outlined,
                             color: clay,
-                            fontWeight: FontWeight.w600,
+                            size: 32,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            locale.addMorePhotosLabel,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: clay,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

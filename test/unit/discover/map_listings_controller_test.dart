@@ -48,12 +48,13 @@ class _GatedFailingLikeRepository extends DiscoverRepository {
   int setLikedCalls = 0;
 
   @override
-  Future<List<PropertyListing>> fetchListings({
+  Future<({List<PropertyListing> items, int rawCount, String? nextCursor})>
+  fetchListingsPage({
     String? cursor,
     int limit = 20,
     FlatmatesProfileModel? currentUser,
     DiscoverFilters? filters,
-  }) async => [_listing()];
+  }) async => (items: [_listing()], rawCount: 1, nextCursor: null);
 
   @override
   Future<int?> setLiked(int propertyId, bool liked) async {
@@ -100,4 +101,63 @@ void main() {
     expect(container.read(mapListingsProvider).listings.single.liked, isNull);
     expect(repository.setLikedCalls, 1);
   });
+
+  test('the map follows next_cursor until the area has no more rows', () async {
+    final requested = <String?>[];
+    final container = ProviderContainer(
+      overrides: [
+        bootstrapControllerProvider.overrideWith(
+          () => FakeBootstrapController(),
+        ),
+        discoverRepositoryProvider.overrideWith(
+          (ref) => _PagedRepository(ref, requested),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.read(mapListingsProvider);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    // Page 1 (no cursor), then each cursor the server returned, in order.
+    expect(requested, [null, 'c1', 'c2']);
+    expect(container.read(mapListingsProvider).listings.map((l) => l.id), [
+      1,
+      2,
+      3,
+    ]);
+  });
+}
+
+/// Serves three pages of one listing each: `c1` and `c2` are the cursors.
+class _PagedRepository extends DiscoverRepository {
+  _PagedRepository(super.ref, this.requested);
+
+  final List<String?> requested;
+
+  @override
+  Future<({List<PropertyListing> items, int rawCount, String? nextCursor})>
+  fetchListingsPage({
+    String? cursor,
+    int limit = 20,
+    FlatmatesProfileModel? currentUser,
+    DiscoverFilters? filters,
+  }) async {
+    requested.add(cursor);
+    final index = switch (cursor) {
+      null => 1,
+      'c1' => 2,
+      _ => 3,
+    };
+    return (
+      items: [_listing().copyWith(id: index)],
+      rawCount: 1,
+      nextCursor: switch (index) {
+        1 => 'c1',
+        2 => 'c2',
+        _ => null,
+      },
+    );
+  }
 }

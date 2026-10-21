@@ -16,7 +16,7 @@ class _RecordingFeedbackRepository implements FeedbackRepository {
     required String bugType,
     required String severity,
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) async {
     lastBugRequest = BugReportRequest(
       source: 'mobile',
@@ -36,7 +36,7 @@ class _RecordingFeedbackRepository implements FeedbackRepository {
     required String description,
     String severity = 'medium',
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) async {
     lastFeatureRequest = BugReportRequest(
       source: 'mobile',
@@ -52,6 +52,80 @@ class _RecordingFeedbackRepository implements FeedbackRepository {
 }
 
 void main() {
+  group('FeedbackController device context', () {
+    test('a report carries the app version and the OS as an object', () async {
+      final repo = _RecordingFeedbackRepository();
+      final controller = FeedbackController(
+        repo,
+        deviceContext: () async => (
+          appVersion: '1.4.2',
+          deviceInfo: {
+            'os': 'ios',
+            'os_version': 'Version 26.5',
+            'app_build': '57',
+          },
+        ),
+      );
+
+      await controller.submitBugReport(
+        title: 'Crash',
+        description: 'It crashed',
+        bugType: 'crash',
+        severity: 'high',
+      );
+      await controller.submitFeatureRequest(
+        title: 'Dark mode',
+        description: 'Please',
+      );
+
+      for (final request in [repo.lastBugRequest!, repo.lastFeatureRequest!]) {
+        expect(request.appVersion, '1.4.2');
+        // An object, never a string (a string is a 422).
+        expect(request.deviceInfo, isA<Map<String, dynamic>>());
+        expect(request.deviceInfo!['os'], 'ios');
+      }
+    });
+
+    test('values the caller passes win over the device lookup', () async {
+      final repo = _RecordingFeedbackRepository();
+      final controller = FeedbackController(
+        repo,
+        deviceContext: () async =>
+            (appVersion: '9.9.9', deviceInfo: {'os': 'x'}),
+      );
+
+      await controller.submitBugReport(
+        title: 'Crash',
+        description: 'It crashed',
+        bugType: 'crash',
+        severity: 'high',
+        appVersion: '1.0.0',
+        deviceInfo: {'os': 'android'},
+      );
+
+      expect(repo.lastBugRequest!.appVersion, '1.0.0');
+      expect(repo.lastBugRequest!.deviceInfo, {'os': 'android'});
+    });
+
+    test('a failed lookup sends the report without them', () async {
+      final repo = _RecordingFeedbackRepository();
+      final controller = FeedbackController(
+        repo,
+        deviceContext: () async => null,
+      );
+
+      await controller.submitBugReport(
+        title: 'Crash',
+        description: 'It crashed',
+        bugType: 'crash',
+        severity: 'high',
+      );
+
+      expect(repo.lastBugRequest!.appVersion, isNull);
+      expect(repo.lastBugRequest!.deviceInfo, isNull);
+    });
+  });
+
   group('FeedbackController', () {
     test('submitBugReport calls repository with correct params', () async {
       final repo = _RecordingFeedbackRepository();
@@ -63,7 +137,7 @@ void main() {
         bugType: 'crash',
         severity: 'high',
         appVersion: '1.0.0',
-        deviceInfo: 'iPhone 15',
+        deviceInfo: {'os': 'ios', 'model': 'iPhone 15'},
       );
 
       expect(repo.lastBugRequest, isNotNull);
@@ -76,7 +150,10 @@ void main() {
       expect(repo.lastBugRequest!.severity, 'high');
       expect(repo.lastBugRequest!.source, 'mobile');
       expect(repo.lastBugRequest!.appVersion, '1.0.0');
-      expect(repo.lastBugRequest!.deviceInfo, 'iPhone 15');
+      expect(repo.lastBugRequest!.deviceInfo, {
+        'os': 'ios',
+        'model': 'iPhone 15',
+      });
       expect(repo.lastBugRequest!.tags, ['flatmates']);
     });
 
@@ -88,7 +165,7 @@ void main() {
         title: 'Add dark mode',
         description: 'It would be great to have a dark mode option',
         appVersion: '1.0.0',
-        deviceInfo: 'Pixel 8',
+        deviceInfo: {'os': 'android', 'model': 'Pixel 8'},
       );
 
       expect(repo.lastFeatureRequest, isNotNull);
@@ -101,7 +178,10 @@ void main() {
       expect(repo.lastFeatureRequest!.severity, 'medium');
       expect(repo.lastFeatureRequest!.source, 'mobile');
       expect(repo.lastFeatureRequest!.appVersion, '1.0.0');
-      expect(repo.lastFeatureRequest!.deviceInfo, 'Pixel 8');
+      expect(repo.lastFeatureRequest!.deviceInfo, {
+        'os': 'android',
+        'model': 'Pixel 8',
+      });
       expect(repo.lastFeatureRequest!.tags, ['flatmates']);
     });
 
@@ -155,7 +235,7 @@ class _ThrowingFeedbackRepository implements FeedbackRepository {
     required String bugType,
     required String severity,
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) async {
     throw Exception('Network error');
   }
@@ -166,7 +246,7 @@ class _ThrowingFeedbackRepository implements FeedbackRepository {
     required String description,
     String severity = 'medium',
     String? appVersion,
-    String? deviceInfo,
+    Map<String, dynamic>? deviceInfo,
   }) async {
     throw Exception('Network error');
   }

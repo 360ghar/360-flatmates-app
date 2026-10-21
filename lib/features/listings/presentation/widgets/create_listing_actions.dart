@@ -97,11 +97,14 @@ Future<void> submitListingForm({
         .submit(request: formData.toRequest(), editingId: editingId);
     if (!context.mounted || !isMounted()) return;
     markClean();
+    // A content edit sends a live listing back to review: say so.
     FlatmatesToast.success(
       context,
-      editingId != null
-          ? locale.listingUpdatedToast
-          : locale.postListingSuccess,
+      editingId == null
+          ? locale.postListingSuccess
+          : (result.listing?.isUnderReview ?? false)
+          ? locale.listingUpdatedInReviewToast
+          : locale.listingUpdatedToast,
     );
     if (result.id != null) {
       context.go('/listing-review/${result.id}', extra: result.listing);

@@ -60,9 +60,12 @@ Map<String, dynamic> _blocksPage(List<Map<String, dynamic>> items) => {
   'has_more': false,
 };
 
+// One row of GET /flatmates/blocks: the blocked user is a PublicUserRef.
 const _blockedUserJson = {
+  'id': 51,
   'blocked_user_id': 7,
-  'user': {'full_name': 'Asha Rao', 'city': 'Bengaluru'},
+  'blocked_user': {'id': 7, 'display_name': 'Asha Rao', 'avatar_url': null},
+  'created_at': '2026-10-01T10:00:00Z',
 };
 
 const _conversationJson = {
@@ -79,16 +82,18 @@ void main() {
       final container = _containerWithAdapter((options) {
         if (options.method == 'DELETE') {
           unblocked = true;
-          return Response<dynamic>(
-            data: {},
-            statusCode: 200,
-            requestOptions: options,
-          );
+          // A delete answers 204 with no body.
+          return Response<dynamic>(statusCode: 204, requestOptions: options);
         }
         if (options.path == '/flatmates/blocks') {
           if (unblocked) {
             return Response<dynamic>(
-              data: {'detail': 'Service unavailable'},
+              data: {
+                'error': {
+                  'code': 'SERVICE_UNAVAILABLE',
+                  'message': 'Service unavailable',
+                },
+              },
               statusCode: 500,
               requestOptions: options,
             );
@@ -131,11 +136,8 @@ void main() {
       final container = _containerWithAdapter((options) {
         if (options.method == 'DELETE') {
           unblocked = true;
-          return Response<dynamic>(
-            data: {},
-            statusCode: 200,
-            requestOptions: options,
-          );
+          // A delete answers 204 with no body.
+          return Response<dynamic>(statusCode: 204, requestOptions: options);
         }
         if (options.path == '/flatmates/blocks') {
           return Response<dynamic>(
@@ -169,7 +171,12 @@ void main() {
         if (options.path == '/flatmates/conversations') {
           if (conversationsFailing) {
             return Response<dynamic>(
-              data: {'detail': 'Service unavailable'},
+              data: {
+                'error': {
+                  'code': 'SERVICE_UNAVAILABLE',
+                  'message': 'Service unavailable',
+                },
+              },
               statusCode: 500,
               requestOptions: options,
             );

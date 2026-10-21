@@ -256,6 +256,32 @@ abstract final class AppTheme {
           );
         }),
       ),
+      // Wide-viewport chrome: the same paper tab treatment as the bottom bar,
+      // laid out vertically (open iPhone Duo landscape, 951 dp). The active
+      // destination rises one layer, exactly like the bar's indicator.
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: paper1,
+        elevation: 0,
+        indicatorColor: surface,
+        indicatorShape: const RoundedRectangleBorder(
+          borderRadius: AppRadius.mdBorder,
+        ),
+        labelType: NavigationRailLabelType.all,
+        selectedIconTheme: IconThemeData(color: primary, size: 24),
+        unselectedIconTheme: IconThemeData(color: textTertiary, size: 24),
+        selectedLabelTextStyle: body(
+          size: 12,
+          height: 1.25,
+          weight: FontWeight.w600,
+          color: primary,
+        ),
+        unselectedLabelTextStyle: body(
+          size: 12,
+          height: 1.25,
+          weight: FontWeight.w500,
+          color: textTertiary,
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith((states) {

@@ -95,14 +95,14 @@ void showClusterSheet(
                         onListingTap(item);
                       },
                     ),
-                    if (item.owner?.fullName != null)
+                    if (item.ownerName?.trim().isNotEmpty ?? false)
                       Padding(
                         padding: const EdgeInsets.only(
                           left: thumbSize + AppSpacing.md,
                           top: 2,
                         ),
                         child: Text(
-                          locale.byOwnerLabel(item.owner!.fullName),
+                          locale.byOwnerLabel(item.ownerName!.trim()),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppSemanticColors.textSecondaryFor(
                               theme.brightness,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/domain/wire_enums.dart';
+import '../../../../core/theme/app_breakpoints.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -37,7 +39,11 @@ class ChatMessageBubble extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final time = messageTimestamp(locale, message.createdAt);
 
-    if (message.messageType == 'visit_request') {
+    if (message.isSystem) {
+      return _SystemNotice(message: message, time: time);
+    }
+
+    if (message.isVisitRequest) {
       return _VisitRequestCard(
         message: message,
         isMine: isMine,
@@ -51,10 +57,16 @@ class ChatMessageBubble extends StatelessWidget {
     }
 
     // Bubbles take at most 75 % of the screen and shrink with the row, so
-    // a long message never overflows a narrow phone.
-    final maxBubble = MediaQuery.sizeOf(context).width * 0.75;
+    // a long message never overflows a narrow phone. The cap matters on a wide
+    // viewport: 75 % of the 951 dp open foldable would be a 713 dp line, which
+    // is past a comfortable measure, so `AppBreakpoints.chatBubbleMaxWidth`
+    // bounds it at 560 dp.
+    final maxBubble = AppBreakpoints.chatBubbleMaxWidth(
+      MediaQuery.sizeOf(context).width,
+    );
 
-    if (message.messageType == 'image' && message.attachmentUrl != null) {
+    if (message.messageType == MessageType.image &&
+        message.attachmentUrl != null) {
       return Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.base),
         child: Row(
@@ -179,7 +191,7 @@ class _VisitRequestCard extends StatelessWidget {
 
   /// Derive visit status from the live visit row, message metadata, or body.
   String get _status {
-    final visitStatus = visit?.status;
+    final visitStatus = visit?.status?.wire;
     if (visitStatus != null && visitStatus.isNotEmpty) return visitStatus;
     final metadataStatus = message.visitStatus;
     if (metadataStatus != null && metadataStatus.isNotEmpty) {
@@ -268,7 +280,9 @@ class _VisitRequestCard extends StatelessWidget {
           Flexible(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.sizeOf(context).width * 0.8,
+                maxWidth: AppBreakpoints.chatBubbleMaxWidth(
+                  MediaQuery.sizeOf(context).width,
+                ),
               ),
               child: FlatmatesCard(
                 margin: EdgeInsets.zero,
@@ -526,6 +540,38 @@ class _MessageMeta extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// A message with no sender, or of the `system` type: a centered notice that
+/// belongs to neither side of the conversation.
+class _SystemNotice extends StatelessWidget {
+  const _SystemNotice({required this.message, required this.time});
+
+  final ChatMessage message;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final text = message.body?.trim();
+    if (text == null || text.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
+      child: Center(
+        child: Semantics(
+          label: '$text, $time',
+          excludeSemantics: true,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/compatibility/compatibility_engine.dart';
 import '../../../core/theme/app_semantic_colors.dart';
@@ -14,6 +13,7 @@ import '../../shared/presentation/lifestyle_labels.dart';
 import '../../shared/presentation/profile_sections.dart';
 import '../application/chat_actions_controller.dart';
 import '../chats_repository.dart';
+import 'chat_call_actions.dart';
 import '../domain/chat_report_reason.dart';
 import 'widgets/chat_dialogs.dart';
 import 'widgets/chat_property_card.dart';
@@ -33,20 +33,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
 
   final int userId;
   final ConversationSummaryModel? conversation;
-
-  Future<void> _handleCall(BuildContext context, String? phone) async {
-    final locale = AppLocalizations.of(context);
-    if (phone != null && phone.isNotEmpty) {
-      final uri = Uri.parse('tel:$phone');
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-        return;
-      }
-    }
-    if (context.mounted) {
-      FlatmatesToast.info(context, locale.phoneNotAvailable);
-    }
-  }
 
   List<ChatReportReason> _reportReasons(WidgetRef ref) {
     final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
@@ -108,7 +94,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
         profile?['full_name'] as String? ?? peer?.fullName ?? locale.chatsTitle;
     final imageUrl =
         profile?['profile_image_url'] as String? ?? peer?.profileImageUrl;
-    final age = (profile?['age'] as num?)?.toInt() ?? peer?.age;
     final ageBucket = profile?['age_bucket'] as String? ?? peer?.ageBucket;
     final profession = profile?['profession'] as String? ?? peer?.profession;
     final city = profile?['city'] as String? ?? peer?.city;
@@ -118,7 +103,6 @@ class ChatPeerProfilePage extends ConsumerWidget {
         (profile?['match_percentage'] as num?)?.toDouble() ??
         peer?.matchPercentage;
     final bio = (profile?['bio'] as String?)?.trim();
-    final phone = peer?.phoneNumber;
     final contextProperty = conversation?.contextProperty;
 
     final matchColor = matchPercentage != null
@@ -131,9 +115,7 @@ class ChatPeerProfilePage extends ConsumerWidget {
       if (city != null && city.trim().isNotEmpty) city.trim(),
     ];
     final ageProfessionParts = [
-      if (age != null)
-        locale.yearsOldLabel(age)
-      else if (ageBucket != null && ageBucket.trim().isNotEmpty)
+      if (ageBucket != null && ageBucket.trim().isNotEmpty)
         localizedFlatmatesAgeBucket(locale, ageBucket),
       if (profession != null && profession.trim().isNotEmpty) profession.trim(),
     ];
@@ -146,14 +128,17 @@ class ChatPeerProfilePage extends ConsumerWidget {
         color: PeerActionButtonColor.primary,
         onTap: () => context.pop(),
       ),
-      PeerActionButton(
-        key: const ValueKey('peer_action_call'),
-        icon: Icons.call_outlined,
-        label: locale.callCta,
-        onTap: phone != null && phone.isNotEmpty
-            ? () => _handleCall(context, phone)
-            : null,
-      ),
+      // Only an open match has a phone; it comes from the match contact
+      // route when tapped. With no open match there is no Call action, as in
+      // the chat app bar.
+      if (conversation?.canCall ?? false)
+        PeerActionButton(
+          key: const ValueKey('peer_action_call'),
+          icon: Icons.call_outlined,
+          label: locale.callCta,
+          onTap: () =>
+              callMatchedPeer(context: context, ref: ref, peerId: userId),
+        ),
       if (contextProperty != null && conversation != null)
         PeerActionButton(
           key: const ValueKey('peer_action_visit'),

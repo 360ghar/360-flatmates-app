@@ -1,3 +1,5 @@
+import '../swipe_repository.dart' show kMaxProfileViewSeconds;
+
 class ProfileViewSample {
   const ProfileViewSample({
     required this.profileId,
@@ -27,8 +29,12 @@ class ProfileViewTracker {
     final startedAt = _startedAt;
     clear();
     if (profileId == null || startedAt == null) return null;
-    final durationSeconds = DateTime.now().difference(startedAt).inSeconds;
-    if (durationSeconds <= 0) return null;
+    final elapsed = DateTime.now().difference(startedAt).inSeconds;
+    if (elapsed <= 0) return null;
+    // The API accepts at most 3600 seconds; a longer view is capped, not lost.
+    final durationSeconds = elapsed > kMaxProfileViewSeconds
+        ? kMaxProfileViewSeconds
+        : elapsed;
     return ProfileViewSample(
       profileId: profileId,
       durationSeconds: durationSeconds,

@@ -4,6 +4,7 @@ import 'dart:ui' show Locale;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/visits/visits_repository.dart';
@@ -55,6 +56,27 @@ ProviderContainer _containerWithAdapter(
   return container;
 }
 
+/// A visit as `POST /visits`, `PUT /visits/{id}` and the list send it.
+Map<String, dynamic> _visit(int id, {Map<String, dynamic> extra = const {}}) =>
+    {
+      'id': id,
+      'property_id': 42,
+      'user_id': 1,
+      'scheduled_date': '2025-05-20T15:00:00Z',
+      'time_slot_label': null,
+      'status': 'requested',
+      'visit_context': 'flatmate_meet',
+      'conversation_id': 10,
+      'counterparty_user_id': 2,
+      'counterparty_user': {
+        'id': 2,
+        'display_name': 'Priya P',
+        'avatar_url': 'https://cdn.example.com/u/2.jpg',
+      },
+      'property': {'id': 42, 'title': 'Flat A'},
+      ...extra,
+    };
+
 void main() {
   group('VisitsRepository', () {
     test(
@@ -65,30 +87,21 @@ void main() {
           requests.add(options);
           if (options.path == '/visits' && options.method == 'POST') {
             return Response<dynamic>(
-              data: {'id': 77},
-              statusCode: 200,
-              requestOptions: options,
-            );
-          }
-          // Chat message POST.
-          if (options.path == '/flatmates/conversations/10/messages' &&
-              options.method == 'POST') {
-            return Response<dynamic>(
-              data: {},
-              statusCode: 200,
+              data: _visit(77, extra: {'time_slot_label': 'Afternoon'}),
+              statusCode: 201,
               requestOptions: options,
             );
           }
           return Response<dynamic>(
             data: {},
-            statusCode: 200,
+            statusCode: 201,
             requestOptions: options,
           );
         });
 
         final repo = container.read(visitsRepositoryProvider);
         final locale = await AppLocalizations.delegate.load(const Locale('en'));
-        final visitId = await repo.scheduleVisitAndNotify(
+        final visit = await repo.scheduleVisitAndNotify(
           propertyId: 42,
           counterpartyUserId: 2,
           conversationId: 10,
@@ -98,9 +111,10 @@ void main() {
           timeSlotLabel: 'Afternoon',
         );
 
-        expect(visitId, 77);
+        expect(visit.id, 77);
+        // The slot is stored by the server and comes back on the visit.
+        expect(visit.timeSlotLabel, 'Afternoon');
 
-        // First request: the visit POST.
         final visitPost = requests.firstWhere(
           (r) => r.path == '/visits' && r.method == 'POST',
         );
@@ -111,15 +125,20 @@ void main() {
         expect(visitData['visit_context'], 'flatmate_meet');
         expect(visitData['time_slot_label'], 'Afternoon');
         expect(visitData['special_requirements'], 'Excited to see it');
+        // The date is UTC with a Z: the API refuses a time with no offset.
+        expect(visitData['scheduled_date'], '2025-05-20T15:00:00.000Z');
+        // Keys VisitCreate does not declare are a 422.
+        expect(visitData.containsKey('visit_notes'), isFalse);
 
-        // Second request: the chat notification message.
         final messagePost = requests.firstWhere(
           (r) =>
               r.path == '/flatmates/conversations/10/messages' &&
               r.method == 'POST',
         );
         final messageData = Map<String, dynamic>.from(messagePost.data as Map);
-        expect(messageData['message_type'], 'visit_request');
+        // `visit_request` is a 422 for a client: the card is a text message
+        // with the visit in its metadata.
+        expect(messageData['message_type'], 'text');
         expect(messageData['body'], contains('Afternoon'));
         final metadata = messageData['metadata'] as Map<String, dynamic>;
         expect(metadata['visit_id'], 77);
@@ -128,102 +147,243 @@ void main() {
       },
     );
 
-    test('fetchVisits returns visits grouped by status', () async {
+    test('a time slot label longer than 64 characters is cut', () async {
+      Map<String, dynamic>? sent;
+      final container = _containerWithAdapter((options) {
+        sent = Map<String, dynamic>.from(options.data as Map);
+        return Response<dynamic>(
+          data: _visit(78),
+          statusCode: 201,
+          requestOptions: options,
+        );
+      });
+
+      await container
+          .read(visitsRepositoryProvider)
+          .scheduleFlatmateVisit(
+            propertyId: 42,
+            counterpartyUserId: 2,
+            conversationId: 10,
+            scheduledDate: DateTime.utc(2025, 5, 20, 15),
+            timeSlotLabel: 'x' * 90,
+          );
+
+      expect((sent!['time_slot_label'] as String).length, 64);
+    });
+
+    test('fetchVisits reads every status and the counterparty', () async {
       final container = _containerWithAdapter((options) {
         return Response<dynamic>(
           data: {
             'items': [
-              {
-                'id': 1,
-                'property': {'title': 'Flat A'},
-                'status': 'confirmed',
-                'scheduled_date': '2025-05-20T15:00:00Z',
-                'visit_context': 'flatmate_meet',
-                'conversation_id': 10,
-              },
-              {
-                'id': 2,
-                'property': {'title': 'Flat B'},
-                'status': 'requested',
-                'scheduled_date': '2025-05-21T10:00:00Z',
-                'visit_context': 'property_tour',
-              },
-              {
-                'id': 3,
-                'property': {'title': 'Flat C'},
-                'status': 'cancelled',
-                'scheduled_date': '2025-05-18T10:00:00Z',
-                'visit_context': 'flatmate_meet',
-              },
+              _visit(1, extra: {'status': 'confirmed'}),
+              _visit(
+                2,
+                extra: {
+                  'status': 'requested',
+                  'property': {'id': 43, 'title': 'Flat B'},
+                  'visit_context': 'property_tour',
+                  'time_slot_label': 'Morning',
+                },
+              ),
+              _visit(3, extra: {'status': 'cancelled'}),
+              _visit(4, extra: {'status': 'reschedule_suggested'}),
+              _visit(5, extra: {'status': 'completed'}),
             ],
             'next_cursor': null,
             'has_more': false,
+            'limit': 100,
+            'total': null,
           },
           statusCode: 200,
           requestOptions: options,
         );
       });
 
-      final repo = container.read(visitsRepositoryProvider);
-      final visits = await repo.fetchVisits();
+      final visits = await container
+          .read(visitsRepositoryProvider)
+          .fetchVisits();
 
-      expect(visits.length, 3);
-      final byStatus = {for (final v in visits) v.status: v};
+      expect(visits.map((v) => v.status), [
+        VisitStatus.confirmed,
+        VisitStatus.requested,
+        VisitStatus.cancelled,
+        VisitStatus.rescheduleSuggested,
+        VisitStatus.completed,
+      ]);
+      expect(visits[0].propertyTitle, 'Flat A');
+      expect(visits[1].visitContext, VisitContext.propertyTour);
+      expect(visits[1].timeSlotLabel, 'Morning');
+      // The counterparty is a name and an avatar, nothing else.
+      expect(visits[0].counterparty!.id, 2);
+      expect(visits[0].counterparty!.displayName, 'Priya P');
       expect(
-        byStatus.keys,
-        containsAll(['confirmed', 'requested', 'cancelled']),
+        visits[0].counterparty!.avatarUrl,
+        'https://cdn.example.com/u/2.jpg',
       );
-      expect(byStatus['confirmed']!.propertyTitle, 'Flat A');
     });
 
-    test('confirmVisit posts confirmation payload', () async {
+    test('fetchVisits follows next_cursor and sends limit 100', () async {
+      final queries = <Map<String, dynamic>>[];
+      final container = _containerWithAdapter((options) {
+        queries.add(Map<String, dynamic>.from(options.queryParameters));
+        final first = options.queryParameters['cursor'] == null;
+        return Response<dynamic>(
+          data: {
+            'items': [_visit(first ? 1 : 2)],
+            'next_cursor': first ? 'page-2' : null,
+            'has_more': first,
+            'limit': 100,
+            'total': null,
+          },
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      final visits = await container
+          .read(visitsRepositoryProvider)
+          .fetchVisits();
+
+      expect(visits.map((v) => v.id), [1, 2]);
+      expect(queries.map((q) => q['limit']), [100, 100]);
+      expect(queries.map((q) => q['cursor']), [null, 'page-2']);
+    });
+
+    test('a visit with an unreadable date is skipped, not shown now', () async {
+      final container = _containerWithAdapter((options) {
+        return Response<dynamic>(
+          data: {
+            'items': [
+              _visit(1),
+              _visit(2, extra: {'scheduled_date': 'not a date'}),
+              _visit(3, extra: {'scheduled_date': null}),
+            ],
+            'next_cursor': null,
+            'has_more': false,
+            'limit': 20,
+            'total': null,
+          },
+          statusCode: 200,
+          requestOptions: options,
+        );
+      });
+
+      final visits = await container
+          .read(visitsRepositoryProvider)
+          .fetchVisits();
+
+      expect(visits.map((v) => v.id), [1]);
+    });
+
+    test('a status this build does not know is null, not a real status', () {
+      final visit = VisitItem.fromJson(_visit(9, extra: {'status': 'ghosted'}));
+
+      expect(visit.status, isNull);
+    });
+
+    test(
+      'confirmVisit puts the confirmed status and returns the visit',
+      () async {
+        Map<String, dynamic>? sentData;
+        String? method;
+        String? path;
+        final container = _containerWithAdapter((options) {
+          method = options.method;
+          path = options.path;
+          sentData = Map<String, dynamic>.from(options.data as Map);
+          return Response<dynamic>(
+            data: _visit(5, extra: {'status': 'confirmed'}),
+            statusCode: 200,
+            requestOptions: options,
+          );
+        });
+
+        final visit = await container
+            .read(visitsRepositoryProvider)
+            .confirmVisit(5);
+
+        expect(method, 'PUT');
+        expect(path, '/visits/5');
+        expect(sentData, {'status': 'confirmed'});
+        expect(visit.status, VisitStatus.confirmed);
+      },
+    );
+
+    test(
+      'rescheduleVisit posts new_date with an offset and a reason',
+      () async {
+        Map<String, dynamic>? sentData;
+        String? method;
+        String? path;
+        final container = _containerWithAdapter((options) {
+          method = options.method;
+          path = options.path;
+          sentData = Map<String, dynamic>.from(options.data as Map);
+          return Response<dynamic>(
+            data: _visit(
+              5,
+              extra: {
+                'status': 'reschedule_suggested',
+                'scheduled_date': '2025-05-22T09:00:00Z',
+              },
+            ),
+            statusCode: 200,
+            requestOptions: options,
+          );
+        });
+
+        final visit = await container
+            .read(visitsRepositoryProvider)
+            .rescheduleVisit(
+              5,
+              DateTime.utc(2025, 5, 22, 9),
+              reason: 'Traffic',
+            );
+
+        expect(method, 'POST');
+        expect(path, '/visits/5/reschedule');
+        expect(sentData, {
+          'new_date': '2025-05-22T09:00:00.000Z',
+          'reason': 'Traffic',
+        });
+        // The returned visit carries the new state.
+        expect(visit.status, VisitStatus.rescheduleSuggested);
+        expect(visit.scheduledDate, DateTime.utc(2025, 5, 22, 9));
+      },
+    );
+
+    test('cancelVisit posts the reason to the cancel route', () async {
       Map<String, dynamic>? sentData;
       String? method;
       String? path;
       final container = _containerWithAdapter((options) {
         method = options.method;
         path = options.path;
-        sentData = options.data is Map
-            ? Map<String, dynamic>.from(options.data as Map)
-            : null;
+        sentData = Map<String, dynamic>.from(options.data as Map);
         return Response<dynamic>(
-          data: {},
+          data: _visit(
+            8,
+            extra: {
+              'status': 'cancelled',
+              'cancellation_reason': 'Plans changed',
+            },
+          ),
           statusCode: 200,
           requestOptions: options,
         );
       });
 
-      final repo = container.read(visitsRepositoryProvider);
-      await repo.confirmVisit(5);
+      final visit = await container
+          .read(visitsRepositoryProvider)
+          .cancelVisit(8, reason: '  Plans changed  ');
 
-      expect(method, 'PUT');
-      expect(path, '/visits/5');
-      expect(sentData!['status'], 'confirmed');
-    });
-
-    test('cancelVisit posts cancellation payload', () async {
-      Map<String, dynamic>? sentData;
-      String? method;
-      String? path;
-      final container = _containerWithAdapter((options) {
-        method = options.method;
-        path = options.path;
-        sentData = options.data is Map
-            ? Map<String, dynamic>.from(options.data as Map)
-            : null;
-        return Response<dynamic>(
-          data: {},
-          statusCode: 200,
-          requestOptions: options,
-        );
-      });
-
-      final repo = container.read(visitsRepositoryProvider);
-      await repo.cancelVisit(8);
-
-      expect(method, 'PUT');
-      expect(path, '/visits/8');
-      expect(sentData!['status'], 'cancelled');
+      // Never PUT with status cancelled: that is a 422 now.
+      expect(method, 'POST');
+      expect(path, '/visits/8/cancel');
+      expect(sentData, {'reason': 'Plans changed'});
+      expect(visit.status, VisitStatus.cancelled);
+      expect(visit.cancellationReason, 'Plans changed');
     });
   });
 }

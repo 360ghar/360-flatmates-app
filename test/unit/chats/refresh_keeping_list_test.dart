@@ -191,7 +191,9 @@ void main() {
       final adapter = _ScriptedAdapter((options) {
         if (fail) {
           return Response<dynamic>(
-            data: {'detail': 'boom'},
+            data: {
+              'error': {'code': 'INTERNAL_ERROR', 'message': 'boom'},
+            },
             statusCode: 500,
             requestOptions: options,
           );

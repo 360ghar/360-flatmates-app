@@ -131,7 +131,12 @@ void main() {
               options.method == 'GET') {
             if (marked) {
               return Response<dynamic>(
-                data: {'detail': 'Service unavailable'},
+                data: {
+                  'error': {
+                    'code': 'INTERNAL_ERROR',
+                    'message': 'Service unavailable',
+                  },
+                },
                 statusCode: 500,
                 requestOptions: options,
               );
@@ -221,7 +226,12 @@ void main() {
             options.method == 'GET') {
           if (marked) {
             return Response<dynamic>(
-              data: {'detail': 'Service unavailable'},
+              data: {
+                'error': {
+                  'code': 'INTERNAL_ERROR',
+                  'message': 'Service unavailable',
+                },
+              },
               statusCode: 500,
               requestOptions: options,
             );

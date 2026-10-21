@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../analytics/analytics_service.dart';
 import '../config/endpoints.dart';
+import '../domain/wire_enums.dart';
 import '../errors/app_failure.dart';
 import '../network/api_client.dart';
 import '../providers.dart';
@@ -42,6 +43,31 @@ class VersionCheckResult {
   }
 }
 
+/// The `POST /versions/check` body. The platform is the wire value (`ios` or
+/// `android`), never the Dart enum name (`iOS`), and `build_number` is a
+/// number; a build number that is not numeric is left out.
+@visibleForTesting
+Map<String, dynamic> versionCheckBody({
+  required String version,
+  required String buildNumber,
+  required TargetPlatform platform,
+}) {
+  final wirePlatform = switch (platform) {
+    TargetPlatform.iOS => DevicePlatform.ios,
+    TargetPlatform.android => DevicePlatform.android,
+    // The app ships on iOS and Android only; any other host reports the
+    // closest store build so a desktop test run still gets a valid body.
+    _ => DevicePlatform.android,
+  };
+  final build = int.tryParse(buildNumber.trim());
+  return {
+    'app': AppKey.flatmates.wire,
+    'platform': wirePlatform.wire,
+    'current_version': version,
+    'build_number': ?build,
+  };
+}
+
 class AppConfigService {
   AppConfigService({required this.ref});
 
@@ -61,12 +87,11 @@ class AppConfigService {
           .read(apiClientProvider)
           .post(
             FlatmatesEndpoints.versionCheck,
-            data: {
-              'app': 'flatmates',
-              'platform': defaultTargetPlatform.name,
-              'current_version': packageInfo.version,
-              'build_number': packageInfo.buildNumber,
-            },
+            data: versionCheckBody(
+              version: packageInfo.version,
+              buildNumber: packageInfo.buildNumber,
+              platform: defaultTargetPlatform,
+            ),
             options: ApiClient.criticalPathOptions(),
           );
       final data = response.data;

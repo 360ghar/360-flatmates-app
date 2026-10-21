@@ -201,6 +201,10 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
     }
 
     final safeAreaTop = MediaQuery.paddingOf(context).top;
+    // The Duo's status bar runs down the right edge: the map stays full-bleed
+    // under it (a map is a surface, not text), but every control on top of the
+    // map has to clear it or it cannot be tapped.
+    final safeAreaRight = MediaQuery.paddingOf(context).right;
     // Top bar internal height: md (top) + 48 (icon button) + xs (bottom).
     const topBarContentHeight =
         AppSpacing.md + kMinInteractiveDimension + AppSpacing.xs;
@@ -208,6 +212,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
     return FlatmatesScreen(
       useSafeArea: false,
+      fullBleed: true,
       body: Stack(
         children: [
           // Full-screen map
@@ -223,6 +228,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
             child: MapTopBar(
               backgroundColor: frostOverlayColor,
               safeAreaTop: safeAreaTop,
+              safeAreaRight: safeAreaRight,
               locationName: selectedDisplayText,
               onLocationTap: () => _showLocationPicker(context),
               onFilterTap: () => _showFilterSheet(context),
@@ -231,7 +237,7 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
           // Map controls — positioned in the safe zone below the top bar
           Positioned(
-            right: AppSpacing.screen,
+            right: AppSpacing.screen + safeAreaRight,
             top: controlsTopOffset,
             child: MapControlButtons(
               onRecenter: _recenterToUserLocation,
@@ -357,19 +363,24 @@ class _MapViewPageState extends ConsumerState<MapViewPage> {
 
     final index = _currentFiltered.indexWhere((e) => e.id == item.id);
     if (index >= 0 && _cardScrollController.hasClients) {
-      final viewportWidth = MediaQuery.sizeOf(context).width;
-      const itemWidth = kMapCarouselCardWidth;
+      final position = _cardScrollController.position;
+      // The card list's own width, not the viewport's: `FlatmatesScreen` caps
+      // this page's body at the reading column, so a MediaQuery width would
+      // aim the scroll ~115 dp past the card on the open Duo.
+      final viewportWidth = position.viewportDimension;
+      final itemWidth = mapCarouselCardWidth(viewportWidth);
       const padding = kMapCarouselPadding;
       const spacing = AppSpacing.sm;
-      const totalItemWidth = itemWidth + spacing;
+      final totalItemWidth = itemWidth + spacing;
 
       final targetCenterOffset =
           padding + index * totalItemWidth + itemWidth / 2;
       var targetOffset = targetCenterOffset - viewportWidth / 2;
 
-      final maxScroll = _cardScrollController.position.maxScrollExtent;
-      final minScroll = _cardScrollController.position.minScrollExtent;
-      targetOffset = targetOffset.clamp(minScroll, maxScroll);
+      targetOffset = targetOffset.clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      );
 
       final gen = ++_scrollAnimGen;
       ref.read(mapProgrammaticScrollProvider.notifier).set(true);

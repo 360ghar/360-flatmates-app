@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/l10n_bridge.dart';
 import '../../core/providers.dart';
+import '../../core/storage/app_preferences.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/debouncer.dart';
@@ -25,6 +25,7 @@ import 'chats_repository.dart';
 import 'domain/chat_report_reason.dart';
 import 'match_qna_nudge.dart';
 import 'presentation/widgets/chat_emoji_config.dart';
+import 'presentation/chat_call_actions.dart';
 import 'presentation/chat_photo_actions.dart';
 import 'presentation/chat_visit_actions.dart';
 import 'presentation/widgets/chat_app_bar.dart';
@@ -125,12 +126,10 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   void _checkExistingMessages() {
-    final isNewMatch =
-        _conversation?.source == 'match' ||
-        _conversation?.source == 'profile_match';
+    final isNewMatch = _conversation?.isProfileMatch ?? false;
     final prefs = ref.read(appPreferencesProvider);
     final alreadyDismissed = prefs.getBool(
-      'qna_nudge_dismissed_${widget.conversationId}',
+      PrefKeys.qnaNudgeDismissed(widget.conversationId),
     );
     _showQnANudge = isNewMatch && !alreadyDismissed;
   }
@@ -267,7 +266,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   void _markQnANudgeDismissed() {
     ref
         .read(appPreferencesProvider)
-        .setBool('qna_nudge_dismissed_${widget.conversationId}', true);
+        .setBool(PrefKeys.qnaNudgeDismissed(widget.conversationId), true);
   }
 
   void _showQnABottomSheet() {
@@ -285,18 +284,9 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
   }
 
   Future<void> _handleCall() async {
-    final locale = AppLocalizations.of(context);
-    final phone = _conversation?.peer.phoneNumber;
-    if (phone != null && phone.isNotEmpty) {
-      final uri = Uri.parse('tel:$phone');
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else if (mounted) {
-        FlatmatesToast.info(context, locale.phoneNotAvailable);
-      }
-    } else if (mounted) {
-      FlatmatesToast.info(context, locale.phoneNotAvailable);
-    }
+    final peerId = _conversation?.peer.id;
+    if (peerId == null) return;
+    await callMatchedPeer(context: context, ref: ref, peerId: peerId);
   }
 
   void _toggleEmojiPicker() {
@@ -379,7 +369,7 @@ class _ChatThreadPageState extends ConsumerState<ChatThreadPage> {
         onBlock: _blockUser,
         onReport: _reportUser,
         onUnmatch: _unmatch,
-        onCall: _handleCall,
+        onCall: conversation?.canCall ?? false ? _handleCall : null,
         onScheduleVisit: _scheduleVisit,
         onPeerTap: conversation == null
             ? null
