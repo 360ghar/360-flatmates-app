@@ -4,8 +4,10 @@
 # Play: set SUPPLY_JSON_KEY to the service-account JSON path.
 
 platform :ios do
-  desc "Validate (validate: true) or push iOS metadata and screenshots"
+  desc "Push iOS metadata and screenshots (uploads; no validate-only mode)"
   lane :metadata do |options|
+    # deliver has no read-only listing check; it would upload. Refuse instead.
+    UI.user_error!("iOS has no validate-only path. Run without validate:true to upload.") if options[:validate]
     api_key = app_store_connect_api_key(
       key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
       issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),

@@ -78,4 +78,10 @@ void main() {
     await p.onSuccess();
     expect(review.requests, 1);
   });
+
+  test('overlapping successes ask once', () async {
+    final p = build();
+    await Future.wait([p.onSuccess(), p.onSuccess(), p.onSuccess()]);
+    expect(review.requests, 1);
+  });
 }

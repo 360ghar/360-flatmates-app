@@ -32,7 +32,16 @@ final class ReviewPrompter {
 
   /// Counts one success moment. When [prompt] is true and a prompt is due,
   /// shows the native review sheet. Never throws.
-  Future<void> onSuccess({bool prompt = true}) async {
+  Future<void> onSuccess({bool prompt = true}) {
+    // One at a time: two hooks must not both read the same "due" state.
+    final run = _queue.then((_) => _onSuccess(prompt));
+    _queue = run;
+    return run;
+  }
+
+  Future<void> _queue = Future<void>.value();
+
+  Future<void> _onSuccess(bool prompt) async {
     try {
       final successes =
           (int.tryParse(_prefs.getString(PrefKeys.reviewSuccessCount) ?? '') ??

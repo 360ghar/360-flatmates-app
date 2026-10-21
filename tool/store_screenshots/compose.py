@@ -143,6 +143,9 @@ def feature(cfg, base, raws, out, lang):
 
 
 def main(cfg_path):
+    from PIL import features
+    if not features.check("raqm"):
+        sys.exit("Pillow needs libraqm to shape Devanagari (brew install libraqm; reinstall Pillow).")
     cfg = json.load(open(cfg_path))
     base = os.path.dirname(os.path.abspath(cfg_path))
     root = os.path.abspath(os.path.join(base, cfg["repo_root"]))

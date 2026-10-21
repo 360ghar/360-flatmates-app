@@ -95,6 +95,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
     setState(() => _submitting = true);
     var visitCreated = false;
     try {
+      final prompter = ref.read(reviewPrompterProvider);
       final timeSlotLabel = switch (_slot) {
         'morning' => locale.timeSlotMorning,
         'evening' => locale.timeSlotEvening,
@@ -112,7 +113,7 @@ class _ScheduleVisitPageState extends ConsumerState<ScheduleVisitPage> {
             timeSlotLabel: timeSlotLabel,
           );
       visitCreated = true;
-      unawaited(ref.read(reviewPrompterProvider).onSuccess());
+      unawaited(prompter.onSuccess());
       if (!mounted) return;
       FlatmatesToast.success(context, locale.visitRequestSent);
       context.pop();
