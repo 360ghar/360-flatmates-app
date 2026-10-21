@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/app_config.dart';
 import 'network/api_client.dart';
 import 'network/auth_token_provider.dart';
+import 'review/review_prompter.dart';
 import 'storage/app_preferences.dart';
 import 'storage/auth_token_storage.dart';
 import 'storage/onboarding_draft_storage.dart';
@@ -14,6 +15,10 @@ final appConfigProvider = Provider<AppConfig>(
 
 final appPreferencesProvider = Provider<AppPreferences>(
   (ref) => throw UnimplementedError('AppPreferences override is required'),
+);
+
+final reviewPrompterProvider = Provider<ReviewPrompter>(
+  (ref) => ReviewPrompter(ref.watch(appPreferencesProvider)),
 );
 
 final secureStoreProvider = Provider<SecureKvStore>(

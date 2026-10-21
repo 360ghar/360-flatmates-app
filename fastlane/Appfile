@@ -1,0 +1,3 @@
+# No credentials here. Auth comes from the environment (see Fastfile).
+app_identifier("com.the360ghar.flatmates360")
+package_name("com.the360ghar.flatmates360")

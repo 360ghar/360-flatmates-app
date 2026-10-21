@@ -517,7 +517,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 context.go('/chats');
               }
             },
-            onKeepSwiping: () => context.pop(),
+            onKeepSwiping: () {
+              unawaited(
+                ProviderScope.containerOf(
+                  context,
+                  listen: false,
+                ).read(reviewPrompterProvider).maybePrompt(),
+              );
+              context.pop();
+            },
           );
         },
       ),

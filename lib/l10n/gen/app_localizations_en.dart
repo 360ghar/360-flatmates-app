@@ -698,7 +698,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'We match you with flatmates who share your vibe and values.';
 
   @override
-  String get onboardingHeadline3 => '360 Flatmates finds both.';
+  String get onboardingHeadline3 => '360 FlatMates finds both.';
 
   @override
   String get onboardingSubheadline3 =>

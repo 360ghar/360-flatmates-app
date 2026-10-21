@@ -1,0 +1,23 @@
+{
+  "repo_root": "../..",
+  "raw_dir": "raw",
+  "brand": "360 FlatMates",
+  "fonts": {
+    "en": {"path": "../../assets/fonts/Gambarino-Regular.ttf"},
+    "hi": {"path": "/System/Library/Fonts/Kohinoor.ttc", "index": 2}
+  },
+  "backgrounds": {"pine": "backgrounds/pine.jpg", "clay": "backgrounds/clay.jpg", "night": "backgrounds/night.jpg", "wide": "backgrounds/wide.jpg"},
+  "locales": {"en": {"ios": "en-GB", "android": "en-IN"}, "hi": {"ios": "hi", "android": "hi-IN"}},
+  "ios_sizes": {"iphone69": [1320, 2868], "iphone65": [1284, 2778]},
+  "play_size": [1080, 1920],
+  "feature_shots": ["02_swipe", "01_discover"],
+  "feature_tagline": {"en": "Find a flat. Find your flatmate.", "hi": "फ्लैट ढूंढें। फ्लैटमेट ढूंढें।"},
+  "shots": [
+    {"raw": "01_discover", "bg": "pine", "caption": {"en": "Rooms and flatmates, one app", "hi": "कमरे और फ्लैटमेट, एक ऐप में"}},
+    {"raw": "02_swipe", "bg": "clay", "caption": {"en": "Swipe to meet your match", "hi": "स्वाइप करें, मैच पाएं"}},
+    {"raw": "03_match", "bg": "night", "caption": {"en": "Match on lifestyle, not luck", "hi": "जीवनशैली से मैच, किस्मत से नहीं"}},
+    {"raw": "04_chat", "bg": "pine", "caption": {"en": "Chat before you commit", "hi": "तय करने से पहले चैट करें"}},
+    {"raw": "05_flat", "bg": "clay", "light_status": true, "caption": {"en": "See every detail first", "hi": "पहले हर जानकारी देखें"}},
+    {"raw": "06_visit", "bg": "night", "caption": {"en": "Book the visit in a tap", "hi": "एक टैप में विज़िट बुक करें"}}
+  ]
+}

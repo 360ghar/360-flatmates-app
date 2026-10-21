@@ -1367,7 +1367,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingHeadline3.
   ///
   /// In en, this message translates to:
-  /// **'360 Flatmates finds both.'**
+  /// **'360 FlatMates finds both.'**
   String get onboardingHeadline3;
 
   /// No description provided for @onboardingSubheadline3.

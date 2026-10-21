@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_typography.dart';
 
-/// Brand wordmark, same as the web logo: "360" in clay and "Flatmates" in
+/// Brand wordmark, same as the web logo: "360" in clay and "FlatMates" in
 /// ink, both Gambarino, on one baseline. Sentence case, no tracking.
 class FlatmatesLogo extends StatelessWidget {
   const FlatmatesLogo({
@@ -35,7 +35,7 @@ class FlatmatesLogo extends StatelessWidget {
     );
 
     return Semantics(
-      label: '360 Flatmates',
+      label: '360 FlatMates',
       excludeSemantics: true,
       child: Text.rich(
         TextSpan(
@@ -45,7 +45,7 @@ class FlatmatesLogo extends StatelessWidget {
               style: style(number, AppSemanticColors.clayFor(b)),
             ),
             TextSpan(
-              text: 'Flatmates',
+              text: 'FlatMates',
               style: style(word, AppSemanticColors.textPrimaryFor(b)),
             ),
           ],

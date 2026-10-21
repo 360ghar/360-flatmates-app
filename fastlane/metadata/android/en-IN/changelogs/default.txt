@@ -1,0 +1,1 @@
+Fixes and improvements to matching, chat and visit scheduling. If you enjoy the app, a rating helps other people find it.

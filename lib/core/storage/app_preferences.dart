@@ -45,6 +45,12 @@ abstract final class PrefKeys {
   static String qnaNudgeDismissed(int conversationId) =>
       '$qnaNudgeDismissedPrefix$conversationId';
 
+  /// Success moments (matches, visit requests) seen on this device, and the
+  /// time the store review sheet was last requested. Device level: they stay
+  /// after sign-out so a new account is not asked again at once.
+  static const reviewSuccessCount = 'review_success_count';
+  static const reviewLastPromptAt = 'review_last_prompt_at';
+
   /// Keys an earlier build wrote for the owner listings cache.
   static const legacyListingsCachePrefix = 'my_listings_cache';
 
