@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../bootstrap/bootstrap_controller.dart';
 import '../../../bootstrap/catalog_helpers.dart';
@@ -89,6 +88,7 @@ class OwnerProfileSheet extends ConsumerWidget {
         onScheduleVisit: onScheduleVisit,
         onReport: handleReport,
         showError: true,
+        onRetry: () => ref.invalidate(peerProfileProvider(ownerId)),
       ),
       // A null payload is the actual failure path (fetchPeerProfile catches
       // errors and returns null rather than throwing), so treat it like an
@@ -101,6 +101,7 @@ class OwnerProfileSheet extends ConsumerWidget {
         onScheduleVisit: onScheduleVisit,
         onReport: handleReport,
         showError: peerData == null,
+        onRetry: () => ref.invalidate(peerProfileProvider(ownerId)),
         compatResult: compatAsync.valueOrNull,
       ),
     );
@@ -115,6 +116,7 @@ class _OwnerProfileBody extends StatelessWidget {
     required this.onScheduleVisit,
     this.onReport,
     this.showError = false,
+    this.onRetry,
     this.compatResult,
   });
 
@@ -124,6 +126,7 @@ class _OwnerProfileBody extends StatelessWidget {
   final VoidCallback onScheduleVisit;
   final VoidCallback? onReport;
   final bool showError;
+  final VoidCallback? onRetry;
   final CompatibilityResult? compatResult;
 
   @override
@@ -139,9 +142,8 @@ class _OwnerProfileBody extends StatelessWidget {
     final imageUrl = peerData?['profile_image_url'] as String?;
     final mode = peerData?['mode'] as String?;
     final city = peerData?['city'] as String?;
-    final age = peerData?['age'];
+    final ageBucket = (peerData?['age_bucket'] as String?)?.trim();
     final profession = peerData?['profession'] as String?;
-    final phone = peerData?['phone_number'] as String?;
     final bio = peerData?['bio'] as String?;
     final matchPercentage =
         (peerData?['match_percentage'] as num?)?.toDouble() ?? 0;
@@ -222,31 +224,20 @@ class _OwnerProfileBody extends StatelessWidget {
         key: const ValueKey('owner_action_message'),
         icon: Icons.chat_bubble_outline_rounded,
         label: locale.messageCta,
-        color: PeerActionButtonColor.blue,
+        color: PeerActionButtonColor.primary,
         onTap: onSendMessage,
-      ),
-      PeerActionButton(
-        key: const ValueKey('owner_action_call'),
-        icon: Icons.call_outlined,
-        label: locale.callCta,
-        color: PeerActionButtonColor.green,
-        onTap: phone != null && phone.isNotEmpty
-            ? () => _launchCall(phone)
-            : null,
       ),
       PeerActionButton(
         key: const ValueKey('owner_action_schedule'),
         icon: Icons.event_available_outlined,
         label: locale.scheduleVisitCta,
-        // ignore: avoid_redundant_argument_values
-        color: PeerActionButtonColor.pink,
         onTap: onScheduleVisit,
       ),
       PeerActionButton(
         key: const ValueKey('owner_action_report'),
         icon: Icons.flag_outlined,
         label: locale.reportCta,
-        color: PeerActionButtonColor.red,
+        color: PeerActionButtonColor.destructive,
         onTap: onReport,
       ),
     ];
@@ -276,23 +267,13 @@ class _OwnerProfileBody extends StatelessWidget {
                   ),
                   if (!showError && matchPercentage > 0) ...[
                     const SizedBox(height: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _matchColor(
+                    // Same colour thresholds as every other match score.
+                    Text(
+                      locale.percentMatch(matchPercentage.round()),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: compatibilityScoreColor(
                           matchPercentage,
-                        ).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        locale.percentMatch(matchPercentage.round()),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: _matchColor(matchPercentage),
+                          brightness: theme.brightness,
                         ),
                       ),
                     ),
@@ -330,13 +311,20 @@ class _OwnerProfileBody extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (onRetry != null)
+                        TextButton(
+                          onPressed: onRetry,
+                          child: Text(locale.commonRetry),
+                        ),
                     ],
-                    if (age != null || profession != null)
+                    if ((ageBucket != null && ageBucket.isNotEmpty) ||
+                        profession != null)
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.xs),
                         child: Text(
                           [
-                            if (age != null) '$age years',
+                            if (ageBucket != null && ageBucket.isNotEmpty)
+                              localizedFlatmatesAgeBucket(locale, ageBucket),
                             ?profession,
                           ].join(' · '),
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -382,21 +370,7 @@ class _OwnerProfileBody extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           // ROW 2: Action buttons row.
-          if (actionButtons.isNotEmpty)
-            Row(
-              children: actionButtons
-                  .map(
-                    (b) => Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xxs,
-                        ),
-                        child: b,
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
+          if (actionButtons.isNotEmpty) PeerActionRow(children: actionButtons),
 
           // About / bio.
           if (hasBio) ...[
@@ -500,18 +474,6 @@ class _OwnerProfileBody extends StatelessWidget {
     );
   }
 
-  Future<void> _launchCall(String phone) async {
-    final uri = Uri.parse('tel:$phone');
-    try {
-      final launched = await launchUrl(uri);
-      if (!launched) {
-        debugPrint('OwnerProfileSheet._launchCall: launchUrl returned false');
-      }
-    } catch (e) {
-      debugPrint('OwnerProfileSheet._launchCall: $e');
-    }
-  }
-
   List<Widget> _preferencesSection(
     AppLocalizations locale,
     Map<String, dynamic> profile,
@@ -574,13 +536,6 @@ class _OwnerProfileBody extends StatelessWidget {
       _ => null,
     };
   }
-
-  Color _matchColor(double pct) {
-    if (pct >= 70) return AppSemanticColors.success;
-    if (pct >= 40) return AppSemanticColors.warning;
-    if (pct > 0) return AppSemanticColors.error;
-    return AppSemanticColors.textTertiaryFor(Brightness.light);
-  }
 }
 
 class _ModeBadge extends StatelessWidget {
@@ -590,25 +545,19 @@ class _ModeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final label = switch (mode) {
-      'co_hunter' => 'Co-Hunter',
-      'room_poster' => 'Room Poster',
-      'open_to_both' => 'Open to Both',
-      _ => mode,
+      'co_hunter' => locale.ownerModeCoHunter,
+      'room_poster' => locale.ownerModeRoomPoster,
+      'open_to_both' => locale.ownerModeOpenToBoth,
+      _ => humanizeFlatmatesToken(mode),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppSemanticColors.accent),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppSemanticColors.accent,
-        ),
+    // Type, not an outlined pill.
+    return Text(
+      label,
+      style: theme.textTheme.labelMedium?.copyWith(
+        color: AppSemanticColors.clayFor(theme.brightness),
       ),
     );
   }

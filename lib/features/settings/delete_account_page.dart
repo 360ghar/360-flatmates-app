@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -35,19 +34,20 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
     return FlatmatesScreen(
       appBar: FlatmatesHeader.backTitle(title: locale.deleteAccountTitle),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screen,
+          vertical: AppSpacing.lg,
+        ),
         children: [
-          const Icon(
+          Icon(
             Icons.warning_amber_rounded,
-            size: 56,
-            color: AppSemanticColors.error,
+            size: 48,
+            color: AppSemanticColors.dangerFor(theme.brightness),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
             locale.deleteAccountTitle,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: theme.textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -55,11 +55,10 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
             locale.deleteAccountWarning,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppSemanticColors.textSecondaryFor(theme.brightness),
-              height: 1.6,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             locale.deleteAccountConfirmLabel,
             style: theme.textTheme.titleSmall?.copyWith(
@@ -81,21 +80,6 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
             },
             decoration: InputDecoration(
               hintText: locale.deleteAccountConfirmHint,
-              border: const OutlineInputBorder(
-                borderRadius: AppRadius.smBorder,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: AppRadius.smBorder,
-                borderSide: BorderSide(
-                  color: AppSemanticColors.hairlineFor(
-                    theme.brightness,
-                  ).withValues(alpha: 0.35),
-                ),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderRadius: AppRadius.smBorder,
-                borderSide: BorderSide(color: AppSemanticColors.accent),
-              ),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -109,10 +93,9 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
             destructive: true,
           ),
           const SizedBox(height: AppSpacing.md),
-          FlatmatesButton.secondary(
+          FlatmatesButton.tertiary(
             key: const Key('delete_account_cancel_button'),
             label: locale.cancelCta,
-            fullWidth: true,
             onPressed: _isDeleting ? null : () => context.pop(),
           ),
         ],
@@ -125,27 +108,15 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
     if (!_isConfirmed || _isDeleting) return;
 
     // Final irreversible-action confirmation dialog.
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(locale.deleteAccountTitle),
-        content: Text(locale.deleteAccountDialogBody),
-        actions: [
-          TextButton(
-            key: const Key('delete_account_dialog_cancel'),
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(locale.cancelCta),
-          ),
-          TextButton(
-            key: const Key('delete_account_dialog_confirm'),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppSemanticColors.error,
-            ),
-            child: Text(locale.deleteAccountButton),
-          ),
-        ],
-      ),
+    final confirmed = await FlatmatesDialog.confirm(
+      context,
+      title: locale.deleteAccountTitle,
+      message: locale.deleteAccountDialogBody,
+      cancelLabel: locale.cancelCta,
+      confirmLabel: locale.deleteAccountButton,
+      destructive: true,
+      cancelKey: const Key('delete_account_dialog_cancel'),
+      confirmKey: const Key('delete_account_dialog_confirm'),
     );
 
     if (confirmed != true || !mounted) return;

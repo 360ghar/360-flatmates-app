@@ -44,9 +44,7 @@ class ListingStepHeader extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           Text(
             listingStepTitle(locale, step),
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: theme.textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
@@ -60,8 +58,8 @@ class ListingStepHeader extends StatelessWidget {
             Text(
               summary!,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppSemanticColors.accent,
-                fontWeight: FontWeight.w500,
+                color: AppSemanticColors.clayInkFor(theme.brightness),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

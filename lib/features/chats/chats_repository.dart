@@ -1,14 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/compatibility/compatibility_engine.dart';
 import '../../core/config/endpoints.dart';
+import '../../core/domain/wire_enums.dart';
+import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
 import '../../core/utils/paged_envelope.dart';
-import '../../core/utils/safe_json_list.dart';
 import 'domain/chat_models.dart';
 
 export 'domain/chat_models.dart';
@@ -16,9 +14,29 @@ export 'domain/chat_models.dart';
 class ChatsRepository {
   const ChatsRepository(this._ref);
 
-  static const _messagesRealtimeTable = 'messages';
-
   final Ref _ref;
+
+  /// Largest page the API serves (`limit` above 100 is a 422).
+  static const _maxPageSize = 100;
+
+  /// Reads every page of a cursor list. Used where the whole list is needed.
+  Future<List<T>> _readAll<T>(
+    Future<({List<T> items, String? nextCursor, bool hasMore})> Function(
+      String? cursor,
+    )
+    fetchPage,
+  ) async {
+    final all = <T>[];
+    String? cursor;
+    while (true) {
+      final page = await fetchPage(cursor);
+      all.addAll(page.items);
+      final next = page.nextCursor;
+      if (!page.hasMore || next == null || next.isEmpty) break;
+      cursor = next;
+    }
+    return all;
+  }
 
   /// Fetches a single page of conversations using cursor pagination. The
   /// backend wraps all list endpoints in
@@ -45,11 +63,10 @@ class ChatsRepository {
     );
   }
 
-  /// Backwards-compatible helper returning the first page as a list.
-  Future<List<ConversationSummaryModel>> fetchConversations() async {
-    final page = await fetchConversationsPage();
-    return page.items;
-  }
+  /// Every conversation: follows `next_cursor` until the list ends.
+  Future<List<ConversationSummaryModel>> fetchConversations() => _readAll(
+    (cursor) => fetchConversationsPage(cursor: cursor, limit: _maxPageSize),
+  );
 
   /// Fetches a single page of incoming likes using cursor pagination.
   Future<({List<IncomingLikeModel> items, String? nextCursor, bool hasMore})>
@@ -72,11 +89,10 @@ class ChatsRepository {
     );
   }
 
-  /// Backwards-compatible helper returning the first page as a list.
-  Future<List<IncomingLikeModel>> fetchIncomingLikes() async {
-    final page = await fetchIncomingLikesPage();
-    return page.items;
-  }
+  /// Every incoming like: follows `next_cursor` until the list ends.
+  Future<List<IncomingLikeModel>> fetchIncomingLikes() => _readAll(
+    (cursor) => fetchIncomingLikesPage(cursor: cursor, limit: _maxPageSize),
+  );
 
   /// Fetches a single page of outgoing likes using cursor pagination.
   Future<({List<OutgoingLikeModel> items, String? nextCursor, bool hasMore})>
@@ -99,11 +115,10 @@ class ChatsRepository {
     );
   }
 
-  /// Backwards-compatible helper returning the first page as a list.
-  Future<List<OutgoingLikeModel>> fetchOutgoingLikes() async {
-    final page = await fetchOutgoingLikesPage();
-    return page.items;
-  }
+  /// Every outgoing like: follows `next_cursor` until the list ends.
+  Future<List<OutgoingLikeModel>> fetchOutgoingLikes() => _readAll(
+    (cursor) => fetchOutgoingLikesPage(cursor: cursor, limit: _maxPageSize),
+  );
 
   Future<int?> matchIncomingLike({
     required int peerId,
@@ -114,8 +129,8 @@ class ChatsRepository {
         .post(
           FlatmatesEndpoints.swipes,
           data: {
-            'target_type': 'user',
-            'action': 'like',
+            'target_type': SwipeTargetType.user.wire,
+            'action': SwipeAction.like.wire,
             'target_user_id': peerId,
             'context_property_id': ?contextPropertyId,
           },
@@ -155,20 +170,18 @@ class ChatsRepository {
     return ConversationSummaryModel.fromJson(data);
   }
 
-  /// Fetches a page of messages (newest first page when [beforeId] is null).
-  ///
-  /// Backend contract (not CursorPage):
-  /// `GET .../messages?limit=&before_id=` →
-  /// `{ messages, total, has_more }`. Pass the previous page's
-  /// [MessageListResponse.nextBeforeId] to load older history.
-  Future<MessageListResponse> fetchMessages(
+  /// Fetches one page of messages: `GET .../messages?limit=&cursor=`, a
+  /// CursorPage. Without [cursor] it is the newest page. Items are
+  /// chronological (oldest first); pass the returned [MessagesPage.nextCursor]
+  /// back unchanged to load the next older page.
+  Future<MessagesPage> fetchMessages(
     int conversationId, {
-    int? beforeId,
+    String? cursor,
     int limit = 50,
   }) async {
     final queryParameters = <String, dynamic>{'limit': limit};
-    if (beforeId != null && beforeId > 0) {
-      queryParameters['before_id'] = beforeId;
+    if (cursor != null && cursor.isNotEmpty) {
+      queryParameters['cursor'] = cursor;
     }
     final response = await _ref
         .read(apiClientProvider)
@@ -177,105 +190,23 @@ class ChatsRepository {
           queryParameters: queryParameters,
         );
     final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
-    final messages = safeJsonList(
-      data['messages'] as List?,
+    final page = parsePagedEnvelope(
+      data,
       ChatMessage.fromJson,
       label: 'messages',
     );
-    final hasMore = data['has_more'] as bool? ?? false;
-    // Chronological page: index 0 is oldest — use as next before_id.
-    final nextBeforeId = hasMore && messages.isNotEmpty
-        ? messages.first.id
-        : null;
-    return MessageListResponse(
-      messages: messages,
-      hasMore: hasMore,
-      nextBeforeId: nextBeforeId,
-      total: (data['total'] as num?)?.toInt(),
+    return MessagesPage(
+      messages: page.items,
+      hasMore: page.hasMore,
+      nextCursor: page.hasMore ? page.nextCursor : null,
     );
-  }
-
-  Stream<List<ChatMessage>> watchMessages(int conversationId) {
-    late final StreamController<List<ChatMessage>> controller;
-    StreamSubscription<List<ChatMessage>>? realtimeSubscription;
-    var hasEmittedMessages = false;
-    var isRefetching = false;
-    var consecutiveErrorRefetches = 0;
-    Timer? errorRefetchTimer;
-
-    void emitMessages(List<ChatMessage> messages) {
-      if (controller.isClosed) return;
-      hasEmittedMessages = true;
-      controller.add(messages);
-    }
-
-    Future<void> refetch() async {
-      if (isRefetching) return;
-      isRefetching = true;
-      try {
-        final response = await fetchMessages(conversationId);
-        emitMessages(response.messages);
-      } catch (error, stackTrace) {
-        if (!controller.isClosed && !hasEmittedMessages) {
-          controller.addError(error, stackTrace);
-        }
-      } finally {
-        isRefetching = false;
-      }
-    }
-
-    controller = StreamController<List<ChatMessage>>(
-      onListen: () {
-        unawaited(refetch());
-
-        try {
-          realtimeSubscription = Supabase.instance.client
-              .from(_messagesRealtimeTable)
-              .stream(primaryKey: ['id'])
-              .eq('conversation_id', conversationId)
-              .order('created_at', ascending: true)
-              .map(_parseMessageRows)
-              .listen(
-                (messages) {
-                  consecutiveErrorRefetches = 0;
-                  emitMessages(messages);
-                },
-                onError: (e) {
-                  debugPrint(
-                    'ChatsRepository.watchMessages: realtime stream error: $e',
-                  );
-                  // A flapping realtime connection can emit errors in rapid
-                  // succession; back off so each error doesn't hit the API.
-                  if (errorRefetchTimer?.isActive ?? false) return;
-                  final delay = Duration(
-                    seconds: 1 << consecutiveErrorRefetches.clamp(0, 5),
-                  );
-                  consecutiveErrorRefetches++;
-                  errorRefetchTimer = Timer(delay, () {
-                    if (controller.isClosed) return;
-                    unawaited(refetch());
-                  });
-                },
-              );
-        } catch (e) {
-          debugPrint(
-            'ChatsRepository.watchMessages: realtime subscription failed: $e',
-          );
-        }
-      },
-      onCancel: () async {
-        errorRefetchTimer?.cancel();
-        await realtimeSubscription?.cancel();
-      },
-    );
-    return controller.stream;
   }
 
   Future<void> sendMessage({
     required int conversationId,
     String? body,
     String? attachmentUrl,
-    String messageType = 'text',
+    MessageType messageType = MessageType.text,
     Map<String, dynamic>? metadata,
   }) async {
     await _ref
@@ -285,10 +216,60 @@ class ChatsRepository {
           data: {
             'body': ?body,
             'attachment_url': ?attachmentUrl,
-            'message_type': messageType,
+            'message_type': messageType.wire,
             'metadata': ?metadata,
           },
         );
+  }
+
+  /// One page of `GET /flatmates/matches`.
+  Future<({List<MatchSummaryModel> items, String? nextCursor, bool hasMore})>
+  fetchMatchesPage({String? cursor, int limit = _maxPageSize}) async {
+    final queryParameters = <String, dynamic>{'limit': limit};
+    if (cursor != null && cursor.isNotEmpty) {
+      queryParameters['cursor'] = cursor;
+    }
+    final response = await _ref
+        .read(apiClientProvider)
+        .get(FlatmatesEndpoints.matches, queryParameters: queryParameters);
+    final data = Map<String, dynamic>.from(response.data as Map? ?? const {});
+    return parsePagedEnvelope(
+      data,
+      MatchSummaryModel.fromJson,
+      label: 'matches',
+    );
+  }
+
+  /// The phone of [peerId], from the match contact route
+  /// (`GET /flatmates/matches/{match_id}/contact`), or null when there is no
+  /// active match with that user, or the match has no phone.
+  ///
+  /// This is the only way the app learns a peer phone: the peer payloads carry
+  /// none. The match id is found in the user's matches.
+  Future<String?> fetchMatchPhone(int peerId) async {
+    final matches = await _readAll(
+      (cursor) => fetchMatchesPage(cursor: cursor),
+    );
+    final match = matches
+        .where((m) => m.peer.id == peerId && m.status == UserMatchStatus.active)
+        .firstOrNull;
+    if (match == null) return null;
+    try {
+      final response = await _ref
+          .read(apiClientProvider)
+          .get(FlatmatesEndpoints.matchContact(match.id));
+      final data = response.data;
+      if (data is! Map) return null;
+      final phone = MatchContactModel.fromJson(
+        Map<String, dynamic>.from(data),
+      ).phone?.trim();
+      return phone == null || phone.isEmpty ? null : phone;
+    } on NotFoundFailure catch (e) {
+      // 404 MATCH_NOT_FOUND: the pair is closed, or the peer's profile is not
+      // visible. There is no phone to show.
+      debugPrint('ChatsRepository.fetchMatchPhone: ${e.code}');
+      return null;
+    }
   }
 
   /// Fetches the full flatmates profile of another user. Returns null when
@@ -376,13 +357,11 @@ class ChatsRepository {
         .post(FlatmatesEndpoints.blocks, data: {'blocked_user_id': userId});
   }
 
+  /// Ends the match with [peerId] without blocking: `POST /flatmates/unmatch`.
   Future<void> unmatchConversation(int conversationId, int peerId) async {
     await _ref
         .read(apiClientProvider)
-        .post(
-          FlatmatesEndpoints.blocks,
-          data: {'blocked_user_id': peerId, 'unmatch_only': true},
-        );
+        .post(FlatmatesEndpoints.unmatch, data: {'peer_user_id': peerId});
   }
 
   Future<void> reportUser(int userId, String reason) async {
@@ -419,51 +398,27 @@ class ChatsRepository {
     }
     return normalized;
   }
-
-  static List<ChatMessage> _parseMessageRows(List<Map<String, dynamic>> rows) {
-    return safeJsonList(rows, ChatMessage.fromJson, label: 'realtimeMessages');
-  }
 }
 
 final chatsRepositoryProvider = Provider<ChatsRepository>(
   (ref) => ChatsRepository(ref),
 );
 
-final conversationsProvider = FutureProvider<List<ConversationSummaryModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchConversations(),
-);
-
-final incomingLikesProvider = FutureProvider<List<IncomingLikeModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchIncomingLikes(),
-);
-
-final outgoingLikesProvider = FutureProvider<List<OutgoingLikeModel>>(
-  (ref) => ref.watch(chatsRepositoryProvider).fetchOutgoingLikes(),
-);
-
-final conversationProvider =
-    FutureProvider.family<ConversationSummaryModel, int>(
+final conversationProvider = FutureProvider.autoDispose
+    .family<ConversationSummaryModel, int>(
       (ref, conversationId) =>
           ref.watch(chatsRepositoryProvider).fetchConversation(conversationId),
     );
 
-final messagesProvider = FutureProvider.family<MessageListResponse, int>(
-  (ref, conversationId) =>
-      ref.watch(chatsRepositoryProvider).fetchMessages(conversationId),
-);
-
-final messagesStreamProvider = StreamProvider.family
-    .autoDispose<List<ChatMessage>, int>(
-      (ref, conversationId) =>
-          ref.watch(chatsRepositoryProvider).watchMessages(conversationId),
+// autoDispose: a failed (null) load must not stay cached for the session.
+final peerProfileProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, int>(
+      (ref, userId) =>
+          ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
     );
 
-final peerProfileProvider = FutureProvider.family<Map<String, dynamic>?, int>(
-  (ref, userId) => ref.watch(chatsRepositoryProvider).fetchPeerProfile(userId),
-);
-
-final peerCompatibilityProvider =
-    FutureProvider.family<CompatibilityResult?, int>(
+final peerCompatibilityProvider = FutureProvider.autoDispose
+    .family<CompatibilityResult?, int>(
       (ref, userId) =>
           ref.watch(chatsRepositoryProvider).fetchPeerCompatibility(userId),
     );

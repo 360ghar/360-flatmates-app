@@ -32,7 +32,7 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
   Future<void> _pickFromGallery() async {
     final service = ref.read(imageUploadServiceProvider);
     final files = await service.pickImages(limit: 5 - _photoUrls.length);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     setState(() => _uploading = true);
     try {
       for (final file in files) {
@@ -106,14 +106,15 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
     final fullName = state.fullName;
     final displayUrl = _photoUrls.isEmpty ? null : _photoUrls.first;
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: AppSpacing.horizontalScreen,
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: AppSpacing.horizontalScreen,
         child: ListView(
           children: [
             const SizedBox(height: AppSpacing.sm),
-            const FlatmatesStepProgress.dots(currentStep: 3, totalSteps: 4),
-            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.profilePhotoTitle,
               style: theme.textTheme.headlineLarge,
@@ -137,30 +138,33 @@ class _ProfilePhotoPageState extends ConsumerState<ProfilePhotoPage> {
                 name: fullName,
                 imageUrl: displayUrl,
                 size: 140,
+                tapLabel: locale.addPhotoCta,
+                onTap: _uploading || _photoUrls.length >= 5
+                    ? null
+                    : _pickFromGallery,
               ),
             ),
-            if (_photoUrls.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.screen),
-              FlatmatesCard(
-                child: Wrap(
-                  spacing: AppSpacing.md + AppSpacing.xs,
-                  runSpacing: AppSpacing.md + AppSpacing.xs,
-                  children: [
-                    ..._photoUrls.asMap().entries.map((entry) {
-                      return _PhotoTile(
-                        imageUrl: entry.value,
-                        onRemove: () => _removePhoto(entry.key),
-                      );
-                    }),
-                    if (_photoUrls.length < 5)
-                      _AddPhotoTile(
-                        onGallery: _pickFromGallery,
-                        onCamera: _pickFromCamera,
-                      ),
-                  ],
-                ),
+            // Always shown, so a new user can add the first photo.
+            const SizedBox(height: AppSpacing.screen),
+            FlatmatesCard(
+              child: Wrap(
+                spacing: AppSpacing.base,
+                runSpacing: AppSpacing.base,
+                children: [
+                  ..._photoUrls.asMap().entries.map((entry) {
+                    return _PhotoTile(
+                      imageUrl: entry.value,
+                      onRemove: () => _removePhoto(entry.key),
+                    );
+                  }),
+                  if (_photoUrls.length < 5)
+                    _AddPhotoTile(
+                      onGallery: _pickFromGallery,
+                      onCamera: _pickFromCamera,
+                    ),
+                ],
               ),
-            ],
+            ),
             const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
             if (uploading)
               const Padding(
@@ -205,8 +209,8 @@ class _PhotoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Stack(
-      clipBehavior: Clip.none,
       children: [
         FlatmatesNetworkImage(
           imageUrl: imageUrl,
@@ -214,18 +218,37 @@ class _PhotoTile extends StatelessWidget {
           height: 160,
           borderRadius: AppRadius.cardBorder,
         ),
+        // 48 dp tap target inside the tile; the visible disc is 32 dp.
         Positioned(
-          right: -6,
-          top: -6,
-          child: Material(
-            color: AppSemanticColors.error,
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: onRemove,
-              customBorder: const CircleBorder(),
-              child: const Padding(
-                padding: AppSpacing.edgeSm,
-                child: Icon(Icons.close, color: Colors.white, size: 16),
+          right: 0,
+          top: 0,
+          child: Semantics(
+            button: true,
+            label: AppLocalizations.of(context).removePhotoTooltip,
+            child: Tooltip(
+              message: AppLocalizations.of(context).removePhotoTooltip,
+              child: InkWell(
+                onTap: onRemove,
+                customBorder: const CircleBorder(),
+                child: SizedBox.square(
+                  dimension: kMinInteractiveDimension,
+                  child: Center(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppSemanticColors.dangerFor(brightness),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Padding(
+                        padding: AppSpacing.edgeSm,
+                        child: Icon(
+                          Icons.close,
+                          color: AppSemanticColors.onClayFor(brightness),
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -260,18 +283,10 @@ class _AddPhotoTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppSemanticColors.accent.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.camera_alt_outlined,
-                  size: 24,
-                  color: AppSemanticColors.accent,
-                ),
+              Icon(
+                Icons.camera_alt_outlined,
+                size: 28,
+                color: AppSemanticColors.clayFor(theme.brightness),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(

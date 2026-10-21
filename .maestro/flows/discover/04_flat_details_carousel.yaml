@@ -16,8 +16,12 @@ tags:
     visible:
       id: flat_contact_button
     timeout: 5000
-- swipe LEFT
-- swipe LEFT
-- swipe RIGHT
+# `swipe LEFT` is not a Maestro command — the direction goes in the mapping.
+- swipe:
+    direction: LEFT
+- swipe:
+    direction: LEFT
+- swipe:
+    direction: RIGHT
 - assertVisible:
     id: flat_contact_button

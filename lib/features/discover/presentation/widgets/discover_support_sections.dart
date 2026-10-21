@@ -5,7 +5,6 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
@@ -26,85 +25,6 @@ final homeMeetProfilesProvider = FutureProvider.autoDispose<List<SwipeProfile>>(
     return page.items;
   },
 );
-
-class NewInCitySection extends StatelessWidget {
-  const NewInCitySection({
-    required this.items,
-    required this.onExplore,
-    super.key,
-  });
-
-  final List<PropertyListing> items;
-  final VoidCallback onExplore;
-
-  @override
-  Widget build(BuildContext context) {
-    if (items.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-
-    return FlatmatesCard(
-      onTap: onExplore,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm + 2,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppSemanticColors.coralSoftFor(theme.brightness),
-              borderRadius: AppRadius.smBorder,
-            ),
-            child: const Icon(
-              Icons.location_city_rounded,
-              size: 18,
-              color: AppSemanticColors.accent,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              locale.homeNewInCity(items.first.city ?? ''),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          TextButton(
-            onPressed: onExplore,
-            style: TextButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  locale.navExplore,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppSemanticColors.accent,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 12,
-                  color: AppSemanticColors.accent,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// Profiles whose available-from date falls within the next 7 days.
 List<PropertyListing> movingSoonItems(List<PropertyListing> items) {
@@ -146,7 +66,7 @@ class MovingSoonSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 140,
+          height: AppSpacing.scaled(context, 140),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: movingSoon.length,
@@ -202,19 +122,16 @@ class MovingSoonSection extends StatelessWidget {
                           children: [
                             Text(
                               badgeText,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: AppSemanticColors.coralSoftFor(
-                                  theme.brightness,
-                                ),
-                                fontWeight: FontWeight.w700,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppSemanticColors.onScrim,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               item.title,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppSemanticColors.onScrim,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -234,96 +151,6 @@ class MovingSoonSection extends StatelessWidget {
   }
 }
 
-class TrendingNeighborhoodsSection extends StatelessWidget {
-  const TrendingNeighborhoodsSection({required this.city, super.key});
-  final String city;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-
-    if (city.isEmpty) return const SizedBox.shrink();
-
-    final cityLower = city.toLowerCase();
-    List<String> locations;
-    if (cityLower.contains('gurgaon') || cityLower.contains('gurugram')) {
-      locations = ['DLF Phase 3', 'Sector 43', 'Sector 55', 'Sector 14'];
-    } else if (cityLower.contains('bangalore') ||
-        cityLower.contains('bengaluru')) {
-      locations = ['Koramangala', 'Indiranagar', 'HSR Layout', 'Whitefield'];
-    } else if (cityLower.contains('delhi')) {
-      locations = ['Vasant Kunj', 'Lajpat Nagar', 'South Ex', 'Hauz Khas'];
-    } else if (cityLower.contains('mumbai')) {
-      locations = ['Bandra', 'Andheri', 'Powai', 'Juhu'];
-    } else {
-      locations = [
-        'City Center',
-        'North District',
-        'South District',
-        'East Side',
-      ];
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          locale.trendingNeighborhoodsIn(city),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppSemanticColors.textPrimaryFor(theme.brightness),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          height: 30,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: locations.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                decoration: BoxDecoration(
-                  borderRadius: AppRadius.pillBorder,
-                  color: AppSemanticColors.accent.withValues(alpha: 0.08),
-                  border: Border.all(
-                    color: AppSemanticColors.accent.withValues(alpha: 0.15),
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.near_me_rounded,
-                      size: 12,
-                      color: AppSemanticColors.accent,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      locations[index],
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: AppTypography.microLabelSize,
-                        height: AppTypography.microLabelHeight,
-                        color: AppSemanticColors.textPrimaryFor(
-                          theme.brightness,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class MeetFlatmatesSection extends ConsumerWidget {
   const MeetFlatmatesSection({super.key});
 
@@ -333,6 +160,25 @@ class MeetFlatmatesSection extends ConsumerWidget {
     final profilesAsync = ref.watch(homeMeetProfilesProvider);
     final displayProfiles = profilesAsync.valueOrNull ?? const <SwipeProfile>[];
 
+    // A failed load shows an inline retry instead of silently hiding the
+    // section. Loading and a genuinely empty list stay hidden.
+    if (displayProfiles.isEmpty && profilesAsync.hasError) {
+      final locale = AppLocalizations.of(context);
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              locale.couldNotLoadContent,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          FlatmatesButton.tertiary(
+            label: locale.commonRetry,
+            onPressed: () => ref.invalidate(homeMeetProfilesProvider),
+          ),
+        ],
+      );
+    }
     if (displayProfiles.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -347,14 +193,16 @@ class MeetFlatmatesSection extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         SizedBox(
-          height: 112,
+          height: AppSpacing.scaled(context, 112),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: displayProfiles.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.xs),
             itemBuilder: (context, index) {
               final profile = displayProfiles[index];
-              final name = profile.fullName?.split(' ').first ?? 'Flatmate';
+              final name =
+                  profile.fullName?.split(' ').first ??
+                  AppLocalizations.of(context).matchPeerFallbackName;
               final imageUrl =
                   profile.profileImageUrl ??
                   (profile.imageUrls.isNotEmpty
@@ -373,7 +221,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
                     horizontal: 2.0,
                     vertical: 4.0,
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.mdBorder,
                   backgroundColor: Colors.transparent,
                   bordered: false,
                   elevation: 0,
@@ -385,7 +233,7 @@ class MeetFlatmatesSection extends ConsumerWidget {
                         imageUrl: imageUrl,
                         size: 68,
                         shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.mdBorder,
                       ),
                       const SizedBox(height: 4),
                       Text(

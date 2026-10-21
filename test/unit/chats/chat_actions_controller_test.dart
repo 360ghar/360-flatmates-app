@@ -104,9 +104,11 @@ void main() {
 
     test('unmatchConversation refreshes the conversation list', () async {
       final unmatchData = <Map<String, dynamic>>[];
+      final blockPosts = <String>[];
       final conversationFetchCount = {'count': 0};
       final container = _containerWithAdapter((options) {
-        if (options.path == '/flatmates/blocks' && options.method == 'POST') {
+        if (options.path == '/flatmates/blocks') blockPosts.add(options.path);
+        if (options.path == '/flatmates/unmatch' && options.method == 'POST') {
           unmatchData.add(
             options.data is Map
                 ? Map<String, dynamic>.from(options.data as Map)
@@ -141,9 +143,12 @@ void main() {
       final controller = container.read(chatActionsControllerProvider);
       await controller.unmatchConversation(10, 5);
 
-      expect(unmatchData, isNotEmpty);
-      expect(unmatchData.last['blocked_user_id'], 5);
-      expect(unmatchData.last['unmatch_only'], isTrue);
+      // POST /flatmates/unmatch with the peer id: no block is created and
+      // the removed unmatch_only key is not sent.
+      expect(unmatchData, [
+        {'peer_user_id': 5},
+      ]);
+      expect(blockPosts, isEmpty);
       final conversationsState = container.read(
         conversationsListControllerProvider,
       );

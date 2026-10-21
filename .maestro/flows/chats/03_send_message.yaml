@@ -27,10 +27,14 @@ tags:
 - inputText: "Hey, I'm interested in the room!"
 - tapOn:
     id: chat_send_button
+# One accessibility node per message holds the text, time and status, so
+# match the text as a prefix ((?s) lets .* cross the line breaks).
 - extendedWaitUntil:
-    visible: "Hey, I'm interested in the room!"
+    visible: "(?s)Hey, I'm interested in the room!.*"
     timeout: 5000
-- back
+# On-screen back button: Maestro's `back` works on Android only.
+- tapOn:
+    id: nav_back_button
 - extendedWaitUntil:
     visible:
       id: conversation_card_0

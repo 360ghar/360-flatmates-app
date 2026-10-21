@@ -5,7 +5,9 @@ import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/providers/mutable_notifier.dart';
+import '../../core/theme/app_breakpoints.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
@@ -68,7 +70,6 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
       await ref.read(outgoingLikesListControllerProvider.notifier).refresh();
     } else {
       await ref.read(conversationsListControllerProvider.notifier).refresh();
-      ref.invalidate(conversationsProvider);
     }
   }
 
@@ -178,8 +179,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
             ref.read(conversationsListControllerProvider.notifier).refresh(),
         onLoadMore: () =>
             ref.read(conversationsListControllerProvider.notifier).loadMore(),
-        // High-contrast white cards — conversationList bones blend into soft hub bg.
-        loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.list),
+        loading: const FlatmatesSkeleton.conversationList(),
       );
       tabIsEmpty =
           conversations.hasValue &&
@@ -198,7 +198,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     return FlatmatesScreen(
       backgroundColor: listHubBg,
       body: RefreshIndicator(
-        color: AppSemanticColors.primary,
+        color: AppSemanticColors.clayFor(Theme.of(context).brightness),
         backgroundColor: AppSemanticColors.surfaceFor(theme.brightness),
         onRefresh: _refresh,
         child: LayoutBuilder(
@@ -266,52 +266,44 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
     ThemeData theme,
     AppLocalizations locale,
   ) {
-    return _InteractivePressScale(
-      child: FlatmatesCard(
-        margin: EdgeInsets.zero,
-        borderRadius: AppRadius.mdBorder,
-        backgroundColor: AppSemanticColors.coralSoftFor(
-          theme.brightness,
-        ).withValues(alpha: 0.4),
-        onTap: () => context.push('/help-safety'),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.shield_outlined,
-              size: 22,
-              color: AppSemanticColors.accent,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    locale.safetyFirstTitle,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: AppTypography.titleMdWeight,
-                    ),
+    return FlatmatesCard(
+      margin: EdgeInsets.zero,
+      onTap: () => context.push('/help-safety'),
+      child: Row(
+        children: [
+          Icon(
+            Icons.shield_outlined,
+            size: 22,
+            color: AppSemanticColors.clayFor(Theme.of(context).brightness),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  locale.safetyFirstTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: AppTypography.titleMdWeight,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    locale.safetyFirstSubtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: AppTypography.captionSize,
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  locale.safetyFirstSubtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: AppTypography.captionSize,
+                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: AppSemanticColors.textSecondaryFor(theme.brightness),
-              size: 20,
-            ),
-          ],
-        ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            size: 20,
+          ),
+        ],
       ),
     );
   }

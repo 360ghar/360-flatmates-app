@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../contract/contract_checks.dart';
+import '../../helpers/recording_api.dart';
 import '../../helpers/test_helpers.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/auth/auth_controller.dart';
@@ -43,6 +45,19 @@ class _NoFlexibleBootstrapController extends FakeBootstrapController {
           },
         ),
       ],
+    );
+    state = AsyncValue.data(data);
+    return data;
+  }
+}
+
+/// A profile with no email and no phone, as a sign-in by Google or Apple gives.
+class _NoContactBootstrapController extends FakeBootstrapController {
+  @override
+  Future<BootstrapData?> build() async {
+    final base = fakeBootstrapData();
+    final data = base.copyWith(
+      profile: base.profile.copyWith(email: null, phone: null),
     );
     state = AsyncValue.data(data);
     return data;
@@ -118,6 +133,78 @@ void main() {
       expect(button.onPressed, isNull);
     });
 
+    testWidgets(
+      'the save body has no email or phone: the profile route does not take them',
+      (tester) async {
+        final recorder = RecordingApi(
+          (options) =>
+              ok(<String, dynamic>{'id': 1, 'profile_status': 'active'}),
+        );
+        final widget = await _routedTestWidget(
+          child: const EditProfilePage(),
+          overrides: [
+            apiClientProvider.overrideWithValue(recorder.client),
+            bootstrapControllerProvider.overrideWith(
+              () => _NoContactBootstrapController(),
+            ),
+          ],
+        );
+        await tester.pumpWidget(widget);
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        // Both fields are empty and read-only: nothing to type into.
+        final fields = tester.widgetList<TextField>(find.byType(TextField));
+        final email = fields.firstWhere(
+          (f) => f.decoration?.labelText == 'Email',
+        );
+        final phone = fields.firstWhere(
+          (f) => f.decoration?.labelText == 'Phone number',
+        );
+        expect(email.readOnly, isTrue);
+        expect(phone.readOnly, isTrue);
+
+        await tester.tap(find.byKey(const Key('profile_tab_about')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('profile_bio_input')),
+          'Early riser, quiet evenings',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile_save_button')));
+        await tester.pumpAndSettle();
+
+        final put = recorder.to('PUT', '/flatmates/profile');
+        expect(put, hasLength(1));
+        final body = Map<String, dynamic>.from(put.single.data as Map);
+        expect(body['bio'], 'Early riser, quiet evenings');
+        expect(body.containsKey('email'), isFalse);
+        expect(body.containsKey('phone'), isFalse);
+        expectBodyMatchesContract(body, 'FlatmatesProfileUpdate');
+      },
+    );
+
+    testWidgets('tapping into a field does not mark the form dirty', (
+      tester,
+    ) async {
+      final widget = await _routedTestWidget(child: const EditProfilePage());
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('profile_tab_about')));
+      await tester.pumpAndSettle();
+      // Focus moves the cursor, which notifies the controller; it is not an
+      // edit, so Back must not ask to discard changes.
+      await tester.tap(find.byKey(const Key('profile_bio_input')));
+      await tester.pumpAndSettle();
+
+      final button = tester.widget<FlatmatesButton>(
+        find.byKey(const Key('profile_save_button')),
+      );
+      expect(button.onPressed, isNull);
+    });
+
     testWidgets('edit state is preserved when switching tabs', (tester) async {
       final widget = await _routedTestWidget(child: const EditProfilePage());
       await tester.pumpWidget(widget);
@@ -171,7 +258,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // A discard confirmation dialog should appear.
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
     });
   });
 }

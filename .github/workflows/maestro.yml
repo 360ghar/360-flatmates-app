@@ -5,6 +5,12 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+# The flows mutate one shared backend (messages, visits, listings, blocks), so
+# two pull-request runs must not overlap.
+concurrency:
+  group: maestro-e2e
+  cancel-in-progress: false
+
 jobs:
   maestro_test:
     name: Run Maestro Flows (Android)
@@ -16,18 +22,54 @@ jobs:
         with:
           persist-credentials: false
 
+      # Skip (not fail) when the dedicated test-environment secrets are absent.
+      # The flows mutate state (messages, visits, listings, blocks), so they must
+      # run against a seeded NON-production backend: these secrets are separate
+      # from the production API_BASE_URL used by android-release.yml. Without
+      # them the APK builds with empty config and the app boots into
+      # _ConfigErrorApp, which reads like a product bug.
+      - name: Preflight - required secrets
+        id: preflight
+        env:
+          MAESTRO_API_BASE_URL: ${{ secrets.MAESTRO_API_BASE_URL }}
+          MAESTRO_SUPABASE_URL: ${{ secrets.MAESTRO_SUPABASE_URL }}
+          MAESTRO_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.MAESTRO_SUPABASE_PUBLISHABLE_KEY }}
+          MAESTRO_PHONE: ${{ secrets.MAESTRO_PHONE }}
+          MAESTRO_PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
+        run: |
+          missing=()
+          for name in MAESTRO_API_BASE_URL MAESTRO_SUPABASE_URL MAESTRO_SUPABASE_PUBLISHABLE_KEY MAESTRO_PHONE MAESTRO_PASSWORD; do
+            value="${!name:-}"
+            # A whitespace-only secret counts as unset.
+            if [ -z "${value//[[:space:]]/}" ]; then
+              missing+=("$name")
+            fi
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::notice::Skipping Maestro flows. Missing repository secret(s): ${missing[*]}. Add them under Settings > Secrets and variables > Actions. MAESTRO_API_BASE_URL must point at a seeded NON-production backend."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "All required secrets are present."
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        if: steps.preflight.outputs.skip != 'true'
         with:
           flutter-version-file: '.fvmrc'
           channel: 'stable'
           cache: true
 
       - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9
+        if: steps.preflight.outputs.skip != 'true'
         with:
           distribution: 'zulu'
           java-version: '17'
 
       - name: Install Maestro CLI
+        if: steps.preflight.outputs.skip != 'true'
         run: |
           MAESTRO_VERSION="cli-2.6.1"
           MAESTRO_BASE_URL="https://github.com/mobile-dev-inc/Maestro/releases/download/${MAESTRO_VERSION}"
@@ -55,22 +97,41 @@ jobs:
           unzip -q "$MAESTRO_ZIP" -d "$HOME/.maestro-install"
           echo "$HOME/.maestro-install/maestro/bin" >> "$GITHUB_PATH"
 
-      - run: flutter pub get
+      - if: steps.preflight.outputs.skip != 'true'
+        run: flutter pub get
 
-      # .env is gitignored; listed as optional dotenv asset for local dev.
+      # .env is gitignored but declared as an asset in pubspec.yaml, so the file
+      # must exist for the build. It is NOT the config source for CI — the app
+      # config arrives through --dart-define on the build step below.
       - name: Stub optional .env asset
+        if: steps.preflight.outputs.skip != 'true'
         run: |
           if [ ! -f .env ]; then
             printf 'APP_ENV=ci\n' > .env
           fi
 
+      # Config must come from --dart-define: the stub .env above only carries
+      # APP_ENV=ci. A debug APK built without these defines throws in
+      # AppConfig.fromEnvironment() and boots into _ConfigErrorApp, so no flow
+      # can reach the login screen.
       - name: Build debug APK
-        run: flutter build apk --debug
+        if: steps.preflight.outputs.skip != 'true'
+        env:
+          API_BASE_URL: ${{ secrets.MAESTRO_API_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.MAESTRO_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.MAESTRO_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          flutter build apk --debug \
+            --dart-define=APP_ENV=ci \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       # Grant the runner user access to /dev/kvm so the emulator boots under
       # KVM hardware acceleration (without this the action probes KVM, finds
       # no permission, and falls back to ~19-min software emulation).
       - name: Enable KVM permissions
+        if: steps.preflight.outputs.skip != 'true'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
@@ -78,6 +139,7 @@ jobs:
           sudo chmod 666 /dev/kvm
 
       - name: Run tests on emulator
+        if: steps.preflight.outputs.skip != 'true'
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
         env:
           MAESTRO_PHONE: ${{ secrets.MAESTRO_PHONE }}
@@ -100,7 +162,7 @@ jobs:
             maestro test .maestro/e2e.yaml --format junit --output maestro-report.xml
 
       - name: Upload test report
-        if: always()
+        if: always() && steps.preflight.outputs.skip != 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: maestro-report

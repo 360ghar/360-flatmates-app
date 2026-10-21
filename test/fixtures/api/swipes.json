@@ -1,0 +1,44 @@
+{
+  "match": {
+    "action": "like",
+    "conversation_id": 10,
+    "did_match": true,
+    "match_id": 4,
+    "stored": true,
+    "target_type": "user"
+  },
+  "pass": {
+    "action": "pass",
+    "conversation_id": null,
+    "did_match": false,
+    "match_id": null,
+    "stored": true,
+    "target_type": "user"
+  },
+  "profile_view": {
+    "context_property_id": null,
+    "created_at": "2026-09-30T10:15:02Z",
+    "duration_seconds": 3600,
+    "id": 31,
+    "scroll_depth_percent": 80,
+    "source": "swipe_deck",
+    "viewed_user_id": 2,
+    "viewer_user_id": 7
+  },
+  "property_like": {
+    "action": "like",
+    "conversation_id": 11,
+    "did_match": false,
+    "match_id": null,
+    "stored": true,
+    "target_type": "property"
+  },
+  "society_vote": {
+    "current_vote": "up",
+    "disputed": false,
+    "downvotes": 1,
+    "property_id": 42,
+    "tag": "quiet",
+    "upvotes": 4
+  }
+}

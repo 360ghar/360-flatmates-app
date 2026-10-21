@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/features/chats/application/cursor_list_controller.dart';
 import 'package:flatmates_app/features/visits/application/visits_list_controller.dart';
+import 'package:flatmates_app/features/shared/presentation/flatmates_button.dart';
 import 'package:flatmates_app/features/visits/visits_page.dart';
 import 'package:flatmates_app/features/visits/visits_repository.dart';
 
@@ -26,6 +29,29 @@ class _FakeVisitsListController extends VisitsListController {
   }
 }
 
+/// Keeps what the page sends to the cancel route; no network.
+class _RecordingVisitsRepository extends VisitsRepository {
+  _RecordingVisitsRepository(super.ref, this.cancelled);
+
+  final List<({int id, String reason})> cancelled;
+
+  @override
+  Future<List<VisitItem>> fetchVisits() async => const [];
+
+  @override
+  Future<VisitItem> cancelVisit(int visitId, {required String reason}) async {
+    cancelled.add((id: visitId, reason: reason));
+    return VisitItem(
+      id: visitId,
+      propertyTitle: 'Flat B',
+      status: VisitStatus.cancelled,
+      scheduledDate: DateTime.now().add(const Duration(days: 2)),
+      visitContext: VisitContext.flatmateMeet,
+      cancellationReason: reason,
+    );
+  }
+}
+
 void main() {
   group('VisitsPage', () {
     testWidgets('renders visits list with status sections', (tester) async {
@@ -36,24 +62,24 @@ void main() {
         VisitItem(
           id: 1,
           propertyTitle: 'Flat A',
-          status: 'confirmed',
+          status: VisitStatus.confirmed,
           scheduledDate: future,
-          visitContext: 'flatmate_meet',
+          visitContext: VisitContext.flatmateMeet,
           conversationId: 10,
         ),
         VisitItem(
           id: 2,
           propertyTitle: 'Flat B',
-          status: 'requested',
+          status: VisitStatus.requested,
           scheduledDate: future,
-          visitContext: 'flatmate_meet',
+          visitContext: VisitContext.flatmateMeet,
         ),
         VisitItem(
           id: 3,
           propertyTitle: 'Flat C',
-          status: 'cancelled',
+          status: VisitStatus.cancelled,
           scheduledDate: past,
-          visitContext: 'flatmate_meet',
+          visitContext: VisitContext.flatmateMeet,
         ),
       ];
 
@@ -99,6 +125,98 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('No visits scheduled yet.'), findsOneWidget);
+    });
+
+    testWidgets('cancel asks for a reason and posts it to the cancel route', (
+      tester,
+    ) async {
+      final future = DateTime.now().add(const Duration(days: 2));
+      final cancelled = <({int id, String reason})>[];
+
+      await tester.pumpWidget(
+        testableWidget(
+          overrides: [
+            visitsListControllerProvider.overrideWith(
+              () => _FakeVisitsListController([
+                VisitItem(
+                  id: 2,
+                  propertyTitle: 'Flat B',
+                  status: VisitStatus.requested,
+                  scheduledDate: future,
+                  visitContext: VisitContext.flatmateMeet,
+                ),
+              ]),
+            ),
+            visitsRepositoryProvider.overrideWith(
+              (ref) => _RecordingVisitsRepository(ref, cancelled),
+            ),
+          ],
+          child: const VisitsPage(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(find.text('Cancel visit'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // The cancel route refuses an empty reason: Confirm stays disabled.
+      final confirm = find.byKey(const Key('visit_cancel_dialog_confirm'));
+      expect(tester.widget<FlatmatesButton>(confirm).onPressed, isNull);
+
+      await tester.enterText(
+        find.byKey(const Key('visit_cancel_reason_field')),
+        '  Plans changed  ',
+      );
+      await tester.pump();
+      expect(tester.widget<FlatmatesButton>(confirm).onPressed, isNotNull);
+
+      await tester.tap(confirm);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(cancelled, [(id: 2, reason: 'Plans changed')]);
+    });
+
+    testWidgets('backing out of the cancel dialog sends nothing', (
+      tester,
+    ) async {
+      final future = DateTime.now().add(const Duration(days: 2));
+      final cancelled = <({int id, String reason})>[];
+
+      await tester.pumpWidget(
+        testableWidget(
+          overrides: [
+            visitsListControllerProvider.overrideWith(
+              () => _FakeVisitsListController([
+                VisitItem(
+                  id: 2,
+                  propertyTitle: 'Flat B',
+                  status: VisitStatus.requested,
+                  scheduledDate: future,
+                  visitContext: VisitContext.flatmateMeet,
+                ),
+              ]),
+            ),
+            visitsRepositoryProvider.overrideWith(
+              (ref) => _RecordingVisitsRepository(ref, cancelled),
+            ),
+          ],
+          child: const VisitsPage(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(find.text('Cancel visit'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const Key('visit_cancel_dialog_back')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(cancelled, isEmpty);
     });
   });
 }

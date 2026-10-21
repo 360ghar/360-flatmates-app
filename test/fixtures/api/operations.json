@@ -1,0 +1,3770 @@
+{
+  "DELETE /api/v1/agent/conversations/{conversation_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/agents/{agent_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/blog/categories/{identifier}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/blog/posts/{identifier}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/blog/tags/{identifier}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/custom-domains/{domain_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/data-hub/auctions/alerts/{alert_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/faqs/{faq_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/flatmates/blocks/{blocked_user_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/hotspots/{hotspot_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/notifications/devices/unregister": {
+    "body": "DeviceUnregisterIn",
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/pages/{unique_name}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/pm/expenses/{expense_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/pm/rent/payments/{payment_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/properties/{property_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/public/tours/{tour_id}/like": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/scenes/{scene_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/swipes/undo": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/tours/{tour_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/tours/{tour_id}/floor-plans/{floor_plan_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/upload/media/{media_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "DELETE /api/v1/users/me": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "GET /.well-known/oauth-authorization-server": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /.well-known/oauth-authorization-server/mcp/oauth": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /.well-known/oauth-protected-resource": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /.well-known/oauth-protected-resource/mcp": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /.well-known/oauth-protected-resource/mcp-admin": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /.well-known/openid-configuration": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /.well-known/openid-configuration/mcp/oauth": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /api/v1/agent/conversations": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agent/conversations/{conversation_id}/messages/page": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agent/widgets/{widget_name}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_inactive": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/assigned": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/available": {
+    "body": null,
+    "query": {
+      "agent_type": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "specialization": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/me": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/specializations/{specialization}": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/system/stats": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/system/workload": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/types/{agent_type}": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/{agent_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/{agent_id}/stats": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/agents/{agent_id}/visits": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/ai/jobs/{job_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/amenities": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/auth/config": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/categories": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/categories/{identifier}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/posts": {
+    "body": null,
+    "query": {
+      "categories": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "q": {},
+      "status": {},
+      "tags": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/posts/preview/{token}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/posts/{identifier}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/tags": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/blog/tags/{identifier}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bookings": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bookings/all": {
+    "body": null,
+    "query": {
+      "agent_id": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "payment_status": {},
+      "property_id": {},
+      "q": {},
+      "status": {},
+      "user_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bookings/past": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bookings/upcoming": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bookings/{booking_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bookings/{booking_id}/messages": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bugs": {
+    "body": null,
+    "query": {
+      "bug_type": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "severity": {},
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/bugs/{bug_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/capture-sessions": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/capture-sessions/{session_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/custom-domains": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/custom-domains/{domain_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/dashboard/realtime": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/dashboard/stats": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/admin/scraper/runs": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/auctions": {
+    "body": null,
+    "query": {
+      "bank": {},
+      "city": {},
+      "cursor": {},
+      "date_from": {},
+      "date_to": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "max_price": {},
+      "min_price": {},
+      "property_type": {},
+      "source": {},
+      "type": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/auctions/alerts/me": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/auctions/banks": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/auctions/cities": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/auctions/source-categories": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/auctions/{auction_id}": {
+    "body": null,
+    "query": {
+      "kind": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/builders": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "order_by": {},
+      "q": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/builders/{slug}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/circle-rates": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "property_type": {},
+      "sector": {},
+      "year": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/circle-rates/sectors": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/circle-rates/{slug}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/colony-approvals": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/gazette": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "q": {},
+      "type": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/jamabandi/captcha": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/neighbourhood/{listing_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/rera-projects": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "q": {},
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/rera-projects/verify/{rera_number}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/zoning": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "sector": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/data-hub/zoning/{slug}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/faqs": {
+    "body": null,
+    "query": {
+      "category": {},
+      "cursor": {},
+      "include_total": {},
+      "is_active": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/faqs/public": {
+    "body": null,
+    "query": {
+      "category": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/blocks": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/bootstrap": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/catalogs": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/conversations": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/conversations/{conversation_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/conversations/{conversation_id}/messages": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/likes": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/matches": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/matches/{match_id}/contact": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/moderation/listings": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/moderation/reports": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/notifications": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/notifications/unread-count": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/outgoing-likes": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/profile": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/profiles": {
+    "body": null,
+    "query": {
+      "age_max": {
+        "maximum": 100,
+        "minimum": 18
+      },
+      "age_min": {
+        "maximum": 100,
+        "minimum": 18
+      },
+      "budget_max": {},
+      "budget_min": {},
+      "city": {},
+      "cursor": {},
+      "gender_preference": {},
+      "include_total": {},
+      "lat": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "lng": {},
+      "move_in": {},
+      "non_negotiables": {},
+      "radius": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/profiles/{user_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/flatmates/profiles/{user_id}/compatibility": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/leads": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/mcp/oauth/authorize": {
+    "body": null,
+    "query": {
+      "client_id": {},
+      "code_challenge": {},
+      "code_challenge_method": {},
+      "redirect_uri": {},
+      "resource": {},
+      "response_type": {},
+      "scope": {},
+      "state": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/mcp/oauth/callback": {
+    "body": null,
+    "query": {
+      "code": {},
+      "iss": {},
+      "state": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/mcp/oauth/consent": {
+    "body": null,
+    "query": {
+      "session": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/notifications/me": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "unread_only": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/notifications/users/{user_id}": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pages": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "is_active": {},
+      "is_draft": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pages/{unique_name}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pages/{unique_name}/public": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/applications": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "form_id": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "status": {},
+      "submitted_from": {},
+      "submitted_to": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/applications/forms": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "q": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/applications/forms/{form_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/applications/{application_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/dashboard/activity": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/dashboard/overview": {
+    "body": null,
+    "query": {
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/documents": {
+    "body": null,
+    "query": {
+      "as_tenant": {},
+      "cursor": {},
+      "document_type": {},
+      "include_total": {},
+      "lease_id": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "maintenance_request_id": {},
+      "owner_id": {},
+      "property_id": {},
+      "rental_application_id": {},
+      "user_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/documents/{document_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/documents/{document_id}/download": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/expenses": {
+    "body": null,
+    "query": {
+      "category": {},
+      "cursor": {},
+      "end_date": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "start_date": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/inspections": {
+    "body": null,
+    "query": {
+      "as_tenant": {},
+      "cursor": {},
+      "include_total": {},
+      "lease_id": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/inspections/{inspection_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/leases": {
+    "body": null,
+    "query": {
+      "as_tenant": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "status": {},
+      "tenant_user_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/leases/{lease_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/maintenance/requests": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "lease_id": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "request_status": {},
+      "work_order_status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/properties": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "occupancy": {},
+      "owner_id": {},
+      "q": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/properties/{property_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/public/applications/{slug}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/rent/charges": {
+    "body": null,
+    "query": {
+      "as_tenant": {},
+      "cursor": {},
+      "include_total": {},
+      "lease_id": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/rent/payments": {
+    "body": null,
+    "query": {
+      "as_tenant": {},
+      "cursor": {},
+      "include_total": {},
+      "lease_id": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {},
+      "property_id": {},
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/reports/expenses": {
+    "body": null,
+    "query": {
+      "end": {},
+      "owner_id": {},
+      "start": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/reports/income": {
+    "body": null,
+    "query": {
+      "end": {},
+      "owner_id": {},
+      "start": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/reports/maintenance": {
+    "body": null,
+    "query": {
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/reports/occupancy": {
+    "body": null,
+    "query": {
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/reports/pnl": {
+    "body": null,
+    "query": {
+      "end": {},
+      "owner_id": {},
+      "start": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/reports/rent-roll": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/tenants": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/pm/tenants/{tenant_user_id}": {
+    "body": null,
+    "query": {
+      "owner_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/properties": {
+    "body": null,
+    "query": {
+      "age_max": {
+        "maximum": 500,
+        "minimum": 0
+      },
+      "amenities": {},
+      "area_max": {
+        "maximum": 1000000,
+        "minimum": 0
+      },
+      "area_min": {
+        "maximum": 1000000,
+        "minimum": 0
+      },
+      "available_from": {},
+      "bathrooms_max": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bathrooms_min": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bedrooms_max": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bedrooms_min": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "check_in": {},
+      "check_out": {},
+      "city": {},
+      "cursor": {},
+      "exclude_swiped": {},
+      "features": {},
+      "floor_number_max": {
+        "maximum": 200,
+        "minimum": -5
+      },
+      "floor_number_min": {
+        "maximum": 200,
+        "minimum": -5
+      },
+      "furnishing": {},
+      "gender_preference": {},
+      "guests": {
+        "maximum": 20,
+        "minimum": 1
+      },
+      "has_lift": {},
+      "ids": {},
+      "include_total": {},
+      "kitchen_type": {},
+      "lat": {
+        "maximum": 90,
+        "minimum": -90
+      },
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "lng": {
+        "maximum": 180,
+        "minimum": -180
+      },
+      "locality": {},
+      "move_in": {},
+      "parking_spaces_min": {
+        "maximum": 100,
+        "minimum": 0
+      },
+      "pincode": {},
+      "price_max": {
+        "maximum": 9999999999.99,
+        "minimum": 0
+      },
+      "price_min": {
+        "maximum": 9999999999.99,
+        "minimum": 0
+      },
+      "property_type": {},
+      "purpose": {},
+      "q": {},
+      "radius": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "semantic_search": {},
+      "sharing_type": {},
+      "society_type": {},
+      "society_vibe_tags": {},
+      "sort_by": {},
+      "status": {},
+      "sub_locality": {},
+      "ventilation_type": {},
+      "windows_min": {
+        "maximum": 100,
+        "minimum": 0
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/properties/me": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/properties/recommendations": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/properties/semantic-search": {
+    "body": null,
+    "query": {
+      "age_max": {
+        "maximum": 500,
+        "minimum": 0
+      },
+      "amenities": {},
+      "area_max": {
+        "maximum": 1000000,
+        "minimum": 0
+      },
+      "area_min": {
+        "maximum": 1000000,
+        "minimum": 0
+      },
+      "available_from": {},
+      "bathrooms_max": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bathrooms_min": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bedrooms_max": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bedrooms_min": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "check_in": {},
+      "check_out": {},
+      "city": {},
+      "cursor": {},
+      "exclude_swiped": {},
+      "features": {},
+      "floor_number_max": {
+        "maximum": 200,
+        "minimum": -5
+      },
+      "floor_number_min": {
+        "maximum": 200,
+        "minimum": -5
+      },
+      "furnishing": {},
+      "gender_preference": {},
+      "guests": {
+        "maximum": 20,
+        "minimum": 1
+      },
+      "has_lift": {},
+      "ids": {},
+      "include_total": {},
+      "kitchen_type": {},
+      "lat": {
+        "maximum": 90,
+        "minimum": -90
+      },
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "lng": {
+        "maximum": 180,
+        "minimum": -180
+      },
+      "locality": {},
+      "move_in": {},
+      "parking_spaces_min": {
+        "maximum": 100,
+        "minimum": 0
+      },
+      "pincode": {},
+      "price_max": {
+        "maximum": 9999999999.99,
+        "minimum": 0
+      },
+      "price_min": {
+        "maximum": 9999999999.99,
+        "minimum": 0
+      },
+      "property_type": {},
+      "purpose": {},
+      "q": {},
+      "radius": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "semantic_search": {},
+      "sharing_type": {},
+      "society_type": {},
+      "society_vibe_tags": {},
+      "sort_by": {},
+      "status": {},
+      "sub_locality": {},
+      "ventilation_type": {},
+      "windows_min": {
+        "maximum": 100,
+        "minimum": 0
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/properties/{property_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/public/tours/{tour_id}": {
+    "body": null,
+    "query": {
+      "track": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/public/tours/{tour_id}/scenes": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/scenes/{scene_id}/hotspots": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/swipes": {
+    "body": null,
+    "query": {
+      "age_max": {
+        "maximum": 500,
+        "minimum": 0
+      },
+      "amenities": {},
+      "area_max": {
+        "maximum": 1000000,
+        "minimum": 0
+      },
+      "area_min": {
+        "maximum": 1000000,
+        "minimum": 0
+      },
+      "available_from": {},
+      "bathrooms_max": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bathrooms_min": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bedrooms_max": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "bedrooms_min": {
+        "maximum": 50,
+        "minimum": 0
+      },
+      "check_in": {},
+      "check_out": {},
+      "city": {},
+      "cursor": {},
+      "exclude_swiped": {},
+      "features": {},
+      "floor_number_max": {
+        "maximum": 200,
+        "minimum": -5
+      },
+      "floor_number_min": {
+        "maximum": 200,
+        "minimum": -5
+      },
+      "furnishing": {},
+      "gender_preference": {},
+      "guests": {
+        "maximum": 20,
+        "minimum": 1
+      },
+      "has_lift": {},
+      "ids": {},
+      "include_total": {},
+      "is_liked": {},
+      "kitchen_type": {},
+      "lat": {
+        "maximum": 90,
+        "minimum": -90
+      },
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "lng": {
+        "maximum": 180,
+        "minimum": -180
+      },
+      "locality": {},
+      "move_in": {},
+      "parking_spaces_min": {
+        "maximum": 100,
+        "minimum": 0
+      },
+      "pincode": {},
+      "price_max": {
+        "maximum": 9999999999.99,
+        "minimum": 0
+      },
+      "price_min": {
+        "maximum": 9999999999.99,
+        "minimum": 0
+      },
+      "property_type": {},
+      "purpose": {},
+      "q": {},
+      "radius": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "semantic_search": {},
+      "sharing_type": {},
+      "society_type": {},
+      "society_vibe_tags": {},
+      "sort_by": {},
+      "status": {},
+      "sub_locality": {},
+      "ventilation_type": {},
+      "windows_min": {
+        "maximum": 100,
+        "minimum": 0
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/swipes/stats": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "search": {},
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}/analytics": {
+    "body": null,
+    "query": {
+      "end_date": {},
+      "start_date": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}/floor-plans": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}/floor-plans/{floor_plan_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}/heatmap": {
+    "body": null,
+    "query": {
+      "end_date": {},
+      "scene_id": {},
+      "start_date": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}/qr-code": {
+    "body": null,
+    "query": {
+      "size": {
+        "maximum": 1024,
+        "minimum": 64
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/tours/{tour_id}/scenes": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/upload/media": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "is_processed": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "mime_type": {},
+      "search": {},
+      "tour_id": {},
+      "upload_status": {},
+      "visibility": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/upload/media/{media_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users": {
+    "body": null,
+    "query": {
+      "agent_id": {},
+      "cursor": {},
+      "include_total": {},
+      "is_active": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "phone_verified": {},
+      "q": {},
+      "unassigned": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users/me": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users/me/auth-state": {
+    "body": null,
+    "query": {
+      "app": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users/notification-settings": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users/privacy-settings": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users/profile": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/users/{user_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/vastu/health": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/versions": {
+    "body": null,
+    "query": {
+      "app": {},
+      "cursor": {},
+      "include_total": {},
+      "is_active": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "platform": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/visits": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "status": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/visits/all": {
+    "body": null,
+    "query": {
+      "agent_id": {},
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      },
+      "property_id": {},
+      "q": {},
+      "status": {},
+      "user_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/visits/past": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/visits/upcoming": {
+    "body": null,
+    "query": {
+      "cursor": {},
+      "include_total": {},
+      "limit": {
+        "maximum": 100,
+        "minimum": 1
+      }
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /api/v1/visits/{visit_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /mcp/oauth/.well-known/openid-configuration": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200"
+    ]
+  },
+  "GET /mcp/oauth/authorize": {
+    "body": null,
+    "query": {
+      "client_id": {},
+      "code_challenge": {},
+      "code_challenge_method": {},
+      "redirect_uri": {},
+      "resource": {},
+      "response_type": {},
+      "scope": {},
+      "state": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /mcp/oauth/callback": {
+    "body": null,
+    "query": {
+      "code": {},
+      "iss": {},
+      "state": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /mcp/oauth/consent": {
+    "body": null,
+    "query": {
+      "session": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /share/tours/{tour_id}": {
+    "body": null,
+    "query": {
+      "redirect": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "GET /v/{code}": {
+    "body": null,
+    "query": {
+      "redirect": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/agents/{agent_id}/availability": {
+    "body": "AgentAvailabilityUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/capture-sessions/{session_id}": {
+    "body": "CaptureSessionUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/flatmates/profile": {
+    "body": "FlatmatesProfileUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/hotspots/{hotspot_id}": {
+    "body": "HotspotUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/pm/assignments/{owner_user_id}": {
+    "body": "OwnerRMAssignmentUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/pm/documents/{document_id}": {
+    "body": "DocumentUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/pm/expenses/{expense_id}": {
+    "body": "ExpenseUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/pm/maintenance/requests/{request_id}": {
+    "body": "MaintenanceRequestUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/pm/properties/{property_id}": {
+    "body": "ManagedPropertyUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/scenes/{scene_id}": {
+    "body": "SceneUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/tours/{tour_id}": {
+    "body": "TourUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PATCH /api/v1/upload/media/{media_id}": {
+    "body": "MediaUpdateRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/agent/chat": {
+    "body": "AgentChatRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/agent/chat-public": {
+    "body": "GuestChatRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/agents": {
+    "body": "AgentCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/agents/assign": {
+    "body": null,
+    "query": {
+      "agent_id": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/ai/jobs/{job_id}/cancel": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "409",
+      "422"
+    ]
+  },
+  "POST /api/v1/ai/scenes/{scene_id}/hotspots": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/ai/tours/generate": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/ai/tours/{tour_id}/analyze": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/ai/tours/{tour_id}/descriptions": {
+    "body": "",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/auth/delete-account": {
+    "body": "DeleteAccountRequest",
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "POST /api/v1/auth/identifier-status": {
+    "body": "IdentifierStatusRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/auth/last-method": {
+    "body": "LastMethodRequest",
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "POST /api/v1/blog/categories": {
+    "body": "BlogCategoryCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/blog/generate-bulk": {
+    "body": "BlogGenerateBulkRequest",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/blog/generate-from-topic": {
+    "body": "BlogGenerateFromTopicRequest",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/blog/posts": {
+    "body": "BlogPostCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/blog/posts/{post_id}/preview-token": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/blog/tags": {
+    "body": "BlogTagCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings": {
+    "body": "BookingCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings/calculate-pricing": {
+    "body": "BookingAvailability",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings/cancel": {
+    "body": "BookingCancel",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings/check-availability": {
+    "body": "BookingOccupancyCheck",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings/payment": {
+    "body": "BookingPayment",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings/review": {
+    "body": "BookingReview",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/bookings/{booking_id}/messages": {
+    "body": "BookingMessageCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/bugs": {
+    "body": "BugReportCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/bugs/with-media": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/capture-sessions": {
+    "body": "CaptureSessionCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/capture-sessions/{session_id}/cancel": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/capture-sessions/{session_id}/complete": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/capture-sessions/{session_id}/frames": {
+    "body": "CaptureFrameCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/custom-domains": {
+    "body": "CustomDomainCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/custom-domains/{domain_id}/verify": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/data-hub/admin/scraper/{scraper_name}/trigger": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/data-hub/auctions/alerts": {
+    "body": "AuctionAlertCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/data-hub/calculator/stamp-duty": {
+    "body": "StampDutyCalculationRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/data-hub/jamabandi/lookup": {
+    "body": "JamabandiLookupRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/data-hub/neighbourhood/{listing_id}/refresh": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/design-studio/generate": {
+    "body": "ImageGenRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/faqs": {
+    "body": "FAQCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/blocks": {
+    "body": "BlockCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/conversations": {
+    "body": "ConversationCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/conversations/{conversation_id}/mark-read": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/conversations/{conversation_id}/messages": {
+    "body": "MessageCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/conversations/{conversation_id}/qna": {
+    "body": "QnAAnswers",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/listings/{listing_id}/society-tags/votes": {
+    "body": "SocietyTagVoteCreate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/moderation/prescreen/{listing_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/profile": {
+    "body": "FlatmatesProfileUpdate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/profile-views": {
+    "body": "ProfileViewEventCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/reports": {
+    "body": "ReportCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/swipes": {
+    "body": "SwipeRequest",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/flatmates/unmatch": {
+    "body": "UnmatchPairRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/leads": {
+    "body": "LeadCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/mcp/oauth/consent": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/mcp/oauth/register": {
+    "body": "ClientRegistrationRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/mcp/oauth/revoke": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/mcp/oauth/token": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/notifications/deliveries/{delivery_id}/opened": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/notifications/devices/register": {
+    "body": "DeviceRegisterIn",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/notifications/marketing/broadcast": {
+    "body": "MarketingNotification",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/notifications/marketing/segment": {
+    "body": "MarketingSegmentRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/notifications/send/topic": {
+    "body": "SendToTopic",
+    "query": {},
+    "responses": [
+      "200",
+      "409",
+      "422"
+    ]
+  },
+  "POST /api/v1/notifications/send/typed/user": {
+    "body": "TypedUserNotification",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/pages": {
+    "body": "PageCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/applications/forms": {
+    "body": "RentalApplicationFormCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/applications/{application_id}/decision": {
+    "body": "RentalApplicationDecision",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/assignments": {
+    "body": "OwnerRMAssignmentCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/documents/upload": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/expenses": {
+    "body": "ExpenseCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/inspections": {
+    "body": "InspectionChecklistCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/inspections/{inspection_id}/sign": {
+    "body": "",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/leases": {
+    "body": "LeaseCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/leases/{lease_id}/renew": {
+    "body": "LeaseRenew",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/leases/{lease_id}/terminate": {
+    "body": "",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/leases/{lease_id}/upload-signed": {
+    "body": "LeaseUploadSigned",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/maintenance/requests": {
+    "body": "MaintenanceRequestCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/properties": {
+    "body": "ManagedPropertyCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/public/applications/{slug}/submit": {
+    "body": "RentalApplicationSubmit",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/rent/charges/generate": {
+    "body": "",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/rent/payments": {
+    "body": "RentPaymentCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/pm/rent/payments/{payment_id}/settle": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/properties": {
+    "body": "PropertyCreate",
+    "query": {
+      "owner_id": {}
+    },
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/public/tours/{tour_id}/events": {
+    "body": "TourEventPayload",
+    "query": {},
+    "responses": [
+      "204",
+      "422"
+    ]
+  },
+  "POST /api/v1/public/tours/{tour_id}/like": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/scenes/{scene_id}/hotspots": {
+    "body": "HotspotCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/scenes/{scene_id}/stitch": {
+    "body": "SceneStitchRequest",
+    "query": {},
+    "responses": [
+      "202",
+      "422"
+    ]
+  },
+  "POST /api/v1/swipes": {
+    "body": "SwipeCreate",
+    "query": {},
+    "responses": [
+      "200",
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/swipes/batch-remove": {
+    "body": "BatchRemoveRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours": {
+    "body": "TourCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours/{tour_id}/duplicate": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours/{tour_id}/floor-plans": {
+    "body": "FloorPlanCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours/{tour_id}/publish": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours/{tour_id}/scenes": {
+    "body": "SceneCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours/{tour_id}/scenes/reorder": {
+    "body": "SceneReorder",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/tours/{tour_id}/unpublish": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/upload": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/upload/batch": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/upload/confirm/{upload_id}": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/upload/media/batch-delete": {
+    "body": "BatchDeleteRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/upload/presigned": {
+    "body": "PresignedUploadRequest",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/users/me/avatar": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/users/me/onboarding": {
+    "body": null,
+    "query": {
+      "app": {}
+    },
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/users/me/profile-image": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/users/{user_id}/assign-agent": {
+    "body": "AssignAgentPayload",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/vastu/analyze": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/versions": {
+    "body": "AppVersionCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/versions/check": {
+    "body": "AppVersionCheckRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/visits": {
+    "body": "VisitCreate",
+    "query": {},
+    "responses": [
+      "201",
+      "422"
+    ]
+  },
+  "POST /api/v1/visits/{visit_id}/cancel": {
+    "body": "VisitCancel",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/visits/{visit_id}/complete": {
+    "body": "",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/visits/{visit_id}/reschedule": {
+    "body": "VisitReschedule",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /api/v1/webhooks/auth/password-changed": {
+    "body": "PasswordChangedPayload",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /mcp/oauth/consent": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /mcp/oauth/register": {
+    "body": "ClientRegistrationRequest",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /mcp/oauth/revoke": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "POST /mcp/oauth/token": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/agents/{agent_id}": {
+    "body": "AgentUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/blog/categories/{identifier}": {
+    "body": "BlogCategoryUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/blog/posts/{identifier}": {
+    "body": "BlogPostUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/blog/tags/{identifier}": {
+    "body": "BlogTagUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/bookings/{booking_id}": {
+    "body": "BookingUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/bugs/{bug_id}": {
+    "body": "BugReportUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/faqs/{faq_id}": {
+    "body": "FAQUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/matches/{match_id}/unmatch": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/moderation/listings/{listing_id}": {
+    "body": "ListingModerationAction",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/moderation/reports/{report_id}": {
+    "body": "ReportModerationAction",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/notifications": {
+    "body": "FlatmatesNotificationBulkUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/notifications/{notification_id}": {
+    "body": "FlatmatesNotificationUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/profile": {
+    "body": "FlatmatesProfileUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/flatmates/visits/{visit_id}": {
+    "body": "FlatmateVisitUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/hotspots/{hotspot_id}/position": {
+    "body": "HotspotPositionUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/pages/{unique_name}": {
+    "body": "PageUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/properties/{property_id}": {
+    "body": "PropertyUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/swipes/{swipe_id}/toggle": {
+    "body": null,
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/tours/{tour_id}/floor-plans/{floor_plan_id}": {
+    "body": "FloorPlanUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/tours/{tour_id}/floor-plans/{floor_plan_id}/markers": {
+    "body": "",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/location": {
+    "body": "LocationUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/me": {
+    "body": "UserUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/me/phone": {
+    "body": "PhoneUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/notification-settings": {
+    "body": "NotificationSettingsWrite",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/notifications": {
+    "body": "NotificationSettingsWrite",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/preferences": {
+    "body": "UserPreferencesPatch",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/privacy": {
+    "body": "PrivacySettingsPatch",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/privacy-settings": {
+    "body": "PrivacySettingsPatch",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/profile": {
+    "body": "UserUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/users/{user_id}": {
+    "body": "AdminUserUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/versions/{version_id}": {
+    "body": "AppVersionUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  },
+  "PUT /api/v1/visits/{visit_id}": {
+    "body": "VisitUpdate",
+    "query": {},
+    "responses": [
+      "200",
+      "422"
+    ]
+  }
+}

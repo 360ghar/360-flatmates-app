@@ -28,7 +28,6 @@ class StaggeredCardAppear extends StatefulWidget {
 class _StaggeredCardAppearState extends State<StaggeredCardAppear>
     with SingleTickerProviderStateMixin {
   AnimationController? _controller;
-  Animation<double>? _fadeIn;
   Animation<Offset>? _slideUp;
   var _skipAnimation = false;
 
@@ -52,10 +51,6 @@ class _StaggeredCardAppearState extends State<StaggeredCardAppear>
       duration: AppMotion.cardAppear,
     );
     _controller = controller;
-    _fadeIn = CurvedAnimation(
-      parent: controller,
-      curve: AppMotion.easeOutCubic,
-    );
     _slideUp = Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(
       CurvedAnimation(parent: controller, curve: AppMotion.easeOutCubic),
     );
@@ -81,9 +76,8 @@ class _StaggeredCardAppearState extends State<StaggeredCardAppear>
       return widget.child;
     }
 
-    return FadeTransition(
-      opacity: _fadeIn!,
-      child: SlideTransition(position: _slideUp!, child: widget.child),
-    );
+    // Rise only: opacity stays 1, so the content is visible even if the
+    // delayed animation never starts.
+    return SlideTransition(position: _slideUp!, child: widget.child);
   }
 }

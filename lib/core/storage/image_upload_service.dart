@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
 import '../config/endpoints.dart';
+import '../domain/wire_enums.dart';
+import '../errors/api_error_envelope.dart';
 import '../network/api_client.dart';
 import '../providers.dart';
 
@@ -37,8 +39,21 @@ class ImageUploadService {
 
   final ApiClient _apiClient;
 
+  /// Picks up to [limit] gallery images. image_picker's multi-picker throws
+  /// for a limit below 2, so a limit of 1 uses the single-image picker and a
+  /// limit below 1 picks nothing.
   Future<List<File>> pickImages({int limit = 10}) async {
+    if (limit < 1) return [];
     final picker = ImagePicker();
+    if (limit == 1) {
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+      return image == null ? [] : [File(image.path)];
+    }
     final images = await picker.pickMultiImage(
       imageQuality: 80,
       maxWidth: 1920,
@@ -110,8 +125,8 @@ class ImageUploadService {
   }) async {
     return _upload(
       file,
-      folder: 'avatars',
-      visibility: 'public',
+      folderType: StorageFolderType.avatar,
+      visibility: TourVisibility.public,
       onProgress: onProgress,
     );
   }
@@ -122,42 +137,12 @@ class ImageUploadService {
   }) async {
     return _upload(
       file,
-      folder: 'property_image',
-      visibility: 'public',
+      // `property_image` needs a property id, which a draft listing has not
+      // got yet, so POST /upload refuses it. Listing photos go to `generic`.
+      folderType: StorageFolderType.generic,
+      visibility: TourVisibility.public,
       onProgress: onProgress,
     );
-  }
-
-  /// `POST /upload/media/batch-delete` — removes multiple uploaded media
-  /// assets in one round-trip. The backend returns
-  /// `{ deleted: string[], failed: string[] }` so callers can surface a
-  /// granular failure (e.g. "media X is still attached to a listing") to
-  /// the user instead of an all-or-nothing error.
-  ///
-  /// Throws via the shared [ApiClient] -> [ErrorPresenter] pipeline on
-  /// network errors.
-  Future<MediaBatchDeleteResult> deleteMediaBatch(List<String> mediaIds) async {
-    if (mediaIds.isEmpty) {
-      return const MediaBatchDeleteResult(deleted: [], failed: []);
-    }
-    final response = await _apiClient.post(
-      FlatmatesEndpoints.uploadBatchDelete,
-      data: {'media_ids': mediaIds},
-    );
-    final data = response.data;
-    if (data is! Map) {
-      throw const FormatException(
-        'deleteMediaBatch: expected a JSON object envelope',
-      );
-    }
-    final map = Map<String, dynamic>.from(data);
-    final deleted =
-        (map['deleted'] as List?)?.map((item) => item.toString()).toList() ??
-        const <String>[];
-    final failed =
-        (map['failed'] as List?)?.map((item) => item.toString()).toList() ??
-        const <String>[];
-    return MediaBatchDeleteResult(deleted: deleted, failed: failed);
   }
 
   Future<UploadResult> uploadChatPhoto(
@@ -166,8 +151,8 @@ class ImageUploadService {
   }) async {
     return _upload(
       file,
-      folder: 'chats',
-      visibility: 'private',
+      folderType: StorageFolderType.generic,
+      visibility: TourVisibility.private,
       onProgress: onProgress,
     );
   }
@@ -178,8 +163,8 @@ class ImageUploadService {
   }) async {
     return _upload(
       file,
-      folder: 'property_video',
-      visibility: 'public',
+      folderType: StorageFolderType.generic,
+      visibility: TourVisibility.public,
       onProgress: onProgress,
     );
   }
@@ -187,20 +172,20 @@ class ImageUploadService {
   /// Upload a file through the backend API which routes to Cloudinary.
   Future<UploadResult> _upload(
     File file, {
-    required String folder,
-    required String visibility,
+    required StorageFolderType folderType,
+    required TourVisibility visibility,
     UploadProgressCallback? onProgress,
   }) async {
     try {
       final fileName = file.path.split('/').last;
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(file.path, filename: fileName),
-        'folder': folder,
-        'visibility': visibility,
+        'folder_type': folderType.wire,
+        'visibility': visibility.wire,
       });
 
       final response = await _apiClient.dio.post(
-        '/upload',
+        FlatmatesEndpoints.upload,
         data: formData,
         options: Options(
           contentType: 'multipart/form-data',
@@ -223,13 +208,10 @@ class ImageUploadService {
       }
       return UploadSuccess(url);
     } on DioException catch (e) {
-      final responseData = e.response?.data;
-      final detail = responseData is Map<String, dynamic>
-          ? responseData['detail']
-          : null;
-      final message = detail ?? e.message ?? 'Upload failed';
+      final detail = ApiErrorEnvelope.tryParse(e.response?.data)?.message;
+      debugPrint('ImageUploadService._upload failed: ${detail ?? e.message}');
       return UploadFailure(
-        reason: 'Upload failed: $message',
+        reason: detail ?? e.message ?? e.type.name,
         underlyingError: e,
       );
     } on SocketException catch (e) {
@@ -238,7 +220,7 @@ class ImageUploadService {
         underlyingError: e,
       );
     } catch (e) {
-      return UploadFailure(reason: 'Upload failed: $e', underlyingError: e);
+      return UploadFailure(reason: '$e', underlyingError: e);
     }
   }
 }
@@ -255,18 +237,6 @@ class VideoValidationResult {
   final bool tooShort;
 
   bool get isValid => !tooLarge && !tooLong && !tooShort;
-}
-
-/// Result envelope for a batch-delete operation. `deleted` contains the
-/// ids the backend removed successfully; `failed` contains the ids the
-/// backend refused (e.g. media still in use by a published listing).
-class MediaBatchDeleteResult {
-  const MediaBatchDeleteResult({required this.deleted, required this.failed});
-
-  final List<String> deleted;
-  final List<String> failed;
-
-  bool get hasFailures => failed.isNotEmpty;
 }
 
 final imageUploadServiceProvider = Provider<ImageUploadService>(

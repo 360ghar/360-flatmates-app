@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/domain/wire_enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/providers.dart';
 import '../../core/providers/mutable_notifier.dart';
@@ -216,6 +217,31 @@ class OnboardingController extends Notifier<OnboardingState> {
     await _saveState();
   }
 
+  /// Records that the user wants to hear when [city] opens. Throws on
+  /// failure so the caller can show an error.
+  Future<void> joinWaitlist(String city) async {
+    // `preferences` is replaced wholesale by the API, so carry the existing
+    // keys (non-negotiables and so on) along with the waitlist ones.
+    final existing =
+        ref
+            .read(bootstrapControllerProvider)
+            .valueOrNull
+            ?.profile
+            .preferences ??
+        const <String, dynamic>{};
+    await ref
+        .read(profileRepositoryProvider)
+        .updateProfile(
+          payload: {
+            'preferences': {
+              ...existing,
+              'waitlist_city': city,
+              'waitlist_at': DateTime.now().toUtc().toIso8601String(),
+            },
+          },
+        );
+  }
+
   Future<void> submitNonNegotiables(List<String> nonNegotiables) async {
     if (state.isSubmitting) return;
     state = state.copyWith(
@@ -369,20 +395,16 @@ class OnboardingController extends Notifier<OnboardingState> {
     return null;
   }
 
-  static const _profileLifestyleValues = <String, Set<String>>{
-    'sleep_schedule': {'early_bird', 'flexible', 'night_owl'},
-    'cleanliness': {'minimal', 'tidy', 'spotless'},
-    'food_habits': {
-      'vegetarian',
-      'vegan',
-      'non_vegetarian',
-      'eggetarian',
-      'no_preference',
-    },
-    'smoking': {'never', 'occasionally', 'regularly'},
-    'drinking': {'never', 'occasionally', 'regularly'},
-    'guests_policy': {'no_overnight_guests', 'occasional_ok', 'open_house'},
-    'work_style': {'wfh', 'office', 'hybrid'},
+  /// The wire values of the enum-typed profile fields, from the generated
+  /// wire enums (`tool/gen_enums.py`). A value outside them is a 422.
+  static final _profileLifestyleValues = <String, Set<String>>{
+    'sleep_schedule': {for (final v in SleepSchedule.values) v.wire},
+    'cleanliness': {for (final v in Cleanliness.values) v.wire},
+    'food_habits': {for (final v in FoodHabits.values) v.wire},
+    'smoking': {for (final v in FlatmatesSmokingType.values) v.wire},
+    'drinking': {for (final v in FlatmatesDrinkingType.values) v.wire},
+    'guests_policy': {for (final v in GuestsPolicy.values) v.wire},
+    'work_style': {for (final v in WorkStyle.values) v.wire},
   };
 
   static const _legacyProfileLifestyleAliases = <String, Map<String, String>>{

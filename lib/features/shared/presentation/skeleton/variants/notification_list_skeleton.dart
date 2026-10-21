@@ -25,7 +25,7 @@ class NotificationListSkeleton extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           decoration: BoxDecoration(
             color: isUnread ? SkeletonTokens.unreadTint(brightness) : null,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppRadius.lgBorder,
           ),
           child: Card(
             margin: EdgeInsets.zero,
@@ -33,8 +33,8 @@ class NotificationListSkeleton extends StatelessWidget {
             color: isUnread
                 ? Colors.transparent
                 : Theme.of(context).cardTheme.color,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+            shape: const RoundedRectangleBorder(
+              borderRadius: AppRadius.lgBorder,
             ),
             child: Padding(
               padding: AppSpacing.edgeLg,
@@ -45,7 +45,7 @@ class NotificationListSkeleton extends StatelessWidget {
                     width: 48,
                     height: 48,
                     color: bone,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: AppRadius.pillBorder,
                   ),
                   const SizedBox(width: 14),
                   Expanded(

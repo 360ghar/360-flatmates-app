@@ -7,6 +7,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../bootstrap/bootstrap_controller.dart';
 import '../bootstrap/catalog_helpers.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/lifestyle_labels.dart';
 import 'onboarding_controller.dart';
 
 class LifestyleQuizPage extends ConsumerStatefulWidget {
@@ -33,7 +34,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
   static final _fallbackQuestions = [
     _QuizQuestion(
       key: 'sleep_schedule',
-      emoji: '🌙',
       title: (l) => l.quizSleepSchedule,
       options: [
         _QuizOption(key: 'early_bird', label: (l) => l.quizEarlyBird),
@@ -43,7 +43,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'cleanliness',
-      emoji: '🧹',
       title: (l) => l.quizCleanliness,
       options: [
         _QuizOption(key: 'minimal', label: (l) => l.quizCleanMinimal),
@@ -53,7 +52,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'food_habits',
-      emoji: '🍽️',
       title: (l) => l.quizFoodHabits,
       options: [
         _QuizOption(key: 'vegetarian', label: (l) => l.quizVegetarian),
@@ -65,7 +63,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'smoking',
-      emoji: '🚬',
       title: (l) => l.quizSmoking,
       options: [
         _QuizOption(key: 'never', label: (l) => l.lifestyleValueNever),
@@ -78,7 +75,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'drinking',
-      emoji: '🍺',
       title: (l) => l.quizDrinking,
       options: [
         _QuizOption(key: 'never', label: (l) => l.lifestyleValueNever),
@@ -91,7 +87,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'guests_policy',
-      emoji: '👥',
       title: (l) => l.quizGuestsPolicy,
       options: [
         _QuizOption(key: 'no_overnight_guests', label: (l) => l.quizNoGuests),
@@ -101,7 +96,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'parties_at_home',
-      emoji: '🎉',
       title: (l) => l.quizParties,
       options: [
         _QuizOption(key: 'never', label: (l) => l.quizPartiesNever),
@@ -114,7 +108,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'work_style',
-      emoji: '💻',
       title: (l) => l.quizWorkStyle,
       options: [
         _QuizOption(key: 'wfh', label: (l) => l.quizWfh),
@@ -124,7 +117,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
     ),
     _QuizQuestion(
       key: 'pets',
-      emoji: '🐾',
       title: (l) => l.quizPets,
       options: [
         _QuizOption(key: 'no_pets', label: (l) => l.quizNoPets),
@@ -175,7 +167,6 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
         }
         return _QuizQuestion(
           key: q.id,
-          emoji: q.meta['emoji']?.toString() ?? '❓',
           title: (_) => q.label,
           options: optionList,
         );
@@ -226,12 +217,7 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
             options.add(_QuizOption(key: key, label: (_) => title));
           }
 
-          return _QuizQuestion(
-            key: key,
-            emoji: map['emoji']?.toString() ?? '?',
-            title: (_) => title,
-            options: options,
-          );
+          return _QuizQuestion(key: key, title: (_) => title, options: options);
         })
         .whereType<_QuizQuestion>()
         .toList(growable: false);
@@ -252,52 +238,47 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
         .where((q) => _answers.containsKey(q.key))
         .length;
     final totalQuestions = questions.length;
-    final controllerState = ref.watch(onboardingControllerProvider);
-    final completionPct = controllerState.completionPercentage;
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: AppSpacing.horizontalScreen,
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: AppSpacing.horizontalScreen,
         child: Column(
           children: [
             const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    locale.quizProgress(answeredCount, totalQuestions),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppSemanticColors.textSecondaryFor(
-                        theme.brightness,
-                      ),
-                    ),
-                  ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                locale.quizProgress(answeredCount, totalQuestions),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: AppSemanticColors.textSecondaryFor(theme.brightness),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            FlatmatesStepProgress.segments(
-              currentStep: completionPct.round(),
-              totalSteps: 100,
-            ),
-            const SizedBox(height: AppSpacing.screen),
+            const SizedBox(height: AppSpacing.lg),
             Expanded(
               child: ListView(
                 children: questions.map((q) {
                   final selected = _answers[q.key];
                   return Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: AppSpacing.lg + AppSpacing.sm,
-                    ),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
                     child: FlatmatesCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Text(
-                                q.emoji,
-                                style: const TextStyle(fontSize: 28),
+                              // Same bare icons as the lifestyle rows on
+                              // profiles (lifestyle_labels.dart).
+                              Icon(
+                                lifestyleFieldIcons[q.key] ??
+                                    Icons.tune_rounded,
+                                size: 24,
+                                color: AppSemanticColors.clayFor(
+                                  theme.brightness,
+                                ),
                               ),
                               const SizedBox(width: AppSpacing.md),
                               Expanded(
@@ -355,13 +336,11 @@ class _LifestyleQuizPageState extends ConsumerState<LifestyleQuizPage> {
 class _QuizQuestion {
   const _QuizQuestion({
     required this.key,
-    required this.emoji,
     required this.title,
     required this.options,
   });
 
   final String key;
-  final String emoji;
   final String Function(AppLocalizations) title;
   final List<_QuizOption> options;
 }

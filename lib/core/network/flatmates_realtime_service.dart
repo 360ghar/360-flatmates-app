@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'flatmates_realtime_events.dart';
+
+export 'flatmates_realtime_events.dart';
+
 /// A single flatmates realtime event (broadcast or legacy SSE-shaped).
 class FlatmatesRealtimeEvent {
   const FlatmatesRealtimeEvent({required this.type, required this.data});
@@ -16,16 +20,6 @@ class FlatmatesRealtimeEvent {
 
 /// Callback that returns a fresh access token before (re)subscribe.
 typedef TokenRefresher = Future<String?> Function();
-
-/// Default broadcast events published by the backend realtime bus.
-const List<String> kFlatmatesRealtimeEvents = [
-  'new_match',
-  'new_message',
-  'conversation_updated',
-  'visit_updated',
-  'listing_status_changed',
-  'new_notification',
-];
 
 /// Minimum reconnect delay (seconds) after DNS / socket network failures.
 @visibleForTesting

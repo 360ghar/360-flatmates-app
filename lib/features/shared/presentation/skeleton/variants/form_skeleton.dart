@@ -56,7 +56,7 @@ class FormSkeleton extends StatelessWidget {
             width: double.infinity,
             height: 52,
             color: bone,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppRadius.mdBorder,
           ),
         ),
       ],

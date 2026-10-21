@@ -1,0 +1,50 @@
+{
+  "identifier_status": {
+    "channel": "phone",
+    "exists": true,
+    "has_password": false,
+    "next_step": "otp",
+    "verified": true
+  },
+  "identifier_status_email": {
+    "channel": "email",
+    "exists": true,
+    "has_password": true,
+    "next_step": "password",
+    "verified": true
+  },
+  "notification_settings": {
+    "email_notifications": true,
+    "promotional_emails": true,
+    "push_notifications": false,
+    "sms_notifications": false
+  },
+  "privacy_settings": {
+    "allow_location_tracking": true,
+    "contact_sharing": true,
+    "data_sharing_consent": false,
+    "hide_last_name": true,
+    "location_sharing": true,
+    "profile_visibility": "private",
+    "search_history_tracking": true,
+    "show_email": false,
+    "show_phone": false
+  },
+  "upload": {
+    "content_type": "image/jpeg",
+    "file_path": "generic/abc123",
+    "file_size": 20480,
+    "file_type": "image",
+    "media": null,
+    "original_filename": "photo.jpg",
+    "public_url": "https://res.cloudinary.com/demo/image/upload/generic/abc123.jpg"
+  },
+  "version_check": {
+    "download_url": "https://example.com/app",
+    "is_mandatory": false,
+    "latest_version": "1.1.0",
+    "min_supported_version": "1.0.0",
+    "release_notes": "Fixes",
+    "update_available": true
+  }
+}

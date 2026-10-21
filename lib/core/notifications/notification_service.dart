@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/gen/app_localizations.dart';
 import '../config/endpoints.dart';
+import '../domain/wire_enums.dart';
 import '../providers.dart';
 import '../storage/app_preferences.dart';
 
@@ -88,12 +89,27 @@ class NotificationService {
   }
 
   static void _onNotificationTap(NotificationResponse response) {
-    final route = response.payload;
-    if (route == null || route.isEmpty) return;
-    _pendingRoute = route;
+    _setPendingRoute(response.payload);
   }
 
   static String? _pendingRoute;
+
+  /// Called when a tap stores a route, so a running app can navigate at once
+  /// instead of waiting for the next resume or rebuild. Set by `App`.
+  static VoidCallback? onPendingRoute;
+
+  static void _setPendingRoute(String? route) {
+    if (route == null || route.isEmpty) return;
+    _pendingRoute = route;
+    onPendingRoute?.call();
+  }
+
+  /// Drops a captured-but-unconsumed route. A push tapped before an abandoned
+  /// login belongs to the account that received it, so it must not replay for
+  /// whichever account signs in next on this device.
+  static void clearPendingRoute() {
+    _pendingRoute = null;
+  }
 
   static String? consumePendingRoute() {
     final route = _pendingRoute;
@@ -200,7 +216,7 @@ class NotificationService {
     if (!_shouldShowForegroundNotification(message)) {
       debugPrint(
         'NotificationService: suppressed foreground notification '
-        '(type=${message.data['type'] ?? message.data['type_key']})',
+        '(type_key=${message.data['type_key']})',
       );
       return;
     }
@@ -228,51 +244,20 @@ class NotificationService {
   }
 
   /// Returns false when the user has opted out of this notification category
-  /// via local prefs (mirrors [SettingsController] notif* toggles).
+  /// via local prefs (mirrors the [SettingsController] message and promotion
+  /// switches). The category comes from the top-level `type_key` of the push
+  /// data only.
   bool _shouldShowForegroundNotification(RemoteMessage message) {
     final prefs = _ref.read(appPreferencesProvider);
-    final type =
-        (message.data['type'] ??
-                message.data['type_key'] ??
-                message.data['notification_type'] ??
-                '')
-            .toString()
-            .toLowerCase();
-
-    if (type.isEmpty) return true;
-
-    final isMatch = type.contains('match');
-    final isMessage = type.contains('message');
-    final isVisit = type.contains('visit');
-    final isListing = type.contains('listing') || type.contains('property');
-    final isPromotion =
-        type.contains('promo') ||
-        type.contains('marketing') ||
-        type.contains('promotion');
-
-    if (isMatch) {
-      return prefs.getBoolOrDefault(PrefKeys.notifNewMatches, true);
-    }
-    if (isMessage) {
-      return prefs.getBoolOrDefault(PrefKeys.notifNewMessages, true);
-    }
-    if (isVisit) {
-      return prefs.getBoolOrDefault(PrefKeys.notifVisitReminders, true);
-    }
-    if (isListing) {
-      return prefs.getBoolOrDefault(PrefKeys.notifListingUpdates, true);
-    }
-    if (isPromotion) {
-      return prefs.getBoolOrDefault(PrefKeys.notifPromotions, false);
-    }
-    return true;
+    return foregroundPushAllowed(
+      message.data['type_key']?.toString(),
+      messagesOn: prefs.getBoolOrDefault(PrefKeys.notifNewMessages, true),
+      promotionsOn: prefs.getBoolOrDefault(PrefKeys.notifPromotions, false),
+    );
   }
 
   void _handleMessageTap(RemoteMessage message) {
-    final route = message.data['route'] as String?;
-    if (route != null && route.isNotEmpty) {
-      _pendingRoute = route;
-    }
+    _setPendingRoute(message.data['route'] as String?);
   }
 
   Future<void> _sendTokenToServer(String token) async {
@@ -281,10 +266,7 @@ class NotificationService {
           .read(apiClientProvider)
           .post(
             FlatmatesEndpoints.notificationRegister,
-            data: {
-              'token': token,
-              'platform': Platform.isIOS ? 'ios' : 'android',
-            },
+            data: deviceRegisterBody(token, isIOS: Platform.isIOS),
           );
     } catch (e) {
       // Token sync is best-effort; do not block UX.
@@ -306,7 +288,7 @@ class NotificationService {
           .read(apiClientProvider)
           .delete(
             FlatmatesEndpoints.notificationUnregister,
-            queryParameters: {'token': token},
+            data: deviceUnregisterBody(token),
           );
     } on FirebaseException catch (e) {
       if (e.plugin == 'firebase_messaging' && e.code == 'apns-token-not-set') {
@@ -318,6 +300,52 @@ class NotificationService {
       debugPrint('NotificationService.clearToken failed: $e');
     }
   }
+}
+
+/// The `POST /notifications/devices/register` body. `app_key` is required; the
+/// platform is the wire value (`ios` or `android`).
+@visibleForTesting
+Map<String, dynamic> deviceRegisterBody(String token, {required bool isIOS}) =>
+    {
+      'token': token,
+      'platform': (isIOS ? DevicePlatform.ios : DevicePlatform.android).wire,
+      'app_key': AppKey.flatmates.wire,
+    };
+
+/// The `DELETE /notifications/devices/unregister` body: the token in JSON, not
+/// in the query string.
+@visibleForTesting
+Map<String, dynamic> deviceUnregisterBody(String token) => {'token': token};
+
+/// Push `type_key` values (see the backend notification registry) for a chat
+/// message.
+const _messageTypeKeys = {'flatmate_new_message', 'chat_message'};
+
+/// Push `type_key` values for marketing sends.
+const _promotionTypeKeys = {
+  'promotion_generic',
+  'discount_offer',
+  'win_back',
+  'upsell_suggestion',
+  'onboarding_nudge',
+  'property_recommendation',
+  'daily_digest',
+};
+
+/// Whether a push in the foreground is shown, given its top-level `type_key`.
+///
+/// Only messages and promotions have a local switch. Every other category, and
+/// a push with no `type_key`, is shown.
+@visibleForTesting
+bool foregroundPushAllowed(
+  String? typeKey, {
+  required bool messagesOn,
+  required bool promotionsOn,
+}) {
+  final key = typeKey?.trim().toLowerCase() ?? '';
+  if (_messageTypeKeys.contains(key)) return messagesOn;
+  if (_promotionTypeKeys.contains(key)) return promotionsOn;
+  return true;
 }
 
 final notificationServiceProvider = Provider<NotificationService>(

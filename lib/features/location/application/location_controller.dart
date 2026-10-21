@@ -33,12 +33,18 @@ class LocationState {
   final LocationError? error;
   final LocationData? selectedLocation;
 
+  /// The most recent IP-based fix. Kept apart from [selectedLocation], which a
+  /// user-chosen city can occupy, so a recenter never mistakes a manual city
+  /// for the IP fallback.
+  final LocationData? ipLocation;
+
   const LocationState({
     this.currentPosition,
     this.currentAddress,
     this.isLoading = false,
     this.error,
     this.selectedLocation,
+    this.ipLocation,
   });
 
   LocationState copyWith({
@@ -47,6 +53,7 @@ class LocationState {
     bool? isLoading,
     LocationError? error,
     LocationData? selectedLocation,
+    LocationData? ipLocation,
     bool clearCurrentPosition = false,
     bool clearCurrentAddress = false,
     bool clearSelectedLocation = false,
@@ -64,6 +71,7 @@ class LocationState {
       selectedLocation: clearSelectedLocation
           ? null
           : (selectedLocation ?? this.selectedLocation),
+      ipLocation: ipLocation ?? this.ipLocation,
     );
   }
 }
@@ -82,10 +90,22 @@ class LocationController extends Notifier<LocationState> {
   @override
   LocationState build() => const LocationState();
 
-  Future<void> getCurrentLocation({bool forceRefresh = false}) async {
-    if (state.isLoading) return;
-    if (!forceRefresh && state.currentPosition != null) return;
+  Future<void>? _inFlight;
 
+  /// Detects the current location. A call made while a detection is running
+  /// joins it, so the caller still resumes after the result lands.
+  Future<void> getCurrentLocation({bool forceRefresh = false}) {
+    final running = _inFlight;
+    if (running != null) return running;
+    if (!forceRefresh && state.currentPosition != null) {
+      return Future<void>.value();
+    }
+    final run = _detect().whenComplete(() => _inFlight = null);
+    _inFlight = run;
+    return run;
+  }
+
+  Future<void> _detect() async {
     state = state.copyWith(isLoading: true);
 
     try {
@@ -116,10 +136,15 @@ class LocationController extends Notifier<LocationState> {
         position.longitude,
       );
 
+      // A successful fix clears any error left by an earlier attempt. The UI
+      // branches on `error` to decide whether to recentre or toast (see
+      // MapViewPage._recenterToUserLocation), so a stale error would hide a
+      // usable location for the rest of the session.
       state = state.copyWith(
         currentPosition: position,
         currentAddress: address,
         isLoading: false,
+        clearError: true,
       );
     } catch (e) {
       debugPrint('LocationController: GPS failed, falling back to IP: $e');
@@ -130,15 +155,20 @@ class LocationController extends Notifier<LocationState> {
   Future<void> _fallbackToIpLocation() async {
     try {
       final ipData = await getIpLocation();
-      if (ipData != null) {
+      // `getIpLocation` maps a missing coordinate to 0,0; that is no fix.
+      if (ipData != null && ipData.hasCoordinates) {
         final address = await _reverseGeocode(
           ipData.latitude,
           ipData.longitude,
         );
+        // Same rule as the GPS success path: a usable fallback clears the
+        // error from a previous failed attempt.
         state = state.copyWith(
           isLoading: false,
           currentAddress: address ?? ipData.name,
           selectedLocation: state.selectedLocation ?? ipData,
+          ipLocation: ipData,
+          clearError: true,
         );
       } else {
         state = state.copyWith(

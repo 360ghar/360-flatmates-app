@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_semantic_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../core/theme/app_radius.dart';
 import '../shared/presentation/components.dart';
+import '../shared/presentation/paper/paper_scene.dart';
 
 class OnboardingSplashPages extends ConsumerStatefulWidget {
   const OnboardingSplashPages({required this.onComplete, super.key});
@@ -23,11 +23,12 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _illustrationAssets = [
-    'assets/illustrations/onboarding_find_flat.png',
-    'assets/illustrations/onboarding_lifestyle_match.png',
-    'assets/illustrations/onboarding_flatmate_match.png',
-    'assets/illustrations/onboarding_get_started.png',
+  /// Scene prop per page; the last page shows the full neighbourhood.
+  static const _pageProps = <PaperProp?>[
+    PaperProp.house,
+    PaperProp.heart,
+    PaperProp.chat,
+    null,
   ];
 
   @override
@@ -39,11 +40,13 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final pageCount = _illustrationAssets.length;
+    final pageCount = _pageProps.length;
     final isLast = _page == pageCount - 1;
 
-    return FlatmatesScreen(
-      body: Column(
+    // Inside the onboarding FlatmatesScreen, which owns the scaffold.
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
         children: [
           Expanded(
             child: PageView.builder(
@@ -52,7 +55,7 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
               onPageChanged: (i) => setState(() => _page = i),
               itemBuilder: (context, index) => _OnboardingContent(
                 key: ValueKey('onboarding_page_$index'),
-                illustrationAsset: _illustrationAssets[index],
+                prop: _pageProps[index],
                 headline: switch (index) {
                   0 => locale.onboardingHeadline1,
                   1 => locale.onboardingHeadline2,
@@ -68,7 +71,6 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
               ),
             ),
           ),
-          // --- Step progress dots (outline circles, active filled) ---
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screen,
@@ -76,9 +78,10 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
               AppSpacing.screen,
               AppSpacing.md,
             ),
-            child: _OutlineDotsProgress(
+            child: FlatmatesStepProgress.dots(
               currentStep: _page,
               totalSteps: pageCount,
+              semanticsLabel: locale.onboardingStepOf(_page + 1, pageCount),
             ),
           ),
           // --- Action buttons ---
@@ -98,22 +101,31 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
                     fullWidth: true,
                   )
                 : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      FlatmatesButton.tertiary(
-                        key: const Key('onboarding_skip'),
-                        label: locale.onboardingSkip,
-                        onPressed: widget.onComplete,
-                      ),
-                      FlatmatesButton(
-                        key: const Key('onboarding_next'),
-                        label: locale.onboardingNext,
-                        onPressed: () => _controller.nextPage(
-                          duration: AppMotion.pageTransition,
-                          curve: AppMotion.easeOutCubic,
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: FlatmatesButton.tertiary(
+                            key: const Key('onboarding_skip'),
+                            label: locale.onboardingSkip,
+                            onPressed: widget.onComplete,
+                          ),
                         ),
-                        icon: Icons.arrow_forward_rounded,
-                        height: 44,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Flexible(
+                        child: FlatmatesButton(
+                          key: const Key('onboarding_next'),
+                          label: locale.onboardingNext,
+                          onPressed: () => _controller.nextPage(
+                            duration: AppMotion.durationOrZero(
+                              context,
+                              AppMotion.slow,
+                            ),
+                            curve: AppMotion.paperOut,
+                          ),
+                          icon: Icons.arrow_forward_rounded,
+                        ),
                       ),
                     ],
                   ),
@@ -124,62 +136,16 @@ class _OnboardingSplashPagesState extends ConsumerState<OnboardingSplashPages> {
   }
 }
 
-/// Outline-circle dot progress matching Screen 02 spec:
-/// "4 dots, outline style, active = filled terracotta circle, centered above buttons."
-class _OutlineDotsProgress extends StatelessWidget {
-  const _OutlineDotsProgress({
-    required this.currentStep,
-    required this.totalSteps,
-  });
-
-  final int currentStep;
-  final int totalSteps;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(totalSteps, (index) {
-        final isActive = index == currentStep;
-        final isCompleted = index < currentStep;
-
-        return AnimatedContainer(
-          duration: AppMotion.standard,
-          curve: AppMotion.easeOutCubic,
-          margin: EdgeInsets.only(
-            right: index < totalSteps - 1 ? AppSpacing.md : 0,
-          ),
-          width: 10,
-          height: 10,
-          decoration: isActive || isCompleted
-              ? const BoxDecoration(
-                  color: AppSemanticColors.accent,
-                  shape: BoxShape.circle,
-                )
-              : BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppSemanticColors.accent.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
-        );
-      }),
-    );
-  }
-}
-
 /// Per-page content with staggered entry animation.
 class _OnboardingContent extends StatefulWidget {
   const _OnboardingContent({
-    required this.illustrationAsset,
+    required this.prop,
     required this.headline,
     required this.subheadline,
     super.key,
   });
 
-  final String illustrationAsset;
+  final PaperProp? prop;
   final String headline;
   final String subheadline;
 
@@ -191,18 +157,22 @@ class _OnboardingContentState extends State<_OnboardingContent>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
+  /// Page scroll (small phones, large text) drives the scene parallax.
+  final _scroll = ScrollController();
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: AppMotion.staggerTotal(3),
     );
     _controller.forward();
   }
 
   @override
   void dispose() {
+    _scroll.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -214,116 +184,72 @@ class _OnboardingContentState extends State<_OnboardingContent>
 
     final illustrationAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.40, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 0, count: 3),
     );
     final headlineAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.15, 0.55, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 1, count: 3),
     );
     final subheadlineAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.30, 0.65, curve: AppMotion.easeOutCubic),
+      curve: AppMotion.staggerInterval(index: 2, count: 3),
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screen + AppSpacing.lg,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Illustration — no card wrapper, just the image
-          _StaggeredFadeSlide(
-            animation: illustrationAnim,
-            child: Image.asset(
-              widget.illustrationAsset,
-              fit: BoxFit.contain,
-              height: 260,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
-          // Headline — Inter display (Airbnb Cereal substitute)
-          _StaggeredFadeSlide(
-            animation: headlineAnim,
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: _buildStyledHeadline(widget.headline, brightness),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        controller: _scroll,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Cut-paper scene: a prop on the hills, or the whole
+              // neighbourhood on the last page.
+              _StaggeredFadeSlide(
+                animation: illustrationAnim,
+                child: switch (widget.prop) {
+                  final prop? => PaperScene.compact(prop: prop, height: 220),
+                  null => ClipRRect(
+                    borderRadius: AppRadius.cardBorder,
+                    child: PaperScene.hero(height: 220, parallax: _scroll),
+                  ),
+                },
               ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Sub-headline — Inter Body Medium
-          _StaggeredFadeSlide(
-            animation: subheadlineAnim,
-            child: Text(
-              widget.subheadline,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontWeight: AppTypography.bodySmWeight,
-                fontSize: AppTypography.bodySmSize,
-                height: AppTypography.bodySmHeight,
-                color: AppSemanticColors.textSecondaryFor(brightness),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Splits headline by **bold** markers.
-  /// Base text: Inter display-xl. Emphasized text: Inter medium italic.
-  List<InlineSpan> _buildStyledHeadline(String raw, Brightness brightness) {
-    final parts = raw.split(RegExp(r'\*\*'));
-    final spans = <InlineSpan>[];
-    final textColor = AppSemanticColors.textPrimaryFor(brightness);
-
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].isEmpty) continue;
-      final isEmphasis = i.isOdd;
-
-      spans.add(
-        TextSpan(
-          text: parts[i],
-          style: isEmphasis
-              ? GoogleFonts.inter(
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
-                  fontSize: AppTypography.displayXlSize,
-                  height: AppTypography.displayXlHeight,
-                  color: textColor,
-                )
-              : GoogleFonts.inter(
-                  fontWeight: AppTypography.displayXlWeight,
-                  fontSize: AppTypography.displayXlSize,
-                  height: AppTypography.displayXlHeight,
-                  letterSpacing: AppTypography.displayXlLetterSpacing,
-                  color: textColor,
+              const SizedBox(height: AppSpacing.screen + AppSpacing.lg),
+              // Headline — Gambarino display
+              _StaggeredFadeSlide(
+                animation: headlineAnim,
+                // `**` markers in the copy carry no style: emphasis is size
+                // and colour, and the headline is one ink colour.
+                child: Text(
+                  widget.headline.replaceAll('**', ''),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineMedium,
                 ),
-        ),
-      );
-    }
-    // If no ** markers found, render entire text as Inter display
-    if (spans.isEmpty) {
-      spans.add(
-        TextSpan(
-          text: raw,
-          style: GoogleFonts.inter(
-            fontWeight: AppTypography.displayXlWeight,
-            fontSize: AppTypography.displayXlSize,
-            height: AppTypography.displayXlHeight,
-            letterSpacing: AppTypography.displayXlLetterSpacing,
-            color: textColor,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              // Sub-headline — body font
+              _StaggeredFadeSlide(
+                animation: subheadlineAnim,
+                child: Text(
+                  widget.subheadline,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppSemanticColors.textSecondaryFor(brightness),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    }
-    return spans;
+      ),
+    );
   }
 }
 
-/// Staggered fade-in + slide-up for onboarding page elements.
+/// Staggered rise for entry elements. Opacity stays at 1: the content is
+/// visible from the first frame even if the animation never runs.
 class _StaggeredFadeSlide extends StatelessWidget {
   const _StaggeredFadeSlide({required this.animation, required this.child});
 
@@ -332,18 +258,14 @@ class _StaggeredFadeSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: animation,
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, 14 * (1 - animation.value)),
-            child: child,
-          );
-        },
+    if (AppMotion.reduceMotion(context)) return child;
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(0, AppMotion.layerRise * (1 - animation.value)),
         child: child,
       ),
+      child: child,
     );
   }
 }

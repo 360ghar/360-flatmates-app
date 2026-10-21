@@ -1,45 +1,61 @@
 part of 'conversations_page.dart';
 
-class _InteractivePressScale extends StatefulWidget {
-  const _InteractivePressScale({required this.child});
-
-  final Widget child;
-
-  @override
-  State<_InteractivePressScale> createState() => _InteractivePressScaleState();
+/// Column count and cell shape for the Likes You / You Liked profile grid.
+///
+/// The count follows the viewport breakpoints ([AppBreakpoints.profileGridColumns]
+/// — 2 on a phone, 3 from 600 dp, 4 from 900 dp, so the 951 dp open foldable
+/// gets 4) and the ratio is derived from [gridWidth], the width the grid is
+/// actually given, *using the same count*.
+///
+/// The two have to agree: the ratio exists to keep the photo square above the
+/// 48 dp Match button, and that depends on the real cell width. A ratio
+/// computed for 2 columns while the delegate lays out 4 would make every cell
+/// the wrong shape.
+({int columns, double childAspectRatio}) _likesGridMetrics(
+  BuildContext context,
+  double gridWidth,
+) {
+  final columns = AppBreakpoints.profileGridColumns(
+    MediaQuery.sizeOf(context).width,
+  );
+  final itemWidth = (gridWidth - AppSpacing.md * (columns - 1)) / columns;
+  // Match CTA (48 dp button + 8 dp gap), scaled with the text size.
+  final belowPhotoReserve = AppSpacing.scaled(context, AppSpacing.s56);
+  return (
+    columns: columns,
+    childAspectRatio: itemWidth / (itemWidth + belowPhotoReserve),
+  );
 }
 
-class _InteractivePressScaleState extends State<_InteractivePressScale> {
-  double _scale = 1.0;
+/// Likes grid: one grid for the loaded lists and the skeleton, so the two can
+/// never disagree about the column count and the page does not reflow the
+/// moment data arrives.
+class _LikesGrid extends StatelessWidget {
+  const _LikesGrid({required this.itemCount, required this.itemBuilder});
+
+  final int itemCount;
+  final Widget Function(BuildContext context, int index) itemBuilder;
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => setState(() => _scale = 0.97),
-      onPointerUp: (_) => setState(() => _scale = 1.0),
-      onPointerCancel: (_) => setState(() => _scale = 1.0),
-      child: AnimatedScale(
-        scale: _scale,
-        duration: AppMotion.buttonPress,
-        curve: AppMotion.easeOutCubic,
-        child: widget.child,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final metrics = _likesGridMetrics(context, constraints.maxWidth);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: metrics.columns,
+            crossAxisSpacing: AppSpacing.md,
+            mainAxisSpacing: AppSpacing.md,
+            childAspectRatio: metrics.childAspectRatio,
+          ),
+          itemCount: itemCount,
+          itemBuilder: itemBuilder,
+        );
+      },
     );
   }
-}
-
-/// Shared 2-column aspect ratio for Likes You / You Liked profile grid cards.
-///
-/// Meta is overlaid on the photo; only the Match CTA (when present) sits
-/// below — reserve ~52 logical px so the button does not crush the image.
-double _likesGridChildAspectRatio(BuildContext context) {
-  final screenWidth = MediaQuery.sizeOf(context).width;
-  // Match hub ListView horizontal gutter (AppSpacing.screen on each side).
-  const padding = AppSpacing.screen * 2;
-  const belowPhotoReserve = 52.0;
-  final gridWidth = screenWidth - padding;
-  final itemWidth = (gridWidth - AppSpacing.md) / 2;
-  return itemWidth / (itemWidth + belowPhotoReserve);
 }
 
 class _LikesTab extends StatelessWidget {
@@ -60,12 +76,11 @@ class _LikesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final childAspectRatio = _likesGridChildAspectRatio(context);
 
     return FlatmatesAsyncView<CursorListState<IncomingLikeModel>>(
       value: likes,
       onRetry: onRetry,
-      loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.grid),
+      loading: const _LikesGridLoading(),
       isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikesYet,
@@ -76,22 +91,13 @@ class _LikesTab extends StatelessWidget {
       ),
       data: (state) => Column(
         children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: AppSpacing.md,
-              mainAxisSpacing: AppSpacing.md,
-              childAspectRatio: childAspectRatio,
-            ),
+          _LikesGrid(
             itemCount: state.items.length,
             itemBuilder: (context, index) {
               final item = state.items[index];
               return FlatmatesProfileGridCard(
                 key: ValueKey('incoming_like_${item.id}'),
                 name: item.peer.fullName,
-                age: item.peer.age,
                 location: _locationForPeer(item.peer),
                 profession: _professionForPeer(locale, item.peer),
                 matchPercentage: item.peer.matchPercentage,
@@ -133,12 +139,11 @@ class _LikedTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
-    final childAspectRatio = _likesGridChildAspectRatio(context);
 
     return FlatmatesAsyncView<CursorListState<OutgoingLikeModel>>(
       value: likes,
       onRetry: onRetry,
-      loading: const _InboxHubLoading(variant: _InboxHubLoadingVariant.grid),
+      loading: const _LikesGridLoading(),
       isEmpty: (state) => state.items.isEmpty,
       empty: FlatmatesEmptyState(
         title: locale.noLikedYet,
@@ -150,7 +155,8 @@ class _LikedTab extends StatelessWidget {
       data: (state) {
         final cards = <Widget>[];
         for (final item in state.items) {
-          if (item.targetType == 'property' && item.property != null) {
+          if (item.targetType == SwipeTargetType.property &&
+              item.property != null) {
             final property = item.property!;
             final location = [
               if (property.locality != null &&
@@ -165,7 +171,7 @@ class _LikedTab extends StatelessWidget {
                 name: property.title,
                 location: location,
                 profession: locale.monthlyRentLabel(
-                  property.monthlyRent.toStringAsFixed(0),
+                  FlatmatesPriceText.formatRupee(property.monthlyRent.round()),
                 ),
                 matchPercentage: null,
                 imageUrl: property.effectiveMainImageUrl,
@@ -182,7 +188,6 @@ class _LikedTab extends StatelessWidget {
             FlatmatesProfileGridCard(
               key: ValueKey('outgoing_like_${item.id}'),
               name: peer.fullName,
-              age: peer.age,
               location: _locationForPeer(peer),
               profession: _professionForPeer(locale, peer),
               matchPercentage: peer.matchPercentage,
@@ -210,15 +215,7 @@ class _LikedTab extends StatelessWidget {
 
         return Column(
           children: [
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppSpacing.md,
-                mainAxisSpacing: AppSpacing.md,
-                childAspectRatio: childAspectRatio,
-              ),
+            _LikesGrid(
               itemCount: cards.length,
               itemBuilder: (context, index) => cards[index],
             ),
@@ -312,140 +309,63 @@ class _LoadMoreFooter extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Center(
-        child: TextButton.icon(
+        child: FlatmatesButton.tertiary(
+          label: locale.loadMoreCta,
           onPressed: onLoadMore,
-          icon: const Icon(Icons.expand_more_rounded),
-          label: Text(locale.loadMoreCta),
+          icon: Icons.expand_more_rounded,
         ),
       ),
     );
   }
 }
 
-/// High-contrast loading chrome for soft list-hub pages (Inbox tabs).
-///
-/// Default [FlatmatesSkeleton.list] bones blend into `surfaceSoft` page bg;
-/// these white cards keep loading state obvious.
-enum _InboxHubLoadingVariant { list, grid }
-
-class _InboxHubLoading extends StatelessWidget {
-  const _InboxHubLoading({required this.variant});
-
-  final _InboxHubLoadingVariant variant;
+/// Likes grid placeholder: paper-2 cards with paper-deep bones, laid out with
+/// the same [_likesGridMetrics] as the real grid so the page does not reflow on
+/// load.
+class _LikesGridLoading extends StatelessWidget {
+  const _LikesGridLoading();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final brightness = theme.brightness;
-    final cardBg = AppSemanticColors.surfaceFor(brightness);
-    final bone = brightness == Brightness.dark
-        ? AppSemanticColors.darkHairline
-        : AppSemanticColors.hairline;
+    final brightness = Theme.of(context).brightness;
+    final bone = AppSemanticColors.paperDeepFor(brightness);
 
-    if (variant == _InboxHubLoadingVariant.grid) {
-      return GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        crossAxisSpacing: AppSpacing.md,
-        mainAxisSpacing: AppSpacing.md,
-        childAspectRatio: 0.72,
-        children: List.generate(
-          4,
-          (_) => FlatmatesCard(
-            backgroundColor: cardBg,
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: bone.withValues(alpha: 0.55),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(AppRadius.card),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 12,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.7),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Container(
-                        height: 10,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.5),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    Widget line(double height, double? width) => Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(color: bone, borderRadius: AppRadius.xsBorder),
+    );
 
-    return Column(
-      children: List.generate(
-        4,
-        (index) => Padding(
-          padding: EdgeInsets.only(bottom: index == 3 ? 0 : AppSpacing.md),
-          child: FlatmatesCard(
-            backgroundColor: cardBg,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: bone.withValues(alpha: 0.55),
-                    shape: BoxShape.circle,
+    return _LikesGrid(
+      itemCount: 4,
+      itemBuilder: (context, index) => FlatmatesCard(
+        backgroundColor: AppSemanticColors.paper2For(brightness),
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: bone,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.card),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 12,
-                        width: 140,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.7),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Container(
-                        height: 10,
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: bone.withValues(alpha: 0.5),
-                          borderRadius: AppRadius.xsBorder,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  line(12, double.infinity),
+                  const SizedBox(height: AppSpacing.sm),
+                  line(10, 80),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

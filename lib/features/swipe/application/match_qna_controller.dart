@@ -1,14 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/config/endpoints.dart';
-import '../../../core/providers.dart';
+import '../../chats/chats_repository.dart';
 
 /// Controller for submitting match Q&A ice-breaker answers.
 ///
-/// Extracts the `apiClientProvider` POST out of the widget layer so the
-/// widget stays a pure presentation component (AGENTS.md: no
-/// `apiClientProvider` in page/widget files).
+/// Saves through [ChatsRepository.submitQnA], the one place that builds the
+/// `/qna` body (answer keys `"0"`, `"1"`, `"2"`; a blank answer is left out).
 class MatchQnAController extends Notifier<bool> {
   @override
   bool build() => false; // isSubmitting
@@ -24,14 +22,11 @@ class MatchQnAController extends Notifier<bool> {
     if (state) return false;
     state = true;
     try {
-      await ref
-          .read(apiClientProvider)
-          .post(
-            FlatmatesEndpoints.conversationQnA(conversationId),
-            data: {
-              'answers': {'0': q1, '1': q2, '2': q3},
-            },
-          );
+      await ref.read(chatsRepositoryProvider).submitQnA(conversationId, {
+        'q1': q1,
+        'q2': q2,
+        'q3': q3,
+      });
       return true;
     } catch (e) {
       debugPrint(

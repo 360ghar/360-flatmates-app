@@ -1,0 +1,302 @@
+{
+  "auth_state": {
+    "missing_fields": [],
+    "next_action": "grant_access",
+    "stage": "active"
+  },
+  "auth_state_profile_completion": {
+    "missing_fields": [
+      "date_of_birth"
+    ],
+    "next_action": "complete_profile",
+    "stage": "profile_completion"
+  },
+  "bootstrap": {
+    "active_listing_count": 2,
+    "catalogs": [
+      {
+        "key": "flatmates_modes",
+        "payload": {
+          "items": [
+            {
+              "description": "I have a room",
+              "id": "room_poster",
+              "label": "List my room"
+            },
+            {
+              "description": "I need a place",
+              "id": "co_hunter",
+              "label": "Find a flat"
+            },
+            {
+              "description": "I have a flat",
+              "id": "seeker",
+              "label": "Find a flatmate"
+            },
+            {
+              "description": "",
+              "id": "open_to_both",
+              "label": "Open to both"
+            }
+          ]
+        },
+        "version": 3
+      },
+      {
+        "key": "flatmates_report_reasons",
+        "payload": {
+          "items": [
+            {
+              "id": "spam",
+              "label": "Spam"
+            },
+            {
+              "id": "fake_profile",
+              "label": "Fake Profile"
+            },
+            {
+              "id": "abuse",
+              "label": "Abuse"
+            },
+            {
+              "id": "inappropriate",
+              "label": "Inappropriate Content"
+            },
+            {
+              "id": "other",
+              "label": "Other"
+            }
+          ]
+        },
+        "version": 1
+      }
+    ],
+    "conversation_count": 5,
+    "profile": {
+      "age": 29,
+      "age_bucket": "25-30",
+      "bio": "Product designer.",
+      "budget_max": 30000.0,
+      "budget_min": 15000.0,
+      "city": "Bengaluru",
+      "cleanliness": "spotless",
+      "drinking": "never",
+      "email": "asha@example.com",
+      "food_habits": "no_preference",
+      "full_name": "Asha Verma",
+      "gender": "female",
+      "gender_preference": "female",
+      "guests_policy": "occasional_ok",
+      "id": 7,
+      "last_active_at": "2026-09-30T10:15:02Z",
+      "linkedin_url": null,
+      "locality": "Indiranagar",
+      "mode": "room_poster",
+      "move_in_timeline": "immediate",
+      "native_place": "Delhi",
+      "onboarding_completed": true,
+      "phone": "+919800000000",
+      "preferences": {
+        "non_negotiables": [
+          "no_smoking"
+        ],
+        "pets": "no"
+      },
+      "profession": "Designer",
+      "profile_image_url": "https://cdn.example.com/u/7.jpg",
+      "profile_status": "active",
+      "sleep_schedule": "flexible",
+      "smoking": "never",
+      "work_style": "wfh"
+    },
+    "realtime": {
+      "channel": "flatmates:user:7",
+      "events": [
+        "new_match",
+        "new_message",
+        "conversation_updated",
+        "visit_updated",
+        "listing_status_changed",
+        "new_notification"
+      ],
+      "private": true,
+      "provider": "supabase"
+    },
+    "unread_message_count": 3
+  },
+  "bootstrap_new_user": {
+    "active_listing_count": 0,
+    "catalogs": [],
+    "conversation_count": 0,
+    "profile": {
+      "age": null,
+      "age_bucket": null,
+      "bio": null,
+      "budget_max": null,
+      "budget_min": null,
+      "city": null,
+      "cleanliness": null,
+      "drinking": null,
+      "email": null,
+      "food_habits": null,
+      "full_name": null,
+      "gender": null,
+      "gender_preference": null,
+      "guests_policy": null,
+      "id": 7,
+      "last_active_at": null,
+      "linkedin_url": null,
+      "locality": null,
+      "mode": null,
+      "move_in_timeline": null,
+      "native_place": null,
+      "onboarding_completed": false,
+      "phone": null,
+      "preferences": {},
+      "profession": null,
+      "profile_image_url": null,
+      "profile_status": "draft",
+      "sleep_schedule": null,
+      "smoking": null,
+      "work_style": null
+    },
+    "realtime": {
+      "channel": "flatmates:user:7",
+      "events": [
+        "new_match",
+        "new_message",
+        "conversation_updated",
+        "visit_updated",
+        "listing_status_changed",
+        "new_notification"
+      ],
+      "private": true,
+      "provider": "supabase"
+    },
+    "unread_message_count": 0
+  },
+  "profile": {
+    "age": 29,
+    "age_bucket": "25-30",
+    "bio": "Product designer.",
+    "budget_max": 30000.0,
+    "budget_min": 15000.0,
+    "city": "Bengaluru",
+    "cleanliness": "spotless",
+    "drinking": "never",
+    "email": "asha@example.com",
+    "food_habits": "no_preference",
+    "full_name": "Asha Verma",
+    "gender": "female",
+    "gender_preference": "female",
+    "guests_policy": "occasional_ok",
+    "id": 7,
+    "last_active_at": "2026-09-30T10:15:02Z",
+    "linkedin_url": null,
+    "locality": "Indiranagar",
+    "mode": "room_poster",
+    "move_in_timeline": "immediate",
+    "native_place": "Delhi",
+    "onboarding_completed": true,
+    "phone": "+919800000000",
+    "preferences": {
+      "non_negotiables": [
+        "no_smoking"
+      ],
+      "pets": "no"
+    },
+    "profession": "Designer",
+    "profile_image_url": "https://cdn.example.com/u/7.jpg",
+    "profile_status": "active",
+    "sleep_schedule": "flexible",
+    "smoking": "never",
+    "work_style": "wfh"
+  },
+  "profile_paused": {
+    "age": 29,
+    "age_bucket": "25-30",
+    "bio": "Product designer.",
+    "budget_max": 30000.0,
+    "budget_min": 15000.0,
+    "city": "Bengaluru",
+    "cleanliness": "spotless",
+    "drinking": "never",
+    "email": "asha@example.com",
+    "food_habits": "no_preference",
+    "full_name": "Asha Verma",
+    "gender": "female",
+    "gender_preference": "female",
+    "guests_policy": "occasional_ok",
+    "id": 7,
+    "last_active_at": "2026-09-30T10:15:02Z",
+    "linkedin_url": null,
+    "locality": "Indiranagar",
+    "mode": "room_poster",
+    "move_in_timeline": "immediate",
+    "native_place": "Delhi",
+    "onboarding_completed": true,
+    "phone": "+919800000000",
+    "preferences": {
+      "non_negotiables": [
+        "no_smoking"
+      ],
+      "pets": "no"
+    },
+    "profession": "Designer",
+    "profile_image_url": "https://cdn.example.com/u/7.jpg",
+    "profile_status": "paused",
+    "sleep_schedule": "flexible",
+    "smoking": "never",
+    "work_style": "wfh"
+  },
+  "self_user": {
+    "agent_id": null,
+    "created_at": "2026-09-30T10:15:02Z",
+    "current_latitude": null,
+    "current_longitude": null,
+    "date_of_birth": "1996-04-12",
+    "email": null,
+    "email_verified": false,
+    "full_name": "Asha Verma",
+    "id": 7,
+    "is_active": true,
+    "is_verified": true,
+    "last_auth_method": null,
+    "last_auth_method_at": null,
+    "notification_settings": {
+      "email_notifications": true,
+      "promotional_emails": false,
+      "push_notifications": true,
+      "sms_notifications": false
+    },
+    "phone": "+919876543210",
+    "phone_verified": true,
+    "preferences": {
+      "area_max": null,
+      "area_min": null,
+      "bedrooms_max": null,
+      "bedrooms_min": null,
+      "budget_max": null,
+      "budget_min": null,
+      "location_preference": null,
+      "max_distance_km": 5,
+      "property_type": null,
+      "purpose": null
+    },
+    "privacy_settings": {
+      "allow_location_tracking": true,
+      "contact_sharing": true,
+      "data_sharing_consent": false,
+      "hide_last_name": false,
+      "location_sharing": true,
+      "profile_visibility": "public",
+      "search_history_tracking": true,
+      "show_email": false,
+      "show_phone": false
+    },
+    "profile_image_url": null,
+    "role": "user",
+    "supabase_user_id": "0b9e6d6e-6f5a-4a38-9d57-2f4b0a1c7e11",
+    "updated_at": "2026-09-30T10:15:02Z"
+  }
+}

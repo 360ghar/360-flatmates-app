@@ -170,7 +170,9 @@ class _OtpPageState extends ConsumerState<OtpPage>
               const SizedBox(height: AppSpacing.lg),
               Center(
                 child: FlatmatesTrustBadge(
-                  label: locale.phoneVerifiedLabel,
+                  label: _isEmail
+                      ? locale.emailVerifiedLabel
+                      : locale.phoneVerifiedLabel,
                   compact: true,
                 ),
               ),
@@ -184,10 +186,7 @@ class _OtpPageState extends ConsumerState<OtpPage>
             if (auth.status == AuthStatus.error &&
                 auth.errorMessage != null) ...[
               const SizedBox(height: AppSpacing.md),
-              Text(
-                resolveAuthError(auth.errorMessage, locale),
-                style: const TextStyle(color: AppSemanticColors.error),
-              ),
+              FlatmatesInlineError(resolveAuthError(auth.errorMessage, locale)),
             ],
             const SizedBox(height: AppSpacing.screen),
             Center(

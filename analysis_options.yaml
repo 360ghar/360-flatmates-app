@@ -3,6 +3,10 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - "**/*.g.dart"
+    # Local iOS builds check out SwiftPM sources (with Dart files) here.
+    - "build/**"
+    - android/**
+    - ios/**
   errors:
     missing_return: error
     dead_code: warning

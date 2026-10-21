@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../chats/application/cursor_list_controller.dart';
 import '../../chats/chats_repository.dart';
 import '../../discover/discover_repository.dart';
@@ -261,7 +262,7 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
 
   Future<SwipeResult> persistSwipe({
     required SwipeProfile profile,
-    required String action,
+    required SwipeAction action,
   }) async {
     final result = await ref
         .read(swipeRepositoryProvider)
@@ -280,12 +281,12 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
 
   void _syncSwipeSideEffects({
     required SwipeProfile profile,
-    required String action,
+    required SwipeAction action,
     required SwipeResult result,
   }) {
     // Incoming-likes bookkeeping only applies to likes (SWIPE-02). Passing
     // on someone who liked you should not drop their like from the list.
-    if (action != 'like') return;
+    if (action != SwipeAction.like) return;
 
     ref
         .read(incomingLikesListControllerProvider.notifier)
@@ -299,14 +300,13 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
 
     if (!result.didMatch) return;
 
-    ref.invalidate(conversationsProvider);
     unawaited(ref.read(conversationsListControllerProvider.notifier).refresh());
   }
 
   OutgoingLikeModel _outgoingLikeFor(SwipeProfile profile) {
     return OutgoingLikeModel(
       id: -profile.id,
-      targetType: 'user',
+      targetType: SwipeTargetType.user,
       peer: ChatPeer(
         id: profile.id,
         fullName: profile.fullName ?? 'Flatmate',
@@ -314,7 +314,6 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
         mode: profile.mode,
         city: profile.city,
         locality: profile.locality,
-        age: profile.age,
         profession: profile.profession,
       ),
       createdAt: DateTime.now().toUtc(),
@@ -337,46 +336,7 @@ class SwipeDeckController extends Notifier<SwipeDeckState> {
 
   Future<void> refresh() async {
     _swipedUserIds.clear();
-    selection.clear();
     await _load();
-  }
-
-  /// Multi-select state for the "remove selected" action. Tracks the
-  /// property ids the user has ticked in the deck (typically the
-  /// shortlist panel — surface via a CTA bar that only shows when the
-  /// set is non-empty).
-  final Set<int> selection = <int>{};
-
-  bool get hasSelection => selection.isNotEmpty;
-
-  void toggleSelection(int userId) {
-    if (selection.contains(userId)) {
-      selection.remove(userId);
-    } else {
-      selection.add(userId);
-    }
-    // Re-render anything watching hasSelection. We can't easily emit a
-    // separate AsyncValue without splitting the controller into two
-    // notifiers, so the UI wires selection state through a StateProvider
-    // in the page. (Keeping the Set here as a cache keeps the
-    // batchRemoveSelected() handler self-contained.)
-  }
-
-  /// Calls `POST /swipes/batch-remove` for the currently selected ids and
-  /// drops them from the rendered deck on success. No-op when no selection.
-  Future<void> batchRemoveSelected() async {
-    if (selection.isEmpty) return;
-    final ids = selection.toList(growable: false);
-    await ref.read(swipeRepositoryProvider).batchRemoveSwipes(ids);
-    // The selected users are no longer "liked" — drop them locally so the
-    // UI reflects the change immediately. The next page load will reconcile.
-    for (final id in ids) {
-      _swipedUserIds.add(id);
-    }
-    state = state.copyWith(
-      profiles: state.profiles.where((p) => !selection.contains(p.id)).toList(),
-    );
-    selection.clear();
   }
 }
 

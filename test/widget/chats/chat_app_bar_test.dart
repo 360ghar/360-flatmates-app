@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/features/chats/chats_repository.dart';
-import 'package:flatmates_app/features/chats/domain/chat_report_reason.dart';
 import 'package:flatmates_app/features/chats/presentation/widgets/chat_app_bar.dart';
 
 import '../../helpers/test_helpers.dart';
@@ -9,7 +9,7 @@ import '../../helpers/test_helpers.dart';
 ConversationSummaryModel _conversation({bool withProperty = true}) {
   return ConversationSummaryModel(
     id: 10,
-    source: 'match',
+    source: ConversationSource.profileMatch,
     peer: const ChatPeer(id: 2, fullName: 'Priya Patel'),
     contextProperty: withProperty
         ? const ChatPropertyContext(id: 42, title: 'Modern 2BHK')
@@ -34,7 +34,6 @@ void main() {
         _wrap(
           ChatAppBar(
             conversation: convWithProperty,
-            reportReasons: ChatReportReason.defaults(),
             onBlock: () {},
             onReport: () {},
             onUnmatch: () {},
@@ -57,7 +56,6 @@ void main() {
         _wrap(
           ChatAppBar(
             conversation: convWithoutProperty,
-            reportReasons: ChatReportReason.defaults(),
             onBlock: () {},
             onReport: () {},
             onUnmatch: () {},
@@ -71,6 +69,58 @@ void main() {
       expect(find.byKey(const Key('chat_call_button')), findsOneWidget);
       expect(find.byKey(const Key('chat_schedule_visit_button')), findsNothing);
       expect(find.byKey(const Key('chat_more_button')), findsOneWidget);
+    });
+
+    testWidgets('has no Call action when the pair is not an open match', (
+      tester,
+    ) async {
+      // Only an open match has a phone (from the match contact route). The
+      // thread passes no onCall for a listing-interest, blocked or closed
+      // conversation, so the button is not rendered at all.
+      await tester.pumpWidget(
+        _wrap(
+          ChatAppBar(
+            conversation: _conversation(),
+            onBlock: () {},
+            onReport: () {},
+            onUnmatch: () {},
+            onScheduleVisit: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('chat_call_button')), findsNothing);
+      expect(find.byKey(const Key('chat_more_button')), findsOneWidget);
+    });
+
+    testWidgets('back button keeps a 48 dp tap target in the leading slot', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          ChatAppBar(
+            conversation: _conversation(),
+            onBlock: () {},
+            onReport: () {},
+            onUnmatch: () {},
+            onCall: () {},
+            onScheduleVisit: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The leading slot (60) minus the caller padding (8) and the button's
+      // own horizontal padding (2 + 2) must still leave 48 dp.
+      final target = find.descendant(
+        of: find.byKey(const Key('nav_back_button')),
+        matching: find.byType(InkWell),
+      );
+      expect(target, findsOneWidget);
+      final size = tester.getSize(target);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
     });
   });
 }

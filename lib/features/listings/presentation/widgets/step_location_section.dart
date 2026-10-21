@@ -34,16 +34,19 @@ class StepLocationSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
-            key: const Key('listing_society_input'),
-            controller: societyController,
-            decoration: InputDecoration(
-              labelText: locale.societyBuildingLabel,
-              hintText: locale.societyBuildingHint,
-              prefixIcon: const Icon(Icons.apartment_outlined),
-              errorText: showSocietyValidation ? locale.fieldRequired : null,
+          withTestId(
+            const Key('listing_society_input'),
+            TextFormField(
+              key: const Key('listing_society_input'),
+              controller: societyController,
+              decoration: InputDecoration(
+                labelText: locale.societyBuildingLabel,
+                hintText: locale.societyBuildingHint,
+                prefixIcon: const Icon(Icons.apartment_outlined),
+                errorText: showSocietyValidation ? locale.fieldRequired : null,
+              ),
+              onChanged: (_) => onChanged(),
             ),
-            onChanged: (_) => onChanged(),
           ),
           const SizedBox(height: AppSpacing.xl),
           TextFormField(
@@ -60,28 +63,36 @@ class StepLocationSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextFormField(
-                  key: const Key('listing_city_input'),
-                  controller: cityController,
-                  decoration: InputDecoration(
-                    labelText: locale.cityLabel,
-                    errorText: showCityValidation ? locale.fieldRequired : null,
+                child: withTestId(
+                  const Key('listing_city_input'),
+                  TextFormField(
+                    key: const Key('listing_city_input'),
+                    controller: cityController,
+                    decoration: InputDecoration(
+                      labelText: locale.cityLabel,
+                      errorText: showCityValidation
+                          ? locale.fieldRequired
+                          : null,
+                    ),
+                    onChanged: (_) => onChanged(),
                   ),
-                  onChanged: (_) => onChanged(),
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
-                child: TextFormField(
-                  key: const Key('listing_locality_input'),
-                  controller: localityController,
-                  decoration: InputDecoration(
-                    labelText: locale.localityLabel,
-                    errorText: showLocalityValidation
-                        ? locale.fieldRequired
-                        : null,
+                child: withTestId(
+                  const Key('listing_locality_input'),
+                  TextFormField(
+                    key: const Key('listing_locality_input'),
+                    controller: localityController,
+                    decoration: InputDecoration(
+                      labelText: locale.localityLabel,
+                      errorText: showLocalityValidation
+                          ? locale.fieldRequired
+                          : null,
+                    ),
+                    onChanged: (_) => onChanged(),
                   ),
-                  onChanged: (_) => onChanged(),
                 ),
               ),
             ],

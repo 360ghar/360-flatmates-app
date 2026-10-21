@@ -79,7 +79,7 @@ class SwipeCardSkeleton extends StatelessWidget {
                               width: 12,
                               height: 12,
                               color: bone,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: AppRadius.smBorder,
                             ),
                             const SizedBox(width: 4),
                             FlatmatesSkeletonBone(

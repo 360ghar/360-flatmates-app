@@ -44,7 +44,14 @@ class MapListingsState {
 
 class MapListingsController extends Notifier<MapListingsState> {
   static const double defaultLocationRadiusKm = 10.0;
-  static const int _pageSize = 50;
+
+  /// Rows per request (the API takes at most 100).
+  static const int _pageSize = 100;
+
+  /// The map reads every page of the area, up to this many requests.
+  /// Note: that caps the map at 500 pins; cluster or load by viewport when an
+  /// area holds more.
+  static const int _maxPages = 5;
 
   int _filterVersion = 0;
   bool _isLoadingActive = false;
@@ -105,11 +112,33 @@ class MapListingsController extends Notifier<MapListingsState> {
           .valueOrNull
           ?.profile;
       final repo = ref.read(discoverRepositoryProvider);
-      final newListings = await repo.fetchListings(
-        currentUser: profile,
-        filters: state.filters,
-        limit: _pageSize,
-      );
+      // A map shows every listing of the area: follow `next_cursor`. The
+      // cursor is bound to the filters, which stay the same on every page.
+      final newListings = <PropertyListing>[];
+      // One snapshot for every page: a cursor is bound to the filters that
+      // produced it, and the map location can change between awaits.
+      final filters = state.filters;
+      String? cursor;
+      for (var page = 0; page < _maxPages; page++) {
+        // A newer filter started while the last page loaded: this result is
+        // stale, so stop paging with the old filters.
+        if (myVersion != _filterVersion) break;
+        final result = await repo.fetchListingsPage(
+          cursor: cursor,
+          currentUser: profile,
+          filters: filters,
+          limit: _pageSize,
+        );
+        newListings.addAll(result.items);
+        cursor = result.nextCursor;
+        if (cursor == null || cursor.isEmpty) break;
+        if (page == _maxPages - 1) {
+          debugPrint(
+            'MapListingsController.load: stopped at $_maxPages pages; '
+            'the area holds more listings than the map shows',
+          );
+        }
+      }
 
       if (myVersion != _filterVersion) {
         // Stale result — filters changed during the request.
@@ -131,19 +160,16 @@ class MapListingsController extends Notifier<MapListingsState> {
   }
 
   Future<int?> setLiked(int propertyId, bool liked) async {
-    final original = state.listings;
-    final index = original.indexWhere((listing) => listing.id == propertyId);
-    if (index >= 0) {
-      final optimistic = [...original];
-      optimistic[index] = optimistic[index].copyWith(liked: liked);
-      state = state.copyWith(listings: optimistic);
-    }
+    // Snapshot the listing before the await: a reload can replace or reorder
+    // state.listings meanwhile, so indexes taken now are not valid later.
+    final index = state.listings.indexWhere((l) => l.id == propertyId);
+    final before = index >= 0 ? state.listings[index] : null;
+    if (before != null) _setLikedLocally(propertyId, liked);
 
     try {
       final conversationId = await ref
           .read(discoverRepositoryProvider)
           .setLiked(propertyId, liked);
-      ref.invalidate(conversationsProvider);
       // The ConversationsPage Chats tab watches the cursor controller, not the
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.
@@ -154,8 +180,8 @@ class MapListingsController extends Notifier<MapListingsState> {
       ref.invalidate(propertyListingProvider(propertyId));
 
       // Keep the Liked tab in sync when a property is liked from the map.
-      if (index >= 0) {
-        final listing = state.listings[index];
+      if (before != null) {
+        final listing = before.copyWith(liked: liked);
         final outgoing = ref.read(outgoingLikesListControllerProvider.notifier);
         if (liked) {
           outgoing.upsertOutgoingLike(
@@ -174,9 +200,23 @@ class MapListingsController extends Notifier<MapListingsState> {
       return conversationId;
     } catch (e) {
       debugPrint('MapListingsController.setLiked failed: $e');
-      state = state.copyWith(listings: original);
+      // Revert only this listing, so a reload that landed meanwhile is kept.
+      if (before != null) _setLikedLocally(propertyId, before.liked);
       rethrow;
     }
+  }
+
+  void _setLikedLocally(int propertyId, bool? liked) {
+    state = state.copyWith(
+      listings: [
+        for (final l in state.listings)
+          l.id == propertyId
+              // `liked: null` must clear the optimistic heart back to unknown
+              // when the original value was null (rollback after a failure).
+              ? l.copyWith(liked: liked, clearLiked: liked == null)
+              : l,
+      ],
+    );
   }
 
   /// Toggles like for [propertyId] (like ↔ unlike). Returns conversation id

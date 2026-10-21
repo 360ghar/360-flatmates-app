@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/network/sse_providers.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -14,39 +15,37 @@ import 'presentation/widgets/listing_review_body.dart';
 /// (e.g. manage-listings → review after a cold start). Prefers the durable
 /// seed store so pending listings never hard-depend on GET after a GoRouter
 /// refresh drops `state.extra`.
-final listingReviewProvider = FutureProvider.family<PropertyListing, int>((
-  ref,
-  listingId,
-) async {
-  final seeded = ref
-      .read(propertyListingSeedStoreProvider.notifier)
-      .get(listingId);
-  // Prefer seed for pending/rejected so a slow/failed GET never blocks the
-  // under-review screen with a false "no internet" error. Still try GET so
-  // cold-start opens with the latest moderation status when the network works.
-  if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
-    try {
-      final fresh = await ref
-          .watch(discoverRepositoryProvider)
-          .fetchListing(listingId);
-      ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
-      return fresh;
-    } catch (e) {
-      debugPrint('listingReviewProvider seed-fallback($listingId): $e');
-      return seeded;
-    }
-  }
-  try {
-    final fresh = await ref
-        .watch(discoverRepositoryProvider)
-        .fetchListing(listingId);
-    ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
-    return fresh;
-  } catch (e) {
-    if (seeded != null) return seeded;
-    rethrow;
-  }
-});
+final listingReviewProvider = FutureProvider.autoDispose
+    .family<PropertyListing, int>((ref, listingId) async {
+      final seeded = ref
+          .read(propertyListingSeedStoreProvider.notifier)
+          .get(listingId);
+      // Prefer seed for pending/rejected so a slow/failed GET never blocks the
+      // under-review screen with a false "no internet" error. Still try GET so
+      // cold-start opens with the latest moderation status when the network works.
+      if (seeded != null && (seeded.isUnderReview || seeded.isRejected)) {
+        try {
+          final fresh = await ref
+              .watch(discoverRepositoryProvider)
+              .fetchListing(listingId);
+          ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+          return fresh;
+        } catch (e) {
+          debugPrint('listingReviewProvider seed-fallback($listingId): $e');
+          return seeded;
+        }
+      }
+      try {
+        final fresh = await ref
+            .watch(discoverRepositoryProvider)
+            .fetchListing(listingId);
+        ref.read(propertyListingSeedStoreProvider.notifier).put(fresh);
+        return fresh;
+      } catch (e) {
+        if (seeded != null) return seeded;
+        rethrow;
+      }
+    });
 
 class ListingUnderReviewPage extends ConsumerStatefulWidget {
   const ListingUnderReviewPage({
@@ -96,6 +95,17 @@ class _ListingUnderReviewPageState
     });
   }
 
+  /// Back when there is a page below; otherwise the home feed.
+  void _close() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/discover');
+    }
+  }
+
+  PreferredSizeWidget get _header => FlatmatesHeader.logo(onBack: _close);
+
   @override
   Widget build(BuildContext context) {
     // Prefer in-memory seed (navigation extra or durable store recovery).
@@ -103,6 +113,7 @@ class _ListingUnderReviewPageState
     if (live != null) {
       _listenForStatusChanges();
       return FlatmatesScreen(
+        appBar: _header,
         body: RefreshIndicator(
           onRefresh: _refreshAfterStatusChange,
           child: ListingReviewBody(listing: live, listingId: widget.listingId),
@@ -115,6 +126,7 @@ class _ListingUnderReviewPageState
     _listenForStatusChanges();
 
     return FlatmatesScreen(
+      appBar: _header,
       body: listingAsync.when(
         data: (listing) => RefreshIndicator(
           onRefresh: _refreshAfterStatusChange,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract final class PrefKeys {
@@ -8,9 +9,6 @@ abstract final class PrefKeys {
   static const hideLastName = 'privacy_hide_last_name';
   static const hideExactLocation = 'privacy_hide_exact_location';
   static const notifNewMessages = 'notif_new_messages';
-  static const notifVisitReminders = 'notif_visit_reminders';
-  static const notifNewMatches = 'notif_new_matches';
-  static const notifListingUpdates = 'notif_listing_updates';
   static const notifPromotions = 'notif_promotions';
   static const notifPermissionRequested = 'notif_permission_requested';
 
@@ -36,6 +34,39 @@ abstract final class PrefKeys {
   /// Survives process death between OTP verify and set-password so the
   /// mandatory password gate is restored on cold start with a live session.
   static const pendingPasswordSetup = 'pending_password_setup';
+
+  /// The onboarding draft (profile answers typed before the profile exists).
+  static const onboardingDraft = 'onboarding_state';
+
+  /// Per-conversation flag that hides the Q&A nudge. The key ends with the
+  /// conversation id: [qnaNudgeDismissed].
+  static const qnaNudgeDismissedPrefix = 'qna_nudge_dismissed_';
+
+  static String qnaNudgeDismissed(int conversationId) =>
+      '$qnaNudgeDismissedPrefix$conversationId';
+
+  /// Keys an earlier build wrote for the owner listings cache.
+  static const legacyListingsCachePrefix = 'my_listings_cache';
+
+  /// What belongs to one signed-in account, so a sign-out removes it. The rest
+  /// (theme, language, the last sign-in method, the dismissed update prompt)
+  /// belongs to the device and stays.
+  static const _accountKeys = {
+    hideLastName,
+    hideExactLocation,
+    notifNewMessages,
+    notifPromotions,
+    flatmatesOnboardingCompletedUserId,
+    profileCompletionLocalUserId,
+    pendingPasswordSetup,
+    onboardingDraft,
+  };
+
+  /// Whether [key] holds data of the signed-in account.
+  static bool isAccountKey(String key) =>
+      _accountKeys.contains(key) ||
+      key.startsWith(qnaNudgeDismissedPrefix) ||
+      key.startsWith(legacyListingsCachePrefix);
 }
 
 final class AppPreferences {
@@ -61,6 +92,32 @@ final class AppPreferences {
       _prefs.getBool(key) ?? defaultValue;
 
   bool containsKey(String key) => _prefs.containsKey(key);
+
+  /// Every stored key (used to delete a legacy cache by prefix).
+  Set<String> get keys => _prefs.getKeys();
+
+  /// Removes every key that belongs to the signed-in account (see
+  /// [PrefKeys.isAccountKey]). Called on sign-out, so the next account on this
+  /// device starts empty.
+  ///
+  /// Every key is tried even when one fails, so one bad key does not leave the
+  /// rest of the account's data behind. Throws when any key could not be
+  /// removed, so the caller can retry.
+  Future<void> clearAccountData() async {
+    final failed = <String>[];
+    for (final key in _prefs.getKeys().toList()) {
+      if (!PrefKeys.isAccountKey(key)) continue;
+      try {
+        if (!await _prefs.remove(key)) failed.add(key);
+      } catch (e) {
+        debugPrint('AppPreferences.clearAccountData: $key: $e');
+        failed.add(key);
+      }
+    }
+    if (failed.isNotEmpty) {
+      throw StateError('Could not remove account keys: ${failed.join(', ')}');
+    }
+  }
 
   Future<bool> setBool(String key, bool value) => _prefs.setBool(key, value);
 }

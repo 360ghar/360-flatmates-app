@@ -6,10 +6,10 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../discover/domain/property_listing.dart';
 import '../../../shared/presentation/flatmates_card.dart';
-import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
 import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
+import 'full_width_media_height.dart';
 import 'manage_stats_widgets.dart';
 
 /// Property card with image, info row, owner info, and stats action grid.
@@ -53,32 +53,35 @@ class ManageListingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Full-width image at top with status chip overlay
-          Stack(
-            children: [
-              if (listing.effectiveMainImageUrl != null)
-                SizedBox(
-                  height: 160,
-                  width: double.infinity,
-                  child: FlatmatesNetworkImage(
-                    imageUrl: listing.effectiveMainImageUrl!,
-                    height: 160,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              else
-                _buildPlaceholderImage(fullWidth: true),
-              // Status chip overlay at top-right — color-coded by severity
-              Positioned(
-                top: AppSpacing.sm,
-                right: AppSpacing.sm,
-                child: FlatmatesChip(
-                  label: _statusLabel,
-                  icon: _statusIcon,
-                  tint: _statusColor,
-                ),
-              ),
-            ],
+          // Full-width image at top. The height follows the measured card
+          // width: a fixed 160 dp is a 4.3:1 strip on the 688 dp card inside
+          // the open Duo's 720 dp reading column.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final photoHeight = fullWidthMediaHeight(
+                width: constraints.maxWidth,
+                compactHeight: _compactPhotoHeight,
+              );
+              return Stack(
+                children: [
+                  if (listing.effectiveMainImageUrl != null)
+                    SizedBox(
+                      height: photoHeight,
+                      width: double.infinity,
+                      child: FlatmatesNetworkImage(
+                        imageUrl: listing.effectiveMainImageUrl!,
+                        height: photoHeight,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    _buildPlaceholderImage(
+                      fullWidth: true,
+                      height: photoHeight,
+                    ),
+                ],
+              );
+            },
           ),
 
           // Info below image
@@ -87,45 +90,47 @@ class ManageListingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Status as coloured text above the title (not a tag pinned
+                // on the photo).
+                Row(
+                  children: [
+                    Icon(_statusIcon, size: 16, color: _statusColor),
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        _statusLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   listing.title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.textTheme.titleLarge,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 FlatmatesPriceText.card(
                   amount: listing.monthlyRent.toInt(),
-                  period: 'mo',
+                  period: AppLocalizations.of(context).perMonthSuffix,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                // Quick info row using FlatmatesChip
-                Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    if (listing.bedrooms != null)
-                      FlatmatesChip(
-                        icon: Icons.bed_outlined,
-                        label: locale.bedsCount(listing.bedrooms!),
-                        variant: FlatmatesChipVariant.info,
+                if (_facts.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  // Plain text, not a row of pills.
+                  Text(
+                    _facts.join(' · '),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppSemanticColors.textSecondaryFor(
+                        theme.brightness,
                       ),
-                    if (listing.bathrooms != null)
-                      FlatmatesChip(
-                        icon: Icons.bathtub_outlined,
-                        label: locale.bathsCount(listing.bathrooms!),
-                        variant: FlatmatesChipVariant.info,
-                      ),
-                    if (listing.areaSqft != null)
-                      FlatmatesChip(
-                        icon: Icons.square_foot_outlined,
-                        label: locale.sqftLabel(listing.areaSqft!.round()),
-                        variant: FlatmatesChipVariant.info,
-                      ),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -261,7 +266,9 @@ class ManageListingCard extends StatelessWidget {
       'pending_review' => locale.underReview,
       'under_review' => locale.underReview,
       'paused' => locale.pausedStatus,
-      _ => status,
+      'rejected' => locale.listingRejected,
+      // Never show a raw backend value.
+      _ => locale.listingStatusUnknown,
     };
   }
 
@@ -275,6 +282,7 @@ class ManageListingCard extends StatelessWidget {
       'pending_review' => Icons.hourglass_top_outlined,
       'under_review' => Icons.hourglass_top_outlined,
       'paused' => Icons.pause_circle_outline,
+      'rejected' => Icons.error_outline_rounded,
       _ => Icons.info_outline,
     };
   }
@@ -288,12 +296,12 @@ class ManageListingCard extends StatelessWidget {
     final brightness = theme.brightness;
     if (_isPaused) return AppSemanticColors.textSecondaryFor(brightness);
     return switch (status) {
-      'active' || 'live' || 'approved' => AppSemanticColors.success,
+      'active' || 'live' || 'approved' => AppSemanticColors.pineFor(brightness),
       'draft' => AppSemanticColors.textTertiaryFor(brightness),
-      'expired' => AppSemanticColors.error,
-      'pending_review' || 'under_review' => AppSemanticColors.warning,
-      'paused' => AppSemanticColors.textSecondaryFor(brightness),
-      _ => AppSemanticColors.info,
+      'expired' || 'rejected' => AppSemanticColors.dangerFor(brightness),
+      'pending_review' ||
+      'under_review' => AppSemanticColors.warningInkFor(brightness),
+      _ => AppSemanticColors.textSecondaryFor(brightness),
     };
   }
 
@@ -304,29 +312,43 @@ class ManageListingCard extends StatelessWidget {
   bool get _isUnderReview =>
       status == 'pending_review' || status == 'under_review';
 
+  /// A rejected listing cannot be paused or resumed (the server answers 409
+  /// `LISTING_STATUS_CONFLICT`): the slot opens the review page, which shows
+  /// the generic guidance and the edit-and-resubmit action (the server hides
+  /// the moderator's reason from the owner).
+  bool get _isRejected => status == 'rejected';
+
   String get _primaryStatusActionLabel {
     if (_isExpired) return locale.renewAction;
-    if (_isUnderReview) return locale.reviewAction;
+    if (_isUnderReview || _isRejected) return locale.reviewAction;
     if (_isPaused) return locale.resumeAction;
     return locale.pauseListingCta;
   }
 
   IconData get _primaryStatusActionIcon {
     if (_isExpired) return Icons.refresh;
-    if (_isUnderReview) return Icons.rate_review_outlined;
+    if (_isUnderReview || _isRejected) return Icons.rate_review_outlined;
     if (_isPaused) return Icons.play_circle_outline;
     return Icons.pause_circle_outline;
   }
 
   VoidCallback? get _primaryStatusActionTap {
     if (_isExpired) return onRenew;
-    if (_isUnderReview) return onReview;
+    if (_isUnderReview || _isRejected) return onReview;
     if (isPausing) return null;
     return () => onTogglePause(listing.id, _isPaused);
   }
 
+  /// Beds, baths and area, when known.
+  List<String> get _facts => [
+    if (listing.bedrooms != null) locale.bedsCount(listing.bedrooms!),
+    if (listing.bathrooms != null) locale.bathsCount(listing.bathrooms!),
+    if (listing.areaSqft != null) locale.sqftLabel(listing.areaSqft!.round()),
+  ];
+
+  /// Only a real expiry date: the move-in date is not an expiry.
   String? get _expiryLabel {
-    final expiresAt = listing.expiresAt ?? listing.availableFrom;
+    final expiresAt = listing.expiresAt;
     if (expiresAt == null) return null;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -341,15 +363,22 @@ class ManageListingCard extends StatelessWidget {
     return locale.expiresInDays(days);
   }
 
-  Widget _buildPlaceholderImage({bool fullWidth = false}) {
+  /// Listing photo height on the compact card. The height the card was drawn
+  /// at on a 466 dp phone, and the floor [fullWidthMediaHeight] clamps to.
+  static const double _compactPhotoHeight = 160;
+
+  Widget _buildPlaceholderImage({bool fullWidth = false, double? height}) {
     return Container(
       width: fullWidth ? double.infinity : 80,
-      height: fullWidth ? 160 : 80,
+      height: height ?? (fullWidth ? _compactPhotoHeight : 80),
       decoration: BoxDecoration(
-        color: AppSemanticColors.accent.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(fullWidth ? 0 : AppRadius.md),
+        color: AppSemanticColors.paperDeepFor(theme.brightness),
+        borderRadius: fullWidth ? BorderRadius.zero : AppRadius.mdBorder,
       ),
-      child: const Icon(Icons.apartment_rounded),
+      child: Icon(
+        Icons.apartment_rounded,
+        color: AppSemanticColors.textTertiaryFor(theme.brightness),
+      ),
     );
   }
 }
@@ -372,7 +401,7 @@ class _PerfStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = emphasis
-        ? AppSemanticColors.error
+        ? AppSemanticColors.dangerFor(theme.brightness)
         : AppSemanticColors.textSecondaryFor(theme.brightness);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -382,8 +411,7 @@ class _PerfStat extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
+            style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: color,
             ),

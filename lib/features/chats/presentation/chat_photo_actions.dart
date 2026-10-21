@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../../core/errors/app_failure.dart' show AppFailure;
 import '../../../core/errors/l10n_bridge.dart';
 import '../../../core/storage/image_upload_service.dart';
@@ -39,7 +40,7 @@ Future<void> sendPhotoFromChat({
       case UploadSuccess(:final url):
         await ref
             .read(messagesControllerProvider(conversationId).notifier)
-            .sendMessage(attachmentUrl: url, messageType: 'image');
+            .sendMessage(attachmentUrl: url, messageType: MessageType.image);
         onSuccess?.call();
       case UploadFailure(:final reason, :final underlyingError):
         debugPrint(

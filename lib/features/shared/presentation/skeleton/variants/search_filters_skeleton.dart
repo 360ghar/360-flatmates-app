@@ -127,7 +127,7 @@ class _SectionCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 color: bone,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.mdBorder,
               ),
               const SizedBox(width: AppSpacing.md),
               FlatmatesSkeletonBone(width: 140, color: bone),

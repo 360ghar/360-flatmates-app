@@ -62,6 +62,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- The backend sends pushes with channel_id flatmates_messages for this
+             app. Without a default, a push that carries no channel falls back to
+             FCM's own channel (no heads-up, no sound). The channel itself is
+             created in NotificationService.initializeLocalNotifications. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="flatmates_messages" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

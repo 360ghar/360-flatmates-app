@@ -37,7 +37,7 @@ class FlatDetailsSkeleton extends StatelessWidget {
                       width: 36,
                       height: 36,
                       color: bone,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: AppRadius.lgBorder,
                     ),
                   ),
                   Positioned(
@@ -47,7 +47,7 @@ class FlatDetailsSkeleton extends StatelessWidget {
                       width: 36,
                       height: 36,
                       color: bone,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: AppRadius.lgBorder,
                     ),
                   ),
                   Positioned(
@@ -57,7 +57,7 @@ class FlatDetailsSkeleton extends StatelessWidget {
                       width: 36,
                       height: 36,
                       color: bone,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: AppRadius.lgBorder,
                     ),
                   ),
                 ],
@@ -96,7 +96,7 @@ class FlatDetailsSkeleton extends StatelessWidget {
                           width: 18,
                           height: 18,
                           color: bone,
-                          borderRadius: BorderRadius.circular(9),
+                          borderRadius: AppRadius.mdBorder,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         FlatmatesSkeletonBone(width: 160, color: bone),
@@ -160,15 +160,17 @@ class FlatDetailsSkeleton extends StatelessWidget {
                 child: FlatmatesSkeletonBone(
                   height: 48,
                   color: bone,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: AppRadius.mdBorder,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: FlatmatesSkeletonBone(
                   height: 48,
-                  color: AppSemanticColors.accent.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppSemanticColors.clayFor(
+                    brightness,
+                  ).withValues(alpha: 0.3),
+                  borderRadius: AppRadius.mdBorder,
                 ),
               ),
             ],

@@ -1,0 +1,11 @@
+{
+  "chat": {
+    "https_path": "/flatmates/chat/42",
+    "scheme_url": "com.the360ghar.flatmates360://chat/42"
+  },
+  "custom_scheme": "com.the360ghar.flatmates360",
+  "listing": {
+    "https_path": "/flatmates/listing/17",
+    "scheme_url": "com.the360ghar.flatmates360://listing/17"
+  }
+}

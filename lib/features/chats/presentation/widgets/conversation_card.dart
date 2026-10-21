@@ -8,11 +8,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
 import '../../../shared/presentation/flatmates_network_image.dart';
+import '../../../shared/presentation/flatmates_price_text.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 import '../../domain/chat_models.dart';
 
 const double _avatarSize = 44;
-const double _avatarRadius = _avatarSize / 2;
 const double _privacyBlurSigma = 8;
 const double _propertyPreviewSize = 40;
 const double _locationIconSize = 13;
@@ -49,7 +49,50 @@ class ConversationCard extends StatelessWidget {
     final isUnread = item.unreadCount > 0;
     final brightness = theme.brightness;
 
-    // White cards on the soft list-hub page; unread gets a light primary wash.
+    // At large text sizes the name gets its own line (up to two), with the
+    // unread count and time under it, so it is never cut to a few letters.
+    final large = MediaQuery.textScalerOf(context).scale(1) >= 1.5;
+    final secondaryStyle = theme.textTheme.bodySmall?.copyWith(
+      color: AppSemanticColors.textSecondaryFor(brightness),
+    );
+    final nameText = Text(
+      item.peer.fullName,
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: isUnread ? FontWeight.w700 : FontWeight.w600,
+        color: isUnread ? AppSemanticColors.textPrimaryFor(brightness) : null,
+      ),
+      maxLines: large ? 2 : 1,
+      overflow: TextOverflow.ellipsis,
+    );
+    final unreadBadge = Semantics(
+      label: locale.unreadMessagesCount(item.unreadCount),
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xxs,
+        ),
+        decoration: BoxDecoration(
+          color: AppSemanticColors.clayFor(brightness),
+          borderRadius: AppRadius.pillBorder,
+        ),
+        child: Text(
+          '${item.unreadCount}',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AppSemanticColors.onClayFor(brightness),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+    final timeText = Text(
+      timestamp,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: AppSemanticColors.textSecondaryFor(theme.brightness),
+      ),
+    );
+
+    // Paper-2 cards on the list hub; an unread thread gets the clay-soft fill.
     return FlatmatesCard(
       key: cardKey,
       onTap: onTap,
@@ -64,8 +107,7 @@ class ConversationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           highlightMode && item.peer.profileImageUrl != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(_avatarRadius),
+              ? ClipOval(
                   child: ImageFiltered(
                     imageFilter: ImageFilter.blur(
                       sigmaX: _privacyBlurSigma,
@@ -88,68 +130,45 @@ class ConversationCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    // Accent dot for unread threads — improves scannability.
-                    if (isUnread) ...[
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Expanded(
-                      child: Text(
-                        item.peer.fullName,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: isUnread
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          color: isUnread
-                              ? AppSemanticColors.textPrimaryFor(brightness)
-                              : null,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                if (large) ...[
+                  nameText,
+                  if (isUnread || timestamp.isNotEmpty)
+                    Row(
+                      children: [
+                        if (isUnread) ...[
+                          unreadBadge,
+                          const SizedBox(width: AppSpacing.sm),
+                        ],
+                        if (timestamp.isNotEmpty) Flexible(child: timeText),
+                      ],
                     ),
-                    if (isUnread)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: 2,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: AppSemanticColors.accent,
-                          borderRadius: AppRadius.pillBorder,
-                        ),
-                        child: Text(
-                          '${item.unreadCount}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppSemanticColors.onPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    if (timestamp.isNotEmpty) ...[
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        timestamp,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppSemanticColors.textSecondaryFor(
-                            theme.brightness,
-                          ),
-                        ),
-                      ),
+                ] else
+                  Row(
+                    children: [
+                      Expanded(child: nameText),
+                      if (isUnread) unreadBadge,
+                      if (timestamp.isNotEmpty) ...[
+                        const SizedBox(width: AppSpacing.sm),
+                        timeText,
+                      ],
                     ],
-                  ],
-                ),
-                if (item.peer.mode != null || location.isNotEmpty) ...[
+                  ),
+                if (large) ...[
+                  if (item.peer.mode != null)
+                    Text(
+                      localizedFlatmatesModeLabel(locale, item.peer.mode!),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: secondaryStyle,
+                    ),
+                  if (location.isNotEmpty)
+                    Text(
+                      location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: secondaryStyle,
+                    ),
+                ] else if (item.peer.mode != null || location.isNotEmpty) ...[
                   const SizedBox(height: _inlineGap),
                   Row(
                     children: [
@@ -207,7 +226,7 @@ class ConversationCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     item.lastMessagePreview!,
-                    maxLines: 1,
+                    maxLines: large ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppSemanticColors.textSecondaryFor(
@@ -224,7 +243,7 @@ class ConversationCard extends StatelessWidget {
                       color: AppSemanticColors.secondarySurfaceFor(
                         theme.brightness,
                       ),
-                      borderRadius: AppRadius.sheetBorder,
+                      borderRadius: AppRadius.mdBorder,
                     ),
                     child: Row(
                       children: [
@@ -255,8 +274,10 @@ class ConversationCard extends StatelessWidget {
                               if (item.contextProperty!.monthlyRent != null)
                                 Text(
                                   locale.monthlyRentLabel(
-                                    item.contextProperty!.monthlyRent!
-                                        .toStringAsFixed(0),
+                                    FlatmatesPriceText.formatRupee(
+                                      item.contextProperty!.monthlyRent!
+                                          .round(),
+                                    ),
                                   ),
                                   style: theme.textTheme.bodySmall,
                                 ),
@@ -290,18 +311,17 @@ class _PropertyPreviewFallback extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         borderRadius: AppRadius.cardBorder,
-        gradient: LinearGradient(
-          colors: [
-            AppSemanticColors.accent.withValues(alpha: 0.9),
-            AppSemanticColors.accent.withValues(alpha: 0.4),
-          ],
-        ),
+        // Flat clay-soft, not a clay gradient: no stop of the old gradient
+        // kept the initials at AA (about 2.2:1 dark / 2.0:1 light).
+        // clay-ink on clay-soft is an asserted pair in
+        // test/core/theme/contrast_test.dart (8.4:1 light, 4.8:1 dark).
+        color: AppSemanticColors.coralSoftFor(theme.brightness),
       ),
       child: Center(
         child: Text(
           initialsFromName(title),
           style: theme.textTheme.bodySmall?.copyWith(
-            color: AppSemanticColors.onPrimary,
+            color: AppSemanticColors.clayInkFor(theme.brightness),
             fontWeight: FontWeight.w600,
           ),
         ),

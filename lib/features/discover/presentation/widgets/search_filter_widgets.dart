@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chip.dart';
 import '../../../shared/presentation/flatmates_ui.dart';
 
 /// A compact, always-expanded filter section: a small header row
-/// (optional icon chip + title + inline selected-value) with its
+/// (optional bare icon + title + inline selected-value) with its
 /// options shown directly beneath. Replaces the old collapsible
 /// section so all filter values are visible at once in the modal.
 class CompactFilterSection extends StatelessWidget {
@@ -18,7 +17,6 @@ class CompactFilterSection extends StatelessWidget {
     this.subtitle,
     this.icon,
     this.iconColor,
-    this.iconBgColor,
     super.key,
   });
 
@@ -27,12 +25,12 @@ class CompactFilterSection extends StatelessWidget {
   final Widget child;
   final IconData? icon;
   final Color? iconColor;
-  final Color? iconBgColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = iconColor ?? AppSemanticColors.accent;
+    final accentColor =
+        iconColor ?? AppSemanticColors.clayFor(theme.brightness);
 
     return Padding(
       // Section-level air: keep chips dense, separate groups clearly.
@@ -42,29 +40,16 @@ class CompactFilterSection extends StatelessWidget {
         children: [
           Row(
             children: [
+              // Bare icon, no tile behind it (DESIGN.md §9).
               if (icon != null) ...[
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: iconBgColor ?? accentColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, size: 16, color: accentColor),
-                ),
-                const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
+                Icon(icon, size: 20, color: accentColor),
+                const SizedBox(width: AppSpacing.md),
               ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: AppTypography.bodyMdSize - 1,
-                      ),
-                    ),
+                    Text(title, style: theme.textTheme.titleMedium),
                     if (subtitle != null)
                       Text(
                         subtitle!,
@@ -72,7 +57,6 @@ class CompactFilterSection extends StatelessWidget {
                           color: AppSemanticColors.textSecondaryFor(
                             theme.brightness,
                           ),
-                          fontSize: 12,
                         ),
                       ),
                   ],

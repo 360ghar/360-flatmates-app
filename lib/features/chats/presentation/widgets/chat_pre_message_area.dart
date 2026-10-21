@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flatmates_app/core/theme/app_semantic_colors.dart';
 
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
+import '../../../shared/presentation/flatmates_chip.dart';
 
 /// Contextual QnA nudge banner shown ABOVE the message list for new matches.
 ///
@@ -23,18 +23,18 @@ class ChatQnANudgeCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
+        AppSpacing.screen,
         AppSpacing.xs,
-        AppSpacing.xl,
+        AppSpacing.screen,
         0,
       ),
       child: FlatmatesCard(
         onTap: onTap,
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.quiz_outlined,
-              color: AppSemanticColors.accent,
+              color: AppSemanticColors.clayFor(theme.brightness),
               size: 28,
             ),
             const SizedBox(width: AppSpacing.md),
@@ -45,11 +45,10 @@ class ChatQnANudgeCard extends StatelessWidget {
                   Text(
                     locale.qnaNudgeTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: AppSemanticColors.accent,
+                      color: AppSemanticColors.clayFor(theme.brightness),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 2),
                   Text(
                     locale.qnaNudgeSubtitle,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -61,9 +60,9 @@ class ChatQnANudgeCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: AppSemanticColors.accent,
+              color: AppSemanticColors.clayFor(theme.brightness),
             ),
           ],
         ),
@@ -89,74 +88,24 @@ class ChatIcebreakerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.sm,
-        AppSpacing.sm,
-        AppSpacing.sm,
-        AppSpacing.xs,
-      ),
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
         child: Row(
           children: [
             for (var i = 0; i < icebreakers.length; i++) ...[
-              if (i > 0) const SizedBox(width: AppSpacing.xs),
-              _IcebreakerChip(
+              if (i > 0) const SizedBox(width: AppSpacing.sm),
+              // Shared 48 dp chip (the private one was about 26 dp high).
+              // Tapping sends the suggestion, so it is an action, not a
+              // filter: it has no selected state to announce.
+              FlatmatesChip(
                 label: icebreakers[i],
-                onTap: () => onSelected(icebreakers[i]),
+                variant: FlatmatesChipVariant.action,
+                onSelected: (_) => onSelected(icebreakers[i]),
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Dense pill used only for icebreaker suggestions (tighter than
-/// [FlatmatesChip] so more prompts stay visible horizontally).
-class _IcebreakerChip extends StatelessWidget {
-  const _IcebreakerChip({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final background = isDark
-        ? AppSemanticColors.darkSurface
-        : AppSemanticColors.canvas;
-    final foreground = isDark
-        ? AppSemanticColors.darkBody
-        : AppSemanticColors.body;
-    final border = AppSemanticColors.hairlineFor(theme.brightness);
-
-    return Material(
-      color: background,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.pillBorder,
-        side: BorderSide(color: border),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.pillBorder,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
-            ),
-          ),
         ),
       ),
     );

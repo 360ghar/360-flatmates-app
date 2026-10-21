@@ -40,6 +40,8 @@ void main() {
     WidgetTester tester, {
     String status = 'active',
     bool isPaused = false,
+    void Function(int, bool)? onTogglePause,
+    VoidCallback? onReview,
   }) async {
     final locale = lookupAppLocalizations(const Locale('en'));
     await tester.pumpWidget(
@@ -53,11 +55,11 @@ void main() {
               listing: listing,
               status: status,
               isPaused: isPaused,
-              onTogglePause: (_, _) {},
+              onTogglePause: onTogglePause ?? (_, _) {},
               onShare: () {},
               onEdit: () {},
               onViewStats: () {},
-              onReview: () {},
+              onReview: onReview ?? () {},
               onRenew: () {},
               theme: ThemeData.light(),
               locale: locale,
@@ -92,6 +94,30 @@ void main() {
       await pumpCard(tester, status: 'paused', isPaused: true);
 
       expect(find.text(locale.resumeAction), findsOneWidget);
+    });
+
+    testWidgets('a rejected listing opens the review page, never a pause', (
+      tester,
+    ) async {
+      // The server answers 409 LISTING_STATUS_CONFLICT to a pause or resume of
+      // a rejected listing, so the card does not offer one.
+      final locale = lookupAppLocalizations(const Locale('en'));
+      var toggles = 0;
+      var reviews = 0;
+      await pumpCard(
+        tester,
+        status: 'rejected',
+        onTogglePause: (_, _) => toggles++,
+        onReview: () => reviews++,
+      );
+
+      expect(find.text(locale.pauseListingCta), findsNothing);
+      expect(find.text(locale.resumeAction), findsNothing);
+      await tester.tap(find.text(locale.reviewAction));
+      await tester.pump();
+
+      expect(reviews, 1);
+      expect(toggles, 0);
     });
 
     testWidgets('renders renew toggle for expired listing', (tester) async {

@@ -126,7 +126,7 @@ class FlatmatesListingMiniCard extends StatelessWidget {
           color: AppSemanticColors.coralSoftFor(brightness),
           child: Icon(
             Icons.home_rounded,
-            color: AppSemanticColors.accent.withValues(alpha: 0.4),
+            color: AppSemanticColors.clayFor(brightness).withValues(alpha: 0.4),
             size: compact ? 24 : 32,
           ),
         );

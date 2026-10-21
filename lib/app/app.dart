@@ -18,10 +18,13 @@ import '../core/notifications/notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/bootstrap/bootstrap_controller.dart';
+import '../features/chats/application/cursor_list_controller.dart';
+import '../features/notifications/notifications_list_controller.dart';
+import '../features/visits/application/visits_list_controller.dart';
 import '../features/notifications/notification_route_resolver.dart';
-import '../features/onboarding/onboarding_controller.dart';
 import '../features/settings/settings_controller.dart';
 import '../l10n/gen/app_localizations.dart';
+import 'account_scope.dart';
 import 'router/app_router.dart';
 
 class App extends ConsumerStatefulWidget {
@@ -48,6 +51,9 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final router = ref.read(appRouterProvider);
       _deepLinkService = DeepLinkService(router: router)..init();
+      NotificationService.onPendingRoute = _onNotificationTapped;
+      // A tap that arrived before this frame is still pending.
+      _onNotificationTapped();
       _checkAppConfig();
       unawaited(_checkShorebirdPatch());
       ref.read(analyticsServiceProvider).logAppOpen();
@@ -57,6 +63,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    NotificationService.onPendingRoute = null;
     _deepLinkService?.dispose();
     super.dispose();
   }
@@ -68,10 +75,16 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     // patch can land mid-session. Checked before the bootstrap guard below —
     // a pending patch is worth announcing regardless of login state.
     unawaited(_checkShorebirdPatch());
-    final bootstrap = ref.read(bootstrapControllerProvider).valueOrNull;
-    if (bootstrap == null) return;
-    final router = ref.read(appRouterProvider);
-    _navigateFromPendingNotification(router);
+    _onNotificationTapped();
+  }
+
+  /// Navigates to a tapped notification's route once bootstrap is ready.
+  /// If bootstrap is still loading, the bootstrap listener in [build]
+  /// consumes the route when data arrives.
+  void _onNotificationTapped() {
+    if (!mounted) return;
+    if (ref.read(bootstrapControllerProvider).valueOrNull == null) return;
+    _navigateFromPendingNotification(ref.read(appRouterProvider));
   }
 
   Future<void> _checkAppConfig() async {
@@ -219,7 +232,6 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsControllerProvider);
     final router = ref.watch(appRouterProvider);
-    final bootstrapState = ref.watch(bootstrapControllerProvider);
 
     // Activate Realtime event stream and provider invalidation router.
     ref.watch(flatmatesRealtimeEventRouterProvider);
@@ -233,6 +245,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       service.setNetworkAvailable(online);
       if (online && ref.read(authControllerProvider).isLoggedIn) {
         _connectRealtimeIfReady();
+        if (previous?.valueOrNull == false) _refetchAfterReconnect();
       }
     });
 
@@ -267,15 +280,6 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       }
     });
 
-    // Handle notification deep links once bootstrap data is present.
-    // Always attempt consume — no permanent one-shot flag so subsequent
-    // warm taps (when build re-runs) can still navigate.
-    if (bootstrapState is AsyncData && bootstrapState.value != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _navigateFromPendingNotification(router);
-      });
-    }
-
     // React only to the login/logout *transition*, not to every auth-state
     // emission. Bootstrap fetches /users/me/auth-state and calls
     // updateGateStage(), which re-emits AuthState — so an unguarded listener
@@ -301,6 +305,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       if (isLoggedIn == wasLoggedIn) return;
 
       if (isLoggedIn) {
+        // The settings read the server values of the account that signed in.
+        unawaited(ref.read(settingsControllerProvider.notifier).load());
         _logLoginSafely();
         _initializeNotificationsSafely();
         // Realtime needs the numeric profile id from bootstrap — connect
@@ -312,8 +318,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
         ref.read(flatmatesRealtimeServiceProvider).disconnect();
         ref.read(pendingPhoneProvider.notifier).set(null);
         ref.read(addPhonePromptProvider.notifier).set(false);
-        unawaited(_clearOnboardingDraftThenInvalidate());
         ref.read(bootstrapControllerProvider.notifier).clear();
+        _clearAccountScopedStateAfterFrame();
       }
     });
 
@@ -327,12 +333,40 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       routerConfig: router,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) {
-        return Stack(
-          children: [child ?? const SizedBox.shrink(), const OfflineBanner()],
-        );
-      },
+      // Text follows the user's size up to 2x. Beyond that, display type
+      // breaks words mid-line and single-line controls truncate.
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 2,
+        child: OfflineBanner(child: child ?? const SizedBox.shrink()),
+      ),
     );
+  }
+
+  /// Back online: refetch the lists that realtime would have kept fresh, and
+  /// bootstrap if it failed while offline.
+  ///
+  /// The lists are refreshed in place rather than invalidated: invalidation
+  /// drops the rows the user is looking at, so a transient failure after
+  /// reconnect left blank / error screens even though good data was on screen
+  /// moments earlier. [refreshKeepingListFromWidget] keeps the current rows
+  /// until the refetch lands and keeps them (plus the error) if it fails. A
+  /// provider that was never read is skipped — its first read fetches anyway.
+  void _refetchAfterReconnect() {
+    unawaited(
+      Future.wait<void>([
+        refreshKeepingListFromWidget(ref, conversationsListControllerProvider),
+        refreshKeepingListFromWidget(ref, incomingLikesListControllerProvider),
+        refreshKeepingListFromWidget(ref, outgoingLikesListControllerProvider),
+        refreshKeepingListFromWidget(ref, notificationsListControllerProvider),
+        refreshKeepingListFromWidget(ref, visitsListControllerProvider),
+      ]).catchError((Object error, StackTrace stackTrace) {
+        debugPrint('App._refetchAfterReconnect failed: $error');
+        return const <void>[];
+      }),
+    );
+    if (ref.read(bootstrapControllerProvider).hasError) {
+      _refreshBootstrapAfterAuth('reconnect');
+    }
   }
 
   bool _bootstrapNeedsRefresh() {
@@ -415,14 +449,19 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _clearOnboardingDraftThenInvalidate() async {
-    try {
-      await ref.read(onboardingDraftStorageProvider).clear();
-      if (!mounted) return;
-      ref.invalidate(onboardingControllerProvider);
-    } catch (error) {
-      debugPrint('App.logout clear onboarding draft failed: $error');
-    }
+  /// Drops the signed-out account's data from memory and disk (see
+  /// [clearAccountScopedState]). Runs after the frame: the router has left the
+  /// signed-in screens by then, so the providers it invalidates have no
+  /// listener to refetch them with no session.
+  void _clearAccountScopedStateAfterFrame() {
+    final container = ProviderScope.containerOf(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        clearAccountScopedState(container).catchError((Object error) {
+          debugPrint('App.logout clear account state failed: $error');
+        }),
+      );
+    });
   }
 
   void _navigateFromPendingNotification(GoRouter router) {

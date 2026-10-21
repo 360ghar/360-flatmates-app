@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/config/endpoints.dart';
 import '../../../core/network/api_client.dart';
@@ -33,24 +34,35 @@ class IdentifierStatus {
   /// Whether the account has a password set.
   final bool hasPassword;
 
-  /// Whether the identifier is a phone or an email.
-  final AuthChannel channel;
+  /// Whether the identifier is a phone or an email. Null for a value this
+  /// build does not know: the caller decides, nothing is guessed here.
+  final AuthChannel? channel;
 
-  /// Server-recommended next step: password (verified) or otp.
-  final IdentifierNextStep nextStep;
+  /// Server-recommended next step: password (verified) or otp. Null for a
+  /// value this build does not know.
+  final IdentifierNextStep? nextStep;
 
   factory IdentifierStatus.fromJson(Map<String, dynamic> json) {
     return IdentifierStatus(
       exists: json['exists'] as bool? ?? false,
       verified: json['verified'] as bool? ?? false,
       hasPassword: json['has_password'] as bool? ?? false,
-      channel: (json['channel'] as String?) == 'email'
-          ? AuthChannel.email
-          : AuthChannel.phone,
-      nextStep: (json['next_step'] as String?) == 'password'
-          ? IdentifierNextStep.password
-          : IdentifierNextStep.otp,
+      channel: _byWire(AuthChannel.values, 'channel', json['channel']),
+      nextStep: _byWire(
+        IdentifierNextStep.values,
+        'next_step',
+        json['next_step'],
+      ),
     );
+  }
+
+  /// The enum value named [raw] (the wire value), or null and a log line.
+  static T? _byWire<T extends Enum>(List<T> values, String key, Object? raw) {
+    for (final value in values) {
+      if (value.name == raw) return value;
+    }
+    debugPrint('IdentifierStatus.fromJson: unknown $key value $raw');
+    return null;
   }
 }
 
@@ -80,6 +92,18 @@ final class AuthRepository {
   SupabaseClient get _supabase => Supabase.instance.client;
 
   Session? get currentSession => _supabase.auth.currentSession;
+
+  /// Supabase auth events (sign-out, token refresh, …). Empty when Supabase
+  /// is not initialised, for example in unit tests.
+  Stream<AuthChangeEvent> get authEvents {
+    try {
+      return _supabase.auth.onAuthStateChange.map((change) => change.event);
+    } catch (e) {
+      debugPrint('AuthRepository.authEvents unavailable: $e');
+      return const Stream.empty();
+    }
+  }
+
   String? get currentPhone => currentSession?.user.phone;
   String? get currentEmail => currentSession?.user.email;
 
@@ -114,7 +138,7 @@ final class AuthRepository {
     try {
       await _apiClient.post(
         FlatmatesEndpoints.lastMethod,
-        data: {'method': method.wireValue},
+        data: {'method': method.wire},
       );
     } catch (e) {
       // Non-fatal: the user is already authenticated; remembering the method

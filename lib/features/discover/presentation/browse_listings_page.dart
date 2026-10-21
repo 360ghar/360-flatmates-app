@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/debouncer.dart';
 import '../../shared/presentation/components.dart';
+import '../../shared/presentation/paper/paper_scene.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../application/discover_feed_controller.dart';
 import 'widgets/broadened_radius_banner.dart';
@@ -68,7 +69,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
     final filtered = ref.watch(filteredListingsProvider);
     final isSearchActive = _isSearchActive;
 
-    return Scaffold(
+    return FlatmatesScreen(
       appBar: FlatmatesHeader.backTitle(
         title: isSearchActive ? null : locale.homePickedForYou,
         titleWidget: isSearchActive
@@ -86,6 +87,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                   trailingIcon: _searchController.text.isNotEmpty
                       ? Icons.close_rounded
                       : null,
+                  trailingTooltip: locale.clearSearchTooltip,
                   onTrailingTap: () {
                     // Cancel any pending debounced query so clear wins.
                     _searchDebouncer.dispose();
@@ -138,16 +140,18 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
           ? FlatmatesEmptyState(
               title: locale.homeNoResults,
               subtitle: locale.homeNoResultsSubtitle,
-              icon: Icons.search_off_rounded,
+              prop: PaperProp.magnifier,
+              ctaLabel: locale.adjustFiltersCta,
+              onCtaTap: () => showFiltersSheet(context),
             )
           : Column(
               children: [
                 if (feedState.isBroadened)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
+                      AppSpacing.screen,
                       AppSpacing.sm,
-                      AppSpacing.lg,
+                      AppSpacing.screen,
                       0,
                     ),
                     child: BroadenedRadiusBanner(
@@ -165,10 +169,10 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                       // result set is shorter than the viewport.
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
+                        AppSpacing.screen,
                         AppSpacing.md,
-                        AppSpacing.lg,
-                        120,
+                        AppSpacing.screen,
+                        AppSpacing.xl,
                       ),
                       // +1 footer row when more pages may still load.
                       itemCount: filtered.length + (feedState.hasMore ? 1 : 0),
@@ -189,7 +193,7 @@ class _BrowseListingsPageState extends ConsumerState<BrowseListingsPage> {
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const SizedBox(height: 24),
+                                  : const SizedBox(height: AppSpacing.lg),
                             ),
                           );
                         }

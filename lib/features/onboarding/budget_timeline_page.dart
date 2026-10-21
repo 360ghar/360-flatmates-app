@@ -103,20 +103,16 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final controllerState = ref.watch(onboardingControllerProvider);
-    final completionPct = controllerState.completionPercentage;
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: AppSpacing.horizontalScreen,
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: AppSpacing.horizontalScreen,
         child: ListView(
           children: [
             const SizedBox(height: AppSpacing.sm),
-            FlatmatesStepProgress.segments(
-              currentStep: completionPct.round(),
-              totalSteps: 100,
-            ),
-            const SizedBox(height: AppSpacing.xl),
             Text(
               locale.budgetTimelineTitle,
               style: theme.textTheme.headlineLarge,
@@ -144,13 +140,13 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                       Text(
                         FlatmatesPriceText.formatRupee(_budgetMin.round()),
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.clayFor(theme.brightness),
                         ),
                       ),
                       Text(
                         FlatmatesPriceText.formatRupee(_budgetMax.round()),
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.clayFor(theme.brightness),
                         ),
                       ),
                     ],
@@ -183,7 +179,9 @@ class _BudgetTimelinePageState extends ConsumerState<BudgetTimelinePage> {
                       child: Text(
                         _budgetError!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppSemanticColors.error,
+                          color: AppSemanticColors.dangerFor(
+                            Theme.of(context).brightness,
+                          ),
                         ),
                       ),
                     ),

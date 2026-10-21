@@ -94,20 +94,21 @@ class BudgetFilterCard extends StatelessWidget {
         formatBudget(budgetValues.end),
       ),
       icon: Icons.account_balance_wallet_outlined,
-      iconColor: AppSemanticColors.greenMid,
-      iconBgColor: AppSemanticColors.successSoft,
+      iconColor: AppSemanticColors.pineFor(theme.brightness),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Theme(
             data: theme.copyWith(
               sliderTheme: SliderThemeData(
-                activeTrackColor: AppSemanticColors.accent,
-                inactiveTrackColor: AppSemanticColors.accent.withValues(
-                  alpha: 0.15,
-                ),
-                thumbColor: AppSemanticColors.accent,
-                overlayColor: AppSemanticColors.accent.withValues(alpha: 0.08),
+                activeTrackColor: AppSemanticColors.clayFor(theme.brightness),
+                inactiveTrackColor: AppSemanticColors.clayFor(
+                  theme.brightness,
+                ).withValues(alpha: 0.15),
+                thumbColor: AppSemanticColors.clayFor(theme.brightness),
+                overlayColor: AppSemanticColors.clayFor(
+                  theme.brightness,
+                ).withValues(alpha: 0.08),
                 rangeThumbShape: const RoundRangeSliderThumbShape(elevation: 2),
                 trackHeight: 4,
               ),

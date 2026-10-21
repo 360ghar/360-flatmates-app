@@ -7,6 +7,7 @@ import '../../bootstrap/bootstrap_controller.dart';
 import '../../chats/application/cursor_list_controller.dart';
 import '../../chats/chats_repository.dart';
 import '../discover_repository.dart';
+import '../domain/listing_lifestyle.dart';
 import 'map_listings_controller.dart';
 import 'move_in_filter.dart';
 
@@ -310,7 +311,6 @@ class DiscoverFeedController extends Notifier<DiscoverFeedState> {
           .setLiked(propertyId, newLiked);
       // Invalidate on both like and unlike so the conversation list stays
       // in sync (unliking may remove a pending conversation/like entry).
-      ref.invalidate(conversationsProvider);
       // The ConversationsPage Chats tab watches the cursor controller, not the
       // legacy FutureProvider above — refresh it too or the tab stays stale
       // until a manual pull-to-refresh.
@@ -603,12 +603,7 @@ List<PropertyListing> applyDiscoverListingFilters({
     final prefs = item.preferences ?? const <String, dynamic>{};
     final smokingValue = _smokingValue(prefs);
     final drinkingValue = _drinkingValue(prefs);
-    final petsValue = (prefs['pets'] as String? ?? '').trim();
-    final hasPets =
-        prefs['has_pets'] == true ||
-        prefs['pets'] == true ||
-        petsValue == 'have_pets' ||
-        petsValue == 'pet_friendly';
+    final hasPets = listingHasPets(prefs);
 
     final matchesPets = switch (filters.pets) {
       null || 'no_preference' => true,

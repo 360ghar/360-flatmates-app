@@ -66,22 +66,20 @@ extension _SwipeDeckActions on _SwipeDeckPageState {
   }
 
   Widget _scaffoldWithHeader(Widget body) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.screen,
-                AppSpacing.sm,
-                AppSpacing.screen,
-                0,
-              ),
-              child: SwipeDeckHeader(),
+    return FlatmatesScreen(
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.sm,
+              AppSpacing.screen,
+              0,
             ),
-            Expanded(child: body),
-          ],
-        ),
+            child: SwipeDeckHeader(),
+          ),
+          Expanded(child: body),
+        ],
       ),
     );
   }

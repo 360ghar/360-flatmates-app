@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/core/network/api_client.dart';
 import 'package:flatmates_app/core/providers.dart';
 import 'package:flatmates_app/features/auth/auth_controller.dart';
@@ -45,7 +46,8 @@ Response _ok(Object data) =>
 Map<String, dynamic> _profileJson(
   int id, {
   String? foodHabits,
-  String? smokingDrinking,
+  String? smoking,
+  String? drinking,
   String? gender,
   String? genderPreference,
   bool hasPets = false,
@@ -66,7 +68,8 @@ Map<String, dynamic> _profileJson(
   'non_negotiables': <dynamic>[],
   'has_pets': hasPets,
   'food_habits': foodHabits,
-  'smoking_drinking': smokingDrinking,
+  'smoking': smoking,
+  'drinking': drinking,
   'party_habit': partyHabit,
   'cleanliness': cleanliness,
   'guests_policy': guestsPolicy,
@@ -95,7 +98,7 @@ BootstrapData _bootstrapWithNegs(
       id: 1,
       fullName: 'Test User',
       mode: 'co_hunter',
-      profileStatus: 'active',
+      profileStatus: FlatmatesProfileStatus.active,
       onboardingCompleted: true,
       genderPreference: genderPreference,
       preferences: {'non_negotiables': nonNegotiables},
@@ -135,23 +138,11 @@ void main() {
           return _ok({
             'items': [
               // Smoker — should be excluded by no_smoking.
-              _profileJson(
-                1,
-                smokingDrinking: 'smoke_outside',
-                foodHabits: 'vegetarian',
-              ),
+              _profileJson(1, smoking: 'regularly', foodHabits: 'vegetarian'),
               // Non-vegetarian — should be excluded by food_veg_only.
-              _profileJson(
-                2,
-                smokingDrinking: 'neither',
-                foodHabits: 'non_vegetarian',
-              ),
+              _profileJson(2, smoking: 'never', foodHabits: 'non_vegetarian'),
               // Clean peer — should be kept.
-              _profileJson(
-                3,
-                smokingDrinking: 'neither',
-                foodHabits: 'vegetarian',
-              ),
+              _profileJson(3, smoking: 'never', foodHabits: 'vegetarian'),
             ],
             'next_cursor': null,
             'has_more': false,
@@ -203,10 +194,10 @@ void main() {
         if (options.path == '/flatmates/profiles') {
           return _ok({
             'items': [
-              _profileJson(1, smokingDrinking: 'smoke_outside'),
-              _profileJson(2, smokingDrinking: 'both_fine'),
-              _profileJson(3, smokingDrinking: 'neither'),
-              _profileJson(4, smokingDrinking: 'drink_occasionally'),
+              _profileJson(1, smoking: 'regularly'),
+              _profileJson(2, smoking: 'occasionally'),
+              _profileJson(3, smoking: 'never'),
+              _profileJson(4, smoking: 'never', drinking: 'occasionally'),
             ],
             'next_cursor': null,
             'has_more': false,
@@ -235,8 +226,8 @@ void main() {
           return _ok({
             'items': [
               _profileJson(1, foodHabits: 'non_vegetarian'),
-              _profileJson(2, smokingDrinking: 'smoke_outside'),
-              _profileJson(3, smokingDrinking: 'neither'),
+              _profileJson(2, smoking: 'regularly'),
+              _profileJson(3, smoking: 'never'),
             ],
             'next_cursor': null,
             'has_more': false,

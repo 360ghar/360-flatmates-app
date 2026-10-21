@@ -61,10 +61,15 @@ String compatSummaryLabel(AppLocalizations locale, String summary) {
   }
 }
 
-Color compatibilityScoreColor(double percentage) {
-  if (percentage >= 70) return AppSemanticColors.compatHigh;
-  if (percentage >= 40) return AppSemanticColors.compatMedium;
-  return AppSemanticColors.compatLow;
+/// Colour for a match score: pine (70+), warning ink (40+), danger. Every
+/// colour passes AA as text on paper in [brightness].
+Color compatibilityScoreColor(
+  double percentage, {
+  required Brightness brightness,
+}) {
+  if (percentage >= 70) return AppSemanticColors.pineFor(brightness);
+  if (percentage >= 40) return AppSemanticColors.warningInkFor(brightness);
+  return AppSemanticColors.dangerFor(brightness);
 }
 
 class CompatibilityDimension {

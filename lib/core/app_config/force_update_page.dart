@@ -55,7 +55,7 @@ class ForceUpdatePage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: () => _launchUrl(context),
+                      onPressed: _launchUrl,
                       child: Text(locale.forceUpdateCta),
                     ),
                   ),
@@ -68,11 +68,23 @@ class ForceUpdatePage extends StatelessWidget {
     );
   }
 
-  Future<void> _launchUrl(BuildContext context) async {
+  /// Opens the store page in the browser. [updateUrl] comes from server
+  /// app-config, so only `http`/`https` is allowed: `canLaunchUrl` would
+  /// otherwise hand a custom scheme (`intent://`, `tel:`, …) to another app
+  /// on the device.
+  Future<void> _launchUrl() async {
     if (updateUrl.isEmpty) return;
-    final uri = Uri.parse(updateUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final uri = Uri.tryParse(updateUrl);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      debugPrint('ForceUpdatePage._launchUrl: refused non-http(s) update URL');
+      return;
+    }
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('ForceUpdatePage._launchUrl: $e');
     }
   }
 }

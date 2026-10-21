@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/error_presenter.dart';
 import '../../../../core/errors/l10n_bridge.dart';
-import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../bootstrap/bootstrap_controller.dart';
@@ -78,7 +78,11 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
     } catch (e, st) {
       debugPrint('FlatmateProfileSheet._handleContact: $e');
       if (!mounted) return;
-      final failure = e is DioException ? ErrorPresenter.fromDio(e, st) : null;
+      final failure = switch (e) {
+        final AppFailure f => f,
+        final DioException d => ErrorPresenter.fromDio(d, st),
+        _ => null,
+      };
       final message = failure != null
           ? failure.userMessage(locale.toUserMessageL10n())
           : locale.errorUnknown;
@@ -90,19 +94,47 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final profileAsync = ref.watch(peerProfileProvider(widget.userId));
     final locale = AppLocalizations.of(context);
     final currentUserId = ref.watch(
       bootstrapControllerProvider.select((s) => s.valueOrNull?.profile.id),
     );
     final isSelf = currentUserId != null && currentUserId == widget.userId;
+    final nameFallback = widget.nameFallback;
+    // The payload with photos failed to load, but the caller already knows who
+    // this is — keep the name/avatar visible so the failure stays attributable
+    // to a person instead of showing a bare generic error.
+    final loadError = Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (nameFallback != null && nameFallback.isNotEmpty) ...[
+            FlatmatesAvatar(name: nameFallback, size: 80),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              nameFallback,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          FlatmatesErrorState(
+            message: locale.couldNotLoadContent,
+            onRetry: () => ref.invalidate(peerProfileProvider(widget.userId)),
+          ),
+        ],
+      ),
+    );
 
     return profileAsync.when(
       loading: () => const FlatmatesSkeleton.peerProfileSheet(),
-      error: (_, _) => _LoadError(name: widget.nameFallback ?? 'Flatmate'),
+      error: (_, _) => loadError,
       data: (peerData) {
         if (peerData == null) {
-          return _LoadError(name: widget.nameFallback ?? 'Flatmate');
+          return loadError;
         }
         final peer = SwipeProfile.fromJson(peerData);
         final currentUser = ref.watch(
@@ -131,44 +163,6 @@ class _FlatmateProfileSheetState extends ConsumerState<FlatmateProfileSheet> {
           trailing: trailing,
         );
       },
-    );
-  }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.name});
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FlatmatesAvatar(name: name, size: 80),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            name,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            locale.couldNotLoadContent,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppSemanticColors.textTertiaryFor(
-                isDark ? Brightness.dark : Brightness.light,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

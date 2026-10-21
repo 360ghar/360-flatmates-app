@@ -60,6 +60,12 @@ class FlatmatesSkeleton extends StatelessWidget {
     : itemCount = 1,
       variant = SkeletonVariant.discoverFeed;
 
+  /// One row of two listing cards, for the home feed section while the real
+  /// header and search bar are already on screen.
+  const FlatmatesSkeleton.discoverFeedCards({super.key})
+    : itemCount = 1,
+      variant = SkeletonVariant.discoverFeedCards;
+
   /// Browse listings skeleton — compact horizontal cards.
   const FlatmatesSkeleton.browseListings({super.key, this.itemCount = 4})
     : variant = SkeletonVariant.browseListings;
@@ -141,6 +147,7 @@ class FlatmatesSkeleton extends StatelessWidget {
       ),
       SkeletonVariant.profile => const ProfileSkeleton(),
       SkeletonVariant.discoverFeed => const DiscoverFeedSkeleton(),
+      SkeletonVariant.discoverFeedCards => const DiscoverFeedCardsSkeleton(),
       SkeletonVariant.browseListings => BrowseListingsSkeleton(
         itemCount: itemCount,
       ),
@@ -179,6 +186,7 @@ enum SkeletonVariant {
   feed,
   profile,
   discoverFeed,
+  discoverFeedCards,
   browseListings,
   flatDetails,
   chatMessages,

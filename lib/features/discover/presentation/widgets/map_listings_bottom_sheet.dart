@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/mutable_notifier.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_empty_state.dart';
@@ -14,8 +15,49 @@ import 'discover_listing_card.dart';
 /// Sized so ~1.5–2 cards peek on a phone with balanced photo + readable text.
 const kMapCarouselCardWidth = 188.0;
 
-/// Image (16:10 @ 188 → ~118) + pad + rent/locality (~40).
+/// Card slots the carousel shows at once.
+///
+/// Derived from the phone geometry the 188 dp width was sized for:
+/// `(466 - 2 * 16 gutter + 8 gap) / (188 + 8)`. Held constant at every width,
+/// because the "nearest centre = selected" heuristic lights exactly one card:
+/// with the fixed 188 dp width a 720 dp reading column shows 3.5 cards and the
+/// highlight stops reading as "the middle one".
+const kMapCarouselVisibleCards =
+    (466 - 2 * AppSpacing.screen + AppSpacing.sm) /
+    (kMapCarouselCardWidth + AppSpacing.sm);
+
+/// Widest a carousel card may grow. The reading column keeps the sheet well
+/// under this on every phone pose; it only bites on a desktop-width sheet.
+const kMapCarouselCardMaxWidth = 420.0;
+
+/// Width of one carousel card in a [viewportWidth]-wide card list.
+///
+/// 188 dp on a phone — the value the card height is built around — and wider
+/// as the list grows, so the number of cards on screen stays the phone's.
+double mapCarouselCardWidth(double viewportWidth) {
+  final available = viewportWidth - 2 * kMapCarouselPadding;
+  final width =
+      (available + AppSpacing.sm) / kMapCarouselVisibleCards - AppSpacing.sm;
+  return width.clamp(kMapCarouselCardWidth, kMapCarouselCardMaxWidth);
+}
+
+/// Image (16:10 @ 188 → ~118) + pad + rent/locality (~50 at 1x text).
 const kMapCarouselCardHeight = 168.0;
+
+/// Height of the text block under the image at 1x text. Derived from the phone
+/// card, so [kMapCarouselCardHeight] is still exactly the card height at
+/// [kMapCarouselCardWidth].
+const double _kMapCarouselTextBlock =
+    kMapCarouselCardHeight - kMapCarouselCardWidth * 10 / 16;
+
+/// Card slot height at the current text size for a [cardWidth]-wide card: the
+/// image part keeps the card's 16:10, the text part grows so rent and locality
+/// never clip.
+double mapCarouselCardHeight(BuildContext context, double cardWidth) =>
+    cardWidth * 10 / 16 + AppSpacing.scaled(context, _kMapCarouselTextBlock);
+
+/// Leading and trailing inset of the card list (the page gutter).
+const kMapCarouselPadding = AppSpacing.screen;
 
 /// Bottom draggable sheet that surfaces a horizontally-scrolling list of
 /// listings overlaid on the map view. Highlights the selected property
@@ -39,24 +81,30 @@ class MapListingsBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final frostOverlayColor = isDark
-        ? AppSemanticColors.frostOverlayDark
-        : AppSemanticColors.frostOverlayLight;
+    final brightness = theme.brightness;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         // Tight height so the sheet hugs content (no empty band under cards):
         // Handle: sm top + 4 line + sm bottom = 20
         // Title: ~20 line + sm bottom = 28
-        // Cards: kMapCarouselCardHeight
+        // Cards: the card's own height at this width
         // Bottom: sm + safe area (tighter than lg)
-        final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
+        final padding = MediaQuery.paddingOf(context);
+        final safeAreaBottom = padding.bottom;
         final bottomPadding = AppSpacing.sm + safeAreaBottom;
-        const handleHeight = AppSpacing.sm * 2 + 4.0;
-        const titleHeight = 20.0 + AppSpacing.sm;
+        // The card list is as wide as the sheet, so one measurement drives both
+        // the card size and the "nearest centre" maths below.
+        final viewportWidth = constraints.maxWidth;
+        final cardWidth = mapCarouselCardWidth(viewportWidth);
+        // The compact empty state needs a short band, not a full card.
+        final cardHeight = listings.isEmpty
+            ? AppSpacing.scaled(context, 96)
+            : mapCarouselCardHeight(context, cardWidth);
+        const handleHeight = AppSpacing.sm * 2 + AppSpacing.xs;
+        final titleHeight = AppSpacing.scaled(context, 22) + AppSpacing.sm;
         final contentHeight =
-            handleHeight + titleHeight + kMapCarouselCardHeight + bottomPadding;
+            handleHeight + titleHeight + cardHeight + bottomPadding;
         const collapsedHeight = 60.0;
 
         final maxFraction = (contentHeight / constraints.maxHeight).clamp(
@@ -75,12 +123,12 @@ class MapListingsBottomSheet extends ConsumerWidget {
           snap: true,
           snapSizes: [minFraction, maxFraction],
           builder: (context, sheetScrollController) {
+            // Paper-2 sheet with the e3 shadow (DESIGN.md §8).
             return Container(
               decoration: BoxDecoration(
-                color: frostOverlayColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.card),
-                ),
+                color: AppSemanticColors.surfaceFor(brightness),
+                borderRadius: AppRadius.sheetTopBorder,
+                boxShadow: AppShadows.e3(brightness),
               ),
               child: SingleChildScrollView(
                 controller: sheetScrollController,
@@ -95,39 +143,40 @@ class MapListingsBottomSheet extends ConsumerWidget {
                         ),
                         child: Center(
                           child: Container(
-                            width: 40,
-                            height: 4,
+                            width: AppSpacing.s40,
+                            height: AppSpacing.xs,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.2,
-                              ),
-                              borderRadius: BorderRadius.circular(2),
+                              color: AppSemanticColors.textTertiaryFor(
+                                brightness,
+                              ).withValues(alpha: 0.4),
+                              borderRadius: AppRadius.xsBorder,
                             ),
                           ),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg,
+                        // Trailing inset clears the Duo's right-edge status
+                        // bar: the sheet is full-bleed, the inset is not.
+                        padding: EdgeInsets.fromLTRB(
+                          kMapCarouselPadding,
                           0,
-                          AppSpacing.lg,
+                          kMapCarouselPadding + padding.right,
                           AppSpacing.sm,
                         ),
                         child: SizedBox(
                           width: double.infinity,
                           child: Text(
                             locale.clusterListingsCount(listings.length),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
+                            style: theme.textTheme.titleMedium?.copyWith(
                               color: AppSemanticColors.textPrimaryFor(
-                                theme.brightness,
+                                brightness,
                               ),
                             ),
                           ),
                         ),
                       ),
                       SizedBox(
-                        height: kMapCarouselCardHeight,
+                        height: cardHeight,
                         child: listings.isEmpty
                             ? FlatmatesEmptyState(
                                 title: locale.noListingsMatchFilters,
@@ -137,6 +186,8 @@ class MapListingsBottomSheet extends ConsumerWidget {
                             : _HorizontalCardList(
                                 listings: listings,
                                 scrollController: scrollController,
+                                cardWidth: cardWidth,
+                                safeAreaRight: padding.right,
                                 onTap: onTap,
                                 onLike: onLike,
                               ),
@@ -163,12 +214,19 @@ class _HorizontalCardList extends ConsumerWidget {
   const _HorizontalCardList({
     required this.listings,
     required this.scrollController,
+    required this.cardWidth,
+    required this.safeAreaRight,
     required this.onTap,
     required this.onLike,
   });
 
   final List<PropertyListing> listings;
   final ScrollController scrollController;
+  final double cardWidth;
+
+  /// Right-edge safe area to keep the last card out from under. The list is
+  /// full-bleed; only the trailing inset moves.
+  final double safeAreaRight;
   final void Function(PropertyListing) onTap;
   final void Function(PropertyListing) onLike;
 
@@ -183,11 +241,14 @@ class _HorizontalCardList extends ConsumerWidget {
           if (!scrollController.hasClients) return false;
 
           final offset = scrollController.offset;
-          final viewportWidth = MediaQuery.sizeOf(context).width;
-          const itemWidth = kMapCarouselCardWidth;
-          const padding = AppSpacing.md;
+          // The list's own width, not the viewport's: the page caps the body
+          // at the reading column, so MediaQuery would put the centre up to
+          // 115 dp to the right and highlight the wrong card.
+          final viewportWidth = notification.metrics.viewportDimension;
+          final itemWidth = cardWidth;
+          const padding = kMapCarouselPadding;
           const spacing = AppSpacing.sm;
-          const totalItemWidth = itemWidth + spacing;
+          final totalItemWidth = itemWidth + spacing;
 
           final centerOffset = offset + viewportWidth / 2;
           final rawIndex =
@@ -205,7 +266,10 @@ class _HorizontalCardList extends ConsumerWidget {
       child: ListView.builder(
         controller: scrollController,
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        padding: EdgeInsets.only(
+          left: kMapCarouselPadding,
+          right: kMapCarouselPadding + safeAreaRight,
+        ),
         itemCount: listings.length,
         itemBuilder: (context, index) {
           final item = listings[index];
@@ -213,8 +277,7 @@ class _HorizontalCardList extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: SizedBox(
-              width: kMapCarouselCardWidth,
-              height: kMapCarouselCardHeight,
+              width: cardWidth,
               child: DiscoverListingCard(
                 cardKey: Key('map_sheet_card_${item.id}'),
                 item: item,

@@ -106,7 +106,7 @@ class ManageListingsSkeleton extends StatelessWidget {
                           width: 28,
                           height: 28,
                           color: bone,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: AppRadius.mdBorder,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         FlatmatesSkeletonBone(

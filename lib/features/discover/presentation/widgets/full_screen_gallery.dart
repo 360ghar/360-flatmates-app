@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_chrome_icon_button.dart';
@@ -34,11 +33,20 @@ class FullScreenGallery extends StatefulWidget {
     String? heroTagPrefix,
   }) {
     if (images.isEmpty) return Future.value();
+    final reduceMotion = AppMotion.reduceMotion(context);
     return Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: true,
-        barrierColor: Colors.black,
+        barrierColor: AppSemanticColors.scrim,
+        // Reduce motion: the viewer opens and closes at once instead of
+        // fading in and out.
+        transitionDuration: reduceMotion
+            ? Duration.zero
+            : AppMotion.heroTransition,
+        reverseTransitionDuration: reduceMotion
+            ? Duration.zero
+            : AppMotion.heroTransition,
         pageBuilder: (context, animation, secondaryAnimation) =>
             FullScreenGallery(
               images: images,
@@ -100,6 +108,11 @@ class _FullScreenGalleryState extends State<FullScreenGallery>
   }
 
   void _settleBack() {
+    // Reduce motion: snap back instead of springing into place.
+    if (AppMotion.reduceMotion(context)) {
+      setState(() => _dragOffset = 0);
+      return;
+    }
     final settle = Tween<double>(begin: _dragOffset, end: 0).animate(
       CurvedAnimation(parent: _settleController, curve: AppMotion.easeOutCubic),
     );
@@ -123,7 +136,7 @@ class _FullScreenGalleryState extends State<FullScreenGallery>
     final chromeVisible = !_zoomed && _dragOffset == 0;
 
     return Scaffold(
-      backgroundColor: Colors.black.withValues(alpha: barrierAlpha),
+      backgroundColor: AppSemanticColors.scrim.withValues(alpha: barrierAlpha),
       body: GestureDetector(
         // Callbacks become null while zoomed so this recognizer drops out of
         // the gesture arena and InteractiveViewer panning wins.
@@ -191,16 +204,18 @@ class _FullScreenGalleryState extends State<FullScreenGallery>
                     child: _FrostedPill(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
                         ),
                         child: Text(
                           '${_currentIndex + 1} / ${widget.images.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: AppSemanticColors.onScrim,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
                         ),
                       ),
                     ),
@@ -291,6 +306,12 @@ class _ZoomablePageState extends State<_ZoomablePage>
         )
         ..scaleByDouble(_doubleTapScale, _doubleTapScale, 1, 1);
     }
+    // Reduce motion: apply the new zoom level at once.
+    if (AppMotion.reduceMotion(context)) {
+      _transform.value = target;
+      _reportZoom();
+      return;
+    }
     _zoomAnim = Matrix4Tween(begin: _transform.value, end: target).animate(
       CurvedAnimation(parent: _zoomController, curve: AppMotion.easeOutCubic),
     );
@@ -335,13 +356,14 @@ class _GalleryChrome extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
-      duration: AppMotion.fast,
+      duration: AppMotion.durationOrZero(context, AppMotion.fast),
       child: IgnorePointer(ignoring: !visible, child: child),
     );
   }
 }
 
-/// Frosted-glass pill backdrop matching the carousel's overlay buttons.
+/// Solid scrim pill behind gallery chrome (no blur: DESIGN.md forbids
+/// frosted glass on chrome).
 class _FrostedPill extends StatelessWidget {
   const _FrostedPill({required this.child});
 
@@ -349,18 +371,12 @@ class _FrostedPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: AppRadius.pillBorder,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
-            borderRadius: AppRadius.pillBorder,
-          ),
-          child: child,
-        ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppSemanticColors.scrim.withValues(alpha: 0.6),
+        borderRadius: AppRadius.pillBorder,
       ),
+      child: child,
     );
   }
 }

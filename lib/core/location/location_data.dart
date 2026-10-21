@@ -9,6 +9,13 @@ class LocationData {
     required this.longitude,
   });
 
+  /// False for missing coordinates: non-finite, or 0,0 (a catalog city with
+  /// no latitude/longitude arrives as 0,0).
+  bool get hasCoordinates =>
+      latitude.isFinite &&
+      longitude.isFinite &&
+      !(latitude == 0 && longitude == 0);
+
   String get displayText => name.isNotEmpty ? name : 'Select Location';
 
   @override

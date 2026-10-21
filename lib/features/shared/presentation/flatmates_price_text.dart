@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:intl/intl.dart';
+
 import '../../../core/theme/app_semantic_colors.dart';
+import '../../../core/theme/app_typography.dart';
 
 /// Consistent rupee formatting. Never purple per DESIGN.md.
 ///
-/// Use the named constructors for size variants:
-/// - [FlatmatesPriceText.hero] — 26sp bold, listing card hero
-/// - [FlatmatesPriceText.card] — 18sp semiBold, compact card
-/// - [FlatmatesPriceText.inline] — 14sp medium, inline/context
+/// Use the named constructors for size variants: [FlatmatesPriceText.hero],
+/// [FlatmatesPriceText.card], [FlatmatesPriceText.inline].
 class FlatmatesPriceText extends StatelessWidget {
   // ignore: unused_element
   const FlatmatesPriceText._({
@@ -20,31 +21,31 @@ class FlatmatesPriceText extends StatelessWidget {
     this.color,
   });
 
-  /// 26sp bold — listing card hero price.
+  /// h2 size (26), semibold — listing hero price.
   const FlatmatesPriceText.hero({
     required this.amount,
     super.key,
     this.period,
     this.color,
-  }) : fontSize = 26,
-       fontWeight = FontWeight.w700;
+  }) : fontSize = AppTypography.h2Size,
+       fontWeight = FontWeight.w600;
 
-  /// 18sp semiBold — compact card price.
+  /// Title size (17), semibold — compact card price.
   const FlatmatesPriceText.card({
     required this.amount,
     super.key,
     this.period,
     this.color,
-  }) : fontSize = 18,
+  }) : fontSize = AppTypography.titleSize,
        fontWeight = FontWeight.w600;
 
-  /// 14sp medium — inline/context price.
+  /// Body-sm size (14), medium — inline price.
   const FlatmatesPriceText.inline({
     required this.amount,
     super.key,
     this.period,
     this.color,
-  }) : fontSize = 14,
+  }) : fontSize = AppTypography.bodySmallSize,
        fontWeight = FontWeight.w500;
 
   final int amount;
@@ -60,44 +61,31 @@ class FlatmatesPriceText extends StatelessWidget {
         color ?? AppSemanticColors.textPrimaryFor(theme.brightness);
 
     final formatted = formatRupee(amount);
-    final text = period != null ? '$formatted / $period' : formatted;
+    // [period] is a localized suffix, for example `perMonthSuffix`.
+    final text = period != null ? '$formatted$period' : formatted;
 
+    // Body font with tabular figures (DESIGN.md §2: numbers in data).
     return Text(
       text,
-      style: TextStyle(
+      style: theme.textTheme.bodyLarge?.copyWith(
         fontSize: fontSize,
         fontWeight: fontWeight,
         color: resolvedColor,
         height: 1.2,
+        fontFeatures: const [FontFeature.tabularFigures()],
       ),
     );
   }
 
-  /// Formats an integer as Indian currency: ₹24,000
-  static String formatRupee(int amount) {
-    final str = amount.abs().toString();
-    final buffer = StringBuffer('₹');
+  static final _rupee = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  );
 
-    if (str.length <= 3) {
-      buffer.write(str);
-    } else {
-      final lastThree = str.substring(str.length - 3);
-      final leading = str.substring(0, str.length - 3);
-      final firstGroupLength = leading.length % 2 == 0 ? 2 : 1;
-      final firstPart = leading.substring(0, firstGroupLength);
-      buffer.write(firstPart);
-      var remaining = leading.substring(firstPart.length);
-      while (remaining.isNotEmpty) {
-        buffer.write(',');
-        buffer.write(remaining.substring(0, 2));
-        remaining = remaining.substring(2);
-      }
-      buffer.write(',');
-      buffer.write(lastThree);
-    }
-
-    return buffer.toString();
-  }
+  /// Indian grouping without decimals: ₹24,000, ₹1,00,000. Always shows the
+  /// magnitude (a negative amount renders like its positive value).
+  static String formatRupee(int amount) => _rupee.format(amount.abs());
 
   /// Compact rupee for tight surfaces: ₹1.5L, ₹10L.
   ///

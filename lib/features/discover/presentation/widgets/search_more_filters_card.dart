@@ -93,7 +93,7 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final brightness = theme.brightness;
-    const accentColor = AppSemanticColors.purpleMid;
+    final accentColor = AppSemanticColors.clayFor(brightness);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
@@ -102,64 +102,60 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
         children: [
           Material(
             color: Colors.transparent,
-            child: InkWell(
-              key: const Key('lifestyle_filters_toggle'),
-              onTap: () => setState(() => _expanded = !_expanded),
-              borderRadius: AppRadius.mdBorder,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppSemanticColors.purpleSoft,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
+            child: Semantics(
+              button: true,
+              expanded: _expanded,
+              child: InkWell(
+                key: const Key('lifestyle_filters_toggle'),
+                onTap: () => setState(() => _expanded = !_expanded),
+                borderRadius: AppRadius.mdBorder,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                  child: Row(
+                    children: [
+                      Icon(
                         Icons.favorite_outline,
-                        size: 16,
+                        size: 20,
                         color: accentColor,
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            locale.lifestyleFiltersLabel,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                          if (!_expanded)
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              _collapsedSummary(locale),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppSemanticColors.textSecondaryFor(
-                                  brightness,
-                                ),
-                                fontSize: 12,
-                              ),
+                              locale.lifestyleFiltersLabel,
+                              style: theme.textTheme.titleMedium,
                             ),
-                        ],
+                            if (!_expanded)
+                              Text(
+                                _collapsedSummary(locale),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppSemanticColors.textSecondaryFor(
+                                    brightness,
+                                  ),
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                    AnimatedRotation(
-                      turns: _expanded ? 0.5 : 0,
-                      duration: AppMotion.chipSelect,
-                      curve: AppMotion.easeOutCubic,
-                      child: Icon(
-                        Icons.expand_more,
-                        color: AppSemanticColors.textSecondaryFor(brightness),
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0,
+                        duration: AppMotion.durationOrZero(
+                          context,
+                          AppMotion.chipSelect,
+                        ),
+                        curve: AppMotion.paperOut,
+                        child: Icon(
+                          Icons.expand_more,
+                          color: AppSemanticColors.textSecondaryFor(brightness),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -168,8 +164,8 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
           // width: infinity + zero-height second path caused layout jank
           // inside the filter sheet ListView.
           AnimatedSize(
-            duration: AppMotion.chipSelect,
-            curve: AppMotion.easeOutCubic,
+            duration: AppMotion.durationOrZero(context, AppMotion.chipSelect),
+            curve: AppMotion.paperOut,
             alignment: Alignment.topCenter,
             child: !_expanded
                 ? const SizedBox(width: double.infinity)
@@ -180,8 +176,7 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
                       CompactFilterSection(
                         title: locale.petsLabel,
                         icon: Icons.pets_outlined,
-                        iconColor: AppSemanticColors.orangeMid,
-                        iconBgColor: AppSemanticColors.orangeSoft,
+                        iconColor: AppSemanticColors.clayFor(theme.brightness),
                         child: CatalogFilterChips(
                           options: widget.catalogOrFallback(
                             'flatmates_pets_options',
@@ -198,8 +193,7 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
                       CompactFilterSection(
                         title: locale.smokingLabel,
                         icon: Icons.smoke_free_outlined,
-                        iconColor: AppSemanticColors.purpleMid,
-                        iconBgColor: AppSemanticColors.purpleSoft,
+                        iconColor: AppSemanticColors.clayFor(theme.brightness),
                         child: CatalogFilterChips(
                           options: widget.catalogOrFallback(
                             'flatmates_smoking_options',
@@ -221,8 +215,7 @@ class _MoreFiltersCardState extends State<MoreFiltersCard> {
                       CompactFilterSection(
                         title: locale.drinkingLabel,
                         icon: Icons.local_bar_outlined,
-                        iconColor: AppSemanticColors.tealMid,
-                        iconBgColor: AppSemanticColors.tealSoft,
+                        iconColor: AppSemanticColors.pineFor(theme.brightness),
                         child: CatalogFilterChips(
                           options: widget.catalogOrFallback(
                             'flatmates_drinking_options',

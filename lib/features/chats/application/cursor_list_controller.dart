@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/wire_enums.dart';
 import '../chats_repository.dart';
 
 /// Generic controller base for cursor-paginated list endpoints.
@@ -180,6 +181,19 @@ abstract class CursorListController<T>
     state = AsyncValue.data(current.copyWith(items: [item, ...items]));
   }
 
+  /// Replaces the rendered row that matches [item] where it stands, keeping the
+  /// list order the server gave. Does nothing when no row matches.
+  void replaceInPlace(T item) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final index = current.items.indexWhere((e) => matchesItem(e, item));
+    if (index < 0) return;
+    final items = [...current.items]..[index] = item;
+    final pending = _optimisticItems.indexWhere((e) => matchesItem(e, item));
+    if (pending >= 0) _optimisticItems[pending] = item;
+    state = AsyncValue.data(current.copyWith(items: items));
+  }
+
   /// Optimistically remove [item] from the rendered list (e.g. after the
   /// user blocks or unmatches a conversation). The caller is still
   /// responsible for the corresponding API mutation + provider
@@ -331,7 +345,7 @@ class OutgoingLikesController extends CursorListController<OutgoingLikeModel> {
   @override
   bool matchesItem(OutgoingLikeModel a, OutgoingLikeModel b) {
     if (a.targetType != b.targetType) return false;
-    if (a.targetType == 'property') {
+    if (a.targetType == SwipeTargetType.property) {
       return a.property?.id == b.property?.id;
     }
     return a.peer?.id == b.peer?.id;
@@ -370,4 +384,66 @@ Future<void> invalidateChatListControllers(Ref ref) async {
   await ref.read(conversationsListControllerProvider.notifier).load();
   await ref.read(incomingLikesListControllerProvider.notifier).load();
   await ref.read(outgoingLikesListControllerProvider.notifier).load();
+}
+
+/// A cursor list provider: a [CursorListController] and its [AsyncValue] state.
+///
+/// Every `*ListControllerProvider` in the app (conversations, likes,
+/// notifications, visits, blocked users) satisfies this shape, so
+/// [refreshKeepingList] accepts any of them.
+typedef CursorListProvider<T> =
+    NotifierProvider<CursorListController<T>, AsyncValue<CursorListState<T>>>;
+
+/// Re-fetches [provider] **in place**, keeping the rows already on screen.
+///
+/// `ref.invalidate(provider)` disposes the controller: the rendered items are
+/// dropped immediately, so a transient failure after a reconnect (or after a
+/// write) leaves the user with a blank or error screen even though good data
+/// was on screen a moment ago. This helper refreshes the same controller
+/// instead: the current items stay visible while the first page reloads, get
+/// replaced when the fetch lands, and stay (with the error attached) when it
+/// fails. See [CursorListController.refresh].
+///
+/// A provider that was never read is skipped — its first read fetches anyway,
+/// so there is nothing on screen to preserve and no request to make early.
+///
+/// Call it from an event handler, a controller method or a `ref.listen`
+/// callback — never while a provider/widget is building: the refresh mutates
+/// the controller synchronously, and Riverpod forbids modifying a provider
+/// during a build.
+///
+/// Widget call sites hold a [WidgetRef] instead and use
+/// [refreshKeepingListFromWidget].
+Future<void> refreshKeepingList<T>(
+  Ref ref,
+  CursorListProvider<T> provider,
+) async {
+  if (!ref.exists(provider)) return;
+  await ref.read(provider.notifier).refresh();
+}
+
+/// [refreshKeepingList] for widget call sites, which hold a [WidgetRef].
+///
+/// `WidgetRef` and `Ref` have no common supertype, so the widget variant is a
+/// separate entry point with identical semantics.
+Future<void> refreshKeepingListFromWidget<T>(
+  WidgetRef ref,
+  CursorListProvider<T> provider,
+) async {
+  if (!ref.exists(provider)) return;
+  await ref.read(provider.notifier).refresh();
+}
+
+/// Re-fetches the conversation + like lists in place (see
+/// [refreshKeepingList]).
+///
+/// Use this instead of [invalidateChatListControllers] when the goal is "make
+/// these fresh" rather than "drop these entries": nothing is cleared up front,
+/// so a failed refresh leaves the current rows on screen.
+Future<void> refreshChatListControllers(Ref ref) async {
+  await Future.wait<void>([
+    refreshKeepingList(ref, conversationsListControllerProvider),
+    refreshKeepingList(ref, incomingLikesListControllerProvider),
+    refreshKeepingList(ref, outgoingLikesListControllerProvider),
+  ]);
 }

@@ -1,0 +1,221 @@
+{
+  "AppKey": [
+    "ghar",
+    "estate",
+    "flatmates",
+    "stays"
+  ],
+  "AuthMethod": [
+    "google",
+    "apple",
+    "email_password",
+    "phone_password",
+    "phone_otp",
+    "email_otp"
+  ],
+  "BugSeverity": [
+    "low",
+    "medium",
+    "high",
+    "critical"
+  ],
+  "BugType": [
+    "ui_bug",
+    "functionality_bug",
+    "performance_issue",
+    "crash",
+    "feature_request",
+    "other"
+  ],
+  "Cleanliness": [
+    "minimal",
+    "tidy",
+    "spotless"
+  ],
+  "ConversationSource": [
+    "listing_interest",
+    "profile_match",
+    "booking_inquiry",
+    "property_inquiry",
+    "lease_inquiry",
+    "other"
+  ],
+  "ConversationStatus": [
+    "active",
+    "archived",
+    "blocked",
+    "closed"
+  ],
+  "DevicePlatform": [
+    "android",
+    "ios",
+    "web"
+  ],
+  "FlatmatesDrinkingType": [
+    "never",
+    "occasionally",
+    "regularly"
+  ],
+  "FlatmatesMode": [
+    "room_poster",
+    "seeker",
+    "co_hunter",
+    "open_to_both"
+  ],
+  "FlatmatesProfileStatus": [
+    "draft",
+    "pending_review",
+    "active",
+    "paused",
+    "rejected"
+  ],
+  "FlatmatesSmokingType": [
+    "never",
+    "occasionally",
+    "regularly"
+  ],
+  "FoodHabits": [
+    "vegetarian",
+    "vegan",
+    "non_vegetarian",
+    "eggetarian",
+    "no_preference"
+  ],
+  "FurnishingLevel": [
+    "furnished",
+    "semi_furnished",
+    "unfurnished"
+  ],
+  "GuestsPolicy": [
+    "no_overnight_guests",
+    "occasional_ok",
+    "open_house"
+  ],
+  "KitchenType": [
+    "vegetarian",
+    "non_vegetarian",
+    "eggetarian",
+    "any"
+  ],
+  "ListingGenderPreference": [
+    "any",
+    "male",
+    "female"
+  ],
+  "ListingModerationStatus": [
+    "pending_review",
+    "live",
+    "paused",
+    "rejected"
+  ],
+  "ListingSharingType": [
+    "private_room",
+    "shared_room",
+    "master_bedroom",
+    "entire_flat"
+  ],
+  "MessageType": [
+    "text",
+    "image",
+    "system",
+    "visit_request"
+  ],
+  "MoveInTimeline": [
+    "immediate",
+    "within_1_week",
+    "within_2_weeks",
+    "this_month",
+    "next_month",
+    "within_1_month",
+    "within_2_months",
+    "within_3_months",
+    "flexible"
+  ],
+  "PropertyPurpose": [
+    "buy",
+    "rent",
+    "short_stay"
+  ],
+  "PropertyType": [
+    "house",
+    "apartment",
+    "builder_floor",
+    "room",
+    "villa",
+    "plot",
+    "condo",
+    "penthouse",
+    "studio",
+    "loft",
+    "pg",
+    "flatmate",
+    "office",
+    "shop",
+    "warehouse"
+  ],
+  "SleepSchedule": [
+    "early_bird",
+    "flexible",
+    "night_owl"
+  ],
+  "StorageFolderType": [
+    "avatar",
+    "property_image",
+    "property_video",
+    "property_document",
+    "tour_thumbnail",
+    "tour_original",
+    "scene",
+    "document_lease",
+    "document_maintenance",
+    "document_general",
+    "generic"
+  ],
+  "SwipeAction": [
+    "pass",
+    "like",
+    "super_like"
+  ],
+  "SwipeTargetType": [
+    "property",
+    "user"
+  ],
+  "TourVisibility": [
+    "private",
+    "unlisted",
+    "public"
+  ],
+  "UserMatchStatus": [
+    "active",
+    "unmatched",
+    "blocked"
+  ],
+  "UserReportReason": [
+    "spam",
+    "fake_profile",
+    "abuse",
+    "inappropriate",
+    "other"
+  ],
+  "VentilationType": [
+    "good",
+    "average",
+    "poor"
+  ],
+  "VisitContext": [
+    "property_tour",
+    "flatmate_meet"
+  ],
+  "VisitStatus": [
+    "requested",
+    "confirmed",
+    "completed",
+    "cancelled",
+    "reschedule_suggested"
+  ],
+  "WorkStyle": [
+    "wfh",
+    "office",
+    "hybrid"
+  ]
+}

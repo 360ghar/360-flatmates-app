@@ -196,6 +196,24 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "adb reverse OK: device tcp:$BackendPort -> host tcp:$BackendPort"
 
+# Prefer the pinned SDK from .fvmrc. On a machine where only fvm installed
+# Flutter, a plain `flutter` is missing or the wrong version, so use it only as
+# a fallback.
+$fvmCommand = Get-Command fvm -ErrorAction SilentlyContinue
+if ($fvmCommand) {
+  $flutterCommand = $fvmCommand.Source
+  $flutterPrefix = @('flutter')
+  Write-Host "Using pinned Flutter via fvm: $flutterCommand"
+} else {
+  $flutterCommand = 'flutter'
+  $flutterPrefix = @()
+  if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
+    Fail 'Neither fvm nor flutter was found on PATH. Install the pinned SDK with: dart pub global activate fvm, then fvm install.'
+  }
+
+  Write-Host 'fvm was not found on PATH; falling back to the plain flutter SDK (its version may not match .fvmrc).'
+}
+
 $apiBaseUrl = "http://127.0.0.1:$BackendPort/api/v1"
 $flutterRunArgs = @(
   'run',
@@ -205,6 +223,7 @@ $flutterRunArgs = @(
 )
 $flutterRunArgs += $FlutterArgs
 
-Write-Host "Running: flutter $($flutterRunArgs -join ' ')"
-& flutter @flutterRunArgs
+$invocation = @($flutterPrefix + $flutterRunArgs)
+Write-Host "Running: $flutterCommand $($invocation -join ' ')"
+& $flutterCommand @invocation
 exit $LASTEXITCODE

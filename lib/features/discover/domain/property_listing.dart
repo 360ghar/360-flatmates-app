@@ -1,3 +1,6 @@
+import '../../../core/domain/wire_enums.dart';
+import 'society_tag_vote.dart';
+
 class PropertyListing {
   const PropertyListing({
     required this.id,
@@ -37,7 +40,6 @@ class PropertyListing {
     this.expiresAt,
     this.securityDeposit,
     this.maintenanceCharges,
-    this.owner,
     this.distanceKm,
     this.liked,
     this.userHasScheduledVisit,
@@ -57,10 +59,10 @@ class PropertyListing {
     this.otherChargesDescription,
     this.furnishingLevel,
     this.hasLift,
+    this.fullAddress,
     this.images = const [],
     this.amenities = const [],
-    this.societyTagVoteCounts = const {},
-    this.societyTagUserVotes = const {},
+    this.societyTagVotes = const {},
   });
 
   final int id;
@@ -100,7 +102,6 @@ class PropertyListing {
   final String? status;
   final String? propertyStatus;
   final DateTime? expiresAt;
-  final PropertyOwner? owner;
   final double? distanceKm;
   final bool? liked;
   final bool? userHasScheduledVisit;
@@ -120,10 +121,23 @@ class PropertyListing {
   final String? otherChargesDescription;
   final String? furnishingLevel;
   final bool? hasLift;
+
+  /// The street address the owner typed (`full_address`). Only the owner's
+  /// edit form reads it back; it is not shown to other users.
+  final String? fullAddress;
   final List<PropertyImageInfo> images;
   final List<PropertyAmenityInfo> amenities;
-  final Map<String, Map<String, int>> societyTagVoteCounts;
-  final Map<String, String> societyTagUserVotes;
+
+  /// The viewer's vote results by tag, filled from the vote POST answer. The
+  /// listing payload has no vote counts (the server hides them).
+  final Map<String, SocietyTagVote> societyTagVotes;
+
+  /// Tags the owner picked (`listing_preferences.society_vibe_tags`, a public
+  /// key). These are the tags a viewer can vote on.
+  List<String> get societyVibeTags {
+    final raw = preferences?['society_vibe_tags'];
+    return raw is List ? [for (final t in raw) t.toString()] : const [];
+  }
 
   PropertyListing copyWith({
     int? id,
@@ -163,9 +177,11 @@ class PropertyListing {
     DateTime? expiresAt,
     double? securityDeposit,
     double? maintenanceCharges,
-    PropertyOwner? owner,
     double? distanceKm,
     bool? liked,
+    // Clears [liked] back to null (unknown). Needed for optimistic rollbacks:
+    // a plain `liked: null` means "keep the current value".
+    bool clearLiked = false,
     bool? userHasScheduledVisit,
     DateTime? userNextVisitDate,
     String? googleStreetViewUrl,
@@ -183,10 +199,10 @@ class PropertyListing {
     String? otherChargesDescription,
     String? furnishingLevel,
     bool? hasLift,
+    String? fullAddress,
     List<PropertyImageInfo>? images,
     List<PropertyAmenityInfo>? amenities,
-    Map<String, Map<String, int>>? societyTagVoteCounts,
-    Map<String, String>? societyTagUserVotes,
+    Map<String, SocietyTagVote>? societyTagVotes,
   }) {
     return PropertyListing(
       id: id ?? this.id,
@@ -226,9 +242,8 @@ class PropertyListing {
       expiresAt: expiresAt ?? this.expiresAt,
       securityDeposit: securityDeposit ?? this.securityDeposit,
       maintenanceCharges: maintenanceCharges ?? this.maintenanceCharges,
-      owner: owner ?? this.owner,
       distanceKm: distanceKm ?? this.distanceKm,
-      liked: liked ?? this.liked,
+      liked: clearLiked ? null : (liked ?? this.liked),
       userHasScheduledVisit:
           userHasScheduledVisit ?? this.userHasScheduledVisit,
       userNextVisitDate: userNextVisitDate ?? this.userNextVisitDate,
@@ -248,10 +263,10 @@ class PropertyListing {
           otherChargesDescription ?? this.otherChargesDescription,
       furnishingLevel: furnishingLevel ?? this.furnishingLevel,
       hasLift: hasLift ?? this.hasLift,
+      fullAddress: fullAddress ?? this.fullAddress,
       images: images ?? this.images,
       amenities: amenities ?? this.amenities,
-      societyTagVoteCounts: societyTagVoteCounts ?? this.societyTagVoteCounts,
-      societyTagUserVotes: societyTagUserVotes ?? this.societyTagUserVotes,
+      societyTagVotes: societyTagVotes ?? this.societyTagVotes,
     );
   }
 
@@ -277,27 +292,28 @@ class PropertyListing {
     return null;
   }
 
+  /// The moderation state of the listing, or null when [status] carries a
+  /// lifecycle value (`available`, `sold`, ...) or nothing. Matches the wire
+  /// values without logging: [status] mixes both vocabularies.
+  ListingModerationStatus? get moderationStatus {
+    final value = status;
+    if (value == null) return null;
+    for (final candidate in ListingModerationStatus.values) {
+      if (candidate.wire == value) return candidate;
+    }
+    return null;
+  }
+
+  /// In review: new, or sent back to review by a content edit (title, rent,
+  /// description, photos). An availability toggle does not do this.
   bool get isUnderReview =>
-      status == 'pending_review' || status == 'under_review';
-  bool get isRejected => status == 'rejected';
-  bool get isLive => status == 'live' || status == 'approved';
+      moderationStatus == ListingModerationStatus.pendingReview;
+  bool get isPaused => moderationStatus == ListingModerationStatus.paused;
+  bool get isRejected => moderationStatus == ListingModerationStatus.rejected;
+  bool get isLive => moderationStatus == ListingModerationStatus.live;
 
   bool get isFurnished =>
       features.any((feature) => feature.toLowerCase().contains('furnished'));
-}
-
-class PropertyOwner {
-  const PropertyOwner({
-    required this.id,
-    required this.fullName,
-    this.profileImageUrl,
-    this.mode,
-  });
-
-  final int id;
-  final String fullName;
-  final String? profileImageUrl;
-  final String? mode;
 }
 
 class PropertyImageInfo {

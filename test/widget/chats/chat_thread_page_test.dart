@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flatmates_app/features/chats/application/messages_controller.dart';
 import 'package:flatmates_app/features/chats/chat_thread_page.dart';
@@ -38,7 +39,7 @@ void main() {
       (tester) async {
         const conversation = ConversationSummaryModel(
           id: 10,
-          source: 'match',
+          source: ConversationSource.profileMatch,
           peer: ChatPeer(id: 2, fullName: 'Priya Patel'),
           contextProperty: ChatPropertyContext(id: 42, title: 'Modern 2BHK'),
         );

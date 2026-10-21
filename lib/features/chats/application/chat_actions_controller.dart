@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../settings/data/blocked_users_list_controller.dart';
 import '../chats_repository.dart';
 import 'cursor_list_controller.dart';
 
@@ -13,20 +16,25 @@ class ChatActionsController {
   Future<void> blockUser(int peerId) async {
     await _repository.blockUser(peerId);
     // Blocking removes the conversation and any pending likes from the peer,
-    // so refresh the lists the user returns to after blocking.
+    // so refresh the lists the user returns to after blocking. The blocked
+    // list gains the peer: refresh it in place so a failed refetch keeps the
+    // rows Settings already shows.
+    unawaited(refreshKeepingList(_ref, blockedUsersListControllerProvider));
     await invalidateChatListControllers(_ref);
-    _ref.invalidate(conversationsProvider);
   }
 
   Future<void> reportUser(int peerId, String reason) async {
     await _repository.reportUser(peerId, reason);
   }
 
+  /// The phone of a matched peer from the match contact route, or null when
+  /// the match has none (or is closed). Never reads a phone from a peer payload.
+  Future<String?> matchPhone(int peerId) => _repository.fetchMatchPhone(peerId);
+
   Future<void> unmatchConversation(int conversationId, int peerId) async {
     await _repository.unmatchConversation(conversationId, peerId);
     // Unmatching drops the conversation; refresh so the stale row disappears.
     await invalidateChatListControllers(_ref);
-    _ref.invalidate(conversationsProvider);
   }
 
   /// Submits QnA answers and returns the refreshed conversation, or null
@@ -56,7 +64,6 @@ class ChatActionsController {
       contextPropertyId: contextPropertyId,
     );
     await invalidateChatListControllers(_ref);
-    _ref.invalidate(conversationsProvider);
     return conversationId;
   }
 
@@ -72,7 +79,6 @@ class ChatActionsController {
       initialMessage: initialMessage,
     );
     await invalidateChatListControllers(_ref);
-    _ref.invalidate(conversationsProvider);
     return conversationId;
   }
 }

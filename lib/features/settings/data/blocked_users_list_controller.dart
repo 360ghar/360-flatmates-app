@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../chats/application/cursor_list_controller.dart';
@@ -17,6 +19,20 @@ class BlockedUsersListController extends CursorListController<BlockedUser> {
   @override
   bool matchesItem(BlockedUser a, BlockedUser b) =>
       a.blockedUserId == b.blockedUserId;
+
+  /// Unblocks [blockedUserId], then reloads this list and the chat and
+  /// likes lists. An unblock does not reopen anything by itself: the earlier
+  /// match is not restored, and a new conversation starts the way it did
+  /// before the block (a like match, or a chat started from a listing).
+  Future<void> unblock(int blockedUserId) async {
+    await ref.read(blockedUsersRepositoryProvider).unblockUser(blockedUserId);
+    // refresh(), not invalidateSelf(): a failed reload keeps the rows already
+    // on screen instead of dropping the whole list into an error state.
+    await refresh();
+    // The chat and like lists are off-screen here, so their reloads must not
+    // hold up the button spinner or the success toast.
+    unawaited(refreshChatListControllers(ref));
+  }
 }
 
 final blockedUsersListControllerProvider =

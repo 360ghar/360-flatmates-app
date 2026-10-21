@@ -43,13 +43,14 @@ class AvailabilityPill extends StatelessWidget {
     AvailabilityPillStyle style = AvailabilityPillStyle.solid,
   }) {
     final locale = AppLocalizations.of(context);
+    final brightness = Theme.of(context).brightness;
 
     // Under review takes priority — it gates discoverability.
     if (status == 'pending_review' || status == 'under_review') {
       return AvailabilityPill(
         variant: AvailabilityVariant.underReview,
         label: locale.underReview,
-        color: AppSemanticColors.warning,
+        color: AppSemanticColors.warningInkFor(brightness),
         style: style,
         icon: Icons.hourglass_top_rounded,
       );
@@ -68,7 +69,7 @@ class AvailabilityPill extends StatelessWidget {
         return AvailabilityPill(
           variant: AvailabilityVariant.available,
           label: locale.availableNowLabel,
-          color: AppSemanticColors.success,
+          color: AppSemanticColors.pineFor(brightness),
           style: style,
           icon: Icons.check_circle_rounded,
         );
@@ -78,7 +79,7 @@ class AvailabilityPill extends StatelessWidget {
         label: locale.availableFromDate(
           DateFormat.MMMd(locale.localeName).format(availDay),
         ),
-        color: AppSemanticColors.info,
+        color: AppSemanticColors.pineFor(brightness),
         style: style,
         icon: Icons.event_rounded,
       );
@@ -89,7 +90,7 @@ class AvailabilityPill extends StatelessWidget {
       return AvailabilityPill(
         variant: AvailabilityVariant.available,
         label: locale.availableNowLabel,
-        color: AppSemanticColors.success,
+        color: AppSemanticColors.pineFor(brightness),
         style: style,
         icon: Icons.check_circle_rounded,
       );
@@ -107,37 +108,39 @@ class AvailabilityPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOnImage = style == AvailabilityPillStyle.onImage;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
+    final foreground = isOnImage ? AppSemanticColors.onScrim : color;
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: isOnImage
-            ? Colors.black.withValues(alpha: 0.55)
+            ? AppSemanticColors.scrim.withValues(alpha: 0.6)
             : color.withValues(alpha: 0.12),
         borderRadius: AppRadius.pillBorder,
-        border: isOnImage
-            ? null
-            : Border.all(color: color.withValues(alpha: 0.22)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 12, color: isOnImage ? Colors.white : color),
-            const SizedBox(width: AppSpacing.xs),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: isOnImage ? Colors.white : color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xxs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14, color: foreground),
+              const SizedBox(width: AppSpacing.xs),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

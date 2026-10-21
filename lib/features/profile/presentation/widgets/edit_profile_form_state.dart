@@ -41,29 +41,13 @@ final editProfileNonNegotiablesProvider =
 final editProfilePhotoUrlsProvider = StateProvider.autoDispose<List<String>>(
   (ref) => const [],
 );
-final editProfileSavingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final editProfilePhotoUploadingProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final editProfileDirtyProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-final editProfileNativePlaceErrorProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-final editProfileLinkedInErrorProvider = StateProvider.autoDispose<String?>(
-  (ref) => null,
-);
-
-/// Active edit-profile tab; defaults to Identity (the most-edited fields).
-final editProfileTabProvider = StateProvider.autoDispose<EditProfileTab>(
-  (ref) => EditProfileTab.identity,
-);
 
 /// Assembles the profile-update payload from form state. Values come from the
 /// page-level providers above plus the text controllers owned by the page.
+///
+/// The body of `PUT /flatmates/profile` (`FlatmatesProfileUpdate`) rejects
+/// unknown keys, and `email` and `phone` are not declared: they belong to the
+/// sign-in account, so the form shows them read-only and never sends them.
 Map<String, dynamic> buildEditProfileSavePayload({
   required WidgetRef ref,
   required String? Function(TextEditingController) nullableText,
@@ -75,13 +59,9 @@ Map<String, dynamic> buildEditProfileSavePayload({
   required TextEditingController cityController,
   required TextEditingController localityController,
   required TextEditingController bioController,
-  required TextEditingController emailController,
-  required TextEditingController phoneController,
   required TextEditingController nativePlaceController,
   required TextEditingController linkedInController,
   required Map<String, dynamic> existingPreferences,
-  required bool hasEmail,
-  required bool hasPhone,
 }) {
   final payload = <String, dynamic>{
     'full_name': nullableText(nameController),
@@ -112,10 +92,6 @@ Map<String, dynamic> buildEditProfileSavePayload({
   if (photoUrls.isNotEmpty) {
     payload['profile_image_url'] = photoUrls.first;
   }
-  final newEmail = emailController.text.trim();
-  final newPhone = phoneController.text.trim();
-  if (!hasEmail && newEmail.isNotEmpty) payload['email'] = newEmail;
-  if (!hasPhone && newPhone.isNotEmpty) payload['phone'] = newPhone;
   return payload;
 }
 

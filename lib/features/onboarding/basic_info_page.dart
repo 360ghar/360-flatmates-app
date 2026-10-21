@@ -70,15 +70,15 @@ class _BasicInfoPageState extends ConsumerState<BasicInfoPage> {
     final locale = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: SafeArea(
-        minimum: AppSpacing.horizontalScreen,
+    return Material(
+      // Steps sit inside the onboarding FlatmatesScreen, which owns the
+      // scaffold and safe area; this only gives fields a Material ancestor.
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: AppSpacing.horizontalScreen,
         child: ListView(
           children: [
             const SizedBox(height: AppSpacing.sm),
-            // Step progress
-            const FlatmatesStepProgress.dots(currentStep: 2, totalSteps: 4),
-            const SizedBox(height: AppSpacing.xl),
             Text(locale.basicInfoTitle, style: theme.textTheme.headlineLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/domain/wire_enums.dart';
+import '../../../../core/theme/app_breakpoints.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../shared/presentation/flatmates_card.dart';
@@ -36,7 +39,11 @@ class ChatMessageBubble extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final time = messageTimestamp(locale, message.createdAt);
 
-    if (message.messageType == 'visit_request') {
+    if (message.isSystem) {
+      return _SystemNotice(message: message, time: time);
+    }
+
+    if (message.isVisitRequest) {
       return _VisitRequestCard(
         message: message,
         isMine: isMine,
@@ -49,9 +56,19 @@ class ChatMessageBubble extends StatelessWidget {
       );
     }
 
-    if (message.messageType == 'image' && message.attachmentUrl != null) {
+    // Bubbles take at most 75 % of the screen and shrink with the row, so
+    // a long message never overflows a narrow phone. The cap matters on a wide
+    // viewport: 75 % of the 951 dp open foldable would be a 713 dp line, which
+    // is past a comfortable measure, so `AppBreakpoints.chatBubbleMaxWidth`
+    // bounds it at 560 dp.
+    final maxBubble = AppBreakpoints.chatBubbleMaxWidth(
+      MediaQuery.sizeOf(context).width,
+    );
+
+    if (message.messageType == MessageType.image &&
+        message.attachmentUrl != null) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 18),
+        padding: const EdgeInsets.only(bottom: AppSpacing.base),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: isMine
@@ -60,22 +77,33 @@ class ChatMessageBubble extends StatelessWidget {
           children: [
             if (!isMine) ...[
               FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 40),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.sm),
             ],
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 220),
-              child: Column(
-                crossAxisAlignment: isMine
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  FlatmatesNetworkImage(
-                    imageUrl: message.attachmentUrl!,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  _MessageMeta(message: message, isMine: isMine, time: time),
-                ],
+            Flexible(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxBubble * 0.8),
+                child: Column(
+                  crossAxisAlignment: isMine
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
+                    // Fixed aspect so the list does not jump when it loads.
+                    Semantics(
+                      image: true,
+                      label: locale.messageAttachment,
+                      child: AspectRatio(
+                        aspectRatio: 4 / 3,
+                        child: FlatmatesNetworkImage(
+                          imageUrl: message.attachmentUrl!,
+                          fit: BoxFit.cover,
+                          borderRadius: AppRadius.lgBorder,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    _MessageMeta(message: message, isMine: isMine, time: time),
+                  ],
+                ),
               ),
             ),
           ],
@@ -84,7 +112,7 @@ class ChatMessageBubble extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: isMine
@@ -95,41 +123,43 @@ class ChatMessageBubble extends StatelessWidget {
             FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 32),
             const SizedBox(width: AppSpacing.sm),
           ],
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 290),
-            child: Column(
-              crossAxisAlignment: isMine
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: isMine
-                        ? AppSemanticColors.accent
-                        : AppSemanticColors.disabledSurfaceFor(
-                            theme.brightness,
-                          ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-                    child: Text(
-                      message.body ??
-                          AppLocalizations.of(context).messageAttachment,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: isMine
-                            ? Colors.white
-                            : AppSemanticColors.textPrimaryFor(
-                                theme.brightness,
-                              ),
-                        height: 1.45,
+          Flexible(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxBubble),
+              child: Column(
+                crossAxisAlignment: isMine
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: isMine
+                          ? AppSemanticColors.clayFor(theme.brightness)
+                          : AppSemanticColors.paperDeepFor(theme.brightness),
+                      borderRadius: AppRadius.lgBorder,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Text(
+                        message.body ??
+                            AppLocalizations.of(context).messageAttachment,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: isMine
+                              ? AppSemanticColors.onClayFor(theme.brightness)
+                              : AppSemanticColors.textPrimaryFor(
+                                  theme.brightness,
+                                ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                _MessageMeta(message: message, isMine: isMine, time: time),
-              ],
+                  const SizedBox(height: AppSpacing.xs),
+                  _MessageMeta(message: message, isMine: isMine, time: time),
+                ],
+              ),
             ),
           ),
         ],
@@ -161,7 +191,7 @@ class _VisitRequestCard extends StatelessWidget {
 
   /// Derive visit status from the live visit row, message metadata, or body.
   String get _status {
-    final visitStatus = visit?.status;
+    final visitStatus = visit?.status?.wire;
     if (visitStatus != null && visitStatus.isNotEmpty) return visitStatus;
     final metadataStatus = message.visitStatus;
     if (metadataStatus != null && metadataStatus.isNotEmpty) {
@@ -176,14 +206,14 @@ class _VisitRequestCard extends StatelessWidget {
     return 'requested';
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(String status, Brightness brightness) {
     switch (status) {
       case 'confirmed':
-        return AppSemanticColors.success;
+        return AppSemanticColors.pineFor(brightness);
       case 'cancelled':
-        return AppSemanticColors.error;
+        return AppSemanticColors.dangerFor(brightness);
       default:
-        return AppSemanticColors.warning;
+        return AppSemanticColors.warningInkFor(brightness);
     }
   }
 
@@ -219,7 +249,7 @@ class _VisitRequestCard extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context);
     final status = _status;
-    final statusColor = _statusColor(status);
+    final statusColor = _statusColor(status, theme.brightness);
     final statusBg = _statusBgColor(status, theme.brightness);
     final scheduledDate = visit?.scheduledDate ?? message.visitScheduledDate;
     final scheduleText = scheduledDate == null
@@ -235,7 +265,7 @@ class _VisitRequestCard extends StatelessWidget {
         (status == 'requested' || status == 'reschedule_suggested');
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: isMine
@@ -244,19 +274,18 @@ class _VisitRequestCard extends StatelessWidget {
         children: [
           if (!isMine) ...[
             FlatmatesAvatar(name: peerName, imageUrl: peerImageUrl, size: 40),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
           ],
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 270),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border(left: BorderSide(color: statusColor, width: 4)),
+          // Status shows in the icon, title and badge: no accent stripe.
+          Flexible(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: AppBreakpoints.chatBubbleMaxWidth(
+                  MediaQuery.sizeOf(context).width,
+                ),
               ),
               child: FlatmatesCard(
                 margin: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(18),
-                borderColor: statusColor.withValues(alpha: 0.3),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -279,15 +308,15 @@ class _VisitRequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       decoration: BoxDecoration(
                         color: statusBg,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.mdBorder,
                       ),
                       child: Row(
                         children: [
@@ -312,27 +341,20 @@ class _VisitRequestCard extends StatelessWidget {
                       ),
                     ),
                     if (canRespond) ...[
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FilledButton(
-                              onPressed: () => onConfirmVisit?.call(visit!),
-                              child: Text(locale.visitConfirmCta),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => onRescheduleVisit?.call(visit!),
-                              child: Text(locale.visitRescheduleCta),
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: AppSpacing.md),
+                      _VisitResponseActions(
+                        confirmLabel: locale.visitConfirmCta,
+                        rescheduleLabel: locale.visitRescheduleCta,
+                        onConfirm: () => onConfirmVisit?.call(visit!),
+                        onReschedule: () => onRescheduleVisit?.call(visit!),
                       ),
                     ],
-                    const SizedBox(height: 10),
-                    Row(
+                    const SizedBox(height: AppSpacing.md),
+                    // Wrap: badge and time share a row when they fit.
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         FlatmatesTrustBadge(
                           label: status == 'confirmed'
@@ -348,7 +370,6 @@ class _VisitRequestCard extends StatelessWidget {
                           variant: _badgeVariant(status),
                           compact: true,
                         ),
-                        const Spacer(),
                         _MessageMeta(
                           message: message,
                           isMine: isMine,
@@ -364,6 +385,94 @@ class _VisitRequestCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Confirm / reschedule pair for a visit request.
+///
+/// Side by side when both labels still fit inside the two lines
+/// [FlatmatesButton] renders before ellipsizing; stacked when they do not
+/// ("Suggest another time" on a 320 dp phone). The decision is measured from
+/// the labels, the current text scale and the button style's own horizontal
+/// padding — not a fixed breakpoint.
+class _VisitResponseActions extends StatelessWidget {
+  const _VisitResponseActions({
+    required this.confirmLabel,
+    required this.rescheduleLabel,
+    required this.onConfirm,
+    required this.onReschedule,
+  });
+
+  final String confirmLabel;
+  final String rescheduleLabel;
+  final VoidCallback onConfirm;
+  final VoidCallback onReschedule;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final confirm = FlatmatesButton(
+          label: confirmLabel,
+          onPressed: onConfirm,
+          fullWidth: true,
+        );
+        final reschedule = FlatmatesButton.secondary(
+          label: rescheduleLabel,
+          onPressed: onReschedule,
+          fullWidth: true,
+        );
+
+        if (!_fitsSideBySide(context, constraints.maxWidth)) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              confirm,
+              const SizedBox(height: AppSpacing.sm),
+              reschedule,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: confirm),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: reschedule),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _fitsSideBySide(BuildContext context, double available) {
+    final perButton = (available - AppSpacing.sm) / 2;
+    final labelWidth = perButton - _buttonChromeWidth(context);
+    if (labelWidth <= 0) return false;
+
+    final style = Theme.of(context).textTheme.labelLarge;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    return [confirmLabel, rescheduleLabel].every((label) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 2,
+      )..layout(maxWidth: labelWidth);
+      return !painter.didExceedMaxLines;
+    });
+  }
+
+  /// Horizontal space the button style keeps around its label. The app theme
+  /// sets it (24 each side, `app_theme.dart`); the fallback mirrors that so a
+  /// missing theme entry cannot keep the pair side by side when the labels
+  /// need stacking.
+  double _buttonChromeWidth(BuildContext context) {
+    final padding = Theme.of(
+      context,
+    ).filledButtonTheme.style?.padding?.resolve(const <WidgetState>{});
+    return padding?.horizontal ?? 2 * AppSpacing.lg;
   }
 }
 
@@ -392,7 +501,7 @@ class _MessageMeta extends StatelessWidget {
         ? locale.readReceiptRead
         : locale.readReceiptSent;
     final receiptColor = isRead
-        ? AppSemanticColors.accent
+        ? AppSemanticColors.clayFor(theme.brightness)
         : AppSemanticColors.textSecondaryFor(theme.brightness);
     final receiptIcon = isPending
         ? Icons.schedule_rounded
@@ -403,27 +512,66 @@ class _MessageMeta extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          time,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontSize: 11,
-            color: AppSemanticColors.textSecondaryFor(theme.brightness),
+        // Both labels are Flexible: at 2x text scale on a 320 dp phone the
+        // timestamp plus the receipt label are wider than the bubble, and a
+        // fixed Row overflows by ~180 px. At normal scales nothing truncates.
+        Flexible(
+          child: Text(
+            time,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
           ),
         ),
         if (isMine) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm),
           Icon(receiptIcon, size: 14, color: receiptColor),
-          const SizedBox(width: 3),
-          Text(
-            receipt,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              color: receiptColor,
-              fontWeight: isRead ? FontWeight.w700 : FontWeight.w500,
+          const SizedBox(width: AppSpacing.xs),
+          Flexible(
+            child: Text(
+              receipt,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: receiptColor,
+                fontWeight: isRead ? FontWeight.w600 : FontWeight.w500,
+              ),
             ),
           ),
         ],
       ],
+    );
+  }
+}
+
+/// A message with no sender, or of the `system` type: a centered notice that
+/// belongs to neither side of the conversation.
+class _SystemNotice extends StatelessWidget {
+  const _SystemNotice({required this.message, required this.time});
+
+  final ChatMessage message;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final text = message.body?.trim();
+    if (text == null || text.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
+      child: Center(
+        child: Semantics(
+          label: '$text, $time',
+          excludeSemantics: true,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppSemanticColors.textSecondaryFor(theme.brightness),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flatmates_app/core/domain/wire_enums.dart';
 import 'package:flatmates_app/features/chats/application/messages_controller.dart';
 import 'package:flatmates_app/features/chats/domain/chat_models.dart';
 
@@ -6,7 +7,7 @@ ChatMessage _msg({
   required int id,
   required int senderId,
   String? body = 'hello',
-  String messageType = 'text',
+  MessageType messageType = MessageType.text,
   DateTime? createdAt,
   String? attachmentUrl,
 }) {
@@ -78,7 +79,7 @@ void main() {
         _msg(
           id: -1,
           senderId: 1,
-          messageType: 'image',
+          messageType: MessageType.image,
           body: null,
           attachmentUrl: 'https://example.com/photo.jpg',
           createdAt: now,
@@ -88,7 +89,7 @@ void main() {
         _msg(
           id: 100,
           senderId: 1,
-          messageType: 'image',
+          messageType: MessageType.image,
           body: null,
           attachmentUrl: 'https://example.com/photo.jpg',
           createdAt: now,

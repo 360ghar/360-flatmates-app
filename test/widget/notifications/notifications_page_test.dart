@@ -5,6 +5,7 @@ import 'package:flatmates_app/features/chats/application/cursor_list_controller.
 import 'package:flatmates_app/features/notifications/notifications_list_controller.dart';
 import 'package:flatmates_app/features/notifications/notifications_page.dart';
 import 'package:flatmates_app/features/notifications/notifications_repository.dart';
+import 'package:flatmates_app/features/shared/presentation/flatmates_chrome_icon_button.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -66,6 +67,54 @@ void main() {
       // The notification card title.
       expect(find.text('New Match'), findsOneWidget);
     });
+
+    // Every row on the loaded page is read. The unread-count route counts all
+    // pages, so it can know of an unread row that is not loaded yet.
+    Future<bool> markAllReadEnabled(
+      WidgetTester tester,
+      int serverCount,
+    ) async {
+      final read = [
+        NotificationModel(
+          id: 'notif-1',
+          type: 'new_match',
+          title: 'New Match',
+          body: 'You have a new match!',
+          isRead: true,
+          createdAt: DateTime(2025, 5, 16, 9),
+        ),
+      ];
+      await tester.pumpWidget(
+        testableWidget(
+          overrides: [
+            notificationsListControllerProvider.overrideWith(
+              () => _FakeNotificationsListController(read),
+            ),
+            notificationsUnreadCountProvider.overrideWith(
+              (ref) async => serverCount,
+            ),
+          ],
+          child: const NotificationsPage(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final button = tester.widget<FlatmatesChromeIconButton>(
+        find.byKey(const Key('notification_mark_all_read')),
+      );
+      return button.onPressed != null;
+    }
+
+    testWidgets('mark all read is off when nothing is unread', (tester) async {
+      expect(await markAllReadEnabled(tester, 0), isFalse);
+    });
+
+    testWidgets(
+      'mark all read is on when the server counts an unread row off the page',
+      (tester) async {
+        expect(await markAllReadEnabled(tester, 1), isTrue);
+      },
+    );
 
     testWidgets('renders empty state when no notifications', (tester) async {
       await tester.pumpWidget(

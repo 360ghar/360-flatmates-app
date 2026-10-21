@@ -10,7 +10,6 @@ abstract final class FlatmatesEndpoints {
   static const deleteAccount = '/users/me';
   static const notificationSettings = '/users/notification-settings';
   static const privacySettings = '/users/privacy-settings';
-  static const privacySettingsCompat = '/users/privacy';
 
   // -- Auth state-machine (Supabase-mirrored) --
   static const identifierStatus = '/auth/identifier-status';
@@ -32,6 +31,12 @@ abstract final class FlatmatesEndpoints {
       '/flatmates/conversations/$id/mark-read';
   static String conversationQnA(int id) => '/flatmates/conversations/$id/qna';
 
+  // -- Matches --
+  static const matches = '/flatmates/matches';
+  static String matchContact(int matchId) =>
+      '/flatmates/matches/$matchId/contact';
+  static const unmatch = '/flatmates/unmatch';
+
   // -- Swipes --
   static const swipes = '/flatmates/swipes';
   static const incomingLikes = '/flatmates/likes';
@@ -50,9 +55,12 @@ abstract final class FlatmatesEndpoints {
   static const visits = '/visits';
   static String visit(int id) => '/visits/$id';
   static String visitReschedule(int id) => '/visits/$id/reschedule';
+  static String visitCancel(int id) => '/visits/$id/cancel';
 
   // -- Notifications --
   static const notifications = '/flatmates/notifications';
+  static const notificationsUnreadCount =
+      '/flatmates/notifications/unread-count';
   static String notificationDetail(String id) => '/flatmates/notifications/$id';
   static const notificationMarkAllRead = '/flatmates/notifications';
   static const notificationRegister = '/notifications/devices/register';
@@ -72,7 +80,6 @@ abstract final class FlatmatesEndpoints {
   static String societyTagVotes(int id) =>
       '/flatmates/listings/$id/society-tags/votes';
 
-  // -- Batch operations --
-  static const swipesBatchRemove = '/swipes/batch-remove';
-  static const uploadBatchDelete = '/upload/media/batch-delete';
+  // -- Uploads --
+  static const upload = '/upload';
 }

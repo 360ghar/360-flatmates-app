@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeBroadenedRadius.
   ///
   /// In en, this message translates to:
-  /// **'No listings within your area — showing flats farther away.'**
+  /// **'No listings in your area. Showing flats farther away.'**
   String get homeBroadenedRadius;
 
   /// No description provided for @homeBedroomsChip.
@@ -500,10 +500,16 @@ abstract class AppLocalizations {
   /// **'Trending'**
   String get badgeTrending;
 
+  /// No description provided for @unreadMessagesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unread message} other{{count} unread messages}}'**
+  String unreadMessagesCount(int count);
+
   /// No description provided for @monthlyRentLabel.
   ///
   /// In en, this message translates to:
-  /// **'Monthly rent: ₹{amount}'**
+  /// **'Monthly rent: {amount}'**
   String monthlyRentLabel(String amount);
 
   /// No description provided for @monthlyRentHeadline.
@@ -1193,7 +1199,7 @@ abstract class AppLocalizations {
   /// No description provided for @postListingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Create a real flatmate listing using the existing 360 Ghar inventory backend.'**
+  /// **'Add your room with photos, rent and move-in date.'**
   String get postListingSubtitle;
 
   /// No description provided for @postListingBasics.
@@ -1523,19 +1529,19 @@ abstract class AppLocalizations {
   /// No description provided for @quizCleanMinimal.
   ///
   /// In en, this message translates to:
-  /// **'Minimal — lived-in is fine'**
+  /// **'Minimal: lived-in is fine'**
   String get quizCleanMinimal;
 
   /// No description provided for @quizCleanTidy.
   ///
   /// In en, this message translates to:
-  /// **'Tidy — things in their place'**
+  /// **'Tidy: things in their place'**
   String get quizCleanTidy;
 
   /// No description provided for @quizCleanSpotless.
   ///
   /// In en, this message translates to:
-  /// **'Spotless — everything pristine'**
+  /// **'Spotless: everything pristine'**
   String get quizCleanSpotless;
 
   /// No description provided for @quizFoodHabits.
@@ -1625,7 +1631,7 @@ abstract class AppLocalizations {
   /// No description provided for @quizOpenHouse.
   ///
   /// In en, this message translates to:
-  /// **'Open house — always welcome'**
+  /// **'Open house: always welcome'**
   String get quizOpenHouse;
 
   /// No description provided for @quizParties.
@@ -1673,7 +1679,7 @@ abstract class AppLocalizations {
   /// No description provided for @quizHybrid.
   ///
   /// In en, this message translates to:
-  /// **'Hybrid — mix of both'**
+  /// **'Hybrid: mix of both'**
   String get quizHybrid;
 
   /// No description provided for @quizPets.
@@ -1865,7 +1871,7 @@ abstract class AppLocalizations {
   /// No description provided for @whyThisMatchWorks.
   ///
   /// In en, this message translates to:
-  /// **'WHY THIS MATCH WORKS'**
+  /// **'Why this match works'**
   String get whyThisMatchWorks;
 
   /// No description provided for @tapToCollapse.
@@ -1952,11 +1958,11 @@ abstract class AppLocalizations {
   /// **'Inappropriate content'**
   String get reportInappropriate;
 
-  /// No description provided for @reportUncomfortable.
+  /// No description provided for @reportAbuse.
   ///
   /// In en, this message translates to:
-  /// **'Uncomfortable interaction'**
-  String get reportUncomfortable;
+  /// **'Abuse'**
+  String get reportAbuse;
 
   /// No description provided for @reportOther.
   ///
@@ -2906,6 +2912,12 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to cancel this visit?'**
   String get visitCancelConfirm;
 
+  /// No description provided for @visitCancelReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for cancelling'**
+  String get visitCancelReasonLabel;
+
   /// No description provided for @visitConfirmed.
   ///
   /// In en, this message translates to:
@@ -2917,6 +2929,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visit cancelled.'**
   String get visitCancelled;
+
+  /// No description provided for @videoUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload the video. Try again.'**
+  String get videoUploadFailed;
 
   /// No description provided for @videoTourLabel.
   ///
@@ -3025,6 +3043,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications'**
   String get notificationsTitle;
+
+  /// No description provided for @notificationUnreadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationUnreadLabel;
 
   /// No description provided for @notificationEmpty.
   ///
@@ -3313,6 +3337,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No listings match your filters. Try adjusting them.'**
   String get noListingsMatchFilters;
+
+  /// No description provided for @labelWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} ({count})'**
+  String labelWithCount(String label, int count);
+
+  /// No description provided for @listingStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown status'**
+  String get listingStatusUnknown;
 
   /// No description provided for @listingRejected.
   ///
@@ -4655,7 +4691,7 @@ abstract class AppLocalizations {
   /// No description provided for @photoTipNaturalLight.
   ///
   /// In en, this message translates to:
-  /// **'• Use natural lighting — open curtains before shooting'**
+  /// **'• Use natural light: open the curtains before you shoot'**
   String get photoTipNaturalLight;
 
   /// No description provided for @photoTipFullRoom.
@@ -4769,7 +4805,7 @@ abstract class AppLocalizations {
   /// No description provided for @popularCitiesLabel.
   ///
   /// In en, this message translates to:
-  /// **'POPULAR CITIES'**
+  /// **'Popular cities'**
   String get popularCitiesLabel;
 
   /// No description provided for @noLocationsAvailable.
@@ -4847,13 +4883,13 @@ abstract class AppLocalizations {
   /// No description provided for @swipeLikeLabel.
   ///
   /// In en, this message translates to:
-  /// **'LIKE'**
+  /// **'Like'**
   String get swipeLikeLabel;
 
   /// No description provided for @swipeNopeLabel.
   ///
   /// In en, this message translates to:
-  /// **'PASS'**
+  /// **'Pass'**
   String get swipeNopeLabel;
 
   /// No description provided for @failedToLoadProfiles.
@@ -5429,8 +5465,8 @@ abstract class AppLocalizations {
   /// No description provided for @listingSummaryPhotos.
   ///
   /// In en, this message translates to:
-  /// **'{count} photo{plural}'**
-  String listingSummaryPhotos(int count, String plural);
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String listingSummaryPhotos(int count);
 
   /// No description provided for @listingSummaryFlat.
   ///
@@ -5543,7 +5579,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorNotFound.
   ///
   /// In en, this message translates to:
-  /// **'The requested resource was not found.'**
+  /// **'This page or item no longer exists.'**
   String get errorNotFound;
 
   /// No description provided for @errorValidation.
@@ -5557,6 +5593,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too many requests. Please wait a moment and try again.'**
   String get errorRateLimit;
+
+  /// No description provided for @errorRateLimitWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Try again in {seconds, plural, =1{1 second} other{{seconds} seconds}}.'**
+  String errorRateLimitWait(num seconds);
+
+  /// No description provided for @errorServerWait.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is temporarily unavailable. Try again in {seconds, plural, =1{1 second} other{{seconds} seconds}}.'**
+  String errorServerWait(num seconds);
+
+  /// No description provided for @errorCodeProfileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile is no longer available.'**
+  String get errorCodeProfileNotFound;
+
+  /// No description provided for @errorCodeMatchNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'You are no longer matched with this person.'**
+  String get errorCodeMatchNotFound;
+
+  /// No description provided for @errorCodeProfileStatusLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile status cannot change while it is paused or under review.'**
+  String get errorCodeProfileStatusLocked;
+
+  /// No description provided for @errorCodeListingNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This listing is no longer available.'**
+  String get errorCodeListingNotFound;
+
+  /// No description provided for @errorCodeBlockNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This person is not on your blocked list.'**
+  String get errorCodeBlockNotFound;
+
+  /// No description provided for @errorCodeVisitConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a visit at this time.'**
+  String get errorCodeVisitConflict;
+
+  /// No description provided for @errorCodeVisitNotCancellable.
+  ///
+  /// In en, this message translates to:
+  /// **'This visit can no longer be cancelled.'**
+  String get errorCodeVisitNotCancellable;
+
+  /// No description provided for @errorCodeVisitNotReschedulable.
+  ///
+  /// In en, this message translates to:
+  /// **'This visit can no longer be rescheduled.'**
+  String get errorCodeVisitNotReschedulable;
+
+  /// No description provided for @errorCodeUserInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is not active. Contact support for help.'**
+  String get errorCodeUserInactive;
 
   /// No description provided for @errorConflict.
   ///
@@ -5663,19 +5765,25 @@ abstract class AppLocalizations {
   /// No description provided for @reviewPhotosAmount.
   ///
   /// In en, this message translates to:
-  /// **'{count} photo{plural}'**
-  String reviewPhotosAmount(int count, String plural);
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String reviewPhotosAmount(int count);
+
+  /// Title of the page shown for an unknown route or deep link.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not find that page'**
+  String get notFoundTitle;
 
   /// No description provided for @invalidListingId.
   ///
   /// In en, this message translates to:
-  /// **'Invalid listing ID'**
+  /// **'This listing link is broken.'**
   String get invalidListingId;
 
   /// No description provided for @invalidConversationId.
   ///
   /// In en, this message translates to:
-  /// **'Invalid conversation ID'**
+  /// **'This chat link is broken.'**
   String get invalidConversationId;
 
   /// No description provided for @youAreOffline.
@@ -5813,7 +5921,7 @@ abstract class AppLocalizations {
   /// No description provided for @suggestionsLabel.
   ///
   /// In en, this message translates to:
-  /// **'SUGGESTIONS'**
+  /// **'Suggestions'**
   String get suggestionsLabel;
 
   /// No description provided for @locationPickerTitle.
@@ -5831,7 +5939,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchingCitiesLabel.
   ///
   /// In en, this message translates to:
-  /// **'MATCHING CITIES'**
+  /// **'Matching cities'**
   String get matchingCitiesLabel;
 
   /// No description provided for @noCitiesFound.
@@ -5843,7 +5951,7 @@ abstract class AppLocalizations {
   /// No description provided for @moreCitiesLabel.
   ///
   /// In en, this message translates to:
-  /// **'MORE CITIES'**
+  /// **'More cities'**
   String get moreCitiesLabel;
 
   /// No description provided for @searchRadiusLabel.
@@ -6019,6 +6127,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An update is ready. It will apply the next time you open the app.'**
   String get patchReadyMessage;
+
+  /// No description provided for @appVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String appVersionLabel(String version);
 
   /// No description provided for @patchLabel.
   ///
@@ -6353,7 +6467,7 @@ abstract class AppLocalizations {
   /// No description provided for @listingLabel.
   ///
   /// In en, this message translates to:
-  /// **'LISTING'**
+  /// **'Listing'**
   String get listingLabel;
 
   /// No description provided for @liveBadge.
@@ -6479,7 +6593,7 @@ abstract class AppLocalizations {
   /// No description provided for @visitFromDetailPageNote.
   ///
   /// In en, this message translates to:
-  /// **'Interested in this property — scheduled from listing page.'**
+  /// **'Interested in this property. Scheduled from the listing page.'**
   String get visitFromDetailPageNote;
 
   /// No description provided for @readMoreCta.
@@ -6812,6 +6926,18 @@ abstract class AppLocalizations {
   /// **'Listing updated successfully.'**
   String get listingUpdatedToast;
 
+  /// No description provided for @listingUpdatedInReviewToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing updated. It is back in review before it goes live again.'**
+  String get listingUpdatedInReviewToast;
+
+  /// No description provided for @listingStatusConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This listing cannot change status right now. It may be under review or paused by a moderator.'**
+  String get listingStatusConflict;
+
   /// No description provided for @discardListingTitle.
   ///
   /// In en, this message translates to:
@@ -7097,7 +7223,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingStepsRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count} steps left'**
+  /// **'{count, plural, =1{1 step left} other{{count} steps left}}'**
   String onboardingStepsRemaining(int count);
 
   /// No description provided for @onboardingStepOf.
@@ -7405,6 +7531,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'46+'**
   String get ageBucket46Plus;
+
+  /// No description provided for @emailVerifiedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verified'**
+  String get emailVerifiedLabel;
+
+  /// No description provided for @onboardingFinishLaterCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish later'**
+  String get onboardingFinishLaterCta;
+
+  /// No description provided for @removePhotoTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhotoTooltip;
+
+  /// No description provided for @budgetUpToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to ₹{amount}'**
+  String budgetUpToLabel(String amount);
+
+  /// No description provided for @ageRangeYearsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} – {max} yrs'**
+  String ageRangeYearsValue(int min, int max);
+
+  /// No description provided for @ventilationAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get ventilationAny;
+
+  /// No description provided for @adjustFiltersCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust filters'**
+  String get adjustFiltersCta;
+
+  /// No description provided for @clearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearchTooltip;
+
+  /// No description provided for @voteDownHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote down'**
+  String get voteDownHint;
+
+  /// No description provided for @mapRecenterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to my location'**
+  String get mapRecenterTooltip;
+
+  /// No description provided for @mapFitAllTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all listings'**
+  String get mapFitAllTooltip;
+
+  /// No description provided for @mapZoomInTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get mapZoomInTooltip;
+
+  /// No description provided for @mapZoomOutTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get mapZoomOutTooltip;
+
+  /// No description provided for @ownerFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get ownerFallbackName;
+
+  /// No description provided for @floorOfLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {floor} of {total}'**
+  String floorOfLabel(String floor, String total);
+
+  /// No description provided for @floorNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {floor}'**
+  String floorNumberLabel(String floor);
 }
 
 class _AppLocalizationsDelegate

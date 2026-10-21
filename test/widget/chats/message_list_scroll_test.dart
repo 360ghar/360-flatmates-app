@@ -80,5 +80,49 @@ void main() {
       // list pins to the bottom on first render.
       expect(find.text('Message 19'), findsOneWidget);
     });
+
+    testWidgets('an empty thread stays scrollable so pull-to-refresh fires', (
+      tester,
+    ) async {
+      const fakeState = MessagesState(hasMoreOlder: false);
+      var refreshes = 0;
+
+      await tester.pumpWidget(
+        testableWidget(
+          overrides: [
+            messagesControllerProvider.overrideWith(
+              () => _FakeMessagesController(fakeState),
+            ),
+          ],
+          child: Scaffold(
+            body: RefreshIndicator(
+              onRefresh: () async => refreshes++,
+              child: MessageList(
+                messagesState: fakeState,
+                currentUserId: 1,
+                conversation: const ConversationSummaryModel(
+                  id: 10,
+                  peer: ChatPeer(id: 2, fullName: 'Priya'),
+                ),
+                visitsAsync: const AsyncValue<List<VisitItem>>.data([]),
+                onConfirmVisit: (_) {},
+                onRescheduleVisit: (_) {},
+                conversationId: 10,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Pull down on the empty state: without an always-scrollable list the
+      // RefreshIndicator has no scrollable child and never calls onRefresh.
+      await tester.fling(find.byType(MessageList), const Offset(0, 300), 1000);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(refreshes, 1);
+    });
   });
 }

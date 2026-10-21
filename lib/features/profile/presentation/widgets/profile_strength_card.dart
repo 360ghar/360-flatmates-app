@@ -20,21 +20,19 @@ String displayOwnName(
   return parts.sublist(0, parts.length - 1).join(' ');
 }
 
-/// City only when [hideExactLocation]; else locality + city + state.
+/// City only when [hideExactLocation]; else locality + city. (The profile has
+/// no state: the backend profile schemas do not carry one.)
 String? displayOwnLocation({
   String? city,
-  String? state,
   String? locality,
   required bool hideExactLocation,
 }) {
   final cityTrim = city?.trim() ?? '';
-  final stateTrim = state?.trim() ?? '';
   final localityTrim = locality?.trim() ?? '';
   if (hideExactLocation) return cityTrim.isEmpty ? null : cityTrim;
   final parts = <String>[
     if (localityTrim.isNotEmpty) localityTrim,
     if (cityTrim.isNotEmpty) cityTrim,
-    if (stateTrim.isNotEmpty) stateTrim,
   ];
   return parts.isEmpty ? null : parts.join(', ');
 }
@@ -69,40 +67,37 @@ class ProfileStrengthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final b = theme.brightness;
     final locale = AppLocalizations.of(context);
+    final clay = AppSemanticColors.clayFor(b);
+    // The ring grows with the text size so "100" never clips at 2x.
+    final ring = AppSpacing.scaled(context, 44);
 
     return FlatmatesCard(
       onTap: onTap,
-      borderColor: AppSemanticColors.accent.withValues(alpha: 0.16),
-      backgroundColor: AppSemanticColors.accent.withValues(alpha: 0.06),
       child: Row(
         children: [
           Semantics(
             label: locale.profileStrengthTitle(percent),
             value: '$percent%',
             child: ExcludeSemantics(
-              child: SizedBox(
-                width: 44,
-                height: 44,
+              child: SizedBox.square(
+                dimension: ring,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     CircularProgressIndicator(
                       value: percent / 100,
                       strokeWidth: 3.5,
-                      backgroundColor: AppSemanticColors.hairlineFor(
-                        theme.brightness,
-                      ).withValues(alpha: 0.25),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppSemanticColors.accent,
-                      ),
+                      backgroundColor: AppSemanticColors.paperDeepFor(b),
+                      valueColor: AlwaysStoppedAnimation<Color>(clay),
                     ),
                     Center(
                       child: Text(
                         '$percent',
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppSemanticColors.accent,
+                          color: AppSemanticColors.clayInkFor(b),
                         ),
                       ),
                     ),
@@ -123,22 +118,20 @@ class ProfileStrengthCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   locale.profileStrengthSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppSemanticColors.textSecondaryFor(theme.brightness),
+                    color: AppSemanticColors.textSecondaryFor(b),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.chevron_right_rounded,
             size: 20,
-            color: AppSemanticColors.accent,
+            color: AppSemanticColors.textTertiaryFor(b),
           ),
         ],
       ),

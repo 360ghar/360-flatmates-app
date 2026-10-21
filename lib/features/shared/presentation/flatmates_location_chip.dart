@@ -87,17 +87,31 @@ class _FlatmatesLocationChipState extends State<FlatmatesLocationChip> {
 
     if (widget.onTap == null) return chip;
 
-    return Listener(
-      onPointerDown: (_) => setState(() => _pressed = true),
-      onPointerUp: (_) => setState(() => _pressed = false),
-      onPointerCancel: (_) => setState(() => _pressed = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _pressed ? 0.97 : 1.0,
-          duration: AppMotion.buttonPress,
-          curve: AppMotion.easeOutCubic,
-          child: chip,
+    final reduce = AppMotion.reduceMotion(context);
+    return Semantics(
+      button: true,
+      child: Listener(
+        onPointerDown: (_) => setState(() => _pressed = true),
+        onPointerUp: (_) => setState(() => _pressed = false),
+        onPointerCancel: (_) => setState(() => _pressed = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          behavior: HitTestBehavior.opaque,
+          // The chip draws about 28-36 dp high; the hit area is held at 48 dp
+          // without growing the drawn chip.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Center(
+              widthFactor: 1,
+              heightFactor: 1,
+              child: AnimatedScale(
+                scale: _pressed && !reduce ? AppMotion.pressScale : 1.0,
+                duration: AppMotion.fast,
+                curve: AppMotion.paperOut,
+                child: chip,
+              ),
+            ),
+          ),
         ),
       ),
     );

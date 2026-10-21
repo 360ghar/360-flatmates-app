@@ -6,10 +6,7 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'components.dart';
 
-/// Pill-shaped global search bar (Airbnb `search-bar-pill`).
-///
-/// White surface, fully rounded, hairline + single elevation tier.
-/// No accent focus glow — quiet chrome.
+/// Search field on a paper-2 sheet. See the DESIGN.md input rule.
 class FlatmatesSearchBar extends StatefulWidget {
   const FlatmatesSearchBar({
     super.key,
@@ -65,62 +62,63 @@ class _FlatmatesSearchBarState extends State<FlatmatesSearchBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final ink = AppSemanticColors.textPrimaryFor(theme.brightness);
-    final muted = AppSemanticColors.textTertiaryFor(theme.brightness);
-    final fill = isDark
-        ? AppSemanticColors.darkSurface
-        : AppSemanticColors.canvas;
-    final hairline = AppSemanticColors.hairlineFor(theme.brightness);
+    final brightness = theme.brightness;
+    final ink = AppSemanticColors.textPrimaryFor(brightness);
+    final muted = AppSemanticColors.textTertiaryFor(brightness);
 
+    // DESIGN.md input: paper-2, cut-md, e1, 48 high (grows with the text
+    // size), 2 px clay stroke on focus. The stroke is a foreground decoration
+    // so focus does not shift the layout.
     return Container(
-      height: 48,
+      constraints: const BoxConstraints(minHeight: 48),
       decoration: BoxDecoration(
-        color: fill,
-        borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: hairline),
-        boxShadow: AppShadows.elevationFor(theme.brightness),
+        color: AppSemanticColors.surfaceFor(brightness),
+        borderRadius: AppRadius.mdBorder,
+        boxShadow: AppShadows.e1(brightness),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              focusNode: _focusNode,
-              controller: widget.controller,
-              onChanged: widget.onChanged,
-              onSubmitted: widget.onSubmitted,
-              onTap: widget.onTap,
-              readOnly: widget.readOnly,
-              autofocus: widget.autofocus,
-              style: theme.textTheme.bodyMedium?.copyWith(color: ink),
-              decoration: InputDecoration(
-                hintText: widget.hint,
-                hintStyle: theme.textTheme.bodyMedium?.copyWith(color: muted),
-                prefixIcon: Icon(
-                  widget.leadingIcon ?? AppIcons.search,
-                  size: 20,
-                  color: muted,
-                ),
-                suffixIcon: widget.trailingIcon != null
-                    ? IconButton(
-                        icon: Icon(widget.trailingIcon, size: 20, color: muted),
-                        onPressed: widget.onTrailingTap,
-                        tooltip: widget.trailingTooltip,
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.transparent,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.base,
-                  vertical: AppSpacing.md,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-            ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: AppRadius.mdBorder,
+        border: Border.all(
+          color: _isFocused
+              ? AppSemanticColors.clayFor(brightness)
+              : AppSemanticColors.hairlineFor(brightness),
+          width: _isFocused ? 2 : 1,
+        ),
+      ),
+      child: TextField(
+        focusNode: _focusNode,
+        controller: widget.controller,
+        onChanged: widget.onChanged,
+        onSubmitted: widget.onSubmitted,
+        onTap: widget.onTap,
+        readOnly: widget.readOnly,
+        autofocus: widget.autofocus,
+        style: theme.textTheme.bodyMedium?.copyWith(color: ink),
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: theme.textTheme.bodyMedium?.copyWith(color: muted),
+          prefixIcon: Icon(
+            widget.leadingIcon ?? AppIcons.search,
+            size: 20,
+            color: muted,
           ),
-        ],
+          suffixIcon: widget.trailingIcon != null
+              ? IconButton(
+                  icon: Icon(widget.trailingIcon, size: 20, color: muted),
+                  onPressed: widget.onTrailingTap,
+                  tooltip: widget.trailingTooltip,
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.base,
+            vertical: AppSpacing.md,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
       ),
     );
   }

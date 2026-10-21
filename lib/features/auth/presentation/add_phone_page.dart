@@ -8,15 +8,11 @@ import 'package:sms_autofill/sms_autofill.dart';
 
 import '../auth_controller.dart';
 import '../../../core/errors/l10n_bridge.dart';
-import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_semantic_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../shared/presentation/components.dart';
 import 'widgets/resend_countdown.dart';
-
-final _codeSentProvider = StateProvider.autoDispose<bool>((ref) => false);
-final _addPhoneOtpTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Skippable post-Google step that lets a phone-less account add and verify a
 /// phone number. Skipping keeps `last_auth_method = google` and continues the
@@ -34,15 +30,9 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   final _phoneFocusNode = FocusNode();
   final _smartAuth = SmartAuth.instance;
   bool _phoneHintShown = false;
-  final List<TextEditingController> _otpControllers = List.generate(
-    6,
-    (_) => TextEditingController(),
-  );
-
-  /// Suppresses auto-submit from [codeUpdated] while programmatically
-  /// filling boxes — the sms_autofill package can fire with a stale code
-  /// (BehaviorSubject replay) and should not auto-verify.
-  bool _isSmsFilling = false;
+  final _otpKey = GlobalKey<FlatmatesOtpInputState>();
+  bool _codeSent = false;
+  String _otpText = '';
   bool _smsListening = false;
 
   String get _phone => _phoneController.text.trim();
@@ -72,9 +62,6 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     _phoneController.removeListener(_onPhoneChanged);
     _phoneController.dispose();
     _phoneFocusNode.dispose();
-    for (final c in _otpControllers) {
-      c.dispose();
-    }
     super.dispose();
   }
 
@@ -82,12 +69,10 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   void codeUpdated() {
     final value = code;
     if (value != null && value.length == 6) {
-      _isSmsFilling = true;
-      for (var i = 0; i < 6; i++) {
-        _otpControllers[i].text = value[i];
-      }
-      _isSmsFilling = false;
-      if (mounted) ref.read(_addPhoneOtpTextProvider.notifier).state = value;
+      // Fill the boxes but do not auto-verify: sms_autofill can replay a
+      // stale code from an earlier SMS.
+      _otpKey.currentState?.silentFillOtp(value);
+      if (mounted) setState(() => _otpText = value);
     }
   }
 
@@ -125,7 +110,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
         .read(authControllerProvider.notifier)
         .requestAddPhoneOtp(_phone);
     if (ok && mounted) {
-      ref.read(_codeSentProvider.notifier).state = true;
+      setState(() => _codeSent = true);
       // Start the shared 30s resend cooldown once the SMS is sent.
       startResendCountdown();
       try {
@@ -141,10 +126,8 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
   Future<void> _resendCode() async {
     if (!canResend) return;
     if (!_phoneLooksValid) return;
-    for (final controller in _otpControllers) {
-      controller.clear();
-    }
-    ref.read(_addPhoneOtpTextProvider.notifier).state = '';
+    _otpKey.currentState?.silentFillOtp('');
+    setState(() => _otpText = '');
     final ok = await ref
         .read(authControllerProvider.notifier)
         .requestAddPhoneOtp(_phone);
@@ -153,23 +136,15 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     }
   }
 
-  String get _currentOtp => _otpControllers.map((c) => c.text).join();
-
+  /// On success the router redirect chain advances onboarding; an error
+  /// shows from the auth state.
   Future<void> _verify([String? code]) async {
-    // Suppress auto-verify while sms_autofill is programmatically filling
-    // boxes — the code may be stale/cached from a previous SMS detection.
-    if (_isSmsFilling) return;
-
-    final otp = code ?? _currentOtp;
+    final otp = code ?? _otpText;
     if (otp.length != 6) return;
     if (!_phoneLooksValid) return;
-    final ok = await ref
+    await ref
         .read(authControllerProvider.notifier)
         .addAndVerifyPhone(phone: _phone, otp: otp);
-    // On success the router redirect chain advances onboarding.
-    if (!ok && mounted) {
-      // Error surfaced via auth state below.
-    }
   }
 
   void _skip() {
@@ -182,12 +157,13 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
     final isBusy = auth.status == AuthStatus.submitting;
-    final codeSent = ref.watch(_codeSentProvider);
-    final otpComplete = ref.watch(_addPhoneOtpTextProvider).length == 6;
+    final codeSent = _codeSent;
+    final otpComplete = _otpText.length == 6;
     final canSubmit = !isBusy && (codeSent ? otpComplete : _phoneLooksValid);
 
+    // Reached by redirect, so there is nothing to pop: Skip is the way out.
     return FlatmatesScreen(
-      appBar: const FlatmatesHeader.backTitle(title: ''),
+      appBar: const FlatmatesHeader.titleOnly(title: ''),
       scrollable: true,
       body: AutofillGroup(
         child: Column(
@@ -216,12 +192,11 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
                   ),
                   if (codeSent) ...[
                     const SizedBox(height: AppSpacing.lg),
-                    _OtpFieldRow(
-                      controllers: _otpControllers,
-                      onChanged: (otp) {
-                        ref.read(_addPhoneOtpTextProvider.notifier).state = otp;
-                        if (otp.length == 6) _verify(otp);
-                      },
+                    FlatmatesOtpInput(
+                      key: _otpKey,
+                      keyPrefix: 'add_phone_otp',
+                      onChanged: (otp) => setState(() => _otpText = otp),
+                      onCompleted: _verify,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     // Resend OTP with shared 30s countdown.
@@ -248,10 +223,7 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
             if (auth.status == AuthStatus.error &&
                 auth.errorMessage != null) ...[
               const SizedBox(height: AppSpacing.md),
-              Text(
-                resolveAuthError(auth.errorMessage, locale),
-                style: const TextStyle(color: AppSemanticColors.error),
-              ),
+              FlatmatesInlineError(resolveAuthError(auth.errorMessage, locale)),
             ],
             const SizedBox(height: AppSpacing.screen),
             FlatmatesButton(
@@ -275,75 +247,4 @@ class _AddPhonePageState extends ConsumerState<AddPhonePage>
       ),
     );
   }
-}
-
-class _OtpFieldRow extends StatefulWidget {
-  const _OtpFieldRow({required this.controllers, required this.onChanged});
-
-  final List<TextEditingController> controllers;
-  final ValueChanged<String> onChanged;
-
-  @override
-  State<_OtpFieldRow> createState() => _OtpFieldRowState();
-}
-
-class _OtpFieldRowState extends State<_OtpFieldRow> {
-  bool _isFilling = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(6, (index) {
-        return SizedBox(
-          width: AppSpacing.xl,
-          child: TextField(
-            key: Key('add_phone_otp_$index'),
-            controller: widget.controllers[index],
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: index == 0 ? null : 1,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(index == 0 ? 6 : 1),
-            ],
-            autofillHints: index == 0
-                ? const [AutofillHints.oneTimeCode]
-                : null,
-            decoration: const InputDecoration(
-              counterText: '',
-              border: OutlineInputBorder(borderRadius: AppRadius.mdBorder),
-            ),
-            onChanged: (value) {
-              // Suppress re-entrant onChanged while distributing digits.
-              if (_isFilling) return;
-
-              // Handle multi-character paste/autofill on the first box.
-              if (value.length > 1 && index == 0) {
-                final digits = value.replaceAll(RegExp(r'\D'), '');
-                _isFilling = true;
-                for (var i = 0; i < 6; i++) {
-                  if (i < digits.length) {
-                    widget.controllers[i].text = digits[i];
-                  } else {
-                    widget.controllers[i].clear();
-                  }
-                }
-                _isFilling = false;
-                widget.onChanged(_currentOtp);
-                return;
-              }
-
-              if (value.isNotEmpty && index < 5) {
-                FocusScope.of(context).nextFocus();
-              }
-              widget.onChanged(_currentOtp);
-            },
-          ),
-        );
-      }),
-    );
-  }
-
-  String get _currentOtp => widget.controllers.map((c) => c.text).join();
 }

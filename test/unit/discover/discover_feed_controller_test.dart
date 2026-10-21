@@ -312,7 +312,9 @@ void main() {
         }
         if (options.path == '/flatmates/swipes' && options.method == 'POST') {
           return Response(
-            data: {'detail': 'Server error'},
+            data: {
+              'error': {'code': 'INTERNAL_ERROR', 'message': 'Server error'},
+            },
             statusCode: 500,
             requestOptions: options,
           );

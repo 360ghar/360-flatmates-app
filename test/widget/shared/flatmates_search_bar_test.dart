@@ -128,13 +128,27 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('has a fixed height of 48', (tester) async {
+    testWidgets('is 48 high at the default text size', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: Scaffold(body: FlatmatesSearchBar())),
       );
 
       final size = tester.getSize(find.byType(FlatmatesSearchBar));
       expect(size.height, 48);
+    });
+
+    testWidgets('grows with the text size instead of clipping', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(body: FlatmatesSearchBar(hint: 'Search')),
+          ),
+        ),
+      );
+
+      final size = tester.getSize(find.byType(FlatmatesSearchBar));
+      expect(size.height, greaterThan(48));
     });
   });
 }

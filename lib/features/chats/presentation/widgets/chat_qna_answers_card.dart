@@ -41,7 +41,10 @@ class ChatQnAAnswersCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.quiz_outlined, color: AppSemanticColors.accent),
+              Icon(
+                Icons.quiz_outlined,
+                color: AppSemanticColors.clayFor(theme.brightness),
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -50,7 +53,7 @@ class ChatQnAAnswersCard extends StatelessWidget {
                     Text(
                       title,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppSemanticColors.accent,
+                        color: AppSemanticColors.clayFor(theme.brightness),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -111,7 +114,10 @@ class _QnAAnswerSection extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final rows = [
       (question: locale.qnaQuestion1, answer: answers.q1),
-      (question: locale.qnaQuestion2, answer: answers.q2),
+      (
+        question: locale.qnaQuestion2,
+        answer: _socialScaleLabel(locale, answers.q2),
+      ),
       (question: locale.qnaQuestion3, answer: answers.q3),
     ].where((row) => row.answer?.trim().isNotEmpty ?? false);
 
@@ -127,7 +133,6 @@ class _QnAAnswerSection extends StatelessWidget {
                 color: AppSemanticColors.textSecondaryFor(theme.brightness),
               ),
             ),
-            const SizedBox(height: 2),
             Text(row.answer!.trim(), style: theme.textTheme.bodyMedium),
           ],
         ),
@@ -149,3 +154,15 @@ class _QnAAnswerSection extends StatelessWidget {
     );
   }
 }
+
+/// Q2 is stored as the scale value "1".."5"; show its label. Older answers
+/// saved as free text show unchanged.
+String? _socialScaleLabel(AppLocalizations locale, String? raw) =>
+    switch (raw?.trim()) {
+      '1' => locale.qnaVeryPrivate,
+      '2' => locale.qnaMostlyPrivate,
+      '3' => locale.qnaBalanced,
+      '4' => locale.qnaMostlySocial,
+      '5' => locale.qnaVerySocial,
+      _ => raw,
+    };

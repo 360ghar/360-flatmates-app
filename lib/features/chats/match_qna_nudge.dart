@@ -26,7 +26,7 @@ class MatchQnANudge extends ConsumerStatefulWidget {
 
 class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
   final _q1Controller = TextEditingController();
-  int _q2Value = 2; // 1-5 scale, default middle
+  int _q2Value = 3; // 1-5 scale, default middle
   final _q3Controller = TextEditingController();
   bool _isSubmitting = false;
 
@@ -37,8 +37,8 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
     super.dispose();
   }
 
-  String _q2Label(AppLocalizations locale) {
-    return switch (_q2Value) {
+  String _q2Label(AppLocalizations locale, [int? value]) {
+    return switch (value ?? _q2Value) {
       1 => locale.qnaVeryPrivate,
       2 => locale.qnaMostlyPrivate,
       3 => locale.qnaBalanced,
@@ -93,6 +93,7 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                 TextField(
                   controller: _q1Controller,
                   maxLength: 100,
+                  enabled: !_isSubmitting,
                   decoration: InputDecoration(
                     hintText: locale.qnaQuestion1Hint,
                     counterStyle: theme.textTheme.bodySmall,
@@ -114,9 +115,39 @@ class _MatchQnANudgeState extends ConsumerState<MatchQnANudge> {
                   max: 5,
                   divisions: 4,
                   label: _q2Label(locale),
+                  // Screen readers pass the value being announced, which can be ahead of
+                  // the state while a drag or increment is in flight.
+                  semanticFormatterCallback: (v) => _q2Label(locale, v.round()),
                   onChanged: _isSubmitting
                       ? null
                       : (v) => setState(() => _q2Value = v.round()),
+                ),
+                // End labels under the slider, so the track keeps its width
+                // on a narrow phone or at large text.
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        locale.qnaVeryPrivate,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        locale.qnaVerySocial,
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppSemanticColors.textSecondaryFor(
+                            theme.brightness,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

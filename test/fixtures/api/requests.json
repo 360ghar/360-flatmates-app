@@ -1,0 +1,1593 @@
+{
+  "AppVersionCheckRequest": {
+    "extra_forbidden": true,
+    "properties": {
+      "app": {
+        "enum": [
+          "ghar",
+          "estate",
+          "flatmates",
+          "stays"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "build_number": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "current_version": {
+        "maxLength": 20,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      },
+      "platform": {
+        "enum": [
+          "android",
+          "ios",
+          "web"
+        ],
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "app",
+      "current_version",
+      "platform"
+    ]
+  },
+  "BlockCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "blocked_user_id": {
+        "nullable": false,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "blocked_user_id"
+    ]
+  },
+  "BugReportCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "actual_behavior": {
+        "nullable": true,
+        "type": "string"
+      },
+      "app_version": {
+        "maxLength": 50,
+        "nullable": true,
+        "type": "string"
+      },
+      "bug_type": {
+        "enum": [
+          "ui_bug",
+          "functionality_bug",
+          "performance_issue",
+          "crash",
+          "feature_request",
+          "other"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "description": {
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      },
+      "device_info": {
+        "nullable": true,
+        "type": "object"
+      },
+      "expected_behavior": {
+        "nullable": true,
+        "type": "string"
+      },
+      "media_urls": {
+        "nullable": true,
+        "type": "array"
+      },
+      "severity": {
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "source": {
+        "maxLength": 50,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      },
+      "steps_to_reproduce": {
+        "nullable": true,
+        "type": "string"
+      },
+      "tags": {
+        "nullable": true,
+        "type": "array"
+      },
+      "title": {
+        "maxLength": 200,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "bug_type",
+      "description",
+      "severity",
+      "source",
+      "title"
+    ]
+  },
+  "ConversationCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "context_property_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "initial_message": {
+        "nullable": true,
+        "type": "string"
+      },
+      "match_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "peer_user_id": {
+        "nullable": false,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "peer_user_id"
+    ]
+  },
+  "DeviceRegisterIn": {
+    "extra_forbidden": true,
+    "properties": {
+      "app_key": {
+        "enum": [
+          "ghar",
+          "estate",
+          "flatmates",
+          "stays"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "app_version": {
+        "maxLength": 64,
+        "nullable": true,
+        "type": "string"
+      },
+      "locale": {
+        "maxLength": 32,
+        "nullable": true,
+        "type": "string"
+      },
+      "platform": {
+        "enum": [
+          "android",
+          "ios",
+          "web"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "token": {
+        "maxLength": 4096,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "app_key",
+      "platform",
+      "token"
+    ]
+  },
+  "DeviceUnregisterIn": {
+    "extra_forbidden": true,
+    "properties": {
+      "token": {
+        "maxLength": 4096,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "token"
+    ]
+  },
+  "FlatmateVisitUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "scheduled_date": {
+        "nullable": true,
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "requested",
+          "confirmed",
+          "completed",
+          "cancelled",
+          "reschedule_suggested"
+        ],
+        "nullable": true,
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "FlatmatesNotificationBulkUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "mark_all_read": {
+        "nullable": false,
+        "type": "boolean"
+      }
+    },
+    "required": []
+  },
+  "FlatmatesNotificationUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "is_read": {
+        "nullable": false,
+        "type": "boolean"
+      }
+    },
+    "required": []
+  },
+  "FlatmatesProfileUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "age": {
+        "maximum": 100,
+        "minimum": 18,
+        "nullable": true,
+        "type": "integer"
+      },
+      "bio": {
+        "nullable": true,
+        "type": "string"
+      },
+      "budget_max": {
+        "nullable": true,
+        "type": "number"
+      },
+      "budget_min": {
+        "nullable": true,
+        "type": "number"
+      },
+      "city": {
+        "nullable": true,
+        "type": "string"
+      },
+      "cleanliness": {
+        "enum": [
+          "minimal",
+          "tidy",
+          "spotless"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "drinking": {
+        "enum": [
+          "never",
+          "occasionally",
+          "regularly"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "food_habits": {
+        "enum": [
+          "vegetarian",
+          "vegan",
+          "non_vegetarian",
+          "eggetarian",
+          "no_preference"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "full_name": {
+        "nullable": true,
+        "type": "string"
+      },
+      "gender": {
+        "nullable": true,
+        "type": "string"
+      },
+      "gender_preference": {
+        "enum": [
+          "any",
+          "male",
+          "female"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "guests_policy": {
+        "enum": [
+          "no_overnight_guests",
+          "occasional_ok",
+          "open_house"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "linkedin_url": {
+        "maxLength": 255,
+        "nullable": true,
+        "type": "string"
+      },
+      "locality": {
+        "nullable": true,
+        "type": "string"
+      },
+      "mode": {
+        "enum": [
+          "room_poster",
+          "seeker",
+          "co_hunter",
+          "open_to_both"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "move_in_timeline": {
+        "maxLength": 64,
+        "nullable": true,
+        "type": "string"
+      },
+      "native_place": {
+        "maxLength": 120,
+        "nullable": true,
+        "type": "string"
+      },
+      "onboarding_completed": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "preferences": {
+        "nullable": true,
+        "type": "object"
+      },
+      "profession": {
+        "nullable": true,
+        "type": "string"
+      },
+      "profile_image_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "profile_status": {
+        "enum": [
+          "draft",
+          "pending_review",
+          "active",
+          "paused",
+          "rejected"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "sleep_schedule": {
+        "enum": [
+          "early_bird",
+          "flexible",
+          "night_owl"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "smoking": {
+        "enum": [
+          "never",
+          "occasionally",
+          "regularly"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "work_style": {
+        "enum": [
+          "wfh",
+          "office",
+          "hybrid"
+        ],
+        "nullable": true,
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "IdentifierStatusRequest": {
+    "extra_forbidden": false,
+    "properties": {
+      "identifier": {
+        "maxLength": 320,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "identifier"
+    ]
+  },
+  "LastMethodRequest": {
+    "extra_forbidden": true,
+    "properties": {
+      "method": {
+        "enum": [
+          "google",
+          "apple",
+          "email_password",
+          "phone_password",
+          "phone_otp",
+          "email_otp"
+        ],
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "method"
+    ]
+  },
+  "MessageCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "attachment_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "body": {
+        "nullable": true,
+        "type": "string"
+      },
+      "message_type": {
+        "enum": [
+          "text",
+          "image",
+          "system",
+          "visit_request"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "metadata": {
+        "nullable": true,
+        "type": "object"
+      }
+    },
+    "required": []
+  },
+  "NotificationSettingsWrite": {
+    "extra_forbidden": true,
+    "properties": {
+      "email_notifications": {
+        "nullable": false,
+        "type": "boolean"
+      },
+      "promotional_emails": {
+        "nullable": false,
+        "type": "boolean"
+      },
+      "push_notifications": {
+        "nullable": false,
+        "type": "boolean"
+      },
+      "sms_notifications": {
+        "nullable": false,
+        "type": "boolean"
+      }
+    },
+    "required": []
+  },
+  "PrivacySettingsPatch": {
+    "extra_forbidden": true,
+    "properties": {
+      "allow_location_tracking": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "contact_sharing": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "data_sharing_consent": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "hide_last_name": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "location_sharing": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "profile_visibility": {
+        "enum": [
+          "public",
+          "agents_only",
+          "private"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "search_history_tracking": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "show_email": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "show_phone": {
+        "nullable": true,
+        "type": "boolean"
+      }
+    },
+    "required": []
+  },
+  "ProfileViewEventCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "context_property_id": {
+        "exclusiveMinimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "duration_seconds": {
+        "maximum": 3600,
+        "minimum": 0,
+        "nullable": false,
+        "type": "integer"
+      },
+      "scroll_depth_percent": {
+        "maximum": 100,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "source": {
+        "maxLength": 64,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      },
+      "target_user_id": {
+        "exclusiveMinimum": 0,
+        "nullable": false,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "duration_seconds",
+      "target_user_id"
+    ]
+  },
+  "PropertyCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "age_of_property": {
+        "maximum": 500,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "amenity_ids": {
+        "nullable": true,
+        "type": "array"
+      },
+      "area_sqft": {
+        "maximum": 1000000,
+        "minimum": 0,
+        "nullable": true,
+        "type": "number"
+      },
+      "area_type": {
+        "nullable": true,
+        "type": "string"
+      },
+      "available_from": {
+        "nullable": true,
+        "type": "string"
+      },
+      "balconies": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "base_price": {
+        "nullable": false,
+        "type": "number"
+      },
+      "bathrooms": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "bedrooms": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "builder_name": {
+        "nullable": true,
+        "type": "string"
+      },
+      "calendar_data": {
+        "nullable": true,
+        "type": "object"
+      },
+      "city": {
+        "nullable": true,
+        "type": "string"
+      },
+      "country": {
+        "nullable": false,
+        "type": "string"
+      },
+      "daily_rate": {
+        "nullable": true,
+        "type": "number"
+      },
+      "description": {
+        "nullable": true,
+        "type": "string"
+      },
+      "features": {
+        "nullable": true,
+        "type": "array"
+      },
+      "floor_number": {
+        "maximum": 200,
+        "minimum": -5,
+        "nullable": true,
+        "type": "integer"
+      },
+      "floor_plan_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "full_address": {
+        "nullable": true,
+        "type": "string"
+      },
+      "furnishing_level": {
+        "enum": [
+          "furnished",
+          "semi_furnished",
+          "unfurnished"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "gender_preference": {
+        "enum": [
+          "any",
+          "male",
+          "female"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "google_street_view_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "image_urls": {
+        "nullable": true,
+        "type": "array"
+      },
+      "is_available": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "kitchen_type": {
+        "enum": [
+          "vegetarian",
+          "non_vegetarian",
+          "eggetarian",
+          "any"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "landmark": {
+        "nullable": true,
+        "type": "string"
+      },
+      "latitude": {
+        "maximum": 90,
+        "minimum": -90,
+        "nullable": true,
+        "type": "number"
+      },
+      "listing_preferences": {
+        "nullable": true,
+        "properties": [
+          "cleanliness",
+          "expires_at",
+          "food_habits",
+          "gender_preference",
+          "guests_policy",
+          "moderation_status",
+          "parties_at_home",
+          "pets",
+          "sharing_type",
+          "smoking_drinking"
+        ],
+        "type": "object"
+      },
+      "locality": {
+        "nullable": true,
+        "type": "string"
+      },
+      "longitude": {
+        "maximum": 180,
+        "minimum": -180,
+        "nullable": true,
+        "type": "number"
+      },
+      "main_image_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "maintenance_charges": {
+        "nullable": true,
+        "type": "number"
+      },
+      "max_occupancy": {
+        "maximum": 1000,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "minimum_stay_days": {
+        "maximum": 3650,
+        "minimum": 1,
+        "nullable": false,
+        "type": "integer"
+      },
+      "monthly_rent": {
+        "nullable": true,
+        "type": "number"
+      },
+      "other_charges": {
+        "nullable": true,
+        "type": "number"
+      },
+      "other_charges_description": {
+        "maxLength": 300,
+        "nullable": true,
+        "type": "string"
+      },
+      "owner_contact": {
+        "nullable": true,
+        "type": "string"
+      },
+      "owner_name": {
+        "nullable": true,
+        "type": "string"
+      },
+      "parking_spaces": {
+        "maximum": 100,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "pincode": {
+        "nullable": true,
+        "type": "string"
+      },
+      "property_type": {
+        "enum": [
+          "house",
+          "apartment",
+          "builder_floor",
+          "room",
+          "villa",
+          "plot",
+          "condo",
+          "penthouse",
+          "studio",
+          "loft",
+          "pg",
+          "flatmate",
+          "office",
+          "shop",
+          "warehouse"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "purpose": {
+        "enum": [
+          "buy",
+          "rent",
+          "short_stay"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "search_keywords": {
+        "nullable": true,
+        "type": "string"
+      },
+      "security_deposit": {
+        "nullable": true,
+        "type": "number"
+      },
+      "setup_cost": {
+        "nullable": true,
+        "type": "number"
+      },
+      "sharing_type": {
+        "enum": [
+          "private_room",
+          "shared_room",
+          "master_bedroom",
+          "entire_flat"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "society_amenities": {
+        "nullable": true,
+        "type": "array"
+      },
+      "society_type": {
+        "nullable": true,
+        "type": "string"
+      },
+      "society_vibe_tags": {
+        "nullable": true,
+        "type": "array"
+      },
+      "state": {
+        "nullable": true,
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "available",
+          "sold",
+          "rented",
+          "under_offer",
+          "maintenance"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "sub_locality": {
+        "nullable": true,
+        "type": "string"
+      },
+      "tags": {
+        "nullable": true,
+        "type": "array"
+      },
+      "title": {
+        "nullable": false,
+        "type": "string"
+      },
+      "total_floors": {
+        "maximum": 200,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "ventilation_shafts": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "ventilation_type": {
+        "enum": [
+          "good",
+          "average",
+          "poor"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "video_tour_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "video_urls": {
+        "nullable": true,
+        "type": "array"
+      },
+      "virtual_tour_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "windows_count": {
+        "maximum": 100,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "base_price",
+      "property_type",
+      "purpose",
+      "title"
+    ]
+  },
+  "PropertyUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "age_of_property": {
+        "maximum": 500,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "amenity_ids": {
+        "nullable": true,
+        "type": "array"
+      },
+      "area_sqft": {
+        "maximum": 1000000,
+        "minimum": 0,
+        "nullable": true,
+        "type": "number"
+      },
+      "area_type": {
+        "nullable": true,
+        "type": "string"
+      },
+      "available_from": {
+        "nullable": true,
+        "type": "string"
+      },
+      "balconies": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "base_price": {
+        "nullable": true,
+        "type": "number"
+      },
+      "bathrooms": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "bedrooms": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "builder_name": {
+        "nullable": true,
+        "type": "string"
+      },
+      "calendar_data": {
+        "nullable": true,
+        "type": "object"
+      },
+      "city": {
+        "nullable": true,
+        "type": "string"
+      },
+      "country": {
+        "nullable": true,
+        "type": "string"
+      },
+      "daily_rate": {
+        "nullable": true,
+        "type": "number"
+      },
+      "description": {
+        "nullable": true,
+        "type": "string"
+      },
+      "features": {
+        "nullable": true,
+        "type": "array"
+      },
+      "floor_number": {
+        "maximum": 200,
+        "minimum": -5,
+        "nullable": true,
+        "type": "integer"
+      },
+      "floor_plan_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "full_address": {
+        "nullable": true,
+        "type": "string"
+      },
+      "furnishing_level": {
+        "enum": [
+          "furnished",
+          "semi_furnished",
+          "unfurnished"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "gender_preference": {
+        "enum": [
+          "any",
+          "male",
+          "female"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "google_street_view_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "image_urls": {
+        "nullable": true,
+        "type": "array"
+      },
+      "is_available": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "kitchen_type": {
+        "enum": [
+          "vegetarian",
+          "non_vegetarian",
+          "eggetarian",
+          "any"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "landmark": {
+        "nullable": true,
+        "type": "string"
+      },
+      "latitude": {
+        "maximum": 90,
+        "minimum": -90,
+        "nullable": true,
+        "type": "number"
+      },
+      "listing_preferences": {
+        "nullable": true,
+        "properties": [
+          "cleanliness",
+          "expires_at",
+          "food_habits",
+          "gender_preference",
+          "guests_policy",
+          "moderation_status",
+          "parties_at_home",
+          "pets",
+          "sharing_type",
+          "smoking_drinking"
+        ],
+        "type": "object"
+      },
+      "locality": {
+        "nullable": true,
+        "type": "string"
+      },
+      "longitude": {
+        "maximum": 180,
+        "minimum": -180,
+        "nullable": true,
+        "type": "number"
+      },
+      "main_image_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "maintenance_charges": {
+        "nullable": true,
+        "type": "number"
+      },
+      "max_occupancy": {
+        "maximum": 1000,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "minimum_stay_days": {
+        "maximum": 3650,
+        "minimum": 1,
+        "nullable": true,
+        "type": "integer"
+      },
+      "monthly_rent": {
+        "nullable": true,
+        "type": "number"
+      },
+      "other_charges": {
+        "nullable": true,
+        "type": "number"
+      },
+      "other_charges_description": {
+        "maxLength": 300,
+        "nullable": true,
+        "type": "string"
+      },
+      "owner_contact": {
+        "nullable": true,
+        "type": "string"
+      },
+      "owner_name": {
+        "nullable": true,
+        "type": "string"
+      },
+      "parking_spaces": {
+        "maximum": 100,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "pincode": {
+        "nullable": true,
+        "type": "string"
+      },
+      "property_type": {
+        "enum": [
+          "house",
+          "apartment",
+          "builder_floor",
+          "room",
+          "villa",
+          "plot",
+          "condo",
+          "penthouse",
+          "studio",
+          "loft",
+          "pg",
+          "flatmate",
+          "office",
+          "shop",
+          "warehouse"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "purpose": {
+        "enum": [
+          "buy",
+          "rent",
+          "short_stay"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "search_keywords": {
+        "nullable": true,
+        "type": "string"
+      },
+      "security_deposit": {
+        "nullable": true,
+        "type": "number"
+      },
+      "setup_cost": {
+        "nullable": true,
+        "type": "number"
+      },
+      "sharing_type": {
+        "enum": [
+          "private_room",
+          "shared_room",
+          "master_bedroom",
+          "entire_flat"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "society_amenities": {
+        "nullable": true,
+        "type": "array"
+      },
+      "society_type": {
+        "nullable": true,
+        "type": "string"
+      },
+      "society_vibe_tags": {
+        "nullable": true,
+        "type": "array"
+      },
+      "state": {
+        "nullable": true,
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "available",
+          "sold",
+          "rented",
+          "under_offer",
+          "maintenance"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "sub_locality": {
+        "nullable": true,
+        "type": "string"
+      },
+      "tags": {
+        "nullable": true,
+        "type": "array"
+      },
+      "title": {
+        "nullable": true,
+        "type": "string"
+      },
+      "total_floors": {
+        "maximum": 200,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "ventilation_shafts": {
+        "maximum": 50,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      },
+      "ventilation_type": {
+        "enum": [
+          "good",
+          "average",
+          "poor"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "video_tour_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "video_urls": {
+        "nullable": true,
+        "type": "array"
+      },
+      "virtual_tour_url": {
+        "nullable": true,
+        "type": "string"
+      },
+      "windows_count": {
+        "maximum": 100,
+        "minimum": 0,
+        "nullable": true,
+        "type": "integer"
+      }
+    },
+    "required": []
+  },
+  "QnAAnswers": {
+    "extra_forbidden": true,
+    "properties": {
+      "answers": {
+        "nullable": false,
+        "type": "object"
+      }
+    },
+    "required": []
+  },
+  "ReportCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "conversation_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "notes": {
+        "nullable": true,
+        "type": "string"
+      },
+      "property_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "reason": {
+        "enum": [
+          "spam",
+          "fake_profile",
+          "abuse",
+          "inappropriate",
+          "other"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "reported_user_id": {
+        "nullable": false,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "reason",
+      "reported_user_id"
+    ]
+  },
+  "SocietyTagVoteCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "tag": {
+        "maxLength": 80,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      },
+      "vote": {
+        "enum": [
+          "up",
+          "down"
+        ],
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "tag",
+      "vote"
+    ]
+  },
+  "SwipeRequest": {
+    "extra_forbidden": true,
+    "properties": {
+      "action": {
+        "enum": [
+          "pass",
+          "like",
+          "super_like"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "context_property_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "property_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "target_type": {
+        "enum": [
+          "property",
+          "user"
+        ],
+        "nullable": false,
+        "type": "string"
+      },
+      "target_user_id": {
+        "nullable": true,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "action",
+      "target_type"
+    ]
+  },
+  "UnmatchPairRequest": {
+    "extra_forbidden": true,
+    "properties": {
+      "peer_user_id": {
+        "nullable": false,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "peer_user_id"
+    ]
+  },
+  "UserUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "current_latitude": {
+        "maximum": 90,
+        "minimum": -90,
+        "nullable": true,
+        "type": "number"
+      },
+      "current_longitude": {
+        "maximum": 180,
+        "minimum": -180,
+        "nullable": true,
+        "type": "number"
+      },
+      "date_of_birth": {
+        "nullable": true,
+        "type": "string"
+      },
+      "full_name": {
+        "nullable": true,
+        "type": "string"
+      },
+      "notification_settings": {
+        "nullable": true,
+        "properties": [
+          "email_notifications",
+          "promotional_emails",
+          "push_notifications",
+          "sms_notifications"
+        ],
+        "type": "object"
+      },
+      "phone": {
+        "nullable": true,
+        "type": "string"
+      },
+      "privacy_settings": {
+        "nullable": true,
+        "properties": [
+          "allow_location_tracking",
+          "contact_sharing",
+          "data_sharing_consent",
+          "hide_last_name",
+          "location_sharing",
+          "profile_visibility",
+          "search_history_tracking",
+          "show_email",
+          "show_phone"
+        ],
+        "type": "object"
+      }
+    },
+    "required": []
+  },
+  "VisitCancel": {
+    "extra_forbidden": true,
+    "properties": {
+      "reason": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "reason"
+    ]
+  },
+  "VisitCreate": {
+    "extra_forbidden": true,
+    "properties": {
+      "conversation_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "counterparty_user_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "match_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "property_id": {
+        "nullable": false,
+        "type": "integer"
+      },
+      "scheduled_date": {
+        "nullable": false,
+        "type": "string"
+      },
+      "special_requirements": {
+        "nullable": true,
+        "type": "string"
+      },
+      "time_slot_label": {
+        "maxLength": 64,
+        "nullable": true,
+        "type": "string"
+      },
+      "user_id": {
+        "nullable": true,
+        "type": "integer"
+      },
+      "visit_context": {
+        "enum": [
+          "property_tour",
+          "flatmate_meet"
+        ],
+        "nullable": false,
+        "type": "string"
+      }
+    },
+    "required": [
+      "property_id",
+      "scheduled_date"
+    ]
+  },
+  "VisitReschedule": {
+    "extra_forbidden": true,
+    "properties": {
+      "new_date": {
+        "nullable": false,
+        "type": "string"
+      },
+      "reason": {
+        "nullable": true,
+        "type": "string"
+      }
+    },
+    "required": [
+      "new_date"
+    ]
+  },
+  "VisitUpdate": {
+    "extra_forbidden": true,
+    "properties": {
+      "follow_up_date": {
+        "nullable": true,
+        "type": "string"
+      },
+      "follow_up_required": {
+        "nullable": true,
+        "type": "boolean"
+      },
+      "interest_level": {
+        "nullable": true,
+        "type": "string"
+      },
+      "special_requirements": {
+        "nullable": true,
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "requested",
+          "confirmed",
+          "completed",
+          "cancelled",
+          "reschedule_suggested"
+        ],
+        "nullable": true,
+        "type": "string"
+      },
+      "visit_notes": {
+        "nullable": true,
+        "type": "string"
+      },
+      "visitor_feedback": {
+        "nullable": true,
+        "type": "string"
+      }
+    },
+    "required": []
+  }
+}

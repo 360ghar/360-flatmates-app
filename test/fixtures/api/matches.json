@@ -1,0 +1,119 @@
+{
+  "contact": {
+    "match_id": 4,
+    "peer_user_id": 2,
+    "phone": "+919800000002"
+  },
+  "contact_no_phone": {
+    "match_id": 4,
+    "peer_user_id": 2,
+    "phone": null
+  },
+  "page": {
+    "has_more": false,
+    "items": [
+      {
+        "context_property": {
+          "city": "Bengaluru",
+          "id": 42,
+          "locality": "Koramangala",
+          "main_image_url": "https://cdn.example.com/p42/main.jpg",
+          "monthly_rent": 24000.0,
+          "owner_image_url": null,
+          "owner_name": "Rahul S",
+          "title": "Sunny room in Koramangala"
+        },
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 4,
+        "peer": {
+          "age_bucket": "25-30",
+          "bio": "Early riser, tidy, cooks on weekends.",
+          "budget_max": 25000.5,
+          "budget_min": 12000.0,
+          "city": "Bengaluru",
+          "cleanliness": "tidy",
+          "drinking": "occasionally",
+          "food_habits": "vegetarian",
+          "full_name": "Priya P",
+          "gender": "female",
+          "gender_preference": "any",
+          "guests_policy": "occasional_ok",
+          "has_pets": false,
+          "id": 2,
+          "linkedin_url": null,
+          "listing": null,
+          "locality": "HSR Layout",
+          "match_percentage": 85.0,
+          "mode": "co_hunter",
+          "move_in_timeline": "within_1_month",
+          "native_place": "Pune",
+          "non_negotiables": [
+            "no_smoking",
+            "no_parties"
+          ],
+          "party_habit": "occasional_weekends",
+          "profession": "Designer",
+          "profile_image_url": "https://cdn.example.com/u/2.jpg",
+          "sleep_schedule": "early_bird",
+          "smoking": "never",
+          "top_matches": [
+            "Same sleep schedule",
+            "Both vegetarian"
+          ],
+          "work_style": "hybrid"
+        },
+        "status": "active"
+      },
+      {
+        "context_property": null,
+        "created_at": "2026-09-30T10:15:02Z",
+        "id": 5,
+        "peer": {
+          "age_bucket": "25-30",
+          "bio": "Early riser, tidy, cooks on weekends.",
+          "budget_max": 25000.5,
+          "budget_min": 12000.0,
+          "city": "Bengaluru",
+          "cleanliness": "tidy",
+          "drinking": "occasionally",
+          "food_habits": "vegetarian",
+          "full_name": "Rahul S",
+          "gender": "female",
+          "gender_preference": "any",
+          "guests_policy": "occasional_ok",
+          "has_pets": false,
+          "id": 3,
+          "linkedin_url": null,
+          "listing": null,
+          "locality": "HSR Layout",
+          "match_percentage": 85.0,
+          "mode": "co_hunter",
+          "move_in_timeline": "within_1_month",
+          "native_place": "Pune",
+          "non_negotiables": [
+            "no_smoking",
+            "no_parties"
+          ],
+          "party_habit": "occasional_weekends",
+          "profession": "Designer",
+          "profile_image_url": "https://cdn.example.com/u/3.jpg",
+          "sleep_schedule": "early_bird",
+          "smoking": "never",
+          "top_matches": [
+            "Same sleep schedule",
+            "Both vegetarian"
+          ],
+          "work_style": "hybrid"
+        },
+        "status": "blocked"
+      }
+    ],
+    "limit": 100,
+    "next_cursor": null,
+    "total": null
+  },
+  "unmatched": {
+    "id": 4,
+    "status": "unmatched"
+  }
+}

@@ -5,11 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../location/presentation/map_widgets.dart';
 import '../../../shared/presentation/components.dart';
 import '../../domain/property_listing.dart';
+import 'details_media_band.dart';
 
 /// Opens the property location in an external maps app (view-only, distinct
 /// from `GetDirectionsButton` which launches turn-by-turn directions).
@@ -68,13 +68,11 @@ Future<void> _openInMaps(
 class FlatDetailsLocation extends StatelessWidget {
   const FlatDetailsLocation({
     required this.listing,
-    required this.currentUserId,
     required this.onVoteSocietyTag,
     super.key,
   });
 
   final PropertyListing listing;
-  final int? currentUserId;
   final void Function(String tag, String vote) onVoteSocietyTag;
 
   @override
@@ -85,7 +83,12 @@ class FlatDetailsLocation extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      // Trailing inset clears the Duo's right-edge status bar; the page body
+      // is not wrapped in a SafeArea so the carousel above can stay full-bleed.
+      padding: EdgeInsets.only(
+        left: AppSpacing.screen,
+        right: AppSpacing.screen + MediaQuery.paddingOf(context).right,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -93,46 +96,22 @@ class FlatDetailsLocation extends StatelessWidget {
           if (l.latitude != null && l.longitude != null) ...[
             FlatmatesSectionHeader(title: locale.locationSectionTitle),
             const SizedBox(height: AppSpacing.sm),
-            MiniMapView(
-              latitude: l.latitude!,
-              longitude: l.longitude!,
-              height: 220,
-              markerLabel: l.locality ?? l.city,
-              onTap: () => _openInMaps(
-                l.latitude!,
-                l.longitude!,
-                label: l.locality ?? l.city ?? locale.propertyFallbackLabel,
+            // The band follows the content column, not the viewport: a fixed
+            // 220 dp frame letterboxes the map once the reading column widens.
+            LayoutBuilder(
+              builder: (context, constraints) => MiniMapView(
+                latitude: l.latitude!,
+                longitude: l.longitude!,
+                height: detailsMediaBandHeight(constraints.maxWidth),
+                markerLabel: l.locality ?? l.city,
+                onTap: () => _openInMaps(
+                  l.latitude!,
+                  l.longitude!,
+                  label: l.locality ?? l.city ?? locale.propertyFallbackLabel,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            // Sector button (commented out — kept for reference)
-            // if ((l.locality ?? l.city)?.trim().isNotEmpty ?? false)
-            //   Flexible(
-            //     child: OutlinedButton.icon(
-            //       key: Key('flat_map_locality_open'),
-            //       onPressed: () => _openInMaps(
-            //         l.latitude!,
-            //         l.longitude!,
-            //         label:
-            //             l.locality ??
-            //             l.city ??
-            //             locale.propertyFallbackLabel,
-            //       ),
-            //       icon: Icon(Icons.place_outlined, size: 18),
-            //       label: Text((l.locality ?? l.city)!),
-            //       style: OutlinedButton.styleFrom(
-            //         foregroundColor: AppSemanticColors.accent,
-            //         side: BorderSide(color: AppSemanticColors.accent),
-            //         shape: RoundedRectangleBorder(
-            //           borderRadius: AppRadius.smBorder,
-            //         ),
-            //         padding: EdgeInsets.symmetric(
-            //           horizontal: AppSpacing.lg,
-            //           vertical: AppSpacing.md,
-            //         ),
-            //       ),
-            //     ),
-            //   ),
             GetDirectionsButton(
               key: const ValueKey('flat_details_get_directions'),
               latitude: l.latitude!,
@@ -141,35 +120,33 @@ class FlatDetailsLocation extends StatelessWidget {
             const SizedBox(height: AppSpacing.screen),
           ],
 
-          // Society / Vibe tags
-          if (l.societyTagVoteCounts.isNotEmpty) ...[
+          // Society / Vibe tags: the owner's tags; counts appear after a vote.
+          if (l.societyVibeTags.isNotEmpty) ...[
             FlatmatesSectionHeader(title: locale.societyVibeSectionTitle),
             const SizedBox(height: AppSpacing.sm),
             _buildSocietyTagChips(l, isDark),
             const SizedBox(height: AppSpacing.screen),
           ],
 
-          // Social proof row
-          Row(
+          // Social proof: wraps on a narrow phone or at large text.
+          Wrap(
+            spacing: AppSpacing.lg,
+            runSpacing: AppSpacing.sm,
             children: [
-              if (l.viewCount > 0) ...[
+              if (l.viewCount > 0)
                 _StatItem(
                   icon: Icons.visibility_outlined,
                   value: compactCount(l.viewCount),
                   label: locale.viewsLabel,
                   isDark: isDark,
                 ),
-                const SizedBox(width: AppSpacing.xl),
-              ],
-              if (l.interestCount > 0) ...[
+              if (l.interestCount > 0)
                 _StatItem(
                   icon: Icons.person_outline,
                   value: compactCount(l.interestCount),
                   label: locale.interestedLabel,
                   isDark: isDark,
                 ),
-                const SizedBox(width: AppSpacing.xl),
-              ],
               if (l.likeCount > 0)
                 _StatItem(
                   icon: Icons.favorite_border,
@@ -186,19 +163,18 @@ class FlatDetailsLocation extends StatelessWidget {
               l.userNextVisitDate != null) ...[
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: AppSpacing.edgeMd,
               decoration: BoxDecoration(
-                color: AppSemanticColors.success.withValues(alpha: 0.1),
+                color: AppSemanticColors.pineSoftFor(theme.brightness),
                 borderRadius: AppRadius.mdBorder,
-                border: Border.all(
-                  color: AppSemanticColors.success.withValues(alpha: 0.3),
-                ),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.check_circle_rounded,
-                    color: AppSemanticColors.success,
+                    color: AppSemanticColors.pineFor(
+                      Theme.of(context).brightness,
+                    ),
                     size: 20,
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -207,11 +183,11 @@ class FlatDetailsLocation extends StatelessWidget {
                       locale.visitScheduledBanner(
                         DateFormat.yMMMd(
                           locale.localeName,
-                        ).format(l.userNextVisitDate!),
+                        ).format(l.userNextVisitDate!.toLocal()),
                       ),
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppSemanticColors.success,
+                        color: AppSemanticColors.greenInkFor(theme.brightness),
                       ),
                     ),
                   ),
@@ -224,18 +200,20 @@ class FlatDetailsLocation extends StatelessWidget {
           // Safety banner
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: AppSpacing.edgeMd,
             decoration: BoxDecoration(
-              color: AppSemanticColors.accent.withValues(alpha: 0.08),
+              color: AppSemanticColors.coralSoftFor(theme.brightness),
               borderRadius: AppRadius.mdBorder,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
+                Icon(
                   Icons.shield_outlined,
                   size: 18,
-                  color: AppSemanticColors.accent,
+                  color: AppSemanticColors.clayFor(
+                    Theme.of(context).brightness,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -244,21 +222,18 @@ class FlatDetailsLocation extends StatelessWidget {
                     children: [
                       Text(
                         locale.safetyBannerTitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                        style: theme.textTheme.labelMedium?.copyWith(
                           color: AppSemanticColors.textPrimaryFor(
-                            isDark ? Brightness.dark : Brightness.light,
+                            Theme.of(context).brightness,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         locale.safetyBannerBody,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppSemanticColors.textSecondaryFor(
-                            isDark ? Brightness.dark : Brightness.light,
+                            theme.brightness,
                           ),
-                          fontSize: AppTypography.microLabelSize,
                         ),
                       ),
                     ],
@@ -279,21 +254,13 @@ class FlatDetailsLocation extends StatelessWidget {
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
-      children: l.societyTagVoteCounts.entries.map((entry) {
-        final tag = entry.key;
-        final counts = entry.value;
-        final up = counts['up'] ?? 0;
-        final netVotes = up - (counts['down'] ?? 0);
-        final myVote = currentUserId != null
-            ? (l.societyTagUserVotes['$currentUserId:$tag'] ??
-                  l.societyTagUserVotes[currentUserId.toString()])
-            : null;
-        final label = humanizeFlatmatesToken(tag);
+      children: l.societyVibeTags.map((tag) {
+        final result = l.societyTagVotes[tag];
         return _SocietyTagChip(
           tag: tag,
-          label: label,
-          netVotes: netVotes,
-          myVote: myVote,
+          label: humanizeFlatmatesToken(tag),
+          netVotes: result?.netVotes,
+          myVote: result?.currentVote,
           onVote: onVoteSocietyTag,
           isDark: isDark,
         );
@@ -314,74 +281,80 @@ class _SocietyTagChip extends StatelessWidget {
 
   final String tag;
   final String label;
-  final int netVotes;
+
+  /// Null until the viewer votes: the server sends no counts before that.
+  final int? netVotes;
   final String? myVote;
   final void Function(String tag, String vote) onVote;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
     final selected = myVote == 'up';
-    return GestureDetector(
-      onTap: () => onVote(tag, 'up'),
-      onLongPress: () => onVote(tag, 'down'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppSemanticColors.accent.withValues(alpha: 0.1)
-              : AppSemanticColors.secondarySurfaceFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-          borderRadius: AppRadius.pillBorder,
-          border: Border.all(
-            color: selected
-                ? AppSemanticColors.accent.withValues(alpha: 0.4)
-                : AppSemanticColors.hairlineFor(
-                    isDark ? Brightness.dark : Brightness.light,
-                  ),
+    final clay = AppSemanticColors.clayFor(brightness);
+    final foreground = selected
+        ? AppSemanticColors.clayInkFor(brightness)
+        : AppSemanticColors.textPrimaryFor(brightness);
+    // Tap votes up, long-press votes down (announced as a long-press hint).
+    return Semantics(
+      button: true,
+      selected: selected,
+      onLongPressHint: AppLocalizations.of(context).voteDownHint,
+      child: Material(
+        color: selected
+            ? AppSemanticColors.coralSoftFor(brightness)
+            : AppSemanticColors.paper2For(brightness),
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.mdBorder,
+          side: BorderSide(
+            color: selected ? clay : AppSemanticColors.hairlineFor(brightness),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              selected ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
-              size: 14,
-              color: selected
-                  ? AppSemanticColors.accent
-                  : AppSemanticColors.textSecondaryFor(
-                      isDark ? Brightness.dark : Brightness.light,
+        child: InkWell(
+          onTap: () => onVote(tag, 'up'),
+          onLongPress: () => onVote(tag, 'down'),
+          customBorder: const RoundedRectangleBorder(
+            borderRadius: AppRadius.mdBorder,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: kMinInteractiveDimension,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    selected ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                    size: 16,
+                    color: selected
+                        ? clay
+                        : AppSemanticColors.textSecondaryFor(brightness),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: foreground,
                     ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: AppTypography.microLabelSize,
-                fontWeight: FontWeight.w600,
-                color: selected
-                    ? AppSemanticColors.accent
-                    : AppSemanticColors.textPrimaryFor(
-                        isDark ? Brightness.dark : Brightness.light,
+                  ),
+                  if (netVotes != null) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      netVotes.toString(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppSemanticColors.textSecondaryFor(brightness),
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(width: 4),
-            Text(
-              netVotes.toString(),
-              style: TextStyle(
-                fontSize: AppTypography.badgeSize,
-                fontWeight: FontWeight.w700,
-                color: AppSemanticColors.textSecondaryFor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -411,25 +384,21 @@ class _StatItem extends StatelessWidget {
           icon,
           size: 16,
           color: AppSemanticColors.textTertiaryFor(
-            isDark ? Brightness.dark : Brightness.light,
+            Theme.of(context).brightness,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(
           value,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: AppTypography.bodySmSize,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-        const SizedBox(width: 2),
+        const SizedBox(width: AppSpacing.xs),
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: AppSemanticColors.textTertiaryFor(
-              isDark ? Brightness.dark : Brightness.light,
-            ),
-            fontSize: AppTypography.microLabelSize,
+            color: AppSemanticColors.textTertiaryFor(theme.brightness),
           ),
         ),
       ],

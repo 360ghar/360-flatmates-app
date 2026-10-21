@@ -12,8 +12,7 @@ void showPreferencesSheet(BuildContext context) {
   FlatmatesBottomSheet.show(
     context: context,
     isScrollControlled: true,
-    builder: (sheetContext) =>
-        Consumer(builder: (context, ref, _) => const PreferencesSheet()),
+    builder: (_) => const PreferencesSheet(),
   );
 }
 
@@ -28,6 +27,7 @@ class PreferencesSheet extends StatelessWidget {
         final settings = ref.watch(settingsControllerProvider);
         final locale = AppLocalizations.of(context);
         final theme = Theme.of(context);
+        final clay = AppSemanticColors.clayFor(theme.brightness);
 
         if (!settings.loaded) {
           return DraggableScrollableSheet(
@@ -45,30 +45,16 @@ class PreferencesSheet extends StatelessWidget {
           maxChildSize: 0.9,
           expand: false,
           builder: (context, scrollController) {
+            // FlatmatesBottomSheet draws the drag handle.
             return Column(
               children: [
-                Container(
-                  margin: const EdgeInsets.only(top: AppSpacing.sm),
-                  width: AppSpacing.xl,
-                  height: AppSpacing.xs,
-                  decoration: BoxDecoration(
-                    color: AppSemanticColors.hairlineFor(
-                      theme.brightness,
-                    ).withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  ),
-                ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.sm,
-                  ),
-                  child: Text(
-                    locale.preferencesLabel,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      locale.preferencesLabel,
+                      style: theme.textTheme.titleLarge,
                     ),
                   ),
                 ),
@@ -76,11 +62,10 @@ class PreferencesSheet extends StatelessWidget {
                 Expanded(
                   child: ListView(
                     controller: scrollController,
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                      AppSpacing.lg,
-                      AppSpacing.xl,
+                    // The sheet shell already pads the sides.
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.sm,
+                      bottom: AppSpacing.xl,
                     ),
                     children: [
                       Text(
@@ -145,9 +130,11 @@ class PreferencesSheet extends StatelessWidget {
                         color: Colors.transparent,
                         child: SwitchListTile(
                           key: const Key('setting_hide_last_name'),
-                          secondary: const Icon(
+                          // Align the icon with the section labels.
+                          contentPadding: EdgeInsets.zero,
+                          secondary: Icon(
                             Icons.person_off_outlined,
-                            color: AppSemanticColors.accent,
+                            color: clay,
                           ),
                           title: Text(locale.hideLastNameLabel),
                           value: settings.hideLastName,
@@ -163,9 +150,11 @@ class PreferencesSheet extends StatelessWidget {
                         color: Colors.transparent,
                         child: SwitchListTile(
                           key: const Key('setting_hide_location'),
-                          secondary: const Icon(
+                          // Align the icon with the section labels.
+                          contentPadding: EdgeInsets.zero,
+                          secondary: Icon(
                             Icons.location_off_outlined,
-                            color: AppSemanticColors.accent,
+                            color: clay,
                           ),
                           title: Text(locale.hideExactLocationLabel),
                           value: settings.hideExactLocation,

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/gen/app_localizations.dart';
 import '../compatibility/compatibility_engine.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_semantic_colors.dart';
 
 class CompatibilityRing extends ConsumerStatefulWidget {
@@ -29,23 +30,49 @@ class _CompatibilityRingState extends ConsumerState<CompatibilityRing>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _animation;
+  bool _reduceMotion = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: AppMotion.compatibilityRing,
     );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: AppMotion.paperOut,
+    );
+    // The reduce-motion preference is not readable before
+    // didChangeDependencies, which runs before the first build, so the arc
+    // never paints a frame it should have skipped.
     _controller.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = AppMotion.reduceMotion(context);
+    if (reduce == _reduceMotion) return;
+    _reduceMotion = reduce;
+    if (reduce) {
+      // Settle the arc instantly instead of animating into it. Turning the
+      // preference back off does not replay the entrance: the ring is
+      // already at the value the entrance ends on.
+      _controller.stop();
+      _controller.value = 1;
+    }
   }
 
   @override
   void didUpdateWidget(covariant CompatibilityRing oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.percentage != widget.percentage) {
-      _controller.forward(from: 0);
+      if (_reduceMotion) {
+        _controller.value = 1;
+      } else {
+        _controller.forward(from: 0);
+      }
     }
   }
 
@@ -58,8 +85,9 @@ class _CompatibilityRingState extends ConsumerState<CompatibilityRing>
   bool get _hasReliableScore => widget.percentage > 0;
 
   Color _color() {
-    if (!_hasReliableScore) return AppSemanticColors.accent;
-    return compatibilityScoreColor(widget.percentage);
+    final brightness = Theme.of(context).brightness;
+    if (!_hasReliableScore) return AppSemanticColors.clayFor(brightness);
+    return compatibilityScoreColor(widget.percentage, brightness: brightness);
   }
 
   @override
@@ -175,9 +203,10 @@ class CompatibilityBreakdown extends StatelessWidget {
         final icon = dim.isMatch
             ? Icons.check_circle_rounded
             : Icons.warning_amber_rounded;
-        final color = dim.isMatch
-            ? compatibilityScoreColor(100)
-            : compatibilityScoreColor(40);
+        final color = compatibilityScoreColor(
+          dim.isMatch ? 100 : 40,
+          brightness: Theme.of(context).brightness,
+        );
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(

@@ -6,6 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../bootstrap/catalog_helpers.dart';
 import '../../shared/presentation/components.dart';
+import '../../../core/theme/app_radius.dart';
 
 /// Single tappable row used in the location-picker screens for primary
 /// actions (e.g. "Use current location").
@@ -28,18 +29,18 @@ class LocationActionRow extends StatelessWidget {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: AppRadius.mdBorder,
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: vertical),
         child: Row(
           children: [
-            Icon(icon, color: AppSemanticColors.accent),
+            Icon(icon, color: AppSemanticColors.clayFor(theme.brightness)),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 title,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: AppSemanticColors.accent,
+                  color: AppSemanticColors.clayFor(theme.brightness),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -75,9 +76,9 @@ class LocationSuggestionRow extends StatelessWidget {
       borderColor: hairline.withValues(alpha: 0.35),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.location_on_outlined,
-            color: AppSemanticColors.accent,
+            color: AppSemanticColors.clayFor(theme.brightness),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -155,7 +156,7 @@ class LocationCityRow extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: AppSemanticColors.secondarySurfaceFor(brightness),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: AppRadius.pillBorder,
                 ),
                 child: Text(
                   locale.comingSoon,
@@ -177,23 +178,25 @@ class LocationCityRow extends StatelessWidget {
         vertical: AppSpacing.md + AppSpacing.xs,
       ),
       backgroundColor: selected
-          ? AppSemanticColors.accent.withValues(alpha: 0.08)
+          ? AppSemanticColors.clayFor(
+              Theme.of(context).brightness,
+            ).withValues(alpha: 0.08)
           : null,
       borderColor: selected
-          ? AppSemanticColors.accent
+          ? AppSemanticColors.clayFor(Theme.of(context).brightness)
           : hairline.withValues(alpha: 0.35),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.location_on_outlined,
-            color: AppSemanticColors.accent,
+            color: AppSemanticColors.clayFor(Theme.of(context).brightness),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(child: Text(city.label, style: theme.textTheme.bodyLarge)),
           if (selected)
-            const Icon(
+            Icon(
               Icons.check_circle_rounded,
-              color: AppSemanticColors.accent,
+              color: AppSemanticColors.clayFor(Theme.of(context).brightness),
             )
           else
             Icon(Icons.chevron_right, color: hairline),
