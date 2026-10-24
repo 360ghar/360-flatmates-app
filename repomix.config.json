@@ -30,7 +30,6 @@
     "l10n.yaml",
     ".fvmrc",
     ".env.example",
-    "CLAUDE.md",
     "AGENTS.md",
     "DESIGN.md",
     "docs/prd.md",

@@ -41,7 +41,7 @@ class ManageListingsActionsState {
 /// Application-layer controller for manage-listings mutations (pause/resume).
 ///
 /// Owns optimistic pause/resume with rollback and keeps repository calls out of
-/// the widget layer (see CLAUDE.md "Business logic in controllers").
+/// the widget layer (see AGENTS.md "Business logic in controllers").
 class ManageListingsActionsController
     extends Notifier<ManageListingsActionsState> {
   @override

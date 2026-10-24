@@ -9,7 +9,7 @@ import '../notifications_repository.dart';
 
 /// Application-layer controller for notification mutations (mark read /
 /// mark all read). Keeps repository calls + invalidation out of the widget
-/// layer (see CLAUDE.md "Business logic in controllers").
+/// layer (see AGENTS.md "Business logic in controllers").
 class NotificationsActionsController {
   NotificationsActionsController(this._ref);
 

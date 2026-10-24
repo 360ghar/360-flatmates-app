@@ -7,7 +7,7 @@ Welcome to the 360 FlatMates codebase. This section covers the workflows, conven
 Read these files in order:
 
 1. **AGENTS.md** (repo root) -- Core rules, architecture boundaries, Riverpod guidance, error handling, UI conventions, and banned patterns. This is the authoritative reference for how code should be written.
-2. **CLAUDE.md** (repo root) -- Commands, architecture overview, key patterns, and cross-repo dependencies. Contains the full feature directory layout and state management conventions.
+2. **AGENTS.md** (repo root) -- Commands, architecture overview, key patterns, and cross-repo dependencies. Contains the full feature directory layout and state management conventions.
 3. **DESIGN.md** (repo root) -- Design tokens, component specifications, and screen-by-screen implementation targets. All visual work must match this document.
 
 ## Quick Links

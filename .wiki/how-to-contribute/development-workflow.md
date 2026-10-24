@@ -24,7 +24,7 @@ git checkout -b feature/my-feature
 
 ### 2. Write code
 
-Follow the conventions in AGENTS.md and CLAUDE.md:
+Follow the conventions in AGENTS.md:
 
 - Feature logic in `lib/features/<name>/`
 - Business logic in `application/` controllers, not widgets
